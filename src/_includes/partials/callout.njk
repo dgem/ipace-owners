@@ -1,0 +1,7 @@
+<div class="callout callout--{{ type or 'info' }}" role="note">
+  {% if icon %}<span class="callout__icon" aria-hidden="true">{{ icon }}</span>{% endif %}
+  <div class="callout__content">
+    {% if calloutTitle %}<p class="callout__title">{{ calloutTitle }}</p>{% endif %}
+    {{ calloutBody | safe }}
+  </div>
+</div>

@@ -1,0 +1,18 @@
+<nav id="mobile-nav" class="mobile-nav" aria-label="Mobile navigation" aria-hidden="false">
+  <ul class="mobile-nav__list" role="list">
+    {% for item in navigation.public %}
+      <li>
+        <a
+          href="{{ item.url }}"
+          class="mobile-nav__link{% if item.highlight %} mobile-nav__link--highlight{% endif %}"
+          data-nav-link
+        >{{ item.label }}</a>
+      </li>
+    {% endfor %}
+  </ul>
+
+  <div class="mobile-nav__identity">
+    <button id="identity-mobile-login-btn" class="btn btn--sm btn--secondary full-width" type="button">Sign in / Register</button>
+    <button id="identity-mobile-logout-btn" class="btn btn--sm btn--ghost full-width" type="button" style="display:none">Sign out</button>
+  </div>
+</nav>

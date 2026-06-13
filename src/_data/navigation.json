@@ -1,0 +1,25 @@
+{
+  "public": [
+    { "label": "Home", "url": "/" },
+    { "label": "About", "url": "/about/" },
+    { "label": "Evidence", "url": "/evidence-dashboard/" },
+    { "label": "Methodology", "url": "/methodology/" },
+    { "label": "FAQ", "url": "/faq/" },
+    { "label": "Updates", "url": "/updates/" },
+    { "label": "Join", "url": "/join/", "highlight": true }
+  ],
+  "member": [
+    { "label": "Dashboard", "url": "/member/dashboard/" },
+    { "label": "My Vehicle", "url": "/submit-vehicle-data/" },
+    { "label": "Account", "url": "/account/" }
+  ],
+  "admin": [
+    { "label": "Review Queue", "url": "/admin/review-queue/" },
+    { "label": "Submissions", "url": "/admin/submissions/" },
+    { "label": "Evidence Files", "url": "/admin/evidence-files/" },
+    { "label": "Public Stats", "url": "/admin/public-stats/" },
+    { "label": "Exports", "url": "/admin/exports/" },
+    { "label": "Members", "url": "/admin/members/" },
+    { "label": "Settings", "url": "/admin/settings/" }
+  ]
+}

@@ -1,0 +1,258 @@
+---
+layout: form-page.njk
+title: Join the Group
+eyebrow: Membership
+subtitle: "Free to join. Takes about 3 minutes."
+description: "Join the I-PACE Owners' Advocacy Group — free membership, no obligation."
+multiStepForm: true
+---
+
+<div class="callout callout--info" style="margin-bottom: var(--space-8);">
+  <span class="callout__icon" aria-hidden="true">ℹ️</span>
+  <div class="callout__content">
+    <p class="callout__title">Submission storage not yet active</p>
+    <p>This form is fully functional as a multi-step experience, but submissions are not yet
+    stored. A "submission received" message will appear at the end. No data is sent anywhere.</p>
+  </div>
+</div>
+
+<form
+  class="form"
+  data-multistep-form
+  novalidate
+  aria-label="Join the I-PACE Owners' Group"
+>
+
+  <!-- Progress indicator -->
+  <div class="progress-indicator" data-progress aria-live="polite" aria-atomic="true">
+    <div class="progress-indicator__bar" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+      <div class="progress-indicator__fill" data-progress-fill style="width: 25%;"></div>
+    </div>
+    <div class="progress-indicator__text">
+      <span data-progress-text>Step 1 of 4</span>
+      <span>Join form</span>
+    </div>
+  </div>
+
+  <!-- Step 1: Contact details -->
+  <div data-step="1">
+    <h2 class="step-heading" data-step-heading tabindex="-1">Contact details</h2>
+
+    <fieldset>
+      <legend>Your contact information</legend>
+
+      <div class="form-group">
+        <label for="join-name">Full name <span aria-hidden="true">*</span></label>
+        <span class="form-hint" id="join-name-hint">How you'd like to be addressed</span>
+        <input
+          type="text"
+          id="join-name"
+          name="name"
+          required
+          autocomplete="name"
+          aria-describedby="join-name-hint join-name-error"
+        >
+        <span class="form-error" id="join-name-error" role="alert"></span>
+      </div>
+
+      <div class="form-group">
+        <label for="join-email">Email address <span aria-hidden="true">*</span></label>
+        <span class="form-hint" id="join-email-hint">We'll use this to contact you about the group</span>
+        <input
+          type="email"
+          id="join-email"
+          name="email"
+          required
+          autocomplete="email"
+          aria-describedby="join-email-hint join-email-error"
+        >
+        <span class="form-error" id="join-email-error" role="alert"></span>
+      </div>
+
+      <div class="form-group">
+        <label for="join-country">Country / region</label>
+        <select id="join-country" name="country" aria-describedby="join-country-hint">
+          <option value="">Select a country</option>
+          <option value="GB">United Kingdom</option>
+          <option value="IE">Ireland</option>
+          <option value="DE">Germany</option>
+          <option value="FR">France</option>
+          <option value="NL">Netherlands</option>
+          <option value="NO">Norway</option>
+          <option value="SE">Sweden</option>
+          <option value="DK">Denmark</option>
+          <option value="AT">Austria</option>
+          <option value="CH">Switzerland</option>
+          <option value="BE">Belgium</option>
+          <option value="ES">Spain</option>
+          <option value="IT">Italy</option>
+          <option value="PT">Portugal</option>
+          <option value="US">United States</option>
+          <option value="CA">Canada</option>
+          <option value="AU">Australia</option>
+          <option value="NZ">New Zealand</option>
+          <option value="other">Other</option>
+        </select>
+        <span class="form-hint" id="join-country-hint">Non-UK owners are welcome</span>
+      </div>
+    </fieldset>
+
+    <div class="step-nav">
+      <button type="button" class="btn btn--secondary" data-prev style="visibility:hidden">Back</button>
+      <button type="button" class="btn btn--primary" data-next>Next: Ownership →</button>
+    </div>
+  </div>
+
+  <!-- Step 2: Ownership status -->
+  <div data-step="2" class="step--hidden">
+    <h2 class="step-heading" data-step-heading tabindex="-1">Ownership status</h2>
+
+    <fieldset>
+      <legend>Your relationship to an I-PACE</legend>
+
+      <div class="form-group">
+        <label>Your relationship to the vehicle</label>
+        <div class="radio-group" role="radiogroup" aria-labelledby="join-relationship-label">
+          <p id="join-relationship-label" class="form-hint">Select the option that best describes you</p>
+
+          <label class="radio-label">
+            <input type="radio" name="relationship" value="current-owner"> Current owner
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="relationship" value="former-owner"> Former owner
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="relationship" value="prospective"> Prospective buyer
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="relationship" value="trade"> Trade / specialist
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="relationship" value="other"> Other
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Vehicle ownership</label>
+        <div class="radio-group" role="radiogroup">
+          <label class="radio-label">
+            <input type="radio" name="ownership" value="one"> I own one I-PACE
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="ownership" value="multiple"> I own more than one
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="ownership" value="former"> I no longer own one
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="ownership" value="helping"> I am helping someone who owns one
+          </label>
+        </div>
+      </div>
+    </fieldset>
+
+    <div class="step-nav">
+      <button type="button" class="btn btn--secondary" data-prev>← Back</button>
+      <button type="button" class="btn btn--primary" data-next>Next: Skills →</button>
+    </div>
+  </div>
+
+  <!-- Step 3: Skills / volunteering -->
+  <div data-step="3" class="step--hidden">
+    <h2 class="step-heading" data-step-heading tabindex="-1">Skills and volunteering</h2>
+
+    <fieldset>
+      <legend>Would you like to help run the group?</legend>
+      <p class="form-hint">Select any that apply — entirely optional</p>
+
+      <div class="check-group">
+        <label class="check-label">
+          <input type="checkbox" name="skills" value="legal"> Legal
+        </label>
+        <label class="check-label">
+          <input type="checkbox" name="skills" value="technical"> Technical / battery expertise
+        </label>
+        <label class="check-label">
+          <input type="checkbox" name="skills" value="data"> Data analysis
+        </label>
+        <label class="check-label">
+          <input type="checkbox" name="skills" value="media"> Media / PR
+        </label>
+        <label class="check-label">
+          <input type="checkbox" name="skills" value="web"> Web / admin
+        </label>
+        <label class="check-label">
+          <input type="checkbox" name="skills" value="consumer-rights"> Consumer rights
+        </label>
+        <label class="check-label">
+          <input type="checkbox" name="skills" value="dealer"> Dealer contacts
+        </label>
+        <label class="check-label">
+          <input type="checkbox" name="skills" value="general"> General volunteering
+        </label>
+      </div>
+    </fieldset>
+
+    <div class="step-nav">
+      <button type="button" class="btn btn--secondary" data-prev>← Back</button>
+      <button type="button" class="btn btn--primary" data-next>Next: Consent →</button>
+    </div>
+  </div>
+
+  <!-- Step 4: Consent and review -->
+  <div data-step="4" class="step--hidden">
+    <h2 class="step-heading" data-step-heading tabindex="-1">Consent and review</h2>
+
+    <fieldset>
+      <legend>Please read and confirm</legend>
+
+      <div class="check-group">
+        <label class="check-label">
+          <input type="checkbox" name="consent-contact" required>
+          I agree to be contacted about the I-PACE Owners' Group. <span aria-hidden="true">*</span>
+        </label>
+        <label class="check-label">
+          <input type="checkbox" name="consent-not-legal" required>
+          I understand that joining this group is not currently a legal claim and creates no
+          legal relationship. <span aria-hidden="true">*</span>
+        </label>
+        <label class="check-label">
+          <input type="checkbox" name="consent-data">
+          I consent to my submitted data being used in anonymised aggregate analysis.
+        </label>
+      </div>
+
+      <div class="callout callout--info" style="margin-top: var(--space-5);">
+        <span class="callout__icon" aria-hidden="true">📋</span>
+        <div class="callout__content">
+          <p>By submitting this form you confirm that the information you have provided is
+          accurate to the best of your knowledge. See our
+          <a href="/privacy/">Privacy Policy</a> and
+          <a href="/terms/">Participation Statement</a>.</p>
+        </div>
+      </div>
+    </fieldset>
+
+    <div class="step-nav">
+      <button type="button" class="btn btn--secondary" data-prev>← Back</button>
+      <div></div>
+      <button type="submit" class="btn btn--primary" data-submit>Join the Group</button>
+    </div>
+  </div>
+
+  <!-- Submission result (shown after submit) -->
+  <div class="submit-result" data-submit-result tabindex="-1" role="status">
+    <div style="text-align: center; padding: var(--space-4);">
+      <div style="font-size: 3rem; margin-bottom: var(--space-4);" aria-hidden="true">✅</div>
+      <h2 style="color: var(--color-success);">Thank you for joining</h2>
+      <p style="color: var(--color-text-muted);">
+        <strong>Submission storage is not enabled yet.</strong> Your data has not been sent or stored.
+        This is a development version of the form. Once the backend is ready, your membership
+        registration will be confirmed by email.
+      </p>
+      <a href="/submit-vehicle-data/" class="btn btn--primary">Submit Vehicle Data →</a>
+    </div>
+  </div>
+
+</form>

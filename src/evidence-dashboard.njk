@@ -1,0 +1,274 @@
+---
+layout: base.njk
+title: Evidence Dashboard
+description: "Public anonymised evidence dashboard — I-PACE owner data on battery health, recalls and outcomes."
+---
+
+<div class="page-header">
+  <div class="container">
+    <p class="page-header__eyebrow">Public Evidence</p>
+    <h1 class="page-header__title">Evidence Dashboard</h1>
+    <p class="page-header__subtitle">Anonymised, aggregate data submitted voluntarily by I-PACE owners.</p>
+  </div>
+</div>
+
+<div class="section section--sm bg-muted">
+  <div class="container">
+    <div class="callout callout--warning">
+      <span class="callout__icon" aria-hidden="true">⚠️</span>
+      <div class="callout__content">
+        <p class="callout__title">Placeholder data — collection not yet active</p>
+        <p>This dashboard shows the intended layout and structure. Real data collection has not yet begun.
+        All figures shown are illustrative samples only. When live, data will be submitted voluntarily
+        by owners and will be marked by verification level.</p>
+        <p style="margin-bottom:0;">
+          <a href="/methodology/">Read the full methodology →</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section section--sm">
+  <div class="container">
+
+    <!-- Disclaimer -->
+    <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-4) var(--space-6); margin-bottom: var(--space-8); font-size: var(--text-sm); color: var(--color-text-muted);">
+      <strong style="color: var(--color-text);">Data disclaimer:</strong>
+      Data is submitted voluntarily by owners. Entries are marked by verification level:
+      self-reported, document supplied, reviewed, duplicate-checked, or excluded from public statistics.
+      Public figures are anonymised and aggregated. Sample bias may apply — owners with issues are
+      more likely to submit data.
+    </div>
+
+    <!-- Stat cards -->
+    <h2 style="margin-bottom: var(--space-6);">Summary statistics</h2>
+    <div class="grid grid--4" style="margin-bottom: var(--space-10);">
+      <div class="stat-card">
+        <span class="stat-card__value">—</span>
+        <span class="stat-card__label">Owners contributed</span>
+        <span class="stat-card__note">Sample data</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card__value">—</span>
+        <span class="stat-card__label">Vehicles with HV battery work</span>
+        <span class="stat-card__note">Sample data</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card__value">—%</span>
+        <span class="stat-card__label">Average reported SoH</span>
+        <span class="stat-card__note">Sample data</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card__value">—%</span>
+        <span class="stat-card__label">Recall completion rate</span>
+        <span class="stat-card__note">H570/H571/H572</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card__value">—</span>
+        <span class="stat-card__label">Vehicles outside battery warranty</span>
+        <span class="stat-card__note">8yr / 100k miles</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card__value">—</span>
+        <span class="stat-card__label">Repeat battery issues</span>
+        <span class="stat-card__note">Sample data</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card__value">— days</span>
+        <span class="stat-card__label">Average days off road</span>
+        <span class="stat-card__note">Sample data</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card__value">—%</span>
+        <span class="stat-card__label">Loan car provided</span>
+        <span class="stat-card__note">Sample data</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card__value">—</span>
+        <span class="stat-card__label">Goodwill / payment issues</span>
+        <span class="stat-card__note">Sample data</span>
+      </div>
+    </div>
+
+    <!-- Chart panels -->
+    <h2 style="margin-bottom: var(--space-6);">Charts and distributions</h2>
+    <div class="grid" style="margin-bottom: var(--space-10);">
+
+      <div class="chart-panel">
+        <h3 class="chart-panel__title">State of Health distribution</h3>
+        <div class="bar-chart" role="img" aria-label="Placeholder SoH distribution chart">
+          <div class="bar-chart__row">
+            <span class="bar-chart__label">90–100%</span>
+            <div class="bar-chart__track"><div class="bar-chart__fill" style="width:35%"></div></div>
+            <span class="bar-chart__value">35%</span>
+          </div>
+          <div class="bar-chart__row">
+            <span class="bar-chart__label">80–90%</span>
+            <div class="bar-chart__track"><div class="bar-chart__fill" style="width:40%"></div></div>
+            <span class="bar-chart__value">40%</span>
+          </div>
+          <div class="bar-chart__row">
+            <span class="bar-chart__label">70–80%</span>
+            <div class="bar-chart__track"><div class="bar-chart__fill" style="width:18%"></div></div>
+            <span class="bar-chart__value">18%</span>
+          </div>
+          <div class="bar-chart__row">
+            <span class="bar-chart__label">&lt;70%</span>
+            <div class="bar-chart__track"><div class="bar-chart__fill" style="width:7%"></div></div>
+            <span class="bar-chart__value">7%</span>
+          </div>
+        </div>
+        <p style="font-size:var(--text-sm);color:var(--color-text-muted);margin-top:var(--space-3);margin-bottom:0;">Illustrative data only</p>
+      </div>
+
+      <div class="chart-panel">
+        <h3 class="chart-panel__title">Model year distribution</h3>
+        <div class="bar-chart" role="img" aria-label="Placeholder model year distribution chart">
+          <div class="bar-chart__row">
+            <span class="bar-chart__label">2018</span>
+            <div class="bar-chart__track"><div class="bar-chart__fill" style="width:20%"></div></div>
+            <span class="bar-chart__value">20%</span>
+          </div>
+          <div class="bar-chart__row">
+            <span class="bar-chart__label">2019</span>
+            <div class="bar-chart__track"><div class="bar-chart__fill" style="width:28%"></div></div>
+            <span class="bar-chart__value">28%</span>
+          </div>
+          <div class="bar-chart__row">
+            <span class="bar-chart__label">2020</span>
+            <div class="bar-chart__track"><div class="bar-chart__fill" style="width:22%"></div></div>
+            <span class="bar-chart__value">22%</span>
+          </div>
+          <div class="bar-chart__row">
+            <span class="bar-chart__label">2021</span>
+            <div class="bar-chart__track"><div class="bar-chart__fill" style="width:18%"></div></div>
+            <span class="bar-chart__value">18%</span>
+          </div>
+          <div class="bar-chart__row">
+            <span class="bar-chart__label">2022+</span>
+            <div class="bar-chart__track"><div class="bar-chart__fill" style="width:12%"></div></div>
+            <span class="bar-chart__value">12%</span>
+          </div>
+        </div>
+        <p style="font-size:var(--text-sm);color:var(--color-text-muted);margin-top:var(--space-3);margin-bottom:0;">Illustrative data only</p>
+      </div>
+
+      <div class="chart-panel">
+        <h3 class="chart-panel__title">Recall completion status (H570/H571/H572)</h3>
+        <div class="bar-chart" role="img" aria-label="Placeholder recall completion chart">
+          <div class="bar-chart__row">
+            <span class="bar-chart__label">Completed</span>
+            <div class="bar-chart__track"><div class="bar-chart__fill" style="width:48%"></div></div>
+            <span class="bar-chart__value">48%</span>
+          </div>
+          <div class="bar-chart__row">
+            <span class="bar-chart__label">Booked</span>
+            <div class="bar-chart__track"><div class="bar-chart__fill" style="width:15%"></div></div>
+            <span class="bar-chart__value">15%</span>
+          </div>
+          <div class="bar-chart__row">
+            <span class="bar-chart__label">Awaiting</span>
+            <div class="bar-chart__track"><div class="bar-chart__fill" style="width:22%"></div></div>
+            <span class="bar-chart__value">22%</span>
+          </div>
+          <div class="bar-chart__row">
+            <span class="bar-chart__label">Unknown</span>
+            <div class="bar-chart__track"><div class="bar-chart__fill" style="width:15%"></div></div>
+            <span class="bar-chart__value">15%</span>
+          </div>
+        </div>
+        <p style="font-size:var(--text-sm);color:var(--color-text-muted);margin-top:var(--space-3);margin-bottom:0;">Illustrative data only</p>
+      </div>
+
+      <div class="chart-panel">
+        <h3 class="chart-panel__title">Loan car provision</h3>
+        <div class="bar-chart" role="img" aria-label="Placeholder loan car provision chart">
+          <div class="bar-chart__row">
+            <span class="bar-chart__label">Yes, whole period</span>
+            <div class="bar-chart__track"><div class="bar-chart__fill" style="width:30%"></div></div>
+            <span class="bar-chart__value">30%</span>
+          </div>
+          <div class="bar-chart__row">
+            <span class="bar-chart__label">Partial</span>
+            <div class="bar-chart__track"><div class="bar-chart__fill" style="width:18%"></div></div>
+            <span class="bar-chart__value">18%</span>
+          </div>
+          <div class="bar-chart__row">
+            <span class="bar-chart__label">After escalation</span>
+            <div class="bar-chart__track"><div class="bar-chart__fill" style="width:12%"></div></div>
+            <span class="bar-chart__value">12%</span>
+          </div>
+          <div class="bar-chart__row">
+            <span class="bar-chart__label">No loan car</span>
+            <div class="bar-chart__track"><div class="bar-chart__fill" style="width:40%"></div></div>
+            <span class="bar-chart__value">40%</span>
+          </div>
+        </div>
+        <p style="font-size:var(--text-sm);color:var(--color-text-muted);margin-top:var(--space-3);margin-bottom:0;">Illustrative data only</p>
+      </div>
+
+      <div class="chart-panel">
+        <h3 class="chart-panel__title">Battery warranty status at time of fault</h3>
+        <div class="bar-chart" role="img" aria-label="Placeholder warranty status chart">
+          <div class="bar-chart__row">
+            <span class="bar-chart__label">Inside 8yr/100k</span>
+            <div class="bar-chart__track"><div class="bar-chart__fill" style="width:65%"></div></div>
+            <span class="bar-chart__value">65%</span>
+          </div>
+          <div class="bar-chart__row">
+            <span class="bar-chart__label">Outside 8yr/100k</span>
+            <div class="bar-chart__track"><div class="bar-chart__fill" style="width:28%"></div></div>
+            <span class="bar-chart__value">28%</span>
+          </div>
+          <div class="bar-chart__row">
+            <span class="bar-chart__label">Unknown</span>
+            <div class="bar-chart__track"><div class="bar-chart__fill" style="width:7%"></div></div>
+            <span class="bar-chart__value">7%</span>
+          </div>
+        </div>
+        <p style="font-size:var(--text-sm);color:var(--color-text-muted);margin-top:var(--space-3);margin-bottom:0;">Illustrative data only. Inferred from vehicle age and mileage at time of fault report.</p>
+      </div>
+
+      <div class="chart-panel">
+        <h3 class="chart-panel__title">HV battery work type</h3>
+        <div class="bar-chart" role="img" aria-label="Placeholder HV battery work type chart">
+          <div class="bar-chart__row">
+            <span class="bar-chart__label">Software only</span>
+            <div class="bar-chart__track"><div class="bar-chart__fill" style="width:35%"></div></div>
+            <span class="bar-chart__value">35%</span>
+          </div>
+          <div class="bar-chart__row">
+            <span class="bar-chart__label">Module(s) replaced</span>
+            <div class="bar-chart__track"><div class="bar-chart__fill" style="width:40%"></div></div>
+            <span class="bar-chart__value">40%</span>
+          </div>
+          <div class="bar-chart__row">
+            <span class="bar-chart__label">Full battery</span>
+            <div class="bar-chart__track"><div class="bar-chart__fill" style="width:10%"></div></div>
+            <span class="bar-chart__value">10%</span>
+          </div>
+          <div class="bar-chart__row">
+            <span class="bar-chart__label">Inspection only</span>
+            <div class="bar-chart__track"><div class="bar-chart__fill" style="width:15%"></div></div>
+            <span class="bar-chart__value">15%</span>
+          </div>
+        </div>
+        <p style="font-size:var(--text-sm);color:var(--color-text-muted);margin-top:var(--space-3);margin-bottom:0;">Illustrative data only</p>
+      </div>
+
+    </div>
+
+    <!-- CTA -->
+    <div class="callout callout--success">
+      <span class="callout__icon" aria-hidden="true">📊</span>
+      <div class="callout__content">
+        <p class="callout__title">Help make this data real</p>
+        <p>The more owners submit structured data, the more credible our evidence becomes.
+        <a href="/submit-vehicle-data/">Submit your vehicle data</a> or
+        <a href="/join/">join the group</a> to be part of this.</p>
+      </div>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,77 @@
+---
+layout: base.njk
+title: Member Dashboard
+description: "Member dashboard — I-PACE Owners' Advocacy Group."
+permalink: /member/dashboard/
+---
+
+<div class="page-header">
+  <div class="container">
+    <p class="page-header__eyebrow">Members</p>
+    <h1 class="page-header__title">Member Dashboard</h1>
+  </div>
+</div>
+
+<div class="section">
+  <div class="container">
+
+    <!-- Auth gate: show when NOT logged in -->
+    <div data-auth-gate>
+      <div class="auth-gate">
+        <div class="auth-gate__icon" aria-hidden="true">🔒</div>
+        <h2 class="auth-gate__title">Members only</h2>
+        <p class="auth-gate__body">
+          Sign in or create an account to access the member dashboard.
+        </p>
+        <div class="cluster" style="justify-content:center;">
+          <button class="btn btn--primary" type="button" data-identity-open="signup">Join / Register</button>
+          <button class="btn btn--secondary" type="button" data-identity-open="login">Sign in</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Auth content: show when logged in -->
+    <div data-auth-content style="display:none;">
+      <div class="callout callout--info" style="margin-bottom: var(--space-8);">
+        <span class="callout__icon" aria-hidden="true">🚧</span>
+        <div class="callout__content">
+          <p class="callout__title">Placeholder — backend coming soon</p>
+          <p>This is a placeholder member dashboard. Once Netlify Functions and Netlify Blobs
+          are integrated, you will see your submissions, status, and group updates here.</p>
+          <p style="margin-bottom:0;"><strong>Note:</strong> Frontend authentication gating is not
+          sufficient for real private data. Future Netlify Functions will verify Identity JWTs
+          server-side before serving any sensitive information.</p>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="dashboard-panel">
+          <div class="dashboard-panel__header">
+            <h2 class="dashboard-panel__title">Your vehicle data</h2>
+            <a href="/submit-vehicle-data/" class="btn btn--sm btn--primary">Submit data</a>
+          </div>
+          <p style="color:var(--color-text-muted);">No submissions yet. Submit your vehicle data to contribute to the evidence base.</p>
+        </div>
+
+        <div class="dashboard-panel">
+          <div class="dashboard-panel__header">
+            <h2 class="dashboard-panel__title">Group updates</h2>
+          </div>
+          <p style="color:var(--color-text-muted);">
+            Check the <a href="/updates/">Updates page</a> for the latest news.
+          </p>
+        </div>
+
+        <div class="dashboard-panel">
+          <div class="dashboard-panel__header">
+            <h2 class="dashboard-panel__title">Your account</h2>
+          </div>
+          <p style="color:var(--color-text-muted);">
+            Manage your details on the <a href="/account/">Account page</a>.
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
