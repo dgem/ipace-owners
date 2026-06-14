@@ -71,9 +71,9 @@ Removes the `_site/` directory.
 
 ```
 src/
-  pages/           # Page templates (.md and .njk)
-    member/        # Member-gated placeholder pages
-    admin/         # Admin-gated placeholder pages
+  *.md / *.njk     # Top-level page templates
+  member/          # Member-gated placeholder pages
+  admin/           # Admin-gated placeholder pages
   updates/         # Update/news posts (.md)
   _data/           # Global data (site.json, navigation.json)
   _includes/
@@ -89,6 +89,7 @@ public/images/     # Static images
 netlify/functions/ # Netlify Functions (placeholder — not yet implemented)
 docs/
   architecture.md  # Future architecture documentation
+prompts/           # Sequenced prompts for rebuilding and evolving the product
 .eleventy.js       # Eleventy configuration
 netlify.toml       # Netlify configuration
 ```
@@ -162,7 +163,7 @@ Plain vanilla JS, no bundler. Three files:
 
 ### Adding pages
 
-Add `.md` or `.njk` files to `src/pages/`. Use `layout: page.njk` for standard pages
+Add `.md` or `.njk` files to `src/`. Use `layout: page.njk` for standard pages
 or `layout: form-page.njk` for form pages (adds `multistep-form.js`).
 
 ### Adding updates
@@ -174,6 +175,19 @@ Posts appear automatically on `/updates/`.
 
 See `docs/architecture.md` for the intended architecture using Netlify Functions and
 Netlify Blobs for data persistence and admin features.
+
+### Prompt maintenance
+
+Product-generation prompts live in `prompts/`. They are sequenced with two-digit prefixes
+so the project can be rebuilt or extended in a controlled order:
+
+- `00-original-project-prompt.md` preserves the initial generation prompt.
+- Later files split the product into foundation, design, content, identity, forms,
+  evidence dashboard, and backend-roadmap concerns.
+
+When adding or refining prompts, keep the numeric prefix, make the prompt independently
+usable, and avoid duplicating live implementation details that belong in README or
+`docs/architecture.md`.
 
 ---
 
