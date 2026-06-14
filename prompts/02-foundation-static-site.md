@@ -14,7 +14,9 @@ Create a small, maintainable Eleventy 3 site that can be deployed to Netlify and
 - Store shared layouts in `src/_includes/layouts/`.
 - Store shared partials in `src/_includes/partials/`.
 - Store global data in `src/_data/site.json` and `src/_data/navigation.json`.
-- Pass through `src/assets/` and `public/`.
+- Pass through `src/assets/`.
+- Pass through `public/` to the site root with `eleventyConfig.addPassthroughCopy({ public: "." })`, so `public/images/example.png` is served at `/images/example.png`.
+- Include a favicon in `public/favicon.svg` and link it from the base layout.
 - Add npm scripts:
   - `npm run dev` starts the Eleventy dev server.
   - `npm run build` builds the production site.
@@ -27,6 +29,7 @@ Create a small, maintainable Eleventy 3 site that can be deployed to Netlify and
 
 - Working Eleventy build.
 - Base layout with metadata, skip link, header, footer, main landmark, CSS, and deferred scripts.
+- Favicon and theme color metadata.
 - Page layout for standard content pages.
 - Form page layout for multi-step forms.
 - Update/news collection sorted newest first.

@@ -2,7 +2,7 @@
 layout: base.njk
 multiStepForm: true
 ---
-<div class="page-header">
+<div class="page-header{% if compactHeader %} page-header--compact{% endif %}">
   <div class="container">
     {% if eyebrow %}<p class="page-header__eyebrow">{{ eyebrow }}</p>{% endif %}
     <h1 class="page-header__title">{{ title }}</h1>
@@ -10,8 +10,8 @@ multiStepForm: true
   </div>
 </div>
 
-<div class="section">
-  <div class="container container--narrow">
+<div class="section{% if compactSection %} section--sm{% endif %}">
+  <div class="container{% if not formPageWide %} container--narrow{% endif %}">
     {{ content | safe }}
   </div>
 </div>

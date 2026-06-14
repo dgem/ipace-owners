@@ -5,16 +5,12 @@ eyebrow: Membership
 subtitle: "Free to join. Takes about 3 minutes."
 description: "Join the I-PACE Owners' Advocacy Group — free membership, no obligation."
 multiStepForm: true
+formPageWide: true
+compactHeader: true
+compactSection: true
 ---
 
-<div class="callout callout--info" style="margin-bottom: var(--space-8);">
-  <span class="callout__icon" aria-hidden="true">ℹ️</span>
-  <div class="callout__content">
-    <p class="callout__title">Submission storage not yet active</p>
-    <p>This form is fully functional as a multi-step experience, but submissions are not yet
-    stored. A "submission received" message will appear at the end. No data is sent anywhere.</p>
-  </div>
-</div>
+<div class="form-workspace">
 
 <form
   class="form"
@@ -256,3 +252,15 @@ multiStepForm: true
   </div>
 
 </form>
+
+  <aside class="form-workspace__aside" aria-label="Join form status">
+    <div class="callout callout--info">
+      <span class="callout__icon" aria-hidden="true">ℹ️</span>
+      <div class="callout__content">
+        <p class="callout__title">Submission storage not yet active</p>
+        <p>This form is fully functional as a multi-step experience, but submissions are not yet
+        stored. A "submission received" message will appear at the end. No data is sent anywhere.</p>
+      </div>
+    </div>
+  </aside>
+</div>

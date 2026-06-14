@@ -39,8 +39,8 @@
     var progressStep = form.querySelector('[data-progress-step]');
 
     // Nav buttons
-    var prevBtn   = form.querySelector('[data-prev]');
-    var nextBtn   = form.querySelector('[data-next]');
+    var prevBtns  = Array.from(form.querySelectorAll('[data-prev]'));
+    var nextBtns  = Array.from(form.querySelectorAll('[data-next]'));
     var submitBtn = form.querySelector('[data-submit]');
 
     // Result area
@@ -58,21 +58,21 @@
     updateUI();
 
     // ── Navigation handlers ─────────────────────────────────────────────────
-    if (prevBtn) {
+    prevBtns.forEach(function (prevBtn) {
       prevBtn.addEventListener('click', function () {
         if (currentStep > 0) {
           goToStep(currentStep - 1);
         }
       });
-    }
+    });
 
-    if (nextBtn) {
+    nextBtns.forEach(function (nextBtn) {
       nextBtn.addEventListener('click', function () {
         if (validateCurrentStep() && currentStep < total - 1) {
           goToStep(currentStep + 1);
         }
       });
-    }
+    });
 
     // Prevent real submission; show placeholder message instead
     form.addEventListener('submit', function (e) {
@@ -84,8 +84,9 @@
         resultEl.classList.add('is-visible');
         resultEl.focus();
         // Hide step nav
-        var nav = form.querySelector('.step-nav');
-        if (nav) nav.style.display = 'none';
+        form.querySelectorAll('.step-nav').forEach(function (nav) {
+          nav.style.display = 'none';
+        });
         // Hide all steps
         steps.forEach(function (s) {
           s.classList.add('step--hidden');
@@ -138,14 +139,16 @@
       }
 
       // Prev button
-      if (prevBtn) {
+      prevBtns.forEach(function (prevBtn) {
         prevBtn.disabled = currentStep === 0;
         prevBtn.style.visibility = currentStep === 0 ? 'hidden' : '';
-      }
+      });
 
       // Next vs Submit
       var isLast = currentStep === total - 1;
-      if (nextBtn)   nextBtn.style.display   = isLast ? 'none' : '';
+      nextBtns.forEach(function (nextBtn) {
+        nextBtn.style.display = isLast ? 'none' : '';
+      });
       if (submitBtn) submitBtn.style.display = isLast ? '' : 'none';
     }
 
@@ -161,7 +164,7 @@
         var errorEl = input.parentNode.querySelector('[role="alert"]') ||
                       document.getElementById(input.getAttribute('aria-describedby'));
 
-        if (input.required && !input.value.trim()) {
+        if (isRequiredMissing(input)) {
           input.setAttribute('aria-invalid', 'true');
           if (errorEl) errorEl.textContent = 'This field is required.';
           if (valid) {
@@ -180,6 +183,20 @@
       });
 
       return valid;
+    }
+
+    function isRequiredMissing(input) {
+      if (!input.required) return false;
+
+      if (input.type === 'checkbox') {
+        return !input.checked;
+      }
+
+      if (input.type === 'radio') {
+        return !form.querySelector('input[type="radio"][name="' + input.name + '"]:checked');
+      }
+
+      return !input.value.trim();
     }
 
     // ── Accessibility helpers ────────────────────────────────────────────────

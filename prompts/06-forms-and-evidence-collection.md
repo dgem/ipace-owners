@@ -24,11 +24,16 @@ Provide accessible multi-step forms that help owners submit structured evidence 
   - `data-submit-result`
 - Without JavaScript, all form steps should remain visible and usable as a single-page form.
 - With JavaScript, show one step at a time.
+- On large screens, place form-level notices or storage-status callouts beside the form instead of above it when that improves first-step visibility.
+- Keep the first actionable form fields visible as high as practical; avoid stacking large notices above progress indicators.
+- Attach navigation behavior to every `[data-next]` and `[data-prev]` button in the form, not only the first matching button.
 - Move focus to the current step heading after navigation.
 - Remove hidden-step controls from the tab order.
 - Respect `prefers-reduced-motion`.
 - Prevent default submission until backend prompts explicitly add persistence.
 - Show a clear placeholder result explaining that no data was sent or stored.
+- Validate required text, email, select, checkbox, and radio controls according to their actual user state. Required checkboxes must be checked; required radio groups must have a checked option.
+- When submission completes, hide all step navigation containers and all form steps before showing the placeholder result.
 
 ## Join form
 
@@ -68,4 +73,5 @@ Collect structured, optional evidence fields such as:
 
 - Run `npm run build`.
 - Keyboard-test next, previous, validation, and final placeholder result.
+- Specifically test progressing past the second step of the Join form.
 - Confirm required fields have accessible error messages.
