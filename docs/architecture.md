@@ -13,7 +13,8 @@ will be added incrementally.
 - **Custom CSS** (no frameworks)
 - **Netlify Identity** widget for frontend authentication
 - **Netlify** hosting and deployment
-- **No backend persistence** — form submissions are not stored
+- **Netlify Forms** for Join membership expressions of interest
+- **No vehicle/evidence persistence yet** — vehicle submissions and evidence uploads are not stored
 
 ## Intended future architecture
 
@@ -28,12 +29,21 @@ CDN and initialised on every page.
 - **Frontend gating is not sufficient for real private data** — all Netlify Functions that
   return or process private data must verify the Identity JWT server-side
 
-### Form handling — Netlify Functions
+### Form handling
 
-Multi-step forms currently prevent default submission and show a placeholder message.
+The Join form is configured as a Netlify Form named `join`. JavaScript-enhanced submissions
+post URL-encoded form data to Netlify Forms while keeping the multi-step completion screen
+visible. Without JavaScript, the Join form submits as a normal HTML form.
+
+Vehicle/evidence forms currently prevent default submission and show a placeholder message.
+
+### Future form handling — Netlify Functions
 
 When backend integration is added:
-- Forms POST to a Netlify Function endpoint (e.g. `/.netlify/functions/submit-join`)
+- Vehicle/evidence forms POST to a Netlify Function endpoint (for example,
+  `/.netlify/functions/submit-vehicle`)
+- The Join form may later move from Netlify Forms to a Function if membership intake needs
+  Identity-linked profiles, stronger validation, or richer admin workflows
 - The Function verifies the Identity JWT from the `Authorization` header
 - Validated data is stored in Netlify Blobs (JSON record) and/or Netlify Database
 - The Function returns a confirmation response
@@ -41,7 +51,7 @@ When backend integration is added:
 Example function structure:
 ```
 netlify/functions/
-  submit-join.js        — handles join form submissions
+  submit-join.js        — optional future replacement for Netlify Forms
   submit-vehicle.js     — handles vehicle data submissions
   get-member-data.js    — returns member's own submissions (auth required)
   admin-review.js       — returns pending submissions (admin auth required)

@@ -29,7 +29,7 @@ Create or maintain:
 - Updates index: list update posts from `src/updates/`.
 - Individual update posts: Markdown with front matter.
 - Contact: volunteer-run contact information and ways to help.
-- Privacy: placeholder until formal review before live data collection.
+- Privacy: placeholder until formal review before broader vehicle/evidence data collection.
 - Participation statement/terms: non-legal-action participation framing.
 
 ## Homepage Detail
@@ -78,9 +78,10 @@ Include at least:
 ## Privacy and Terms Detail
 
 Privacy should explain what data may be collected, why it is collected, how anonymised
-statistics may be used, that personal data should not be published publicly, that uploads are
-not implemented in the MVP, that Netlify Identity is used for authentication, and that a more
-formal privacy policy is needed before live data collection.
+statistics may be used, that personal data should not be published publicly, that Join
+membership submissions are stored with Netlify Forms, that uploads are not implemented in
+the MVP, that Netlify Identity is used for authentication, and that a more formal privacy
+policy is needed before broader live vehicle/evidence data collection.
 
 Terms / Participation Statement should say the group is informal unless a formal organisation
 is created, the site does not provide legal advice, submitting data does not create a client

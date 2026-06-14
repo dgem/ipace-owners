@@ -14,6 +14,9 @@ Evolve the static MVP into a data-collecting product using Netlify Functions and
 - Do not use plain SHA-256 for VIN deduplication.
 - Use HMAC-SHA-256 with a secret pepper from Netlify environment variables for VIN deduplication.
 - Never log raw VINs, uploaded evidence contents, full personal records, or Identity tokens.
+- Function logs may include structured diagnostics such as request IDs, methods, origins,
+  response status codes, and short one-way email fingerprints for troubleshooting. Do not log
+  raw email addresses, names, VINs, Identity tokens, request bodies, or Identity response bodies.
 - Validate all input server-side.
 - Validate uploaded evidence server-side by size, type, and content checks.
 
@@ -23,11 +26,27 @@ Evolve the static MVP into a data-collecting product using Netlify Functions and
   Identity `/signup` (new users) or `/recover` (existing users) server-side, and returns
   account-enumeration-resistant responses for valid same-origin requests. It may return
   non-200 responses for disallowed origins, invalid JSON, invalid email input, or unsupported
-  methods. CORS and explicit Origin checks restrict browser calls to same-site origins.
+  methods. CORS and explicit Origin checks restrict browser calls to same-site origins. It
+  logs privacy-safe structured diagnostics to help debug Identity email delivery issues.
+- In local Netlify Dev, `send-magic-link.js` must use `NETLIFY_IDENTITY_BASE_URL` to point
+  at the deployed site's `/.netlify/identity` endpoint. Netlify Dev does not expose a local
+  Identity API, so localhost must not be used as an Identity base URL.
+
+## Implemented storage
+
+- The Join form is a Netlify Form named `join`. It stores membership expressions of
+  interest, including contact details, relationship/ownership answers, volunteering
+  interests, and consent choices.
+- JavaScript-enhanced Join submission posts URL-encoded `FormData` to the same Netlify Form
+  while keeping the multi-step completion screen visible. No-JavaScript users can still
+  submit the normal HTML form.
+- Treat Netlify Forms as the interim membership-intake store. Do not add a duplicate
+  `submit-join.js` Function unless the product needs stronger validation, Identity-linked
+  profiles, moderation workflows, or migration into Blobs/Database.
 
 ## Proposed Functions
 
-- `submit-join.js`: authenticated or guest membership expression of interest, depending on registration policy.
+- `submit-join.js`: optional future replacement for Netlify Forms if membership intake needs authenticated profiles, richer validation, or migration into Blobs/Database.
 - `submit-vehicle.js`: authenticated vehicle evidence submission.
 - `get-member-data.js`: returns only the current member's submissions.
 - `admin-review.js`: returns pending submissions to admins only.
@@ -62,6 +81,8 @@ Separate:
 
 - The Join form already calls `/.netlify/functions/send-magic-link` to dispatch a
   Netlify Identity sign-in email. Do not revert this to a direct Identity API call.
+- The Join form also submits to Netlify Forms. Keep the Netlify Forms save and
+  `send-magic-link` result handling independent so one failure does not mask the other.
 - `send-magic-link` must reject disallowed origins before making any Identity API calls so
   cross-site `no-cors` requests cannot be used to trigger unsolicited emails.
 - The browser should interpret the JSON response body's `ok` flag, not `response.ok` alone,
@@ -77,4 +98,4 @@ Separate:
 - Add tests for server-side validation and authorization.
 - Test unauthenticated, authenticated non-admin, and admin paths.
 - Run `npm run build`.
-- Do not deploy live data collection until the privacy policy has been formally reviewed.
+- Do not deploy broader vehicle/evidence data collection until the privacy policy has been formally reviewed.

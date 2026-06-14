@@ -44,6 +44,15 @@ serving Netlify Functions. Use this when testing the Join form magic-link flow, 
 requests to `/.netlify/functions/send-magic-link` are handled only by Netlify Dev or a
 deployed Netlify site.
 
+Netlify Dev does not provide a local Netlify Identity API. To send real Identity emails
+from local development, add this to `.env.local` using the deployed Netlify site URL:
+
+```bash
+NETLIFY_IDENTITY_BASE_URL=https://ipace-owners.netlify.app/.netlify/identity
+```
+
+Do not commit `.env.local`.
+
 You can also run Eleventy directly (without Netlify Functions) with:
 
 ```bash
@@ -125,8 +134,20 @@ After deploying to Netlify, you **must** enable Netlify Identity manually:
 > The Netlify Identity widget is loaded from `https://identity.netlify.com/v1/netlify-identity-widget.js`
 > and will not function until Identity is enabled in the Netlify UI.
 > The Join form sends a sign-in magic link to the user's email address on completion
-> (no modal or password required). The detailed
-> join answers are not persisted until backend profile storage is implemented.
+> (no modal or password required). The Join form answers are also saved using
+> Netlify Forms.
+> In local development, `send-magic-link` needs `NETLIFY_IDENTITY_BASE_URL` because
+> Netlify Identity itself only runs on the deployed Netlify site.
+
+### Netlify Forms
+
+The Join form is configured as a Netlify Form named `join`. Netlify detects the form
+during the production build and stores submitted membership expressions of interest in
+the site's **Forms** area.
+
+JavaScript-enhanced submissions post the same form data to Netlify Forms without leaving
+the multi-step completion screen. With JavaScript disabled, the form still submits as a
+normal HTML form.
 
 ### Admin role assignment
 
@@ -142,15 +163,15 @@ To grant a member admin access:
 
 The following features are **not yet implemented** in this version:
 
-- **Form submission persistence** — The Join form sends the user's email address
-  to Netlify Identity (magic link). Detailed join answers (ownership, skills, consent)
-  and vehicle/evidence data are not yet stored. Backend implementation via Netlify
-  Functions is planned.
+- **Vehicle/evidence submission persistence** — The Join form is saved with Netlify
+  Forms and sends the user's email address to Netlify Identity (magic link). Vehicle
+  and evidence data are not yet stored. Backend implementation via Netlify Functions
+  is planned.
 - **Evidence document uploads** — A placeholder message explains what will be supported.
   Requires Netlify Blobs + Functions integration.
 - **Admin review queue** — UI placeholder only. No data is accessible from the admin pages.
 - **Privacy policy** — The current policy is a placeholder. A formal policy is required
-  before live personal data is collected.
+  before broader live vehicle/evidence data collection.
 - **Evidence dashboard data** — All figures are illustrative. Real data collection has not begun.
 
 ---

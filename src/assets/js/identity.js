@@ -135,6 +135,49 @@
     });
   }
 
+  function setResultVisibility(result, selector, visible) {
+    if (!result) return;
+    result.querySelectorAll(selector).forEach(function (el) {
+      el.hidden = !visible;
+    });
+  }
+
+  function showNetlifyFormSaved(result) {
+    setResultVisibility(result, '[data-registration-form-saved]', true);
+    setResultVisibility(result, '[data-registration-form-error]', false);
+  }
+
+  function showNetlifyFormError(result) {
+    setResultVisibility(result, '[data-registration-form-saved]', false);
+    setResultVisibility(result, '[data-registration-form-error]', true);
+  }
+
+  function submitNetlifyForm(form, result) {
+    if (!form || !form.matches('[data-netlify-form-submit]')) return;
+
+    var formName = form.getAttribute('name');
+    var action = form.getAttribute('action') || window.location.pathname;
+    var formData = new FormData(form);
+
+    if (formName && !formData.has('form-name')) {
+      formData.append('form-name', formName);
+    }
+
+    fetch(action, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams(formData).toString()
+    }).then(function (res) {
+      if (!res.ok) {
+        throw new Error('Netlify Forms submission failed with status ' + res.status);
+      }
+      showNetlifyFormSaved(result);
+    }).catch(function (err) {
+      console.warn('[identity.js] Netlify Forms submission failed.', err);
+      showNetlifyFormError(result);
+    });
+  }
+
   document.addEventListener('multistep:submitted', function (e) {
     var form = e.target;
     if (!form || !form.matches('[data-identity-signup-on-submit]')) return;
@@ -152,6 +195,8 @@
       el.textContent = email || 'your email address';
     });
 
+    submitNetlifyForm(form, result);
+
     if (user) {
       guestEls.forEach(function (el) { el.hidden = true; });
       signedInEls.forEach(function (el) { el.hidden = false; });
@@ -168,19 +213,17 @@
     var name = nameField && nameField.value ? nameField.value.trim() : '';
 
     function showLinkSent() {
-      if (!result) return;
-      result.querySelectorAll('[data-registration-link-sent]').forEach(function (el) { el.hidden = false; });
-      result.querySelectorAll('[data-registration-error]').forEach(function (el) { el.hidden = true; });
+      setResultVisibility(result, '[data-registration-link-sent]', true);
+      setResultVisibility(result, '[data-registration-error]', false);
     }
 
     function showError() {
-      if (!result) return;
-      result.querySelectorAll('[data-registration-link-sent]').forEach(function (el) { el.hidden = true; });
-      result.querySelectorAll('[data-registration-error]').forEach(function (el) { el.hidden = false; });
+      setResultVisibility(result, '[data-registration-link-sent]', false);
+      setResultVisibility(result, '[data-registration-error]', true);
     }
 
-    // The function always returns HTTP 200 (enumeration resistance), so we
-    // cannot use res.ok alone — read the JSON body's `ok` flag instead.
+    // Valid Identity failures return HTTP 200 for enumeration resistance, so
+    // read the JSON body's `ok` flag instead of relying on res.ok alone.
     fetch('/.netlify/functions/send-magic-link', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

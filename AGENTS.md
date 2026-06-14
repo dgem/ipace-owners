@@ -144,6 +144,13 @@ Functions live in `netlify/functions/`. Netlify invokes them at `/.netlify/funct
   existing. It rejects disallowed origins before calling Identity.
   Requires `process.env.URL` (set automatically by Netlify).
 
+## Netlify Forms
+
+- The Join form is configured as a Netlify Form named `join`.
+- JavaScript-enhanced submissions post URL-encoded `FormData` to Netlify Forms while
+  keeping the multi-step result screen visible.
+- No-JavaScript users can still submit the Join form as normal HTML.
+
 ### Adding a new Function
 
 1. Create `netlify/functions/<name>.js` exporting `handler`.
@@ -157,8 +164,8 @@ Functions live in `netlify/functions/`. Netlify invokes them at `/.netlify/funct
 See `docs/architecture.md` for the full intended backend architecture using Netlify
 Functions and Netlify Blobs. Key points:
 
-- The Join form sends the user's email to Netlify Identity via `send-magic-link.js`;
-  detailed join answers are not yet persisted (backend profile storage not implemented).
+- The Join form stores membership interest and consent with Netlify Forms and sends the
+  user's email to Netlify Identity via `send-magic-link.js`.
 - Vehicle data and evidence forms still prevent default and show a placeholder message.
 - Use HMAC with a secret pepper for VIN deduplication (not plain SHA-256).
 - Never store raw VINs or personal data in public static files.
@@ -174,11 +181,8 @@ Functions and Netlify Blobs. Key points:
 
 ## Known limitations
 
-- Join form sends the user's email to Netlify Identity (magic link) but detailed join
-  answers (ownership, skills, consent) are not yet persisted — backend profile storage
-  not implemented.
 - Vehicle data and evidence form submissions are not persisted (storage not yet implemented).
 - Evidence uploads are not implemented (placeholder message shown).
 - Admin review queue is a UI placeholder.
-- Privacy policy is a placeholder — review required before live data collection.
+- Privacy policy is a placeholder — review required before broader vehicle/evidence data collection.
 - Evidence dashboard shows illustrative data only.
