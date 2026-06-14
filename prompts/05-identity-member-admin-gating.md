@@ -67,6 +67,9 @@ Provide frontend Identity UX for sign in, sign out, registration, member-only pl
 - Document that local testing of `/.netlify/functions/send-magic-link` requires `npm run dev`
   running Netlify Dev, or a deploy preview; the plain Eleventy dev server will not serve
   Functions.
+- Document that Netlify Dev serves Functions but not Netlify Identity. Local magic-link
+  testing must set `NETLIFY_IDENTITY_BASE_URL` to the deployed site's
+  `https://.../.netlify/identity` endpoint; do not fall back to localhost for Identity.
 
 ## Security copy
 

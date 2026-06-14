@@ -14,6 +14,9 @@ Evolve the static MVP into a data-collecting product using Netlify Functions and
 - Do not use plain SHA-256 for VIN deduplication.
 - Use HMAC-SHA-256 with a secret pepper from Netlify environment variables for VIN deduplication.
 - Never log raw VINs, uploaded evidence contents, full personal records, or Identity tokens.
+- Function logs may include structured diagnostics such as request IDs, methods, origins,
+  response status codes, and short one-way email fingerprints for troubleshooting. Do not log
+  raw email addresses, names, VINs, Identity tokens, request bodies, or Identity response bodies.
 - Validate all input server-side.
 - Validate uploaded evidence server-side by size, type, and content checks.
 
@@ -23,7 +26,11 @@ Evolve the static MVP into a data-collecting product using Netlify Functions and
   Identity `/signup` (new users) or `/recover` (existing users) server-side, and returns
   account-enumeration-resistant responses for valid same-origin requests. It may return
   non-200 responses for disallowed origins, invalid JSON, invalid email input, or unsupported
-  methods. CORS and explicit Origin checks restrict browser calls to same-site origins.
+  methods. CORS and explicit Origin checks restrict browser calls to same-site origins. It
+  logs privacy-safe structured diagnostics to help debug Identity email delivery issues.
+- In local Netlify Dev, `send-magic-link.js` must use `NETLIFY_IDENTITY_BASE_URL` to point
+  at the deployed site's `/.netlify/identity` endpoint. Netlify Dev does not expose a local
+  Identity API, so localhost must not be used as an Identity base URL.
 
 ## Proposed Functions
 

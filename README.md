@@ -44,6 +44,15 @@ serving Netlify Functions. Use this when testing the Join form magic-link flow, 
 requests to `/.netlify/functions/send-magic-link` are handled only by Netlify Dev or a
 deployed Netlify site.
 
+Netlify Dev does not provide a local Netlify Identity API. To send real Identity emails
+from local development, add this to `.env.local` using the deployed Netlify site URL:
+
+```bash
+NETLIFY_IDENTITY_BASE_URL=https://ipace-owners.netlify.app/.netlify/identity
+```
+
+Do not commit `.env.local`.
+
 You can also run Eleventy directly (without Netlify Functions) with:
 
 ```bash
@@ -127,6 +136,8 @@ After deploying to Netlify, you **must** enable Netlify Identity manually:
 > The Join form sends a sign-in magic link to the user's email address on completion
 > (no modal or password required). The detailed
 > join answers are not persisted until backend profile storage is implemented.
+> In local development, `send-magic-link` needs `NETLIFY_IDENTITY_BASE_URL` because
+> Netlify Identity itself only runs on the deployed Netlify site.
 
 ### Admin role assignment
 

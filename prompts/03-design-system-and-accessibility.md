@@ -21,7 +21,7 @@ Create a calm, credible, technical-feeling public site that is mobile-first, acc
 - Use CSS custom properties for color, spacing, typography, shadows, radii, layout widths, and transitions.
 - Homepage hero media should be integrated as part of the first-viewport experience, not added as a disconnected decorative card.
 - For brand/product/vehicle imagery, use licensed, original, or generated bitmap assets only; do not use manufacturer logos, badges, watermarks, or copyrighted press imagery.
-- Favicon artwork should be simple, legible at small sizes, aligned with the navy/teal palette, and free of Jaguar/JLR logos or badges.
+- Favicon artwork should be simple, legible at small sizes, aligned with the navy/teal palette, and free of Jaguar/JLR logos or badges. It should read as an I-PACE-style low electric crossover silhouette rather than a generic upright car.
 - Cookie/privacy notices should be compact, dismissible, keyboard accessible, and should not obscure primary form actions on common laptop viewports.
 - Cookie/privacy notices must not depend on JavaScript for disclosure: include a no-JavaScript
   fallback with a privacy-policy link, while using JavaScript only to persist dismissal. The
