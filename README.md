@@ -120,7 +120,8 @@ After deploying to Netlify, you **must** enable Netlify Identity manually:
 
 > The Netlify Identity widget is loaded from `https://identity.netlify.com/v1/netlify-identity-widget.js`
 > and will not function until Identity is enabled in the Netlify UI.
-> The Join form hands users to the Netlify Identity signup modal after validation. The detailed
+> The Join form sends a sign-in magic link to the user's email address on completion
+> (no modal or password required). The detailed
 > join answers are not persisted until backend profile storage is implemented.
 
 ### Admin role assignment

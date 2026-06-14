@@ -182,11 +182,16 @@
     // is shown. New users receive a confirmation email (which IS a magic link);
     // existing users receive a password-recovery link that works the same way.
     //
-    // Always use the canonical Netlify-subdomain URL for direct API calls.
-    // Using the custom domain (ipace-owners.org) here fails on deploy previews
-    // because the CSP connect-src only permits *.netlify.app, not the custom
-    // domain, when the page is served from a deploy-preview URL.
-    var apiBase = 'https://ipace-owners.netlify.app/.netlify/identity';
+    // Use window.location.origin so the fetch targets the current environment's
+    // /.netlify/identity endpoint. This keeps deploy previews isolated from
+    // production and satisfies the CSP (same-origin request).
+    //
+    // Known limitation: branching on a 422 response to detect existing accounts
+    // enables account enumeration (an observer can tell if an email is already
+    // registered). This is an acceptable trade-off for the current MVP but
+    // should be replaced with a server-side Netlify Function (see prompt 08)
+    // that always returns the same response regardless of account existence.
+    var apiBase = window.location.origin + '/.netlify/identity';
     var nameField = form.elements['name'];
     var name = nameField && nameField.value ? nameField.value.trim() : '';
 
@@ -215,7 +220,10 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email })
-      }).then(showLinkSent).catch(showError);
+      }).then(function (res) {
+        // fetch only rejects on network errors; check res.ok for API errors.
+        if (res.ok) { showLinkSent(); } else { showError(); }
+      }).catch(showError);
     }
 
     // Attempt signup. On 422 (email taken) fall through to recovery link instead.
@@ -242,6 +250,16 @@
   identity.on('login', function (user) {
     updateHeaderUI(user);
     identity.close();
+
+    // If the join result panel is visible, flip it to the signed-in state so
+    // the guest CTAs ("check your inbox") are hidden after the user logs in.
+    var guestEls = document.querySelectorAll('[data-registration-guest]');
+    var signedInEls = document.querySelectorAll('[data-registration-signed-in]');
+    if (guestEls.length || signedInEls.length) {
+      guestEls.forEach(function (el) { el.hidden = true; });
+      signedInEls.forEach(function (el) { el.hidden = false; });
+    }
+
     // Reload so member-only pages rehydrate if needed
     // (light redirect: only on gated pages)
     var redirect = document.body.dataset.authRedirectOnLogin;
@@ -259,11 +277,11 @@
   });
 
   // ── Initialise ──────────────────────────────────────────────────────────────
-  // Explicitly provide the API URL so the widget can resolve /.netlify/identity
-  // on custom domains and in local development. Without this the widget fails
-  // with "Failed to load settings from /.netlify/identity" on any non-Netlify
-  // subdomain URL.
-  identity.init({ APIUrl: 'https://ipace-owners.org/.netlify/identity' });
+  // Derive the API URL from the current origin so the widget resolves
+  // /.netlify/identity correctly in all environments: production, the custom
+  // domain, and deploy previews. Using a hard-coded production URL would break
+  // deploy previews (cross-origin CSP) and point all test signups at production.
+  identity.init({ APIUrl: window.location.origin + '/.netlify/identity' });
 
   // Hide all gated content until init fires (avoid flash)
   document.querySelectorAll('[data-auth-content], [data-admin-content]').forEach(function (el) {
