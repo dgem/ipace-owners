@@ -1,0 +1,74 @@
+---
+layout: base.njk
+title: Admin Review Queue
+description: "Admin review queue — I-PACE Owners' Advocacy Group."
+permalink: /admin/review-queue/
+---
+
+<div class="page-header">
+  <div class="container">
+    <p class="page-header__eyebrow">Admin</p>
+    <h1 class="page-header__title">Review Queue</h1>
+  </div>
+</div>
+
+<div class="section">
+  <div class="container">
+
+    <!-- Not logged in -->
+    <div data-auth-gate>
+      <div class="auth-gate">
+        <div class="auth-gate__icon" aria-hidden="true">🔒</div>
+        <h2 class="auth-gate__title">Sign in required</h2>
+        <p class="auth-gate__body">You must be signed in to access admin pages.</p>
+        <button class="btn btn--primary" type="button" data-identity-open="login">Sign in</button>
+      </div>
+    </div>
+
+    <!-- Logged in, no admin role -->
+    <div data-admin-gate style="display:none;">
+      <div class="auth-gate">
+        <div class="auth-gate__icon" aria-hidden="true">⛔</div>
+        <h2 class="auth-gate__title">Access restricted</h2>
+        <p class="auth-gate__body">
+          This page is for group administrators only. If you believe you should have admin access,
+          please contact us.
+        </p>
+        <a href="/contact/" class="btn btn--secondary">Contact us</a>
+      </div>
+    </div>
+
+    <!-- Admin content -->
+    <div data-admin-content style="display:none;">
+      <div class="callout callout--warning" style="margin-bottom: var(--space-8);">
+        <span class="callout__icon" aria-hidden="true">⚠️</span>
+        <div class="callout__content">
+          <p class="callout__title">Placeholder admin UI</p>
+          <p>The admin review queue is a placeholder. Real submission review functionality will
+          be implemented via Netlify Functions once backend persistence is in place.</p>
+          <p style="margin-bottom:0;"><strong>Security note:</strong> Frontend role-checking is
+          not sufficient for real admin data access. All admin Netlify Functions must verify
+          the Identity JWT server-side and confirm the admin role in <code>app_metadata.roles</code>.</p>
+        </div>
+      </div>
+
+      <div class="dashboard-panel">
+        <div class="dashboard-panel__header">
+          <h2 class="dashboard-panel__title">Pending review</h2>
+          <span class="badge badge--warning">0 pending</span>
+        </div>
+        <p style="color:var(--color-text-muted);">No submissions awaiting review. Once data collection begins, new submissions will appear here for verification.</p>
+      </div>
+
+      <div style="margin-top: var(--space-6);">
+        <h2>Admin navigation</h2>
+        <div class="cluster">
+          {% for item in navigation.admin %}
+            <a href="{{ item.url }}" class="btn btn--secondary btn--sm">{{ item.label }}</a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

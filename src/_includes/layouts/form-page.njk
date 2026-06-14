@@ -1,0 +1,17 @@
+---
+layout: base.njk
+multiStepForm: true
+---
+<div class="page-header">
+  <div class="container">
+    {% if eyebrow %}<p class="page-header__eyebrow">{{ eyebrow }}</p>{% endif %}
+    <h1 class="page-header__title">{{ title }}</h1>
+    {% if subtitle %}<p class="page-header__subtitle">{{ subtitle }}</p>{% endif %}
+  </div>
+</div>
+
+<div class="section">
+  <div class="container container--narrow">
+    {{ content | safe }}
+  </div>
+</div>

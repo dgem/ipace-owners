@@ -1,0 +1,49 @@
+<header class="site-header" role="banner">
+  <div class="container">
+    <div class="site-header__inner">
+
+      <!-- Logo / wordmark -->
+      <a href="/" class="site-header__logo" aria-label="{{ site.title }} home">
+        I-PACE Owners
+        <span>Owners' Advocacy Group</span>
+      </a>
+
+      <!-- Desktop navigation -->
+      <nav class="site-nav" aria-label="Main navigation">
+        {% for item in navigation.public %}
+          <a
+            href="{{ item.url }}"
+            class="site-nav__link{% if item.highlight %} site-nav__link--highlight{% endif %}"
+            data-nav-link
+          >{{ item.label }}</a>
+        {% endfor %}
+      </nav>
+
+      <!-- Header actions -->
+      <div class="site-header__actions">
+        <div class="identity-controls">
+          <span id="identity-user-display" class="identity-controls__user" style="display:none"></span>
+          <button id="identity-login-btn" class="btn btn--sm btn--ghost" type="button">Sign in</button>
+          <button id="identity-logout-btn" class="btn btn--sm btn--ghost" type="button" style="display:none">Sign out</button>
+        </div>
+
+        <!-- Mobile menu toggle -->
+        <button
+          id="mobile-menu-toggle"
+          class="mobile-menu-toggle"
+          aria-expanded="false"
+          aria-controls="mobile-nav"
+          aria-label="Open navigation menu"
+          type="button"
+        >
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <rect y="3" width="20" height="2" rx="1"/>
+            <rect y="9" width="20" height="2" rx="1"/>
+            <rect y="15" width="20" height="2" rx="1"/>
+          </svg>
+        </button>
+      </div>
+
+    </div>
+  </div>
+</header>

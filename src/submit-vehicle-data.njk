@@ -1,0 +1,722 @@
+---
+layout: form-page.njk
+title: Submit Vehicle Data
+eyebrow: Evidence
+subtitle: "Help build the evidence base. All steps are optional — submit what you know."
+description: "Submit your I-PACE vehicle data to the owners' advocacy group evidence base."
+multiStepForm: true
+---
+
+<div class="callout callout--info" style="margin-bottom: var(--space-8);">
+  <span class="callout__icon" aria-hidden="true">ℹ️</span>
+  <div class="callout__content">
+    <p class="callout__title">Storage not yet active</p>
+    <p>This form collects data across 12 steps. <strong>No data is currently stored or sent.</strong>
+    A confirmation message will appear at the end. All fields are optional except where marked.</p>
+    <p style="margin-bottom:0;">If JavaScript is disabled, all steps are shown on a single page.</p>
+  </div>
+</div>
+
+<form
+  class="form"
+  style="max-width: none;"
+  data-multistep-form
+  novalidate
+  aria-label="Submit I-PACE vehicle data"
+>
+
+  <!-- Progress indicator -->
+  <div class="progress-indicator" data-progress aria-live="polite" aria-atomic="true">
+    <div class="progress-indicator__bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Form progress">
+      <div class="progress-indicator__fill" data-progress-fill style="width: 8.33%;"></div>
+    </div>
+    <div class="progress-indicator__text">
+      <span data-progress-text>Step 1 of 12</span>
+      <span>Vehicle data form</span>
+    </div>
+  </div>
+
+  <!-- ── Step 1: Vehicle details ─────────────────────────────────────────── -->
+  <div data-step="1">
+    <h2 class="step-heading" data-step-heading tabindex="-1">Step 1: Vehicle details</h2>
+
+    <fieldset>
+      <legend>About your I-PACE</legend>
+
+      <div class="two-column">
+        <div class="form-group">
+          <label for="vin">VIN</label>
+          <span class="form-hint" id="vin-hint">Your 17-character Vehicle Identification Number. Never published — used only for deduplication.</span>
+          <input type="text" id="vin" name="vin" maxlength="17" autocomplete="off" aria-describedby="vin-hint" pattern="[A-HJ-NPR-Z0-9]{17}">
+        </div>
+        <div class="form-group">
+          <label for="model-year">Model year</label>
+          <select id="model-year" name="modelYear">
+            <option value="">Select year</option>
+            <option>2018</option><option>2019</option><option>2020</option>
+            <option>2021</option><option>2022</option><option>2023</option><option>2024</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="registration">Registration / plate <span style="font-weight:400; color: var(--color-text-muted);">(optional)</span></label>
+          <input type="text" id="registration" name="registration" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label for="country">Country</label>
+          <select id="country" name="country">
+            <option value="">Select country</option>
+            <option value="GB">United Kingdom</option>
+            <option value="IE">Ireland</option>
+            <option value="DE">Germany</option>
+            <option value="FR">France</option>
+            <option value="NL">Netherlands</option>
+            <option value="NO">Norway</option>
+            <option value="SE">Sweden</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="mileage">Current mileage</label>
+          <input type="number" id="mileage" name="mileage" min="0" max="500000" aria-describedby="mileage-hint">
+          <span class="form-hint" id="mileage-hint">Miles or kilometres — please indicate the unit in the notes if not miles</span>
+        </div>
+        <div class="form-group">
+          <label for="owned-since">Owner since</label>
+          <input type="date" id="owned-since" name="ownedSince">
+        </div>
+        <div class="form-group">
+          <label for="first-reg">First registration date <span style="font-weight:400; color: var(--color-text-muted);">(if known)</span></label>
+          <input type="date" id="first-reg" name="firstReg">
+        </div>
+      </div>
+    </fieldset>
+
+    <div class="step-nav">
+      <button type="button" class="btn btn--secondary" data-prev style="visibility:hidden">Back</button>
+      <button type="button" class="btn btn--primary" data-next>Next →</button>
+    </div>
+  </div>
+
+  <!-- ── Step 2: Battery health ─────────────────────────────────────────── -->
+  <div data-step="2" class="step--hidden">
+    <h2 class="step-heading" data-step-heading tabindex="-1">Step 2: Battery health</h2>
+
+    <fieldset>
+      <legend>State of Health (SoH)</legend>
+      <p class="form-hint">SoH is a measure of battery capacity vs. original design capacity. A new battery is 100%.</p>
+
+      <div class="two-column">
+        <div class="form-group">
+          <label for="soh">Current State of Health (%) <span style="font-weight:400; color: var(--color-text-muted);">(if known)</span></label>
+          <input type="number" id="soh" name="soh" min="0" max="100" step="0.1">
+        </div>
+        <div class="form-group">
+          <label for="soh-date">Date SoH was measured</label>
+          <input type="date" id="soh-date" name="sohDate">
+        </div>
+        <div class="form-group">
+          <label for="soh-mileage">Mileage at SoH measurement</label>
+          <input type="number" id="soh-mileage" name="sohMileage" min="0">
+        </div>
+        <div class="form-group">
+          <label for="soh-source">Source of SoH reading</label>
+          <select id="soh-source" name="sohSource">
+            <option value="">Select source</option>
+            <option>Dealer report</option>
+            <option>Diagnostic app / OBD</option>
+            <option>Service paperwork</option>
+            <option>JLR communication</option>
+            <option>Estimate / unsure</option>
+          </select>
+        </div>
+      </div>
+    </fieldset>
+
+    <div class="step-nav">
+      <button type="button" class="btn btn--secondary" data-prev>← Back</button>
+      <button type="button" class="btn btn--primary" data-next>Next →</button>
+    </div>
+  </div>
+
+  <!-- ── Step 3: HV battery work ────────────────────────────────────────── -->
+  <div data-step="3" class="step--hidden">
+    <h2 class="step-heading" data-step-heading tabindex="-1">Step 3: HV battery work</h2>
+
+    <fieldset>
+      <legend>High-voltage battery work history</legend>
+
+      <div class="form-group">
+        <label for="hv-work">Has the car had HV battery work?</label>
+        <select id="hv-work" name="hvWork">
+          <option value="">Select…</option>
+          <option>No</option>
+          <option>Yes</option>
+          <option>Unsure</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="hv-work-type">Type of work</label>
+        <select id="hv-work-type" name="hvWorkType">
+          <option value="">Select…</option>
+          <option>Software update only</option>
+          <option>One or more modules replaced</option>
+          <option>Full HV battery replaced</option>
+          <option>Battery inspection only</option>
+          <option>Other / unknown</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="modules-replaced">Number of modules replaced <span style="font-weight:400; color: var(--color-text-muted);">(if known)</span></label>
+        <input type="number" id="modules-replaced" name="modulesReplaced" min="0" max="36">
+      </div>
+
+      <div class="two-column">
+        <div class="form-group">
+          <label for="fault-reported-date">Date fault first reported</label>
+          <input type="date" id="fault-reported-date" name="faultReportedDate">
+        </div>
+        <div class="form-group">
+          <label for="dealer-date">Date car went to dealer <span style="font-weight:400; color: var(--color-text-muted);">(if known)</span></label>
+          <input type="date" id="dealer-date" name="dealerDate">
+        </div>
+        <div class="form-group">
+          <label for="return-date">Date car returned <span style="font-weight:400; color: var(--color-text-muted);">(if known)</span></label>
+          <input type="date" id="return-date" name="returnDate">
+        </div>
+        <div class="form-group">
+          <label for="days-off-road">Approximate total days off road</label>
+          <input type="number" id="days-off-road" name="daysOffRoad" min="0">
+        </div>
+        <div class="form-group">
+          <label for="days-waiting">Approximate days waiting before work started</label>
+          <input type="number" id="days-waiting" name="daysWaiting" min="0">
+        </div>
+        <div class="form-group">
+          <label for="days-repair">Approximate days while work was being carried out</label>
+          <input type="number" id="days-repair" name="daysRepair" min="0">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="first-hv-issue">Was this the first HV battery issue?</label>
+        <select id="first-hv-issue" name="firstHvIssue">
+          <option value="">Select…</option>
+          <option>Yes</option>
+          <option>No — there have been previous issues</option>
+          <option>Unsure</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="fault-recurred">Has the fault reoccurred?</label>
+        <select id="fault-recurred" name="faultRecurred">
+          <option value="">Select…</option>
+          <option>No</option>
+          <option>Yes</option>
+          <option>Too soon to tell</option>
+          <option>Unsure</option>
+        </select>
+      </div>
+    </fieldset>
+
+    <div class="step-nav">
+      <button type="button" class="btn btn--secondary" data-prev>← Back</button>
+      <button type="button" class="btn btn--primary" data-next>Next →</button>
+    </div>
+  </div>
+
+  <!-- ── Step 4: Additional warranty ───────────────────────────────────── -->
+  <div data-step="4" class="step--hidden">
+    <h2 class="step-heading" data-step-heading tabindex="-1">Step 4: Additional warranty cover</h2>
+
+    <fieldset>
+      <legend>Warranty at time of fault</legend>
+      <p class="form-hint">We can infer from the vehicle's age and mileage whether it was inside the original manufacturer warranty or 8-year battery warranty — we ask below only about <em>additional</em> cover.</p>
+
+      <div class="form-group">
+        <label for="extra-warranty">Did the vehicle have any additional warranty cover at the time the battery issue was reported?</label>
+        <select id="extra-warranty" name="extraWarranty">
+          <option value="">Select…</option>
+          <option>Extended manufacturer warranty</option>
+          <option>Third-party warranty</option>
+          <option>No additional warranty cover</option>
+          <option>Unsure</option>
+        </select>
+      </div>
+
+      <div class="two-column">
+        <div class="form-group">
+          <label for="warranty-provider">Warranty provider <span style="font-weight:400; color: var(--color-text-muted);">(if known)</span></label>
+          <input type="text" id="warranty-provider" name="warrantyProvider">
+        </div>
+        <div class="form-group">
+          <label for="warranty-policy">Warranty policy name <span style="font-weight:400; color: var(--color-text-muted);">(if known)</span></label>
+          <input type="text" id="warranty-policy" name="warrantyPolicy">
+        </div>
+        <div class="form-group">
+          <label for="warranty-expiry">Expiry date <span style="font-weight:400; color: var(--color-text-muted);">(if known)</span></label>
+          <input type="date" id="warranty-expiry" name="warrantyExpiry">
+        </div>
+        <div class="form-group">
+          <label for="warranty-claim">Was the claim accepted under this warranty?</label>
+          <select id="warranty-claim" name="warrantyClaim">
+            <option value="">Select…</option>
+            <option>Yes, fully</option>
+            <option>Yes, partially</option>
+            <option>No</option>
+            <option>Initially refused, later accepted</option>
+            <option>Still pending</option>
+            <option>Not applicable</option>
+            <option>Unsure</option>
+          </select>
+        </div>
+      </div>
+    </fieldset>
+
+    <div class="step-nav">
+      <button type="button" class="btn btn--secondary" data-prev>← Back</button>
+      <button type="button" class="btn btn--primary" data-next>Next →</button>
+    </div>
+  </div>
+
+  <!-- ── Step 5: Recall status ─────────────────────────────────────────── -->
+  <div data-step="5" class="step--hidden">
+    <h2 class="step-heading" data-step-heading tabindex="-1">Step 5: Recall status</h2>
+
+    {% for recall in ["H570", "H571", "H572"] %}
+    <fieldset>
+      <legend>Recall {{ recall }}</legend>
+
+      <div class="two-column">
+        <div class="form-group">
+          <label for="recall-{{ recall }}-status">Status</label>
+          <select id="recall-{{ recall }}-status" name="recall{{ recall }}Status">
+            <option value="">Select…</option>
+            <option>Completed</option>
+            <option>Booked</option>
+            <option>Awaiting parts / appointment</option>
+            <option>Dealer says not applicable</option>
+            <option>Owner declined</option>
+            <option>Unknown</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="recall-{{ recall }}-notified">Date owner notified <span style="font-weight:400; color: var(--color-text-muted);">(optional)</span></label>
+          <input type="date" id="recall-{{ recall }}-notified" name="recall{{ recall }}Notified">
+        </div>
+        <div class="form-group">
+          <label for="recall-{{ recall }}-completed">Date completed <span style="font-weight:400; color: var(--color-text-muted);">(optional)</span></label>
+          <input type="date" id="recall-{{ recall }}-completed" name="recall{{ recall }}Completed">
+        </div>
+        <div class="form-group">
+          <label for="recall-{{ recall }}-dealer">Dealer / service centre <span style="font-weight:400; color: var(--color-text-muted);">(optional)</span></label>
+          <input type="text" id="recall-{{ recall }}-dealer" name="recall{{ recall }}Dealer">
+        </div>
+        <div class="form-group">
+          <label for="recall-{{ recall }}-mileage">Mileage at completion <span style="font-weight:400; color: var(--color-text-muted);">(optional)</span></label>
+          <input type="number" id="recall-{{ recall }}-mileage" name="recall{{ recall }}Mileage" min="0">
+        </div>
+        <div class="form-group">
+          <label for="recall-{{ recall }}-fault">Did the recall lead to any battery warning, restriction or fault?</label>
+          <select id="recall-{{ recall }}-fault" name="recall{{ recall }}Fault">
+            <option value="">Select…</option>
+            <option>No</option>
+            <option>Yes</option>
+            <option>Unsure</option>
+          </select>
+        </div>
+      </div>
+    </fieldset>
+    {% endfor %}
+
+    <div class="step-nav">
+      <button type="button" class="btn btn--secondary" data-prev>← Back</button>
+      <button type="button" class="btn btn--primary" data-next>Next →</button>
+    </div>
+  </div>
+
+  <!-- ── Step 6: Work experience ───────────────────────────────────────── -->
+  <div data-step="6" class="step--hidden">
+    <h2 class="step-heading" data-step-heading tabindex="-1">Step 6: Work experience and support</h2>
+
+    <fieldset>
+      <legend>How did the work go?</legend>
+
+      <div class="form-group">
+        <label for="work-outcome">Did the work go as planned?</label>
+        <select id="work-outcome" name="workOutcome">
+          <option value="">Select…</option>
+          <option>Yes, completed as expected</option>
+          <option>Mostly, but with minor issues</option>
+          <option>No, there were significant issues</option>
+          <option>Work is still ongoing</option>
+          <option>Unsure</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Difficulties encountered (select all that apply)</label>
+        <div class="check-group">
+          {% set difficulties = [
+            "Long wait for appointment",
+            "Long wait for parts",
+            "Long wait for diagnosis",
+            "Vehicle off road longer than expected",
+            "Work did not fix the problem",
+            "Fault returned after work",
+            "Additional work was needed",
+            "Poor communication from dealer",
+            "Poor communication from JLR",
+            "Disagreement over warranty / responsibility",
+            "Asked to make a payment",
+            "Loan car issue",
+            "Other"
+          ] %}
+          {% for d in difficulties %}
+          <label class="check-label">
+            <input type="checkbox" name="difficulties" value="{{ d | lower | replace(' ', '-') | replace('/', '-') }}"> {{ d }}
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="work-notes">Anything else we should know?</label>
+        <span class="form-hint" id="work-notes-hint">Optional — please do not include other people's personal data</span>
+        <textarea id="work-notes" name="workNotes" aria-describedby="work-notes-hint" rows="5"></textarea>
+      </div>
+    </fieldset>
+
+    <div class="step-nav">
+      <button type="button" class="btn btn--secondary" data-prev>← Back</button>
+      <button type="button" class="btn btn--primary" data-next>Next →</button>
+    </div>
+  </div>
+
+  <!-- ── Step 7: Loan car ──────────────────────────────────────────────── -->
+  <div data-step="7" class="step--hidden">
+    <h2 class="step-heading" data-step-heading tabindex="-1">Step 7: Loan / courtesy car</h2>
+
+    <fieldset>
+      <legend>Loan or courtesy car details</legend>
+
+      <div class="two-column">
+        <div class="form-group">
+          <label for="loan-provided">Was a loan or courtesy car provided?</label>
+          <select id="loan-provided" name="loanProvided">
+            <option value="">Select…</option>
+            <option>Yes, for the whole period</option>
+            <option>Yes, but only for part of the period</option>
+            <option>Yes, but only after I asked or escalated</option>
+            <option>No</option>
+            <option>Not needed</option>
+            <option>Unsure</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="loan-suitable">Was the loan car broadly suitable?</label>
+          <select id="loan-suitable" name="loanSuitable">
+            <option value="">Select…</option>
+            <option>Yes</option>
+            <option>No</option>
+            <option>Unsure</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="loan-type">Loan car type</label>
+          <select id="loan-type" name="loanType">
+            <option value="">Select…</option>
+            <option>I-PACE or comparable EV</option>
+            <option>Other EV</option>
+            <option>Petrol / diesel / hybrid</option>
+            <option>Hire car</option>
+            <option>Dealer courtesy car</option>
+            <option>Other</option>
+            <option>Unsure</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="loan-charge">Were you charged anything for the loan car?</label>
+          <select id="loan-charge" name="loanCharge">
+            <option value="">Select…</option>
+            <option>No</option>
+            <option>Yes</option>
+            <option>Deposit only</option>
+            <option>Insurance/admin fee only</option>
+            <option>Unsure</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="loan-amount">Approximate amount charged (if any)</label>
+          <input type="number" id="loan-amount" name="loanAmount" min="0" step="0.01">
+        </div>
+      </div>
+    </fieldset>
+
+    <div class="step-nav">
+      <button type="button" class="btn btn--secondary" data-prev>← Back</button>
+      <button type="button" class="btn btn--primary" data-next>Next →</button>
+    </div>
+  </div>
+
+  <!-- ── Step 8: Payments and goodwill ─────────────────────────────────── -->
+  <div data-step="8" class="step--hidden">
+    <h2 class="step-heading" data-step-heading tabindex="-1">Step 8: Payments, goodwill and expenses</h2>
+
+    <fieldset>
+      <legend>Your out-of-pocket costs</legend>
+
+      <div class="two-column">
+        <div class="form-group">
+          <label for="payment-made">Did you have to pay anything towards diagnosis, repair, recovery, admin or transport?</label>
+          <select id="payment-made" name="paymentMade">
+            <option value="">Select…</option>
+            <option>No</option>
+            <option>Yes</option>
+            <option>Asked to pay, but later waived/refunded</option>
+            <option>Still disputed</option>
+            <option>Unsure</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="payment-amount">Approximate amount</label>
+          <input type="number" id="payment-amount" name="paymentAmount" min="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label for="payment-for">What was the payment for?</label>
+          <input type="text" id="payment-for" name="paymentFor">
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset style="margin-top: var(--space-6);">
+      <legend>Goodwill and reimbursement</legend>
+
+      <div class="form-group">
+        <label for="goodwill-offered">Were you offered any goodwill payment, reimbursement or contribution?</label>
+        <select id="goodwill-offered" name="goodwillOffered">
+          <option value="">Select…</option>
+          <option>No</option>
+          <option>Yes</option>
+          <option>Requested but refused</option>
+          <option>Still pending</option>
+          <option>Unsure</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Goodwill / reimbursement types (select all that apply)</label>
+        <div class="check-group">
+          {% set goodwillTypes = [
+            "Fuel costs", "Charging costs", "Mileage costs", "Hire car costs",
+            "Taxi / public transport", "Recovery costs", "Insurance/admin cost",
+            "Repair contribution", "Cash goodwill payment", "Warranty extension", "Other"
+          ] %}
+          {% for g in goodwillTypes %}
+          <label class="check-label">
+            <input type="checkbox" name="goodwillTypes" value="{{ g | lower | replace(' ', '-') | replace('/', '-') }}"> {{ g }}
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="goodwill-amount">Approximate amount offered or paid</label>
+        <input type="number" id="goodwill-amount" name="goodwillAmount" min="0" step="0.01">
+      </div>
+    </fieldset>
+
+    <div class="step-nav">
+      <button type="button" class="btn btn--secondary" data-prev>← Back</button>
+      <button type="button" class="btn btn--primary" data-next>Next →</button>
+    </div>
+  </div>
+
+  <!-- ── Step 9: Responsibility ─────────────────────────────────────────── -->
+  <div data-step="9" class="step--hidden">
+    <h2 class="step-heading" data-step-heading tabindex="-1">Step 9: Responsibility acceptance</h2>
+
+    <fieldset>
+      <legend>Responsibility and resolution</legend>
+
+      <div class="form-group">
+        <label for="responsibility-issue">Were there any issues with JLR, the dealer or warranty provider accepting responsibility?</label>
+        <select id="responsibility-issue" name="responsibilityIssue">
+          <option value="">Select…</option>
+          <option>No</option>
+          <option>Yes, initially refused</option>
+          <option>Yes, partially accepted only</option>
+          <option>Yes, still disputed</option>
+          <option>Unsure</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Who was involved? (select all that apply)</label>
+        <div class="check-group">
+          {% for party in ["JLR customer services", "Dealer / retailer", "Extended warranty provider", "Third-party warranty provider", "Finance company", "Insurance company", "Other"] %}
+          <label class="check-label">
+            <input type="checkbox" name="responsibilityParty" value="{{ party | lower | replace(' ', '-') | replace('/', '-') }}"> {{ party }}
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="resolution">How was it resolved?</label>
+        <select id="resolution" name="resolution">
+          <option value="">Select…</option>
+          <option>Accepted without escalation</option>
+          <option>Accepted after escalation</option>
+          <option>Partially accepted</option>
+          <option>Refused</option>
+          <option>Still unresolved</option>
+          <option>Not applicable</option>
+        </select>
+      </div>
+    </fieldset>
+
+    <div class="step-nav">
+      <button type="button" class="btn btn--secondary" data-prev>← Back</button>
+      <button type="button" class="btn btn--primary" data-next>Next →</button>
+    </div>
+  </div>
+
+  <!-- ── Step 10: Evidence upload placeholder ──────────────────────────── -->
+  <div data-step="10" class="step--hidden">
+    <h2 class="step-heading" data-step-heading tabindex="-1">Step 10: Evidence documents</h2>
+
+    <div class="callout callout--warning">
+      <span class="callout__icon" aria-hidden="true">📎</span>
+      <div class="callout__content">
+        <p class="callout__title">Document upload coming in a future version</p>
+        <p>A future version of this form will allow you to upload supporting evidence documents.
+        At that point you will be able to upload:</p>
+        <ul>
+          <li>Dealer reports and inspection paperwork</li>
+          <li>Battery health reports</li>
+          <li>Recall paperwork and notifications</li>
+          <li>Invoices for work carried out</li>
+          <li>Warranty decisions and correspondence</li>
+          <li>JLR correspondence</li>
+          <li>Recovery, hire car and expense evidence</li>
+        </ul>
+        <p><strong>Before uploading anything, please redact any personal information you do not
+        want stored</strong> — this includes other people's names, addresses, bank details, and
+        any information you would not want to share more widely.</p>
+        <p>For now, please keep your documents safe. We will notify members when upload functionality
+        is available.</p>
+      </div>
+    </div>
+
+    <div class="step-nav">
+      <button type="button" class="btn btn--secondary" data-prev>← Back</button>
+      <button type="button" class="btn btn--primary" data-next>Next →</button>
+    </div>
+  </div>
+
+  <!-- ── Step 11: Consent ──────────────────────────────────────────────── -->
+  <div data-step="11" class="step--hidden">
+    <h2 class="step-heading" data-step-heading tabindex="-1">Step 11: Data consent</h2>
+
+    <fieldset>
+      <legend>How your data may be used</legend>
+      <p class="form-hint">Please select all that apply to you. You can change these preferences later.</p>
+
+      <div class="check-group">
+        <label class="check-label">
+          <input type="checkbox" name="consent-anon-stats">
+          Use my data anonymously in public statistics on the evidence dashboard.
+        </label>
+        <label class="check-label">
+          <input type="checkbox" name="consent-contact-clarify">
+          Allow organisers to contact me for clarification about my submission.
+        </label>
+        <label class="check-label">
+          <input type="checkbox" name="consent-jlr-report">
+          Allow my anonymised data to be included in reports to JLR.
+        </label>
+        <label class="check-label">
+          <input type="checkbox" name="consent-media-legal">
+          I may be willing to provide evidence for media, legal, or consumer rights purposes later.
+          (We will ask again separately before sharing anything.)
+        </label>
+      </div>
+
+      <div class="callout callout--info" style="margin-top: var(--space-5);">
+        <span class="callout__icon" aria-hidden="true">🔒</span>
+        <div class="callout__content">
+          <p>Your personal details (name, email, full VIN) are never published publicly. Only
+          anonymised aggregate data appears on the evidence dashboard. See our
+          <a href="/privacy/">Privacy Policy</a>.</p>
+        </div>
+      </div>
+    </fieldset>
+
+    <div class="step-nav">
+      <button type="button" class="btn btn--secondary" data-prev>← Back</button>
+      <button type="button" class="btn btn--primary" data-next>Next: Review →</button>
+    </div>
+  </div>
+
+  <!-- ── Step 12: Review ───────────────────────────────────────────────── -->
+  <div data-step="12" class="step--hidden">
+    <h2 class="step-heading" data-step-heading tabindex="-1">Step 12: Review your submission</h2>
+
+    <div class="callout callout--info" style="margin-bottom: var(--space-6);">
+      <span class="callout__icon" aria-hidden="true">��️</span>
+      <div class="callout__content">
+        <p class="callout__title">Review placeholder</p>
+        <p>A future version will display a summary of your entered data here for review before
+        submitting. The form structure is ready for this — it requires backend integration to
+        collect and display the form state.</p>
+      </div>
+    </div>
+
+    <div class="dashboard-panel">
+      <div class="dashboard-panel__header">
+        <h3 class="dashboard-panel__title">Ready to submit?</h3>
+      </div>
+      <p style="color: var(--color-text-muted);">
+        All sections complete. Once you submit, a confirmation message will appear.
+        <strong>Note: submission storage is not yet active. No data will be stored.</strong>
+      </p>
+
+      <div class="callout callout--info" style="margin-top: var(--space-4);">
+        <div class="callout__content">
+          <p>By submitting, you confirm the information is accurate to the best of your
+          knowledge and you agree to the <a href="/terms/">Participation Statement</a>
+          and <a href="/privacy/">Privacy Policy</a>.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-nav">
+      <button type="button" class="btn btn--secondary" data-prev>← Back</button>
+      <div class="step-nav__secondary">
+        <button type="button" class="btn btn--ghost" style="color:var(--color-text-muted); border-color:var(--color-border);">Save for later <span style="font-size:0.75em;">(coming soon)</span></button>
+      </div>
+      <button type="submit" class="btn btn--primary" data-submit>Submit vehicle data</button>
+    </div>
+  </div>
+
+  <!-- Submission result -->
+  <div class="submit-result" data-submit-result tabindex="-1" role="status">
+    <div style="text-align: center; padding: var(--space-4);">
+      <div style="font-size: 3rem; margin-bottom: var(--space-4);" aria-hidden="true">✅</div>
+      <h2 style="color: var(--color-success);">Thank you for your submission</h2>
+      <p style="color: var(--color-text-muted);">
+        <strong>Submission storage is not enabled yet.</strong> Your data has not been sent
+        or stored anywhere. Once the backend is ready, submissions will be confirmed by email
+        and visible in your member dashboard.
+      </p>
+      <div class="cluster" style="justify-content:center; margin-top: var(--space-4);">
+        <a href="/evidence-dashboard/" class="btn btn--primary">View Evidence Dashboard</a>
+        <a href="/member/dashboard/" class="btn btn--secondary">Member Dashboard</a>
+      </div>
+    </div>
+  </div>
+
+</form>

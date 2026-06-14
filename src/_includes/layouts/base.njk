@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="{{ description or site.description }}">
+  <title>{% if title %}{{ title }} — {% endif %}{{ site.title }}</title>
+
+  <!-- Netlify Identity Widget -->
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="/assets/css/site.css">
+
+  <!-- Preload key assets -->
+  <link rel="preconnect" href="https://identity.netlify.com">
+</head>
+<body{% if bodyClass %} class="{{ bodyClass }}"{% endif %}{% if authRedirectOnLogin %} data-auth-redirect-on-login="{{ authRedirectOnLogin }}"{% endif %}{% if authRedirectOnLogout %} data-auth-redirect-on-logout="{{ authRedirectOnLogout }}"{% endif %}>
+
+  <!-- Skip navigation -->
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  <!-- Site header -->
+  {% include "partials/header.njk" %}
+
+  <!-- Mobile nav drawer -->
+  {% include "partials/mobile-nav.njk" %}
+
+  <!-- Main content -->
+  <main id="main-content" tabindex="-1">
+    {{ content | safe }}
+  </main>
+
+  <!-- Site footer -->
+  {% include "partials/footer.njk" %}
+
+  <!-- Scripts -->
+  <script src="/assets/js/main.js" defer></script>
+  <script src="/assets/js/identity.js" defer></script>
+  {% if multiStepForm %}
+  <script src="/assets/js/multistep-form.js" defer></script>
+  {% endif %}
+</body>
+</html>

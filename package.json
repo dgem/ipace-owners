@@ -1,0 +1,16 @@
+{
+  "name": "ipace-owners",
+  "version": "0.1.0",
+  "description": "I-PACE Owners' Advocacy Group website",
+  "private": true,
+  "scripts": {
+    "dev": "eleventy --serve",
+    "build": "eleventy",
+    "clean": "rm -rf _site"
+  },
+  "dependencies": {
+    "@11ty/eleventy": "^3.0.0",
+    "netlify-identity-widget": "^1.9.2"
+  },
+  "devDependencies": {}
+}
