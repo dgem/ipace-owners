@@ -7,10 +7,12 @@
     "dev": "npx netlify dev",
     "dev:eleventy": "eleventy --serve",
     "build": "eleventy",
-    "clean": "rm -rf _site"
+    "clean": "rm -rf _site",
+    "test": "node --test"
   },
   "dependencies": {
     "@11ty/eleventy": "^3.0.0",
+    "@netlify/blobs": "^10.7.9",
     "netlify-identity-widget": "^1.9.2"
   },
   "devDependencies": {

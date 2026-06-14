@@ -142,97 +142,115 @@
     });
   }
 
-  function showNetlifyFormSaved(result) {
-    setResultVisibility(result, '[data-registration-form-saved]', true);
-    setResultVisibility(result, '[data-registration-form-error]', false);
+  function setSubmissionId(result, id) {
+    if (!result || !id) return;
+    result.querySelectorAll('[data-database-submission-id]').forEach(function (el) {
+      el.textContent = id;
+    });
   }
 
-  function showNetlifyFormError(result) {
-    setResultVisibility(result, '[data-registration-form-saved]', false);
-    setResultVisibility(result, '[data-registration-form-error]', true);
+  function showDatabaseSaved(result, id) {
+    setSubmissionId(result, id);
+    setResultVisibility(result, '[data-database-success]', true);
+    setResultVisibility(result, '[data-database-error]', false);
+    setResultVisibility(result, '[data-database-auth-error]', false);
   }
 
-  function submitNetlifyForm(form, result) {
-    if (!form || !form.matches('[data-netlify-form-submit]')) return;
+  function showDatabaseError(result) {
+    setResultVisibility(result, '[data-database-success]', false);
+    setResultVisibility(result, '[data-database-error]', true);
+    setResultVisibility(result, '[data-database-auth-error]', false);
+  }
 
-    var formName = form.getAttribute('name');
-    var action = form.getAttribute('action') || window.location.pathname;
+  function showDatabaseAuthError(result) {
+    setResultVisibility(result, '[data-database-success]', false);
+    setResultVisibility(result, '[data-database-error]', false);
+    setResultVisibility(result, '[data-database-auth-error]', true);
+  }
+
+  function showRegistrationState(result, data) {
+    if (!result || !data || !('magicLinkSent' in data)) return;
+
+    setResultVisibility(result, '[data-registration-guest]', !data.signedIn);
+    setResultVisibility(result, '[data-registration-signed-in]', !!data.signedIn);
+    setResultVisibility(result, '[data-registration-link-sent]', !!data.magicLinkSent && !data.signedIn);
+    setResultVisibility(result, '[data-registration-error]', !data.magicLinkSent && !data.signedIn);
+  }
+
+  function formDataToObject(formData) {
+    var payload = {};
+    formData.forEach(function (value, key) {
+      if (key === 'bot-field') return;
+      if (Object.prototype.hasOwnProperty.call(payload, key)) {
+        if (!Array.isArray(payload[key])) payload[key] = [payload[key]];
+        payload[key].push(value);
+      } else {
+        payload[key] = value;
+      }
+    });
+    return payload;
+  }
+
+  function getIdentityToken() {
+    var user = currentUser();
+    if (!user || typeof user.jwt !== 'function') return Promise.resolve('');
+    return user.jwt().catch(function () { return ''; });
+  }
+
+  function submitDatabaseForm(form, result) {
+    if (!form || !form.matches('[data-database-submit]')) return;
+
+    var endpoint = form.getAttribute('data-database-submit') || form.getAttribute('action');
+    var requiresAuth = form.hasAttribute('data-database-requires-auth');
     var formData = new FormData(form);
+    var payload = formDataToObject(formData);
+    var email = payload.email || '';
 
-    if (formName && !formData.has('form-name')) {
-      formData.append('form-name', formName);
+    if (result && email) {
+      result.querySelectorAll('[data-registration-email]').forEach(function (el) {
+        el.textContent = email;
+      });
     }
 
-    fetch(action, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams(formData).toString()
-    }).then(function (res) {
-      if (!res.ok) {
-        throw new Error('Netlify Forms submission failed with status ' + res.status);
+    getIdentityToken().then(function (token) {
+      if (requiresAuth && !token) {
+        showDatabaseAuthError(result);
+        return;
       }
-      showNetlifyFormSaved(result);
+
+      var headers = { 'Content-Type': 'application/json' };
+      if (token) {
+        headers.Authorization = 'Bearer ' + token;
+      }
+
+      return fetch(endpoint, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(payload)
+      }).then(function (res) {
+        if (res.status === 401) {
+          showDatabaseAuthError(result);
+          return null;
+        }
+        return res.json().then(function (data) {
+          if (!res.ok || !data || !data.ok) {
+            throw new Error(data && data.error ? data.error : 'Database submission failed');
+          }
+          showDatabaseSaved(result, data.id);
+          showRegistrationState(result, data);
+          return data;
+        });
+      });
     }).catch(function (err) {
-      console.warn('[identity.js] Netlify Forms submission failed.', err);
-      showNetlifyFormError(result);
+      console.warn('[identity.js] Database submission failed.', err);
+      showDatabaseError(result);
     });
   }
 
   document.addEventListener('multistep:submitted', function (e) {
     var form = e.target;
-    if (!form || !form.matches('[data-identity-signup-on-submit]')) return;
-
-    var result = e.detail && e.detail.result;
-    var emailFieldName = form.getAttribute('data-identity-email-field') || 'email';
-    var emailField = form.elements[emailFieldName];
-    var email = emailField && emailField.value ? emailField.value.trim() : '';
-    var emailEls = result ? result.querySelectorAll('[data-registration-email]') : [];
-    var guestEls = result ? result.querySelectorAll('[data-registration-guest]') : [];
-    var signedInEls = result ? result.querySelectorAll('[data-registration-signed-in]') : [];
-    var user = currentUser();
-
-    emailEls.forEach(function (el) {
-      el.textContent = email || 'your email address';
-    });
-
-    submitNetlifyForm(form, result);
-
-    if (user) {
-      guestEls.forEach(function (el) { el.hidden = true; });
-      signedInEls.forEach(function (el) { el.hidden = false; });
-      return;
-    }
-
-    // Not signed in — reveal guest section immediately, then send magic link.
-    guestEls.forEach(function (el) { el.hidden = false; });
-    signedInEls.forEach(function (el) { el.hidden = true; });
-
-    if (!email) return;
-
-    var nameField = form.elements['name'];
-    var name = nameField && nameField.value ? nameField.value.trim() : '';
-
-    function showLinkSent() {
-      setResultVisibility(result, '[data-registration-link-sent]', true);
-      setResultVisibility(result, '[data-registration-error]', false);
-    }
-
-    function showError() {
-      setResultVisibility(result, '[data-registration-link-sent]', false);
-      setResultVisibility(result, '[data-registration-error]', true);
-    }
-
-    // Valid Identity failures return HTTP 200 for enumeration resistance, so
-    // read the JSON body's `ok` flag instead of relying on res.ok alone.
-    fetch('/.netlify/functions/send-magic-link', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email, name: name })
-    }).then(function (res) {
-      return res.json();
-    }).then(function (data) {
-      if (data && data.ok) { showLinkSent(); } else { showError(); }
-    }).catch(showError);
+    if (!form || !form.matches('[data-database-submit]')) return;
+    submitDatabaseForm(form, e.detail && e.detail.result);
   });
 
   // ── Identity event hooks ────────────────────────────────────────────────────

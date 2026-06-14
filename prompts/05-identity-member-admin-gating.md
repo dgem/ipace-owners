@@ -36,12 +36,14 @@ Provide frontend Identity UX for sign in, sign out, registration, member-only pl
 - Header controls for login, signup/register where relevant, and logout.
 - Sign-in buttons should open the Identity modal without custom password storage.
 - Join or registration completion uses a **magic link flow** via a server-side Netlify Function:
-  - The Join form answers are saved separately using Netlify Forms. Keep this form-save
-    path independent from the Identity email path so the UI can report each outcome.
-  - On form submit, `identity.js` calls `POST /.netlify/functions/send-magic-link`
-    with `{ email, name }`. This is a same-origin request, satisfies CSP, and works in
-    all environments (local dev, deploy previews, production) without any hardcoded URLs.
-  - The function calls Netlify Identity internally (signup for new users, recover for
+  - On Join form submit, `identity.js` must make exactly one browser request:
+    `POST /.netlify/functions/submit-join`.
+  - `submit-join` stores the Join answers and then calls shared server-side magic-link
+    code for logged-out users.
+  - `send-magic-link` remains available as a standalone endpoint for users who already
+    have an account and need another sign-in link, but Join completion must not call it
+    separately from the browser.
+  - The shared server-side magic-link code calls Netlify Identity internally (signup for new users, recover for
     existing ones). For valid same-origin POST requests, it returns HTTP 200 with an
     `ok` flag rather than exposing whether the email was new or existing, preventing
     account enumeration. It may still return non-200 responses for invalid JSON, invalid
@@ -60,15 +62,13 @@ Provide frontend Identity UX for sign in, sign out, registration, member-only pl
 - `identity.init()` must be called with `{ APIUrl: window.location.origin + '/.netlify/identity' }`
   so that the widget resolves settings correctly in all environments (same-origin, no
   hard-coded domain).
-- The browser must read the JSON response body's `ok` flag from `send-magic-link`; do not
-  treat `response.ok` alone as success, because valid same-origin Identity failures are
-  intentionally returned as HTTP 200 with `{ ok: false }`.
+- The browser must read `submit-join`'s JSON response for both storage and `magicLinkSent`
+  state. Do not fire a second request to `send-magic-link` from Join completion.
 - Register the Join form `multistep:submitted` handler even if the Netlify Identity widget
-  is unavailable or blocked, so the server-side magic-link Function is still called. Widget
-  absence should disable only widget-specific UI such as modal open/logout controls.
-- Document that local testing of `/.netlify/functions/send-magic-link` requires `npm run dev`
-  running Netlify Dev, or a deploy preview; the plain Eleventy dev server will not serve
-  Functions.
+  is unavailable or blocked, so `submit-join` is still called. Widget absence should disable
+  only widget-specific UI such as modal open/logout controls.
+- Document that local testing of Identity email Functions requires `npm run dev` running
+  Netlify Dev, or a deploy preview; the plain Eleventy dev server will not serve Functions.
 - Document that Netlify Dev serves Functions but not Netlify Identity. Local magic-link
   testing must set `NETLIFY_IDENTITY_BASE_URL` to the deployed site's
   `https://.../.netlify/identity` endpoint; do not fall back to localhost for Identity.
@@ -80,6 +80,7 @@ Every placeholder member/admin area that refers to future private data must say 
 ## Validation
 
 - Run `npm run build`.
+- Run `npm test` when changing Identity Function handoff or Join completion behavior.
 - Test logged-out states.
 - Confirm gated content is hidden until Identity initializes.
 - Confirm logged-in/member placeholders respond to Identity state.

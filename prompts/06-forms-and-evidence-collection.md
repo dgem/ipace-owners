@@ -35,29 +35,29 @@ Provide accessible multi-step forms that collect membership interest now, help o
 - Prevent default submission until a specific backend integration exists for that form.
 - Show a clear placeholder or handoff result explaining what happened. For forms without a
   backend, explain that no data was sent or stored. For the Join form, explain that the
-  membership answers are saved with Netlify Forms and the name/email are used for the
+  membership answers are saved with `submit-join` and the name/email are used for the
   Identity email flow.
-- Configure the Join form as a Netlify Form:
-  - include `name="join"`, `method="POST"`, `action="/join/"`, `data-netlify="true"`,
-    `netlify-honeypot`, and hidden `form-name=join`;
-  - preserve no-JavaScript submission as a normal HTML form;
-  - in the JavaScript-enhanced flow, submit `FormData` as
-    `application/x-www-form-urlencoded` so Netlify Forms receives the same fields without
-    leaving the multi-step result screen.
-- After successful Join form validation, `identity.js` calls
-  `POST /.netlify/functions/send-magic-link` with the email and name collected in
-  step 1. The function sends a confirmation or recovery email via Netlify Identity.
+- Configure backend-backed forms with `data-database-submit` pointing to the relevant
+  Netlify Function. Use JSON `fetch` from `identity.js`, and send an Identity JWT in the
+  `Authorization` header when `data-database-requires-auth` is present.
+- Configure the Join form to call only `POST /.netlify/functions/submit-join` from the
+  browser. Do not also call `POST /.netlify/functions/send-magic-link` on Join completion.
+- After successful Join form validation, `identity.js` calls `submit-join` with the form
+  payload. The Function stores the Join answers and sends a confirmation or recovery email
+  via shared server-side Netlify Identity code.
   The email address **is** sent to Netlify Identity; detailed join answers (ownership,
-  skills, consent) are saved with Netlify Forms. The result screen independently reports
-  whether the form save and magic-link email handoff succeeded.
+  skills, consent) are saved with Netlify Blobs. The result screen reports storage success
+  and the `magicLinkSent` state returned by `submit-join`.
 - Do not claim "no data was sent or stored" in the Join result. Clarify that the Join
-  answers are saved with Netlify Forms and the email address is sent to Netlify Identity.
+  answers are saved with Netlify Blobs and the email address is sent to Netlify Identity.
 - The result area uses these data attributes for state management:
   - `data-registration-guest` — wrapper shown for unauthenticated users
   - `data-registration-signed-in` — shown if user is already logged in
   - `data-registration-email` — filled with the collected email address
-  - `data-registration-form-saved` — shown once Netlify Forms accepts the Join submission
-  - `data-registration-form-error` — shown if Netlify Forms submission fails
+  - `data-database-success` — shown once the Function stores the submission
+  - `data-database-error` — shown if the Function cannot store the submission
+  - `data-database-auth-error` — shown if a signed-in submission lacks a valid Identity JWT
+  - `data-database-submission-id` — filled with the stored submission reference when present
   - `data-registration-link-sent` — shown once the API call succeeds
   - `data-registration-error` — shown if the API call fails
 - Validate required text, email, select, checkbox, and radio controls according to their actual user state. Required checkboxes must be checked; required radio groups must have a checked option.
@@ -77,10 +77,20 @@ Collect:
 
 ## Vehicle data form
 
-Collect structured, optional evidence fields such as:
+The currently implemented vehicle form is the first database-backed slice. It requires a
+signed-in Netlify Identity user and calls `POST /.netlify/functions/submit-vehicle-basics`.
+It collects:
 
 - VIN, registration, country, model year, ownership dates, mileage.
 - Battery State of Health and source.
+
+Full VINs must not be stored. The Function should create an HMAC using `VIN_PEPPER` and
+store only the HMAC plus final six characters for reference.
+The first vehicle-basics slice should require at least one vehicle identifier: VIN or
+registration.
+
+Future slices should collect structured, optional evidence fields such as:
+
 - High-voltage battery work, modules replaced, dates, days off road.
 - Additional warranty cover.
 - H570/H571/H572 recall status and outcomes.
@@ -95,8 +105,8 @@ The vehicle form should remain neutral and detailed. It should not ask owners to
 answer whether the car was inside the original manufacturer warranty or inside the 8-year /
 100,000-mile battery warranty, because those can be inferred later from age and mileage.
 
-Include a Save later placeholder button or copy where practical, but do not implement
-storage until backend persistence exists.
+Include a Save later placeholder button or copy where practical for future longer evidence
+flows.
 
 The review step may be a placeholder in the MVP, but the structure should be ready for a
 future summary of entered information.
@@ -106,15 +116,20 @@ future summary of entered information.
 - Do not store data in Git.
 - Do not send form data to a backend until a backend prompt implements it for that specific
   flow. The current exceptions are:
-  - the Join form's Netlify Forms submission, which stores membership interest and consent;
-  - the Join form's `send-magic-link` call, which sends email and name to Netlify Identity
-    via a same-origin Function.
+  - the Join form's single `submit-join` call, which stores membership interest and consent
+    in Netlify Blobs and sends email/name to Netlify Identity via shared server-side
+    magic-link code;
+  - the signed-in vehicle basics form's `submit-vehicle-basics` call, which stores the
+    initial vehicle and battery health slice in Netlify Blobs.
 - Do not store raw VINs in public static files.
+- Do not store full VINs in Blobs. Store an HMAC generated with `VIN_PEPPER` and only the
+  final six characters for reference.
 - Make evidence uploads a placeholder until server-side validation and storage exist.
 
 ## Validation
 
 - Run `npm run build`.
+- Run `npm test` when changing form submission wiring, Function payloads, or validation.
 - Keyboard-test next, previous, validation, and final placeholder result.
 - Specifically test progressing past the second step of the Join form.
 - Confirm required fields have accessible error messages.
