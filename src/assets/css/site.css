@@ -527,6 +527,36 @@ th {
   background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 60%, #1a4a6b 100%);
 }
 
+.hero--image {
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(135deg, rgba(11, 34, 51, 0.98) 0%, rgba(18, 50, 74, 0.94) 46%, rgba(15, 118, 110, 0.78) 100%);
+  padding-block: var(--space-16);
+}
+
+.hero--image::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 8rem;
+  background: linear-gradient(to bottom, transparent, rgba(11, 34, 51, 0.45));
+  pointer-events: none;
+}
+
+.hero__inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: var(--space-10);
+  align-items: center;
+}
+
+.hero__content {
+  max-width: 44rem;
+  margin-inline: auto;
+}
+
 .hero__eyebrow {
   display: inline-block;
   font-size: var(--text-sm);
@@ -557,6 +587,45 @@ th {
   flex-wrap: wrap;
   gap: var(--space-3);
   justify-content: center;
+}
+
+.hero__media {
+  margin-inline: auto;
+  width: min(100%, 42rem);
+}
+
+.hero__media img {
+  width: 100%;
+  border: 1px solid rgba(255,255,255,0.16);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 1.5rem 4rem rgb(0 0 0 / 0.3);
+}
+
+@media (min-width: 64em) {
+  .hero {
+    text-align: left;
+  }
+
+  .hero__inner {
+    grid-template-columns: minmax(0, 0.9fr) minmax(26rem, 1.1fr);
+  }
+
+  .hero__content {
+    margin-inline: 0;
+  }
+
+  .hero__subtitle {
+    margin-inline: 0;
+  }
+
+  .hero__ctas {
+    justify-content: flex-start;
+  }
+
+  .hero__media {
+    width: 100%;
+    transform: translateX(1rem);
+  }
 }
 
 /* ------------------------------------------------------------
@@ -811,6 +880,36 @@ th {
   max-width: 44rem;
 }
 
+.form-workspace {
+  display: grid;
+  gap: var(--space-6);
+  align-items: start;
+}
+
+.form-workspace .form {
+  max-width: none;
+}
+
+.form-workspace__aside {
+  order: 2;
+}
+
+@media (min-width: 64em) {
+  .form-workspace {
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 23rem);
+    gap: var(--space-8);
+  }
+
+  .form-workspace__aside {
+    position: sticky;
+    top: calc(4.5rem + var(--space-6));
+  }
+
+  .form-workspace__aside .callout {
+    margin: 0;
+  }
+}
+
 .form-group {
   margin-bottom: var(--space-5);
 }
@@ -955,7 +1054,7 @@ legend {
 
 /* Progress indicator */
 .progress-indicator {
-  margin-bottom: var(--space-8);
+  margin-bottom: var(--space-6);
 }
 
 .progress-indicator__bar {
@@ -1162,6 +1261,10 @@ legend {
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
   padding-block: var(--space-10);
+}
+
+.page-header--compact {
+  padding-block: var(--space-6);
 }
 
 .page-header__eyebrow {

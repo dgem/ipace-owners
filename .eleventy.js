@@ -1,7 +1,7 @@
 module.exports = function (eleventyConfig) {
   // Passthrough copies
   eleventyConfig.addPassthroughCopy("src/assets");
-  eleventyConfig.addPassthroughCopy("public");
+  eleventyConfig.addPassthroughCopy({ public: "." });
 
   // Watch targets
   eleventyConfig.addWatchTarget("src/assets/css/");

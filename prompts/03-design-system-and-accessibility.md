@@ -19,6 +19,9 @@ Create a calm, credible, technical-feeling public site that is mobile-first, acc
   6. Print styles
 - Prefer reusable component classes over inline styles.
 - Use CSS custom properties for color, spacing, typography, shadows, radii, layout widths, and transitions.
+- Homepage hero media should be integrated as part of the first-viewport experience, not added as a disconnected decorative card.
+- For brand/product/vehicle imagery, use licensed, original, or generated bitmap assets only; do not use manufacturer logos, badges, watermarks, or copyrighted press imagery.
+- Favicon artwork should be simple, legible at small sizes, aligned with the navy/teal palette, and free of Jaguar/JLR logos or badges.
 
 ## Design tokens
 
@@ -57,6 +60,7 @@ Use this palette unless there is a deliberate product reason to change it:
 - Mobile nav drawer.
 - Footer.
 - Hero.
+- Hero media/image layout.
 - Page header.
 - Buttons and button variants.
 - Cards.
