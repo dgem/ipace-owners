@@ -20,8 +20,13 @@ Show how owner evidence will be presented once collection is live, without prete
 - Include chart-like panels for distributions such as:
   - State of Health,
   - model year,
+  - HV battery work by model year,
+  - modules replaced,
   - recall completion,
+  - inside vs outside 8-year / 100,000-mile battery warranty,
+  - average time off road,
   - loan car provision,
+  - payment/goodwill outcomes,
   - warranty status at time of fault,
   - HV battery work type.
 - Use accessible HTML/CSS chart representations with text labels and `aria-label` where needed.
@@ -38,6 +43,7 @@ Explain:
 - How raw personal data and VINs are protected.
 - How public statistics are anonymised and aggregated.
 - Why sample bias matters.
+- Why structured data is more credible than forum anecdotes.
 - How excluded or uncertain records are handled.
 
 ## Verification levels

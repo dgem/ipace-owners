@@ -176,6 +176,15 @@ Posts appear automatically on `/updates/`.
 See `docs/architecture.md` for the intended architecture using Netlify Functions and
 Netlify Blobs for data persistence and admin features.
 
+### Copilot PR reviews
+
+Automatic GitHub Copilot code review is enabled with a repository branch ruleset named
+`Automatic Copilot code review`. It targets the default branch, requests Copilot review on
+pull requests, and reviews new pushes to existing pull requests.
+
+This is configured in GitHub repository settings under **Rules -> Rulesets**. No repository
+workflow or external AI provider API key is required.
+
 ### Prompt maintenance
 
 Product-generation prompts live in `prompts/`. They are sequenced with two-digit prefixes

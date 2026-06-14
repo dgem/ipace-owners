@@ -33,6 +33,8 @@ Provide frontend Identity UX for sign in, sign out, registration, member-only pl
 - Member dashboard at `/member/dashboard/`.
 - Account page at `/account/`.
 - Admin review queue at `/admin/review-queue/`.
+- Header controls for login, signup/register where relevant, and logout.
+- Sign-in buttons should open the Identity modal without custom password storage.
 
 ## Security copy
 
@@ -43,4 +45,6 @@ Every placeholder member/admin area that refers to future private data must say 
 - Run `npm run build`.
 - Test logged-out states.
 - Confirm gated content is hidden until Identity initializes.
+- Confirm logged-in/member placeholders respond to Identity state.
+- Confirm admin placeholders check for an admin role where possible.
 - Confirm placeholder pages do not expose real private data.

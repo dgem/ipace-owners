@@ -26,6 +26,8 @@ Provide accessible multi-step forms that help owners submit structured evidence 
 - With JavaScript, show one step at a time.
 - On large screens, place form-level notices or storage-status callouts beside the form instead of above it when that improves first-step visibility.
 - Keep the first actionable form fields visible as high as practical; avoid stacking large notices above progress indicators.
+- Keep step navigation, especially the first Next button, visible without excessive scrolling on common laptop-height viewports.
+- Use compact spacing or two-column field grouping on desktop when it improves form progression without harming readability.
 - Attach navigation behavior to every `[data-next]` and `[data-prev]` button in the form, not only the first matching button.
 - Move focus to the current step heading after navigation.
 - Remove hidden-step controls from the tab order.
@@ -40,6 +42,7 @@ Provide accessible multi-step forms that help owners submit structured evidence 
 Collect:
 
 - Contact details.
+- Default country / region to United Kingdom while keeping non-UK owner options available.
 - Owner/relationship status.
 - Optional skills and volunteering.
 - Consent to contact.
@@ -61,6 +64,16 @@ Collect structured, optional evidence fields such as:
 - Repeat faults.
 - Notes and evidence upload placeholder.
 - Consent and review.
+
+The vehicle form should remain neutral and detailed. It should not ask owners to manually
+answer whether the car was inside the original manufacturer warranty or inside the 8-year /
+100,000-mile battery warranty, because those can be inferred later from age and mileage.
+
+Include a Save later placeholder button or copy where practical, but do not implement
+storage until backend persistence exists.
+
+The review step may be a placeholder in the MVP, but the structure should be ready for a
+future summary of entered information.
 
 ## Data safety
 
