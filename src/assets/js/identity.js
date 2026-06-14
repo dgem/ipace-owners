@@ -165,18 +165,68 @@
     emailEls.forEach(function (el) {
       el.textContent = email || 'your email address';
     });
-    guestEls.forEach(function (el) {
-      el.hidden = !!user;
-    });
-    signedInEls.forEach(function (el) {
-      el.hidden = !user;
-    });
 
-    if (!user) {
-      window.setTimeout(function () {
-        identity.open('signup');
-      }, 300);
+    if (user) {
+      guestEls.forEach(function (el) { el.hidden = true; });
+      signedInEls.forEach(function (el) { el.hidden = false; });
+      return;
     }
+
+    // Not signed in — reveal guest section immediately, then send magic link.
+    guestEls.forEach(function (el) { el.hidden = false; });
+    signedInEls.forEach(function (el) { el.hidden = true; });
+
+    if (!email) return;
+
+    // Magic link flow: call the Netlify Identity API directly so no widget modal
+    // is shown. New users receive a confirmation email (which IS a magic link);
+    // existing users receive a password-recovery link that works the same way.
+    var apiBase = 'https://ipace-owners.org/.netlify/identity';
+    var nameField = form.elements['name'];
+    var name = nameField && nameField.value ? nameField.value.trim() : '';
+
+    // Random password — user authenticates via the email link only, not this password.
+    var buf = new Uint8Array(18);
+    crypto.getRandomValues(buf);
+    var randomPassword = Array.from(buf)
+      .map(function (b) { return b.toString(16).padStart(2, '0'); })
+      .join('') + 'Aa1!';
+
+    function showLinkSent() {
+      if (!result) return;
+      result.querySelectorAll('[data-registration-link-sent]').forEach(function (el) { el.hidden = false; });
+      result.querySelectorAll('[data-registration-error]').forEach(function (el) { el.hidden = true; });
+    }
+
+    function showError() {
+      if (!result) return;
+      result.querySelectorAll('[data-registration-link-sent]').forEach(function (el) { el.hidden = true; });
+      result.querySelectorAll('[data-registration-error]').forEach(function (el) { el.hidden = false; });
+    }
+
+    function sendRecoveryLink() {
+      // User already exists — send a sign-in magic link via the recovery endpoint.
+      fetch(apiBase + '/recover', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email })
+      }).then(showLinkSent).catch(showError);
+    }
+
+    // Attempt signup. On 422 (email taken) fall through to recovery link instead.
+    fetch(apiBase + '/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, password: randomPassword, data: { full_name: name } })
+    }).then(function (res) {
+      if (res.ok) {
+        showLinkSent(); // confirmation email = magic link
+      } else if (res.status === 422) {
+        sendRecoveryLink(); // already registered — send sign-in link
+      } else {
+        showError();
+      }
+    }).catch(showError);
   });
 
   // ── Identity event hooks ────────────────────────────────────────────────────

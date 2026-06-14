@@ -246,20 +246,35 @@ compactSection: true
     <div style="text-align: center; padding: var(--space-4);">
       <div style="font-size: 3rem; margin-bottom: var(--space-4);" aria-hidden="true">✅</div>
       <h2 style="color: var(--color-success);">Thank you for joining</h2>
-      <p style="color: var(--color-text-muted);" data-registration-guest>
-        Your join details have been checked in this browser, but profile storage is not enabled yet.
-        To finish creating your member account, use Netlify Identity with
-        <strong data-registration-email>your email address</strong>. Netlify will send the account
-        confirmation link by email when registration is enabled for the site.
-      </p>
+
+      <!-- Shown when user is already signed in -->
       <p style="color: var(--color-text-muted);" data-registration-signed-in hidden>
-        You are already signed in with Netlify Identity. Backend profile storage is not enabled yet,
-        so your join details have not been sent or stored.
+        You are already signed in. Your join details have been noted in this browser.
+        Backend profile storage is not yet active, so they have not been sent or stored.
       </p>
-      <div class="cluster" style="justify-content:center; margin-top: var(--space-5);" data-registration-guest>
-        <button type="button" class="btn btn--primary" data-identity-signup-cta>Create account</button>
-        <button type="button" class="btn btn--secondary" data-identity-login-cta>Already registered? Sign in</button>
+
+      <!-- Shown for guests — revealed by identity.js after form submit -->
+      <div data-registration-guest hidden>
+        <p style="color: var(--color-text-muted);">Sending a sign-in link to
+          <strong data-registration-email>your email address</strong>…
+        </p>
+
+        <!-- Shown once the magic link email has been dispatched -->
+        <div data-registration-link-sent hidden style="margin-top: var(--space-4);">
+          <div style="font-size: 2rem; margin-bottom: var(--space-3);" aria-hidden="true">📧</div>
+          <p><strong>Check your inbox.</strong> We've sent a sign-in link to your email address.
+          Click it to complete your registration — no password needed.</p>
+          <p style="color: var(--color-text-muted); font-size: 0.875rem; margin-top: var(--space-2);">Can't find it? Check your spam folder.</p>
+        </div>
+
+        <!-- Shown if the API call fails -->
+        <div data-registration-error hidden style="margin-top: var(--space-4);">
+          <p style="color: var(--color-text-muted);">We couldn't send your link right now.
+          Use the <strong>Sign in</strong> button in the header, or email us at
+          <a href="mailto:contact@ipace-owners.org">contact@ipace-owners.org</a>.</p>
+        </div>
       </div>
+
       <div class="cluster" style="justify-content:center; margin-top: var(--space-5);">
         <a href="/submit-vehicle-data/" class="btn btn--primary">Submit Vehicle Data →</a>
         <a href="/account/" class="btn btn--secondary">Account</a>
@@ -274,9 +289,9 @@ compactSection: true
       <span class="callout__icon" aria-hidden="true">ℹ️</span>
       <div class="callout__content">
         <p class="callout__title">Submission storage not yet active</p>
-        <p>This form is fully functional as a multi-step experience. At the end, it opens Netlify
-        Identity so you can create or sign in to your account. Backend profile storage is not yet
-        active, so the detailed join answers are not sent or stored.</p>
+        <p>This form is fully functional as a multi-step experience. At the end, we send a
+        sign-in link to the email address you provide — no password needed. Backend profile
+        storage is not yet active, so your detailed join answers are not sent or stored.</p>
       </div>
     </div>
   </aside>
