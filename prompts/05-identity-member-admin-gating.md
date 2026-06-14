@@ -36,6 +36,8 @@ Provide frontend Identity UX for sign in, sign out, registration, member-only pl
 - Header controls for login, signup/register where relevant, and logout.
 - Sign-in buttons should open the Identity modal without custom password storage.
 - Join or registration completion uses a **magic link flow** via a server-side Netlify Function:
+  - The Join form answers are saved separately using Netlify Forms. Keep this form-save
+    path independent from the Identity email path so the UI can report each outcome.
   - On form submit, `identity.js` calls `POST /.netlify/functions/send-magic-link`
     with `{ email, name }`. This is a same-origin request, satisfies CSP, and works in
     all environments (local dev, deploy previews, production) without any hardcoded URLs.

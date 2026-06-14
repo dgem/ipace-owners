@@ -6,8 +6,9 @@ subtitle: "How we handle your data. Plain English, no jargon."
 description: "Privacy policy for the I-PACE Owners' Advocacy Group website."
 ---
 
-*This is a placeholder privacy policy. A more formal policy will be needed before live data
-collection begins. We recommend reviewing this with a data protection professional.*
+*This is a placeholder privacy policy. A more formal policy will be needed before broader
+vehicle/evidence data collection begins. We recommend reviewing this with a data protection
+professional.*
 
 ## What data we may collect
 
@@ -21,6 +22,15 @@ When you join the group or submit vehicle data, we may collect:
 
 When you visit this website, our hosting provider (Netlify) may collect standard server logs
 including IP addresses and browser information. We do not use third-party analytics tracking.
+
+## Join form submissions
+
+The Join form is saved using **Netlify Forms**. A Join submission may include your name,
+email address, country or region, relationship to an I-PACE, ownership status, volunteering
+interests, and consent choices.
+
+The Join form also asks Netlify Identity to send a sign-in or account confirmation email.
+Vehicle evidence submissions are not stored yet.
 
 ## Cookies and browser storage
 
@@ -69,8 +79,10 @@ information before uploading.
 
 ## Data security
 
-We use Netlify's hosting infrastructure. Future backend processing will use Netlify Functions
-and Netlify Blobs. Raw personal data and full VINs will not be stored in public static files.
+We use Netlify's hosting infrastructure, including Netlify Forms for Join submissions and
+Netlify Identity for authentication. Future vehicle/evidence processing will use Netlify
+Functions and Netlify Blobs. Raw personal data and full VINs will not be stored in public
+static files.
 
 ## Your rights
 
@@ -79,7 +91,7 @@ contact us at [contact@ipace-owners.org](mailto:contact@ipace-owners.org).
 
 ## Changes to this policy
 
-This policy will be updated before live data collection begins. We will notify members of
-material changes.
+This policy will be updated before broader live vehicle/evidence data collection begins.
+We will notify members of material changes.
 
 *Last updated: 14 June 2026. This is a placeholder document.*

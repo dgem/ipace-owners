@@ -14,12 +14,22 @@ compactSection: true
 
 <form
   class="form form--compact"
+  name="join"
+  method="POST"
+  action="/join/"
+  data-netlify="true"
+  netlify-honeypot="bot-field"
   data-multistep-form
+  data-netlify-form-submit
   data-identity-signup-on-submit
   data-identity-email-field="email"
   novalidate
   aria-label="Join the I-PACE Owners' Group"
 >
+  <input type="hidden" name="form-name" value="join">
+  <p class="visually-hidden">
+    <label>Do not fill this in if you are human: <input name="bot-field" tabindex="-1" autocomplete="off"></label>
+  </p>
 
   <!-- Progress indicator -->
   <div class="progress-indicator" data-progress aria-live="polite" aria-atomic="true">
@@ -209,16 +219,16 @@ compactSection: true
 
       <div class="check-group">
         <label class="check-label">
-          <input type="checkbox" name="consent-contact" required>
+          <input type="checkbox" name="consent-contact" value="yes" required>
           I agree to be contacted about the I-PACE Owners' Group. <span aria-hidden="true">*</span>
         </label>
         <label class="check-label">
-          <input type="checkbox" name="consent-not-legal" required>
+          <input type="checkbox" name="consent-not-legal" value="yes" required>
           I understand that joining this group is not currently a legal claim and creates no
           legal relationship. <span aria-hidden="true">*</span>
         </label>
         <label class="check-label">
-          <input type="checkbox" name="consent-data">
+          <input type="checkbox" name="consent-data" value="yes">
           I consent to my submitted data being used in anonymised aggregate analysis.
         </label>
       </div>
@@ -249,9 +259,19 @@ compactSection: true
 
       <!-- Shown when user is already signed in -->
       <p style="color: var(--color-text-muted);" data-registration-signed-in hidden>
-        You are already signed in. Your join answers have been completed in this browser
-        but have not been sent or stored — backend profile storage is not yet active.
+        You are already signed in. Your join answers have been submitted to the group.
       </p>
+
+      <div data-registration-form-saved hidden style="margin-top: var(--space-4);">
+        <p><strong>Your join details have been saved.</strong> The group will use this
+        information to understand membership interest and volunteering offers.</p>
+      </div>
+
+      <div data-registration-form-error hidden style="margin-top: var(--space-4);">
+        <p style="color: var(--color-danger);"><strong>Your sign-in link may still be sent,</strong>
+        but we could not save the join form details just now. Please try again or contact
+        <a href="mailto:contact@ipace-owners.org">contact@ipace-owners.org</a>.</p>
+      </div>
 
       <!-- Shown for guests — revealed by identity.js after form submit -->
       <div data-registration-guest hidden>
@@ -288,11 +308,10 @@ compactSection: true
     <div class="callout callout--info">
       <span class="callout__icon" aria-hidden="true">ℹ️</span>
       <div class="callout__content">
-        <p class="callout__title">Submission storage not yet active</p>
-        <p>This form is fully functional as a multi-step experience. At the end, we send an
+        <p class="callout__title">Join answers are saved</p>
+        <p>At the end, the join answers are saved using Netlify Forms and we send an
         email to the address you provide so you can create or access your member account.
-        Your detailed join answers (ownership, skills, consent) are not yet stored — backend
-        profile storage is not yet active.</p>
+        Vehicle evidence storage is still separate and not yet active.</p>
       </div>
     </div>
   </aside>

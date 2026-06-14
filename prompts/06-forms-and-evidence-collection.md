@@ -4,7 +4,7 @@ Implement or refine the membership and vehicle data collection form UX.
 
 ## Goal
 
-Provide accessible multi-step forms that help owners submit structured evidence later, while clearly disclosing what is and is not sent or stored at each stage.
+Provide accessible multi-step forms that collect membership interest now, help owners submit structured evidence later, and clearly disclose what is and is not sent or stored at each stage.
 
 ## JavaScript behavior
 
@@ -34,21 +34,30 @@ Provide accessible multi-step forms that help owners submit structured evidence 
 - Respect `prefers-reduced-motion`.
 - Prevent default submission until a specific backend integration exists for that form.
 - Show a clear placeholder or handoff result explaining what happened. For forms without a
-  backend, explain that no data was sent or stored. For the Join form, explain that only the
-  name/email needed for the Identity email flow is sent, while detailed join answers are not
-  persisted yet.
+  backend, explain that no data was sent or stored. For the Join form, explain that the
+  membership answers are saved with Netlify Forms and the name/email are used for the
+  Identity email flow.
+- Configure the Join form as a Netlify Form:
+  - include `name="join"`, `method="POST"`, `action="/join/"`, `data-netlify="true"`,
+    `netlify-honeypot`, and hidden `form-name=join`;
+  - preserve no-JavaScript submission as a normal HTML form;
+  - in the JavaScript-enhanced flow, submit `FormData` as
+    `application/x-www-form-urlencoded` so Netlify Forms receives the same fields without
+    leaving the multi-step result screen.
 - After successful Join form validation, `identity.js` calls
   `POST /.netlify/functions/send-magic-link` with the email and name collected in
   step 1. The function sends a confirmation or recovery email via Netlify Identity.
   The email address **is** sent to Netlify Identity; detailed join answers (ownership,
-  skills, consent) are **not** persisted until backend profile storage is implemented.
-  The result screen instructs the user to check their inbox for the sign-in link.
-- Do not claim "no data was sent or stored" in the result — clarify that the email
-  address is sent to Netlify Identity but detailed form answers are not stored yet.
+  skills, consent) are saved with Netlify Forms. The result screen independently reports
+  whether the form save and magic-link email handoff succeeded.
+- Do not claim "no data was sent or stored" in the Join result. Clarify that the Join
+  answers are saved with Netlify Forms and the email address is sent to Netlify Identity.
 - The result area uses these data attributes for state management:
   - `data-registration-guest` — wrapper shown for unauthenticated users
   - `data-registration-signed-in` — shown if user is already logged in
   - `data-registration-email` — filled with the collected email address
+  - `data-registration-form-saved` — shown once Netlify Forms accepts the Join submission
+  - `data-registration-form-error` — shown if Netlify Forms submission fails
   - `data-registration-link-sent` — shown once the API call succeeds
   - `data-registration-error` — shown if the API call fails
 - Validate required text, email, select, checkbox, and radio controls according to their actual user state. Required checkboxes must be checked; required radio groups must have a checked option.
@@ -96,8 +105,10 @@ future summary of entered information.
 
 - Do not store data in Git.
 - Do not send form data to a backend until a backend prompt implements it for that specific
-  flow. The current exception is the Join form's `send-magic-link` call, which sends only
-  email and name to Netlify Identity via a same-origin Function.
+  flow. The current exceptions are:
+  - the Join form's Netlify Forms submission, which stores membership interest and consent;
+  - the Join form's `send-magic-link` call, which sends email and name to Netlify Identity
+    via a same-origin Function.
 - Do not store raw VINs in public static files.
 - Make evidence uploads a placeholder until server-side validation and storage exist.
 
