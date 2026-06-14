@@ -16,10 +16,12 @@ Evolve the static MVP into a data-collecting product using Netlify Functions and
 - Never log raw VINs, uploaded evidence contents, full personal records, or Identity tokens.
 - Validate all input server-side.
 - Validate uploaded evidence server-side by size, type, and content checks.
-- Resolve the account enumeration issue in the current frontend magic link flow: implement a
-  `send-magic-link.js` Function that accepts an email, attempts signup or recovery internally,
-  and always returns the same 200 response regardless of whether the account existed. This
-  prevents an observer distinguishing registered from unregistered email addresses.
+
+## Implemented Functions
+
+- `send-magic-link.js`: accepts `POST { email, name }` from the Join form, calls Netlify
+  Identity `/signup` (new users) or `/recover` (existing users) server-side, and always
+  returns HTTP 200 to prevent account enumeration. CORS-restricted to same-site origins.
 
 ## Proposed Functions
 
@@ -56,7 +58,10 @@ Separate:
 
 ## UI integration
 
-- Replace placeholder form submission handling with `fetch` calls only after Functions exist.
+- The Join form already calls `/.netlify/functions/send-magic-link` to dispatch a
+  Netlify Identity sign-in email. Do not revert this to a direct Identity API call.
+- Replace placeholder vehicle/evidence form submission handling with `fetch` calls
+  to the relevant Functions only after those Functions exist.
 - Send Identity JWTs in the `Authorization` header where authentication is required.
 - Preserve accessible validation and progressive enhancement.
 - Show clear success, retryable failure, and non-retryable validation error states.
