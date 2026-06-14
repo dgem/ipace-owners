@@ -10,9 +10,9 @@ public site built with Eleventy (11ty) and deployed to Netlify.
 ```
 .
 ├── src/
-│   ├── pages/           # Markdown (.md) and Nunjucks (.njk) page templates
-│   │   ├── member/      # Member-only placeholder pages
-│   │   └── admin/       # Admin-only placeholder pages
+│   ├── *.md / *.njk     # Top-level Markdown and Nunjucks page templates
+│   ├── member/          # Member-only placeholder pages
+│   ├── admin/           # Admin-only placeholder pages
 │   ├── updates/         # Update/news posts (.md)
 │   ├── _data/           # Global data files (site.json, navigation.json)
 │   ├── _includes/
@@ -28,6 +28,7 @@ public site built with Eleventy (11ty) and deployed to Netlify.
 ├── netlify/functions/   # Netlify Functions directory (placeholder)
 ├── docs/
 │   └── architecture.md  # Future architecture documentation
+├── prompts/             # Sequenced prompts for rebuilding and evolving the product
 ├── .eleventy.js         # Eleventy configuration
 ├── netlify.toml         # Netlify build, redirect and header configuration
 ├── package.json         # npm scripts and dependencies
@@ -104,11 +105,20 @@ Defined in `:root` in `site.css`. Key tokens:
 
 ## Adding a new page
 
-1. Create a `.md` or `.njk` file in `src/pages/`.
+1. Create a `.md` or `.njk` file in `src/`.
 2. Add front matter with at least `layout`, `title`, and `description`.
 3. For a standard content page, use `layout: page.njk`.
 4. For a multi-step form page, use `layout: form-page.njk` and add `multiStepForm: true`.
 5. Add navigation links to `src/_data/navigation.json` if needed.
+
+## Prompt maintenance
+
+- Product-generation prompts live in `prompts/`.
+- Every prompt file must be prefixed with a two-digit sequence number, starting with
+  `00-original-project-prompt.md`.
+- Split prompts by product concern, feature, or implementation phase rather than keeping
+  one large prompt.
+- Preserve historical prompts where useful, then add refined prompts for future work.
 
 ## Adding a new update post
 
