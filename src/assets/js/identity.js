@@ -178,29 +178,8 @@
 
     if (!email) return;
 
-    // Magic link flow: call the Netlify Identity API directly so no widget modal
-    // is shown. New users receive a confirmation email (which IS a magic link);
-    // existing users receive a password-recovery link that works the same way.
-    //
-    // Use window.location.origin so the fetch targets the current environment's
-    // /.netlify/identity endpoint. This keeps deploy previews isolated from
-    // production and satisfies the CSP (same-origin request).
-    //
-    // Known limitation: branching on a 422 response to detect existing accounts
-    // enables account enumeration (an observer can tell if an email is already
-    // registered). This is an acceptable trade-off for the current MVP but
-    // should be replaced with a server-side Netlify Function (see prompt 08)
-    // that always returns the same response regardless of account existence.
-    var apiBase = window.location.origin + '/.netlify/identity';
     var nameField = form.elements['name'];
     var name = nameField && nameField.value ? nameField.value.trim() : '';
-
-    // Random password — user authenticates via the email link only, not this password.
-    var buf = new Uint8Array(18);
-    crypto.getRandomValues(buf);
-    var randomPassword = Array.from(buf)
-      .map(function (b) { return b.toString(16).padStart(2, '0'); })
-      .join('') + 'Aa1!';
 
     function showLinkSent() {
       if (!result) return;
@@ -214,31 +193,16 @@
       result.querySelectorAll('[data-registration-error]').forEach(function (el) { el.hidden = false; });
     }
 
-    function sendRecoveryLink() {
-      // User already exists — send a sign-in magic link via the recovery endpoint.
-      fetch(apiBase + '/recover', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email })
-      }).then(function (res) {
-        // fetch only rejects on network errors; check res.ok for API errors.
-        if (res.ok) { showLinkSent(); } else { showError(); }
-      }).catch(showError);
-    }
-
-    // Attempt signup. On 422 (email taken) fall through to recovery link instead.
-    fetch(apiBase + '/signup', {
+    // Delegate the magic link dispatch to the server-side Netlify Function.
+    // This keeps the Identity API call off the client, prevents account
+    // enumeration (the function always returns 200), and removes the need for
+    // client-side random-password generation.
+    fetch('/.netlify/functions/send-magic-link', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email, password: randomPassword, data: { full_name: name } })
+      body: JSON.stringify({ email: email, name: name })
     }).then(function (res) {
-      if (res.ok) {
-        showLinkSent(); // confirmation email = magic link
-      } else if (res.status === 422) {
-        sendRecoveryLink(); // already registered — send sign-in link
-      } else {
-        showError();
-      }
+      if (res.ok) { showLinkSent(); } else { showError(); }
     }).catch(showError);
   });
 
