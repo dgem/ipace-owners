@@ -115,10 +115,13 @@ After deploying to Netlify, you **must** enable Netlify Identity manually:
 4. Configure registration settings:
    - For a closed group, set **Registration preferences** to **Invite only**.
    - For open registration, leave as **Open**.
+   - Keep email confirmation enabled so Netlify sends the account confirmation link.
 5. Optional: configure external OAuth providers (Google, GitHub) if desired.
 
 > The Netlify Identity widget is loaded from `https://identity.netlify.com/v1/netlify-identity-widget.js`
 > and will not function until Identity is enabled in the Netlify UI.
+> The Join form hands users to the Netlify Identity signup modal after validation. The detailed
+> join answers are not persisted until backend profile storage is implemented.
 
 ### Admin role assignment
 

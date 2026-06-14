@@ -34,6 +34,9 @@ Provide accessible multi-step forms that help owners submit structured evidence 
 - Respect `prefers-reduced-motion`.
 - Prevent default submission until backend prompts explicitly add persistence.
 - Show a clear placeholder result explaining that no data was sent or stored.
+- The Join form may hand off to Netlify Identity signup after successful validation so users can
+  create an account and receive Netlify's email confirmation link. Make clear that detailed join
+  answers are not persisted until backend profile storage exists.
 - Validate required text, email, select, checkbox, and radio controls according to their actual user state. Required checkboxes must be checked; required radio groups must have a checked option.
 - When submission completes, hide all step navigation containers and all form steps before showing the placeholder result.
 

@@ -15,6 +15,8 @@ compactSection: true
 <form
   class="form form--compact"
   data-multistep-form
+  data-identity-signup-on-submit
+  data-identity-email-field="email"
   novalidate
   aria-label="Join the I-PACE Owners' Group"
 >
@@ -244,12 +246,24 @@ compactSection: true
     <div style="text-align: center; padding: var(--space-4);">
       <div style="font-size: 3rem; margin-bottom: var(--space-4);" aria-hidden="true">✅</div>
       <h2 style="color: var(--color-success);">Thank you for joining</h2>
-      <p style="color: var(--color-text-muted);">
-        <strong>Submission storage is not enabled yet.</strong> Your data has not been sent or stored.
-        This is a development version of the form. Once the backend is ready, your membership
-        registration will be confirmed by email.
+      <p style="color: var(--color-text-muted);" data-registration-guest>
+        Your join details have been checked in this browser, but profile storage is not enabled yet.
+        To finish creating your member account, use Netlify Identity with
+        <strong data-registration-email>your email address</strong>. Netlify will send the account
+        confirmation link by email when registration is enabled for the site.
       </p>
-      <a href="/submit-vehicle-data/" class="btn btn--primary">Submit Vehicle Data →</a>
+      <p style="color: var(--color-text-muted);" data-registration-signed-in hidden>
+        You are already signed in with Netlify Identity. Backend profile storage is not enabled yet,
+        so your join details have not been sent or stored.
+      </p>
+      <div class="cluster" style="justify-content:center; margin-top: var(--space-5);" data-registration-guest>
+        <button type="button" class="btn btn--primary" data-identity-signup-cta>Create account</button>
+        <button type="button" class="btn btn--secondary" data-identity-login-cta>Already registered? Sign in</button>
+      </div>
+      <div class="cluster" style="justify-content:center; margin-top: var(--space-5);">
+        <a href="/submit-vehicle-data/" class="btn btn--primary">Submit Vehicle Data →</a>
+        <a href="/account/" class="btn btn--secondary">Account</a>
+      </div>
     </div>
   </div>
 
@@ -260,8 +274,9 @@ compactSection: true
       <span class="callout__icon" aria-hidden="true">ℹ️</span>
       <div class="callout__content">
         <p class="callout__title">Submission storage not yet active</p>
-        <p>This form is fully functional as a multi-step experience, but submissions are not yet
-        stored. A "submission received" message will appear at the end. No data is sent anywhere.</p>
+        <p>This form is fully functional as a multi-step experience. At the end, it opens Netlify
+        Identity so you can create or sign in to your account. Backend profile storage is not yet
+        active, so the detailed join answers are not sent or stored.</p>
       </div>
     </div>
   </aside>

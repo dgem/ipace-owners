@@ -133,6 +133,48 @@
     });
   });
 
+  document.addEventListener('click', function (e) {
+    var signupBtn = e.target.closest('[data-identity-signup-cta]');
+    var loginCta = e.target.closest('[data-identity-login-cta]');
+
+    if (signupBtn) {
+      identity.open('signup');
+    }
+    if (loginCta) {
+      identity.open('login');
+    }
+  });
+
+  document.addEventListener('multistep:submitted', function (e) {
+    var form = e.target;
+    if (!form || !form.matches('[data-identity-signup-on-submit]')) return;
+
+    var result = e.detail && e.detail.result;
+    var emailFieldName = form.getAttribute('data-identity-email-field') || 'email';
+    var emailField = form.elements[emailFieldName];
+    var email = emailField && emailField.value ? emailField.value.trim() : '';
+    var emailEls = result ? result.querySelectorAll('[data-registration-email]') : [];
+    var guestEls = result ? result.querySelectorAll('[data-registration-guest]') : [];
+    var signedInEls = result ? result.querySelectorAll('[data-registration-signed-in]') : [];
+    var user = currentUser();
+
+    emailEls.forEach(function (el) {
+      el.textContent = email || 'your email address';
+    });
+    guestEls.forEach(function (el) {
+      el.hidden = !!user;
+    });
+    signedInEls.forEach(function (el) {
+      el.hidden = !user;
+    });
+
+    if (!user) {
+      window.setTimeout(function () {
+        identity.open('signup');
+      }, 300);
+    }
+  });
+
   // ── Identity event hooks ────────────────────────────────────────────────────
   identity.on('init', function (user) {
     updateHeaderUI(user);

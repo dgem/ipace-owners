@@ -35,6 +35,9 @@ Provide frontend Identity UX for sign in, sign out, registration, member-only pl
 - Admin review queue at `/admin/review-queue/`.
 - Header controls for login, signup/register where relevant, and logout.
 - Sign-in buttons should open the Identity modal without custom password storage.
+- Join or registration completion should use the Netlify Identity signup flow and its email
+  confirmation link. Do not implement custom passwords or a custom passwordless login flow in
+  static frontend code.
 
 ## Security copy
 
