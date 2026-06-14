@@ -41,7 +41,8 @@ public site built with Eleventy (11ty) and deployed to Netlify.
 
 ```bash
 npm install    # Install dependencies
-npm run dev    # Start Eleventy development server (with live reload)
+npm run dev    # Start Netlify Dev with Eleventy and Functions
+npm run dev:eleventy # Start Eleventy only, without Netlify Functions
 npm run build  # Build production site to _site/
 npm run clean  # Remove _site/ directory
 ```
@@ -101,8 +102,8 @@ Defined in `:root` in `site.css`. Key tokens:
 - `identity.js` initialises the widget and updates the header UI.
 - On Join form completion, `identity.js` calls `POST /.netlify/functions/send-magic-link`
   with the user's email and name. The function dispatches a Netlify Identity confirmation
-  or recovery email (magic sign-in link) server-side and always returns HTTP 200 to prevent
-  account enumeration.
+  or recovery email (magic sign-in link) server-side and uses account-enumeration-resistant
+  responses for valid same-origin requests.
 - Member pages use `data-auth-gate` / `data-auth-content` attributes.
 - Admin pages use `data-admin-gate` / `data-admin-content` attributes.
 - **Frontend gating is not sufficient for real data access.** Future Netlify Functions
@@ -138,8 +139,9 @@ Functions live in `netlify/functions/`. Netlify invokes them at `/.netlify/funct
 ### Implemented
 
 - **`send-magic-link.js`** — accepts `POST { email, name }`, calls Netlify Identity
-  `/signup` (new users) or `/recover` (existing users) server-side, and always returns
-  HTTP 200 to prevent account enumeration. CORS is restricted to same-site origins.
+  `/signup` (new users) or `/recover` (existing users) server-side, and returns an
+  `ok` flag for valid same-origin requests without revealing whether an email is new or
+  existing. It rejects disallowed origins before calling Identity.
   Requires `process.env.URL` (set automatically by Netlify).
 
 ### Adding a new Function

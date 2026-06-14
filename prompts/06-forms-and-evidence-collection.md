@@ -4,7 +4,7 @@ Implement or refine the membership and vehicle data collection form UX.
 
 ## Goal
 
-Provide accessible multi-step forms that help owners submit structured evidence later, while clearly preventing and disclosing that no data is currently stored until backend persistence exists.
+Provide accessible multi-step forms that help owners submit structured evidence later, while clearly disclosing what is and is not sent or stored at each stage.
 
 ## JavaScript behavior
 
@@ -32,8 +32,11 @@ Provide accessible multi-step forms that help owners submit structured evidence 
 - Move focus to the current step heading after navigation.
 - Remove hidden-step controls from the tab order.
 - Respect `prefers-reduced-motion`.
-- Prevent default submission until backend prompts explicitly add persistence.
-- Show a clear placeholder result explaining that no data was sent or stored.
+- Prevent default submission until a specific backend integration exists for that form.
+- Show a clear placeholder or handoff result explaining what happened. For forms without a
+  backend, explain that no data was sent or stored. For the Join form, explain that only the
+  name/email needed for the Identity email flow is sent, while detailed join answers are not
+  persisted yet.
 - After successful Join form validation, `identity.js` calls
   `POST /.netlify/functions/send-magic-link` with the email and name collected in
   step 1. The function sends a confirmation or recovery email via Netlify Identity.
@@ -92,7 +95,9 @@ future summary of entered information.
 ## Data safety
 
 - Do not store data in Git.
-- Do not send data to a backend until a backend prompt implements it.
+- Do not send form data to a backend until a backend prompt implements it for that specific
+  flow. The current exception is the Join form's `send-magic-link` call, which sends only
+  email and name to Netlify Identity via a same-origin Function.
 - Do not store raw VINs in public static files.
 - Make evidence uploads a placeholder until server-side validation and storage exist.
 

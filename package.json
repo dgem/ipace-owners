@@ -4,7 +4,8 @@
   "description": "I-PACE Owners' Advocacy Group website",
   "private": true,
   "scripts": {
-    "dev": "eleventy --serve",
+    "dev": "npx netlify dev",
+    "dev:eleventy": "eleventy --serve",
     "build": "eleventy",
     "clean": "rm -rf _site"
   },
@@ -12,5 +13,7 @@
     "@11ty/eleventy": "^3.0.0",
     "netlify-identity-widget": "^1.9.2"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "netlify-cli": "^26.1.0"
+  }
 }
