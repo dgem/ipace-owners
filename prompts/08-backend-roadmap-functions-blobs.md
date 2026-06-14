@@ -16,6 +16,10 @@ Evolve the static MVP into a data-collecting product using Netlify Functions and
 - Never log raw VINs, uploaded evidence contents, full personal records, or Identity tokens.
 - Validate all input server-side.
 - Validate uploaded evidence server-side by size, type, and content checks.
+- Resolve the account enumeration issue in the current frontend magic link flow: implement a
+  `send-magic-link.js` Function that accepts an email, attempts signup or recovery internally,
+  and always returns the same 200 response regardless of whether the account existed. This
+  prevents an observer distinguishing registered from unregistered email addresses.
 
 ## Proposed Functions
 
