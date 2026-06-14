@@ -40,12 +40,27 @@ function originAllowed(origin) {
 exports.handler = async function (event) {
   var origin = (event.headers && (event.headers.origin || event.headers.Origin)) || '';
 
-  // CORS headers — restrict to same-site origins only.
+  // If an Origin header is present but is not on the allowlist, reject the
+  // request outright. This prevents cross-site requests from triggering the
+  // side effect (sending emails) even via no-cors fetch, which would bypass
+  // browser-enforced CORS read restrictions but still hit the Function.
+  // Requests with no Origin header (server-to-server, curl, etc.) are allowed
+  // through — they are not subject to browser CORS and cannot be spoofed by
+  // arbitrary web pages.
+  if (origin && !originAllowed(origin)) {
+    return {
+      statusCode: 403,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ error: 'Forbidden' }),
+    };
+  }
+
+  // CORS headers — only reflect Allow-Origin for allowlisted origins.
   var corsHeaders = {
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
   };
-  if (originAllowed(origin)) {
+  if (origin) {
     corsHeaders['Access-Control-Allow-Origin'] = origin;
   }
 
