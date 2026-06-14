@@ -16,17 +16,12 @@ compactSection: true
   class="form form--compact"
   name="join"
   method="POST"
-  action="/join/"
-  data-netlify="true"
-  netlify-honeypot="bot-field"
+  action="/.netlify/functions/submit-join"
   data-multistep-form
-  data-netlify-form-submit
-  data-identity-signup-on-submit
-  data-identity-email-field="email"
+  data-database-submit="/.netlify/functions/submit-join"
   novalidate
   aria-label="Join the I-PACE Owners' Group"
 >
-  <input type="hidden" name="form-name" value="join">
   <p class="visually-hidden">
     <label>Do not fill this in if you are human: <input name="bot-field" tabindex="-1" autocomplete="off"></label>
   </p>
@@ -262,14 +257,14 @@ compactSection: true
         You are already signed in. Your join answers have been submitted to the group.
       </p>
 
-      <div data-registration-form-saved hidden style="margin-top: var(--space-4);">
+      <div data-database-success hidden style="margin-top: var(--space-4);">
         <p><strong>Your join details have been saved.</strong> The group will use this
         information to understand membership interest and volunteering offers.</p>
       </div>
 
-      <div data-registration-form-error hidden style="margin-top: var(--space-4);">
-        <p style="color: var(--color-danger);"><strong>Your sign-in link may still be sent,</strong>
-        but we could not save the join form details just now. Please try again or contact
+      <div data-database-error hidden style="margin-top: var(--space-4);">
+        <p style="color: var(--color-danger);"><strong>We could not save your join form just now.</strong>
+        Please try again or contact
         <a href="mailto:contact@ipace-owners.org">contact@ipace-owners.org</a>.</p>
       </div>
 
@@ -309,7 +304,7 @@ compactSection: true
       <span class="callout__icon" aria-hidden="true">ℹ️</span>
       <div class="callout__content">
         <p class="callout__title">Join answers are saved</p>
-        <p>At the end, the join answers are saved using Netlify Forms and we send an
+        <p>At the end, the join answers are saved securely and we send an
         email to the address you provide so you can create or access your member account.
         Vehicle evidence storage is still separate and not yet active.</p>
       </div>

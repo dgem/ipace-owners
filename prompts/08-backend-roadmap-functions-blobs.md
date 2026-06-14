@@ -22,32 +22,36 @@ Evolve the static MVP into a data-collecting product using Netlify Functions and
 
 ## Implemented Functions
 
-- `send-magic-link.js`: accepts `POST { email, name }` from the Join form, calls Netlify
-  Identity `/signup` (new users) or `/recover` (existing users) server-side, and returns
-  account-enumeration-resistant responses for valid same-origin requests. It may return
-  non-200 responses for disallowed origins, invalid JSON, invalid email input, or unsupported
-  methods. CORS and explicit Origin checks restrict browser calls to same-site origins. It
-  logs privacy-safe structured diagnostics to help debug Identity email delivery issues.
+- `send-magic-link.js`: standalone endpoint for requesting another sign-in link without
+  resubmitting the Join form. It accepts `POST { email, name }`, calls shared server-side
+  magic-link code, and returns account-enumeration-resistant responses for valid same-origin
+  requests. It may return non-200 responses for disallowed origins, invalid request bodies,
+  invalid email input, or unsupported methods. CORS and explicit Origin checks restrict
+  browser calls to same-site origins. It logs privacy-safe structured diagnostics to help
+  debug Identity email delivery issues.
 - In local Netlify Dev, `send-magic-link.js` must use `NETLIFY_IDENTITY_BASE_URL` to point
   at the deployed site's `/.netlify/identity` endpoint. Netlify Dev does not expose a local
   Identity API, so localhost must not be used as an Identity base URL.
+- `submit-join.js`: accepts Join form submissions, validates required membership consent,
+  stores membership interest in Netlify Blobs, and sends the Identity magic link in the
+  same request for logged-out users.
+- `submit-vehicle-basics.js`: accepts signed-in vehicle basics submissions, validates the
+  initial vehicle and battery health slice, stores records in Netlify Blobs, and stores VIN
+  HMACs rather than full VINs.
 
 ## Implemented storage
 
-- The Join form is a Netlify Form named `join`. It stores membership expressions of
-  interest, including contact details, relationship/ownership answers, volunteering
-  interests, and consent choices.
-- JavaScript-enhanced Join submission posts URL-encoded `FormData` to the same Netlify Form
-  while keeping the multi-step completion screen visible. No-JavaScript users can still
-  submit the normal HTML form.
-- Treat Netlify Forms as the interim membership-intake store. Do not add a duplicate
-  `submit-join.js` Function unless the product needs stronger validation, Identity-linked
-  profiles, moderation workflows, or migration into Blobs/Database.
+- Join records are stored under `join/<submission-id>.json`.
+- Vehicle basics records are stored under
+  `vehicle-basics/<identity-user-id>/<submission-id>.json`.
+- `VIN_PEPPER` must be configured before collecting VINs. If a VIN is provided and
+  `VIN_PEPPER` is missing, `submit-vehicle-basics.js` must reject the write rather than
+  store a weak hash or full VIN.
 
 ## Proposed Functions
 
-- `submit-join.js`: optional future replacement for Netlify Forms if membership intake needs authenticated profiles, richer validation, or migration into Blobs/Database.
-- `submit-vehicle.js`: authenticated vehicle evidence submission.
+- `submit-vehicle.js`: authenticated full vehicle evidence submission for recall, repair,
+  support, payment, responsibility, consent-review, and evidence-upload metadata.
 - `get-member-data.js`: returns only the current member's submissions.
 - `admin-review.js`: returns pending submissions to admins only.
 - `admin-update-submission.js`: changes review status and verification level.
@@ -79,10 +83,13 @@ Separate:
 
 ## UI integration
 
-- The Join form already calls `/.netlify/functions/send-magic-link` to dispatch a
-  Netlify Identity sign-in email. Do not revert this to a direct Identity API call.
-- The Join form also submits to Netlify Forms. Keep the Netlify Forms save and
-  `send-magic-link` result handling independent so one failure does not mask the other.
+- The Join form must make exactly one browser request to `/.netlify/functions/submit-join`.
+  `submit-join` stores the record and calls shared server-side magic-link code for logged-out
+  users.
+- Keep `/.netlify/functions/send-magic-link` for standalone sign-in link requests, but do
+  not call it separately from Join completion.
+- Signed-in vehicle basics submit to `/.netlify/functions/submit-vehicle-basics` with an
+  Identity JWT in the `Authorization` header.
 - `send-magic-link` must reject disallowed origins before making any Identity API calls so
   cross-site `no-cors` requests cannot be used to trigger unsolicited emails.
 - The browser should interpret the JSON response body's `ok` flag, not `response.ok` alone,
@@ -97,5 +104,6 @@ Separate:
 
 - Add tests for server-side validation and authorization.
 - Test unauthenticated, authenticated non-admin, and admin paths.
+- Run `npm test`.
 - Run `npm run build`.
 - Do not deploy broader vehicle/evidence data collection until the privacy policy has been formally reviewed.

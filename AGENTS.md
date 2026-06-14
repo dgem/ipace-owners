@@ -26,7 +26,10 @@ public site built with Eleventy (11ty) and deployed to Netlify.
 │           └── multistep-form.js  # Generic multi-step form controller
 ├── public/images/       # Static images (passed through to _site)
 ├── netlify/functions/   # Netlify Functions
-│   └── send-magic-link.js  # Sends Identity confirmation/recovery email (magic link)
+│   ├── lib/             # Shared Function utilities
+│   ├── send-magic-link.js
+│   ├── submit-join.js
+│   └── submit-vehicle-basics.js
 ├── docs/
 │   └── architecture.md  # Future architecture documentation
 ├── prompts/             # Sequenced prompts for rebuilding and evolving the product
@@ -44,6 +47,7 @@ npm install    # Install dependencies
 npm run dev    # Start Netlify Dev with Eleventy and Functions
 npm run dev:eleventy # Start Eleventy only, without Netlify Functions
 npm run build  # Build production site to _site/
+npm test       # Run Node tests for Functions and critical form wiring
 npm run clean  # Remove _site/ directory
 ```
 
@@ -100,10 +104,12 @@ Defined in `:root` in `site.css`. Key tokens:
 
 - Identity widget is loaded from the CDN in `base.njk`.
 - `identity.js` initialises the widget and updates the header UI.
-- On Join form completion, `identity.js` calls `POST /.netlify/functions/send-magic-link`
-  with the user's email and name. The function dispatches a Netlify Identity confirmation
-  or recovery email (magic sign-in link) server-side and uses account-enumeration-resistant
-  responses for valid same-origin requests.
+- On Join form completion, `identity.js` calls `POST /.netlify/functions/submit-join`
+  once. The function stores the Join submission and dispatches a Netlify Identity
+  confirmation or recovery email (magic sign-in link) server-side.
+- Existing users can request another magic link through `POST /.netlify/functions/send-magic-link`
+  without resubmitting the Join form.
+- Signed-in vehicle basics are stored by `POST /.netlify/functions/submit-vehicle-basics`.
 - Member pages use `data-auth-gate` / `data-auth-content` attributes.
 - Admin pages use `data-admin-gate` / `data-admin-content` attributes.
 - **Frontend gating is not sufficient for real data access.** Future Netlify Functions
@@ -138,18 +144,24 @@ Functions live in `netlify/functions/`. Netlify invokes them at `/.netlify/funct
 
 ### Implemented
 
-- **`send-magic-link.js`** — accepts `POST { email, name }`, calls Netlify Identity
+- **`send-magic-link.js`** — standalone link-request endpoint that accepts
+  `POST { email, name }`, calls Netlify Identity
   `/signup` (new users) or `/recover` (existing users) server-side, and returns an
   `ok` flag for valid same-origin requests without revealing whether an email is new or
   existing. It rejects disallowed origins before calling Identity.
   Requires `process.env.URL` (set automatically by Netlify).
+- **`submit-join.js`** — accepts Join form submissions, validates required consent,
+  stores membership interest in Netlify Blobs, and sends the Identity magic link in the
+  same request for logged-out users.
+- **`submit-vehicle-basics.js`** — accepts signed-in vehicle basics submissions,
+  validates the first vehicle data slice, stores records in Netlify Blobs, and stores
+  VIN HMACs rather than full VINs.
 
-## Netlify Forms
+## Submission Storage
 
-- The Join form is configured as a Netlify Form named `join`.
-- JavaScript-enhanced submissions post URL-encoded `FormData` to Netlify Forms while
-  keeping the multi-step result screen visible.
-- No-JavaScript users can still submit the Join form as normal HTML.
+- Join submissions and vehicle basics use Netlify Functions plus Netlify Blobs.
+- Set `VIN_PEPPER` in Netlify environment variables before collecting VINs. Full VINs are
+  not stored; vehicle submissions store an HMAC and final six characters only.
 
 ### Adding a new Function
 
@@ -164,9 +176,10 @@ Functions live in `netlify/functions/`. Netlify invokes them at `/.netlify/funct
 See `docs/architecture.md` for the full intended backend architecture using Netlify
 Functions and Netlify Blobs. Key points:
 
-- The Join form stores membership interest and consent with Netlify Forms and sends the
-  user's email to Netlify Identity via `send-magic-link.js`.
-- Vehicle data and evidence forms still prevent default and show a placeholder message.
+- The Join form stores membership interest and consent with Netlify Blobs and sends the
+  user's email to Netlify Identity via shared magic-link code inside `submit-join.js`.
+- Vehicle basics are stored for signed-in users. Full vehicle/evidence forms are still
+  incomplete.
 - Use HMAC with a secret pepper for VIN deduplication (not plain SHA-256).
 - Never store raw VINs or personal data in public static files.
 
@@ -181,8 +194,8 @@ Functions and Netlify Blobs. Key points:
 
 ## Known limitations
 
-- Vehicle data and evidence form submissions are not persisted (storage not yet implemented).
+- Full vehicle/evidence form submissions are not persisted yet.
 - Evidence uploads are not implemented (placeholder message shown).
 - Admin review queue is a UI placeholder.
-- Privacy policy is a placeholder — review required before broader vehicle/evidence data collection.
+- Privacy policy is a placeholder — review required before broader evidence data collection.
 - Evidence dashboard shows illustrative data only.

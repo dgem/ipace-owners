@@ -40,15 +40,16 @@ npm run dev
 ```
 
 Starts Netlify Dev at `http://localhost:8888`, proxying the Eleventy dev server and
-serving Netlify Functions. Use this when testing the Join form magic-link flow, because
-requests to `/.netlify/functions/send-magic-link` are handled only by Netlify Dev or a
-deployed Netlify site.
+serving Netlify Functions. Use this when testing Join submission and magic-link flows,
+because requests to `/.netlify/functions/*` are handled only by Netlify Dev or a deployed
+Netlify site.
 
 Netlify Dev does not provide a local Netlify Identity API. To send real Identity emails
 from local development, add this to `.env.local` using the deployed Netlify site URL:
 
 ```bash
 NETLIFY_IDENTITY_BASE_URL=https://ipace-owners.netlify.app/.netlify/identity
+VIN_PEPPER=replace-with-a-long-random-secret-for-local-testing
 ```
 
 Do not commit `.env.local`.
@@ -69,6 +70,15 @@ npm run build
 ```
 
 Output is written to `_site/`.
+
+### Tests
+
+```bash
+npm test
+```
+
+Runs the Node test suite for Netlify Function validation, storage-shaping, magic-link
+handoff behavior, and the Join form single-submit regression guard.
 
 ### Clean
 
@@ -133,21 +143,23 @@ After deploying to Netlify, you **must** enable Netlify Identity manually:
 
 > The Netlify Identity widget is loaded from `https://identity.netlify.com/v1/netlify-identity-widget.js`
 > and will not function until Identity is enabled in the Netlify UI.
-> The Join form sends a sign-in magic link to the user's email address on completion
-> (no modal or password required). The Join form answers are also saved using
-> Netlify Forms.
-> In local development, `send-magic-link` needs `NETLIFY_IDENTITY_BASE_URL` because
+> The Join form makes one request to `submit-join`, which saves the answers in Netlify
+> Blobs and sends a sign-in magic link to the user's email address.
+> In local development, Identity email Functions need `NETLIFY_IDENTITY_BASE_URL` because
 > Netlify Identity itself only runs on the deployed Netlify site.
 
-### Netlify Forms
+### Submission storage
 
-The Join form is configured as a Netlify Form named `join`. Netlify detects the form
-during the production build and stores submitted membership expressions of interest in
-the site's **Forms** area.
+Join submissions and vehicle basics are stored by Netlify Functions in Netlify Blobs:
 
-JavaScript-enhanced submissions post the same form data to Netlify Forms without leaving
-the multi-step completion screen. With JavaScript disabled, the form still submits as a
-normal HTML form.
+- `submit-join` stores membership expressions of interest and consent choices, then sends
+  the Identity magic link for logged-out users.
+- `submit-vehicle-basics` stores the first vehicle registration slice for signed-in users:
+  VIN HMAC / final six characters, registration, country, model year, ownership dates,
+  mileage, State of Health, measurement date, measurement mileage, and SoH source.
+
+Set `VIN_PEPPER` in Netlify environment variables before collecting VINs. Full VINs are
+not stored; the Function uses `VIN_PEPPER` to create an HMAC for deduplication.
 
 ### Admin role assignment
 
@@ -163,15 +175,14 @@ To grant a member admin access:
 
 The following features are **not yet implemented** in this version:
 
-- **Vehicle/evidence submission persistence** — The Join form is saved with Netlify
-  Forms and sends the user's email address to Netlify Identity (magic link). Vehicle
-  and evidence data are not yet stored. Backend implementation via Netlify Functions
-  is planned.
+- **Full vehicle/evidence submission persistence** — Join submissions and vehicle basics
+  are stored with Netlify Functions and Netlify Blobs. Recall, repair, loan car, payment,
+  responsibility, consent-review, and evidence upload details are not yet stored.
 - **Evidence document uploads** — A placeholder message explains what will be supported.
   Requires Netlify Blobs + Functions integration.
 - **Admin review queue** — UI placeholder only. No data is accessible from the admin pages.
 - **Privacy policy** — The current policy is a placeholder. A formal policy is required
-  before broader live vehicle/evidence data collection.
+  before broader live evidence collection.
 - **Evidence dashboard data** — All figures are illustrative. Real data collection has not begun.
 
 ---

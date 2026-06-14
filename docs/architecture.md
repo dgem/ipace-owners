@@ -13,8 +13,10 @@ will be added incrementally.
 - **Custom CSS** (no frameworks)
 - **Netlify Identity** widget for frontend authentication
 - **Netlify** hosting and deployment
-- **Netlify Forms** for Join membership expressions of interest
-- **No vehicle/evidence persistence yet** — vehicle submissions and evidence uploads are not stored
+- **Netlify Functions + Netlify Blobs** for Join membership expressions of interest
+  and the first vehicle-basics registration slice
+- **No full evidence persistence yet** — recall, repair, loan car, payment, responsibility,
+  consent-review, and evidence uploads are not stored
 
 ## Intended future architecture
 
@@ -31,28 +33,36 @@ CDN and initialised on every page.
 
 ### Form handling
 
-The Join form is configured as a Netlify Form named `join`. JavaScript-enhanced submissions
-post URL-encoded form data to Netlify Forms while keeping the multi-step completion screen
-visible. Without JavaScript, the Join form submits as a normal HTML form.
+The Join form posts once to `/.netlify/functions/submit-join`, which validates the
+submission server-side, stores a JSON record in Netlify Blobs, and sends the Identity
+magic link for logged-out users. `/.netlify/functions/send-magic-link` remains available
+for standalone sign-in link requests without resubmitting the Join form.
 
-Vehicle/evidence forms currently prevent default submission and show a placeholder message.
+The vehicle data page currently implements the first working slice only:
+
+- vehicle identity basics;
+- ownership dates and mileage;
+- battery State of Health and source.
+
+`/.netlify/functions/submit-vehicle-basics` requires a signed-in Netlify Identity user,
+stores the record in Netlify Blobs, and uses an HMAC with `VIN_PEPPER` for VIN deduplication.
+Full VINs are not stored. The first vehicle-basics slice requires at least one vehicle
+identifier: VIN or registration.
 
 ### Future form handling — Netlify Functions
 
 When backend integration is added:
-- Vehicle/evidence forms POST to a Netlify Function endpoint (for example,
-  `/.netlify/functions/submit-vehicle`)
-- The Join form may later move from Netlify Forms to a Function if membership intake needs
-  Identity-linked profiles, stronger validation, or richer admin workflows
-- The Function verifies the Identity JWT from the `Authorization` header
+- The remaining vehicle/evidence sections POST to Netlify Function endpoints.
+- Functions verify the Identity JWT from the `Authorization` header where authentication is required.
 - Validated data is stored in Netlify Blobs (JSON record) and/or Netlify Database
 - The Function returns a confirmation response
 
 Example function structure:
 ```
 netlify/functions/
-  submit-join.js        — optional future replacement for Netlify Forms
-  submit-vehicle.js     — handles vehicle data submissions
+  submit-join.js             — handles membership expressions of interest
+  submit-vehicle-basics.js   — handles the initial signed-in vehicle-basics slice
+  submit-vehicle.js          — future fuller vehicle/evidence submission handler
   get-member-data.js    — returns member's own submissions (auth required)
   admin-review.js       — returns pending submissions (admin auth required)
 ```
@@ -61,7 +71,8 @@ netlify/functions/
 
 Netlify Blobs provides key-value object storage suitable for JSON records.
 
-- Each vehicle data submission stored as a JSON blob keyed by submission ID
+- Join submissions are stored under `join/<submission-id>.json`
+- Vehicle basics are stored under `vehicle-basics/<identity-user-id>/<submission-id>.json`
 - Owner metadata stored separately (linked by hashed identifier)
 - Uploaded evidence documents stored as separate blobs (future)
 - Aggregate statistics computed server-side and cached as a separate blob
@@ -75,7 +86,6 @@ variable), not a plain SHA-256 hash. This prevents rainbow table attacks against
 compromised blob store.
 
 ```javascript
-// Example (pseudocode — not implemented in this PR)
 const crypto = require('crypto');
 const vinHash = crypto
   .createHmac('sha256', process.env.VIN_PEPPER)
