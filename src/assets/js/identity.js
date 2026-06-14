@@ -134,11 +134,15 @@
   });
 
   document.addEventListener('click', function (e) {
-    var signupBtn = e.target.closest('[data-identity-signup-cta]');
-    var loginCta = e.target.closest('[data-identity-login-cta]');
+    var target = e.target;
+    if (!target || target.nodeType !== 1) return;
+
+    var signupBtn = target.closest('[data-identity-signup-cta]');
+    var loginCta = target.closest('[data-identity-login-cta]');
 
     if (signupBtn) {
       identity.open('signup');
+      return;
     }
     if (loginCta) {
       identity.open('login');
