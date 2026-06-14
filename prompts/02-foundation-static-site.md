@@ -22,6 +22,9 @@ Create a small, maintainable Eleventy 3 site that can be deployed to Netlify and
 - Pass through `public/` to the site root with `eleventyConfig.addPassthroughCopy({ public: "." })`, so `public/images/example.png` is served at `/images/example.png`.
 - Include a favicon in `public/favicon.svg` and link it from the base layout.
 - Include a small cookie/privacy notice in the base layout. It should disclose essential services, Netlify Identity storage for sign-in, and the fact that there are no analytics or advertising cookies unless those are later added.
+- The cookie/privacy notice should be progressively enhanced: JavaScript may store dismissal
+  in browser storage, but users without JavaScript must still see the disclosure and a
+  privacy-policy link.
 - Add npm scripts:
   - `npm run dev` starts the Eleventy dev server.
   - `npm run build` builds the production site.
@@ -37,7 +40,7 @@ Create a small, maintainable Eleventy 3 site that can be deployed to Netlify and
 - Working Eleventy build.
 - Base layout with metadata, skip link, header, footer, main landmark, CSS, and deferred scripts.
 - Favicon and theme color metadata.
-- Cookie/privacy notice markup and dismissal behavior.
+- Cookie/privacy notice markup, no-JavaScript fallback, and dismissal behavior.
 - Page layout for standard content pages.
 - Form page layout for multi-step forms.
 - Update/news collection sorted newest first.
