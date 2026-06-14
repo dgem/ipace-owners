@@ -36,6 +36,21 @@
   <!-- Site footer -->
   {% include "partials/footer.njk" %}
 
+  <div class="cookie-notice" data-cookie-notice hidden>
+    <div class="cookie-notice__content">
+      <p class="cookie-notice__title">Cookies and privacy</p>
+      <p>
+        We use essential site services only. Netlify Identity may use cookies or
+        browser storage for sign-in, and this notice stores your choice. We do
+        not use analytics or advertising cookies.
+      </p>
+    </div>
+    <div class="cookie-notice__actions">
+      <a href="/privacy/" class="btn btn--sm btn--ghost">Privacy</a>
+      <button type="button" class="btn btn--sm btn--primary" data-cookie-accept>OK</button>
+    </div>
+  </div>
+
   <!-- Scripts -->
   <script src="/assets/js/main.js" defer></script>
   <script src="/assets/js/identity.js" defer></script>

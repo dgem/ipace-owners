@@ -22,6 +22,20 @@ When you join the group or submit vehicle data, we may collect:
 When you visit this website, our hosting provider (Netlify) may collect standard server logs
 including IP addresses and browser information. We do not use third-party analytics tracking.
 
+## Cookies and browser storage
+
+We do not use analytics or advertising cookies.
+
+The site may use cookies or browser storage for essential services:
+
+- Netlify Identity may use cookies or browser storage when you sign in or register.
+- The cookie/privacy notice stores whether you have dismissed it, so it does not appear on
+  every page view.
+- Netlify hosting may use technical infrastructure logs to provide and protect the site.
+
+If analytics, advertising, or other non-essential cookies are added later, the site must be
+updated to request consent before those cookies are set.
+
 ## Why we collect it
 
 - To allow you to participate in the owners' group
@@ -68,4 +82,4 @@ contact us at [contact@ipace-owners.org](mailto:contact@ipace-owners.org).
 This policy will be updated before live data collection begins. We will notify members of
 material changes.
 
-*Last updated: 2025. This is a placeholder document.*
+*Last updated: 14 June 2026. This is a placeholder document.*

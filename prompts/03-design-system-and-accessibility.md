@@ -22,6 +22,7 @@ Create a calm, credible, technical-feeling public site that is mobile-first, acc
 - Homepage hero media should be integrated as part of the first-viewport experience, not added as a disconnected decorative card.
 - For brand/product/vehicle imagery, use licensed, original, or generated bitmap assets only; do not use manufacturer logos, badges, watermarks, or copyrighted press imagery.
 - Favicon artwork should be simple, legible at small sizes, aligned with the navy/teal palette, and free of Jaguar/JLR logos or badges.
+- Cookie/privacy notices should be compact, dismissible, keyboard accessible, and should not obscure primary form actions on common laptop viewports.
 
 ## Design tokens
 
@@ -70,6 +71,7 @@ Use this palette unless there is a deliberate product reason to change it:
 - Progress indicators.
 - Dashboard/stat/chart panels.
 - Auth-gate panels.
+- Cookie/privacy notice.
 
 ## Validation
 

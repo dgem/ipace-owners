@@ -52,4 +52,28 @@
     }
   });
 
+  // ── Cookie notice ──────────────────────────────────────────────────────────
+  const cookieNotice = document.querySelector('[data-cookie-notice]');
+  const cookieAccept = document.querySelector('[data-cookie-accept]');
+  const cookieStorageKey = 'ipace_cookie_notice_accepted';
+
+  if (cookieNotice && cookieAccept) {
+    try {
+      if (window.localStorage.getItem(cookieStorageKey) !== 'true') {
+        cookieNotice.hidden = false;
+      }
+    } catch (e) {
+      cookieNotice.hidden = false;
+    }
+
+    cookieAccept.addEventListener('click', function () {
+      try {
+        window.localStorage.setItem(cookieStorageKey, 'true');
+      } catch (e) {
+        // Storage may be unavailable; still dismiss for the current page view.
+      }
+      cookieNotice.hidden = true;
+    });
+  }
+
 })();

@@ -13,7 +13,7 @@ compactSection: true
 <div class="form-workspace">
 
 <form
-  class="form"
+  class="form form--compact"
   data-multistep-form
   novalidate
   aria-label="Join the I-PACE Owners' Group"
@@ -37,6 +37,7 @@ compactSection: true
     <fieldset>
       <legend>Your contact information</legend>
 
+      <div class="form-grid form-grid--2">
       <div class="form-group">
         <label for="join-name">Full name <span aria-hidden="true">*</span></label>
         <span class="form-hint" id="join-name-hint">How you'd like to be addressed</span>
@@ -64,12 +65,13 @@ compactSection: true
         >
         <span class="form-error" id="join-email-error" role="alert"></span>
       </div>
+      </div>
 
       <div class="form-group">
         <label for="join-country">Country / region</label>
         <select id="join-country" name="country" aria-describedby="join-country-hint">
           <option value="">Select a country</option>
-          <option value="GB">United Kingdom</option>
+          <option value="GB" selected>United Kingdom</option>
           <option value="IE">Ireland</option>
           <option value="DE">Germany</option>
           <option value="FR">France</option>
