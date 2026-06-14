@@ -20,8 +20,10 @@ Evolve the static MVP into a data-collecting product using Netlify Functions and
 ## Implemented Functions
 
 - `send-magic-link.js`: accepts `POST { email, name }` from the Join form, calls Netlify
-  Identity `/signup` (new users) or `/recover` (existing users) server-side, and always
-  returns HTTP 200 to prevent account enumeration. CORS-restricted to same-site origins.
+  Identity `/signup` (new users) or `/recover` (existing users) server-side, and returns
+  account-enumeration-resistant responses for valid same-origin requests. It may return
+  non-200 responses for disallowed origins, invalid JSON, invalid email input, or unsupported
+  methods. CORS and explicit Origin checks restrict browser calls to same-site origins.
 
 ## Proposed Functions
 
@@ -60,6 +62,10 @@ Separate:
 
 - The Join form already calls `/.netlify/functions/send-magic-link` to dispatch a
   Netlify Identity sign-in email. Do not revert this to a direct Identity API call.
+- `send-magic-link` must reject disallowed origins before making any Identity API calls so
+  cross-site `no-cors` requests cannot be used to trigger unsolicited emails.
+- The browser should interpret the JSON response body's `ok` flag, not `response.ok` alone,
+  because same-origin Identity errors intentionally return HTTP 200 with `{ ok: false }`.
 - Replace placeholder vehicle/evidence form submission handling with `fetch` calls
   to the relevant Functions only after those Functions exist.
 - Send Identity JWTs in the `Authorization` header where authentication is required.

@@ -26,11 +26,17 @@ Create a small, maintainable Eleventy 3 site that can be deployed to Netlify and
   in browser storage, but users without JavaScript must still see the disclosure and a
   privacy-policy link.
 - Add npm scripts:
-  - `npm run dev` starts the Eleventy dev server.
+  - `npm run dev` starts Netlify Dev via `npx netlify dev`, so local development serves
+    both Eleventy pages and Netlify Functions.
+  - `npm run dev:eleventy` starts the plain Eleventy dev server for static-only debugging.
   - `npm run build` builds the production site.
   - `npm run clean` removes `_site/`.
 - Include `package-lock.json`.
+- Include `netlify-cli` as a development dependency so `npm run dev` is repeatable.
 - Configure Netlify in `netlify.toml` with build command `npm run build`, publish directory `_site`, and functions directory `netlify/functions`.
+- Configure `[dev]` in `netlify.toml` so Netlify Dev runs `npm run dev:eleventy` on target
+  port 8080 and exposes the local Netlify Dev proxy on port 8888. Do not point Netlify Dev
+  back at `npm run dev`, or it will recurse.
 - Add security headers suitable for a static site using Netlify Identity.
 - Use GitHub's native automatic Copilot code review via a repository branch ruleset where
   available, rather than adding a custom AI review workflow.
@@ -45,8 +51,8 @@ Create a small, maintainable Eleventy 3 site that can be deployed to Netlify and
 - Form page layout for multi-step forms.
 - Update/news collection sorted newest first.
 - README describing setup, development, build, deployment, Identity setup, known limitations, and current repo structure.
-- README should mention `npx @11ty/eleventy` only as an optional one-off local binary command;
-  contributors and Netlify should use npm scripts.
+- README should explain that `npm run dev` runs Netlify Dev for local Function support, and
+  `npm run dev:eleventy` is available only for static-only debugging.
 - README should document the native Copilot PR review ruleset if it is enabled for the
   repository.
 - `docs/architecture.md` describing future Identity, Functions, Blobs, possible database,
@@ -56,6 +62,7 @@ Create a small, maintainable Eleventy 3 site that can be deployed to Netlify and
 
 - Run `npm run build`.
 - Confirm generated pages appear in `_site/`.
-- Confirm `npm run dev` starts the Eleventy development server.
+- Confirm `npm run dev` starts Netlify Dev and serves `/.netlify/functions/*` locally.
+- Confirm `npm run dev:eleventy` starts the Eleventy development server.
 - Confirm `npm run clean` removes `_site/`.
 - Confirm there is no backend persistence and no real owner data.

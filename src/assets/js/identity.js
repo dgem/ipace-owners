@@ -17,12 +17,12 @@
   var identity = window.netlifyIdentity;
 
   if (!identity) {
-    console.warn('[identity.js] netlify-identity-widget not found. Identity features disabled.');
-    return;
+    console.warn('[identity.js] netlify-identity-widget not found. Header auth UI disabled; magic-link form handoff remains available.');
   }
 
   // ── Helper: get current user ────────────────────────────────────────────────
   function currentUser() {
+    if (!identity) return null;
     return identity.currentUser();
   }
 
@@ -102,36 +102,38 @@
   }
 
   // ── Button event handlers ───────────────────────────────────────────────────
-  if (loginBtn) {
+  if (identity && loginBtn) {
     loginBtn.addEventListener('click', function () {
       identity.open('login');
     });
   }
 
-  if (logoutBtn) {
+  if (identity && logoutBtn) {
     logoutBtn.addEventListener('click', function () {
       identity.logout();
     });
   }
 
-  if (mobileLoginBtn) {
+  if (identity && mobileLoginBtn) {
     mobileLoginBtn.addEventListener('click', function () {
       identity.open('login');
     });
   }
 
-  if (mobileLogoutBtn) {
+  if (identity && mobileLogoutBtn) {
     mobileLogoutBtn.addEventListener('click', function () {
       identity.logout();
     });
   }
 
   // Show login modal from any [data-identity-open] button
-  document.querySelectorAll('[data-identity-open]').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      identity.open(btn.dataset.identityOpen || 'login');
+  if (identity) {
+    document.querySelectorAll('[data-identity-open]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        identity.open(btn.dataset.identityOpen || 'login');
+      });
     });
-  });
+  }
 
   document.addEventListener('multistep:submitted', function (e) {
     var form = e.target;
@@ -191,45 +193,47 @@
   });
 
   // ── Identity event hooks ────────────────────────────────────────────────────
-  identity.on('init', function (user) {
-    updateHeaderUI(user);
-  });
+  if (identity) {
+    identity.on('init', function (user) {
+      updateHeaderUI(user);
+    });
 
-  identity.on('login', function (user) {
-    updateHeaderUI(user);
-    identity.close();
+    identity.on('login', function (user) {
+      updateHeaderUI(user);
+      identity.close();
 
-    // If the join result panel is visible, flip it to the signed-in state so
-    // the guest CTAs ("check your inbox") are hidden after the user logs in.
-    var guestEls = document.querySelectorAll('[data-registration-guest]');
-    var signedInEls = document.querySelectorAll('[data-registration-signed-in]');
-    if (guestEls.length || signedInEls.length) {
-      guestEls.forEach(function (el) { el.hidden = true; });
-      signedInEls.forEach(function (el) { el.hidden = false; });
-    }
+      // If the join result panel is visible, flip it to the signed-in state so
+      // the guest CTAs ("check your inbox") are hidden after the user logs in.
+      var guestEls = document.querySelectorAll('[data-registration-guest]');
+      var signedInEls = document.querySelectorAll('[data-registration-signed-in]');
+      if (guestEls.length || signedInEls.length) {
+        guestEls.forEach(function (el) { el.hidden = true; });
+        signedInEls.forEach(function (el) { el.hidden = false; });
+      }
 
-    // Reload so member-only pages rehydrate if needed
-    // (light redirect: only on gated pages)
-    var redirect = document.body.dataset.authRedirectOnLogin;
-    if (redirect) {
-      window.location.href = redirect;
-    }
-  });
+      // Reload so member-only pages rehydrate if needed
+      // (light redirect: only on gated pages)
+      var redirect = document.body.dataset.authRedirectOnLogin;
+      if (redirect) {
+        window.location.href = redirect;
+      }
+    });
 
-  identity.on('logout', function () {
-    updateHeaderUI(null);
-    var redirect = document.body.dataset.authRedirectOnLogout;
-    if (redirect) {
-      window.location.href = redirect;
-    }
-  });
+    identity.on('logout', function () {
+      updateHeaderUI(null);
+      var redirect = document.body.dataset.authRedirectOnLogout;
+      if (redirect) {
+        window.location.href = redirect;
+      }
+    });
 
-  // ── Initialise ──────────────────────────────────────────────────────────────
-  // Derive the API URL from the current origin so the widget resolves
-  // /.netlify/identity correctly in all environments: production, the custom
-  // domain, and deploy previews. Using a hard-coded production URL would break
-  // deploy previews (cross-origin CSP) and point all test signups at production.
-  identity.init({ APIUrl: window.location.origin + '/.netlify/identity' });
+    // ── Initialise ──────────────────────────────────────────────────────────────
+    // Derive the API URL from the current origin so the widget resolves
+    // /.netlify/identity correctly in all environments: production, the custom
+    // domain, and deploy previews. Using a hard-coded production URL would break
+    // deploy previews (cross-origin CSP) and point all test signups at production.
+    identity.init({ APIUrl: window.location.origin + '/.netlify/identity' });
+  }
 
   // Hide all gated content until init fires (avoid flash)
   document.querySelectorAll('[data-auth-content], [data-admin-content]').forEach(function (el) {

@@ -40,8 +40,13 @@ Provide frontend Identity UX for sign in, sign out, registration, member-only pl
     with `{ email, name }`. This is a same-origin request, satisfies CSP, and works in
     all environments (local dev, deploy previews, production) without any hardcoded URLs.
   - The function calls Netlify Identity internally (signup for new users, recover for
-    existing ones) and **always returns HTTP 200** regardless of the Identity API result,
-    preventing account enumeration.
+    existing ones). For valid same-origin POST requests, it returns HTTP 200 with an
+    `ok` flag rather than exposing whether the email was new or existing, preventing
+    account enumeration. It may still return non-200 responses for invalid JSON, invalid
+    email input, unsupported methods, or disallowed cross-origin requests.
+  - The function must reject disallowed browser origins before calling Netlify Identity,
+    including `no-cors` style cross-site requests that could otherwise trigger email sends
+    even though the response would be unreadable to the attacker.
   - On success, show a "check your inbox" message — no signup modal is opened.
   - Do not call the Netlify Identity REST API directly from the browser. Use the function.
 - Do not open `identity.open('signup')` or `identity.open('login')` on join form completion.
@@ -53,6 +58,15 @@ Provide frontend Identity UX for sign in, sign out, registration, member-only pl
 - `identity.init()` must be called with `{ APIUrl: window.location.origin + '/.netlify/identity' }`
   so that the widget resolves settings correctly in all environments (same-origin, no
   hard-coded domain).
+- The browser must read the JSON response body's `ok` flag from `send-magic-link`; do not
+  treat `response.ok` alone as success, because valid same-origin Identity failures are
+  intentionally returned as HTTP 200 with `{ ok: false }`.
+- Register the Join form `multistep:submitted` handler even if the Netlify Identity widget
+  is unavailable or blocked, so the server-side magic-link Function is still called. Widget
+  absence should disable only widget-specific UI such as modal open/logout controls.
+- Document that local testing of `/.netlify/functions/send-magic-link` requires `npm run dev`
+  running Netlify Dev, or a deploy preview; the plain Eleventy dev server will not serve
+  Functions.
 
 ## Security copy
 

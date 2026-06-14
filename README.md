@@ -39,15 +39,19 @@ npm install
 npm run dev
 ```
 
-Starts the Eleventy dev server at `http://localhost:8080` with live reload.
+Starts Netlify Dev at `http://localhost:8888`, proxying the Eleventy dev server and
+serving Netlify Functions. Use this when testing the Join form magic-link flow, because
+requests to `/.netlify/functions/send-magic-link` are handled only by Netlify Dev or a
+deployed Netlify site.
 
 You can also run the local Eleventy binary directly with:
 
 ```bash
-npx @11ty/eleventy --serve
+npm run dev:eleventy
 ```
 
-But contributors and Netlify should use the `npm run dev` / `npm run build` scripts.
+That starts Eleventy directly at `http://localhost:8080`, but it does not serve Netlify
+Functions. Contributors should normally use `npm run dev`.
 
 ### Production build
 
@@ -86,7 +90,7 @@ src/
       identity.js        # Netlify Identity integration
       multistep-form.js  # Multi-step form controller
 public/images/     # Static images
-netlify/functions/ # Netlify Functions (placeholder — not yet implemented)
+netlify/functions/ # Netlify Functions
 docs/
   architecture.md  # Future architecture documentation
 prompts/           # Sequenced prompts for rebuilding and evolving the product
