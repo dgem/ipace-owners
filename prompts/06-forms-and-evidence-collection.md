@@ -34,9 +34,17 @@ Provide accessible multi-step forms that help owners submit structured evidence 
 - Respect `prefers-reduced-motion`.
 - Prevent default submission until backend prompts explicitly add persistence.
 - Show a clear placeholder result explaining that no data was sent or stored.
-- The Join form may hand off to Netlify Identity signup after successful validation so users can
-  create an account and receive Netlify's email confirmation link. Make clear that detailed join
+- After successful Join form validation, `identity.js` sends a **magic link** directly via the
+  Netlify Identity REST API (`/signup` for new users, `/recover` for returning users) using the
+  email address already collected in step 1. No signup modal or extra credentials are shown.
+  The result screen instructs the user to check their inbox. Make clear that detailed join
   answers are not persisted until backend profile storage exists.
+- The result area uses these data attributes for state management:
+  - `data-registration-guest` — wrapper shown for unauthenticated users
+  - `data-registration-signed-in` — shown if user is already logged in
+  - `data-registration-email` — filled with the collected email address
+  - `data-registration-link-sent` — shown once the API call succeeds
+  - `data-registration-error` — shown if the API call fails
 - Validate required text, email, select, checkbox, and radio controls according to their actual user state. Required checkboxes must be checked; required radio groups must have a checked option.
 - When submission completes, hide all step navigation containers and all form steps before showing the placeholder result.
 

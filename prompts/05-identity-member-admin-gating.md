@@ -35,9 +35,19 @@ Provide frontend Identity UX for sign in, sign out, registration, member-only pl
 - Admin review queue at `/admin/review-queue/`.
 - Header controls for login, signup/register where relevant, and logout.
 - Sign-in buttons should open the Identity modal without custom password storage.
-- Join or registration completion should use the Netlify Identity signup flow and its email
-  confirmation link. Do not implement custom passwords or a custom passwordless login flow in
-  static frontend code.
+- Join or registration completion uses a **magic link flow** implemented in `identity.js`:
+  - On form submit, call `POST https://ipace-owners.netlify.app/.netlify/identity/signup`
+    with the user's email and a randomly generated password (user never sees this).
+  - If the response is `422` (email already registered), call
+    `POST /.netlify/identity/recover` to send a sign-in link instead.
+  - On success, show a "check your inbox" message — no signup modal is opened.
+  - Always use the `*.netlify.app` subdomain for these API calls (not the custom domain)
+    so that the CSP `connect-src` policy works from deploy previews as well as production.
+- Do not open `identity.open('signup')` or `identity.open('login')` on join form completion.
+- Netlify Identity must have **autoconfirm disabled** for the confirmation email
+  (magic link) to be sent. Verify under Site Settings → Identity → Registration.
+- `identity.init()` must be called with `{ APIUrl: 'https://ipace-owners.org/.netlify/identity' }`
+  so that the widget resolves settings correctly on the custom domain.
 
 ## Security copy
 
