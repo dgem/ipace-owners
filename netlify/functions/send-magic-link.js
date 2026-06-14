@@ -26,14 +26,16 @@ var ALLOWED_ORIGINS = [
 ];
 
 /**
- * Returns true if the request origin is the same site (including deploy previews)
- * or an explicitly allowed origin.
+ * Returns true if the request origin is the same site (including deploy previews
+ * and local dev servers) or an explicitly allowed production origin.
  */
 function originAllowed(origin) {
   if (!origin) return false;
   if (ALLOWED_ORIGINS.indexOf(origin) !== -1) return true;
   // Allow Netlify deploy-preview and branch-deploy URLs for this site.
   if (/^https:\/\/[a-z0-9-]+--ipace-owners\.netlify\.app$/.test(origin)) return true;
+  // Allow local development servers (any localhost port).
+  if (/^http:\/\/localhost(:\d+)?$/.test(origin)) return true;
   return false;
 }
 
@@ -125,14 +127,26 @@ exports.handler = async function (event) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email }),
       });
+    } else if (!signupRes.ok) {
+      // Non-422 Identity error (e.g. misconfiguration, outage). This failure
+      // is not related to whether the email is registered, so we can safely
+      // signal it to the UI without enabling account enumeration.
+      return {
+        statusCode: 200,
+        headers: Object.assign({ 'Content-Type': 'application/json' }, corsHeaders),
+        body: JSON.stringify({ ok: false }),
+      };
     }
-    // Any other error from Identity is swallowed intentionally:
-    // we always return 200 to prevent account enumeration.
   } catch (_) {
-    // Network or unexpected error — swallow and return 200.
+    // Network or unexpected error — signal failure to the UI.
+    return {
+      statusCode: 200,
+      headers: Object.assign({ 'Content-Type': 'application/json' }, corsHeaders),
+      body: JSON.stringify({ ok: false }),
+    };
   }
 
-  // Always 200 to prevent enumeration.
+  // Success: email dispatched (or recovery sent for existing accounts).
   return {
     statusCode: 200,
     headers: Object.assign({ 'Content-Type': 'application/json' }, corsHeaders),

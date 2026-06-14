@@ -133,22 +133,6 @@
     });
   });
 
-  document.addEventListener('click', function (e) {
-    var target = e.target;
-    if (!target || target.nodeType !== 1) return;
-
-    var signupBtn = target.closest('[data-identity-signup-cta]');
-    var loginCta = target.closest('[data-identity-login-cta]');
-
-    if (signupBtn) {
-      identity.open('signup');
-      return;
-    }
-    if (loginCta) {
-      identity.open('login');
-    }
-  });
-
   document.addEventListener('multistep:submitted', function (e) {
     var form = e.target;
     if (!form || !form.matches('[data-identity-signup-on-submit]')) return;
@@ -193,16 +177,16 @@
       result.querySelectorAll('[data-registration-error]').forEach(function (el) { el.hidden = false; });
     }
 
-    // Delegate the magic link dispatch to the server-side Netlify Function.
-    // This keeps the Identity API call off the client, prevents account
-    // enumeration (the function always returns 200), and removes the need for
-    // client-side random-password generation.
+    // The function always returns HTTP 200 (enumeration resistance), so we
+    // cannot use res.ok alone — read the JSON body's `ok` flag instead.
     fetch('/.netlify/functions/send-magic-link', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: email, name: name })
     }).then(function (res) {
-      if (res.ok) { showLinkSent(); } else { showError(); }
+      return res.json();
+    }).then(function (data) {
+      if (data && data.ok) { showLinkSent(); } else { showError(); }
     }).catch(showError);
   });
 

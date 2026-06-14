@@ -138,8 +138,10 @@ To grant a member admin access:
 
 The following features are **not yet implemented** in this version:
 
-- **Form submission persistence** — Forms show a placeholder "not yet active" message.
-  No data is sent or stored. Backend implementation via Netlify Functions is planned.
+- **Form submission persistence** — The Join form sends the user's email address
+  to Netlify Identity (magic link). Detailed join answers (ownership, skills, consent)
+  and vehicle/evidence data are not yet stored. Backend implementation via Netlify
+  Functions is planned.
 - **Evidence document uploads** — A placeholder message explains what will be supported.
   Requires Netlify Blobs + Functions integration.
 - **Admin review queue** — UI placeholder only. No data is accessible from the admin pages.
