@@ -1467,7 +1467,7 @@ legend {
   display: none;
 }
 
-.cookie-notice__content p {
+.cookie-notice__content p:not(.cookie-notice__title) {
   max-width: none;
   margin-bottom: 0;
   font-size: var(--text-sm);
@@ -1476,7 +1476,7 @@ legend {
 .cookie-notice__title {
   color: #ffffff;
   font-weight: 700;
-  margin-bottom: var(--space-1) !important;
+  margin-bottom: var(--space-1);
 }
 
 .cookie-notice__actions {
