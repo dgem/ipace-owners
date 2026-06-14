@@ -26,7 +26,7 @@ including IP addresses and browser information. We do not use third-party analyt
 
 We do not use analytics or advertising cookies.
 
-The site may use cookies or browser storage for essential services:
+The site may use cookies, browser storage, and hosting logs for essential services:
 
 - Netlify Identity may use cookies or browser storage when you sign in or register.
 - The cookie/privacy notice stores whether you have dismissed it, so it does not appear on

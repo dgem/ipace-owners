@@ -24,7 +24,9 @@ Create a calm, credible, technical-feeling public site that is mobile-first, acc
 - Favicon artwork should be simple, legible at small sizes, aligned with the navy/teal palette, and free of Jaguar/JLR logos or badges.
 - Cookie/privacy notices should be compact, dismissible, keyboard accessible, and should not obscure primary form actions on common laptop viewports.
 - Cookie/privacy notices must not depend on JavaScript for disclosure: include a no-JavaScript
-  fallback with a privacy-policy link, while using JavaScript only to persist dismissal.
+  fallback with a privacy-policy link, while using JavaScript only to persist dismissal. The
+  no-JavaScript fallback should sit in the page flow rather than permanently overlaying the
+  viewport.
 
 ## Design tokens
 

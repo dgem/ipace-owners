@@ -1467,6 +1467,11 @@ legend {
   display: none;
 }
 
+.cookie-notice--noscript {
+  position: static;
+  margin: var(--space-4) auto;
+}
+
 .cookie-notice__content p:not(.cookie-notice__title) {
   max-width: none;
   margin-bottom: 0;
