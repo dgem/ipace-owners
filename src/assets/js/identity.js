@@ -181,7 +181,12 @@
     // Magic link flow: call the Netlify Identity API directly so no widget modal
     // is shown. New users receive a confirmation email (which IS a magic link);
     // existing users receive a password-recovery link that works the same way.
-    var apiBase = 'https://ipace-owners.org/.netlify/identity';
+    //
+    // Always use the canonical Netlify-subdomain URL for direct API calls.
+    // Using the custom domain (ipace-owners.org) here fails on deploy previews
+    // because the CSP connect-src only permits *.netlify.app, not the custom
+    // domain, when the page is served from a deploy-preview URL.
+    var apiBase = 'https://ipace-owners.netlify.app/.netlify/identity';
     var nameField = form.elements['name'];
     var name = nameField && nameField.value ? nameField.value.trim() : '';
 
