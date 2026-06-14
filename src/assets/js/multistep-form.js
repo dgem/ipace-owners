@@ -92,6 +92,13 @@
           s.classList.add('step--hidden');
           setInertState(s, true);
         });
+        form.dispatchEvent(new CustomEvent('multistep:submitted', {
+          bubbles: true,
+          detail: {
+            form: form,
+            result: resultEl
+          }
+        }));
       } else {
         alert('Submission storage is not enabled yet. Your data has not been sent.');
       }

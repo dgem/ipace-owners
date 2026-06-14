@@ -115,10 +115,14 @@ After deploying to Netlify, you **must** enable Netlify Identity manually:
 4. Configure registration settings:
    - For a closed group, set **Registration preferences** to **Invite only**.
    - For open registration, leave as **Open**.
+   - Keep email confirmation enabled so Netlify sends the account confirmation link.
 5. Optional: configure external OAuth providers (Google, GitHub) if desired.
 
 > The Netlify Identity widget is loaded from `https://identity.netlify.com/v1/netlify-identity-widget.js`
 > and will not function until Identity is enabled in the Netlify UI.
+> The Join form sends a sign-in magic link to the user's email address on completion
+> (no modal or password required). The detailed
+> join answers are not persisted until backend profile storage is implemented.
 
 ### Admin role assignment
 
@@ -134,8 +138,10 @@ To grant a member admin access:
 
 The following features are **not yet implemented** in this version:
 
-- **Form submission persistence** — Forms show a placeholder "not yet active" message.
-  No data is sent or stored. Backend implementation via Netlify Functions is planned.
+- **Form submission persistence** — The Join form sends the user's email address
+  to Netlify Identity (magic link). Detailed join answers (ownership, skills, consent)
+  and vehicle/evidence data are not yet stored. Backend implementation via Netlify
+  Functions is planned.
 - **Evidence document uploads** — A placeholder message explains what will be supported.
   Requires Netlify Blobs + Functions integration.
 - **Admin review queue** — UI placeholder only. No data is accessible from the admin pages.

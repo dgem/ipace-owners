@@ -25,7 +25,8 @@ public site built with Eleventy (11ty) and deployed to Netlify.
 │           ├── identity.js        # Netlify Identity UI integration
 │           └── multistep-form.js  # Generic multi-step form controller
 ├── public/images/       # Static images (passed through to _site)
-├── netlify/functions/   # Netlify Functions directory (placeholder)
+├── netlify/functions/   # Netlify Functions
+│   └── send-magic-link.js  # Sends Identity confirmation/recovery email (magic link)
 ├── docs/
 │   └── architecture.md  # Future architecture documentation
 ├── prompts/             # Sequenced prompts for rebuilding and evolving the product
@@ -98,6 +99,10 @@ Defined in `:root` in `site.css`. Key tokens:
 
 - Identity widget is loaded from the CDN in `base.njk`.
 - `identity.js` initialises the widget and updates the header UI.
+- On Join form completion, `identity.js` calls `POST /.netlify/functions/send-magic-link`
+  with the user's email and name. The function dispatches a Netlify Identity confirmation
+  or recovery email (magic sign-in link) server-side and always returns HTTP 200 to prevent
+  account enumeration.
 - Member pages use `data-auth-gate` / `data-auth-content` attributes.
 - Admin pages use `data-admin-gate` / `data-admin-content` attributes.
 - **Frontend gating is not sufficient for real data access.** Future Netlify Functions
@@ -126,14 +131,33 @@ Defined in `:root` in `site.css`. Key tokens:
 2. Include front matter: `title`, `date` (YYYY-MM-DD), `summary`, `layout: page.njk`.
 3. It will appear automatically on the `/updates/` page.
 
+## Netlify Functions
+
+Functions live in `netlify/functions/`. Netlify invokes them at `/.netlify/functions/<name>`.
+
+### Implemented
+
+- **`send-magic-link.js`** — accepts `POST { email, name }`, calls Netlify Identity
+  `/signup` (new users) or `/recover` (existing users) server-side, and always returns
+  HTTP 200 to prevent account enumeration. CORS is restricted to same-site origins.
+  Requires `process.env.URL` (set automatically by Netlify).
+
+### Adding a new Function
+
+1. Create `netlify/functions/<name>.js` exporting `handler`.
+2. Verify Identity JWTs server-side for any Function that touches private data.
+3. Admin Functions must additionally check `app_metadata.roles` for the `admin` role.
+4. Always validate and sanitise input; never log tokens, VINs, or personal data.
+5. Use HMAC-SHA-256 with a secret pepper (env var) for any VIN deduplication.
+
 ## Future backend integration
 
 See `docs/architecture.md` for the full intended backend architecture using Netlify
 Functions and Netlify Blobs. Key points:
 
-- Forms currently prevent default and show a placeholder message.
-- When adding a Function, it goes in `netlify/functions/`.
-- Always verify Identity JWTs server-side in Functions.
+- The Join form sends the user's email to Netlify Identity via `send-magic-link.js`;
+  detailed join answers are not yet persisted (backend profile storage not implemented).
+- Vehicle data and evidence forms still prevent default and show a placeholder message.
 - Use HMAC with a secret pepper for VIN deduplication (not plain SHA-256).
 - Never store raw VINs or personal data in public static files.
 
@@ -146,9 +170,12 @@ Functions and Netlify Blobs. Key points:
 - Colour contrast meets WCAG AA.
 - Skip links are included in the base layout.
 
-## Known limitations (current PR)
+## Known limitations
 
-- Form submissions are not persisted (storage not yet implemented).
+- Join form sends the user's email to Netlify Identity (magic link) but detailed join
+  answers (ownership, skills, consent) are not yet persisted — backend profile storage
+  not implemented.
+- Vehicle data and evidence form submissions are not persisted (storage not yet implemented).
 - Evidence uploads are not implemented (placeholder message shown).
 - Admin review queue is a UI placeholder.
 - Privacy policy is a placeholder — review required before live data collection.

@@ -133,6 +133,63 @@
     });
   });
 
+  document.addEventListener('multistep:submitted', function (e) {
+    var form = e.target;
+    if (!form || !form.matches('[data-identity-signup-on-submit]')) return;
+
+    var result = e.detail && e.detail.result;
+    var emailFieldName = form.getAttribute('data-identity-email-field') || 'email';
+    var emailField = form.elements[emailFieldName];
+    var email = emailField && emailField.value ? emailField.value.trim() : '';
+    var emailEls = result ? result.querySelectorAll('[data-registration-email]') : [];
+    var guestEls = result ? result.querySelectorAll('[data-registration-guest]') : [];
+    var signedInEls = result ? result.querySelectorAll('[data-registration-signed-in]') : [];
+    var user = currentUser();
+
+    emailEls.forEach(function (el) {
+      el.textContent = email || 'your email address';
+    });
+
+    if (user) {
+      guestEls.forEach(function (el) { el.hidden = true; });
+      signedInEls.forEach(function (el) { el.hidden = false; });
+      return;
+    }
+
+    // Not signed in — reveal guest section immediately, then send magic link.
+    guestEls.forEach(function (el) { el.hidden = false; });
+    signedInEls.forEach(function (el) { el.hidden = true; });
+
+    if (!email) return;
+
+    var nameField = form.elements['name'];
+    var name = nameField && nameField.value ? nameField.value.trim() : '';
+
+    function showLinkSent() {
+      if (!result) return;
+      result.querySelectorAll('[data-registration-link-sent]').forEach(function (el) { el.hidden = false; });
+      result.querySelectorAll('[data-registration-error]').forEach(function (el) { el.hidden = true; });
+    }
+
+    function showError() {
+      if (!result) return;
+      result.querySelectorAll('[data-registration-link-sent]').forEach(function (el) { el.hidden = true; });
+      result.querySelectorAll('[data-registration-error]').forEach(function (el) { el.hidden = false; });
+    }
+
+    // The function always returns HTTP 200 (enumeration resistance), so we
+    // cannot use res.ok alone — read the JSON body's `ok` flag instead.
+    fetch('/.netlify/functions/send-magic-link', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, name: name })
+    }).then(function (res) {
+      return res.json();
+    }).then(function (data) {
+      if (data && data.ok) { showLinkSent(); } else { showError(); }
+    }).catch(showError);
+  });
+
   // ── Identity event hooks ────────────────────────────────────────────────────
   identity.on('init', function (user) {
     updateHeaderUI(user);
@@ -141,6 +198,16 @@
   identity.on('login', function (user) {
     updateHeaderUI(user);
     identity.close();
+
+    // If the join result panel is visible, flip it to the signed-in state so
+    // the guest CTAs ("check your inbox") are hidden after the user logs in.
+    var guestEls = document.querySelectorAll('[data-registration-guest]');
+    var signedInEls = document.querySelectorAll('[data-registration-signed-in]');
+    if (guestEls.length || signedInEls.length) {
+      guestEls.forEach(function (el) { el.hidden = true; });
+      signedInEls.forEach(function (el) { el.hidden = false; });
+    }
+
     // Reload so member-only pages rehydrate if needed
     // (light redirect: only on gated pages)
     var redirect = document.body.dataset.authRedirectOnLogin;
@@ -158,7 +225,11 @@
   });
 
   // ── Initialise ──────────────────────────────────────────────────────────────
-  identity.init();
+  // Derive the API URL from the current origin so the widget resolves
+  // /.netlify/identity correctly in all environments: production, the custom
+  // domain, and deploy previews. Using a hard-coded production URL would break
+  // deploy previews (cross-origin CSP) and point all test signups at production.
+  identity.init({ APIUrl: window.location.origin + '/.netlify/identity' });
 
   // Hide all gated content until init fires (avoid flash)
   document.querySelectorAll('[data-auth-content], [data-admin-content]').forEach(function (el) {

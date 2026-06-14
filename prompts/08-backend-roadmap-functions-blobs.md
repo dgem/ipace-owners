@@ -17,6 +17,12 @@ Evolve the static MVP into a data-collecting product using Netlify Functions and
 - Validate all input server-side.
 - Validate uploaded evidence server-side by size, type, and content checks.
 
+## Implemented Functions
+
+- `send-magic-link.js`: accepts `POST { email, name }` from the Join form, calls Netlify
+  Identity `/signup` (new users) or `/recover` (existing users) server-side, and always
+  returns HTTP 200 to prevent account enumeration. CORS-restricted to same-site origins.
+
 ## Proposed Functions
 
 - `submit-join.js`: authenticated or guest membership expression of interest, depending on registration policy.
@@ -52,7 +58,10 @@ Separate:
 
 ## UI integration
 
-- Replace placeholder form submission handling with `fetch` calls only after Functions exist.
+- The Join form already calls `/.netlify/functions/send-magic-link` to dispatch a
+  Netlify Identity sign-in email. Do not revert this to a direct Identity API call.
+- Replace placeholder vehicle/evidence form submission handling with `fetch` calls
+  to the relevant Functions only after those Functions exist.
 - Send Identity JWTs in the `Authorization` header where authentication is required.
 - Preserve accessible validation and progressive enhancement.
 - Show clear success, retryable failure, and non-retryable validation error states.
