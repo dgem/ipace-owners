@@ -44,7 +44,7 @@ serving Netlify Functions. Use this when testing the Join form magic-link flow, 
 requests to `/.netlify/functions/send-magic-link` are handled only by Netlify Dev or a
 deployed Netlify site.
 
-You can also run the local Eleventy binary directly with:
+You can also run Eleventy directly (without Netlify Functions) with:
 
 ```bash
 npm run dev:eleventy
