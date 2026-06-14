@@ -200,7 +200,11 @@
   });
 
   // ── Initialise ──────────────────────────────────────────────────────────────
-  identity.init();
+  // Explicitly provide the API URL so the widget can resolve /.netlify/identity
+  // on custom domains and in local development. Without this the widget fails
+  // with "Failed to load settings from /.netlify/identity" on any non-Netlify
+  // subdomain URL.
+  identity.init({ APIUrl: 'https://ipace-owners.org/.netlify/identity' });
 
   // Hide all gated content until init fires (avoid flash)
   document.querySelectorAll('[data-auth-content], [data-admin-content]').forEach(function (el) {
