@@ -233,12 +233,15 @@ Product-generation prompts live in `prompts/`. They are sequenced with two-digit
 so the project can be rebuilt or extended in a controlled order:
 
 - `00-original-project-prompt.md` preserves the initial generation prompt.
-- Later files split the product into foundation, design, content, identity, forms,
-  evidence dashboard, and backend-roadmap concerns.
+- `01-` through `09-` split the product into foundation, design, content, identity, forms,
+  evidence dashboard, backend-roadmap, and architecture concerns.
 
 When adding or refining prompts, keep the numeric prefix, make the prompt independently
 usable, and avoid duplicating live implementation details that belong in README or
 `docs/architecture.md`.
+
+Keep prompts in sync with implemented behaviour so the project can be recreated from
+the prompt set and README alone.
 
 ---
 
@@ -247,6 +250,41 @@ usable, and avoid duplicating live implementation details that belong in README 
 This site is maintained by volunteers. If you have skills in web development, data, legal,
 or consumer rights and want to help, please [contact us](/contact/) or indicate your interest
 when joining the group.
+
+### Quality and testing requirements
+
+- Tests are required for behavioural changes (Functions, Identity handoff, form submission wiring,
+  shared utilities).
+- Run `npm test` for behavioural changes and ensure all tests pass.
+- Run `npm run build` for every change and ensure the site builds cleanly.
+- Pressure-test your changes locally (happy path, error paths, and access-control paths where relevant)
+  before opening a PR.
+
+### Pull requests and code review
+
+- All changes must be submitted via pull requests.
+- Every PR should include:
+  - What changed and why.
+  - Which files were modified.
+  - How to verify locally.
+  - Which tests were added/updated (or why tests were not needed).
+- Use Copilot automatic review as a first pass, but require human review before merge.
+- Do not merge until both `npm run build` and `npm test` pass.
+
+### Commit message conventions
+
+Use semantic commit messages in this format:
+
+`type(scope): description`
+
+Common types:
+- `feat` new features or pages
+- `fix` bug fixes and validation corrections
+- `test` new or updated tests
+- `refactor` restructuring without behaviour change
+- `docs` documentation and prompt updates
+- `style` non-behavioural styling changes
+- `chore` dependencies and housekeeping
 
 ---
 
