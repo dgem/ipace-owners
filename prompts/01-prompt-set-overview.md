@@ -12,6 +12,7 @@ Use these prompts as a maintainable product blueprint. They are ordered so a fre
 6. Use `06-forms-and-evidence-collection.md` for join and vehicle data form UX.
 7. Use `07-evidence-dashboard-and-methodology.md` for public aggregate evidence views and methodology copy.
 8. Use `08-backend-roadmap-functions-blobs.md` before implementing real persistence.
+9. Use `09-architecture-overview.md` for cross-cutting architecture, security boundaries, and data-flow constraints.
 
 ## Global constraints for every prompt
 
@@ -23,5 +24,12 @@ Use these prompts as a maintainable product blueprint. They are ordered so a fre
 - Maintain a constructive, serious, evidence-led tone.
 - Keep all UI mobile-first, semantic, keyboard accessible, and WCAG AA conscious.
 - Run `npm run build` after implementation and fix any build failures.
+- Add or update tests for behavioural changes and run `npm test`.
+- Pressure-test changes locally before opening a pull request.
+- Submit all changes through PRs with clear descriptions, verification steps, and test notes.
+- Require code review before merge (Copilot review where enabled, plus human review).
+- Use semantic commit messages in `type(scope): description` format.
 - Treat `00-original-project-prompt.md` as immutable source history. Update the numbered
   prompts from `01-` onward when requirements evolve.
+- Keep prompts aligned with implementation and README so the project can be recreated from
+  prompt files plus README alone.

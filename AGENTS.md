@@ -131,66 +131,60 @@ Defined in `:root` in `site.css`. Key tokens:
 - Split prompts by product concern, feature, or implementation phase rather than keeping
   one large prompt.
 - Preserve historical prompts where useful, then add refined prompts for future work.
+- Include `09-architecture-overview.md` in the maintained prompt set and keep it aligned
+  with `docs/architecture.md`.
+- **Keep prompts in sync with the actual state of the project.** After implementing a
+  feature, update the relevant prompt file to reflect what was built so that the project
+  can be recreated from the prompts and README alone. If behaviour changes (e.g., a new
+  Function is added, a form field is removed), update the corresponding prompt.
 
-## Adding a new update post
+## Testing
 
-1. Create a `.md` file in `src/updates/`.
-2. Include front matter: `title`, `date` (YYYY-MM-DD), `summary`, `layout: page.njk`.
-3. It will appear automatically on the `/updates/` page.
+- **Tests are required for all behavioural changes.** Any change to Netlify Functions,
+  form submission wiring, Identity handoff, or shared utilities must include or update
+  Node tests in `test/`.
+- Run `npm test` before considering a change complete. All existing tests must pass.
+- Tests should cover:
+  - Server-side validation and authorization paths (unauthenticated, authenticated, admin).
+  - Input sanitisation and edge cases (empty bodies, invalid JSON, honeypot fields).
+  - Storage-shaping logic (record structure, metadata, HMAC behaviour).
+  - Magic-link handoff behaviour (new vs existing user flow).
+- Content-only changes (Markdown copy, CSS, static templates) need not add tests but must
+  pass `npm run build`.
 
-## Netlify Functions
+## Code review and pull requests
 
-Functions live in `netlify/functions/`. Netlify invokes them at `/.netlify/functions/<name>`.
+- **All changes must be submitted via pull requests.** Do not push directly to the default
+  branch.
+- Every PR must include a clear description covering:
+  - What changed and why.
+  - Which files were added or modified.
+  - How to verify the change locally (e.g., `npm run dev` and navigate to X).
+  - Whether tests were added or updated.
+- **Code review is required before merging.** Use GitHub's automatic Copilot code review
+  (configured via repository branch ruleset) as a first pass, but every PR must receive
+  human review for logic, security, accessibility, and tone.
+- Do not merge until `npm run build` and `npm test` both pass cleanly.
 
-### Implemented
+## Commit message conventions
 
-- **`send-magic-link.js`** — standalone link-request endpoint that accepts
-  `POST { email, name }`, calls Netlify Identity
-  `/signup` (new users) or `/recover` (existing users) server-side, and returns an
-  `ok` flag for valid same-origin requests without revealing whether an email is new or
-  existing. It rejects disallowed origins before calling Identity.
-  Requires `process.env.URL` (set automatically by Netlify).
-- **`submit-join.js`** — accepts Join form submissions, validates required consent,
-  stores membership interest in Netlify Blobs, and sends the Identity magic link in the
-  same request for logged-out users.
-- **`submit-vehicle-basics.js`** — accepts signed-in vehicle basics submissions,
-  validates the first vehicle data slice, stores records in Netlify Blobs, and stores
-  VIN HMACs rather than full VINs.
+Use semantic commit messages in the format `type(scope): description`.
 
-## Submission Storage
+| Type | Use for |
+|---|---|
+| `feat` | New features or pages |
+| `fix` | Bug fixes or validation corrections |
+| `test` | Adding or updating tests |
+| `refactor` | Code restructuring without behavioural change |
+| `docs` | README, AGENTS.md, prompts, architecture docs |
+| `style` | CSS changes that don't affect behaviour |
+| `chore` | Dependency updates, config changes, housekeeping |
 
-- Join submissions and vehicle basics use Netlify Functions plus Netlify Blobs.
-- Set `VIN_PEPPER` in Netlify environment variables before collecting VINs. Full VINs are
-  not stored; vehicle submissions store an HMAC and final six characters only.
-
-### Adding a new Function
-
-1. Create `netlify/functions/<name>.js` exporting `handler`.
-2. Verify Identity JWTs server-side for any Function that touches private data.
-3. Admin Functions must additionally check `app_metadata.roles` for the `admin` role.
-4. Always validate and sanitise input; never log tokens, VINs, or personal data.
-5. Use HMAC-SHA-256 with a secret pepper (env var) for any VIN deduplication.
-
-## Future backend integration
-
-See `docs/architecture.md` for the full intended backend architecture using Netlify
-Functions and Netlify Blobs. Key points:
-
-- The Join form stores membership interest and consent with Netlify Blobs and sends the
-  user's email to Netlify Identity via shared magic-link code inside `submit-join.js`.
-- Vehicle basics are stored for signed-in users. Full vehicle/evidence forms are still
-  incomplete.
-- Use HMAC with a secret pepper for VIN deduplication (not plain SHA-256).
-- Never store raw VINs or personal data in public static files.
-
-## Accessibility
-
-- All pages use semantic HTML (headings, landmarks, labels, fieldsets, legends).
-- Focus management is handled in `multistep-form.js` (focus moves to step heading).
-- Hidden steps disable focusable elements via `tabindex="-1"`.
-- The site respects `prefers-reduced-motion`.
-- Colour contrast meets WCAG AA.
-- Skip links are included in the base layout.
+Examples:
+- `feat(forms): add vehicle evidence upload placeholder`
+- `fix(functions): reject missing VIN pepper before storing vehicle basics`
+- `test(functions): cover unauthenticated vehicle-basics submission path`
+- `docs(prompts): update prompt 06 to reflect current Join form steps`
 
 ## Known limitations
 
