@@ -21,6 +21,8 @@
 	// Identity email links and expose currentUser()/jwt(). We do not use its
 	// modal UI; all sign-in requests go through our passwordless magic-link form.
 	var identity = window.netlifyIdentity;
+	window.ipaceIdentityReady = !identity;
+	window.ipaceIdentityUser = null;
 
 	if (!identity) {
 		console.warn('[identity.js] netlify-identity-widget not found. Header auth UI disabled; magic-link form handoff remains available.');
@@ -71,6 +73,8 @@
 	}
 
 	function dispatchIdentityState(name, user) {
+		window.ipaceIdentityReady = true;
+		window.ipaceIdentityUser = user || null;
 		document.dispatchEvent(new CustomEvent(name, {
 			detail: { user: user || null }
 		}));

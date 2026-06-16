@@ -68,8 +68,14 @@ test('protected pages do not show login gates before auth verification completes
   });
 
   var memberAuth = read('src/assets/js/member-auth.js');
+  var identity = read('src/assets/js/identity.js');
+
+  assert.match(identity, /window\.ipaceIdentityReady = !identity/);
+  assert.match(identity, /window\.ipaceIdentityReady = true/);
   assert.match(memberAuth, /document\.addEventListener\('identity:ready', initSoon\)/);
-  assert.match(memberAuth, /if \(!window\.netlifyIdentity\)/);
+  assert.match(memberAuth, /window\.ipaceIdentityReady/);
+  assert.match(memberAuth, /setTimeout\(function \(\) \{/);
+  assert.match(memberAuth, /document\.addEventListener\('identity:logout', initSoon\)/);
 });
 
 test('multi-step forms do not scroll on every step unless explicitly opted in', function () {

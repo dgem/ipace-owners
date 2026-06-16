@@ -400,15 +400,28 @@
     window.setTimeout(init, 0);
   }
 
-  if (!window.netlifyIdentity) {
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', init);
-     } else {
-      init();
-     }
+  function initWhenIdentityReady() {
+    if (!window.netlifyIdentity || window.ipaceIdentityReady) {
+      initSoon();
+      return;
+    }
+
+    // If the Identity widget never emits init, do not leave gated pages stuck
+    // in their pending state. The server check will show the login gate if no
+    // token is available.
+    window.setTimeout(function () {
+      if (!window.ipaceIdentityReady) init();
+    }, 1500);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initWhenIdentityReady);
+   } else {
+    initWhenIdentityReady();
    }
 
   document.addEventListener('identity:ready', initSoon);
   document.addEventListener('identity:login', initSoon);
+  document.addEventListener('identity:logout', initSoon);
 
 })();
