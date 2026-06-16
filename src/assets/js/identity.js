@@ -80,6 +80,15 @@
 		}));
 	}
 
+	function clearIdentityTokenHash() {
+		if (!window.location.hash) return;
+		if (!/(confirmation_token|recovery_token|invite_token|access_token|refresh_token|error=)/.test(window.location.hash)) return;
+
+		if (window.history && window.history.replaceState) {
+			window.history.replaceState(null, document.title, window.location.pathname + window.location.search);
+		}
+	}
+
 	// NOTE: Client-side gated content (data-auth-gate, data-admin-gate, etc.)
 	// has been removed. All data access is now verified server-side via
 	// member-auth.js calling Netlify Functions with JWT verification.
@@ -264,12 +273,14 @@
 		identity.on('init', function (user) {
 			updateHeaderUI(user);
 			dispatchIdentityState('identity:ready', user);
+			if (user) clearIdentityTokenHash();
 		});
 
 		identity.on('login', function (user) {
 			updateHeaderUI(user);
 			dispatchIdentityState('identity:login', user);
 			identity.close();
+			clearIdentityTokenHash();
 
 			// If the join result panel is visible, flip it to the signed-in state so
 			// the guest CTAs ("check your inbox") are hidden after the user logs in.

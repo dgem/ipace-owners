@@ -37,6 +37,8 @@
   'use strict';
 
   // ── Member auth ──────────────────────────────────────────────────────────────
+  var authRunId = 0;
+  var adminRunId = 0;
 
   function showMemberGate(container) {
     var gate = container.querySelector('[data-auth-login-gate]');
@@ -168,10 +170,12 @@
    }
 
   async function verifyMemberAuth() {
+    var runId = ++authRunId;
     var containers = document.querySelectorAll('[data-auth-container]');
     containers.forEach(async function (container) {
       try {
         var res = await fetchWithIdentity('/.netlify/functions/member-data');
+        if (runId !== authRunId) return;
         if (res.status === 401 || res.status === 403) {
           showMemberGate(container);
           return;
@@ -327,10 +331,12 @@
    }
 
   async function verifyAdminAuth() {
+    var runId = ++adminRunId;
     var containers = document.querySelectorAll('[data-admin-container]');
     containers.forEach(async function (container) {
       try {
         var res = await fetchWithIdentity('/.netlify/functions/admin-data');
+        if (runId !== adminRunId) return;
 
          // 401 = not logged in → show login gate
         if (res.status === 401) {

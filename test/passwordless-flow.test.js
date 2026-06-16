@@ -76,6 +76,17 @@ test('protected pages do not show login gates before auth verification completes
   assert.match(memberAuth, /window\.ipaceIdentityReady/);
   assert.match(memberAuth, /setTimeout\(function \(\) \{/);
   assert.match(memberAuth, /document\.addEventListener\('identity:logout', initSoon\)/);
+  assert.match(memberAuth, /var authRunId = 0/);
+  assert.match(memberAuth, /if \(runId !== authRunId\) return/);
+  assert.match(identity, /clearIdentityTokenHash/);
+  assert.match(identity, /confirmation_token\|recovery_token\|invite_token/);
+});
+
+test('homepage vehicle CTAs switch between guest and signed-in states', function () {
+  var home = read('src/index.njk');
+
+  assert.match(home, /data-requires-guest[\s\S]*Join to Submit Vehicle Data/);
+  assert.match(home, /href="\/submit-vehicle-data\/"[\s\S]*data-requires-auth/);
 });
 
 test('multi-step forms do not scroll on every step unless explicitly opted in', function () {
