@@ -8,11 +8,13 @@
     "dev:eleventy": "eleventy --serve",
     "build": "eleventy",
     "clean": "rm -rf _site",
-    "test": "node --test"
+    "test": "node --test",
+    "smoke:deployment": "node scripts/smoke-test-deployment.mjs"
   },
   "dependencies": {
     "@11ty/eleventy": "^3.0.0",
     "@netlify/blobs": "^10.7.9",
+    "@netlify/database": "^1.0.0",
     "netlify-identity-widget": "^1.9.2"
   },
   "devDependencies": {

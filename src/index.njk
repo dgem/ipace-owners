@@ -18,7 +18,8 @@ description: "An independent advocacy group for Jaguar I-PACE owners affected by
         </p>
         <div class="hero__ctas">
           <a href="/join/" class="btn btn--primary btn--lg">Join the Group</a>
-          <a href="/submit-vehicle-data/" class="btn btn--ghost btn--lg">Submit Vehicle Data</a>
+          <a href="/join/" class="btn btn--ghost btn--lg" data-requires-guest>Join to Submit Vehicle Data</a>
+          <a href="/submit-vehicle-data/" class="btn btn--ghost btn--lg" data-requires-auth style="display:none">Submit Vehicle Data</a>
         </div>
       </div>
 
@@ -163,7 +164,8 @@ description: "An independent advocacy group for Jaguar I-PACE owners affected by
           </div>
           <div class="stack stack--sm">
             <a href="/join/" class="btn btn--primary full-width">Join the Group</a>
-            <a href="/submit-vehicle-data/" class="btn btn--secondary full-width">Submit Vehicle Data</a>
+            <a href="/join/" class="btn btn--secondary full-width" data-requires-guest>Join to Submit Vehicle Data</a>
+            <a href="/submit-vehicle-data/" class="btn btn--secondary full-width" data-requires-auth style="display:none">Submit Vehicle Data</a>
             <a href="/evidence-dashboard/" class="btn btn--ghost full-width" style="color: var(--color-primary); border-color: var(--color-border);">View Evidence Dashboard</a>
             <a href="/about/" class="btn btn--ghost full-width" style="color: var(--color-text-muted); border-color: transparent;">Learn more about us →</a>
           </div>

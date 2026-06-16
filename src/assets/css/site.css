@@ -33,6 +33,10 @@ body {
   line-height: 1.6;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 img, video, svg, canvas, iframe {
   max-width: 100%;
   display: block;
@@ -926,6 +930,17 @@ th {
 .form-grid {
   display: grid;
   gap: var(--space-4);
+}
+
+.magic-link-form {
+  width: min(100%, 24rem);
+  margin-inline: auto;
+  margin-top: var(--space-5);
+  text-align: left;
+}
+
+.magic-link-form .btn {
+  margin-top: var(--space-3);
 }
 
 @media (min-width: 48em) {

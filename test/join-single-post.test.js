@@ -18,6 +18,6 @@ test('Join form submits only to submit-join from the browser', function () {
   assert.match(joinTemplate, /value="current-owner-one"/);
   assert.match(joinTemplate, /value="prospective-buyer"/);
 
-  assert.doesNotMatch(identityJs, /fetch\(['"]\/\.netlify\/functions\/send-magic-link/);
   assert.match(identityJs, /magicLinkSent/);
+  assert.match(identityJs, /data-magic-link-form/);
 });

@@ -3,13 +3,22 @@
 var crypto = require('crypto');
 var utils = require('./submission-utils');
 
-function resolveIdentityBase() {
+function isLocalOrigin(origin) {
+  return /^http:\/\/localhost(?::\d+)?$/.test(origin || '');
+}
+
+function resolveIdentityBase(event) {
   if (process.env.NETLIFY_IDENTITY_BASE_URL) {
     return process.env.NETLIFY_IDENTITY_BASE_URL.replace(/\/$/, '');
   }
 
+  var origin = event && event.headers && (event.headers.origin || event.headers.Origin) || '';
+  if (origin && utils.originAllowed(origin) && !isLocalOrigin(origin)) {
+    return origin.replace(/\/$/, '') + '/.netlify/identity';
+  }
+
   var siteUrl = (process.env.URL || process.env.DEPLOY_PRIME_URL || '').replace(/\/$/, '');
-  if (!siteUrl || /^http:\/\/localhost(?::\d+)?$/.test(siteUrl)) {
+  if (!siteUrl || isLocalOrigin(siteUrl)) {
     return '';
   }
 
@@ -23,7 +32,7 @@ async function sendMagicLink(options) {
   var email = options.email;
   var name = options.name || '';
   var emailHash = utils.emailFingerprint(email);
-  var identityBase = resolveIdentityBase();
+  var identityBase = resolveIdentityBase(event);
 
   if (!identityBase) {
     utils.log(functionName, 'error', 'identity base url missing', utils.requestMetadata(event, context, {
@@ -44,6 +53,33 @@ async function sendMagicLink(options) {
   var randomPassword = crypto.randomBytes(18).toString('hex') + 'Aa1!';
 
   try {
+    async function requestIdentityEmail(path, label) {
+      var response = await fetch(identityBase + path, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email }),
+      });
+
+      utils.log(functionName, 'info', 'identity ' + label + ' response received', utils.requestMetadata(event, context, {
+        emailHash: emailHash,
+        status: response.status,
+        ok: response.ok,
+      }));
+
+      return { ok: response.ok, status: response.status };
+    }
+
+    async function requestMagicLink() {
+      var magicLink = await requestIdentityEmail('/magiclink', 'magiclink');
+      if (magicLink.ok) return magicLink;
+
+      utils.log(functionName, 'warn', 'identity magiclink failed; trying recover fallback', utils.requestMetadata(event, context, {
+        emailHash: emailHash,
+        status: magicLink.status,
+      }));
+      return requestIdentityEmail('/recover', 'recover');
+    }
+
     var signupRes = await fetch(identityBase + '/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -56,28 +92,12 @@ async function sendMagicLink(options) {
       ok: signupRes.ok,
     }));
 
-    if (signupRes.status === 422) {
-      var recoverRes = await fetch(identityBase + '/recover', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email }),
-      });
-
-      utils.log(functionName, 'info', 'identity recover response received', utils.requestMetadata(event, context, {
-        emailHash: emailHash,
-        status: recoverRes.status,
-        ok: recoverRes.ok,
-      }));
-
-      return { ok: recoverRes.ok };
-    }
-
     if (!signupRes.ok) {
-      utils.log(functionName, 'warn', 'identity signup failed', utils.requestMetadata(event, context, {
+      utils.log(functionName, 'warn', 'identity signup failed; trying magiclink fallback', utils.requestMetadata(event, context, {
         emailHash: emailHash,
         status: signupRes.status,
       }));
-      return { ok: false };
+      return requestMagicLink();
     }
   } catch (error) {
     utils.log(functionName, 'error', 'identity request threw', utils.requestMetadata(event, context, {
@@ -95,5 +115,6 @@ async function sendMagicLink(options) {
 }
 
 module.exports = {
+  resolveIdentityBase: resolveIdentityBase,
   sendMagicLink: sendMagicLink,
 };

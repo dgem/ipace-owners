@@ -13,21 +13,20 @@ function createMockStore(name) {
     setJSON: async function (key, value, opts) {
       data[key] = { value: value, metadata: opts && opts.metadata || {} };
       },
-    getJSON: async function () {
-      return null;
+    get: async function (key, opts) {
+      if (!opts || opts.type !== 'json') return null;
+      return data[key] && data[key].value || null;
       },
-    list: async function (prefix) {
+    list: async function (options) {
+      var prefix = typeof options === 'string' ? options : options && options.prefix;
       var keys = Object.keys(data).filter(function (k) {
         return !prefix || k.startsWith(prefix);
         });
-      return keys.map(function (key) {
+      return { blobs: keys.map(function (key) {
         return {
           key: key,
-          getJSON: async function () {
-            return data[key] && data[key].value || null;
-            },
            };
-          });
+          }) };
       },
      _setData: function (key, value, metadata) {
       data[key] = { value: value, metadata: metadata || {} };

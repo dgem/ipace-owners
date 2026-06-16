@@ -20,7 +20,7 @@ more than one layer.
      `src/assets/css/site.css` (reset → tokens → typography → layout → components → print).
 - **JavaScript:** Plain vanilla JS — no React, Vue, Svelte, TypeScript, or bundler. Each
   file is an IIFE loaded with `defer`.
-- **Authentication:** Netlify Identity widget (`netlify-identity-widget` CDN) + server-side JWT verification via Netlify Functions.
+- **Authentication:** passwordless Netlify Identity email links + server-side JWT verification via Netlify Functions. The Identity widget may remain only as a session/JWT adapter; do not use its modal UI.
 - **Hosting:** Netlify (build command `npm run build`, publish directory `_site`).
 - **Backend target:** Netlify Functions + Netlify Database/Postgres for structured data.
   Netlify Blobs are reserved for future binary evidence files only.
@@ -45,7 +45,7 @@ public/images/               — static images (passed through to _site root)
 netlify/functions/           — Netlify Functions
    lib/                       — shared Function utilities
      submission-utils.js      — CORS, origin allowlist, input sanitization, HMAC
-     identity-magic-link.js   — server-side Identity signup/recover flow
+     identity-magic-link.js   — server-side Identity signup/magiclink flow
    send-magic-link.js         — standalone magic sign-in link request
    submit-join.js             — Join form: validate, store, send magic link
    submit-vehicle-basics.js   — signed-in vehicle basics: validate, store VIN HMAC
@@ -61,10 +61,13 @@ netlify.toml                 — build, redirect, header, and dev configuration
 
 ### Netlify Identity
 
-- The Identity widget is loaded from CDN in `base.njk` and initialised by `identity.js`.
+- The Identity widget is loaded from CDN in `base.njk` only to process Identity links and expose the current session/JWT while this adapter remains.
+- Visible sign-in UI is custom and passwordless. Magic-link forms call
+  `POST /.netlify/functions/send-magic-link`; no Netlify modal/password dialog is opened.
 - `identity.init()` uses `{ APIUrl: window.location.origin + '/.netlify/identity' }` so it
   works in all environments (no hard-coded domain).
-- Owner accounts are created via the magic link flow (server-side signup/recover).
+- Owner accounts are created via the magic link flow (server-side signup, magiclink, and
+  recover fallback where Netlify Identity does not expose `/magiclink`).
 - Admin roles are assigned in `app_metadata.roles` via the Netlify Identity admin UI.
 
 ### Server-Side Auth Verification
@@ -73,7 +76,8 @@ netlify.toml                 — build, redirect, header, and dev configuration
 
 1. `member-auth.js` loads on every page (via `base.njk`).
 2. On DOM ready, it finds `[data-auth-container]` or `[data-admin-container]`.
-3. It fetches the appropriate Function (`member-data` or `admin-data`) with browser's Identity cookie.
+3. It fetches the appropriate Function (`member-data` or `admin-data`) with an explicit
+   `Authorization: Bearer <Identity JWT>` header.
 4. The Function verifies `context.clientContext.user` server-side (JWT validation by Netlify runtime).
 5. On 200: `member-auth.js` hides the gate, shows content, and populates data from the response.
 6. On 401/403: the gate stays visible — no private data is exposed.
@@ -86,7 +90,7 @@ netlify.toml                 — build, redirect, header, and dev configuration
 
 | Function | Auth Required | What it does |
 |---|---|---|
-| `send-magic-link.js` | No | Standalone magic sign-in link request. Validates origin, email; calls Identity signup/recover server-side. Returns account-enumeration-resistant `{ ok }` flag. |
+| `send-magic-link.js` | No | Standalone magic sign-in link request. Validates origin, email; calls Identity signup/magiclink/recover server-side. Returns account-enumeration-resistant `{ ok }` flag for valid email syntax. |
 | `submit-join.js` | No (optional) | Validates Join form, writes membership interest, sends magic link for logged-out users, and regenerates the member/account JSON snapshot. |
 | `submit-vehicle-basics.js` | Yes (signed-in user) | Validates vehicle identity and battery health slice, writes vehicle rows, and regenerates the member/account JSON snapshot. |
 | `member-data.js` | Yes (signed-in user) | Returns the authenticated user's private member/account snapshot. Verifies `context.clientContext.user.sub`. Does not expose admin-only review data. |

@@ -37,10 +37,14 @@
   'use strict';
 
   // ── Member auth ──────────────────────────────────────────────────────────────
+  var authRunId = 0;
+  var adminRunId = 0;
 
   function showMemberGate(container) {
     var gate = container.querySelector('[data-auth-login-gate]');
     var content = container.querySelector('[data-auth-content]');
+    var pending = container.querySelector('[data-auth-pending]');
+    if (pending) pending.hidden = true;
     if (gate) gate.hidden = false;
     if (content) content.hidden = true;
   }
@@ -48,6 +52,8 @@
   function hideMemberGate(container) {
     var gate = container.querySelector('[data-auth-login-gate]');
     var content = container.querySelector('[data-auth-content]');
+    var pending = container.querySelector('[data-auth-pending]');
+    if (pending) pending.hidden = true;
     if (gate) gate.hidden = true;
     if (content) content.hidden = false;
   }
@@ -82,6 +88,23 @@
       trade: 'Trade / specialist',
     };
     return labels[value] || String(value || '').replace(/-/g, ' ');
+  }
+
+  function getIdentityToken() {
+    var identity = window.netlifyIdentity;
+    var user = identity && identity.currentUser && identity.currentUser();
+    if (!user || typeof user.jwt !== 'function') return Promise.resolve('');
+    return user.jwt().catch(function () { return ''; });
+  }
+
+  function fetchWithIdentity(url) {
+    return getIdentityToken().then(function (token) {
+      var options = {};
+      if (token) {
+        options.headers = { Authorization: 'Bearer ' + token };
+      }
+      return fetch(url, options);
+    });
   }
 
   function populateVehicleRecords(container, records) {
@@ -147,10 +170,12 @@
    }
 
   async function verifyMemberAuth() {
+    var runId = ++authRunId;
     var containers = document.querySelectorAll('[data-auth-container]');
     containers.forEach(async function (container) {
       try {
-        var res = await fetch('/.netlify/functions/member-data');
+        var res = await fetchWithIdentity('/.netlify/functions/member-data');
+        if (runId !== authRunId) return;
         if (res.status === 401 || res.status === 403) {
           showMemberGate(container);
           return;
@@ -191,7 +216,9 @@
     var gate = container.querySelector('[data-auth-login-gate]');
     var adminOnlyGate = container.querySelector('[data-admin-only-gate]');
     var content = container.querySelector('[data-admin-content]');
+    var pending = container.querySelector('[data-auth-pending]');
 
+    if (pending) pending.hidden = true;
     if (gate) gate.hidden = false;
     if (adminOnlyGate) adminOnlyGate.hidden = true;
     if (content) content.hidden = true;
@@ -201,7 +228,9 @@
     var gate = container.querySelector('[data-auth-login-gate]');
     var adminOnlyGate = container.querySelector('[data-admin-only-gate]');
     var content = container.querySelector('[data-admin-content]');
+    var pending = container.querySelector('[data-auth-pending]');
 
+    if (pending) pending.hidden = true;
     if (gate) gate.hidden = true;
     if (adminOnlyGate) adminOnlyGate.hidden = true;
     if (content) content.hidden = false;
@@ -302,10 +331,12 @@
    }
 
   async function verifyAdminAuth() {
+    var runId = ++adminRunId;
     var containers = document.querySelectorAll('[data-admin-container]');
     containers.forEach(async function (container) {
       try {
-        var res = await fetch('/.netlify/functions/admin-data');
+        var res = await fetchWithIdentity('/.netlify/functions/admin-data');
+        if (runId !== adminRunId) return;
 
          // 401 = not logged in → show login gate
         if (res.status === 401) {
@@ -318,6 +349,8 @@
           var gate = container.querySelector('[data-auth-login-gate]');
           var adminOnlyGate = container.querySelector('[data-admin-only-gate]');
           var content = container.querySelector('[data-admin-content]');
+          var pending = container.querySelector('[data-auth-pending]');
+          if (pending) pending.hidden = true;
           if (gate) gate.hidden = true;
           if (adminOnlyGate) adminOnlyGate.hidden = false;
           if (content) content.hidden = true;
@@ -369,10 +402,32 @@
      }
    }
 
+  function initSoon() {
+    window.setTimeout(init, 0);
+  }
+
+  function initWhenIdentityReady() {
+    if (!window.netlifyIdentity || window.ipaceIdentityReady) {
+      initSoon();
+      return;
+    }
+
+    // If the Identity widget never emits init, do not leave gated pages stuck
+    // in their pending state. The server check will show the login gate if no
+    // token is available.
+    window.setTimeout(function () {
+      if (!window.ipaceIdentityReady) init();
+    }, 1500);
+  }
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', initWhenIdentityReady);
    } else {
-    init();
+    initWhenIdentityReady();
    }
+
+  document.addEventListener('identity:ready', initSoon);
+  document.addEventListener('identity:login', initSoon);
+  document.addEventListener('identity:logout', initSoon);
 
 })();

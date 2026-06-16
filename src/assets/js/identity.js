@@ -1,9 +1,9 @@
 /**
  * identity.js — Netlify Identity UI integration.
  *
- * Initialises netlify-identity-widget and keeps the header UI in sync
- * with the current auth state. Handles login/logout buttons, form submission
- * token injection, and registration state display.
+ * Uses the Netlify Identity session adapter and keeps the header UI in sync
+ * with the current auth state. Handles logout, magic-link requests, form
+ * submission token injection, and registration state display.
  *
  * NOTE: Client-side gating has been removed. All data access is now verified
  * server-side via member-auth.js which calls Netlify Functions that check
@@ -17,9 +17,12 @@
 (function () {
 	'use strict';
 
-	// netlify-identity-widget is loaded as a CDN script in base.njk.
-	// It attaches itself to window.netlifyIdentity.
+	// netlify-identity-widget is loaded as a CDN script in base.njk to process
+	// Identity email links and expose currentUser()/jwt(). We do not use its
+	// modal UI; all sign-in requests go through our passwordless magic-link form.
 	var identity = window.netlifyIdentity;
+	window.ipaceIdentityReady = !identity;
+	window.ipaceIdentityUser = null;
 
 	if (!identity) {
 		console.warn('[identity.js] netlify-identity-widget not found. Header auth UI disabled; magic-link form handoff remains available.');
@@ -69,16 +72,26 @@
 		}
 	}
 
+	function dispatchIdentityState(name, user) {
+		window.ipaceIdentityReady = true;
+		window.ipaceIdentityUser = user || null;
+		document.dispatchEvent(new CustomEvent(name, {
+			detail: { user: user || null }
+		}));
+	}
+
+	function clearIdentityTokenHash() {
+		if (!window.location.hash) return;
+		if (!/(confirmation_token|recovery_token|invite_token|access_token|refresh_token|error=)/.test(window.location.hash)) return;
+
+		if (window.history && window.history.replaceState) {
+			window.history.replaceState(null, document.title, window.location.pathname + window.location.search);
+		}
+	}
+
 	// NOTE: Client-side gated content (data-auth-gate, data-admin-gate, etc.)
 	// has been removed. All data access is now verified server-side via
 	// member-auth.js calling Netlify Functions with JWT verification.
-
-	// ── Button event handlers ───────────────────────────────────────────────────
-	if (identity && loginBtn) {
-		loginBtn.addEventListener('click', function () {
-			identity.open('login');
-		});
-	}
 
 	if (identity && logoutBtn) {
 		logoutBtn.addEventListener('click', function () {
@@ -86,24 +99,9 @@
 		});
 	}
 
-	if (identity && mobileLoginBtn) {
-		mobileLoginBtn.addEventListener('click', function () {
-			identity.open('login');
-		});
-	}
-
 	if (identity && mobileLogoutBtn) {
 		mobileLogoutBtn.addEventListener('click', function () {
 			identity.logout();
-		});
-	}
-
-	// Show login modal from any [data-identity-open] button
-	if (identity) {
-		document.querySelectorAll('[data-identity-open]').forEach(function (btn) {
-			btn.addEventListener('click', function () {
-				identity.open(btn.dataset.identityOpen || 'login');
-			});
 		});
 	}
 
@@ -169,6 +167,51 @@
 		return user.jwt().catch(function () { return ''; });
 	}
 
+	function setMagicLinkStatus(form, message, tone) {
+		var status = form.querySelector('[data-magic-link-status]');
+		if (!status) return;
+		status.textContent = message;
+		status.style.color = tone === 'error' ? 'var(--color-danger)' : 'var(--color-text-muted)';
+	}
+
+	function initMagicLinkForms() {
+		document.querySelectorAll('[data-magic-link-form]').forEach(function (form) {
+			form.addEventListener('submit', function (e) {
+				e.preventDefault();
+				var emailInput = form.querySelector('input[name="email"]');
+				var submitBtn = form.querySelector('button[type="submit"]');
+				var email = emailInput ? emailInput.value.trim() : '';
+
+				if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+					setMagicLinkStatus(form, 'Enter a valid email address.', 'error');
+					if (emailInput) emailInput.focus();
+					return;
+				}
+
+				if (submitBtn) submitBtn.disabled = true;
+				setMagicLinkStatus(form, 'Sending sign-in link...', 'info');
+
+				fetch('/.netlify/functions/send-magic-link', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ email: email })
+				}).then(function (res) {
+					return res.json().catch(function () { return {}; }).then(function (data) {
+						if (!res.ok || !data.ok) {
+							throw new Error(data && data.error ? data.error : 'Could not send sign-in link');
+						}
+						setMagicLinkStatus(form, 'Check your email for a secure sign-in link. You can return here after opening it.', 'info');
+					});
+				}).catch(function (err) {
+					console.warn('[identity.js] Magic link request failed.', err);
+					setMagicLinkStatus(form, 'We could not send a sign-in link right now. Please try again or contact us.', 'error');
+				}).finally(function () {
+					if (submitBtn) submitBtn.disabled = false;
+				});
+			});
+		});
+	}
+
 	function submitDatabaseForm(form, result) {
 		if (!form || !form.matches('[data-database-submit]')) return;
 
@@ -229,11 +272,15 @@
 	if (identity) {
 		identity.on('init', function (user) {
 			updateHeaderUI(user);
+			dispatchIdentityState('identity:ready', user);
+			if (user) clearIdentityTokenHash();
 		});
 
 		identity.on('login', function (user) {
 			updateHeaderUI(user);
+			dispatchIdentityState('identity:login', user);
 			identity.close();
+			clearIdentityTokenHash();
 
 			// If the join result panel is visible, flip it to the signed-in state so
 			// the guest CTAs ("check your inbox") are hidden after the user logs in.
@@ -244,8 +291,6 @@
 				signedInEls.forEach(function (el) { el.hidden = false; });
 			}
 
-			// Reload so member-only pages rehydrate if needed
-			// (light redirect: only on gated pages)
 			var redirect = document.body.dataset.authRedirectOnLogin;
 			if (redirect) {
 				window.location.href = redirect;
@@ -254,6 +299,7 @@
 
 		identity.on('logout', function () {
 			updateHeaderUI(null);
+			dispatchIdentityState('identity:logout', null);
 			var redirect = document.body.dataset.authRedirectOnLogout;
 			if (redirect) {
 				window.location.href = redirect;
@@ -267,5 +313,7 @@
 		// deploy previews (cross-origin CSP) and point all test signups at production.
 		identity.init({ APIUrl: window.location.origin + '/.netlify/identity' });
 	}
+
+	initMagicLinkForms();
 
 })();

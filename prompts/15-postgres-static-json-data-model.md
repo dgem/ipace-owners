@@ -19,8 +19,10 @@ Netlify Database/Postgres is the source of truth for:
 - future recall, repair, loan car, payment, goodwill, responsibility, and review data;
 - admin review state, verification levels, and audit events.
 
-Netlify Blobs should be used for binary evidence files only. Store file metadata,
-ownership, review status, and permissions in Postgres.
+Use `@netlify/database` from Netlify Functions to access Postgres. Netlify Blobs should
+not be the canonical source for structured owner data. Blobs may be used for binary
+evidence files and for private generated JSON snapshots that are derived from Postgres.
+Store file metadata, ownership, review status, and permissions in Postgres.
 
 ## Static JSON Snapshots
 
@@ -32,8 +34,9 @@ Generate JSON snapshots after write operations:
 - Admin review or publish actions regenerate public aggregate statistics.
 
 Member/account snapshots are private data. Do not write them into public static output.
-Store them in Postgres (`member_static_snapshots`) or another private store and serve them
-only through `member-data.js` after server-side Identity verification.
+Store them in Postgres (`member_static_snapshots`) and, where useful for reduced read
+load, a private Blob key such as `member-snapshots/{identityUserId}.json`. Serve them only
+through `member-data.js` after server-side Identity verification.
 
 Public aggregate snapshots may be written to static JSON files such as:
 
@@ -86,6 +89,7 @@ Update or add tests for:
 - raw VIN/full VIN columns are not introduced;
 - member snapshots are private and not generated under public static output;
 - Join and vehicle writes trigger member snapshot regeneration;
+- vehicle writes update canonical Postgres rows and refresh the private Blob/JSON snapshot;
 - admin/public stats generation excludes records marked out of public statistics.
 
 ## Validation

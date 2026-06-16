@@ -121,11 +121,14 @@
       updateUI();
       moveFocusToStepHeading(steps[currentStep]);
 
-      // Scroll to top of form (respects reduced motion)
-      if (!REDUCED_MOTION) {
-        form.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      } else {
-        form.scrollIntoView({ block: 'start' });
+      // Most forms now fit comfortably on desktop. Keep scroll movement opt-in
+      // for unusually long flows where step changes would otherwise be confusing.
+      if (form.hasAttribute('data-scroll-on-step-change')) {
+        if (!REDUCED_MOTION) {
+          form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+          form.scrollIntoView({ block: 'start' });
+        }
       }
     }
 

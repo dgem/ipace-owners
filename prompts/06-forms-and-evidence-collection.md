@@ -27,6 +27,9 @@ Provide accessible multi-step forms that collect membership interest now, help o
 - On large screens, place form-level notices or storage-status callouts beside the form instead of above it when that improves first-step visibility.
 - Keep the first actionable form fields visible as high as practical; avoid stacking large notices above progress indicators.
 - Keep step navigation, especially the first Next button, visible without excessive scrolling on common laptop-height viewports.
+- Do not scroll the viewport on every step change by default. Only enable
+  `data-scroll-on-step-change` as an exception for unusually long forms where the current
+  step would otherwise be lost.
 - Use compact spacing or two-column field grouping on desktop when it improves form progression without harming readability.
 - Attach navigation behavior to every `[data-next]` and `[data-prev]` button in the form, not only the first matching button.
 - Move focus to the current step heading after navigation.
@@ -43,8 +46,8 @@ Provide accessible multi-step forms that collect membership interest now, help o
 - Configure the Join form to call only `POST /.netlify/functions/submit-join` from the
   browser. Do not also call `POST /.netlify/functions/send-magic-link` on Join completion.
 - After successful Join form validation, `identity.js` calls `submit-join` with the form
-  payload. The Function stores the Join answers and sends a confirmation or recovery email
-  via shared server-side Netlify Identity code.
+  payload. The Function stores the Join answers and sends a confirmation or passwordless
+  magic-link email via shared server-side Netlify Identity code.
   The email address **is** sent to Netlify Identity; detailed join answers (combined
   relationship/ownership status, skills, consent) are saved to Postgres. The result screen reports storage success
   and the `magicLinkSent` state returned by `submit-join`.
@@ -60,6 +63,9 @@ Provide accessible multi-step forms that collect membership interest now, help o
   - `data-database-submission-id` — filled with the stored submission reference when present
   - `data-registration-link-sent` — shown once the API call succeeds
   - `data-registration-error` — shown if the API call fails
+- Logged-out Join completion should not offer a link to submit vehicle data. It should tell
+  the user to open the email sign-in link first. Vehicle/account CTAs may be shown only in
+  the signed-in state.
 - Validate required text, email, select, checkbox, and radio controls according to their actual user state. Required checkboxes must be checked; required radio groups must have a checked option.
 - When submission completes, hide all step navigation containers and all form steps before showing the placeholder result.
 

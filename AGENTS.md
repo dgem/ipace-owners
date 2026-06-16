@@ -59,7 +59,8 @@ Eleventy v3 is used. The Eleventy config file is `.eleventy.js` (CommonJS format
 - **Templates:** Nunjucks (`.njk`) for complex pages; Markdown for content pages
 - **CSS:** Custom CSS only — no Tailwind, no Bootstrap, no utility frameworks
 - **JavaScript:** Plain vanilla JS — no React, Vue, Svelte, or heavy frameworks
-- **Authentication:** Netlify Identity (`netlify-identity-widget` CDN)
+- **Authentication:** passwordless Netlify Identity email links. The widget script may be
+  used only as a session/JWT adapter; do not use the Netlify modal UI.
 - **Hosting:** Netlify
 - **Backend:** Netlify Functions + Netlify Database/Postgres for structured data; Netlify Blobs for future binary evidence files
 
@@ -102,14 +103,15 @@ Defined in `:root` in `site.css`. Key tokens:
 
 ## Authentication (Netlify Identity)
 
-- Identity widget is loaded from the CDN in `base.njk`.
-- `identity.js` initialises the widget and updates the header UI.
+- Identity script is loaded from the CDN in `base.njk` as a session/JWT adapter.
+- `identity.js` updates the header UI, submits passwordless magic-link forms, and injects JWTs into protected form submissions.
 - On Join form completion, `identity.js` calls `POST /.netlify/functions/submit-join`
   once. The function stores the Join submission and dispatches a Netlify Identity
-  confirmation or recovery email (magic sign-in link) server-side.
+  confirmation or passwordless magic-link email server-side.
 - Existing users can request another magic link through `POST /.netlify/functions/send-magic-link`
   without resubmitting the Join form.
 - Signed-in vehicle basics are stored by `POST /.netlify/functions/submit-vehicle-basics`.
+- Member/admin data fetches must send the Identity JWT in the `Authorization` header.
 - Members may register multiple vehicles. Account/member pages should render vehicle lists,
   not a single vehicle assumption.
 - Member/account JSON snapshots are private data and must be served only after

@@ -267,7 +267,7 @@ compactSection: true
           <div style="font-size: 2rem; margin-bottom: var(--space-3);" aria-hidden="true">📧</div>
           <p><strong>Check your inbox.</strong> We've sent an email to your address.
           Click the link inside to complete your registration and sign in.</p>
-          <p style="color: var(--color-text-muted); font-size: 0.875rem; margin-top: var(--space-2);">Can't find it? Check your spam folder.</p>
+          <p style="color: var(--color-text-muted); font-size: 0.875rem; margin-top: var(--space-2);">Can't find it? Check your spam folder. You can add vehicle data after opening the sign-in link.</p>
         </div>
 
         <!-- Shown if the API call fails -->
@@ -278,8 +278,8 @@ compactSection: true
         </div>
       </div>
 
-      <div class="cluster" style="justify-content:center; margin-top: var(--space-5);">
-        <a href="/submit-vehicle-data/" class="btn btn--primary">Submit Vehicle Data →</a>
+      <div class="cluster" data-registration-signed-in hidden style="justify-content:center; margin-top: var(--space-5);">
+        <a href="/submit-vehicle-data/" class="btn btn--primary">Add your first vehicle →</a>
         <a href="/account/" class="btn btn--secondary">Account</a>
       </div>
     </div>

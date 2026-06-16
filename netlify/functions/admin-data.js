@@ -1,6 +1,7 @@
 'use strict';
 
 var utils = require('./lib/submission-utils');
+var ownerData = require('./lib/owner-data');
 
 /**
  * admin-data — Netlify Function
@@ -57,12 +58,25 @@ exports.handler = async function (event, context) {
     vehicleRecords: [],
     };
 
+  try {
+    var databaseRecords = await ownerData.getAdminData();
+    if (databaseRecords) {
+      result.joinRecords = databaseRecords.joinRecords;
+      result.vehicleRecords = databaseRecords.vehicleRecords;
+      return utils.json(200, result, corsHeaders);
+    }
+  } catch (databaseErr) {
+    utils.log('admin-data', 'error', 'failed to read database records', utils.requestMetadata(event, context, {
+      errorName: databaseErr && databaseErr.name,
+      errorMessage: databaseErr && databaseErr.message,
+      }));
+    }
+
    // ── Fetch all join records ───────────────────────────────────────────────────
   try {
-    var joinStore = utils.getStore(event);
-    var joinKeys = await joinStore.list('join/');
-    for (var i = 0; i < joinKeys.length; i++) {
-      var record = await joinKeys[i].getJSON();
+    var joinRecords = await utils.listJsonRecords(event, 'join/');
+    for (var i = 0; i < joinRecords.length; i++) {
+      var record = joinRecords[i];
       if (record) {
         result.joinRecords.push({
           id: record.id,
@@ -85,10 +99,9 @@ exports.handler = async function (event, context) {
 
    // ── Fetch all vehicle-basics records ────────────────────────────────────────
   try {
-    var vehicleStore = utils.getStore(event);
-    var vehicleKeys = await vehicleStore.list('vehicle-basics/');
-    for (var j = 0; j < vehicleKeys.length; j++) {
-      var vRecord = await vehicleKeys[j].getJSON();
+    var vehicleRecords = await utils.listJsonRecords(event, 'vehicle-basics/');
+    for (var j = 0; j < vehicleRecords.length; j++) {
+      var vRecord = vehicleRecords[j];
       if (vRecord) {
         result.vehicleRecords.push({
           id: vRecord.id,

@@ -20,8 +20,11 @@ storing full VINs.
 - `identity.js` sends the Identity JWT in the `Authorization` header for forms marked with
   `data-database-requires-auth`.
 - Netlify runtime exposes the verified user as `context.clientContext.user`.
-- Records are stored in Postgres vehicle and battery-reading tables.
-- After saving, regenerate the private member/account JSON snapshot.
+- Records are stored in Postgres vehicle and battery-reading tables via
+  `netlify/functions/lib/owner-data.js` and `@netlify/database`. Blob record writes are
+  only a local/no-database fallback.
+- After saving, regenerate the private member/account JSON snapshot and write it to
+  `member_static_snapshots` plus the private Blob snapshot key used by `member-data.js`.
 - Members can register multiple vehicles. Do not overwrite or assume a single vehicle per
   member.
 
@@ -86,6 +89,7 @@ Required coverage:
   identifier when the secret is missing.
 - Stored records never include the full VIN.
 - Vehicle and battery fields are cleaned and shaped correctly.
+- Database-backed saves trigger private member snapshot regeneration.
 
 ## Validation
 
