@@ -195,6 +195,7 @@ module.exports = {
   corsHeaders: corsHeaders,
   emailFingerprint: emailFingerprint,
   filterEnums: filterEnums,
+  getStore: getStore,
   hmac: hmac,
   isEmail: isEmail,
   json: json,

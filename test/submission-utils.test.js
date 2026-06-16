@@ -42,6 +42,12 @@ test('cleaning helpers constrain values conservatively', function () {
   assert.equal(utils.cleanDecimal('92.46', 0, 100), 92.5);
 });
 
+test('storage helpers export the default store adapter used in production', function () {
+  assert.equal(typeof utils.getStore, 'function');
+  assert.equal(typeof utils.saveRecord, 'function');
+  assert.equal(typeof utils.listJsonRecords, 'function');
+});
+
 test('listJsonRecords reads Netlify Blob list results by key', async function (t) {
   var originalGetStore = utils.getStore;
   var data = {
