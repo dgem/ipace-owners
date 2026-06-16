@@ -11,11 +11,27 @@
       <!-- Desktop navigation -->
       <nav class="site-nav" aria-label="Main navigation">
         {% for item in navigation.public %}
-          <a
-            href="{{ item.url }}"
-            class="site-nav__link{% if item.highlight %} site-nav__link--highlight{% endif %}"
-            data-nav-link
-          >{{ item.label }}</a>
+          {% if item.highlight %}
+            <a
+              href="{{ item.url }}"
+              class="site-nav__link site-nav__link--highlight"
+              data-nav-link
+              data-requires-guest
+            >{{ item.label }}</a>
+            <a
+              href="/account/"
+              class="site-nav__link site-nav__link--highlight"
+              data-nav-link
+              data-requires-auth
+              style="display:none"
+            >Account</a>
+          {% else %}
+            <a
+              href="{{ item.url }}"
+              class="site-nav__link"
+              data-nav-link
+            >{{ item.label }}</a>
+          {% endif %}
         {% endfor %}
       </nav>
 
@@ -24,6 +40,7 @@
         <div class="identity-controls">
           <span id="identity-user-display" class="identity-controls__user" style="display:none"></span>
           <button id="identity-login-btn" class="btn btn--sm btn--ghost" type="button">Sign in</button>
+          <a href="/account/" class="btn btn--sm btn--secondary" data-requires-auth style="display:none">Account</a>
           <button id="identity-logout-btn" class="btn btn--sm btn--ghost" type="button" style="display:none">Sign out</button>
         </div>
 

@@ -3,8 +3,15 @@
 var utils = require('./lib/submission-utils');
 var identityMagicLink = require('./lib/identity-magic-link');
 
-var RELATIONSHIPS = ['current-owner', 'former-owner', 'prospective', 'trade', 'other'];
-var OWNERSHIP = ['one', 'multiple', 'former', 'helping'];
+var RELATIONSHIPS = [
+  'current-owner-one',
+  'current-owner-multiple',
+  'former-owner',
+  'prospective-buyer',
+  'helping-owner',
+  'trade-specialist',
+  'other',
+];
 var SKILLS = [
   'legal',
   'technical',
@@ -86,7 +93,6 @@ exports.handler = async function (event, context) {
     },
     membership: {
       relationship: utils.cleanEnum(body.relationship, RELATIONSHIPS),
-      ownership: utils.cleanEnum(body.ownership, OWNERSHIP),
       skills: utils.filterEnums(body.skills, SKILLS),
     },
     consents: {

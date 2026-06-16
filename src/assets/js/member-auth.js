@@ -68,6 +68,22 @@
     return date.toLocaleDateString('en-GB');
   }
 
+  function formatRelationship(value) {
+    var labels = {
+      'current-owner-one': 'Current owner of one I-PACE',
+      'current-owner-multiple': 'Current owner of more than one I-PACE',
+      'former-owner': 'Former owner',
+      'prospective-buyer': 'Prospective buyer',
+      'helping-owner': 'Helping an owner',
+      'trade-specialist': 'Trade / specialist',
+      other: 'Other',
+      'current-owner': 'Current owner',
+      prospective: 'Prospective buyer',
+      trade: 'Trade / specialist',
+    };
+    return labels[value] || String(value || '').replace(/-/g, ' ');
+  }
+
   function populateVehicleRecords(container, records) {
     var vehicleList = container.querySelector('[data-vehicle-list]');
     if (!vehicleList) return;
@@ -124,7 +140,7 @@
     var html = '<div class="join-info" style="font-size:var(--text-sm);">';
     if (contact.name) html += '<p><strong>Name:</strong> ' + escapeHtml(contact.name) + '</p>';
     if (contact.country) html += '<p><strong>Country:</strong> ' + escapeHtml(contact.country) + '</p>';
-    if (membership.relationship) html += '<p><strong>Relationship:</strong> ' + escapeHtml(membership.relationship.replace(/-/g, ' ')) + '</p>';
+    if (membership.relationship) html += '<p><strong>Relationship:</strong> ' + escapeHtml(formatRelationship(membership.relationship)) + '</p>';
     if (rec.createdAt) html += '<p><strong>Joined:</strong> ' + escapeHtml(formatDate(rec.createdAt)) + '</p>';
     html += '</div>';
     joinEl.innerHTML = html;
@@ -236,7 +252,7 @@
       html += '<td style="padding:var(--space-2);">' + escapeHtml(contact.name || '—') + '</td>';
       html += '<td style="padding:var(--space-2);">' + escapeHtml(contact.email || '—') + '</td>';
       html += '<td style="padding:var(--space-2);">' + escapeHtml(contact.country || '—') + '</td>';
-      html += '<td style="padding:var(--space-2);">' + escapeHtml((membership.relationship || '—').replace(/-/g, ' ')) + '</td>';
+      html += '<td style="padding:var(--space-2);">' + escapeHtml(membership.relationship ? formatRelationship(membership.relationship) : '—') + '</td>';
       html += '<td style="padding:var(--space-2);"><span class="badge">' + escapeHtml(review.status || 'new') + '</span></td>';
       html += '<td style="padding:var(--space-2);">' + escapeHtml(formatDate(rec.createdAt)) + '</td>';
       html += '</tr>';

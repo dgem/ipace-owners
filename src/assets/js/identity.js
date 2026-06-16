@@ -38,6 +38,12 @@
 	var mobileLoginBtn   = document.getElementById('identity-mobile-login-btn');
 	var mobileLogoutBtn  = document.getElementById('identity-mobile-logout-btn');
 
+	function setVisibility(selector, visible) {
+		document.querySelectorAll(selector).forEach(function (el) {
+			el.style.display = visible ? '' : 'none';
+		});
+	}
+
 	function updateHeaderUI(user) {
 		if (user) {
 			// Logged in
@@ -45,6 +51,8 @@
 			if (logoutBtn)       logoutBtn.style.display        = '';
 			if (mobileLoginBtn)  mobileLoginBtn.style.display   = 'none';
 			if (mobileLogoutBtn) mobileLogoutBtn.style.display  = '';
+			setVisibility('[data-requires-auth]', true);
+			setVisibility('[data-requires-guest]', false);
 			if (userDisplay) {
 				userDisplay.style.display    = '';
 				userDisplay.textContent      = user.email || 'Member';
@@ -55,6 +63,8 @@
 			if (logoutBtn)       logoutBtn.style.display        = 'none';
 			if (mobileLoginBtn)  mobileLoginBtn.style.display   = '';
 			if (mobileLogoutBtn) mobileLogoutBtn.style.display  = 'none';
+			setVisibility('[data-requires-auth]', false);
+			setVisibility('[data-requires-guest]', true);
 			if (userDisplay)     userDisplay.style.display      = 'none';
 		}
 	}

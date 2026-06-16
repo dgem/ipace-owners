@@ -45,8 +45,8 @@ Provide accessible multi-step forms that collect membership interest now, help o
 - After successful Join form validation, `identity.js` calls `submit-join` with the form
   payload. The Function stores the Join answers and sends a confirmation or recovery email
   via shared server-side Netlify Identity code.
-  The email address **is** sent to Netlify Identity; detailed join answers (ownership,
-  skills, consent) are saved with Netlify Blobs. The result screen reports storage success
+  The email address **is** sent to Netlify Identity; detailed join answers (combined
+  relationship/ownership status, skills, consent) are saved with Netlify Blobs. The result screen reports storage success
   and the `magicLinkSent` state returned by `submit-join`.
 - Do not claim "no data was sent or stored" in the Join result. Clarify that the Join
   answers are saved with Netlify Blobs and the email address is sent to Netlify Identity.
@@ -69,7 +69,16 @@ Collect:
 
 - Contact details.
 - Default country / region to United Kingdom while keeping non-UK owner options available.
-- Owner/relationship status.
+- One combined owner/relationship status field. Do not ask separate relationship and
+  ownership questions that allow contradictory answers.
+  Use options equivalent to:
+  - current owner of one I-PACE;
+  - current owner of more than one I-PACE;
+  - former owner;
+  - prospective buyer;
+  - helping an owner;
+  - trade / specialist;
+  - other.
 - Optional skills and volunteering.
 - Consent to contact.
 - Acknowledgement that joining is not a legal claim.
@@ -88,6 +97,10 @@ Full VINs must not be stored. The Function should create an HMAC using `VIN_PEPP
 store only the HMAC plus final six characters for reference.
 The first vehicle-basics slice should require at least one vehicle identifier: VIN or
 registration.
+Place field-specific help text below the relevant input where practical, especially for
+VIN and registration. Keep the copy plain-English and reassuring: explain where owners can
+find the VIN, that VIN is optional when registration is provided, and that full VINs are
+never stored.
 
 Future slices should collect structured, optional evidence fields such as:
 
