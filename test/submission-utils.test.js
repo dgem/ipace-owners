@@ -41,3 +41,39 @@ test('cleaning helpers constrain values conservatively', function () {
   assert.equal(utils.cleanInteger('42.5', 0, 100), null);
   assert.equal(utils.cleanDecimal('92.46', 0, 100), 92.5);
 });
+
+test('listJsonRecords reads Netlify Blob list results by key', async function (t) {
+  var originalGetStore = utils.getStore;
+  var data = {
+    'vehicle-basics/user-1/vehicle_1.json': { id: 'vehicle_1' },
+    'vehicle-basics/user-2/vehicle_2.json': { id: 'vehicle_2' },
+  };
+
+  t.after(function () {
+    utils.getStore = originalGetStore;
+  });
+
+  utils.getStore = function () {
+    return {
+      list: async function (options) {
+        var prefix = options && options.prefix;
+        return {
+          blobs: Object.keys(data).filter(function (key) {
+            return key.startsWith(prefix);
+          }).map(function (key) {
+            return { key: key };
+          }),
+        };
+      },
+      get: async function (key, options) {
+        assert.equal(options.type, 'json');
+        return data[key] || null;
+      },
+    };
+  };
+
+  assert.deepEqual(
+    await utils.listJsonRecords({}, 'vehicle-basics/user-1/'),
+    [{ id: 'vehicle_1' }]
+  );
+});

@@ -45,10 +45,9 @@ exports.handler = async function (event, context) {
 
   // ── Fetch join records (by identityUserId) ────────────────────────────────────
   try {
-    var joinStore = utils.getStore(event);
-    var joinKeys = await joinStore.list('join/');
-    for (var i = 0; i < joinKeys.length; i++) {
-      var record = await joinKeys[i].getJSON();
+    var joinRecords = await utils.listJsonRecords(event, 'join/');
+    for (var i = 0; i < joinRecords.length; i++) {
+      var record = joinRecords[i];
       if (record && record.identityUserId === user.sub) {
         result.joinRecords.push({
           id: record.id,          identityUserId: record.identityUserId,          createdAt: record.createdAt,
@@ -68,11 +67,10 @@ exports.handler = async function (event, context) {
 
   // ── Fetch vehicle-basics records (scoped by user.sub in path) ─────────────────
   try {
-    var vehicleStore = utils.getStore(event);
     var vehiclePrefix = 'vehicle-basics/' + user.sub + '/';
-    var vehicleKeys = await vehicleStore.list(vehiclePrefix);
-    for (var j = 0; j < vehicleKeys.length; j++) {
-      var vRecord = await vehicleKeys[j].getJSON();
+    var vehicleRecords = await utils.listJsonRecords(event, vehiclePrefix);
+    for (var j = 0; j < vehicleRecords.length; j++) {
+      var vRecord = vehicleRecords[j];
       if (vRecord && vRecord.identityUserId === user.sub) {
         result.vehicleRecords.push({
           id: vRecord.id,

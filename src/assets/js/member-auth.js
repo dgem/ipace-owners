@@ -41,6 +41,8 @@
   function showMemberGate(container) {
     var gate = container.querySelector('[data-auth-login-gate]');
     var content = container.querySelector('[data-auth-content]');
+    var pending = container.querySelector('[data-auth-pending]');
+    if (pending) pending.hidden = true;
     if (gate) gate.hidden = false;
     if (content) content.hidden = true;
   }
@@ -48,6 +50,8 @@
   function hideMemberGate(container) {
     var gate = container.querySelector('[data-auth-login-gate]');
     var content = container.querySelector('[data-auth-content]');
+    var pending = container.querySelector('[data-auth-pending]');
+    if (pending) pending.hidden = true;
     if (gate) gate.hidden = true;
     if (content) content.hidden = false;
   }
@@ -208,7 +212,9 @@
     var gate = container.querySelector('[data-auth-login-gate]');
     var adminOnlyGate = container.querySelector('[data-admin-only-gate]');
     var content = container.querySelector('[data-admin-content]');
+    var pending = container.querySelector('[data-auth-pending]');
 
+    if (pending) pending.hidden = true;
     if (gate) gate.hidden = false;
     if (adminOnlyGate) adminOnlyGate.hidden = true;
     if (content) content.hidden = true;
@@ -218,7 +224,9 @@
     var gate = container.querySelector('[data-auth-login-gate]');
     var adminOnlyGate = container.querySelector('[data-admin-only-gate]');
     var content = container.querySelector('[data-admin-content]');
+    var pending = container.querySelector('[data-auth-pending]');
 
+    if (pending) pending.hidden = true;
     if (gate) gate.hidden = true;
     if (adminOnlyGate) adminOnlyGate.hidden = true;
     if (content) content.hidden = false;
@@ -335,6 +343,8 @@
           var gate = container.querySelector('[data-auth-login-gate]');
           var adminOnlyGate = container.querySelector('[data-admin-only-gate]');
           var content = container.querySelector('[data-admin-content]');
+          var pending = container.querySelector('[data-auth-pending]');
+          if (pending) pending.hidden = true;
           if (gate) gate.hidden = true;
           if (adminOnlyGate) adminOnlyGate.hidden = false;
           if (content) content.hidden = true;
@@ -390,10 +400,12 @@
     window.setTimeout(init, 0);
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-   } else {
-    init();
+  if (!window.netlifyIdentity) {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+     } else {
+      init();
+     }
    }
 
   document.addEventListener('identity:ready', initSoon);

@@ -157,8 +157,27 @@ function getStore(event) {
   return blobs.getStore('owner-submissions');
 }
 
+async function listJsonRecords(event, prefix) {
+  var store = module.exports.getStore(event);
+  var listing = await store.list({ prefix: prefix });
+  var entries = Array.isArray(listing) ? listing : listing && listing.blobs || [];
+  var records = [];
+
+  for (var i = 0; i < entries.length; i++) {
+    var entry = entries[i];
+
+    if (entry && typeof entry.getJSON === 'function') {
+      records.push(await entry.getJSON());
+    } else if (entry && entry.key && typeof store.get === 'function') {
+      records.push(await store.get(entry.key, { type: 'json' }));
+    }
+  }
+
+  return records.filter(Boolean);
+}
+
 async function saveRecord(event, key, record, metadata) {
-  var store = getStore(event);
+  var store = module.exports.getStore(event);
   await store.setJSON(key, record, { metadata: metadata || {} });
 }
 
@@ -179,6 +198,7 @@ module.exports = {
   hmac: hmac,
   isEmail: isEmail,
   json: json,
+  listJsonRecords: listJsonRecords,
   log: log,
   originAllowed: originAllowed,
   parseBody: parseBody,

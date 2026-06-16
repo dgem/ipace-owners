@@ -55,6 +55,23 @@ test('member data fetches include Identity bearer tokens', function () {
   assert.doesNotMatch(read('src/assets/js/identity.js'), /window\.location\.reload/);
 });
 
+test('protected pages do not show login gates before auth verification completes', function () {
+  [
+    'src/member/dashboard.njk',
+    'src/account.njk',
+    'src/submit-vehicle-data.njk',
+    'src/admin/review-queue.njk',
+  ].forEach(function (file) {
+    var source = read(file);
+    assert.match(source, /data-auth-pending/, file);
+    assert.match(source, /data-auth-login-gate hidden/, file);
+  });
+
+  var memberAuth = read('src/assets/js/member-auth.js');
+  assert.match(memberAuth, /document\.addEventListener\('identity:ready', initSoon\)/);
+  assert.match(memberAuth, /if \(!window\.netlifyIdentity\)/);
+});
+
 test('multi-step forms do not scroll on every step unless explicitly opted in', function () {
   var multistep = read('src/assets/js/multistep-form.js');
 

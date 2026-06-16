@@ -11,7 +11,13 @@ multiStepForm: true
 <div data-auth-container>
 
 	<!-- Login gate — shown by default when server confirms not authenticated -->
-	<div class="auth-gate" data-auth-login-gate>
+	<div class="auth-gate" data-auth-pending>
+		<h2 class="auth-gate__title">Checking sign-in...</h2>
+		<p class="auth-gate__body">One moment while we confirm your member session.</p>
+	</div>
+
+	<!-- Login gate — shown after server confirms not authenticated -->
+	<div class="auth-gate" data-auth-login-gate hidden>
 		<div class="auth-gate__icon" aria-hidden="true">🔒</div>
 		<h2 class="auth-gate__title">Sign in to register vehicle data</h2>
 		<p class="auth-gate__body">

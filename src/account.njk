@@ -18,7 +18,12 @@ description: "Your account — I-PACE Owners' Advocacy Group."
 			<div data-auth-container>
 
 				 <!-- Login gate — shown by default when server confirms not authenticated -->
-				<div class="auth-gate" data-auth-login-gate>
+				<div class="auth-gate" data-auth-pending>
+					<h2 class="auth-gate__title">Checking sign-in...</h2>
+					<p class="auth-gate__body">One moment while we confirm your member session.</p>
+				</div>
+
+				<div class="auth-gate" data-auth-login-gate hidden>
 					<div class="auth-gate__icon" aria-hidden="true">🔒</div>
 					<h2 class="auth-gate__title">Sign in to view your account</h2>
 					<p class="auth-gate__body">

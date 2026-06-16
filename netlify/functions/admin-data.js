@@ -59,10 +59,9 @@ exports.handler = async function (event, context) {
 
    // ── Fetch all join records ───────────────────────────────────────────────────
   try {
-    var joinStore = utils.getStore(event);
-    var joinKeys = await joinStore.list('join/');
-    for (var i = 0; i < joinKeys.length; i++) {
-      var record = await joinKeys[i].getJSON();
+    var joinRecords = await utils.listJsonRecords(event, 'join/');
+    for (var i = 0; i < joinRecords.length; i++) {
+      var record = joinRecords[i];
       if (record) {
         result.joinRecords.push({
           id: record.id,
@@ -85,10 +84,9 @@ exports.handler = async function (event, context) {
 
    // ── Fetch all vehicle-basics records ────────────────────────────────────────
   try {
-    var vehicleStore = utils.getStore(event);
-    var vehicleKeys = await vehicleStore.list('vehicle-basics/');
-    for (var j = 0; j < vehicleKeys.length; j++) {
-      var vRecord = await vehicleKeys[j].getJSON();
+    var vehicleRecords = await utils.listJsonRecords(event, 'vehicle-basics/');
+    for (var j = 0; j < vehicleRecords.length; j++) {
+      var vRecord = vehicleRecords[j];
       if (vRecord) {
         result.vehicleRecords.push({
           id: vRecord.id,

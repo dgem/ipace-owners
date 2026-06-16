@@ -19,7 +19,12 @@ permalink: /admin/review-queue/
 				<div data-admin-container>
 
 					<!-- Login gate — shown by default when server confirms not authenticated -->
-					<div class="auth-gate" data-auth-login-gate>
+					<div class="auth-gate" data-auth-pending>
+						<h2 class="auth-gate__title">Checking sign-in...</h2>
+						<p class="auth-gate__body">One moment while we confirm your admin session.</p>
+					</div>
+
+					<div class="auth-gate" data-auth-login-gate hidden>
 						<div class="auth-gate__icon" aria-hidden="true">🔒</div>
 						<h2 class="auth-gate__title">Sign in required</h2>
 						<p class="auth-gate__body">Enter your admin email address and we will send a secure sign-in link.</p>
