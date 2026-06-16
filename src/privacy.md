@@ -24,13 +24,13 @@ including IP addresses and browser information. We do not use third-party analyt
 
 ## Stored submissions
 
-Join submissions are saved by a Netlify Function in Netlify Blobs. A Join submission may
+Join submissions are saved by a Netlify Function in the structured data store. A Join submission may
 include your name, email address, country or region, relationship to an I-PACE, ownership
 status, volunteering interests, and consent choices.
 
 The Join form also asks Netlify Identity to send a sign-in or account confirmation email.
 
-Signed-in members can also register vehicle basics. A vehicle-basics submission may include
+Signed-in members can also register one or more vehicles. A vehicle-basics submission may include
 registration, country, model year, ownership dates, mileage, battery State of Health,
 measurement date, measurement mileage, and SoH source.
 
@@ -84,9 +84,10 @@ information before uploading.
 
 ## Data security
 
-We use Netlify's hosting infrastructure, including Netlify Identity for authentication and
-Netlify Functions with Netlify Blobs for stored submissions. Raw personal data and full VINs
-will not be stored in public static files.
+We use Netlify's hosting infrastructure, including Netlify Identity for authentication,
+Netlify Functions for server-side data access, Netlify Database/Postgres for structured
+submissions, and Netlify Blobs for future uploaded evidence files. Raw personal data and
+full VINs will not be stored in public static files.
 
 ## Your rights
 

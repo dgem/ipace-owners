@@ -16,8 +16,8 @@ magic-link request path for existing users.
 
 - The Join form posts once to `/.netlify/functions/submit-join`.
 - `submit-join.js` validates required Join fields and consent.
-- `submit-join.js` stores the Join record in Netlify Blobs under
-  `join/<submission-id>.json`.
+- `submit-join.js` stores the Join record in Postgres and regenerates the private
+  member/account JSON snapshot.
 - For logged-out users, `submit-join.js` calls shared server-side magic-link code in the
   same request.
 - For signed-in users, `submit-join.js` stores the record and does not send another magic
@@ -49,6 +49,9 @@ Join records include:
   separate `ownership` field for new submissions.
 - `consents`: contact, not-legal-claim acknowledgement, anonymised analysis.
 - `review`: status and verification level.
+
+After writing the Join record, regenerate the member/account snapshot used by
+`member-data.js`. Do not write private member snapshots to public static output.
 
 Accepted relationship values are:
 

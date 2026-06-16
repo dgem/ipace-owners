@@ -18,6 +18,7 @@ Use these prompts as a maintainable product blueprint. They are ordered so a fre
 12. Use `12-functions-vehicle-basics.md` for the signed-in vehicle-basics slice.
 13. Use `13-functions-member-admin-data.md` for member/admin data access Functions.
 14. Use `14-functions-future-evidence-and-stats.md` for future evidence, upload, review mutation, and public statistics work.
+15. Use `15-postgres-static-json-data-model.md` for the canonical Postgres schema and JSON snapshot strategy.
 
 ## Global constraints for every prompt
 

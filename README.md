@@ -16,6 +16,7 @@ Static, mobile-first, accessible website built with:
 - **Custom CSS** — mobile-first design system, no Tailwind or Bootstrap
 - **Vanilla JavaScript** — mobile nav, Netlify Identity, multi-step forms
 - **[Netlify Identity](https://docs.netlify.com/visitor-access/identity/)** — member authentication
+- **Netlify Database/Postgres** — canonical structured data store
 - **[Netlify](https://www.netlify.com/)** — hosting and deployment
 
 ---
@@ -111,6 +112,7 @@ src/
       multistep-form.js  # Multi-step form controller
 public/images/     # Static images
 netlify/functions/ # Netlify Functions
+netlify/database/  # Netlify Database migrations
 prompts/           # Sequenced prompts and architecture blueprint
 .eleventy.js       # Eleventy configuration
 netlify.toml       # Netlify configuration
@@ -142,20 +144,30 @@ After deploying to Netlify, you **must** enable Netlify Identity manually:
 
 > The Netlify Identity widget is loaded from `https://identity.netlify.com/v1/netlify-identity-widget.js`
 > and will not function until Identity is enabled in the Netlify UI.
-> The Join form makes one request to `submit-join`, which saves the answers in Netlify
-> Blobs and sends a sign-in magic link to the user's email address.
+> The Join form makes one request to `submit-join`, which saves the answers in the
+> structured data store and sends a sign-in magic link to the user's email address.
 > In local development, Identity email Functions need `NETLIFY_IDENTITY_BASE_URL` because
 > Netlify Identity itself only runs on the deployed Netlify site.
 
 ### Submission storage
 
-Join submissions and vehicle basics are stored by Netlify Functions in Netlify Blobs:
+Postgres is the intended canonical source for structured owner data. Netlify Database
+migrations live in `netlify/database/migrations/`.
+
+Join submissions and vehicle basics are handled by Netlify Functions:
 
 - `submit-join` stores membership expressions of interest and consent choices, then sends
   the Identity magic link for logged-out users.
 - `submit-vehicle-basics` stores the first vehicle registration slice for signed-in users:
   VIN HMAC / final six characters, registration, country, model year, ownership dates,
   mileage, State of Health, measurement date, measurement mileage, and SoH source.
+
+Member/account JSON snapshots should be regenerated after signup and vehicle changes, then
+served only through `member-data` after server-side Identity verification. Public evidence
+dashboard JSON should be generated only from anonymised aggregate data.
+
+Members may register more than one I-PACE. The account and member dashboard UX should treat
+vehicle records as a list, not as a single profile.
 
 Set `VIN_PEPPER` in Netlify environment variables before collecting VINs. Full VINs are
 not stored; the Function uses `VIN_PEPPER` to create an HMAC for deduplication.
@@ -175,10 +187,10 @@ To grant a member admin access:
 The following features are **not yet implemented** in this version:
 
 - **Full vehicle/evidence submission persistence** — Join submissions and vehicle basics
-  are stored with Netlify Functions and Netlify Blobs. Recall, repair, loan car, payment,
-  responsibility, consent-review, and evidence upload details are not yet stored.
+  are the first structured slices. Recall, repair, loan car, payment, responsibility,
+  consent-review, and evidence upload details are not yet stored.
 - **Evidence document uploads** — A placeholder message explains what will be supported.
-  Requires Netlify Blobs + Functions integration.
+  Requires Netlify Blobs for files plus Postgres metadata and Functions integration.
 - **Admin review workflow** — The review queue can read server-side data for admins, but
   review status updates, exports, and moderation actions are not yet implemented.
 - **Privacy policy** — The current policy is a placeholder. A formal policy is required
@@ -216,7 +228,8 @@ Posts appear automatically on `/updates/`.
 ### Architecture
 
 See `prompts/09-architecture-overview.md` for the intended architecture using Netlify
-Functions and Netlify Blobs for data persistence and admin features.
+Functions, Netlify Database/Postgres for structured data, Blobs for files, and generated
+JSON snapshots for read-heavy views.
 
 ### Copilot PR reviews
 

@@ -91,7 +91,7 @@
     if (!records || records.length === 0) {
       vehicleList.innerHTML =
         '<p class="empty-state" style="color:var(--color-text-muted);">No vehicle data submitted yet. ' +
-        '<a href="/submit-vehicle-data/">Submit your first vehicle</a>.</p>';
+        '<a href="/submit-vehicle-data/">Add your first vehicle</a>.</p>';
       return;
     }
 

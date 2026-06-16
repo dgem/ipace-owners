@@ -46,10 +46,10 @@ Provide accessible multi-step forms that collect membership interest now, help o
   payload. The Function stores the Join answers and sends a confirmation or recovery email
   via shared server-side Netlify Identity code.
   The email address **is** sent to Netlify Identity; detailed join answers (combined
-  relationship/ownership status, skills, consent) are saved with Netlify Blobs. The result screen reports storage success
+  relationship/ownership status, skills, consent) are saved to Postgres. The result screen reports storage success
   and the `magicLinkSent` state returned by `submit-join`.
 - Do not claim "no data was sent or stored" in the Join result. Clarify that the Join
-  answers are saved with Netlify Blobs and the email address is sent to Netlify Identity.
+  answers are saved to the structured data store and the email address is sent to Netlify Identity.
 - The result area uses these data attributes for state management:
   - `data-registration-guest` — wrapper shown for unauthenticated users
   - `data-registration-signed-in` — shown if user is already logged in
@@ -93,6 +93,9 @@ It collects:
 - VIN, registration, country, model year, ownership dates, mileage.
 - Battery State of Health and source.
 
+The UX must support members registering multiple vehicles. Treat this as an "add/register a
+vehicle" flow and provide an obvious route to add another vehicle after saving.
+
 Full VINs must not be stored. The Function should create an HMAC using `VIN_PEPPER` and
 store only the HMAC plus final six characters for reference.
 The first vehicle-basics slice should require at least one vehicle identifier: VIN or
@@ -130,12 +133,12 @@ future summary of entered information.
 - Do not send form data to a backend until a backend prompt implements it for that specific
   flow. The current exceptions are:
   - the Join form's single `submit-join` call, which stores membership interest and consent
-    in Netlify Blobs and sends email/name to Netlify Identity via shared server-side
+    in Postgres and sends email/name to Netlify Identity via shared server-side
     magic-link code;
   - the signed-in vehicle basics form's `submit-vehicle-basics` call, which stores the
-    initial vehicle and battery health slice in Netlify Blobs.
+    initial vehicle and battery health slice in Postgres.
 - Do not store raw VINs in public static files.
-- Do not store full VINs in Blobs. Store an HMAC generated with `VIN_PEPPER` and only the
+- Do not store full VINs in Postgres, Blobs, or static JSON. Store an HMAC generated with `VIN_PEPPER` and only the
   final six characters for reference. If `VIN_PEPPER` is not configured, ignore the VIN
   when registration is present, and reject VIN-only submissions with a clear configuration
   message.
