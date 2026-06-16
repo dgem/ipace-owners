@@ -276,13 +276,9 @@
 				signedInEls.forEach(function (el) { el.hidden = false; });
 			}
 
-			// Reload so member-only pages rehydrate if needed
-			// (light redirect: only on gated pages)
 			var redirect = document.body.dataset.authRedirectOnLogin;
 			if (redirect) {
 				window.location.href = redirect;
-			} else if (document.querySelector('[data-auth-container], [data-admin-container]')) {
-				window.location.reload();
 			}
 		});
 

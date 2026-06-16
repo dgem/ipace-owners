@@ -35,10 +35,12 @@ test('site UI uses passwordless magic-link forms instead of Netlify modal trigge
 
 test('Join completion does not offer vehicle submission until signed in', function () {
   var join = read('src/join.njk');
+  var css = read('src/assets/css/site.css');
 
   assert.match(join, /data-registration-link-sent/);
   assert.match(join, /You can add vehicle data after opening the sign-in link/);
   assert.match(join, /data-registration-signed-in hidden[\s\S]*Add your first vehicle/);
+  assert.match(css, /\[hidden\]\s*\{\s*display:\s*none !important;/);
 });
 
 test('member data fetches include Identity bearer tokens', function () {
@@ -50,6 +52,7 @@ test('member data fetches include Identity bearer tokens', function () {
   assert.match(memberAuth, /fetchWithIdentity\('\/\.netlify\/functions\/admin-data'\)/);
   assert.match(read('src/assets/js/identity.js'), /identity:ready/);
   assert.match(memberAuth, /addEventListener\('identity:ready'/);
+  assert.doesNotMatch(read('src/assets/js/identity.js'), /window\.location\.reload/);
 });
 
 test('multi-step forms do not scroll on every step unless explicitly opted in', function () {

@@ -33,6 +33,10 @@ body {
   line-height: 1.6;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 img, video, svg, canvas, iframe {
   max-width: 100%;
   display: block;
