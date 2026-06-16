@@ -30,7 +30,7 @@ test('site UI uses passwordless magic-link forms instead of Netlify modal trigge
   assert.match(read('src/member/dashboard.njk'), /data-magic-link-form/);
   assert.match(read('src/submit-vehicle-data.njk'), /data-magic-link-form/);
   assert.match(read('src/admin/review-queue.njk'), /data-magic-link-form/);
-  assert.match(read('src/assets/js/identity.js'), /\/\.netlify\/functions\/send-magic-link/);
+  assert.match(read('src/assets/js/identity.js'), /\/api\/send-magic-link/);
 });
 
 test('Join completion does not offer vehicle submission until signed in', function () {
@@ -48,8 +48,8 @@ test('member data fetches include Identity bearer tokens', function () {
 
   assert.match(memberAuth, /function fetchWithIdentity/);
   assert.match(memberAuth, /Authorization: 'Bearer ' \+ token/);
-  assert.match(memberAuth, /fetchWithIdentity\('\/\.netlify\/functions\/member-data'\)/);
-  assert.match(memberAuth, /fetchWithIdentity\('\/\.netlify\/functions\/admin-data'\)/);
+  assert.match(memberAuth, /fetchWithIdentity\('\/api\/member-data'\)/);
+  assert.match(memberAuth, /fetchWithIdentity\('\/api\/admin-data'\)/);
   assert.match(read('src/assets/js/identity.js'), /identity:ready/);
   assert.match(memberAuth, /addEventListener\('identity:ready'/);
   assert.doesNotMatch(read('src/assets/js/identity.js'), /window\.location\.reload/);
@@ -70,7 +70,7 @@ test('protected pages do not show login gates before auth verification completes
   var memberAuth = read('src/assets/js/member-auth.js');
   var identity = read('src/assets/js/identity.js');
 
-  assert.match(identity, /window\.ipaceIdentityReady = !identity/);
+  assert.match(identity, /window\.ipaceIdentityReady = !config/);
   assert.match(identity, /window\.ipaceIdentityReady = true/);
   assert.match(memberAuth, /document\.addEventListener\('identity:ready', initSoon\)/);
   assert.match(memberAuth, /window\.ipaceIdentityReady/);
@@ -78,8 +78,8 @@ test('protected pages do not show login gates before auth verification completes
   assert.match(memberAuth, /document\.addEventListener\('identity:logout', initSoon\)/);
   assert.match(memberAuth, /var authRunId = 0/);
   assert.match(memberAuth, /if \(runId !== authRunId\) return/);
-  assert.match(identity, /clearIdentityTokenHash/);
-  assert.match(identity, /confirmation_token\|recovery_token\|invite_token/);
+  assert.match(identity, /clearAuthQuery/);
+  assert.match(identity, /mode=signIn\|oobCode=\|apiKey=/);
 });
 
 test('homepage vehicle CTAs switch between guest and signed-in states', function () {

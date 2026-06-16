@@ -1,45 +1,37 @@
 /**
- * identity.js — Netlify Identity UI integration.
+ * identity.js — Firebase Authentication email-link integration.
  *
- * Uses the Netlify Identity session adapter and keeps the header UI in sync
- * with the current auth state. Handles logout, magic-link requests, form
- * submission token injection, and registration state display.
- *
- * NOTE: Client-side gating has been removed. All data access is now verified
- * server-side via member-auth.js which calls Netlify Functions that check
- * Identity JWTs. See member-auth.js for page-level auth verification.
- *
- * NOTE: Netlify Identity must be enabled in the Netlify UI after deployment
- * (Site Settings → Identity → Enable Identity). The widget is loaded from
- * the CDN in base.njk.
+ * The product UI is passwordless. This script never opens a hosted password
+ * widget; it completes Firebase email sign-in links, tracks auth state, adds ID
+ * tokens to API submissions, and keeps header/account controls in sync.
  */
 
 (function () {
 	'use strict';
 
-	// netlify-identity-widget is loaded as a CDN script in base.njk to process
-	// Identity email links and expose currentUser()/jwt(). We do not use its
-	// modal UI; all sign-in requests go through our passwordless magic-link form.
-	var identity = window.netlifyIdentity;
-	window.ipaceIdentityReady = !identity;
+	var app = null;
+	var auth = null;
+	var config = window.ipaceFirebaseConfig;
+	window.ipaceIdentityReady = !config;
 	window.ipaceIdentityUser = null;
 
-	if (!identity) {
-		console.warn('[identity.js] netlify-identity-widget not found. Header auth UI disabled; magic-link form handoff remains available.');
+	if (config && window.firebase && window.firebase.initializeApp) {
+		app = window.firebase.apps && window.firebase.apps.length
+			? window.firebase.app()
+			: window.firebase.initializeApp(config);
+		auth = app.auth();
+		auth.setPersistence(window.firebase.auth.Auth.Persistence.LOCAL).catch(function (err) {
+			console.warn('[identity.js] Could not set Firebase persistence.', err);
+		});
+	} else if (config) {
+		console.warn('[identity.js] Firebase SDK not found. Header auth UI disabled.');
 	}
 
-	// ── Helper: get current user ────────────────────────────────────────────────
-	function currentUser() {
-		if (!identity) return null;
-		return identity.currentUser();
-	}
-
-	// ── Header UI update ────────────────────────────────────────────────────────
-	var loginBtn         = document.getElementById('identity-login-btn');
-	var logoutBtn        = document.getElementById('identity-logout-btn');
-	var userDisplay      = document.getElementById('identity-user-display');
-	var mobileLoginBtn   = document.getElementById('identity-mobile-login-btn');
-	var mobileLogoutBtn  = document.getElementById('identity-mobile-logout-btn');
+	var loginBtn = document.getElementById('identity-login-btn');
+	var logoutBtn = document.getElementById('identity-logout-btn');
+	var userDisplay = document.getElementById('identity-user-display');
+	var mobileLoginBtn = document.getElementById('identity-mobile-login-btn');
+	var mobileLogoutBtn = document.getElementById('identity-mobile-logout-btn');
 
 	function setVisibility(selector, visible) {
 		document.querySelectorAll(selector).forEach(function (el) {
@@ -47,63 +39,86 @@
 		});
 	}
 
+	function normaliseUser(user) {
+		if (!user) return null;
+		return {
+			uid: user.uid,
+			email: user.email || '',
+			created_at: user.metadata && user.metadata.creationTime ? user.metadata.creationTime : '',
+			firebaseUser: user
+		};
+	}
+
 	function updateHeaderUI(user) {
 		if (user) {
-			// Logged in
-			if (loginBtn)        loginBtn.style.display         = 'none';
-			if (logoutBtn)       logoutBtn.style.display        = '';
-			if (mobileLoginBtn)  mobileLoginBtn.style.display   = 'none';
-			if (mobileLogoutBtn) mobileLogoutBtn.style.display  = '';
+			if (loginBtn) loginBtn.style.display = 'none';
+			if (logoutBtn) logoutBtn.style.display = '';
+			if (mobileLoginBtn) mobileLoginBtn.style.display = 'none';
+			if (mobileLogoutBtn) mobileLogoutBtn.style.display = '';
 			setVisibility('[data-requires-auth]', true);
 			setVisibility('[data-requires-guest]', false);
 			if (userDisplay) {
-				userDisplay.style.display    = '';
-				userDisplay.textContent      = user.email || 'Member';
+				userDisplay.style.display = '';
+				userDisplay.textContent = user.email || 'Member';
 			}
 		} else {
-			// Logged out
-			if (loginBtn)        loginBtn.style.display         = '';
-			if (logoutBtn)       logoutBtn.style.display        = 'none';
-			if (mobileLoginBtn)  mobileLoginBtn.style.display   = '';
-			if (mobileLogoutBtn) mobileLogoutBtn.style.display  = 'none';
+			if (loginBtn) loginBtn.style.display = '';
+			if (logoutBtn) logoutBtn.style.display = 'none';
+			if (mobileLoginBtn) mobileLoginBtn.style.display = '';
+			if (mobileLogoutBtn) mobileLogoutBtn.style.display = 'none';
 			setVisibility('[data-requires-auth]', false);
 			setVisibility('[data-requires-guest]', true);
-			if (userDisplay)     userDisplay.style.display      = 'none';
+			if (userDisplay) userDisplay.style.display = 'none';
 		}
 	}
 
 	function dispatchIdentityState(name, user) {
+		var normalised = normaliseUser(user);
 		window.ipaceIdentityReady = true;
-		window.ipaceIdentityUser = user || null;
+		window.ipaceIdentityUser = normalised;
 		document.dispatchEvent(new CustomEvent(name, {
-			detail: { user: user || null }
+			detail: { user: normalised }
 		}));
 	}
 
-	function clearIdentityTokenHash() {
-		if (!window.location.hash) return;
-		if (!/(confirmation_token|recovery_token|invite_token|access_token|refresh_token|error=)/.test(window.location.hash)) return;
-
+	function clearAuthQuery() {
+		if (!/(mode=signIn|oobCode=|apiKey=)/.test(window.location.search)) return;
 		if (window.history && window.history.replaceState) {
-			window.history.replaceState(null, document.title, window.location.pathname + window.location.search);
+			window.history.replaceState(null, document.title, window.location.pathname + window.location.hash);
 		}
 	}
 
-	// NOTE: Client-side gated content (data-auth-gate, data-admin-gate, etc.)
-	// has been removed. All data access is now verified server-side via
-	// member-auth.js calling Netlify Functions with JWT verification.
+	function completeEmailLinkIfNeeded() {
+		if (!auth || !auth.isSignInWithEmailLink(window.location.href)) {
+			return Promise.resolve(false);
+		}
+		var email = window.localStorage.getItem('ipaceEmailForSignIn') || '';
+		if (!email) {
+			email = window.prompt('Confirm your email address to finish signing in.') || '';
+		}
+		email = email.trim();
+		if (!email) return Promise.resolve(false);
 
-	if (identity && logoutBtn) {
-		logoutBtn.addEventListener('click', function () {
-			identity.logout();
+		return auth.signInWithEmailLink(email, window.location.href).then(function () {
+			window.localStorage.removeItem('ipaceEmailForSignIn');
+			clearAuthQuery();
+			return true;
+		}).catch(function (err) {
+			console.warn('[identity.js] Email-link sign-in failed.', err);
+			return false;
 		});
 	}
 
-	if (identity && mobileLogoutBtn) {
-		mobileLogoutBtn.addEventListener('click', function () {
-			identity.logout();
+	function signOut() {
+		if (!auth) return;
+		auth.signOut().then(function () {
+			var redirect = document.body.dataset.authRedirectOnLogout;
+			if (redirect) window.location.href = redirect;
 		});
 	}
+
+	if (logoutBtn) logoutBtn.addEventListener('click', signOut);
+	if (mobileLogoutBtn) mobileLogoutBtn.addEventListener('click', signOut);
 
 	function setResultVisibility(result, selector, visible) {
 		if (!result) return;
@@ -140,7 +155,6 @@
 
 	function showRegistrationState(result, data) {
 		if (!result || !data || !('magicLinkSent' in data)) return;
-
 		setResultVisibility(result, '[data-registration-guest]', !data.signedIn);
 		setResultVisibility(result, '[data-registration-signed-in]', !!data.signedIn);
 		setResultVisibility(result, '[data-registration-link-sent]', !!data.magicLinkSent && !data.signedIn);
@@ -162,10 +176,11 @@
 	}
 
 	function getIdentityToken() {
-		var user = currentUser();
-		if (!user || typeof user.jwt !== 'function') return Promise.resolve('');
-		return user.jwt().catch(function () { return ''; });
+		if (!auth || !auth.currentUser) return Promise.resolve('');
+		return auth.currentUser.getIdToken().catch(function () { return ''; });
 	}
+
+	window.ipaceGetIdentityToken = getIdentityToken;
 
 	function setMagicLinkStatus(form, message, tone) {
 		var status = form.querySelector('[data-magic-link-status]');
@@ -190,8 +205,9 @@
 
 				if (submitBtn) submitBtn.disabled = true;
 				setMagicLinkStatus(form, 'Sending sign-in link...', 'info');
+				window.localStorage.setItem('ipaceEmailForSignIn', email);
 
-				fetch('/.netlify/functions/send-magic-link', {
+				fetch('/api/send-magic-link', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({ email: email })
@@ -234,9 +250,7 @@
 			}
 
 			var headers = { 'Content-Type': 'application/json' };
-			if (token) {
-				headers.Authorization = 'Bearer ' + token;
-			}
+			if (token) headers.Authorization = 'Bearer ' + token;
 
 			return fetch(endpoint, {
 				method: 'POST',
@@ -268,52 +282,24 @@
 		submitDatabaseForm(form, e.detail && e.detail.result);
 	});
 
-	// ── Identity event hooks ────────────────────────────────────────────────────
-	if (identity) {
-		identity.on('init', function (user) {
-			updateHeaderUI(user);
-			dispatchIdentityState('identity:ready', user);
-			if (user) clearIdentityTokenHash();
+	if (auth) {
+		completeEmailLinkIfNeeded().finally(function () {
+			auth.onAuthStateChanged(function (user) {
+				updateHeaderUI(user);
+				dispatchIdentityState(window.ipaceIdentityReady ? (user ? 'identity:login' : 'identity:logout') : 'identity:ready', user);
+
+				if (user) {
+					document.querySelectorAll('[data-registration-guest]').forEach(function (el) { el.hidden = true; });
+					document.querySelectorAll('[data-registration-signed-in]').forEach(function (el) { el.hidden = false; });
+					var redirect = document.body.dataset.authRedirectOnLogin;
+					if (redirect) window.location.href = redirect;
+				}
+			});
 		});
-
-		identity.on('login', function (user) {
-			updateHeaderUI(user);
-			dispatchIdentityState('identity:login', user);
-			identity.close();
-			clearIdentityTokenHash();
-
-			// If the join result panel is visible, flip it to the signed-in state so
-			// the guest CTAs ("check your inbox") are hidden after the user logs in.
-			var guestEls = document.querySelectorAll('[data-registration-guest]');
-			var signedInEls = document.querySelectorAll('[data-registration-signed-in]');
-			if (guestEls.length || signedInEls.length) {
-				guestEls.forEach(function (el) { el.hidden = true; });
-				signedInEls.forEach(function (el) { el.hidden = false; });
-			}
-
-			var redirect = document.body.dataset.authRedirectOnLogin;
-			if (redirect) {
-				window.location.href = redirect;
-			}
-		});
-
-		identity.on('logout', function () {
-			updateHeaderUI(null);
-			dispatchIdentityState('identity:logout', null);
-			var redirect = document.body.dataset.authRedirectOnLogout;
-			if (redirect) {
-				window.location.href = redirect;
-			}
-		});
-
-		// ── Initialise ──────────────────────────────────────────────────────────────
-		// Derive the API URL from the current origin so the widget resolves
-		// /.netlify/identity correctly in all environments: production, the custom
-		// domain, and deploy previews. Using a hard-coded production URL would break
-		// deploy previews (cross-origin CSP) and point all test signups at production.
-		identity.init({ APIUrl: window.location.origin + '/.netlify/identity' });
+	} else {
+		updateHeaderUI(null);
+		dispatchIdentityState('identity:ready', null);
 	}
 
 	initMagicLinkForms();
-
 })();

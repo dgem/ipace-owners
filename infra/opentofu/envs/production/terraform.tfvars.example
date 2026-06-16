@@ -1,0 +1,11 @@
+project_id = "replace-with-production-project-id"
+region     = "europe-west2"
+
+github_owner = "dgem"
+github_repo  = "ipace-owners"
+
+allowed_origins = "https://ipace-owners.org,https://www.ipace-owners.org"
+
+# Set real values via environment variables or an uncommitted tfvars file:
+# TF_VAR_firebase_web_api_key=...
+# TF_VAR_vin_pepper=...

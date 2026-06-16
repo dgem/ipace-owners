@@ -24,6 +24,6 @@ verifiable evidence and engage constructively with JLR for fair outcomes.
 - Member registration and the join form
 - Vehicle data submission form
 - Member dashboard
-- Backend data collection via Netlify Functions
+- Backend data collection via server-side Functions
 
 [Join the group](/join/) or [read the FAQ](/faq/) to find out more.

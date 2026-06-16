@@ -33,7 +33,7 @@ Potential future Functions:
 ## Public Statistics Rules
 
 - Public pages may show only anonymised aggregate data.
-- Public pages should read generated static JSON snapshots rather than querying Postgres on
+- Public pages should read generated static JSON snapshots rather than querying Firestore on
   every page view.
 - Do not publish full VINs, registrations, owner names, email addresses, uploaded
   documents, or individual case narratives without explicit permission.

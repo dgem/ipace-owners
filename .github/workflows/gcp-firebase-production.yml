@@ -1,0 +1,89 @@
+name: GCP Firebase production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: functions/firebase-go/go.mod
+          cache-dependency-path: functions/firebase-go/go.sum
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test site
+        run: npm test
+
+      - name: Test Go functions
+        working-directory: functions/firebase-go
+        run: go test ./...
+
+      - name: Build site
+        env:
+          FIREBASE_WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY_PRODUCTION }}
+          FIREBASE_AUTH_DOMAIN: ${{ vars.FIREBASE_AUTH_DOMAIN_PRODUCTION }}
+          FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PRODUCTION_PROJECT_ID }}
+          FIREBASE_APP_ID: ${{ vars.FIREBASE_APP_ID_PRODUCTION }}
+          FIREBASE_STORAGE_BUCKET: ${{ vars.FIREBASE_STORAGE_BUCKET_PRODUCTION }}
+        run: npm run build
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER_PRODUCTION }}
+          service_account: ${{ secrets.GCP_DEPLOYER_SERVICE_ACCOUNT_PRODUCTION }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Deploy Go Cloud Functions
+        env:
+          GCP_PROJECT_ID: ${{ vars.FIREBASE_PRODUCTION_PROJECT_ID }}
+          GCP_REGION: ${{ vars.GCP_REGION || 'europe-west2' }}
+          FUNCTIONS_SERVICE_ACCOUNT: ${{ secrets.GCP_FUNCTIONS_SERVICE_ACCOUNT_PRODUCTION }}
+          FIREBASE_WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY_PRODUCTION }}
+          VIN_PEPPER: ${{ secrets.VIN_PEPPER_PRODUCTION }}
+          SNAPSHOT_BUCKET: ${{ vars.SNAPSHOT_BUCKET_PRODUCTION }}
+          ALLOWED_ORIGINS: ${{ vars.ALLOWED_ORIGINS_PRODUCTION }}
+          FIREBASE_EMAIL_CONTINUE_URL: https://ipace-owners.org/account/
+        run: |
+          for fn in SendMagicLink SubmitJoin SubmitVehicleBasics MemberData AdminData; do
+            gcloud functions deploy "$fn" \
+              --gen2 \
+              --project="$GCP_PROJECT_ID" \
+              --region="$GCP_REGION" \
+              --runtime=go123 \
+              --source=functions/firebase-go \
+              --entry-point="$fn" \
+              --trigger-http \
+              --allow-unauthenticated \
+              --service-account="$FUNCTIONS_SERVICE_ACCOUNT" \
+              --set-env-vars="FIREBASE_WEB_API_KEY=$FIREBASE_WEB_API_KEY,VIN_PEPPER=$VIN_PEPPER,SNAPSHOT_BUCKET=$SNAPSHOT_BUCKET,ALLOWED_ORIGINS=$ALLOWED_ORIGINS,FIREBASE_EMAIL_CONTINUE_URL=$FIREBASE_EMAIL_CONTINUE_URL"
+          done
+
+      - name: Deploy Firebase Hosting production
+        env:
+          GCP_PROJECT_ID: ${{ vars.FIREBASE_PRODUCTION_PROJECT_ID }}
+        run: npx firebase-tools deploy --only hosting --project "$GCP_PROJECT_ID"
+
+      - name: Smoke test production
+        env:
+          SMOKE_BASE_URL: https://ipace-owners.org
+        run: node scripts/smoke-test-deployment.mjs

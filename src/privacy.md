@@ -19,16 +19,16 @@ When you join the group or submit vehicle data, we may collect:
 - Information about any battery work, recalls, or warranty interactions you have experienced
 - Preferences for how your data may be used
 
-When you visit this website, our hosting provider (Netlify) may collect standard server logs
+When you visit this website, our hosting provider may collect standard server logs
 including IP addresses and browser information. We do not use third-party analytics tracking.
 
 ## Stored submissions
 
-Join submissions are saved by a Netlify Function in the structured data store. A Join submission may
+Join submissions are saved by a server-side Function in the structured data store. A Join submission may
 include your name, email address, country or region, relationship to an I-PACE, ownership
 status, volunteering interests, and consent choices.
 
-The Join form also asks Netlify Identity to send a sign-in or account confirmation email.
+The Join form also asks Firebase Authentication to send a sign-in email link.
 
 Signed-in members can also register one or more vehicles. A vehicle-basics submission may include
 registration, country, model year, ownership dates, mileage, battery State of Health,
@@ -43,10 +43,10 @@ We do not use analytics or advertising cookies.
 
 The site may use cookies, browser storage, and hosting logs for essential services:
 
-- Netlify Identity may use cookies or browser storage when you sign in or register.
+- Firebase Authentication may use cookies or browser storage when you sign in or register.
 - The cookie/privacy notice stores whether you have dismissed it, so it does not appear on
   every page view.
-- Netlify hosting may use technical infrastructure logs to provide and protect the site.
+- Hosting infrastructure may use technical logs to provide and protect the site.
 
 If analytics, advertising, or other non-essential cookies are added later, the site must be
 updated to request consent before those cookies are set.
@@ -60,9 +60,9 @@ updated to request consent before those cookies are set.
 
 ## Authentication
 
-We use **Netlify Identity** for sign-in. This means your account credentials are managed by
-Netlify's identity service. We do not store passwords ourselves. Netlify's privacy policy
-applies to account data.
+We use **Firebase Authentication** for sign-in. This means your account credentials are
+managed by Google Firebase. We do not store passwords ourselves. Google's Firebase privacy
+and data-processing terms apply to account data.
 
 ## How your data may be used
 
@@ -84,10 +84,9 @@ information before uploading.
 
 ## Data security
 
-We use Netlify's hosting infrastructure, including Netlify Identity for authentication,
-Netlify Functions for server-side data access, Netlify Database/Postgres for structured
-submissions, and Netlify Blobs for future uploaded evidence files. Raw personal data and
-full VINs will not be stored in public static files.
+We use Google Cloud/Firebase infrastructure for hosting, authentication, server-side data
+access, structured submissions, and generated JSON snapshots. Raw personal data and full
+VINs will not be stored in public static files.
 
 ## Your rights
 

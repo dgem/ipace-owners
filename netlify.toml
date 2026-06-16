@@ -27,8 +27,8 @@
     X-Content-Type-Options    = "nosniff"
     Referrer-Policy           = "strict-origin-when-cross-origin"
     Permissions-Policy        = "camera=(), microphone=(), geolocation=()"
-    # CSP: allow Netlify Identity and self
-    Content-Security-Policy   = "default-src 'self'; script-src 'self' https://identity.netlify.com 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.netlify.com https://*.netlify.app; frame-src https://netlify-cdp-loader.netlify.app;"
+    # CSP: allow Firebase Auth during the GCP migration.
+    Content-Security-Policy   = "default-src 'self'; script-src 'self' https://www.gstatic.com 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.cloudfunctions.net https://*.run.app https://*.web.app https://*.firebaseapp.com; frame-src 'self';"
 
 # Cache static assets
 [[headers]]

@@ -14,10 +14,13 @@ Static, mobile-first, accessible website built with:
 - **[Eleventy 3](https://www.11ty.dev/)** — static site generator
 - **Nunjucks + Markdown** — templating and content
 - **Custom CSS** — mobile-first design system, no Tailwind or Bootstrap
-- **Vanilla JavaScript** — mobile nav, Netlify Identity, multi-step forms
-- **[Netlify Identity](https://docs.netlify.com/visitor-access/identity/)** — member authentication
-- **Netlify Database/Postgres** — canonical structured data store
-- **[Netlify](https://www.netlify.com/)** — hosting and deployment
+- **Vanilla JavaScript** — mobile nav, Firebase Authentication, multi-step forms
+- **Firebase Authentication** — passwordless email-link member authentication
+- **Cloud Functions for Firebase, written in Go** — form handling and member/admin APIs
+- **Cloud Firestore** — canonical structured data store
+- **Cloud Storage** — generated member/public JSON snapshots and future evidence blobs
+- **Firebase Hosting / Google Cloud** — staging and production hosting
+- **OpenTofu/Terraform** — GCP resource configuration
 
 ---
 
@@ -25,8 +28,11 @@ Static, mobile-first, accessible website built with:
 
 ### Prerequisites
 
-- Node.js 18+ (20 recommended)
+- Node.js 20+
 - npm 9+
+- Go 1.23+
+- Firebase CLI, installed through `npm install`
+- OpenTofu 1.8+ for infrastructure changes
 
 ### Install
 
@@ -40,29 +46,26 @@ npm install
 npm run dev
 ```
 
-Starts Netlify Dev at `http://localhost:8888`, proxying the Eleventy dev server and
-serving Netlify Functions. Use this when testing Join submission and magic-link flows,
-because requests to `/.netlify/functions/*` are handled only by Netlify Dev or a deployed
-Netlify site.
-
-Netlify Dev does not provide a local Netlify Identity API. To send real Identity emails
-from local development, add this to `.env.local` using the deployed Netlify site URL:
-
-```bash
-NETLIFY_IDENTITY_BASE_URL=https://ipace-owners.netlify.app/.netlify/identity
-VIN_PEPPER=replace-with-a-long-random-secret-for-local-testing
-```
-
-Do not commit `.env.local`.
-
-You can also run Eleventy directly (without Netlify Functions) with:
+Starts the current local development server. During the GCP migration, the static site can
+also be run directly with:
 
 ```bash
 npm run dev:eleventy
 ```
 
-That starts Eleventy directly at `http://localhost:8080`, but it does not serve Netlify
-Functions. Contributors should normally use `npm run dev`.
+To test Firebase Authentication and Go Functions locally, run the Firebase emulators or test
+against the staging Firebase project. Build-time Firebase web config is read from
+environment variables:
+
+```bash
+FIREBASE_WEB_API_KEY=...
+FIREBASE_AUTH_DOMAIN=...
+FIREBASE_PROJECT_ID=...
+FIREBASE_APP_ID=...
+FIREBASE_STORAGE_BUCKET=...
+```
+
+Do not commit `.env` files containing real values.
 
 ### Production build
 
@@ -78,8 +81,13 @@ Output is written to `_site/`.
 npm test
 ```
 
-Runs the Node test suite for Netlify Function validation, storage-shaping, magic-link
-handoff behavior, and the Join form single-submit regression guard.
+Runs the Node test suite for form wiring, auth UI behaviour, and legacy backend guards.
+Go Cloud Functions are tested separately with:
+
+```bash
+cd functions/firebase-go
+go test ./...
+```
 
 ### Clean
 
@@ -107,55 +115,65 @@ src/
     css/site.css   # Main stylesheet
     js/
       main.js            # Mobile menu, nav helpers
-      identity.js        # Netlify Identity integration
+      identity.js        # Firebase Auth email-link integration
       member-auth.js     # Server-verified member/admin data loading
       multistep-form.js  # Multi-step form controller
 public/images/     # Static images
-netlify/functions/ # Netlify Functions
-netlify/database/  # Netlify Database migrations
+functions/firebase-go/ # Go Cloud Functions for Firebase
+infra/opentofu/   # GCP/Firebase infrastructure
 prompts/           # Sequenced prompts and architecture blueprint
 .eleventy.js       # Eleventy configuration
-netlify.toml       # Netlify configuration
+firebase.json      # Firebase Hosting rewrites, headers and Functions config
 ```
 
 ---
 
-## Netlify deployment
+## GCP / Firebase deployment
 
-1. Fork or clone this repository.
-2. Create a new site in Netlify connected to your repository.
-3. Build settings are pre-configured in `netlify.toml`:
-   - **Build command:** `npm run build`
-   - **Publish directory:** `_site`
-   - **Functions directory:** `netlify/functions`
+The target deployment is two Firebase/GCP projects:
 
-### Enable Netlify Identity
+- **staging** — PR preview channels and pre-merge testing.
+- **production** — `ipace-owners.org`, deployed after merge to `main`.
 
-After deploying to Netlify, you **must** enable Netlify Identity manually:
+Infrastructure is configured with OpenTofu under `infra/opentofu/`. Use the environment
+folders for staging and production, and provide real values through uncommitted tfvars or
+`TF_VAR_*` environment variables.
 
-1. Go to your site in the Netlify dashboard.
-2. Navigate to **Site configuration → Identity**.
-3. Click **Enable Identity**.
-4. Configure registration settings:
-   - For a closed group, set **Registration preferences** to **Invite only**.
-   - For open registration, leave as **Open**.
-   - Keep email confirmation enabled so Netlify sends the account confirmation link.
-5. Optional: configure external OAuth providers (Google, GitHub) if desired.
+```bash
+cd infra/opentofu/envs/staging
+tofu init
+tofu plan
+tofu apply
+```
 
-> The site uses passwordless email links. The Netlify Identity script is currently loaded
-> only to process Identity email links and expose the current session/JWT; the product UI
-> must not open Netlify's password modal.
-> The Join form makes one request to `submit-join`, which saves the answers in the
-> structured data store and sends a sign-in magic link to the user's email address.
-> In local development, Identity email Functions need `NETLIFY_IDENTITY_BASE_URL` because
-> Netlify Identity itself only runs on the deployed Netlify site.
+The OpenTofu config enables Firebase, Firestore, Cloud Functions, Cloud Storage, Secret
+Manager and GitHub Workload Identity Federation. It also creates service accounts for
+GitHub deployment and Functions runtime.
+
+GitHub Actions deploys PRs to Firebase Hosting preview channels and deploys `main` to the
+production Firebase Hosting site. Required repository/environment secrets and variables:
+
+- `GCP_WORKLOAD_IDENTITY_PROVIDER_STAGING` / `GCP_WORKLOAD_IDENTITY_PROVIDER_PRODUCTION`
+- `GCP_DEPLOYER_SERVICE_ACCOUNT_STAGING` / `GCP_DEPLOYER_SERVICE_ACCOUNT_PRODUCTION`
+- `GCP_FUNCTIONS_SERVICE_ACCOUNT_STAGING` / `GCP_FUNCTIONS_SERVICE_ACCOUNT_PRODUCTION`
+- `FIREBASE_WEB_API_KEY_STAGING` / `FIREBASE_WEB_API_KEY_PRODUCTION`
+- `VIN_PEPPER_STAGING` / `VIN_PEPPER_PRODUCTION`
+- `FIREBASE_STAGING_PROJECT_ID` / `FIREBASE_PRODUCTION_PROJECT_ID`
+- `FIREBASE_AUTH_DOMAIN_*`, `FIREBASE_APP_ID_*`, `FIREBASE_STORAGE_BUCKET_*`
+- `SNAPSHOT_BUCKET_*`, `ALLOWED_ORIGINS_*`, `FIREBASE_EMAIL_CONTINUE_URL_STAGING`
+
+### SSL and DNS
+
+Firebase Hosting provides managed SSL certificates for connected custom domains. For
+`ipace-owners.org`, add the domain in Firebase Hosting, then update DNS records in
+Fasthosts exactly as Firebase instructs. Firebase will verify ownership and provision the
+certificate automatically. Keep the production cutover separate from staging validation.
 
 ### Submission storage
 
-Postgres is the intended canonical source for structured owner data. Netlify Database
-migrations live in `netlify/database/migrations/`.
+Cloud Firestore is the intended canonical source for structured owner data.
 
-Join submissions and vehicle basics are handled by Netlify Functions:
+Join submissions and vehicle basics are handled by Go Cloud Functions:
 
 - `submit-join` stores membership expressions of interest and consent choices, then sends
   the Identity magic link for logged-out users.
@@ -163,23 +181,24 @@ Join submissions and vehicle basics are handled by Netlify Functions:
   VIN HMAC / final six characters, registration, country, model year, ownership dates,
   mileage, State of Health, measurement date, measurement mileage, and SoH source.
 
-Member/account JSON snapshots should be regenerated after signup and vehicle changes, then
-served only through `member-data` after server-side Identity verification. Public evidence
-dashboard JSON should be generated only from anonymised aggregate data.
+Member/account JSON snapshots are regenerated after signup and vehicle changes, written to
+Firestore and optionally Cloud Storage, then served only through `member-data` after
+server-side Firebase ID-token verification. Public evidence dashboard JSON should be
+generated only from anonymised aggregate data.
 
 Members may register more than one I-PACE. The account and member dashboard UX should treat
 vehicle records as a list, not as a single profile.
 
-Set `VIN_PEPPER` in Netlify environment variables before collecting VINs. Full VINs are
-not stored; the Function uses `VIN_PEPPER` to create an HMAC for deduplication.
+Set `VIN_PEPPER` as a GCP Secret Manager value and Function environment variable before
+collecting VINs. Full VINs are not stored; the Function uses `VIN_PEPPER` to create an HMAC
+for deduplication.
 
 ### Admin role assignment
 
 To grant a member admin access:
 
-1. Go to **Site configuration → Identity → Users**.
-2. Select the user.
-3. Edit their metadata and add `roles: ["admin"]` to `app_metadata`.
+Set a Firebase Auth custom claim for the user, for example `admin: true` or
+`roles: ["admin"]`. Admin APIs verify this claim server-side.
 
 ---
 
@@ -187,11 +206,11 @@ To grant a member admin access:
 
 The following features are **not yet implemented** in this version:
 
-- **Full vehicle/evidence submission persistence** — Join submissions and vehicle basics
-  are the first structured slices. Recall, repair, loan car, payment, responsibility,
-  consent-review, and evidence upload details are not yet stored.
+- **Full vehicle/evidence submission persistence** — Join submissions and vehicle basics are
+  the first structured slices. Recall, repair, loan car, payment, responsibility,
+  consent-review, and evidence upload details are not yet stored in the GCP model.
 - **Evidence document uploads** — A placeholder message explains what will be supported.
-  Requires Netlify Blobs for files plus Postgres metadata and Functions integration.
+  Requires Cloud Storage for files plus Firestore metadata and Functions integration.
 - **Admin review workflow** — The review queue can read server-side data for admins, but
   review status updates, exports, and moderation actions are not yet implemented.
 - **Privacy policy** — The current policy is a placeholder. A formal policy is required
@@ -213,7 +232,7 @@ Do not add Tailwind, Bootstrap, or other CSS frameworks.
 
 Plain vanilla JS, no bundler. Three files:
 - `main.js` — mobile menu toggle, current-page nav highlighting
-- `identity.js` — Netlify Identity init and UI state
+- `identity.js` — Firebase Auth email-link and UI state
 - `multistep-form.js` — generic multi-step form (data-attribute driven)
 
 ### Adding pages
@@ -228,9 +247,9 @@ Posts appear automatically on `/updates/`.
 
 ### Architecture
 
-See `prompts/09-architecture-overview.md` for the intended architecture using Netlify
-Functions, Netlify Database/Postgres for structured data, Blobs for files, and generated
-JSON snapshots for read-heavy views.
+See `prompts/09-architecture-overview.md` for the intended architecture using Firebase
+Auth, Go Cloud Functions, Firestore for structured data, Cloud Storage for files, and
+generated JSON snapshots for read-heavy views.
 
 ### Copilot PR reviews
 

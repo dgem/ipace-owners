@@ -1,0 +1,131 @@
+{
+  "hosting": {
+    "public": "_site",
+    "cleanUrls": true,
+    "trailingSlash": true,
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "headers": [
+      {
+        "source": "**",
+        "headers": [
+          {
+            "key": "X-Frame-Options",
+            "value": "SAMEORIGIN"
+          },
+          {
+            "key": "X-Content-Type-Options",
+            "value": "nosniff"
+          },
+          {
+            "key": "Referrer-Policy",
+            "value": "strict-origin-when-cross-origin"
+          },
+          {
+            "key": "Permissions-Policy",
+            "value": "camera=(), microphone=(), geolocation=()"
+          },
+          {
+            "key": "Content-Security-Policy",
+            "value": "default-src 'self'; script-src 'self' https://www.gstatic.com 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.cloudfunctions.net https://*.run.app https://*.web.app https://*.firebaseapp.com; frame-src 'self';"
+          }
+        ]
+      },
+      {
+        "source": "/assets/**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=31536000, immutable"
+          }
+        ]
+      }
+    ],
+    "rewrites": [
+      {
+        "source": "/api/send-magic-link",
+        "function": {
+          "functionId": "SendMagicLink",
+          "region": "europe-west2"
+        }
+      },
+      {
+        "source": "/api/submit-join",
+        "function": {
+          "functionId": "SubmitJoin",
+          "region": "europe-west2"
+        }
+      },
+      {
+        "source": "/api/submit-vehicle-basics",
+        "function": {
+          "functionId": "SubmitVehicleBasics",
+          "region": "europe-west2"
+        }
+      },
+      {
+        "source": "/api/member-data",
+        "function": {
+          "functionId": "MemberData",
+          "region": "europe-west2"
+        }
+      },
+      {
+        "source": "/api/admin-data",
+        "function": {
+          "functionId": "AdminData",
+          "region": "europe-west2"
+        }
+      },
+      {
+        "source": "/.netlify/functions/send-magic-link",
+        "function": {
+          "functionId": "SendMagicLink",
+          "region": "europe-west2"
+        }
+      },
+      {
+        "source": "/.netlify/functions/submit-join",
+        "function": {
+          "functionId": "SubmitJoin",
+          "region": "europe-west2"
+        }
+      },
+      {
+        "source": "/.netlify/functions/submit-vehicle-basics",
+        "function": {
+          "functionId": "SubmitVehicleBasics",
+          "region": "europe-west2"
+        }
+      },
+      {
+        "source": "/.netlify/functions/member-data",
+        "function": {
+          "functionId": "MemberData",
+          "region": "europe-west2"
+        }
+      },
+      {
+        "source": "/.netlify/functions/admin-data",
+        "function": {
+          "functionId": "AdminData",
+          "region": "europe-west2"
+        }
+      },
+      {
+        "source": "**",
+        "destination": "/404.html"
+      }
+    ]
+  },
+  "functions": [
+    {
+      "source": "functions/firebase-go",
+      "codebase": "firebase-go",
+      "runtime": "go123"
+    }
+  ]
+}

@@ -4,7 +4,7 @@ Build or refine the static foundation for the I-PACE Owners' Advocacy Group webs
 
 ## Goal
 
-Create a small, maintainable Eleventy 3 site that can be deployed to Netlify and extended by volunteers. The result should establish the project structure, build scripts, layouts, data files, static assets, and deployment configuration.
+Create a small, maintainable Eleventy 3 site that can be deployed to Firebase Hosting and extended by volunteers. The result should establish the project structure, build scripts, layouts, data files, static assets, and deployment configuration.
 
 ## Requirements
 
@@ -21,23 +21,20 @@ Create a small, maintainable Eleventy 3 site that can be deployed to Netlify and
 - Pass through `src/assets/`.
 - Pass through `public/` to the site root with `eleventyConfig.addPassthroughCopy({ public: "." })`, so `public/images/example.png` is served at `/images/example.png`.
 - Include a favicon in `public/favicon.svg` and link it from the base layout.
-- Include a small cookie/privacy notice in the base layout. It should disclose essential services, Netlify Identity storage for sign-in, and the fact that there are no analytics or advertising cookies unless those are later added.
+- Include a small cookie/privacy notice in the base layout. It should disclose essential services, Firebase Authentication storage for sign-in, and the fact that there are no analytics or advertising cookies unless those are later added.
 - The cookie/privacy notice should be progressively enhanced: JavaScript may store dismissal
   in browser storage, but users without JavaScript must still see the disclosure and a
   privacy-policy link.
 - Add npm scripts:
-  - `npm run dev` starts Netlify Dev via `npx netlify dev`, so local development serves
-    both Eleventy pages and Netlify Functions.
+  - `npm run dev` starts the local development server.
   - `npm run dev:eleventy` starts the plain Eleventy dev server for static-only debugging.
   - `npm run build` builds the production site.
   - `npm run clean` removes `_site/`.
 - Include `package-lock.json`.
-- Include `netlify-cli` as a development dependency so `npm run dev` is repeatable.
-- Configure Netlify in `netlify.toml` with build command `npm run build`, publish directory `_site`, and functions directory `netlify/functions`.
-- Configure `[dev]` in `netlify.toml` so Netlify Dev runs `npm run dev:eleventy` on target
-  port 8080 and exposes the local Netlify Dev proxy on port 8888. Do not point Netlify Dev
-  back at `npm run dev`, or it will recurse.
-- Add security headers suitable for a static site using Netlify Identity.
+- Include `firebase-tools` as a development dependency so deployments and preview channels are repeatable.
+- Configure Firebase Hosting in `firebase.json` with publish directory `_site`, security
+  headers, and `/api/*` rewrites to Go Cloud Functions.
+- Add security headers suitable for a static site using Firebase Authentication.
 - Use GitHub's native automatic Copilot code review via a repository branch ruleset where
   available, rather than adding a custom AI review workflow.
 
@@ -50,20 +47,19 @@ Create a small, maintainable Eleventy 3 site that can be deployed to Netlify and
 - Page layout for standard content pages.
 - Form page layout for multi-step forms.
 - Update/news collection sorted newest first.
-- README describing setup, development, build, deployment, Identity setup, known limitations, and current repo structure.
-- README should explain that `npm run dev` runs Netlify Dev for local Function support, and
-  `npm run dev:eleventy` is available only for static-only debugging.
+- README describing setup, development, build, Firebase/GCP deployment, Identity setup, known limitations, and current repo structure.
+- README should explain Firebase build-time config and local/static debugging.
 - README should document the native Copilot PR review ruleset if it is enabled for the
   repository.
-- `prompts/09-architecture-overview.md` describing Identity, Functions, Postgres,
-  generated JSON snapshots, Blobs for uploaded files, VIN HMAC, public aggregate data, and
-  server-side JWT verification.
+- `prompts/09-architecture-overview.md` describing Firebase Auth, Go Functions, Firestore,
+  generated JSON snapshots, Cloud Storage for uploaded files, VIN HMAC, public aggregate
+  data, and server-side ID-token verification.
 
 ## Validation
 
 - Run `npm run build`.
 - Confirm generated pages appear in `_site/`.
-- Confirm `npm run dev` starts Netlify Dev and serves `/.netlify/functions/*` locally.
+- Confirm `npm run dev` starts the documented local development server.
 - Confirm `npm run dev:eleventy` starts the Eleventy development server.
 - Confirm `npm run clean` removes `_site/`.
 - Confirm implemented persistence is limited to Join submissions and signed-in vehicle

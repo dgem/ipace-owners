@@ -1,0 +1,108 @@
+name: GCP Firebase staging
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+
+jobs:
+  deploy-preview:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: functions/firebase-go/go.mod
+          cache-dependency-path: functions/firebase-go/go.sum
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test site
+        run: npm test
+
+      - name: Test Go functions
+        working-directory: functions/firebase-go
+        run: go test ./...
+
+      - name: Build site
+        env:
+          FIREBASE_WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY_STAGING }}
+          FIREBASE_AUTH_DOMAIN: ${{ vars.FIREBASE_AUTH_DOMAIN_STAGING }}
+          FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_STAGING_PROJECT_ID }}
+          FIREBASE_APP_ID: ${{ vars.FIREBASE_APP_ID_STAGING }}
+          FIREBASE_STORAGE_BUCKET: ${{ vars.FIREBASE_STORAGE_BUCKET_STAGING }}
+        run: npm run build
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER_STAGING }}
+          service_account: ${{ secrets.GCP_DEPLOYER_SERVICE_ACCOUNT_STAGING }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Deploy Go Cloud Functions
+        env:
+          GCP_PROJECT_ID: ${{ vars.FIREBASE_STAGING_PROJECT_ID }}
+          GCP_REGION: ${{ vars.GCP_REGION || 'europe-west2' }}
+          FUNCTIONS_SERVICE_ACCOUNT: ${{ secrets.GCP_FUNCTIONS_SERVICE_ACCOUNT_STAGING }}
+          FIREBASE_WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY_STAGING }}
+          VIN_PEPPER: ${{ secrets.VIN_PEPPER_STAGING }}
+          SNAPSHOT_BUCKET: ${{ vars.SNAPSHOT_BUCKET_STAGING }}
+          ALLOWED_ORIGINS: ${{ vars.ALLOWED_ORIGINS_STAGING }}
+          FIREBASE_EMAIL_CONTINUE_URL: ${{ vars.FIREBASE_EMAIL_CONTINUE_URL_STAGING }}
+        run: |
+          for fn in SendMagicLink SubmitJoin SubmitVehicleBasics MemberData AdminData; do
+            gcloud functions deploy "$fn" \
+              --gen2 \
+              --project="$GCP_PROJECT_ID" \
+              --region="$GCP_REGION" \
+              --runtime=go123 \
+              --source=functions/firebase-go \
+              --entry-point="$fn" \
+              --trigger-http \
+              --allow-unauthenticated \
+              --service-account="$FUNCTIONS_SERVICE_ACCOUNT" \
+              --set-env-vars="FIREBASE_WEB_API_KEY=$FIREBASE_WEB_API_KEY,VIN_PEPPER=$VIN_PEPPER,SNAPSHOT_BUCKET=$SNAPSHOT_BUCKET,ALLOWED_ORIGINS=$ALLOWED_ORIGINS,FIREBASE_EMAIL_CONTINUE_URL=$FIREBASE_EMAIL_CONTINUE_URL"
+          done
+
+      - name: Deploy Firebase Hosting preview
+        id: hosting
+        env:
+          GCP_PROJECT_ID: ${{ vars.FIREBASE_STAGING_PROJECT_ID }}
+          CHANNEL_ID: pr-${{ github.event.pull_request.number }}
+        run: |
+          npx firebase-tools hosting:channel:deploy "$CHANNEL_ID" --project "$GCP_PROJECT_ID" --expires 14d --json > firebase-preview.json
+          node -e "const fs=require('fs'); const raw=fs.readFileSync('firebase-preview.json','utf8'); const match=raw.match(/https:\/\/[^\s\"']+/); if(!match) throw new Error('No preview URL found'); fs.appendFileSync(process.env.GITHUB_OUTPUT, 'url='+match[0]+'\n');"
+
+      - name: Smoke test preview
+        env:
+          SMOKE_BASE_URL: ${{ steps.hosting.outputs.url }}
+        run: node scripts/smoke-test-deployment.mjs
+
+      - name: Comment preview details
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let body = 'Firebase staging deploy finished.';
+            if (fs.existsSync('firebase-preview.json')) {
+              body += '\n\n```json\n' + fs.readFileSync('firebase-preview.json', 'utf8').slice(0, 4000) + '\n```';
+            }
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body
+            });

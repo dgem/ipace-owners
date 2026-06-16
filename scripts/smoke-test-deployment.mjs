@@ -45,10 +45,10 @@ async function main() {
   assertIncludes(vehicle, 'data-magic-link-form', 'vehicle page');
 
   const identityJs = await fetchText('/assets/js/identity.js');
-  assertIncludes(identityJs, '/.netlify/functions/send-magic-link', 'identity.js');
+  assertIncludes(identityJs, '/api/send-magic-link', 'identity.js');
   assertNotIncludes(identityJs, 'identity.open(', 'identity.js');
 
-  const badMagicLink = await fetch(url('/.netlify/functions/send-magic-link'), {
+  const badMagicLink = await fetch(url('/api/send-magic-link'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email: 'not-an-email' }),
@@ -57,7 +57,7 @@ async function main() {
     throw new Error(`send-magic-link invalid email returned ${badMagicLink.status}, expected 400`);
   }
 
-  const vehicleUnauthenticated = await fetch(url('/.netlify/functions/submit-vehicle-basics'), {
+  const vehicleUnauthenticated = await fetch(url('/api/submit-vehicle-basics'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ registration: 'SMOKE TEST' }),

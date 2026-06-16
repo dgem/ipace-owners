@@ -79,10 +79,10 @@ Include at least:
 
 Privacy should explain what data may be collected, why it is collected, how anonymised
 statistics may be used, that personal data should not be published publicly, that Join
-membership submissions and signed-in vehicle basics are stored with Netlify Functions and
-Postgres, that Blobs are reserved for uploaded evidence files, that full VINs are not
-stored, that uploads are not implemented in the MVP, that Netlify Identity is used for
-authentication, and that a more formal privacy policy is needed before broader live
+membership submissions and signed-in vehicle basics are stored with Go Cloud Functions and
+Firestore, that Cloud Storage is reserved for uploaded evidence files, that full VINs are
+not stored, that uploads are not implemented in the MVP, that Firebase Authentication is
+used for authentication, and that a more formal privacy policy is needed before broader live
 evidence data collection.
 
 Terms / Participation Statement should say the group is informal unless a formal organisation

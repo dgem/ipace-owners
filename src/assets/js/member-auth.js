@@ -28,7 +28,7 @@
  *
  * This script:
  * 1. Finds [data-auth-container] or [data-admin-container].
- * 2. Fetches the appropriate Netlify Function (member-data or admin-data).
+ * 2. Fetches the appropriate Firebase/GCP API (member-data or admin-data).
  * 3. On 200: hides the gate, shows content, and populates data.
  * 4. On 401/403: keeps the gate visible (login required).
  */
@@ -91,10 +91,8 @@
   }
 
   function getIdentityToken() {
-    var identity = window.netlifyIdentity;
-    var user = identity && identity.currentUser && identity.currentUser();
-    if (!user || typeof user.jwt !== 'function') return Promise.resolve('');
-    return user.jwt().catch(function () { return ''; });
+    if (window.ipaceGetIdentityToken) return window.ipaceGetIdentityToken();
+    return Promise.resolve('');
   }
 
   function fetchWithIdentity(url) {
@@ -174,7 +172,7 @@
     var containers = document.querySelectorAll('[data-auth-container]');
     containers.forEach(async function (container) {
       try {
-        var res = await fetchWithIdentity('/.netlify/functions/member-data');
+        var res = await fetchWithIdentity('/api/member-data');
         if (runId !== authRunId) return;
         if (res.status === 401 || res.status === 403) {
           showMemberGate(container);
@@ -335,7 +333,7 @@
     var containers = document.querySelectorAll('[data-admin-container]');
     containers.forEach(async function (container) {
       try {
-        var res = await fetchWithIdentity('/.netlify/functions/admin-data');
+        var res = await fetchWithIdentity('/api/admin-data');
         if (runId !== adminRunId) return;
 
          // 401 = not logged in → show login gate
@@ -407,12 +405,12 @@
   }
 
   function initWhenIdentityReady() {
-    if (!window.netlifyIdentity || window.ipaceIdentityReady) {
+    if (window.ipaceIdentityReady) {
       initSoon();
       return;
     }
 
-    // If the Identity widget never emits init, do not leave gated pages stuck
+    // If the auth adapter never emits init, do not leave gated pages stuck
     // in their pending state. The server check will show the login gate if no
     // token is available.
     window.setTimeout(function () {

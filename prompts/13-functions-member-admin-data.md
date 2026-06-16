@@ -2,37 +2,34 @@
 
 Use this prompt when changing:
 
-- `netlify/functions/member-data.js`
-- `netlify/functions/admin-data.js`
+- `functions/firebase-go` `MemberData` or `AdminData`
 - `src/assets/js/member-auth.js`
 - member dashboard/account/admin review queue data rendering
 
 ## Goal
 
 Serve private member/account snapshots and admin review data only through server-verified
-Netlify Identity Functions. Do not rely on client-side gating for private data access.
+Go Cloud Functions. Do not rely on client-side gating for private data access.
 
-## Current Flow
+## Current flow
 
 - `member-auth.js` loads on pages with `[data-auth-container]` or `[data-admin-container]`.
-- For member pages, it fetches `/.netlify/functions/member-data`.
-- For admin pages, it fetches `/.netlify/functions/admin-data`.
+- For member pages, it fetches `GET /api/member-data`.
+- For admin pages, it fetches `GET /api/admin-data`.
 - Content is hidden by default and is revealed only after the relevant Function returns 200.
 - Login/admin gates remain visible for 401 or 403 responses.
-- Postgres is the canonical source for structured data. Member/account pages should be
-  served from a private generated JSON snapshot regenerated during Join signup and vehicle
-  add/update flows.
-- `member-data.js` should read the private generated member snapshot first, then
-  regenerate it from Postgres if missing. Legacy Blob record scans are only a fallback for
-  environments without a database connection.
+- Firestore is canonical. Member/account pages should be served from a private generated
+  JSON snapshot regenerated during Join signup and vehicle add/update flows.
+- `MemberData` should read the private generated snapshot first, then regenerate it from
+  Firestore if missing.
 
-## `member-data.js`
+## MemberData
 
-- Requires `context.clientContext.user.sub`.
+- Requires a valid Firebase ID token.
 - Returns only the authenticated user's own private member/account snapshot.
 - The snapshot may include Join information and a list of zero, one, or many vehicles.
-- Do not serve member snapshots from public static files. They must be returned only after
-  server-side Identity verification.
+- Do not serve member snapshots from public static files. Return them only after
+  server-side Firebase verification.
 - Does not expose admin-only review data to members.
 
 Member responses may include:
@@ -42,18 +39,17 @@ Member responses may include:
 - `joinRecords`
 - `vehicleRecords`
 
-## `admin-data.js`
+## AdminData
 
-- Requires `context.clientContext.user.sub`.
-- Requires `admin` in `user.app_metadata.roles`.
+- Requires a valid Firebase ID token.
+- Requires an `admin` custom claim or `roles` containing `admin`.
 - Returns 401 for unauthenticated users.
 - Returns 403 for authenticated non-admin users.
-- Reads Postgres review records first, with legacy Blob scans only as a no-database
-  fallback.
+- Reads Firestore review records.
 - Returns Join, member, vehicle, and vehicle-basics records for review.
 - Admin responses may include review state and `userEmailHash`.
 
-## Browser Rendering
+## Browser rendering
 
 `member-auth.js` may populate:
 
@@ -68,18 +64,13 @@ private data directly in static HTML.
 
 ## Tests
 
-Update:
-
-- `test/member-data.test.js`
-- `test/admin-data.test.js`
-
 Required coverage:
 
 - Member endpoint rejects unauthenticated users.
 - Member endpoint returns only the current user's records.
 - Member endpoint supports multiple vehicle records for one user.
 - Member endpoint can serve the private generated snapshot without scanning canonical
-  Join/vehicle records on every page load.
+  records on every page load.
 - Admin endpoint rejects unauthenticated users.
 - Admin endpoint rejects authenticated non-admin users.
 - Admin endpoint returns review-capable records for admin users.
@@ -89,3 +80,4 @@ Required coverage:
 
 - Run `npm test`.
 - Run `npm run build`.
+- Run `go test ./...` in `functions/firebase-go`.
