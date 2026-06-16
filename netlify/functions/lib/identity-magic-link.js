@@ -53,20 +53,31 @@ async function sendMagicLink(options) {
   var randomPassword = crypto.randomBytes(18).toString('hex') + 'Aa1!';
 
   try {
-    async function requestMagicLink() {
-      var magicLinkRes = await fetch(identityBase + '/magiclink', {
+    async function requestIdentityEmail(path, label) {
+      var response = await fetch(identityBase + path, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email }),
       });
 
-      utils.log(functionName, 'info', 'identity magiclink response received', utils.requestMetadata(event, context, {
+      utils.log(functionName, 'info', 'identity ' + label + ' response received', utils.requestMetadata(event, context, {
         emailHash: emailHash,
-        status: magicLinkRes.status,
-        ok: magicLinkRes.ok,
+        status: response.status,
+        ok: response.ok,
       }));
 
-      return { ok: magicLinkRes.ok };
+      return { ok: response.ok, status: response.status };
+    }
+
+    async function requestMagicLink() {
+      var magicLink = await requestIdentityEmail('/magiclink', 'magiclink');
+      if (magicLink.ok) return magicLink;
+
+      utils.log(functionName, 'warn', 'identity magiclink failed; trying recover fallback', utils.requestMetadata(event, context, {
+        emailHash: emailHash,
+        status: magicLink.status,
+      }));
+      return requestIdentityEmail('/recover', 'recover');
     }
 
     var signupRes = await fetch(identityBase + '/signup', {

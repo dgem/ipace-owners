@@ -134,6 +134,39 @@ test('send-magic-link does not expose Identity handoff failure for valid email',
   assert.deepEqual(body, { ok: true });
 });
 
+test('send-magic-link falls back to recover when magiclink endpoint is unavailable', async function (t) {
+  var originalFetch = global.fetch;
+  var originalBaseUrl = process.env.NETLIFY_IDENTITY_BASE_URL;
+  var calls = [];
+
+  t.after(function () {
+    global.fetch = originalFetch;
+    if (originalBaseUrl === undefined) {
+      delete process.env.NETLIFY_IDENTITY_BASE_URL;
+    } else {
+      process.env.NETLIFY_IDENTITY_BASE_URL = originalBaseUrl;
+    }
+  });
+
+  process.env.NETLIFY_IDENTITY_BASE_URL = 'https://example.netlify.app/.netlify/identity';
+  global.fetch = async function (url, options) {
+    calls.push({ url: url, options: options });
+    if (url.endsWith('/signup')) return { ok: false, status: 400 };
+    if (url.endsWith('/magiclink')) return { ok: false, status: 404 };
+    return { ok: true, status: 200 };
+  };
+
+  var res = await sendMagicLink.handler(event({ email: 'member@example.com' }), {});
+  var body = JSON.parse(res.body);
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(body.ok, true);
+  assert.equal(calls.length, 3);
+  assert.equal(calls[0].url, 'https://example.netlify.app/.netlify/identity/signup');
+  assert.equal(calls[1].url, 'https://example.netlify.app/.netlify/identity/magiclink');
+  assert.equal(calls[2].url, 'https://example.netlify.app/.netlify/identity/recover');
+});
+
 test('send-magic-link rejects disallowed origins before calling Identity', async function (t) {
   var originalFetch = global.fetch;
   var calls = 0;

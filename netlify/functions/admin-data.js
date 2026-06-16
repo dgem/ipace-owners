@@ -1,6 +1,7 @@
 'use strict';
 
 var utils = require('./lib/submission-utils');
+var ownerData = require('./lib/owner-data');
 
 /**
  * admin-data — Netlify Function
@@ -56,6 +57,20 @@ exports.handler = async function (event, context) {
     joinRecords: [],
     vehicleRecords: [],
     };
+
+  try {
+    var databaseRecords = await ownerData.getAdminData();
+    if (databaseRecords) {
+      result.joinRecords = databaseRecords.joinRecords;
+      result.vehicleRecords = databaseRecords.vehicleRecords;
+      return utils.json(200, result, corsHeaders);
+    }
+  } catch (databaseErr) {
+    utils.log('admin-data', 'error', 'failed to read database records', utils.requestMetadata(event, context, {
+      errorName: databaseErr && databaseErr.name,
+      errorMessage: databaseErr && databaseErr.message,
+      }));
+    }
 
    // ── Fetch all join records ───────────────────────────────────────────────────
   try {

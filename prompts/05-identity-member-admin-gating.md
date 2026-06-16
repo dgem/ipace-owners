@@ -124,11 +124,12 @@ code for logged-out users.
 have an account and need another sign-in link, but Join completion must not call it
 separately from the browser.
 
-The shared server-side magic-link code calls Netlify Identity internally (signup for new users, magiclink for
-existing ones). For valid same-origin POST requests, it returns HTTP 200 with an
-`ok` flag rather than exposing whether the email was new or existing, preventing
-account enumeration. It may still return non-200 responses for invalid JSON, invalid
-email input, unsupported methods, or disallowed cross-origin requests.
+The shared server-side magic-link code calls Netlify Identity internally. It attempts
+signup first, tries magiclink for non-OK signup responses, and falls back to recover when
+the magiclink endpoint is unavailable. For valid same-origin POST requests, it returns
+HTTP 200 with an `ok` flag rather than exposing whether the email was new or existing,
+preventing account enumeration. It may still return non-200 responses for invalid JSON,
+invalid email input, unsupported methods, or disallowed cross-origin requests.
 
 The function must reject disallowed browser origins before calling Netlify Identity,
 including `no-cors` style cross-site requests that could otherwise trigger email sends

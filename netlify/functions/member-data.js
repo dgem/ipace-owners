@@ -1,6 +1,7 @@
 'use strict';
 
 var utils = require('./lib/submission-utils');
+var ownerData = require('./lib/owner-data');
 
 /**
  * member-data — Netlify Function
@@ -42,6 +43,18 @@ exports.handler = async function (event, context) {
     joinRecords: [],
     vehicleRecords: [],
    };
+
+  try {
+    var snapshot = await ownerData.getMemberSnapshot(event, user);
+    if (snapshot) {
+      return utils.json(200, snapshot, corsHeaders);
+    }
+  } catch (snapshotErr) {
+    utils.log('member-data', 'error', 'failed to read member snapshot', utils.requestMetadata(event, context, {
+      errorName: snapshotErr && snapshotErr.name,
+      errorMessage: snapshotErr && snapshotErr.message,
+    }));
+  }
 
   // ── Fetch join records (by identityUserId) ────────────────────────────────────
   try {

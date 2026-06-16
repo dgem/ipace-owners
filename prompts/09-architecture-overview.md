@@ -66,7 +66,8 @@ netlify.toml                 — build, redirect, header, and dev configuration
   `POST /.netlify/functions/send-magic-link`; no Netlify modal/password dialog is opened.
 - `identity.init()` uses `{ APIUrl: window.location.origin + '/.netlify/identity' }` so it
   works in all environments (no hard-coded domain).
-- Owner accounts are created via the magic link flow (server-side signup/magiclink).
+- Owner accounts are created via the magic link flow (server-side signup, magiclink, and
+  recover fallback where Netlify Identity does not expose `/magiclink`).
 - Admin roles are assigned in `app_metadata.roles` via the Netlify Identity admin UI.
 
 ### Server-Side Auth Verification
@@ -89,7 +90,7 @@ netlify.toml                 — build, redirect, header, and dev configuration
 
 | Function | Auth Required | What it does |
 |---|---|---|
-| `send-magic-link.js` | No | Standalone magic sign-in link request. Validates origin, email; calls Identity signup/magiclink server-side. Returns account-enumeration-resistant `{ ok }` flag. |
+| `send-magic-link.js` | No | Standalone magic sign-in link request. Validates origin, email; calls Identity signup/magiclink/recover server-side. Returns account-enumeration-resistant `{ ok }` flag for valid email syntax. |
 | `submit-join.js` | No (optional) | Validates Join form, writes membership interest, sends magic link for logged-out users, and regenerates the member/account JSON snapshot. |
 | `submit-vehicle-basics.js` | Yes (signed-in user) | Validates vehicle identity and battery health slice, writes vehicle rows, and regenerates the member/account JSON snapshot. |
 | `member-data.js` | Yes (signed-in user) | Returns the authenticated user's private member/account snapshot. Verifies `context.clientContext.user.sub`. Does not expose admin-only review data. |

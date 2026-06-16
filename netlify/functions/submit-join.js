@@ -2,6 +2,7 @@
 
 var utils = require('./lib/submission-utils');
 var identityMagicLink = require('./lib/identity-magic-link');
+var ownerData = require('./lib/owner-data');
 
 var RELATIONSHIPS = [
   'current-owner-one',
@@ -86,6 +87,7 @@ exports.handler = async function (event, context) {
     createdAt: now,
     updatedAt: now,
     identityUserId: user && user.sub ? user.sub : null,
+    userEmailHash: emailHash,
     contact: {
       name: name,
       email: email,
@@ -107,12 +109,15 @@ exports.handler = async function (event, context) {
   };
 
   try {
-    await utils.saveRecord(event, 'join/' + id + '.json', record, {
-      type: 'join',
-      createdAt: now,
-      emailHash: emailHash,
-      status: 'new',
-    });
+    var savedToDatabase = await ownerData.saveJoinRecord(event, record);
+    if (!savedToDatabase) {
+      await utils.saveRecord(event, 'join/' + id + '.json', record, {
+        type: 'join',
+        createdAt: now,
+        emailHash: emailHash,
+        status: 'new',
+      });
+    }
   } catch (error) {
     utils.log('submit-join', 'error', 'record save failed', utils.requestMetadata(event, context, {
       emailHash: emailHash,

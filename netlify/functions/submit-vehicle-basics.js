@@ -1,6 +1,7 @@
 'use strict';
 
 var utils = require('./lib/submission-utils');
+var ownerData = require('./lib/owner-data');
 
 var COUNTRIES = [
   'GB',
@@ -125,15 +126,18 @@ exports.handler = async function (event, context) {
   };
 
   try {
-    await utils.saveRecord(event, 'vehicle-basics/' + user.sub + '/' + id + '.json', record, {
-      type: 'vehicle-basics',
-      createdAt: now,
-      identityUserId: user.sub,
-      status: 'new',
-      hasVin: canStoreVinIdentifier,
-      modelYear: modelYear || 'unknown',
-      country: country || 'unknown',
-    });
+    var savedToDatabase = await ownerData.saveVehicleRecord(event, record);
+    if (!savedToDatabase) {
+      await utils.saveRecord(event, 'vehicle-basics/' + user.sub + '/' + id + '.json', record, {
+        type: 'vehicle-basics',
+        createdAt: now,
+        identityUserId: user.sub,
+        status: 'new',
+        hasVin: canStoreVinIdentifier,
+        modelYear: modelYear || 'unknown',
+        country: country || 'unknown',
+      });
+    }
   } catch (error) {
     utils.log('submit-vehicle-basics', 'error', 'record save failed', utils.requestMetadata(event, context, {
       userHash: userHash,
