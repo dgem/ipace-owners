@@ -100,7 +100,42 @@ test('submit-vehicle-basics stores VIN HMAC and never stores the full VIN', asyn
   assert.equal(saved.record.vehicle.vinHash.length, 64);
 });
 
-test('submit-vehicle-basics rejects VIN writes when VIN_PEPPER is missing', async function (t) {
+test('submit-vehicle-basics stores registration-only identifier when VIN_PEPPER is missing', async function (t) {
+  var originalSaveRecord = utils.saveRecord;
+  var originalVinPepper = process.env.VIN_PEPPER;
+  var saved = null;
+
+  t.after(function () {
+    utils.saveRecord = originalSaveRecord;
+    if (originalVinPepper === undefined) {
+      delete process.env.VIN_PEPPER;
+    } else {
+      process.env.VIN_PEPPER = originalVinPepper;
+    }
+  });
+
+  delete process.env.VIN_PEPPER;
+  utils.saveRecord = async function (_event, key, record, metadata) {
+    saved = { key: key, record: record, metadata: metadata };
+  };
+
+  var res = await submitVehicleBasics.handler(event({
+    vin: 'SADHB2S10K1F12345',
+    registration: 'AB12 CDE',
+    country: 'GB',
+  }), context);
+  var body = JSON.parse(res.body);
+
+  assert.equal(res.statusCode, 200);
+  assert.equal(body.ok, true);
+  assert.equal(saved.record.vehicle.registration, 'AB12 CDE');
+  assert.equal(saved.record.vehicle.vinHash, null);
+  assert.equal(saved.record.vehicle.vinLast6, '');
+  assert.equal(saved.metadata.hasVin, false);
+  assert.equal(JSON.stringify(saved.record).includes('SADHB2S10K1F12345'), false);
+});
+
+test('submit-vehicle-basics rejects VIN-only writes when VIN_PEPPER is missing', async function (t) {
   var originalSaveRecord = utils.saveRecord;
   var originalVinPepper = process.env.VIN_PEPPER;
   var saveCalls = 0;
@@ -120,6 +155,6 @@ test('submit-vehicle-basics rejects VIN writes when VIN_PEPPER is missing', asyn
   var res = await submitVehicleBasics.handler(event({ vin: 'SADHB2S10K1F12345' }), context);
 
   assert.equal(res.statusCode, 500);
-  assert.equal(JSON.parse(res.body).error, 'Vehicle identifier storage is not configured');
+  assert.equal(JSON.parse(res.body).error, 'Vehicle identifier storage is not configured. Provide registration instead, or try again later.');
   assert.equal(saveCalls, 0);
 });

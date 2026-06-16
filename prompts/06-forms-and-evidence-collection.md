@@ -136,7 +136,9 @@ future summary of entered information.
     initial vehicle and battery health slice in Netlify Blobs.
 - Do not store raw VINs in public static files.
 - Do not store full VINs in Blobs. Store an HMAC generated with `VIN_PEPPER` and only the
-  final six characters for reference.
+  final six characters for reference. If `VIN_PEPPER` is not configured, ignore the VIN
+  when registration is present, and reject VIN-only submissions with a clear configuration
+  message.
 - Make evidence uploads a placeholder until server-side validation and storage exist.
 
 ## Validation

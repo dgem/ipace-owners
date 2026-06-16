@@ -48,7 +48,10 @@ Battery health:
 - Valid VINs use `[A-HJ-NPR-Z0-9]{17}`.
 - If a VIN is provided, `VIN_PEPPER` must be configured.
 - Store a VIN HMAC and final six characters only.
-- Reject writes if a VIN is provided and `VIN_PEPPER` is missing.
+- If a VIN is provided and `VIN_PEPPER` is missing, do not store or derive any VIN
+  identifier. If registration is present, save the registration-based record and log a
+  warning. If VIN is the only identifier, reject the write with a clear configuration
+  message.
 - In the form UI, place VIN and registration helper copy below the input controls. Explain
   that VIN is optional when registration is provided, where to find the VIN, and that full
   VINs are never stored.
@@ -73,7 +76,8 @@ Required coverage:
 
 - Unauthenticated requests return 401.
 - Missing VIN and registration returns 400.
-- VIN writes require `VIN_PEPPER`.
+- VIN-only writes require `VIN_PEPPER`; VIN plus registration can save without a VIN
+  identifier when the secret is missing.
 - Stored records never include the full VIN.
 - Vehicle and battery fields are cleaned and shaped correctly.
 
