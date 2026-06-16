@@ -10,7 +10,7 @@ provider "google-beta" {
 
 locals {
   snapshot_bucket_name = "${var.project_id}-member-snapshots"
-  deployer_account_id = "github-deployer"
+  deployer_account_id  = "github-deployer"
 }
 
 resource "google_project_service" "required" {
