@@ -3,13 +3,22 @@
 var crypto = require('crypto');
 var utils = require('./submission-utils');
 
-function resolveIdentityBase() {
+function isLocalOrigin(origin) {
+  return /^http:\/\/localhost(?::\d+)?$/.test(origin || '');
+}
+
+function resolveIdentityBase(event) {
   if (process.env.NETLIFY_IDENTITY_BASE_URL) {
     return process.env.NETLIFY_IDENTITY_BASE_URL.replace(/\/$/, '');
   }
 
+  var origin = event && event.headers && (event.headers.origin || event.headers.Origin) || '';
+  if (origin && utils.originAllowed(origin) && !isLocalOrigin(origin)) {
+    return origin.replace(/\/$/, '') + '/.netlify/identity';
+  }
+
   var siteUrl = (process.env.URL || process.env.DEPLOY_PRIME_URL || '').replace(/\/$/, '');
-  if (!siteUrl || /^http:\/\/localhost(?::\d+)?$/.test(siteUrl)) {
+  if (!siteUrl || isLocalOrigin(siteUrl)) {
     return '';
   }
 
@@ -23,7 +32,7 @@ async function sendMagicLink(options) {
   var email = options.email;
   var name = options.name || '';
   var emailHash = utils.emailFingerprint(email);
-  var identityBase = resolveIdentityBase();
+  var identityBase = resolveIdentityBase(event);
 
   if (!identityBase) {
     utils.log(functionName, 'error', 'identity base url missing', utils.requestMetadata(event, context, {
@@ -95,5 +104,6 @@ async function sendMagicLink(options) {
 }
 
 module.exports = {
+  resolveIdentityBase: resolveIdentityBase,
   sendMagicLink: sendMagicLink,
 };

@@ -2,6 +2,7 @@
 
 var assert = require('node:assert/strict');
 var test = require('node:test');
+var identityMagicLink = require('../netlify/functions/lib/identity-magic-link');
 var sendMagicLink = require('../netlify/functions/send-magic-link');
 
 function event(body) {
@@ -98,4 +99,63 @@ test('send-magic-link rejects disallowed origins before calling Identity', async
 
   assert.equal(res.statusCode, 403);
   assert.equal(calls, 0);
+});
+
+test('identity helper prefers the current deployed origin over Netlify URL env vars', function (t) {
+  var originalBaseUrl = process.env.NETLIFY_IDENTITY_BASE_URL;
+  var originalUrl = process.env.URL;
+  var originalDeployPrimeUrl = process.env.DEPLOY_PRIME_URL;
+
+  t.after(function () {
+    if (originalBaseUrl === undefined) delete process.env.NETLIFY_IDENTITY_BASE_URL;
+    else process.env.NETLIFY_IDENTITY_BASE_URL = originalBaseUrl;
+    if (originalUrl === undefined) delete process.env.URL;
+    else process.env.URL = originalUrl;
+    if (originalDeployPrimeUrl === undefined) delete process.env.DEPLOY_PRIME_URL;
+    else process.env.DEPLOY_PRIME_URL = originalDeployPrimeUrl;
+  });
+
+  delete process.env.NETLIFY_IDENTITY_BASE_URL;
+  process.env.URL = 'https://ipace-owners.netlify.app';
+  process.env.DEPLOY_PRIME_URL = 'https://deploy-preview-14--ipace-owners.netlify.app';
+
+  assert.equal(
+    identityMagicLink.resolveIdentityBase({
+      headers: { origin: 'https://deploy-preview-14--ipace-owners.netlify.app' },
+    }),
+    'https://deploy-preview-14--ipace-owners.netlify.app/.netlify/identity'
+  );
+
+  assert.equal(
+    identityMagicLink.resolveIdentityBase({
+      headers: { origin: 'https://ipace-owners.org' },
+    }),
+    'https://ipace-owners.org/.netlify/identity'
+  );
+});
+
+test('identity helper does not use localhost as the Identity API without override', function (t) {
+  var originalBaseUrl = process.env.NETLIFY_IDENTITY_BASE_URL;
+  var originalUrl = process.env.URL;
+  var originalDeployPrimeUrl = process.env.DEPLOY_PRIME_URL;
+
+  t.after(function () {
+    if (originalBaseUrl === undefined) delete process.env.NETLIFY_IDENTITY_BASE_URL;
+    else process.env.NETLIFY_IDENTITY_BASE_URL = originalBaseUrl;
+    if (originalUrl === undefined) delete process.env.URL;
+    else process.env.URL = originalUrl;
+    if (originalDeployPrimeUrl === undefined) delete process.env.DEPLOY_PRIME_URL;
+    else process.env.DEPLOY_PRIME_URL = originalDeployPrimeUrl;
+  });
+
+  delete process.env.NETLIFY_IDENTITY_BASE_URL;
+  process.env.URL = 'http://localhost:8888';
+  delete process.env.DEPLOY_PRIME_URL;
+
+  assert.equal(
+    identityMagicLink.resolveIdentityBase({
+      headers: { origin: 'http://localhost:8888' },
+    }),
+    ''
+  );
 });
