@@ -70,13 +70,6 @@ exports.handler = async function (event, context) {
     return utils.json(400, { error: 'VIN must be 17 characters and cannot contain I, O, or Q' }, corsHeaders);
   }
 
-  if (vin && !process.env.VIN_PEPPER) {
-    utils.log('submit-vehicle-basics', 'error', 'VIN pepper missing', utils.requestMetadata(event, context, {
-      userHash: userHash,
-    }));
-    return utils.json(500, { error: 'Vehicle identifier storage is not configured' }, corsHeaders);
-  }
-
   var modelYear = utils.cleanEnum(String(body.modelYear || ''), MODEL_YEARS);
   var country = utils.cleanEnum(body.country, COUNTRIES);
   var registration = utils.cleanString(body.registration, 40).toUpperCase();
@@ -90,6 +83,18 @@ exports.handler = async function (event, context) {
     return utils.json(400, { error: 'VIN or registration is required' }, corsHeaders);
   }
 
+  var canStoreVinIdentifier = !!(vin && process.env.VIN_PEPPER);
+  if (vin && !canStoreVinIdentifier) {
+    utils.log('submit-vehicle-basics', registration ? 'warn' : 'error', 'VIN pepper missing', utils.requestMetadata(event, context, {
+      userHash: userHash,
+      hasRegistration: !!registration,
+    }));
+
+    if (!registration) {
+      return utils.json(500, { error: 'Vehicle identifier storage is not configured. Provide registration instead, or try again later.' }, corsHeaders);
+    }
+  }
+
   var record = {
     id: id,
     type: 'vehicle-basics',
@@ -98,8 +103,8 @@ exports.handler = async function (event, context) {
     identityUserId: user.sub,
     userEmailHash: user.email ? utils.emailFingerprint(String(user.email).toLowerCase()) : null,
     vehicle: {
-      vinHash: vin ? utils.hmac(vin, process.env.VIN_PEPPER) : null,
-      vinLast6: vin ? vin.slice(-6) : '',
+      vinHash: canStoreVinIdentifier ? utils.hmac(vin, process.env.VIN_PEPPER) : null,
+      vinLast6: canStoreVinIdentifier ? vin.slice(-6) : '',
       registration: registration,
       country: country,
       modelYear: modelYear,
@@ -125,7 +130,7 @@ exports.handler = async function (event, context) {
       createdAt: now,
       identityUserId: user.sub,
       status: 'new',
-      hasVin: !!vin,
+      hasVin: canStoreVinIdentifier,
       modelYear: modelYear || 'unknown',
       country: country || 'unknown',
     });
@@ -141,7 +146,7 @@ exports.handler = async function (event, context) {
   utils.log('submit-vehicle-basics', 'info', 'record saved', utils.requestMetadata(event, context, {
     userHash: userHash,
     submissionId: id,
-    hasVin: !!vin,
+    hasVin: canStoreVinIdentifier,
   }));
 
   return utils.json(200, { ok: true, id: id }, corsHeaders);
