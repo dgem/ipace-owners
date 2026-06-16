@@ -23,6 +23,7 @@ public site built with Eleventy (11ty) and deployed to Netlify.
 │       └── js/
 │           ├── main.js            # Mobile menu, nav current-page detection
 │           ├── identity.js        # Netlify Identity UI integration
+│           ├── member-auth.js     # Server-verified member/admin data loading
 │           └── multistep-form.js  # Generic multi-step form controller
 ├── public/images/       # Static images (passed through to _site)
 ├── netlify/functions/   # Netlify Functions
@@ -30,8 +31,6 @@ public site built with Eleventy (11ty) and deployed to Netlify.
 │   ├── send-magic-link.js
 │   ├── submit-join.js
 │   └── submit-vehicle-basics.js
-├── docs/
-│   └── architecture.md  # Future architecture documentation
 ├── prompts/             # Sequenced prompts for rebuilding and evolving the product
 ├── .eleventy.js         # Eleventy configuration
 ├── netlify.toml         # Netlify build, redirect and header configuration
@@ -131,8 +130,8 @@ Defined in `:root` in `site.css`. Key tokens:
 - Split prompts by product concern, feature, or implementation phase rather than keeping
   one large prompt.
 - Preserve historical prompts where useful, then add refined prompts for future work.
-- Include `09-architecture-overview.md` in the maintained prompt set and keep it aligned
-  with `docs/architecture.md`.
+- Treat `09-architecture-overview.md` as the canonical architecture reference and keep it
+  aligned with README and the component prompts.
 - **Keep prompts in sync with the actual state of the project.** After implementing a
   feature, update the relevant prompt file to reflect what was built so that the project
   can be recreated from the prompts and README alone. If behaviour changes (e.g., a new
@@ -190,6 +189,7 @@ Examples:
 
 - Full vehicle/evidence form submissions are not persisted yet.
 - Evidence uploads are not implemented (placeholder message shown).
-- Admin review queue is a UI placeholder.
+- Admin review queue can read server-side data for admins, but review status updates,
+  exports, and moderation actions are not yet implemented.
 - Privacy policy is a placeholder — review required before broader evidence data collection.
 - Evidence dashboard shows illustrative data only.

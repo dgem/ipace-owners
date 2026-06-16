@@ -55,8 +55,8 @@ Create a small, maintainable Eleventy 3 site that can be deployed to Netlify and
   `npm run dev:eleventy` is available only for static-only debugging.
 - README should document the native Copilot PR review ruleset if it is enabled for the
   repository.
-- `docs/architecture.md` describing Identity, Functions, Blobs, possible future database,
-  VIN HMAC, public aggregate data, and server-side JWT verification.
+- `prompts/09-architecture-overview.md` describing Identity, Functions, Blobs, possible
+  future database, VIN HMAC, public aggregate data, and server-side JWT verification.
 
 ## Validation
 

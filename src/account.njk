@@ -5,120 +5,115 @@ description: "Your account — I-PACE Owners' Advocacy Group."
 ---
 
 <div class="page-header">
-  <div class="container">
-    <p class="page-header__eyebrow">Member</p>
-    <h1 class="page-header__title">Your Account</h1>
-  </div>
+	<div class="container">
+		<p class="page-header__eyebrow">Member</p>
+		<h1 class="page-header__title">Your Account</h1>
+	</div>
 </div>
 
 <div class="section">
-  <div class="container">
+	<div class="container">
 
-    <!-- Auth gate: show when NOT logged in -->
-    <div data-auth-gate>
-      <div class="auth-gate">
-        <div class="auth-gate__icon" aria-hidden="true">🔒</div>
-        <h2 class="auth-gate__title">Sign in to view your account</h2>
-        <p class="auth-gate__body">
-          Create an account or sign in to access your membership details,
-          track your vehicle data submissions, and manage your preferences.
-        </p>
-        <div class="cluster" style="justify-content:center;">
-          <button class="btn btn--primary" type="button" data-identity-open="signup">Create account</button>
-          <button class="btn btn--secondary" type="button" data-identity-open="login">Sign in</button>
-        </div>
-      </div>
-    </div>
+			 <!-- Server-side auth container: member-auth.js verifies via /.netlify/functions/member-data -->
+			<div data-auth-container>
 
-    <!-- Auth content: show when logged in -->
-    <div data-auth-content style="display:none;">
-      <div class="two-column">
+				 <!-- Login gate — shown by default when server confirms not authenticated -->
+				<div class="auth-gate" data-auth-login-gate>
+					<div class="auth-gate__icon" aria-hidden="true">🔒</div>
+					<h2 class="auth-gate__title">Sign in to view your account</h2>
+					<p class="auth-gate__body">
+						Create an account or sign in to access your membership details,
+						track your vehicle data submissions, and manage your preferences.
+					</p>
+					<div class="cluster" style="justify-content:center;">
+						<button class="btn btn--primary" type="button" data-identity-open="signup">Create account</button>
+						<button class="btn btn--secondary" type="button" data-identity-open="login">Sign in</button>
+					</div>
+				</div>
 
-        <div class="stack">
-          <div class="dashboard-panel">
-            <div class="dashboard-panel__header">
-              <h2 class="dashboard-panel__title">Account details</h2>
-            </div>
-            <dl style="display:grid; grid-template-columns: 8rem 1fr; gap: var(--space-2) var(--space-4); font-size: var(--text-sm);">
-              <dt style="color:var(--color-text-muted); font-weight:600;">Email</dt>
-              <dd id="account-email" style="margin:0;">—</dd>
-              <dt style="color:var(--color-text-muted); font-weight:600;">Member since</dt>
-              <dd id="account-created" style="margin:0;">—</dd>
-              <dt style="color:var(--color-text-muted); font-weight:600;">Role</dt>
-              <dd id="account-role" style="margin:0;"><span class="badge">Member</span></dd>
-            </dl>
-            <div style="margin-top: var(--space-5); padding-top: var(--space-5); border-top: 1px solid var(--color-border);">
-              <button id="account-logout-btn" class="btn btn--secondary btn--sm" type="button">Sign out</button>
-            </div>
-          </div>
+				 <!-- Content — revealed by member-auth.js after server confirms auth -->
+				<div class="auth-content" data-auth-content hidden>
+					<div class="two-column">
 
-          <div class="dashboard-panel">
-            <div class="dashboard-panel__header">
-              <h2 class="dashboard-panel__title">Your submissions</h2>
-            </div>
-            <p style="color:var(--color-text-muted); font-size:var(--text-sm);">
-              Vehicle basics tracking will appear here once the member data API is implemented.
-            </p>
-            <a href="/submit-vehicle-data/" class="btn btn--primary btn--sm">Submit Vehicle Data</a>
-          </div>
-        </div>
+						<div class="stack">
+							<div class="dashboard-panel">
+								<div class="dashboard-panel__header">
+									<h2 class="dashboard-panel__title">Account details</h2>
+								</div>
+								<dl style="display:grid; grid-template-columns: 8rem 1fr; gap: var(--space-2) var(--space-4); font-size: var(--text-sm);">
+									<dt style="color:var(--color-text-muted); font-weight:600;">Email</dt>
+									<dd id="account-email" style="margin:0;">—</dd>
+									<dt style="color:var(--color-text-muted); font-weight:600;">Member since</dt>
+									<dd id="account-created" style="margin:0;">—</dd>
+									<dt style="color:var(--color-text-muted); font-weight:600;">Role</dt>
+									<dd id="account-role" style="margin:0;"><span class="badge">Member</span></dd>
+								</dl>
+								<div style="margin-top: var(--space-5); padding-top: var(--space-5); border-top: 1px solid var(--color-border);">
+									<button id="account-logout-btn" class="btn btn--secondary btn--sm" type="button">Sign out</button>
+								</div>
+							</div>
 
-        <div class="stack">
-          <div class="dashboard-panel">
-            <div class="dashboard-panel__header">
-              <h2 class="dashboard-panel__title">Your preferences</h2>
-            </div>
-            <p style="color:var(--color-text-muted); font-size:var(--text-sm);">
-              Notification and data use preferences will be manageable here in a future release.
-            </p>
-          </div>
+							<div class="dashboard-panel">
+								<div class="dashboard-panel__header">
+									<h2 class="dashboard-panel__title">Your submissions</h2>
+								</div>
+								<div data-vehicle-container>
+									<div data-vehicle-list>
+										<p style="color:var(--color-text-muted); font-size:var(--text-sm);">Loading...</p>
+									</div>
+								</div>
+								<a href="/submit-vehicle-data/" class="btn btn--primary btn--sm">Submit Vehicle Data</a>
+							</div>
+						</div>
 
-          <div class="callout callout--info">
-            <span class="callout__icon" aria-hidden="true">ℹ️</span>
-            <div class="callout__content">
-              <p class="callout__title">Member data view coming soon</p>
-              <p>Join submissions and vehicle basics are now stored server-side. This account
-              page does not yet read those records back for member management.</p>
-            </div>
-          </div>
-        </div>
+						<div class="stack">
+							<div class="dashboard-panel">
+								<div class="dashboard-panel__header">
+									<h2 class="dashboard-panel__title">Your preferences</h2>
+								</div>
+								<p style="color:var(--color-text-muted); font-size:var(--text-sm);">
+									Notification and data use preferences will be manageable here in a future release.
+								</p>
+							</div>
+						</div>
 
-      </div>
-    </div>
+					</div>
+				</div>
+			</div>
 
-  </div>
+	</div>
 </div>
 
 <script>
-// Populate account details from Netlify Identity
+// Populate account details from Netlify Identity (header UI only — data access is server-verified)
 (function() {
-  function populateAccount() {
-    var user = window.netlifyIdentity && window.netlifyIdentity.currentUser();
-    if (!user) return;
-    var emailEl = document.getElementById('account-email');
-    var createdEl = document.getElementById('account-created');
-    var roleEl = document.getElementById('account-role');
-    var logoutBtn = document.getElementById('account-logout-btn');
+	function populateAccount() {
+		var user = window.netlifyIdentity && window.netlifyIdentity.currentUser();
+		if (!user) return;
+		var emailEl = document.getElementById('account-email');
+		var createdEl = document.getElementById('account-created');
+		var roleEl = document.getElementById('account-role');
+		var logoutBtn = document.getElementById('account-logout-btn');
 
-    if (emailEl) emailEl.textContent = user.email || '—';
-    if (createdEl && user.created_at) {
-      createdEl.textContent = new Date(user.created_at).toLocaleDateString('en-GB');
-    }
-    if (roleEl && user.app_metadata && user.app_metadata.roles && user.app_metadata.roles.length) {
-      roleEl.innerHTML = user.app_metadata.roles.map(function(r) {
-        return '<span class="badge badge--accent">' + r + '</span>';
-      }).join(' ');
-    }
-    if (logoutBtn) {
-      logoutBtn.addEventListener('click', function() {
-        window.netlifyIdentity && window.netlifyIdentity.logout();
-      });
-    }
-  }
+		if (emailEl) emailEl.textContent = user.email || '—';
+		if (createdEl && user.created_at) {
+			createdEl.textContent = new Date(user.created_at).toLocaleDateString('en-GB');
+		}
+		if (roleEl && user.app_metadata && user.app_metadata.roles && user.app_metadata.roles.length) {
+			roleEl.innerHTML = user.app_metadata.roles.map(function(r) {
+				return '<span class="badge badge--accent">' + r + '</span>';
+			}).join(' ');
+		}
+		if (logoutBtn) {
+			logoutBtn.addEventListener('click', function() {
+				window.netlifyIdentity && window.netlifyIdentity.logout();
+			});
+		}
+	}
 
-  if (window.netlifyIdentity) {
-    window.netlifyIdentity.on('init', populateAccount);
-    window.netlifyIdentity.on('login', populateAccount);
-  }
+	if (window.netlifyIdentity) {
+		window.netlifyIdentity.on('init', populateAccount);
+		window.netlifyIdentity.on('login', populateAccount);
+	}
 })();
 </script>

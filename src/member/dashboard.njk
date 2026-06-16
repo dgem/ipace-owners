@@ -15,9 +15,11 @@ permalink: /member/dashboard/
 <div class="section">
   <div class="container">
 
-    <!-- Auth gate: show when NOT logged in -->
-    <div data-auth-gate>
-      <div class="auth-gate">
+    <!-- Server-side auth container: member-auth.js verifies via /.netlify/functions/member-data -->
+    <div data-auth-container>
+
+      <!-- Login gate — shown by default when server confirms not authenticated -->
+      <div class="auth-gate" data-auth-login-gate>
         <div class="auth-gate__icon" aria-hidden="true">🔒</div>
         <h2 class="auth-gate__title">Members only</h2>
         <p class="auth-gate__body">
@@ -28,47 +30,45 @@ permalink: /member/dashboard/
           <button class="btn btn--secondary" type="button" data-identity-open="login">Sign in</button>
         </div>
       </div>
-    </div>
 
-    <!-- Auth content: show when logged in -->
-    <div data-auth-content style="display:none;">
-      <div class="callout callout--info" style="margin-bottom: var(--space-8);">
-        <span class="callout__icon" aria-hidden="true">🚧</span>
-        <div class="callout__content">
-          <p class="callout__title">Dashboard view coming soon</p>
-          <p>Join submissions and vehicle basics are now stored server-side. This dashboard
-          does not yet read those records back for member display.</p>
-          <p style="margin-bottom:0;"><strong>Note:</strong> Frontend authentication gating is not
-          sufficient for real private data. Future Netlify Functions will verify Identity JWTs
-          server-side before serving any sensitive information.</p>
-        </div>
-      </div>
+      <!-- Content — revealed by member-auth.js after server confirms auth -->
+      <div class="auth-content" data-auth-content hidden>
 
-      <div class="grid">
-        <div class="dashboard-panel">
-          <div class="dashboard-panel__header">
-            <h2 class="dashboard-panel__title">Your vehicle data</h2>
-            <a href="/submit-vehicle-data/" class="btn btn--sm btn--primary">Submit data</a>
+        <div class="grid">
+
+          <!-- Vehicle records panel -->
+          <div class="dashboard-panel">
+            <div class="dashboard-panel__header">
+              <h2 class="dashboard-panel__title">Your vehicle data</h2>
+              <a href="/submit-vehicle-data/" class="btn btn--sm btn--primary">Submit data</a>
+            </div>
+            <div data-vehicle-container>
+              <div data-vehicle-list>
+                <p style="color:var(--color-text-muted);">Loading...</p>
+              </div>
+            </div>
           </div>
-          <p style="color:var(--color-text-muted);">Stored vehicle basics will appear here once the member data API is added.</p>
-        </div>
 
-        <div class="dashboard-panel">
-          <div class="dashboard-panel__header">
-            <h2 class="dashboard-panel__title">Group updates</h2>
+          <!-- Join info panel -->
+          <div class="dashboard-panel">
+            <div class="dashboard-panel__header">
+              <h2 class="dashboard-panel__title">Your membership</h2>
+            </div>
+            <div data-join-container>
+              <p style="color:var(--color-text-muted);">Loading...</p>
+            </div>
           </div>
-          <p style="color:var(--color-text-muted);">
-            Check the <a href="/updates/">Updates page</a> for the latest news.
-          </p>
-        </div>
 
-        <div class="dashboard-panel">
-          <div class="dashboard-panel__header">
-            <h2 class="dashboard-panel__title">Your account</h2>
+          <!-- Group updates panel -->
+          <div class="dashboard-panel">
+            <div class="dashboard-panel__header">
+              <h2 class="dashboard-panel__title">Group updates</h2>
+            </div>
+            <p style="color:var(--color-text-muted);">
+              Check the <a href="/updates/">Updates page</a> for the latest news.
+            </p>
           </div>
-          <p style="color:var(--color-text-muted);">
-            Manage your details on the <a href="/account/">Account page</a>.
-          </p>
+
         </div>
       </div>
     </div>
