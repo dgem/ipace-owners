@@ -53,19 +53,7 @@ async function sendMagicLink(options) {
   var randomPassword = crypto.randomBytes(18).toString('hex') + 'Aa1!';
 
   try {
-    var signupRes = await fetch(identityBase + '/signup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email, password: randomPassword, data: { full_name: name } }),
-    });
-
-    utils.log(functionName, 'info', 'identity signup response received', utils.requestMetadata(event, context, {
-      emailHash: emailHash,
-      status: signupRes.status,
-      ok: signupRes.ok,
-    }));
-
-    if (signupRes.status === 422) {
+    async function requestMagicLink() {
       var magicLinkRes = await fetch(identityBase + '/magiclink', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -81,12 +69,24 @@ async function sendMagicLink(options) {
       return { ok: magicLinkRes.ok };
     }
 
+    var signupRes = await fetch(identityBase + '/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, password: randomPassword, data: { full_name: name } }),
+    });
+
+    utils.log(functionName, 'info', 'identity signup response received', utils.requestMetadata(event, context, {
+      emailHash: emailHash,
+      status: signupRes.status,
+      ok: signupRes.ok,
+    }));
+
     if (!signupRes.ok) {
-      utils.log(functionName, 'warn', 'identity signup failed', utils.requestMetadata(event, context, {
+      utils.log(functionName, 'warn', 'identity signup failed; trying magiclink fallback', utils.requestMetadata(event, context, {
         emailHash: emailHash,
         status: signupRes.status,
       }));
-      return { ok: false };
+      return requestMagicLink();
     }
   } catch (error) {
     utils.log(functionName, 'error', 'identity request threw', utils.requestMetadata(event, context, {

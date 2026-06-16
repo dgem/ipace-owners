@@ -58,5 +58,11 @@ exports.handler = async function (event, context) {
     name: name,
   });
 
-  return utils.json(200, { ok: !!result.ok }, corsHeaders);
+  if (!result.ok) {
+    utils.log('send-magic-link', 'warn', 'identity email handoff did not complete', utils.requestMetadata(event, context, {
+      emailHash: utils.emailFingerprint(email),
+    }));
+  }
+
+  return utils.json(200, { ok: true }, corsHeaders);
 };
