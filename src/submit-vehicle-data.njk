@@ -7,214 +7,217 @@ description: "Register basic I-PACE vehicle and battery health data with the own
 multiStepForm: true
 ---
 
-<div data-auth-gate>
-  <div class="auth-gate">
-    <div class="auth-gate__icon" aria-hidden="true">🔒</div>
-    <h2 class="auth-gate__title">Sign in to register vehicle data</h2>
-    <p class="auth-gate__body">
-      Vehicle basics are linked to your member account so you can manage them later.
-    </p>
-    <div class="cluster" style="justify-content:center;">
-      <button class="btn btn--primary" type="button" data-identity-open="login">Sign in</button>
-      <a class="btn btn--secondary" href="/join/">Join the Group</a>
-    </div>
-  </div>
-</div>
+<!-- Server-side auth container: member-auth.js verifies via /.netlify/functions/member-data -->
+<div data-auth-container>
 
-<div data-auth-content style="display:none;">
-  <div class="callout callout--info" style="margin-bottom: var(--space-8);">
-    <span class="callout__icon" aria-hidden="true">ℹ️</span>
-    <div class="callout__content">
-      <p class="callout__title">Vehicle basics are stored securely</p>
-      <p>This first release stores vehicle identity, ownership dates, mileage, and battery
-      State of Health details. It does not yet collect recall, repair, loan car, payment,
-      or evidence upload information.</p>
-      <p style="margin-bottom:0;">Full VINs are not stored. If provided, the VIN is converted
-      to a server-side HMAC for deduplication, and only the final six characters are kept
-      for member-facing reference.</p>
-    </div>
-  </div>
+	<!-- Login gate — shown by default when server confirms not authenticated -->
+	<div class="auth-gate" data-auth-login-gate>
+		<div class="auth-gate__icon" aria-hidden="true">🔒</div>
+		<h2 class="auth-gate__title">Sign in to register vehicle data</h2>
+		<p class="auth-gate__body">
+		Vehicle basics are linked to your member account so you can manage them later.
+		</p>
+		<div class="cluster" style="justify-content:center;">
+			<button class="btn btn--primary" type="button" data-identity-open="login">Sign in</button>
+			<a class="btn btn--secondary" href="/join/">Join the Group</a>
+		</div>
+	</div>
 
-  <form
-    class="form"
-    style="max-width: none;"
-    name="vehicle-basics"
-    method="POST"
-    action="/.netlify/functions/submit-vehicle-basics"
-    data-multistep-form
-    data-database-submit="/.netlify/functions/submit-vehicle-basics"
-    data-database-requires-auth
-    novalidate
-    aria-label="Register I-PACE vehicle basics"
-  >
+	<!-- Content — revealed by member-auth.js after server confirms auth -->
+	<div class="auth-content" data-auth-content hidden>
+	<div class="callout callout--info" style="margin-bottom: var(--space-8);">
+		<span class="callout__icon" aria-hidden="true">ℹ️</span>
+		<div class="callout__content">
+			<p class="callout__title">Vehicle basics are stored securely</p>
+			<p>This first release stores vehicle identity, ownership dates, mileage, and battery
+			State of Health details. It does not yet collect recall, repair, loan car, payment,
+			or evidence upload information.</p>
+			<p style="margin-bottom:0;">Full VINs are not stored. If provided, the VIN is converted
+			to a server-side HMAC for deduplication, and only the final six characters are kept
+			for member-facing reference.</p>
+		</div>
+	</div>
 
-    <div class="progress-indicator" data-progress aria-live="polite" aria-atomic="true">
-      <div class="progress-indicator__bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Form progress">
-        <div class="progress-indicator__fill" data-progress-fill style="width: 50%;"></div>
-      </div>
-      <div class="progress-indicator__text">
-        <span data-progress-text>Step 1 of 2</span>
-        <span>Vehicle basics</span>
-      </div>
-    </div>
+	<form
+		class="form"
+		style="max-width: none;"
+		name="vehicle-basics"
+		method="POST"
+		action="/.netlify/functions/submit-vehicle-basics"
+		data-multistep-form
+		data-database-submit="/.netlify/functions/submit-vehicle-basics"
+		data-database-requires-auth
+		novalidate
+		aria-label="Register I-PACE vehicle basics"
+	>
 
-    <div data-step="1">
-      <h2 class="step-heading" data-step-heading tabindex="-1">Vehicle details</h2>
+		<div class="progress-indicator" data-progress aria-live="polite" aria-atomic="true">
+			<div class="progress-indicator__bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Form progress">
+				<div class="progress-indicator__fill" data-progress-fill style="width: 50%;"></div>
+			</div>
+			<div class="progress-indicator__text">
+				<span data-progress-text>Step 1 of 2</span>
+				<span>Vehicle basics</span>
+			</div>
+		</div>
 
-      <fieldset>
-        <legend>About your I-PACE</legend>
+		<div data-step="1">
+			<h2 class="step-heading" data-step-heading tabindex="-1">Vehicle details</h2>
 
-        <div class="two-column">
-          <div class="form-group">
-            <label for="vin">VIN</label>
-            <span class="form-hint" id="vin-hint">17-character Vehicle Identification Number. Provide either VIN or registration. VINs are HMAC-hashed server-side and not stored in full.</span>
-            <input type="text" id="vin" name="vin" maxlength="17" autocomplete="off" aria-describedby="vin-hint" pattern="[A-HJ-NPR-Z0-9]{17}">
-          </div>
+			<fieldset>
+				<legend>About your I-PACE</legend>
 
-          <div class="form-group">
-            <label for="registration">Registration / plate</label>
-            <span class="form-hint" id="registration-hint">Provide either registration or VIN.</span>
-            <input type="text" id="registration" name="registration" autocomplete="off" aria-describedby="registration-hint">
-          </div>
+				<div class="two-column">
+					<div class="form-group">
+						<label for="vin">VIN</label>
+						<span class="form-hint" id="vin-hint">17-character Vehicle Identification Number. Provide either VIN or registration. VINs are HMAC-hashed server-side and not stored in full.</span>
+						<input type="text" id="vin" name="vin" maxlength="17" autocomplete="off" aria-describedby="vin-hint" pattern="[A-HJ-NPR-Z0-9]{17}">
+					</div>
 
-          <div class="form-group">
-            <label for="country">Country</label>
-            <select id="country" name="country">
-              <option value="">Select country</option>
-              <option value="GB" selected>United Kingdom</option>
-              <option value="IE">Ireland</option>
-              <option value="DE">Germany</option>
-              <option value="FR">France</option>
-              <option value="NL">Netherlands</option>
-              <option value="NO">Norway</option>
-              <option value="SE">Sweden</option>
-              <option value="DK">Denmark</option>
-              <option value="AT">Austria</option>
-              <option value="CH">Switzerland</option>
-              <option value="BE">Belgium</option>
-              <option value="ES">Spain</option>
-              <option value="IT">Italy</option>
-              <option value="PT">Portugal</option>
-              <option value="US">United States</option>
-              <option value="CA">Canada</option>
-              <option value="AU">Australia</option>
-              <option value="NZ">New Zealand</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
+					<div class="form-group">
+						<label for="registration">Registration / plate</label>
+						<span class="form-hint" id="registration-hint">Provide either registration or VIN.</span>
+						<input type="text" id="registration" name="registration" autocomplete="off" aria-describedby="registration-hint">
+					</div>
 
-          <div class="form-group">
-            <label for="model-year">Model year</label>
-            <select id="model-year" name="modelYear">
-              <option value="">Select year</option>
-              <option>2018</option>
-              <option>2019</option>
-              <option>2020</option>
-              <option>2021</option>
-              <option>2022</option>
-              <option>2023</option>
-              <option>2024</option>
-            </select>
-          </div>
+					<div class="form-group">
+						<label for="country">Country</label>
+						<select id="country" name="country">
+							<option value="">Select country</option>
+							<option value="GB" selected>United Kingdom</option>
+							<option value="IE">Ireland</option>
+							<option value="DE">Germany</option>
+							<option value="FR">France</option>
+							<option value="NL">Netherlands</option>
+							<option value="NO">Norway</option>
+							<option value="SE">Sweden</option>
+							<option value="DK">Denmark</option>
+							<option value="AT">Austria</option>
+							<option value="CH">Switzerland</option>
+							<option value="BE">Belgium</option>
+							<option value="ES">Spain</option>
+							<option value="IT">Italy</option>
+							<option value="PT">Portugal</option>
+							<option value="US">United States</option>
+							<option value="CA">Canada</option>
+							<option value="AU">Australia</option>
+							<option value="NZ">New Zealand</option>
+							<option value="other">Other</option>
+						</select>
+					</div>
 
-          <div class="form-group">
-            <label for="mileage">Current mileage</label>
-            <input type="number" id="mileage" name="mileage" min="0" max="500000" aria-describedby="mileage-hint">
-            <span class="form-hint" id="mileage-hint">Use miles for now. Kilometre support will be added with the fuller evidence form.</span>
-          </div>
+					<div class="form-group">
+						<label for="model-year">Model year</label>
+						<select id="model-year" name="modelYear">
+							<option value="">Select year</option>
+							<option>2018</option>
+							<option>2019</option>
+							<option>2020</option>
+							<option>2021</option>
+							<option>2022</option>
+							<option>2023</option>
+							<option>2024</option>
+						</select>
+					</div>
 
-          <div class="form-group">
-            <label for="owned-since">Owned since</label>
-            <input type="date" id="owned-since" name="ownedSince">
-          </div>
+					<div class="form-group">
+						<label for="mileage">Current mileage</label>
+						<input type="number" id="mileage" name="mileage" min="0" max="500000" aria-describedby="mileage-hint">
+						<span class="form-hint" id="mileage-hint">Use miles for now. Kilometre support will be added with the fuller evidence form.</span>
+					</div>
 
-          <div class="form-group">
-            <label for="first-reg">First registration date <span style="font-weight:400; color: var(--color-text-muted);">(if known)</span></label>
-            <input type="date" id="first-reg" name="firstReg">
-          </div>
-        </div>
-      </fieldset>
+					<div class="form-group">
+						<label for="owned-since">Owned since</label>
+						<input type="date" id="owned-since" name="ownedSince">
+					</div>
 
-      <div class="step-nav">
-        <button type="button" class="btn btn--secondary" data-prev style="visibility:hidden">Back</button>
-        <button type="button" class="btn btn--primary" data-next>Next: Battery health →</button>
-      </div>
-    </div>
+					<div class="form-group">
+						<label for="first-reg">First registration date <span style="font-weight:400; color: var(--color-text-muted);">(if known)</span></label>
+						<input type="date" id="first-reg" name="firstReg">
+					</div>
+				</div>
+			</fieldset>
 
-    <div data-step="2" class="step--hidden">
-      <h2 class="step-heading" data-step-heading tabindex="-1">Battery health</h2>
+			<div class="step-nav">
+				<button type="button" class="btn btn--secondary" data-prev style="visibility:hidden">Back</button>
+				<button type="button" class="btn btn--primary" data-next>Next: Battery health →</button>
+			</div>
+		</div>
 
-      <fieldset>
-        <legend>State of Health</legend>
-        <p class="form-hint">If you do not know the State of Health, leave these fields blank and submit the vehicle basics.</p>
+		<div data-step="2" class="step--hidden">
+			<h2 class="step-heading" data-step-heading tabindex="-1">Battery health</h2>
 
-        <div class="two-column">
-          <div class="form-group">
-            <label for="soh">Current State of Health (%) <span style="font-weight:400; color: var(--color-text-muted);">(if known)</span></label>
-            <input type="number" id="soh" name="soh" min="0" max="100" step="0.1">
-          </div>
+			<fieldset>
+				<legend>State of Health</legend>
+				<p class="form-hint">If you do not know the State of Health, leave these fields blank and submit the vehicle basics.</p>
 
-          <div class="form-group">
-            <label for="soh-date">Date SoH was measured</label>
-            <input type="date" id="soh-date" name="sohDate">
-          </div>
+				<div class="two-column">
+					<div class="form-group">
+						<label for="soh">Current State of Health (%) <span style="font-weight:400; color: var(--color-text-muted);">(if known)</span></label>
+						<input type="number" id="soh" name="soh" min="0" max="100" step="0.1">
+					</div>
 
-          <div class="form-group">
-            <label for="soh-mileage">Mileage at SoH measurement</label>
-            <input type="number" id="soh-mileage" name="sohMileage" min="0" max="500000">
-          </div>
+					<div class="form-group">
+						<label for="soh-date">Date SoH was measured</label>
+						<input type="date" id="soh-date" name="sohDate">
+					</div>
 
-          <div class="form-group">
-            <label for="soh-source">Source of SoH reading</label>
-            <select id="soh-source" name="sohSource">
-              <option value="">Select source</option>
-              <option value="dealer-report">Dealer report</option>
-              <option value="diagnostic-app">Diagnostic app / OBD</option>
-              <option value="service-paperwork">Service paperwork</option>
-              <option value="jlr-communication">JLR communication</option>
-              <option value="estimate-unsure">Estimate / unsure</option>
-            </select>
-          </div>
-        </div>
-      </fieldset>
+					<div class="form-group">
+						<label for="soh-mileage">Mileage at SoH measurement</label>
+						<input type="number" id="soh-mileage" name="sohMileage" min="0" max="500000">
+					</div>
 
-      <div class="step-nav">
-        <button type="button" class="btn btn--secondary" data-prev>← Back</button>
-        <button type="submit" class="btn btn--primary" data-submit>Save vehicle basics</button>
-      </div>
-    </div>
+					<div class="form-group">
+						<label for="soh-source">Source of SoH reading</label>
+						<select id="soh-source" name="sohSource">
+							<option value="">Select source</option>
+							<option value="dealer-report">Dealer report</option>
+							<option value="diagnostic-app">Diagnostic app / OBD</option>
+							<option value="service-paperwork">Service paperwork</option>
+							<option value="jlr-communication">JLR communication</option>
+							<option value="estimate-unsure">Estimate / unsure</option>
+						</select>
+					</div>
+				</div>
+			</fieldset>
 
-    <div class="submit-result" data-submit-result tabindex="-1" role="status">
-      <div style="text-align: center; padding: var(--space-4);">
-        <div style="font-size: 3rem; margin-bottom: var(--space-4);" aria-hidden="true">✅</div>
-        <h2>Vehicle basics</h2>
+			<div class="step-nav">
+				<button type="button" class="btn btn--secondary" data-prev>← Back</button>
+				<button type="submit" class="btn btn--primary" data-submit>Save vehicle basics</button>
+			</div>
+		</div>
 
-        <div data-database-success hidden>
-          <p style="color: var(--color-text-muted);">
-            Your vehicle basics have been saved. Reference:
-            <strong data-database-submission-id>saved</strong>.
-          </p>
-        </div>
+		<div class="submit-result" data-submit-result tabindex="-1" role="status">
+			<div style="text-align: center; padding: var(--space-4);">
+				<div style="font-size: 3rem; margin-bottom: var(--space-4);" aria-hidden="true">✅</div>
+				<h2>Vehicle basics</h2>
 
-        <div data-database-auth-error hidden>
-          <p style="color: var(--color-danger);">
-            Please sign in and submit the form again so the vehicle can be linked to your account.
-          </p>
-          <button class="btn btn--primary" type="button" data-identity-open="login">Sign in</button>
-        </div>
+				<div data-database-success hidden>
+					<p style="color: var(--color-text-muted);">
+						Your vehicle basics have been saved. Reference:
+						<strong data-database-submission-id>saved</strong>.
+					</p>
+				</div>
 
-        <div data-database-error hidden>
-          <p style="color: var(--color-danger);">
-            We could not save the vehicle basics right now. Please try again later or contact
-            <a href="mailto:contact@ipace-owners.org">contact@ipace-owners.org</a>.
-          </p>
-        </div>
+				<div data-database-auth-error hidden>
+					<p style="color: var(--color-danger);">
+						Please sign in and submit the form again so the vehicle can be linked to your account.
+					</p>
+					<button class="btn btn--primary" type="button" data-identity-open="login">Sign in</button>
+				</div>
 
-        <div class="cluster" style="justify-content:center; margin-top: var(--space-4);">
-          <a href="/member/dashboard/" class="btn btn--primary">Member Dashboard</a>
-          <a href="/evidence-dashboard/" class="btn btn--secondary">View Evidence Dashboard</a>
-        </div>
-      </div>
-    </div>
-  </form>
+				<div data-database-error hidden>
+					<p style="color: var(--color-danger);">
+						We could not save the vehicle basics right now. Please try again later or contact
+						<a href="mailto:contact@ipace-owners.org">contact@ipace-owners.org</a>.
+					</p>
+				</div>
+
+				<div class="cluster" style="justify-content:center; margin-top: var(--space-4);">
+					<a href="/member/dashboard/" class="btn btn--primary">Member Dashboard</a>
+					<a href="/evidence-dashboard/" class="btn btn--secondary">View Evidence Dashboard</a>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>

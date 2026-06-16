@@ -107,12 +107,11 @@ src/
     js/
       main.js            # Mobile menu, nav helpers
       identity.js        # Netlify Identity integration
+      member-auth.js     # Server-verified member/admin data loading
       multistep-form.js  # Multi-step form controller
 public/images/     # Static images
 netlify/functions/ # Netlify Functions
-docs/
-  architecture.md  # Future architecture documentation
-prompts/           # Sequenced prompts for rebuilding and evolving the product
+prompts/           # Sequenced prompts and architecture blueprint
 .eleventy.js       # Eleventy configuration
 netlify.toml       # Netlify configuration
 ```
@@ -180,7 +179,8 @@ The following features are **not yet implemented** in this version:
   responsibility, consent-review, and evidence upload details are not yet stored.
 - **Evidence document uploads** — A placeholder message explains what will be supported.
   Requires Netlify Blobs + Functions integration.
-- **Admin review queue** — UI placeholder only. No data is accessible from the admin pages.
+- **Admin review workflow** — The review queue can read server-side data for admins, but
+  review status updates, exports, and moderation actions are not yet implemented.
 - **Privacy policy** — The current policy is a placeholder. A formal policy is required
   before broader live evidence collection.
 - **Evidence dashboard data** — All figures are illustrative. Real data collection has not begun.
@@ -213,10 +213,10 @@ or `layout: form-page.njk` for form pages (adds `multistep-form.js`).
 Add `.md` files to `src/updates/` with `title`, `date` and `summary` front matter.
 Posts appear automatically on `/updates/`.
 
-### Future backend
+### Architecture
 
-See `docs/architecture.md` for the intended architecture using Netlify Functions and
-Netlify Blobs for data persistence and admin features.
+See `prompts/09-architecture-overview.md` for the intended architecture using Netlify
+Functions and Netlify Blobs for data persistence and admin features.
 
 ### Copilot PR reviews
 
@@ -233,12 +233,13 @@ Product-generation prompts live in `prompts/`. They are sequenced with two-digit
 so the project can be rebuilt or extended in a controlled order:
 
 - `00-original-project-prompt.md` preserves the initial generation prompt.
-- `01-` through `09-` split the product into foundation, design, content, identity, forms,
-  evidence dashboard, backend-roadmap, and architecture concerns.
+- `01-` through `14-` split the product into foundation, design, content, identity, forms,
+  evidence dashboard, backend security/storage, architecture, Function components, and
+  future evidence/statistics concerns.
 
 When adding or refining prompts, keep the numeric prefix, make the prompt independently
 usable, and avoid duplicating live implementation details that belong in README or
-`docs/architecture.md`.
+`prompts/09-architecture-overview.md`.
 
 Keep prompts in sync with implemented behaviour so the project can be recreated from
 the prompt set and README alone.

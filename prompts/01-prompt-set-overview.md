@@ -11,8 +11,13 @@ Use these prompts as a maintainable product blueprint. They are ordered so a fre
 5. Use `05-identity-member-admin-gating.md` for Netlify Identity, member pages, and admin placeholders.
 6. Use `06-forms-and-evidence-collection.md` for join and vehicle data form UX.
 7. Use `07-evidence-dashboard-and-methodology.md` for public aggregate evidence views and methodology copy.
-8. Use `08-backend-roadmap-functions-blobs.md` before implementing real persistence.
+8. Use `08-backend-security-and-storage.md` before changing persistence, stored record shapes, or backend security boundaries.
 9. Use `09-architecture-overview.md` for cross-cutting architecture, security boundaries, and data-flow constraints.
+10. Use `10-functions-shared-utilities.md` for shared Netlify Function helpers.
+11. Use `11-functions-identity-and-join.md` for magic-link and Join submission flows.
+12. Use `12-functions-vehicle-basics.md` for the signed-in vehicle-basics slice.
+13. Use `13-functions-member-admin-data.md` for member/admin data access Functions.
+14. Use `14-functions-future-evidence-and-stats.md` for future evidence, upload, review mutation, and public statistics work.
 
 ## Global constraints for every prompt
 
