@@ -84,6 +84,23 @@
     return labels[value] || String(value || '').replace(/-/g, ' ');
   }
 
+  function getIdentityToken() {
+    var identity = window.netlifyIdentity;
+    var user = identity && identity.currentUser && identity.currentUser();
+    if (!user || typeof user.jwt !== 'function') return Promise.resolve('');
+    return user.jwt().catch(function () { return ''; });
+  }
+
+  function fetchWithIdentity(url) {
+    return getIdentityToken().then(function (token) {
+      var options = {};
+      if (token) {
+        options.headers = { Authorization: 'Bearer ' + token };
+      }
+      return fetch(url, options);
+    });
+  }
+
   function populateVehicleRecords(container, records) {
     var vehicleList = container.querySelector('[data-vehicle-list]');
     if (!vehicleList) return;
@@ -150,7 +167,7 @@
     var containers = document.querySelectorAll('[data-auth-container]');
     containers.forEach(async function (container) {
       try {
-        var res = await fetch('/.netlify/functions/member-data');
+        var res = await fetchWithIdentity('/.netlify/functions/member-data');
         if (res.status === 401 || res.status === 403) {
           showMemberGate(container);
           return;
@@ -305,7 +322,7 @@
     var containers = document.querySelectorAll('[data-admin-container]');
     containers.forEach(async function (container) {
       try {
-        var res = await fetch('/.netlify/functions/admin-data');
+        var res = await fetchWithIdentity('/.netlify/functions/admin-data');
 
          // 401 = not logged in → show login gate
         if (res.status === 401) {
@@ -369,10 +386,17 @@
      }
    }
 
+  function initSoon() {
+    window.setTimeout(init, 0);
+  }
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
    } else {
     init();
    }
+
+  document.addEventListener('identity:ready', initSoon);
+  document.addEventListener('identity:login', initSoon);
 
 })();

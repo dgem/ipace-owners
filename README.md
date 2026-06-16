@@ -142,8 +142,9 @@ After deploying to Netlify, you **must** enable Netlify Identity manually:
    - Keep email confirmation enabled so Netlify sends the account confirmation link.
 5. Optional: configure external OAuth providers (Google, GitHub) if desired.
 
-> The Netlify Identity widget is loaded from `https://identity.netlify.com/v1/netlify-identity-widget.js`
-> and will not function until Identity is enabled in the Netlify UI.
+> The site uses passwordless email links. The Netlify Identity script is currently loaded
+> only to process Identity email links and expose the current session/JWT; the product UI
+> must not open Netlify's password modal.
 > The Join form makes one request to `submit-join`, which saves the answers in the
 > structured data store and sends a sign-in magic link to the user's email address.
 > In local development, Identity email Functions need `NETLIFY_IDENTITY_BASE_URL` because

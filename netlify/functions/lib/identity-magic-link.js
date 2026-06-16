@@ -57,19 +57,19 @@ async function sendMagicLink(options) {
     }));
 
     if (signupRes.status === 422) {
-      var recoverRes = await fetch(identityBase + '/recover', {
+      var magicLinkRes = await fetch(identityBase + '/magiclink', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email }),
       });
 
-      utils.log(functionName, 'info', 'identity recover response received', utils.requestMetadata(event, context, {
+      utils.log(functionName, 'info', 'identity magiclink response received', utils.requestMetadata(event, context, {
         emailHash: emailHash,
-        status: recoverRes.status,
-        ok: recoverRes.ok,
+        status: magicLinkRes.status,
+        ok: magicLinkRes.ok,
       }));
 
-      return { ok: recoverRes.ok };
+      return { ok: magicLinkRes.ok };
     }
 
     if (!signupRes.ok) {

@@ -45,7 +45,7 @@ test('send-magic-link calls signup for new users', async function (t) {
   assert.equal(JSON.parse(calls[0].options.body).email, 'user@example.com');
 });
 
-test('send-magic-link calls recover when signup reports an existing account', async function (t) {
+test('send-magic-link calls passwordless magiclink when signup reports an existing account', async function (t) {
   var originalFetch = global.fetch;
   var originalBaseUrl = process.env.NETLIFY_IDENTITY_BASE_URL;
   var calls = [];
@@ -73,7 +73,7 @@ test('send-magic-link calls recover when signup reports an existing account', as
   assert.equal(body.ok, true);
   assert.equal(calls.length, 2);
   assert.equal(calls[0].url, 'https://example.netlify.app/.netlify/identity/signup');
-  assert.equal(calls[1].url, 'https://example.netlify.app/.netlify/identity/recover');
+  assert.equal(calls[1].url, 'https://example.netlify.app/.netlify/identity/magiclink');
   assert.deepEqual(JSON.parse(calls[1].options.body), { email: 'member@example.com' });
 });
 

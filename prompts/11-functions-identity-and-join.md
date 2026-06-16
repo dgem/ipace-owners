@@ -29,9 +29,13 @@ magic-link request path for existing users.
 
 - Do not call Netlify Identity REST APIs directly from browser code.
 - Do not make Join completion fire a second browser request to `send-magic-link`.
+- Custom passwordless sign-in forms outside the Join completion flow may call
+  `send-magic-link`.
+- Do not open the Netlify Identity modal or render a password login UI.
 - Keep the shared Identity flow in `identity-magic-link.js`.
-- The shared flow attempts Identity `/signup` first and falls back to `/recover` for an
-  existing account response.
+- The shared flow attempts Identity `/signup` first and falls back to `/magiclink` for an
+  existing account response. Do not use `/recover` for sign-in because that creates a
+  password-reset flow.
 - Valid same-origin Identity failures should be reported without revealing whether the
   email address is registered.
 - `NETLIFY_IDENTITY_BASE_URL` may be used locally because Netlify Dev does not expose a
@@ -92,9 +96,10 @@ Required coverage:
 - Join saves a record and sends one server-side magic link for guests.
 - Signed-in Join saves a record and does not send a magic link.
 - Invalid Join data does not save or send email.
-- Standalone `send-magic-link` handles signup and recover flows.
+- Standalone `send-magic-link` handles signup and magiclink flows.
 - Disallowed origins are rejected before Identity side effects.
-- Static regression: Join form/JS must not call `send-magic-link` directly.
+- Static regression: Join completion must not call `send-magic-link` directly, while
+  standalone passwordless sign-in forms may.
 
 ## Validation
 

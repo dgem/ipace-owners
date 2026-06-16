@@ -22,8 +22,13 @@ permalink: /admin/review-queue/
 					<div class="auth-gate" data-auth-login-gate>
 						<div class="auth-gate__icon" aria-hidden="true">🔒</div>
 						<h2 class="auth-gate__title">Sign in required</h2>
-						<p class="auth-gate__body">You must be signed in to access admin pages.</p>
-						<button class="btn btn--primary" type="button" data-identity-open="login">Sign in</button>
+						<p class="auth-gate__body">Enter your admin email address and we will send a secure sign-in link.</p>
+						<form class="magic-link-form" data-magic-link-form>
+							<label for="admin-magic-email">Email address</label>
+							<input id="admin-magic-email" name="email" type="email" autocomplete="email" required>
+							<button class="btn btn--primary full-width" type="submit">Email me a sign-in link</button>
+							<p class="form-hint" data-magic-link-status role="status" aria-live="polite"></p>
+						</form>
 					</div>
 
 					<!-- Logged in, no admin role — shown when server confirms auth but not admin -->
