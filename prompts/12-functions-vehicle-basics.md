@@ -49,6 +49,9 @@ Battery health:
 - If a VIN is provided, `VIN_PEPPER` must be configured.
 - Store a VIN HMAC and final six characters only.
 - Reject writes if a VIN is provided and `VIN_PEPPER` is missing.
+- In the form UI, place VIN and registration helper copy below the input controls. Explain
+  that VIN is optional when registration is provided, where to find the VIN, and that full
+  VINs are never stored.
 
 ## Record Shape
 

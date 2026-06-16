@@ -97,6 +97,9 @@ knowledge, and data may be used in anonymised aggregate reporting if consent is 
 - Do not use Jaguar/JLR logos, badges, readable plates, copyrighted press imagery, or other unlicensed manufacturer assets.
 - If using a vehicle image, make it original/licensed/generated, avoid visible brand marks, and provide meaningful alt text.
 - Keep public calls to action clear but not coercive.
+- Include simple social share links for common channels such as X, Facebook, LinkedIn, and
+  WhatsApp. Use accessible link text, open external share targets safely with
+  `rel="noopener noreferrer"`, and keep the UI restrained.
 
 ## Validation
 

@@ -40,8 +40,7 @@ test('submit-join stores the membership record and sends one server-side magic l
     name: 'Test User',
     email: 'Test@Example.COM',
     country: 'GB',
-    relationship: 'current-owner',
-    ownership: 'one',
+    relationship: 'current-owner-one',
     skills: ['legal', 'data'],
     'consent-contact': 'yes',
     'consent-not-legal': 'yes',
@@ -59,6 +58,8 @@ test('submit-join stores the membership record and sends one server-side magic l
 
   assert.ok(saved.key.startsWith('join/join_'));
   assert.equal(saved.record.contact.email, 'test@example.com');
+  assert.equal(saved.record.membership.relationship, 'current-owner-one');
+  assert.equal(saved.record.membership.ownership, undefined);
   assert.deepEqual(saved.record.membership.skills, ['legal', 'data']);
   assert.equal(saved.record.consents.contact, true);
   assert.equal(saved.record.consents.notLegalClaim, true);

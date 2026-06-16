@@ -70,14 +70,14 @@ multiStepForm: true
 				<div class="two-column">
 					<div class="form-group">
 						<label for="vin">VIN</label>
-						<span class="form-hint" id="vin-hint">17-character Vehicle Identification Number. Provide either VIN or registration. VINs are HMAC-hashed server-side and not stored in full.</span>
 						<input type="text" id="vin" name="vin" maxlength="17" autocomplete="off" aria-describedby="vin-hint" pattern="[A-HJ-NPR-Z0-9]{17}">
+						<span class="form-hint" id="vin-hint">Optional 17-character Vehicle Identification Number. You can find it on the V5C/log book, windscreen plate, or Jaguar app. Full VINs are never stored.</span>
 					</div>
 
 					<div class="form-group">
 						<label for="registration">Registration / plate</label>
-						<span class="form-hint" id="registration-hint">Provide either registration or VIN.</span>
 						<input type="text" id="registration" name="registration" autocomplete="off" aria-describedby="registration-hint">
+						<span class="form-hint" id="registration-hint">Provide either the registration or VIN so we can identify the vehicle record.</span>
 					</div>
 
 					<div class="form-group">

@@ -45,9 +45,20 @@ Join records include:
 - `id`, `type`, `createdAt`, `updatedAt`.
 - optional `identityUserId`.
 - `contact`: name, email, country.
-- `membership`: relationship, ownership, skills.
+- `membership`: one combined relationship/ownership value plus skills. Do not store a
+  separate `ownership` field for new submissions.
 - `consents`: contact, not-legal-claim acknowledgement, anonymised analysis.
 - `review`: status and verification level.
+
+Accepted relationship values are:
+
+- `current-owner-one`
+- `current-owner-multiple`
+- `former-owner`
+- `prospective-buyer`
+- `helping-owner`
+- `trade-specialist`
+- `other`
 
 ## Browser Result State
 

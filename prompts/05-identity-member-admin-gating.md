@@ -19,6 +19,9 @@ Provide frontend Identity UX for sign in, sign out, registration, member-only pa
 
 - Initialize `window.netlifyIdentity` defensively.
 - Update header and mobile controls based on current user state.
+- In the main and mobile navigation, show the public `Join` CTA only to guests. For
+  signed-in users, replace it with an `Account` or `My Data` link so members can reach
+  their account page without returning to the Join flow.
 - Support buttons with `data-identity-open`.
 - Handle form submission via `multistep:submitted` + `data-database-submit`.
 - **No client-side content gating.** `identity.js` does not show/hide gated content areas.
