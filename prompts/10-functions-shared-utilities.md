@@ -19,8 +19,9 @@ Keep shared Function behaviour small, explicit, privacy-safe, and covered by tes
 - Email fingerprinting.
 - HMAC generation.
 - Netlify Identity user extraction from `context.clientContext.user`.
-- Netlify Blobs store access for `owner-submissions`.
-- JSON record writes.
+- Postgres/database access for structured owner data.
+- Netlify Blobs access only for future binary evidence uploads.
+- Private member/account JSON snapshot generation helpers.
 - Submission ID generation.
 
 ## Rules
@@ -31,8 +32,9 @@ Keep shared Function behaviour small, explicit, privacy-safe, and covered by tes
 - Do not log raw personal data, VINs, tokens, request bodies, or Identity API responses.
 - Keep origin checks reusable and call them before side effects in every public Function.
 - Preserve repeated form field parsing for checkbox groups.
-- Keep `getStore(event)` using Netlify Blobs Lambda compatibility setup before obtaining
-  the store.
+- Keep storage access behind shared helpers so Functions can be tested without a live
+  database.
+- Keep generated JSON snapshot helpers separate from validation helpers.
 
 ## Tests
 

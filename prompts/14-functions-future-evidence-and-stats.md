@@ -15,8 +15,8 @@ Potential future Functions:
   support, loan car, payment, responsibility, consent-review, and evidence-upload metadata.
 - `admin-update-submission.js`: admin-only review status, verification level, exclusion,
   and moderation updates.
-- `public-stats.js`: anonymised aggregate statistics for public dashboard rendering or
-  static regeneration.
+- `publish-public-stats.js`: admin-only generation of anonymised aggregate statistics for
+  public static JSON snapshots.
 - Evidence upload Functions: authenticated upload URL generation, file metadata creation,
   server-side validation, and admin review workflows.
 - Export Functions: admin-only CSV/JSON exports with explicit audit logging.
@@ -33,6 +33,8 @@ Potential future Functions:
 ## Public Statistics Rules
 
 - Public pages may show only anonymised aggregate data.
+- Public pages should read generated static JSON snapshots rather than querying Postgres on
+  every page view.
 - Do not publish full VINs, registrations, owner names, email addresses, uploaded
   documents, or individual case narratives without explicit permission.
 - Support verification levels:
@@ -42,6 +44,9 @@ Potential future Functions:
   - duplicate checked;
   - excluded from public statistics.
 - Aggregates must exclude records marked as excluded from public statistics.
+- Public static JSON can be written to locations such as
+  `/assets/data/public-evidence-summary.json`. Private member/account JSON must not be
+  written to public static output.
 
 ## Admin Mutation Rules
 

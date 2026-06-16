@@ -2,7 +2,7 @@
 layout: form-page.njk
 title: Register Vehicle Basics
 eyebrow: Evidence
-subtitle: "Start with the vehicle identity and battery health details."
+subtitle: "Add an I-PACE to your account with vehicle identity and battery health details."
 description: "Register basic I-PACE vehicle and battery health data with the owners' advocacy group evidence base."
 multiStepForm: true
 ---
@@ -16,6 +16,7 @@ multiStepForm: true
 		<h2 class="auth-gate__title">Sign in to register vehicle data</h2>
 		<p class="auth-gate__body">
 		Vehicle basics are linked to your member account so you can manage them later.
+		If you own, owned, or help with more than one I-PACE, add each vehicle separately.
 		</p>
 		<div class="cluster" style="justify-content:center;">
 			<button class="btn btn--primary" type="button" data-identity-open="login">Sign in</button>
@@ -32,6 +33,7 @@ multiStepForm: true
 			<p>This first release stores vehicle identity, ownership dates, mileage, and battery
 			State of Health details. It does not yet collect recall, repair, loan car, payment,
 			or evidence upload information.</p>
+			<p>Add one vehicle at a time. You can return here to register another I-PACE.</p>
 			<p style="margin-bottom:0;">Full VINs are not stored. If provided, the VIN is converted
 			to a server-side HMAC for deduplication, and only the final six characters are kept
 			for member-facing reference.</p>
@@ -215,6 +217,7 @@ multiStepForm: true
 
 				<div class="cluster" style="justify-content:center; margin-top: var(--space-4);">
 					<a href="/member/dashboard/" class="btn btn--primary">Member Dashboard</a>
+					<a href="/submit-vehicle-data/" class="btn btn--secondary">Add another vehicle</a>
 					<a href="/evidence-dashboard/" class="btn btn--secondary">View Evidence Dashboard</a>
 				</div>
 			</div>

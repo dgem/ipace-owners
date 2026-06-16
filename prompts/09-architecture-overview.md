@@ -22,7 +22,8 @@ more than one layer.
   file is an IIFE loaded with `defer`.
 - **Authentication:** Netlify Identity widget (`netlify-identity-widget` CDN) + server-side JWT verification via Netlify Functions.
 - **Hosting:** Netlify (build command `npm run build`, publish directory `_site`).
-- **Backend:** Netlify Functions + Netlify Blobs for Join submissions and vehicle basics.
+- **Backend target:** Netlify Functions + Netlify Database/Postgres for structured data.
+  Netlify Blobs are reserved for future binary evidence files only.
 
 ### Directory structure
 
@@ -43,13 +44,14 @@ src/
 public/images/               — static images (passed through to _site root)
 netlify/functions/           — Netlify Functions
    lib/                       — shared Function utilities
-     submission-utils.js      — CORS, origin allowlist, input sanitization, HMAC, Blobs
+     submission-utils.js      — CORS, origin allowlist, input sanitization, HMAC
      identity-magic-link.js   — server-side Identity signup/recover flow
    send-magic-link.js         — standalone magic sign-in link request
    submit-join.js             — Join form: validate, store, send magic link
    submit-vehicle-basics.js   — signed-in vehicle basics: validate, store VIN HMAC
    member-data.js             — authenticated user's own records (server-side JWT check)
    admin-data.js              — all records for admins (server-side JWT + role check)
+netlify/database/migrations/ — Postgres schema migrations for Netlify Database
 prompts/                     — sequenced prompts for rebuilding the product
 .eleventy.js                 — Eleventy configuration
 netlify.toml                 — build, redirect, header, and dev configuration
@@ -85,31 +87,40 @@ netlify.toml                 — build, redirect, header, and dev configuration
 | Function | Auth Required | What it does |
 |---|---|---|
 | `send-magic-link.js` | No | Standalone magic sign-in link request. Validates origin, email; calls Identity signup/recover server-side. Returns account-enumeration-resistant `{ ok }` flag. |
-| `submit-join.js` | No (optional) | Validates Join form (consent required), stores membership interest in Blobs, sends magic link for logged-out users. |
-| `submit-vehicle-basics.js` | Yes (signed-in user) | Validates vehicle identity and battery health slice, stores record in Blobs with VIN HMAC. Requires `VIN_PEPPER` env var. |
-| `member-data.js` | Yes (signed-in user) | Returns the authenticated user's own join and vehicle-basics records. Verifies `context.clientContext.user.sub`. Does not expose review data to members. |
+| `submit-join.js` | No (optional) | Validates Join form, writes membership interest, sends magic link for logged-out users, and regenerates the member/account JSON snapshot. |
+| `submit-vehicle-basics.js` | Yes (signed-in user) | Validates vehicle identity and battery health slice, writes vehicle rows, and regenerates the member/account JSON snapshot. |
+| `member-data.js` | Yes (signed-in user) | Returns the authenticated user's private member/account snapshot. Verifies `context.clientContext.user.sub`. Does not expose admin-only review data. |
 | `admin-data.js` | Yes (admin role) | Returns all join and vehicle-basics records. Verifies JWT + `app_metadata.roles` contains `admin`. Exposes review data and userEmailHash to admins only. |
 
-### Storage Model (Netlify Blobs)
+### Storage Model (Postgres + JSON Snapshots)
 
-- Join records: `join/<submission-id>.json`
-- Vehicle basics: `vehicle-basics/<identity-user-id>/<submission-id>.json`
-- Submission IDs use format `<prefix>_<uuid>` (e.g., `join_abc123`).
-- Metadata is attached to each blob for future querying/filtering.
+- Postgres is the canonical store for all structured data.
+- The initial migration lives at
+  `netlify/database/migrations/20260616120000_create_owner_data_model.sql`.
+- One member may have many vehicles. UI and data access must treat vehicle records as a
+  list, not a single car.
+- Join and vehicle writes regenerate a private member/account JSON snapshot. This snapshot
+  is served by `member-data.js` after server-side Identity verification.
+- Public evidence dashboard data is served from anonymised aggregate JSON snapshots. These
+  snapshots may be emitted as public static JSON only after exclusion and verification
+  rules have been applied.
+- Blobs are for uploaded evidence files only. File metadata, review status, and ownership
+  remain in Postgres.
 
 ### VIN Deduplication
 
 - Full VINs are never stored. The Function creates an HMAC-SHA-256 using `VIN_PEPPER` and
   stores only the HMAC digest plus the final six characters of the VIN for reference.
-- If a VIN is provided and `VIN_PEPPER` is missing, reject the write entirely — do not
-  store a weak hash or the full VIN.
+- If a VIN is provided and `VIN_PEPPER` is missing, do not store or derive any VIN
+  identifier. If registration is present, save the registration-based record; if VIN is the
+  only identifier, reject the write with a clear configuration message.
 
 ## Public vs Private Data Boundaries
 
 | Layer | What it serves | Access control |
 |---|---|---|
 | **Public pages** (evidence dashboard, methodology, FAQ) | Anonymised aggregate statistics only. No individual records, no VINs, no personal data. | None — served as static HTML. |
-| **Member pages** (dashboard, account, submit vehicle data) | Server-side verified via `member-data.js`. Shows user's own join info and vehicle records. Login gate shown by default; content revealed only after Function returns 200. | Server-side JWT verification in `member-data.js`. No client-side gating — `member-auth.js` relies entirely on Function response. |
+| **Member pages** (dashboard, account, submit vehicle data) | Server-side verified via `member-data.js`. Shows the user's private generated member/account JSON snapshot, including zero, one, or many vehicle records. Login gate shown by default; content revealed only after Function returns 200. | Server-side JWT verification in `member-data.js`. No client-side gating — `member-auth.js` relies entirely on Function response. |
 | **Admin pages** (review queue, submissions) | Server-side verified via `admin-data.js`. Shows all join and vehicle records with review data. Login gate + admin-only gate shown by default; content revealed only after Function returns 200. | Server-side JWT + role check in `admin-data.js` (`app_metadata.roles` contains `admin`). Returns 403 for non-admin users. |
 
 ## Security Constraints
@@ -130,13 +141,13 @@ netlify.toml                 — build, redirect, header, and dev configuration
 
 ## Future Considerations
 
-- **Netlify Database / Postgres** — if querying across submissions becomes important
-   (filtering by model year, SoH range), a relational database may replace or supplement Blobs.
 - **Email notifications** — Netlify Functions can trigger emails via transactional providers
    (Postmark, SendGrid) for submission confirmations and status updates.
 - **Evidence document uploads** — Blobs can store binary files. Requires server-side
   validation of file type, size, and content before storage.
-- **Proposed Functions:** `submit-vehicle.js` (full evidence), `admin-update-submission.js` (review status changes), `public-stats.js` (aggregate data).
+- **Proposed Functions:** `submit-vehicle.js` (full evidence),
+  `admin-update-submission.js` (review status changes), `publish-public-stats.js`
+  (aggregate static JSON generation).
 
 ## Component Prompts
 
@@ -148,6 +159,7 @@ Use the smaller backend prompts for implementation details:
 - `12-functions-vehicle-basics.md` — signed-in vehicle basics.
 - `13-functions-member-admin-data.md` — member/admin data reads.
 - `14-functions-future-evidence-and-stats.md` — future evidence, uploads, review mutation, and public statistics.
+- `15-postgres-static-json-data-model.md` — canonical Postgres model and JSON snapshot rules.
 
 ## Validation
 

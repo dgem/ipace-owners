@@ -31,6 +31,7 @@ public site built with Eleventy (11ty) and deployed to Netlify.
 │   ├── send-magic-link.js
 │   ├── submit-join.js
 │   └── submit-vehicle-basics.js
+├── netlify/database/    # Netlify Database migrations
 ├── prompts/             # Sequenced prompts for rebuilding and evolving the product
 ├── .eleventy.js         # Eleventy configuration
 ├── netlify.toml         # Netlify build, redirect and header configuration
@@ -60,7 +61,7 @@ Eleventy v3 is used. The Eleventy config file is `.eleventy.js` (CommonJS format
 - **JavaScript:** Plain vanilla JS — no React, Vue, Svelte, or heavy frameworks
 - **Authentication:** Netlify Identity (`netlify-identity-widget` CDN)
 - **Hosting:** Netlify
-- **Backend (future):** Netlify Functions + Netlify Blobs
+- **Backend:** Netlify Functions + Netlify Database/Postgres for structured data; Netlify Blobs for future binary evidence files
 
 ## CSS conventions
 
@@ -109,6 +110,11 @@ Defined in `:root` in `site.css`. Key tokens:
 - Existing users can request another magic link through `POST /.netlify/functions/send-magic-link`
   without resubmitting the Join form.
 - Signed-in vehicle basics are stored by `POST /.netlify/functions/submit-vehicle-basics`.
+- Members may register multiple vehicles. Account/member pages should render vehicle lists,
+  not a single vehicle assumption.
+- Member/account JSON snapshots are private data and must be served only after
+  `member-data.js` verifies Identity server-side. Public static JSON is for anonymised
+  aggregate data only.
 - Member pages use `data-auth-gate` / `data-auth-content` attributes.
 - Admin pages use `data-admin-gate` / `data-admin-content` attributes.
 - **Frontend gating is not sufficient for real data access.** Future Netlify Functions
@@ -146,7 +152,7 @@ Defined in `:root` in `site.css`. Key tokens:
 - Tests should cover:
   - Server-side validation and authorization paths (unauthenticated, authenticated, admin).
   - Input sanitisation and edge cases (empty bodies, invalid JSON, honeypot fields).
-  - Storage-shaping logic (record structure, metadata, HMAC behaviour).
+- Storage-shaping logic (Postgres row structure, generated JSON snapshots, metadata, HMAC behaviour).
   - Magic-link handoff behaviour (new vs existing user flow).
 - Content-only changes (Markdown copy, CSS, static templates) need not add tests but must
   pass `npm run build`.

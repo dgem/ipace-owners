@@ -9,8 +9,8 @@ Use this prompt when changing:
 
 ## Goal
 
-Serve stored Join and vehicle-basics records only through server-verified Netlify Identity
-Functions. Do not rely on client-side gating for private data access.
+Serve private member/account snapshots and admin review data only through server-verified
+Netlify Identity Functions. Do not rely on client-side gating for private data access.
 
 ## Current Flow
 
@@ -19,13 +19,17 @@ Functions. Do not rely on client-side gating for private data access.
 - For admin pages, it fetches `/.netlify/functions/admin-data`.
 - Content is hidden by default and is revealed only after the relevant Function returns 200.
 - Login/admin gates remain visible for 401 or 403 responses.
+- Postgres is the canonical source for structured data. Member/account pages should be
+  served from a private generated JSON snapshot regenerated during Join signup and vehicle
+  add/update flows.
 
 ## `member-data.js`
 
 - Requires `context.clientContext.user.sub`.
-- Returns only the authenticated user's own records.
-- Join records are filtered by `identityUserId`.
-- Vehicle records are scoped under `vehicle-basics/<identity-user-id>/`.
+- Returns only the authenticated user's own private member/account snapshot.
+- The snapshot may include Join information and a list of zero, one, or many vehicles.
+- Do not serve member snapshots from public static files. They must be returned only after
+  server-side Identity verification.
 - Does not expose admin-only review data to members.
 
 Member responses may include:
@@ -41,7 +45,7 @@ Member responses may include:
 - Requires `admin` in `user.app_metadata.roles`.
 - Returns 401 for unauthenticated users.
 - Returns 403 for authenticated non-admin users.
-- Returns Join and vehicle-basics records for review.
+- Returns Join, member, vehicle, and vehicle-basics records for review.
 - Admin responses may include review state and `userEmailHash`.
 
 ## Browser Rendering
@@ -68,6 +72,7 @@ Required coverage:
 
 - Member endpoint rejects unauthenticated users.
 - Member endpoint returns only the current user's records.
+- Member endpoint supports multiple vehicle records for one user.
 - Admin endpoint rejects unauthenticated users.
 - Admin endpoint rejects authenticated non-admin users.
 - Admin endpoint returns review-capable records for admin users.

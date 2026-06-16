@@ -11,7 +11,8 @@ current Join and vehicle-basics storage into fuller evidence collection.
 ## Current Backend Stack
 
 - Netlify Functions for validation, permissions, form handling, and data access.
-- Netlify Blobs store named `owner-submissions`.
+- Netlify Database/Postgres for structured owner data.
+- Netlify Blobs only for binary evidence uploads.
 - Netlify Identity for authentication and roles.
 - Node tests with `node --test`.
 
@@ -21,12 +22,14 @@ current Join and vehicle-basics storage into fuller evidence collection.
   server-side through `context.clientContext.user`.
 - Admin Functions must verify both authentication and the `admin` role in
   `user.app_metadata.roles`.
-- Never store raw VINs in public static files, logs, test fixtures, or Blob records.
+- Never store raw VINs in public static files, logs, test fixtures, Blob records, or
+  Postgres rows.
 - Do not use plain SHA-256 for VIN deduplication.
 - Use HMAC-SHA-256 with `VIN_PEPPER` from Netlify environment variables for VIN
   deduplication.
-- If a VIN is provided and `VIN_PEPPER` is missing, reject the write. Do not store a weak
-  hash or a full VIN.
+- If a VIN is provided and `VIN_PEPPER` is missing, do not store or derive any VIN
+  identifier. If registration is present, save the registration-based record; if VIN is the
+  only identifier, reject the write with a clear configuration message.
 - Never log raw VINs, uploaded evidence contents, full personal records, Identity tokens,
   request bodies, or Identity response bodies.
 - Function logs may include request IDs, methods, origins, response status codes,
@@ -39,18 +42,17 @@ current Join and vehicle-basics storage into fuller evidence collection.
 
 ## Storage Model
 
-Use Netlify Blobs initially:
+Use Netlify Database/Postgres for structured data:
 
-- Join records: `join/<submission-id>.json`
-- Vehicle basics: `vehicle-basics/<identity-user-id>/<submission-id>.json`
-- Submission IDs use `<prefix>_<uuid>`.
-- Metadata is attached to each blob for future filtering and review.
-- Store owner/member metadata separately from vehicle evidence where practical.
-- Store evidence files as separate blobs with generated names when uploads are implemented.
-- Store public aggregate statistics as a derived cache.
-
-Consider Netlify Database/Postgres later if filtering, querying, exports, moderation
-workflows, or aggregate generation outgrow object storage.
+- Members, Join submissions, vehicles, battery readings, review state, and audit events are
+  stored in relational tables.
+- A member can have multiple vehicle records.
+- Member/account JSON snapshots are generated after signup and vehicle changes, stored
+  privately, and served only after server-side Identity verification.
+- Public aggregate JSON snapshots are generated from reviewed/anonymised data for static
+  dashboard rendering.
+- Store evidence files as separate blobs with generated names when uploads are implemented;
+  keep ownership, permissions, and review metadata in Postgres.
 
 ## Data Model Guidance
 

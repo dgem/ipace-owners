@@ -85,7 +85,8 @@ Provide frontend Identity UX for sign in, sign out, registration, member-only pa
 - GET only, CORS preflight support.
 - Requires `context.clientContext.user` — returns 401 if missing.
 - Lists `join/` records filtered by `identityUserId === user.sub`.
-- Lists `vehicle-basics/<user.sub>/` records (path-scoped to user).
+- Reads the authenticated user's private member/account snapshot, which may include
+  multiple vehicle records.
 - Returns `{ identityUserId, email, joinRecords[], vehicleRecords[] }`.
 - Does **not** expose `review` data to members.
 
@@ -95,7 +96,7 @@ Provide frontend Identity UX for sign in, sign out, registration, member-only pa
 - Requires `context.clientContext.user` — returns 401 if missing.
 - Requires `app_metadata.roles` contains `admin` — returns 403 if not admin.
 - Lists **all** `join/` records (no user filter).
-- Lists **all** `vehicle-basics/` records (no user filter).
+- Reads review-capable member, Join, vehicle, and vehicle-basics records from Postgres.
 - Returns `{ identityUserId, email, joinRecords[], vehicleRecords[] }`.
 - **Does** expose `review` data and `userEmailHash` to admins.
 
