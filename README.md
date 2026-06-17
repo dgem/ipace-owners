@@ -150,8 +150,9 @@ The OpenTofu config enables Firebase, Firestore, Cloud Functions, Cloud Storage,
 Manager and GitHub Workload Identity Federation. It also creates service accounts for
 GitHub deployment and Functions runtime.
 
-GitHub Actions deploys PRs to Firebase Hosting preview channels and deploys `main` to the
-production Firebase Hosting site. Required repository/environment secrets and variables:
+The same OpenTofu module bootstraps the GitHub Actions `staging` and `production`
+environments. It creates the environment variables and secrets consumed by the deploy
+workflows:
 
 - `GCP_WORKLOAD_IDENTITY_PROVIDER_STAGING` / `GCP_WORKLOAD_IDENTITY_PROVIDER_PRODUCTION`
 - `GCP_DEPLOYER_SERVICE_ACCOUNT_STAGING` / `GCP_DEPLOYER_SERVICE_ACCOUNT_PRODUCTION`
@@ -160,7 +161,21 @@ production Firebase Hosting site. Required repository/environment secrets and va
 - `VIN_PEPPER_STAGING` / `VIN_PEPPER_PRODUCTION`
 - `FIREBASE_STAGING_PROJECT_ID` / `FIREBASE_PRODUCTION_PROJECT_ID`
 - `FIREBASE_AUTH_DOMAIN_*`, `FIREBASE_APP_ID_*`, `FIREBASE_STORAGE_BUCKET_*`
-- `SNAPSHOT_BUCKET_*`, `ALLOWED_ORIGINS_*`, `FIREBASE_EMAIL_CONTINUE_URL_STAGING`
+- `SNAPSHOT_BUCKET_*`, `ALLOWED_ORIGINS_*`, `FIREBASE_EMAIL_CONTINUE_URL_*`
+
+Bootstrap requirements:
+
+- Set `GITHUB_TOKEN` locally with permission to administer repository Actions
+  environments, variables and secrets.
+- Provide the real Firebase web app config through uncommitted tfvars or `TF_VAR_*`
+  values: `firebase_web_api_key`, `firebase_auth_domain`, `firebase_app_id`,
+  `firebase_storage_bucket`, and `firebase_email_continue_url`.
+- Provide `vin_pepper` through an uncommitted tfvars file or `TF_VAR_vin_pepper`.
+- Set `manage_github_actions = false` only if you want to create the GCP resources without
+  touching GitHub repository settings.
+
+GitHub Actions deploys PRs to Firebase Hosting preview channels and deploys `main` to the
+production Firebase Hosting site.
 
 ### SSL and DNS
 

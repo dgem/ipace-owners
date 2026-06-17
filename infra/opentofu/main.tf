@@ -8,6 +8,10 @@ provider "google-beta" {
   region  = var.region
 }
 
+provider "github" {
+  owner = var.github_owner
+}
+
 locals {
   snapshot_bucket_name = "${var.project_id}-member-snapshots"
   deployer_account_id  = "github-deployer"

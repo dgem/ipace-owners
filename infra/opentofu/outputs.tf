@@ -21,3 +21,7 @@ output "github_deployer_service_account" {
 output "functions_runtime_service_account" {
   value = google_service_account.runtime.email
 }
+
+output "github_actions_environment" {
+  value = var.environment
+}

@@ -6,6 +6,13 @@ github_repo  = "ipace-owners"
 
 allowed_origins = "https://ipace-owners.org,https://www.ipace-owners.org"
 
+firebase_auth_domain        = "ipace-owners.org"
+firebase_app_id             = "replace-with-production-web-app-id"
+firebase_storage_bucket     = "replace-with-production-project.appspot.com"
+firebase_email_continue_url = "https://ipace-owners.org/account/"
+
+manage_github_actions = true
+
 # Set real values via environment variables or an uncommitted tfvars file:
 # TF_VAR_firebase_web_api_key=...
 # TF_VAR_vin_pepper=...

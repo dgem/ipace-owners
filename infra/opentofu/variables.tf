@@ -42,3 +42,29 @@ variable "allowed_origins" {
   type        = string
   default     = ""
 }
+
+variable "firebase_auth_domain" {
+  description = "Firebase Auth domain exposed to the browser build."
+  type        = string
+}
+
+variable "firebase_app_id" {
+  description = "Firebase Web App ID exposed to the browser build."
+  type        = string
+}
+
+variable "firebase_storage_bucket" {
+  description = "Firebase Storage bucket name exposed to the browser build."
+  type        = string
+}
+
+variable "firebase_email_continue_url" {
+  description = "URL Firebase email links should return to for this environment."
+  type        = string
+}
+
+variable "manage_github_actions" {
+  description = "Whether this module should create/update GitHub Actions environments, variables and secrets."
+  type        = bool
+  default     = true
+}

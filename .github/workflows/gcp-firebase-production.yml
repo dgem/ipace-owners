@@ -62,7 +62,7 @@ jobs:
           VIN_PEPPER: ${{ secrets.VIN_PEPPER_PRODUCTION }}
           SNAPSHOT_BUCKET: ${{ vars.SNAPSHOT_BUCKET_PRODUCTION }}
           ALLOWED_ORIGINS: ${{ vars.ALLOWED_ORIGINS_PRODUCTION }}
-          FIREBASE_EMAIL_CONTINUE_URL: https://ipace-owners.org/account/
+          FIREBASE_EMAIL_CONTINUE_URL: ${{ vars.FIREBASE_EMAIL_CONTINUE_URL_PRODUCTION }}
         run: |
           for fn in SendMagicLink SubmitJoin SubmitVehicleBasics MemberData AdminData; do
             gcloud functions deploy "$fn" \

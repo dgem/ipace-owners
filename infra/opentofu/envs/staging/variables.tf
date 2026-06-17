@@ -30,3 +30,24 @@ variable "allowed_origins" {
   type    = string
   default = ""
 }
+
+variable "firebase_auth_domain" {
+  type = string
+}
+
+variable "firebase_app_id" {
+  type = string
+}
+
+variable "firebase_storage_bucket" {
+  type = string
+}
+
+variable "firebase_email_continue_url" {
+  type = string
+}
+
+variable "manage_github_actions" {
+  type    = bool
+  default = true
+}
