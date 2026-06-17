@@ -92,6 +92,9 @@ during migration, but templates and client JavaScript should use `/api/*`.
 - Use the shared OpenTofu module in `infra/opentofu/modules/ipace-owners` from the single
   environment root in `infra/opentofu/env`. Staging and production must use the same root
   and differ only by tfvars/input values.
+- The environment root should allow `project_id` to be omitted when creating a GCP project,
+  deriving `${project_id_prefix}-${environment}` by default while still allowing an explicit
+  project ID for existing projects or global ID collisions.
 - Required resources include Firebase project enablement, Firestore native mode, Cloud
   Web App config, Firestore native mode, Cloud Storage snapshot bucket, Secret Manager
   secrets, Function runtime service account, and GitHub Workload Identity Federation.

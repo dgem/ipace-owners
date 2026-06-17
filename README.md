@@ -174,8 +174,12 @@ Bootstrap requirements:
 
 - Set `GITHUB_TOKEN` locally with permission to administer repository Actions
   environments, variables and secrets.
-- Provide `project_id`. If `create_gcp_project = true`, also provide either `gcp_org_id`
-  or `gcp_folder_id`, plus `billing_account`.
+- For an existing GCP project, provide `project_id`.
+- If `create_gcp_project = true`, either provide `project_id` explicitly or leave it empty
+  and let OpenTofu derive `${project_id_prefix}-${environment}`. The default prefix creates
+  `ipace-owners-staging` or `ipace-owners-production`; override `project_id` if that global
+  ID is unavailable. Also provide either `gcp_org_id` or `gcp_folder_id`, plus
+  `billing_account`.
 - Provide `site_url`, used as the Firebase email-link continue URL for that environment.
 - Provide `vin_pepper` through an uncommitted tfvars file or `TF_VAR_vin_pepper`.
 - Set `manage_github_actions = false` only if you want to create the GCP resources without

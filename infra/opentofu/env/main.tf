@@ -2,7 +2,7 @@ module "ipace_owners" {
   source = "../modules/ipace-owners"
 
   environment        = var.environment
-  project_id         = var.project_id
+  project_id         = local.effective_project_id
   create_gcp_project = var.create_gcp_project
   project_name       = var.project_name
   gcp_org_id         = var.gcp_org_id

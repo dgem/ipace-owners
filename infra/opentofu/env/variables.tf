@@ -4,8 +4,15 @@ variable "environment" {
 }
 
 variable "project_id" {
-  description = "GCP project ID for this environment. If create_gcp_project is true, this project will be created."
+  description = "GCP project ID for this environment. Leave empty with create_gcp_project=true to derive project_id_prefix-environment."
   type        = string
+  default     = ""
+}
+
+variable "project_id_prefix" {
+  description = "Prefix used to derive the GCP project ID when project_id is empty."
+  type        = string
+  default     = "ipace-owners"
 }
 
 variable "create_gcp_project" {
