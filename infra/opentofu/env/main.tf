@@ -1,6 +1,7 @@
 module "ipace_owners" {
-  source = "../.."
+  source = "../modules/ipace-owners"
 
+  environment        = var.environment
   project_id         = var.project_id
   create_gcp_project = var.create_gcp_project
   project_name       = var.project_name
@@ -9,7 +10,6 @@ module "ipace_owners" {
   billing_account    = var.billing_account
 
   region       = var.region
-  environment  = "production"
   github_owner = var.github_owner
   github_repo  = var.github_repo
   vin_pepper   = var.vin_pepper

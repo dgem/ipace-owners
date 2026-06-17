@@ -1,9 +1,10 @@
-project_id = "replace-with-staging-project-id"
-region     = "europe-west2"
+environment = "production"
+project_id  = "replace-with-production-project-id"
+region      = "europe-west2"
 
 # Set true if OpenTofu should create the GCP project. Leave false to use an existing project.
 create_gcp_project = false
-# project_name      = "I-PACE Owners Staging"
+# project_name      = "I-PACE Owners Production"
 # gcp_org_id        = "replace-with-org-id"
 # gcp_folder_id     = "replace-with-folder-id"
 # billing_account   = "000000-000000-000000"
@@ -11,8 +12,8 @@ create_gcp_project = false
 github_owner = "dgem"
 github_repo  = "ipace-owners"
 
-allowed_origins = "https://replace-with-staging-project.web.app,http://localhost:8080,http://localhost:5000"
-site_url        = "https://replace-with-staging-project.web.app/account/"
+allowed_origins = "https://ipace-owners.org,https://www.ipace-owners.org"
+site_url        = "https://ipace-owners.org/account/"
 
 manage_github_actions = true
 

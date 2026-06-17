@@ -135,16 +135,22 @@ The target deployment is two Firebase/GCP projects:
 - **staging** — PR preview channels and pre-merge testing.
 - **production** — `ipace-owners.org`, deployed after merge to `main`.
 
-Infrastructure is configured with OpenTofu under `infra/opentofu/`. Use the environment
-folders for staging and production, and provide real values through uncommitted tfvars or
-`TF_VAR_*` environment variables.
+Infrastructure is configured with OpenTofu under `infra/opentofu/`. The reusable module is
+in `infra/opentofu/modules/ipace-owners`; the single environment root is
+`infra/opentofu/env`. Staging and production use the same root with different tfvars.
 
 ```bash
-cd infra/opentofu/envs/staging
+cd infra/opentofu/env
 tofu init
-tofu plan
-tofu apply
+tofu plan -var-file=staging.tfvars
+tofu apply -var-file=staging.tfvars
+
+tofu plan -var-file=production.tfvars
+tofu apply -var-file=production.tfvars
 ```
+
+Do not commit real `*.tfvars` files. Use the checked-in `staging.tfvars.example` and
+`production.tfvars.example` files as templates, or provide values with `TF_VAR_*`.
 
 The OpenTofu config can create the GCP project, then enables Firebase, Firestore, Cloud
 Functions, Cloud Storage, Secret Manager and GitHub Workload Identity Federation. It also

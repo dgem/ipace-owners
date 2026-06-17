@@ -1,17 +1,3 @@
-provider "google" {
-  project = var.project_id
-  region  = var.region
-}
-
-provider "google-beta" {
-  project = var.project_id
-  region  = var.region
-}
-
-provider "github" {
-  owner = var.github_owner
-}
-
 locals {
   project_name         = var.project_name != "" ? var.project_name : "ipace-owners-${var.environment}"
   firebase_app_name    = var.firebase_web_app_display_name != "" ? var.firebase_web_app_display_name : "ipace-owners-${var.environment}"

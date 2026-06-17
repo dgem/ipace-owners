@@ -89,7 +89,9 @@ during migration, but templates and client JavaScript should use `/api/*`.
 
 ## Infrastructure and deployment
 
-- Use OpenTofu in `infra/opentofu/envs/staging` and `infra/opentofu/envs/production`.
+- Use the shared OpenTofu module in `infra/opentofu/modules/ipace-owners` from the single
+  environment root in `infra/opentofu/env`. Staging and production must use the same root
+  and differ only by tfvars/input values.
 - Required resources include Firebase project enablement, Firestore native mode, Cloud
   Web App config, Firestore native mode, Cloud Storage snapshot bucket, Secret Manager
   secrets, Function runtime service account, and GitHub Workload Identity Federation.
