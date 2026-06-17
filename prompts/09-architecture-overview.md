@@ -91,11 +91,13 @@ during migration, but templates and client JavaScript should use `/api/*`.
 
 - Use OpenTofu in `infra/opentofu/envs/staging` and `infra/opentofu/envs/production`.
 - Required resources include Firebase project enablement, Firestore native mode, Cloud
-  Storage snapshot bucket, Secret Manager secrets, Function runtime service account, and
-  GitHub Workload Identity Federation.
+  Web App config, Firestore native mode, Cloud Storage snapshot bucket, Secret Manager
+  secrets, Function runtime service account, and GitHub Workload Identity Federation.
 - The OpenTofu module should also bootstrap the GitHub Actions `staging` and `production`
-  environments, including the variables and secrets consumed by the deploy workflows. Keep
-  real secret values out of git; provide them through uncommitted tfvars or `TF_VAR_*`.
+  environments, including the variables and secrets consumed by the deploy workflows.
+  Firebase web API keys, app IDs, auth domains and storage bucket values should be derived
+  from resources created by OpenTofu, not pasted manually. Keep real secret values out of
+  git; provide the remaining secret `VIN_PEPPER` through uncommitted tfvars or `TF_VAR_*`.
 - GitHub Actions must run `npm test`, `npm run build`, and `go test ./...` for
   `functions/firebase-go` before deploying.
 - PRs deploy to staging preview channels and run smoke tests against the published URL.

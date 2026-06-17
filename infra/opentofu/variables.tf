@@ -1,6 +1,36 @@
 variable "project_id" {
-  description = "Existing GCP project ID for this environment."
+  description = "GCP project ID for this environment. If create_gcp_project is true, this project will be created."
   type        = string
+}
+
+variable "create_gcp_project" {
+  description = "Whether OpenTofu should create the GCP project before enabling Firebase."
+  type        = bool
+  default     = false
+}
+
+variable "project_name" {
+  description = "Display name for the GCP project when create_gcp_project is true."
+  type        = string
+  default     = ""
+}
+
+variable "gcp_org_id" {
+  description = "GCP organisation ID for project creation. Leave empty when using folder_id or an existing project."
+  type        = string
+  default     = ""
+}
+
+variable "gcp_folder_id" {
+  description = "GCP folder ID for project creation. Leave empty when using org_id or an existing project."
+  type        = string
+  default     = ""
+}
+
+variable "billing_account" {
+  description = "Billing account ID to attach when create_gcp_project is true."
+  type        = string
+  default     = ""
 }
 
 variable "region" {
@@ -25,12 +55,6 @@ variable "github_repo" {
   default     = "ipace-owners"
 }
 
-variable "firebase_web_api_key" {
-  description = "Firebase Web API key used by the server-side email-link handoff."
-  type        = string
-  sensitive   = true
-}
-
 variable "vin_pepper" {
   description = "Secret pepper for VIN HMAC deduplication. Never commit a real value."
   type        = string
@@ -43,24 +67,15 @@ variable "allowed_origins" {
   default     = ""
 }
 
-variable "firebase_auth_domain" {
-  description = "Firebase Auth domain exposed to the browser build."
+variable "site_url" {
+  description = "Canonical URL for this environment, used as the Firebase email-link continue URL."
   type        = string
 }
 
-variable "firebase_app_id" {
-  description = "Firebase Web App ID exposed to the browser build."
+variable "firebase_web_app_display_name" {
+  description = "Display name for the Firebase Web App created for this environment."
   type        = string
-}
-
-variable "firebase_storage_bucket" {
-  description = "Firebase Storage bucket name exposed to the browser build."
-  type        = string
-}
-
-variable "firebase_email_continue_url" {
-  description = "URL Firebase email links should return to for this environment."
-  type        = string
+  default     = ""
 }
 
 variable "manage_github_actions" {

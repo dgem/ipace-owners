@@ -13,8 +13,27 @@ provider "github" {
 }
 
 locals {
+  project_name         = var.project_name != "" ? var.project_name : "ipace-owners-${var.environment}"
+  firebase_app_name    = var.firebase_web_app_display_name != "" ? var.firebase_web_app_display_name : "ipace-owners-${var.environment}"
   snapshot_bucket_name = "${var.project_id}-member-snapshots"
   deployer_account_id  = "github-deployer"
+  project_parent = var.gcp_folder_id != "" ? {
+    type = "folder"
+    id   = var.gcp_folder_id
+    } : var.gcp_org_id != "" ? {
+    type = "organization"
+    id   = var.gcp_org_id
+  } : null
+}
+
+resource "google_project" "default" {
+  count = var.create_gcp_project ? 1 : 0
+
+  project_id      = var.project_id
+  name            = local.project_name
+  org_id          = local.project_parent != null && local.project_parent.type == "organization" ? local.project_parent.id : null
+  folder_id       = local.project_parent != null && local.project_parent.type == "folder" ? local.project_parent.id : null
+  billing_account = var.billing_account != "" ? var.billing_account : null
 }
 
 resource "google_project_service" "required" {
@@ -36,6 +55,8 @@ resource "google_project_service" "required" {
 
   service            = each.key
   disable_on_destroy = false
+
+  depends_on = [google_project.default]
 }
 
 resource "google_firebase_project" "default" {
@@ -43,6 +64,22 @@ resource "google_firebase_project" "default" {
   project  = var.project_id
 
   depends_on = [google_project_service.required]
+}
+
+resource "google_firebase_web_app" "default" {
+  provider = google-beta
+
+  project      = var.project_id
+  display_name = local.firebase_app_name
+
+  depends_on = [google_firebase_project.default]
+}
+
+data "google_firebase_web_app_config" "default" {
+  provider = google-beta
+
+  project    = var.project_id
+  web_app_id = google_firebase_web_app.default.app_id
 }
 
 resource "google_firestore_database" "default" {
@@ -75,7 +112,7 @@ resource "google_secret_manager_secret" "firebase_web_api_key" {
 
 resource "google_secret_manager_secret_version" "firebase_web_api_key" {
   secret      = google_secret_manager_secret.firebase_web_api_key.id
-  secret_data = var.firebase_web_api_key
+  secret_data = data.google_firebase_web_app_config.default.api_key
 }
 
 resource "google_secret_manager_secret" "vin_pepper" {

@@ -3,10 +3,10 @@ locals {
 
   github_actions_variables = {
     "ALLOWED_ORIGINS_${local.github_actions_suffix}"             = var.allowed_origins
-    "FIREBASE_APP_ID_${local.github_actions_suffix}"             = var.firebase_app_id
-    "FIREBASE_AUTH_DOMAIN_${local.github_actions_suffix}"        = var.firebase_auth_domain
-    "FIREBASE_EMAIL_CONTINUE_URL_${local.github_actions_suffix}" = var.firebase_email_continue_url
-    "FIREBASE_STORAGE_BUCKET_${local.github_actions_suffix}"     = var.firebase_storage_bucket
+    "FIREBASE_APP_ID_${local.github_actions_suffix}"             = google_firebase_web_app.default.app_id
+    "FIREBASE_AUTH_DOMAIN_${local.github_actions_suffix}"        = data.google_firebase_web_app_config.default.auth_domain
+    "FIREBASE_EMAIL_CONTINUE_URL_${local.github_actions_suffix}" = var.site_url
+    "FIREBASE_STORAGE_BUCKET_${local.github_actions_suffix}"     = data.google_firebase_web_app_config.default.storage_bucket
     "FIREBASE_${local.github_actions_suffix}_PROJECT_ID"         = var.project_id
     "GCP_REGION"                                                 = var.region
     "SNAPSHOT_BUCKET_${local.github_actions_suffix}"             = google_storage_bucket.snapshots.name
@@ -21,7 +21,7 @@ locals {
   ])
 
   github_actions_secrets = {
-    "FIREBASE_WEB_API_KEY_${local.github_actions_suffix}"           = var.firebase_web_api_key
+    "FIREBASE_WEB_API_KEY_${local.github_actions_suffix}"           = data.google_firebase_web_app_config.default.api_key
     "GCP_DEPLOYER_SERVICE_ACCOUNT_${local.github_actions_suffix}"   = google_service_account.github_deployer.email
     "GCP_FUNCTIONS_SERVICE_ACCOUNT_${local.github_actions_suffix}"  = google_service_account.runtime.email
     "GCP_WORKLOAD_IDENTITY_PROVIDER_${local.github_actions_suffix}" = google_iam_workload_identity_pool_provider.github.name

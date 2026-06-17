@@ -10,6 +10,18 @@ output "snapshot_bucket" {
   value = google_storage_bucket.snapshots.name
 }
 
+output "firebase_web_app_id" {
+  value = google_firebase_web_app.default.app_id
+}
+
+output "firebase_auth_domain" {
+  value = data.google_firebase_web_app_config.default.auth_domain
+}
+
+output "firebase_storage_bucket" {
+  value = data.google_firebase_web_app_config.default.storage_bucket
+}
+
 output "github_workload_identity_provider" {
   value = google_iam_workload_identity_pool_provider.github.name
 }
