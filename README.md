@@ -28,7 +28,7 @@ Static, mobile-first, accessible website built with:
 
 ### Prerequisites
 
-- Node.js 20+
+- Node.js 24 LTS
 - npm 9+
 - Go 1.23+
 - Firebase CLI, installed through `npm install`

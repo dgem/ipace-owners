@@ -106,6 +106,10 @@ during migration, but templates and client JavaScript should use `/api/*`.
   git; provide the remaining secret `VIN_PEPPER` through uncommitted tfvars or `TF_VAR_*`.
 - GitHub Actions must run `npm test`, `npm run build`, and `go test ./...` for
   `functions/firebase-go` before deploying.
+- GitHub Actions should use the current Node.js LTS from `.nvmrc` and Node 24-compatible
+  action majors. Deploy Cloud Function runtime environment variables from an env vars file
+  rather than comma-separated `--set-env-vars`, because values such as `ALLOWED_ORIGINS`
+  contain commas.
 - PRs deploy to staging preview channels and run smoke tests against the published URL.
 - Merges to `main` deploy production.
 

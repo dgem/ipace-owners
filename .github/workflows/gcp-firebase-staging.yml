@@ -13,9 +13,9 @@ jobs:
     runs-on: ubuntu-latest
     environment: staging
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -44,12 +44,12 @@ jobs:
           FIREBASE_STORAGE_BUCKET: ${{ vars.FIREBASE_STORAGE_BUCKET_STAGING }}
         run: npm run build
 
-      - uses: google-github-actions/auth@v2
+      - uses: google-github-actions/auth@v3
         with:
           workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER_STAGING }}
           service_account: ${{ secrets.GCP_DEPLOYER_SERVICE_ACCOUNT_STAGING }}
 
-      - uses: google-github-actions/setup-gcloud@v2
+      - uses: google-github-actions/setup-gcloud@v3
 
       - name: Deploy Go Cloud Functions
         env:
@@ -62,6 +62,7 @@ jobs:
           ALLOWED_ORIGINS: ${{ vars.ALLOWED_ORIGINS_STAGING }}
           FIREBASE_EMAIL_CONTINUE_URL: ${{ vars.FIREBASE_EMAIL_CONTINUE_URL_STAGING }}
         run: |
+          node scripts/write-functions-env.mjs
           for fn in SendMagicLink SubmitJoin SubmitVehicleBasics MemberData AdminData; do
             gcloud functions deploy "$fn" \
               --gen2 \
@@ -73,7 +74,7 @@ jobs:
               --trigger-http \
               --allow-unauthenticated \
               --service-account="$FUNCTIONS_SERVICE_ACCOUNT" \
-              --set-env-vars="FIREBASE_WEB_API_KEY=$FIREBASE_WEB_API_KEY,VIN_PEPPER=$VIN_PEPPER,SNAPSHOT_BUCKET=$SNAPSHOT_BUCKET,ALLOWED_ORIGINS=$ALLOWED_ORIGINS,FIREBASE_EMAIL_CONTINUE_URL=$FIREBASE_EMAIL_CONTINUE_URL"
+              --env-vars-file=functions-env.json
           done
 
       - name: Deploy Firebase Hosting preview
@@ -92,7 +93,7 @@ jobs:
 
       - name: Comment preview details
         if: always()
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const fs = require('fs');

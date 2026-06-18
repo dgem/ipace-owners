@@ -1,0 +1,19 @@
+import { writeFileSync } from "node:fs";
+
+const required = [
+  "FIREBASE_WEB_API_KEY",
+  "VIN_PEPPER",
+  "SNAPSHOT_BUCKET",
+  "ALLOWED_ORIGINS",
+  "FIREBASE_EMAIL_CONTINUE_URL",
+];
+
+const missing = required.filter((name) => !process.env[name]);
+
+if (missing.length) {
+  throw new Error(`Missing required function environment values: ${missing.join(", ")}`);
+}
+
+const values = Object.fromEntries(required.map((name) => [name, process.env[name]]));
+
+writeFileSync("functions-env.json", `${JSON.stringify(values, null, 2)}\n`);
