@@ -180,6 +180,9 @@ Bootstrap requirements:
   `ipace-owners-staging` or `ipace-owners-production`; override `project_id` if that global
   ID is unavailable. Also provide either `gcp_org_id` or `gcp_folder_id`, plus
   `billing_account`.
+- The Google credentials running OpenTofu need enough bootstrap permission to create or
+  manage the target project, enable services, create service accounts, create Workload
+  Identity pools, create Secret Manager secrets and write project IAM bindings.
 - Provide `site_url`, used as the Firebase email-link continue URL for that environment.
 - Provide `vin_pepper` through an uncommitted tfvars file or `TF_VAR_vin_pepper`.
 - Set `manage_github_actions = false` only if you want to create the GCP resources without

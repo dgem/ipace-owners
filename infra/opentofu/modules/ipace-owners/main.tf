@@ -36,9 +36,11 @@ resource "google_project_service" "required" {
     "identitytoolkit.googleapis.com",
     "run.googleapis.com",
     "secretmanager.googleapis.com",
+    "serviceusage.googleapis.com",
     "storage.googleapis.com",
   ])
 
+  project            = var.project_id
   service            = each.key
   disable_on_destroy = false
 
@@ -86,6 +88,8 @@ resource "google_storage_bucket" "snapshots" {
   versioning {
     enabled = true
   }
+
+  depends_on = [google_project_service.required]
 }
 
 resource "google_secret_manager_secret" "firebase_web_api_key" {
@@ -94,6 +98,8 @@ resource "google_secret_manager_secret" "firebase_web_api_key" {
   replication {
     auto {}
   }
+
+  depends_on = [google_project_service.required]
 }
 
 resource "google_secret_manager_secret_version" "firebase_web_api_key" {
@@ -107,6 +113,8 @@ resource "google_secret_manager_secret" "vin_pepper" {
   replication {
     auto {}
   }
+
+  depends_on = [google_project_service.required]
 }
 
 resource "google_secret_manager_secret_version" "vin_pepper" {
@@ -117,6 +125,8 @@ resource "google_secret_manager_secret_version" "vin_pepper" {
 resource "google_service_account" "runtime" {
   account_id   = "ipace-functions"
   display_name = "I-PACE Owners Cloud Functions runtime"
+
+  depends_on = [google_project_service.required]
 }
 
 resource "google_project_iam_member" "runtime_firestore" {
@@ -152,6 +162,8 @@ resource "google_secret_manager_secret_iam_member" "runtime_vin_pepper" {
 resource "google_service_account" "github_deployer" {
   account_id   = local.deployer_account_id
   display_name = "GitHub Actions deployer for ${var.environment}"
+
+  depends_on = [google_project_service.required]
 }
 
 resource "google_project_iam_member" "github_deployer_roles" {
@@ -173,6 +185,8 @@ resource "google_project_iam_member" "github_deployer_roles" {
 resource "google_iam_workload_identity_pool" "github" {
   workload_identity_pool_id = "github-${var.environment}"
   display_name              = "GitHub Actions ${var.environment}"
+
+  depends_on = [google_project_service.required]
 }
 
 resource "google_iam_workload_identity_pool_provider" "github" {
