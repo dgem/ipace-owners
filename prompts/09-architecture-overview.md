@@ -91,7 +91,8 @@ during migration, but templates and client JavaScript should use `/api/*`.
 
 - Use the shared OpenTofu module in `infra/opentofu/modules/ipace-owners` from the single
   environment root in `infra/opentofu/env`. Staging and production must use the same root
-  and differ only by tfvars/input values.
+  and differ only by workspace plus tfvars/input values. Use the `staging` workspace with
+  `staging.tfvars` and the `production` workspace with `production.tfvars`.
 - The environment root should allow `project_id` to be omitted when creating a GCP project,
   deriving `${project_id_prefix}-${environment}` by default while still allowing an explicit
   project ID for existing projects or global ID collisions.

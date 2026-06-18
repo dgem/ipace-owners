@@ -138,16 +138,23 @@ The target deployment is two Firebase/GCP projects:
 Infrastructure is configured with OpenTofu under `infra/opentofu/`. The reusable module is
 in `infra/opentofu/modules/ipace-owners`; the single environment root is
 `infra/opentofu/env`. Staging and production use the same root with different tfvars.
+Use separate OpenTofu workspaces so the two environments cannot share one local state file.
 
 ```bash
 cd infra/opentofu/env
 tofu init
+tofu workspace new staging || tofu workspace select staging
 tofu plan -var-file=staging.tfvars
 tofu apply -var-file=staging.tfvars
 
+tofu workspace new production || tofu workspace select production
 tofu plan -var-file=production.tfvars
 tofu apply -var-file=production.tfvars
 ```
+
+Before applying, check the active workspace with `tofu workspace show`. It should match the
+tfvars file you are about to use: `staging` with `staging.tfvars`, and `production` with
+`production.tfvars`.
 
 Do not commit real `*.tfvars` files. Use the checked-in `staging.tfvars.example` and
 `production.tfvars.example` files as templates, or provide values with `TF_VAR_*`.

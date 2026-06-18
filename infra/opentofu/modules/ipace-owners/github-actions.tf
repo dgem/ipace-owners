@@ -50,10 +50,10 @@ resource "github_actions_environment_variable" "actions" {
 resource "github_actions_environment_secret" "actions" {
   for_each = var.manage_github_actions ? local.github_actions_secret_names : []
 
-  repository      = var.github_repo
-  environment     = var.environment
-  secret_name     = each.key
-  plaintext_value = local.github_actions_secrets[each.key]
+  repository  = var.github_repo
+  environment = var.environment
+  secret_name = each.key
+  value       = local.github_actions_secrets[each.key]
 
   depends_on = [github_repository_environment.actions]
 }
