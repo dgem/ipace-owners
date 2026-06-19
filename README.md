@@ -161,8 +161,9 @@ Do not commit real `*.tfvars` files. Use the checked-in `staging.tfvars.example`
 
 The OpenTofu config can create the GCP project, then enables Firebase, Firestore, Cloud
 Functions, Cloud Storage, Secret Manager and GitHub Workload Identity Federation. It also
-creates the Firebase Web App, service accounts for GitHub deployment and Functions runtime,
-and reads the generated Firebase web config needed by the site build.
+creates the Firebase Web App, configures Firebase Authentication for passwordless email
+sign-in, creates service accounts for GitHub deployment and Functions runtime, and reads
+the generated Firebase web config needed by the site build.
 
 The same OpenTofu module bootstraps the GitHub Actions `staging` and `production`
 environments. It creates the environment variables and secrets consumed by the deploy

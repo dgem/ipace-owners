@@ -63,6 +63,22 @@ resource "google_firebase_web_app" "default" {
   depends_on = [google_firebase_project.default]
 }
 
+resource "google_identity_platform_config" "default" {
+  provider = google-beta
+  project  = var.project_id
+
+  sign_in {
+    allow_duplicate_emails = false
+
+    email {
+      enabled           = true
+      password_required = false
+    }
+  }
+
+  depends_on = [google_project_service.required]
+}
+
 data "google_firebase_web_app_config" "default" {
   provider = google-beta
 
