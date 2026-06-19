@@ -3,6 +3,13 @@ locals {
   firebase_app_name    = var.firebase_web_app_display_name != "" ? var.firebase_web_app_display_name : "ipace-owners-${var.environment}"
   snapshot_bucket_name = "${var.project_id}-member-snapshots"
   deployer_account_id  = "github-deployer"
+  email_continue_host  = regex("^https?://([^/]+)", var.site_url)[0]
+  firebase_auth_authorized_domains = distinct(compact(concat([
+    local.email_continue_host,
+    "${var.project_id}.firebaseapp.com",
+    "${var.project_id}.web.app",
+    "localhost",
+  ], var.firebase_auth_authorized_domains)))
   project_parent = var.gcp_folder_id != "" ? {
     type = "folder"
     id   = var.gcp_folder_id
@@ -64,8 +71,9 @@ resource "google_firebase_web_app" "default" {
 }
 
 resource "google_identity_platform_config" "default" {
-  provider = google-beta
-  project  = var.project_id
+  provider           = google-beta
+  project            = var.project_id
+  authorized_domains = local.firebase_auth_authorized_domains
 
   sign_in {
     allow_duplicate_emails = false

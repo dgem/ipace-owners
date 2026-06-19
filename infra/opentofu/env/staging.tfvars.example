@@ -20,6 +20,7 @@ github_repo  = "ipace-owners"
 
 allowed_origins = "https://replace-with-staging-project.web.app,http://localhost:8080,http://localhost:5000"
 site_url        = "https://replace-with-staging-project.web.app/account/"
+# firebase_auth_authorized_domains = ["stage.ipace-owners.org"]
 
 manage_github_actions = true
 

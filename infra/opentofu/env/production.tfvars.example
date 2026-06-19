@@ -20,6 +20,7 @@ github_repo  = "ipace-owners"
 
 allowed_origins = "https://ipace-owners.org,https://www.ipace-owners.org"
 site_url        = "https://ipace-owners.org/account/"
+# firebase_auth_authorized_domains = ["www.ipace-owners.org"]
 
 manage_github_actions = true
 

@@ -100,7 +100,8 @@ during migration, but templates and client JavaScript should use `/api/*`.
   Web App config, Firestore native mode, Cloud Storage snapshot bucket, Secret Manager
   secrets, Function runtime service account, and GitHub Workload Identity Federation.
 - OpenTofu must configure Firebase Authentication / Identity Platform for passwordless
-  email sign-in, with email sign-in enabled and password-required disabled.
+  email sign-in, with email sign-in enabled, password-required disabled, and authorized
+  domains derived from `site_url` plus any explicit extra auth domains.
 - The OpenTofu module should also bootstrap the GitHub Actions `staging` and `production`
   environments, including the variables and secrets consumed by the deploy workflows.
   Firebase web API keys, app IDs, auth domains and storage bucket values should be derived

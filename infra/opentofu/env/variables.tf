@@ -85,6 +85,12 @@ variable "site_url" {
   type        = string
 }
 
+variable "firebase_auth_authorized_domains" {
+  description = "Additional Firebase Auth authorized domains for email-link continue URLs."
+  type        = list(string)
+  default     = []
+}
+
 variable "firebase_web_app_display_name" {
   description = "Display name for the Firebase Web App created for this environment."
   type        = string

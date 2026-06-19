@@ -197,6 +197,8 @@ Bootstrap requirements:
   project. You can also align local ADC with:
   `gcloud auth application-default set-quota-project ipace-owners-staging`.
 - Provide `site_url`, used as the Firebase email-link continue URL for that environment.
+  OpenTofu adds the host from `site_url` to Firebase Auth authorized domains. Add any
+  extra hosts, such as `www.ipace-owners.org`, with `firebase_auth_authorized_domains`.
 - Provide `vin_pepper` through an uncommitted tfvars file or `TF_VAR_vin_pepper`.
 - Set `manage_github_actions = false` only if you want to create the GCP resources without
   touching GitHub repository settings.
