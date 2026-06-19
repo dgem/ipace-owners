@@ -85,7 +85,7 @@ jobs:
           CHANNEL_ID: pr-${{ github.event.pull_request.number }}
         run: |
           npx firebase-tools hosting:channel:deploy "$CHANNEL_ID" --project "$GCP_PROJECT_ID" --expires 14d --json > firebase-preview.json
-          node -e "const fs=require('fs'); const raw=fs.readFileSync('firebase-preview.json','utf8'); const match=raw.match(/https:\/\/[^\s\"']+/); if(!match) throw new Error('No preview URL found'); fs.appendFileSync(process.env.GITHUB_OUTPUT, 'url='+match[0]+'\n');"
+          node scripts/extract-firebase-preview-url.mjs firebase-preview.json
 
       - name: Smoke test preview
         env:

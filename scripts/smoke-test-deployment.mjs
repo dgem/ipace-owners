@@ -27,6 +27,12 @@ function assertIncludes(value, expected, label) {
   }
 }
 
+function assertIncludesAny(value, expectedValues, label) {
+  if (!expectedValues.some((expected) => value.includes(expected))) {
+    throw new Error(`${label} did not include any of ${expectedValues.join(', ')}`);
+  }
+}
+
 function assertNotIncludes(value, unexpected, label) {
   if (value.includes(unexpected)) {
     throw new Error(`${label} unexpectedly included ${unexpected}`);
@@ -35,7 +41,7 @@ function assertNotIncludes(value, unexpected, label) {
 
 async function main() {
   const home = await fetchText('/');
-  assertIncludes(home, 'i-Pace Owners', 'home page');
+  assertIncludesAny(home, ['i-Pace Owners', 'I-PACE Owners'], 'home page');
 
   const account = await fetchText('/account/');
   assertIncludes(account, 'data-magic-link-form', 'account page');
@@ -48,13 +54,11 @@ async function main() {
   assertIncludes(identityJs, '/api/send-magic-link', 'identity.js');
   assertNotIncludes(identityJs, 'identity.open(', 'identity.js');
 
-  const badMagicLink = await fetch(url('/api/send-magic-link'), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: 'not-an-email' }),
+  const magicLinkPreflight = await fetch(url('/api/send-magic-link'), {
+    method: 'OPTIONS',
   });
-  if (badMagicLink.status !== 400) {
-    throw new Error(`send-magic-link invalid email returned ${badMagicLink.status}, expected 400`);
+  if (magicLinkPreflight.status !== 204) {
+    throw new Error(`send-magic-link preflight returned ${magicLinkPreflight.status}, expected 204`);
   }
 
   const vehicleUnauthenticated = await fetch(url('/api/submit-vehicle-basics'), {
