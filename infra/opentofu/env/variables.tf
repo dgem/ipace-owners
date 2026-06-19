@@ -15,6 +15,12 @@ variable "project_id_prefix" {
   default     = "ipace-owners"
 }
 
+variable "quota_project" {
+  description = "Quota/billing project sent as x-goog-user-project for local ADC calls. Defaults to the effective environment project."
+  type        = string
+  default     = ""
+}
+
 variable "create_gcp_project" {
   description = "Whether OpenTofu should create the GCP project before enabling Firebase."
   type        = bool

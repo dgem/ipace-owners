@@ -6,6 +6,7 @@ region      = "europe-west2"
 # OpenTofu derives "ipace-owners-staging".
 # project_id        = "replace-with-staging-project-id"
 # project_id_prefix = "ipace-owners"
+# quota_project     = "ipace-owners-staging"
 
 # Set true if OpenTofu should create the GCP project. Leave false to use an existing project.
 create_gcp_project = false

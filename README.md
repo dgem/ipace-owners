@@ -191,10 +191,11 @@ Bootstrap requirements:
 - The Google credentials running OpenTofu need enough bootstrap permission to create or
   manage the target project, enable services, create service accounts, create Workload
   Identity pools, create Secret Manager secrets and write project IAM bindings.
-- If using local Application Default Credentials, set an ADC quota project before running
-  OpenTofu because Firebase APIs require one:
-  `gcloud auth application-default set-quota-project ipace-owners-staging`
-  or the equivalent project for the environment you are applying.
+- If using local Application Default Credentials, Firebase APIs require a quota project.
+  The provider sends `quota_project` as `x-goog-user-project`; by default this is the
+  environment project, or you can set `quota_project` in tfvars to an existing bootstrap
+  project. You can also align local ADC with:
+  `gcloud auth application-default set-quota-project ipace-owners-staging`.
 - Provide `site_url`, used as the Firebase email-link continue URL for that environment.
 - Provide `vin_pepper` through an uncommitted tfvars file or `TF_VAR_vin_pepper`.
 - Set `manage_github_actions = false` only if you want to create the GCP resources without
