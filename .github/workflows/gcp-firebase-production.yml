@@ -28,14 +28,13 @@ jobs:
           cache-dependency-path: functions/firebase-go/go.sum
 
       - name: Install dependencies
-        run: npm ci
+        run: make ci-install
 
       - name: Test site
-        run: npm test
+        run: make test-node
 
       - name: Test Go functions
-        working-directory: functions/firebase-go
-        run: go test ./...
+        run: make test-go
 
       - name: Build site
         env:
@@ -44,7 +43,7 @@ jobs:
           FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PRODUCTION_PROJECT_ID }}
           FIREBASE_APP_ID: ${{ vars.FIREBASE_APP_ID_PRODUCTION }}
           FIREBASE_STORAGE_BUCKET: ${{ vars.FIREBASE_STORAGE_BUCKET_PRODUCTION }}
-        run: npm run build
+        run: make build
 
       - uses: google-github-actions/auth@v3
         with:
@@ -64,28 +63,14 @@ jobs:
           SNAPSHOT_BUCKET: ${{ vars.SNAPSHOT_BUCKET_PRODUCTION }}
           ALLOWED_ORIGINS: ${{ vars.ALLOWED_ORIGINS_PRODUCTION }}
           FIREBASE_EMAIL_CONTINUE_URL: ${{ vars.FIREBASE_EMAIL_CONTINUE_URL_PRODUCTION }}
-        run: |
-          node scripts/write-functions-env.mjs
-          for fn in SendMagicLink SubmitJoin SubmitVehicleBasics MemberData AdminData; do
-            gcloud functions deploy "$fn" \
-              --gen2 \
-              --project="$GCP_PROJECT_ID" \
-              --region="$GCP_REGION" \
-              --runtime=go126 \
-              --source=functions/firebase-go \
-              --entry-point="$fn" \
-              --trigger-http \
-              --allow-unauthenticated \
-              --service-account="$FUNCTIONS_SERVICE_ACCOUNT" \
-              --env-vars-file=functions-env.json
-          done
+        run: make deploy-functions
 
       - name: Deploy Firebase Hosting production
         env:
           GCP_PROJECT_ID: ${{ vars.FIREBASE_PRODUCTION_PROJECT_ID }}
-        run: npx firebase-tools deploy --only hosting --project "$GCP_PROJECT_ID"
+        run: make deploy-hosting-production
 
       - name: Smoke test production
         env:
           SMOKE_BASE_URL: https://ipace-owners.org
-        run: node scripts/smoke-test-deployment.mjs
+        run: make smoke

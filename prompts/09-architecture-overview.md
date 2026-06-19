@@ -28,6 +28,7 @@ src/assets/js/member-auth.js Server-verified member/admin data loading
 functions/firebase-go/       Go Cloud Functions
 infra/opentofu/              GCP/Firebase infrastructure
 firebase.json                Hosting headers, rewrites and Functions config
+Makefile                     Shared local and CI command entrypoints
 prompts/                     Sequenced rebuild/evolution prompts
 ```
 
@@ -107,8 +108,12 @@ during migration, but templates and client JavaScript should use `/api/*`.
   Firebase web API keys, app IDs, auth domains and storage bucket values should be derived
   from resources created by OpenTofu, not pasted manually. Keep real secret values out of
   git; provide the remaining secret `VIN_PEPPER` through uncommitted tfvars or `TF_VAR_*`.
-- GitHub Actions must run `npm test`, `npm run build`, and `go test ./...` for
-  `functions/firebase-go` before deploying.
+- The repository Makefile is the shared command surface for local development and CI.
+  `make` and `make help` must print documented targets; `make functions` must list the
+  Cloud Function entrypoints deployed by `make deploy-functions`.
+- GitHub Actions must delegate common operations through Make targets. Before deploying,
+  run `make test-node`, `make test-go`, and `make build`; local verification can use
+  `make test` and `make build`.
 - GitHub Actions should use the current Node.js LTS from `.nvmrc`, Go 1.26 / `go126` for
   Cloud Run functions, and Node 24-compatible action majors. Deploy Cloud Function runtime
   environment variables from an env vars file rather than comma-separated `--set-env-vars`,

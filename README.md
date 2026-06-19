@@ -31,26 +31,33 @@ Static, mobile-first, accessible website built with:
 - Node.js 24 LTS
 - npm 9+
 - Go 1.26+
+- Make
 - Firebase CLI, installed through `npm install`
 - OpenTofu 1.8+ for infrastructure changes
+
+Most local and CI tasks are exposed through `make`. Run this to list available targets:
+
+```bash
+make
+```
 
 ### Install
 
 ```bash
-npm install
+make install
 ```
 
 ### Development server
 
 ```bash
-npm run dev
+make dev
 ```
 
 Starts the current local development server. During the GCP migration, the static site can
 also be run directly with:
 
 ```bash
-npm run dev:eleventy
+make dev-eleventy
 ```
 
 To test Firebase Authentication and Go Functions locally, run the Firebase emulators or test
@@ -70,7 +77,7 @@ Do not commit `.env` files containing real values.
 ### Production build
 
 ```bash
-npm run build
+make build
 ```
 
 Output is written to `_site/`.
@@ -78,21 +85,21 @@ Output is written to `_site/`.
 ### Tests
 
 ```bash
-npm test
+make test
 ```
 
-Runs the Node test suite for form wiring, auth UI behaviour, and legacy backend guards.
-Go Cloud Functions are tested separately with:
+Runs the Node test suite for form wiring, auth UI behaviour, legacy backend guards, and
+the Go Cloud Function tests. They can also be run separately:
 
 ```bash
-cd functions/firebase-go
-go test ./...
+make test-node
+make test-go
 ```
 
 ### Clean
 
 ```bash
-npm run clean
+make clean
 ```
 
 Removes the `_site/` directory.
@@ -337,8 +344,8 @@ when joining the group.
 
 - Tests are required for behavioural changes (Functions, Identity handoff, form submission wiring,
   shared utilities).
-- Run `npm test` for behavioural changes and ensure all tests pass.
-- Run `npm run build` for every change and ensure the site builds cleanly.
+- Run `make test` for behavioural changes and ensure all tests pass.
+- Run `make build` for every change and ensure the site builds cleanly.
 - Pressure-test your changes locally (happy path, error paths, and access-control paths where relevant)
   before opening a PR.
 
@@ -351,7 +358,7 @@ when joining the group.
   - How to verify locally.
   - Which tests were added/updated (or why tests were not needed).
 - Use Copilot automatic review as a first pass, but require human review before merge.
-- Do not merge until both `npm run build` and `npm test` pass.
+- Do not merge until `make build` and `make test` pass.
 
 ### Commit message conventions
 

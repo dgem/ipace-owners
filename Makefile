@@ -1,0 +1,75 @@
+.DEFAULT_GOAL := help
+
+SHELL := /bin/bash
+
+GCP_REGION ?= europe-west2
+FUNCTION_ENTRYPOINTS ?= SendMagicLink SubmitJoin SubmitVehicleBasics MemberData AdminData
+FIREBASE_PREVIEW_JSON ?= firebase-preview.json
+
+.PHONY: help functions install ci-install dev dev-eleventy build clean test test-node test-go smoke write-functions-env deploy-functions deploy-hosting-preview deploy-hosting-production
+
+help: ## Show available make targets.
+	@awk 'BEGIN {FS = ":.*##"; printf "Available targets:\n"} /^[a-zA-Z0-9_.-]+:.*##/ {printf "  %-28s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+
+functions: ## List Cloud Function entrypoints deployed by deploy-functions.
+	@printf '%s\n' $(FUNCTION_ENTRYPOINTS)
+
+install: ## Install npm dependencies for local development.
+	npm install
+
+ci-install: ## Install npm dependencies reproducibly for CI.
+	npm ci
+
+dev: ## Start the full local development server.
+	npm run dev
+
+dev-eleventy: ## Start the Eleventy-only local development server.
+	npm run dev:eleventy
+
+build: ## Build the static site into _site/.
+	npm run build
+
+clean: ## Remove generated static site output.
+	npm run clean
+
+test: test-node test-go ## Run all local test suites.
+
+test-node: ## Run the Node.js test suite.
+	npm test
+
+test-go: ## Run Go Cloud Function tests.
+	cd functions/firebase-go && go test ./...
+
+smoke: ## Run deployment smoke tests against SMOKE_BASE_URL.
+	npm run smoke:deployment
+
+write-functions-env: ## Write the Cloud Functions environment file from current env vars.
+	node scripts/write-functions-env.mjs
+
+deploy-functions: write-functions-env ## Deploy all Go Cloud Functions to GCP.
+	@if [ -z "$${GCP_PROJECT_ID}" ]; then echo "GCP_PROJECT_ID is required"; exit 1; fi
+	@if [ -z "$${FUNCTIONS_SERVICE_ACCOUNT}" ]; then echo "FUNCTIONS_SERVICE_ACCOUNT is required"; exit 1; fi
+	@for fn in $(FUNCTION_ENTRYPOINTS); do \
+		echo "Deploying Cloud Function $$fn"; \
+		gcloud functions deploy "$$fn" \
+			--gen2 \
+			--project="$${GCP_PROJECT_ID}" \
+			--region="$${GCP_REGION:-$(GCP_REGION)}" \
+			--runtime=go126 \
+			--source=functions/firebase-go \
+			--entry-point="$$fn" \
+			--trigger-http \
+			--allow-unauthenticated \
+			--service-account="$${FUNCTIONS_SERVICE_ACCOUNT}" \
+			--env-vars-file=functions-env.json; \
+	done
+
+deploy-hosting-preview: ## Deploy Firebase Hosting preview channel and extract its URL.
+	@if [ -z "$${GCP_PROJECT_ID}" ]; then echo "GCP_PROJECT_ID is required"; exit 1; fi
+	@if [ -z "$${CHANNEL_ID}" ]; then echo "CHANNEL_ID is required"; exit 1; fi
+	npx firebase-tools hosting:channel:deploy "$${CHANNEL_ID}" --project "$${GCP_PROJECT_ID}" --expires 14d --json > "$(FIREBASE_PREVIEW_JSON)"
+	node scripts/extract-firebase-preview-url.mjs "$(FIREBASE_PREVIEW_JSON)"
+
+deploy-hosting-production: ## Deploy Firebase Hosting production.
+	@if [ -z "$${GCP_PROJECT_ID}" ]; then echo "GCP_PROJECT_ID is required"; exit 1; fi
+	npx firebase-tools deploy --only hosting --project "$${GCP_PROJECT_ID}"

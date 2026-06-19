@@ -26,14 +26,13 @@ jobs:
           cache-dependency-path: functions/firebase-go/go.sum
 
       - name: Install dependencies
-        run: npm ci
+        run: make ci-install
 
       - name: Test site
-        run: npm test
+        run: make test-node
 
       - name: Test Go functions
-        working-directory: functions/firebase-go
-        run: go test ./...
+        run: make test-go
 
       - name: Build site
         env:
@@ -42,7 +41,7 @@ jobs:
           FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_STAGING_PROJECT_ID }}
           FIREBASE_APP_ID: ${{ vars.FIREBASE_APP_ID_STAGING }}
           FIREBASE_STORAGE_BUCKET: ${{ vars.FIREBASE_STORAGE_BUCKET_STAGING }}
-        run: npm run build
+        run: make build
 
       - uses: google-github-actions/auth@v3
         with:
@@ -62,35 +61,19 @@ jobs:
           SNAPSHOT_BUCKET: ${{ vars.SNAPSHOT_BUCKET_STAGING }}
           ALLOWED_ORIGINS: ${{ vars.ALLOWED_ORIGINS_STAGING }}
           FIREBASE_EMAIL_CONTINUE_URL: ${{ vars.FIREBASE_EMAIL_CONTINUE_URL_STAGING }}
-        run: |
-          node scripts/write-functions-env.mjs
-          for fn in SendMagicLink SubmitJoin SubmitVehicleBasics MemberData AdminData; do
-            gcloud functions deploy "$fn" \
-              --gen2 \
-              --project="$GCP_PROJECT_ID" \
-              --region="$GCP_REGION" \
-              --runtime=go126 \
-              --source=functions/firebase-go \
-              --entry-point="$fn" \
-              --trigger-http \
-              --allow-unauthenticated \
-              --service-account="$FUNCTIONS_SERVICE_ACCOUNT" \
-              --env-vars-file=functions-env.json
-          done
+        run: make deploy-functions
 
       - name: Deploy Firebase Hosting preview
         id: hosting
         env:
           GCP_PROJECT_ID: ${{ vars.FIREBASE_STAGING_PROJECT_ID }}
           CHANNEL_ID: pr-${{ github.event.pull_request.number }}
-        run: |
-          npx firebase-tools hosting:channel:deploy "$CHANNEL_ID" --project "$GCP_PROJECT_ID" --expires 14d --json > firebase-preview.json
-          node scripts/extract-firebase-preview-url.mjs firebase-preview.json
+        run: make deploy-hosting-preview
 
       - name: Smoke test preview
         env:
           SMOKE_BASE_URL: ${{ steps.hosting.outputs.url }}
-        run: node scripts/smoke-test-deployment.mjs
+        run: make smoke
 
       - name: Comment preview details
         if: always()

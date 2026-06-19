@@ -30,6 +30,14 @@ Create a small, maintainable Eleventy 3 site that can be deployed to Firebase Ho
   - `npm run dev:eleventy` starts the plain Eleventy dev server for static-only debugging.
   - `npm run build` builds the production site.
   - `npm run clean` removes `_site/`.
+- Add a `Makefile` as the shared local and CI command surface:
+  - `make` and `make help` list available targets extracted from target descriptions.
+  - `make install`, `make dev`, `make dev-eleventy`, `make build`, `make clean`,
+    `make test-node`, `make test-go`, and `make test` delegate to the underlying npm/Go
+    commands.
+  - `make functions` lists deployed Cloud Function entrypoints.
+  - Deployment workflows should call Make targets rather than duplicating raw npm, Go,
+    Firebase, or gcloud command bodies.
 - Include `package-lock.json`.
 - Include `firebase-tools` as a development dependency so deployments and preview channels are repeatable.
 - Configure Firebase Hosting in `firebase.json` with publish directory `_site`, security
@@ -48,6 +56,8 @@ Create a small, maintainable Eleventy 3 site that can be deployed to Firebase Ho
 - Form page layout for multi-step forms.
 - Update/news collection sorted newest first.
 - README describing setup, development, build, Firebase/GCP deployment, Identity setup, known limitations, and current repo structure.
+- README should document Makefile targets as the preferred local development and CI
+  command surface.
 - README should explain Firebase build-time config and local/static debugging.
 - README should document the native Copilot PR review ruleset if it is enabled for the
   repository.
@@ -57,10 +67,11 @@ Create a small, maintainable Eleventy 3 site that can be deployed to Firebase Ho
 
 ## Validation
 
-- Run `npm run build`.
+- Run `make build`.
 - Confirm generated pages appear in `_site/`.
-- Confirm `npm run dev` starts the documented local development server.
-- Confirm `npm run dev:eleventy` starts the Eleventy development server.
-- Confirm `npm run clean` removes `_site/`.
+- Confirm `make` lists available targets.
+- Confirm `make dev` starts the documented local development server.
+- Confirm `make dev-eleventy` starts the Eleventy development server.
+- Confirm `make clean` removes `_site/`.
 - Confirm implemented persistence is limited to Join submissions and signed-in vehicle
   basics, with no real seed/test owner data committed to the repository.

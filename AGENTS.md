@@ -31,6 +31,7 @@ public site built with Eleventy (11ty) and deployed to Firebase/GCP.
 ├── prompts/             # Sequenced prompts for rebuilding and evolving the product
 ├── .eleventy.js         # Eleventy configuration
 ├── firebase.json        # Firebase Hosting rewrites, headers and Functions config
+├── Makefile             # Shared local/CI command entrypoints
 ├── package.json         # npm scripts and dependencies
 ├── AGENTS.md            # This file
 └── README.md            # Setup and deployment documentation
@@ -39,13 +40,14 @@ public site built with Eleventy (11ty) and deployed to Firebase/GCP.
 ## Development commands
 
 ```bash
-npm install    # Install dependencies
-npm run dev    # Start the local development server
-npm run dev:eleventy # Start Eleventy only, without backend APIs
-npm run build  # Build production site to _site/
-npm test       # Run Node tests for critical form and auth wiring
-npm run clean  # Remove _site/ directory
-cd functions/firebase-go && go test ./... # Run Go Function tests
+make            # List available local/CI targets
+make install    # Install dependencies for local development
+make dev        # Start the local development server
+make dev-eleventy # Start Eleventy only, without backend APIs
+make build      # Build production site to _site/
+make test       # Run Node and Go tests
+make clean      # Remove _site/ directory
+make functions  # List deployed Cloud Function entrypoints
 ```
 
 Eleventy v3 is used. The Eleventy config file is `.eleventy.js` (CommonJS format).
@@ -147,14 +149,14 @@ Defined in `:root` in `site.css`. Key tokens:
 - **Tests are required for all behavioural changes.** Any change to Go Functions, form
   submission wiring, Firebase Auth handoff, or shared utilities must include or update
   tests.
-- Run `npm test` before considering a change complete. All existing tests must pass.
+- Run `make test` before considering a change complete. All existing tests must pass.
 - Tests should cover:
   - Server-side validation and authorization paths (unauthenticated, authenticated, admin).
   - Input sanitisation and edge cases (empty bodies, invalid JSON, honeypot fields).
   - Storage-shaping logic (Firestore document structure, generated JSON snapshots, metadata, HMAC behaviour).
   - Magic-link handoff behaviour (new vs existing user flow).
 - Content-only changes (Markdown copy, CSS, static templates) need not add tests but must
-  pass `npm run build`.
+  pass `make build`.
 
 ## Code review and pull requests
 
@@ -163,12 +165,12 @@ Defined in `:root` in `site.css`. Key tokens:
 - Every PR must include a clear description covering:
   - What changed and why.
   - Which files were added or modified.
-  - How to verify the change locally (e.g., `npm run dev` and navigate to X).
+  - How to verify the change locally (e.g., `make dev` and navigate to X).
   - Whether tests were added or updated.
 - **Code review is required before merging.** Use GitHub's automatic Copilot code review
   (configured via repository branch ruleset) as a first pass, but every PR must receive
   human review for logic, security, accessibility, and tone.
-- Do not merge until `npm run build`, `npm test`, and Go Function tests pass cleanly.
+- Do not merge until `make build` and `make test` pass cleanly.
 
 ## Commit message conventions
 

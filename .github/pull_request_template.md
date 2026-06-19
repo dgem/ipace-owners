@@ -34,8 +34,8 @@ Document the key happy-path, error-path, and access-control checks you ran.
 
 ### Required checks
 
-- [ ] I ran npm run build and it passed.
-- [ ] I ran npm test for behavioural changes and all tests passed.
+- [ ] I ran `make build` and it passed.
+- [ ] I ran `make test` for behavioural changes and all tests passed.
 - [ ] I added or updated tests for behavioural changes, or explained why tests were not needed.
 - [ ] I pressure-tested this change locally (happy path, error path, and auth/role path where relevant).
 - [ ] This PR includes enough detail for a reviewer to reproduce and validate the change.
