@@ -79,21 +79,26 @@ func SendMagicLink(w http.ResponseWriter, r *http.Request) {
 	email := cleanEmail(req.Email)
 	if !isEmail(email) {
 		logEvent("send-magic-link", "warn", "request rejected: invalid email", map[string]any{
-			"origin": r.Header.Get("Origin"),
+			"origin":      r.Header.Get("Origin"),
+			"emailMasked": maskedEmail(req.Email),
 		})
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "Valid email address required"})
 		return
 	}
 
+	fields := emailLogFields(email)
+	fields["origin"] = r.Header.Get("Origin")
+	logEvent("send-magic-link", "info", "firebase email link handoff starting", fields)
+
 	if err := sendFirebaseEmailLink(r.Context(), email); err != nil {
-		logEvent("send-magic-link", "warn", "firebase email link handoff failed", map[string]any{
-			"emailHash": emailFingerprint(email),
-			"error":     err.Error(),
-		})
+		fields := emailLogFields(email)
+		fields["origin"] = r.Header.Get("Origin")
+		fields["error"] = err.Error()
+		logEvent("send-magic-link", "warn", "firebase email link handoff failed", fields)
 	} else {
-		logEvent("send-magic-link", "info", "firebase email link handoff accepted", map[string]any{
-			"emailHash": emailFingerprint(email),
-		})
+		fields := emailLogFields(email)
+		fields["origin"] = r.Header.Get("Origin")
+		logEvent("send-magic-link", "info", "firebase email link handoff accepted", fields)
 	}
 
 	// Do not expose whether Firebase Auth recognised the account.
@@ -172,23 +177,41 @@ func SubmitJoin(w http.ResponseWriter, r *http.Request) {
 		record.IdentityUserID = user.UID
 	}
 
+	previousJoinCount, err := joinSubmissionCount(r.Context(), record.UserEmailHash)
+	if err != nil {
+		fields := emailLogFields(email)
+		fields["error"] = err.Error()
+		logEvent("submit-join", "warn", "repeat join check failed", fields)
+	} else if previousJoinCount > 0 {
+		fields := emailLogFields(email)
+		fields["previousJoinCount"] = previousJoinCount
+		fields["signedIn"] = user != nil
+		logEvent("submit-join", "info", "repeat join email received", fields)
+	}
+
 	if err := saveJoin(r.Context(), record); err != nil {
-		logEvent("submit-join", "error", "record save failed", map[string]any{
-			"emailHash": record.UserEmailHash,
-			"error":     err.Error(),
-		})
+		fields := emailLogFields(email)
+		fields["error"] = err.Error()
+		logEvent("submit-join", "error", "record save failed", fields)
 		writeJSON(w, http.StatusInternalServerError, map[string]any{"ok": false, "error": "Could not save submission"})
 		return
 	}
 
 	magicLinkSent := true
 	if user == nil {
+		fields := emailLogFields(email)
+		fields["origin"] = r.Header.Get("Origin")
+		logEvent("submit-join", "info", "firebase email link handoff starting", fields)
 		if err := sendFirebaseEmailLink(r.Context(), email); err != nil {
 			magicLinkSent = false
-			logEvent("submit-join", "warn", "firebase email link handoff failed", map[string]any{
-				"emailHash": record.UserEmailHash,
-				"error":     err.Error(),
-			})
+			fields := emailLogFields(email)
+			fields["origin"] = r.Header.Get("Origin")
+			fields["error"] = err.Error()
+			logEvent("submit-join", "warn", "firebase email link handoff failed", fields)
+		} else {
+			fields := emailLogFields(email)
+			fields["origin"] = r.Header.Get("Origin")
+			logEvent("submit-join", "info", "firebase email link handoff accepted", fields)
 		}
 	} else {
 		if err := regenerateMemberSnapshot(r.Context(), user.UID, user.Email); err != nil {
@@ -351,6 +374,9 @@ func sendFirebaseEmailLink(ctx context.Context, email string) error {
 	if continueURL == "" {
 		continueURL = "https://ipace-owners.org/account/"
 	}
+	fields := emailLogFields(email)
+	fields["continueHost"] = urlHost(continueURL)
+	logEvent("firebase-email-link", "info", "identity toolkit request prepared", fields)
 	payload := map[string]any{
 		"requestType":        "EMAIL_SIGNIN",
 		"email":              email,
@@ -415,6 +441,29 @@ func saveJoin(ctx context.Context, record joinRecord) error {
 		return upsertMember(ctx, record.IdentityUserID, record.Contact.Email, record.Contact.Name, record.Contact.Country, record.Membership.Relationship)
 	}
 	return nil
+}
+
+func joinSubmissionCount(ctx context.Context, emailHash string) (int, error) {
+	if emailHash == "" {
+		return 0, nil
+	}
+	db, err := firestoreClient(ctx)
+	if err != nil {
+		return 0, err
+	}
+	iter := db.Collection("joinSubmissions").Where("userEmailHash", "==", emailHash).Documents(ctx)
+	defer iter.Stop()
+	count := 0
+	for {
+		_, err := iter.Next()
+		if err == iterator.Done {
+			return count, nil
+		}
+		if err != nil {
+			return count, err
+		}
+		count++
+	}
 }
 
 func saveVehicle(ctx context.Context, record vehicleRecord) error {

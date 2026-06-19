@@ -62,6 +62,32 @@ func TestCleaners(t *testing.T) {
 	}
 }
 
+func TestEmailLogHelpersDoNotExposeRawEmail(t *testing.T) {
+	email := "Driver.Name@example.co.uk"
+	if got := maskedEmail(email); got != "d***@e***.uk" {
+		t.Fatalf("maskedEmail() = %q", got)
+	}
+
+	fields := emailLogFields(email)
+	if fields["emailHash"] == "" {
+		t.Fatal("emailLogFields missing emailHash")
+	}
+	if fields["emailMasked"] != "d***@e***.uk" {
+		t.Fatalf("emailMasked = %q", fields["emailMasked"])
+	}
+	for _, value := range fields {
+		if value == cleanEmail(email) {
+			t.Fatal("emailLogFields exposed raw email")
+		}
+	}
+}
+
+func TestURLHost(t *testing.T) {
+	if got := urlHost("https://stage.ipace-owners.org/account/?x=1"); got != "stage.ipace-owners.org" {
+		t.Fatalf("urlHost() = %q", got)
+	}
+}
+
 func TestHMACDoesNotExposeRawVIN(t *testing.T) {
 	vin := "SADHA2B10K1F12345"
 	digest := hmacValue(vin, "test-secret")

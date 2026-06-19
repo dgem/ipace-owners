@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"regexp"
 	"strconv"
@@ -164,6 +165,42 @@ func cleanDecimal(value string, min float64, max float64) *float64 {
 func emailFingerprint(email string) string {
 	sum := sha256.Sum256([]byte(strings.ToLower(email)))
 	return hex.EncodeToString(sum[:])[:16]
+}
+
+func maskedEmail(email string) string {
+	email = cleanEmail(email)
+	parts := strings.Split(email, "@")
+	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+		return ""
+	}
+	local := parts[0]
+	domain := parts[1]
+	localPrefix := local[:1]
+	domainParts := strings.Split(domain, ".")
+	domainPrefix := domain[:1]
+	tld := ""
+	if len(domainParts) > 1 {
+		tld = domainParts[len(domainParts)-1]
+	}
+	if tld != "" {
+		return localPrefix + "***@" + domainPrefix + "***." + tld
+	}
+	return localPrefix + "***@" + domainPrefix + "***"
+}
+
+func emailLogFields(email string) map[string]any {
+	return map[string]any{
+		"emailHash":   emailFingerprint(email),
+		"emailMasked": maskedEmail(email),
+	}
+}
+
+func urlHost(rawURL string) string {
+	parsed, err := url.Parse(rawURL)
+	if err != nil {
+		return ""
+	}
+	return parsed.Host
 }
 
 func hmacValue(value string, secret string) string {

@@ -30,8 +30,12 @@ magic-link request path for existing users.
 - `SendMagicLink` calls Firebase Identity Toolkit server-side and returns generic success
   for syntactically valid requests. Do not reveal whether the email address is registered.
 - Reject disallowed origins before triggering email side effects.
-- Log only email fingerprints and provider status/error summaries, never raw email bodies
-  or tokens.
+- Log email fingerprints, masked email addresses, origin/continue-host diagnostics, and
+  provider status/error summaries. Never log raw email addresses, request bodies, Identity
+  tokens, or full provider response bodies.
+- If the same email address submits Join more than once, keep the browser response generic
+  but log that the email hash has previous Join submissions so operators can distinguish
+  repeat attempts from first-time registration.
 
 ## Join record shape
 
@@ -79,6 +83,5 @@ Update Node tests for browser wiring and Go tests for handlers. Required coverag
 
 ## Validation
 
-- Run `npm test`.
-- Run `npm run build`.
-- Run `go test ./...` in `functions/firebase-go`.
+- Run `make test`.
+- Run `make build`.

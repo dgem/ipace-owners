@@ -31,7 +31,8 @@ current Join and vehicle-basics storage into fuller evidence collection.
 - Never log raw VINs, uploaded evidence contents, full personal records, Identity tokens,
   request bodies, or provider response bodies.
 - Function logs may include request IDs, methods, origins, response status codes,
-  submission IDs, short one-way email/user fingerprints, and boolean diagnostics.
+  submission IDs, short one-way email/user fingerprints, masked email addresses, provider
+  error summaries, continue URL hosts, and boolean diagnostics.
 - Reject disallowed browser origins before side effects such as sending emails or writing
   records.
 - Validate all input server-side, even when the browser form already validates it.
@@ -53,9 +54,8 @@ Use Firestore for structured data:
 
 ## Validation
 
-- Run `npm test`.
-- Run `npm run build`.
-- Run `go test ./...` in `functions/firebase-go`.
+- Run `make test`.
+- Run `make build`.
 - Add or update tests for server-side validation, authorization, storage shaping, and
   security boundaries.
 - Confirm no real owner data, raw VINs, Identity tokens, or private evidence files are
