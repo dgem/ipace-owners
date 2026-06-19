@@ -40,6 +40,8 @@ if (!preferred) {
   throw new Error("No Firebase Hosting preview URL found in firebase-preview.json");
 }
 
+console.error(`Using Firebase Hosting preview URL: ${preferred}`);
+
 if (process.env.GITHUB_OUTPUT) {
   appendFileSync(process.env.GITHUB_OUTPUT, `url=${preferred}\n`);
 } else {

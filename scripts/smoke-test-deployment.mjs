@@ -14,11 +14,22 @@ function url(path) {
 }
 
 async function fetchText(path) {
-  const res = await fetch(url(path), { redirect: 'follow' });
+  const target = url(path);
+  const res = await fetch(target, { redirect: 'follow' });
   if (!res.ok) {
-    throw new Error(`${path} returned ${res.status}`);
+    throw new Error(`${path} returned ${res.status} from ${target}`);
   }
   return res.text();
+}
+
+function excerpt(value) {
+  return value
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 500);
 }
 
 function assertIncludes(value, expected, label) {
@@ -29,7 +40,7 @@ function assertIncludes(value, expected, label) {
 
 function assertIncludesAny(value, expectedValues, label) {
   if (!expectedValues.some((expected) => value.includes(expected))) {
-    throw new Error(`${label} did not include any of ${expectedValues.join(', ')}`);
+    throw new Error(`${label} did not include any of ${expectedValues.join(', ')}. Fetched ${baseUrl.toString()} and saw: ${excerpt(value)}`);
   }
 }
 
@@ -40,8 +51,10 @@ function assertNotIncludes(value, unexpected, label) {
 }
 
 async function main() {
+  console.log(`Running smoke tests for ${baseUrl.toString()}`);
+
   const home = await fetchText('/');
-  assertIncludesAny(home, ['i-Pace Owners', 'I-PACE Owners'], 'home page');
+  assertIncludesAny(home, ['i-Pace Owners', 'I-PACE Owners', 'Owners working together'], 'home page');
 
   const account = await fetchText('/account/');
   assertIncludes(account, 'data-magic-link-form', 'account page');
