@@ -173,6 +173,7 @@ resource "google_project_iam_member" "github_deployer_roles" {
     "roles/cloudfunctions.developer",
     "roles/firebasehosting.admin",
     "roles/iam.serviceAccountUser",
+    "roles/run.admin",
     "roles/serviceusage.serviceUsageConsumer",
     "roles/storage.admin",
   ])

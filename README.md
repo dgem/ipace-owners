@@ -30,7 +30,7 @@ Static, mobile-first, accessible website built with:
 
 - Node.js 24 LTS
 - npm 9+
-- Go 1.23+
+- Go 1.26+
 - Firebase CLI, installed through `npm install`
 - OpenTofu 1.8+ for infrastructure changes
 

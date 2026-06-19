@@ -70,7 +70,7 @@ jobs:
               --gen2 \
               --project="$GCP_PROJECT_ID" \
               --region="$GCP_REGION" \
-              --runtime=go123 \
+              --runtime=go126 \
               --source=functions/firebase-go \
               --entry-point="$fn" \
               --trigger-http \
