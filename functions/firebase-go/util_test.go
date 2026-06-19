@@ -75,6 +75,17 @@ func TestHMACDoesNotExposeRawVIN(t *testing.T) {
 	}
 }
 
+func TestProjectIDFallbacks(t *testing.T) {
+	t.Setenv("GOOGLE_CLOUD_PROJECT", "")
+	t.Setenv("GCP_PROJECT", "")
+	t.Setenv("FIREBASE_PROJECT_ID", "firebase-project")
+	t.Setenv("PROJECT_ID", "generic-project")
+
+	if got := projectID(); got != "firebase-project" {
+		t.Fatalf("projectID() = %q, want firebase-project", got)
+	}
+}
+
 func TestCORSPreflight(t *testing.T) {
 	req := httptest.NewRequest(http.MethodOptions, "/api/send-magic-link", nil)
 	req.Header.Set("Origin", "https://ipace-owners.org")

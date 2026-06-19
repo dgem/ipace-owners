@@ -56,6 +56,7 @@ jobs:
       - name: Deploy Go Cloud Functions
         env:
           GCP_PROJECT_ID: ${{ vars.FIREBASE_PRODUCTION_PROJECT_ID }}
+          FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PRODUCTION_PROJECT_ID }}
           GCP_REGION: ${{ vars.GCP_REGION || 'europe-west2' }}
           FUNCTIONS_SERVICE_ACCOUNT: ${{ secrets.GCP_FUNCTIONS_SERVICE_ACCOUNT_PRODUCTION }}
           FIREBASE_WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY_PRODUCTION }}

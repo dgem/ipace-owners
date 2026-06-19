@@ -1,6 +1,7 @@
 import { writeFileSync } from "node:fs";
 
 const required = [
+  "FIREBASE_PROJECT_ID",
   "FIREBASE_WEB_API_KEY",
   "VIN_PEPPER",
   "SNAPSHOT_BUCKET",
@@ -15,5 +16,7 @@ if (missing.length) {
 }
 
 const values = Object.fromEntries(required.map((name) => [name, process.env[name]]));
+values.GOOGLE_CLOUD_PROJECT = values.FIREBASE_PROJECT_ID;
+values.GCP_PROJECT = values.FIREBASE_PROJECT_ID;
 
 writeFileSync("functions-env.json", `${JSON.stringify(values, null, 2)}\n`);

@@ -14,6 +14,7 @@ test("writes function env vars as JSON without splitting comma-separated origins
     cwd,
     env: {
       ...process.env,
+      FIREBASE_PROJECT_ID: "ipace-owners-staging",
       FIREBASE_WEB_API_KEY: "api-key",
       VIN_PEPPER: "pepper",
       SNAPSHOT_BUCKET: "snapshots",
@@ -25,11 +26,14 @@ test("writes function env vars as JSON without splitting comma-separated origins
   const written = JSON.parse(readFileSync(join(cwd, "functions-env.json"), "utf8"));
 
   assert.deepEqual(written, {
+    FIREBASE_PROJECT_ID: "ipace-owners-staging",
     FIREBASE_WEB_API_KEY: "api-key",
     VIN_PEPPER: "pepper",
     SNAPSHOT_BUCKET: "snapshots",
     ALLOWED_ORIGINS: "https://stage.ipace-owners.org,http://localhost:8080,http://localhost:5000",
     FIREBASE_EMAIL_CONTINUE_URL: "https://stage.ipace-owners.org/account/",
+    GOOGLE_CLOUD_PROJECT: "ipace-owners-staging",
+    GCP_PROJECT: "ipace-owners-staging",
   });
 });
 

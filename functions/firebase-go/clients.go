@@ -27,7 +27,7 @@ var (
 )
 
 func projectID() string {
-	for _, key := range []string{"GOOGLE_CLOUD_PROJECT", "GCP_PROJECT", "PROJECT_ID"} {
+	for _, key := range []string{"GOOGLE_CLOUD_PROJECT", "GCP_PROJECT", "FIREBASE_PROJECT_ID", "PROJECT_ID"} {
 		if value := os.Getenv(key); value != "" {
 			return value
 		}
