@@ -258,8 +258,8 @@ compactSection: true
 
       <!-- Shown for guests — revealed by identity.js after form submit -->
       <div data-registration-guest hidden>
-        <p style="color: var(--color-text-muted);">We're sending a sign-in link to
-          <strong data-registration-email>your email address</strong>.
+        <p style="color: var(--color-text-muted);">Your sign-in link status for
+          <strong data-registration-email>your email address</strong> is shown below.
         </p>
 
         <!-- Shown once the magic link email has been dispatched -->
@@ -272,7 +272,8 @@ compactSection: true
 
         <!-- Shown if the API call fails -->
         <div data-registration-error hidden style="margin-top: var(--space-4);">
-          <p style="color: var(--color-text-muted);">We couldn't send your link right now.
+          <p style="color: var(--color-danger);"><strong>Your join details were saved, but we couldn't send your sign-in link.</strong></p>
+          <p style="color: var(--color-text-muted);">
           Use the <strong>Sign in</strong> button in the header, or email us at
           <a href="mailto:contact@ipace-owners.org">contact@ipace-owners.org</a>.</p>
         </div>

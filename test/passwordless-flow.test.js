@@ -43,6 +43,14 @@ test('Join completion does not offer vehicle submission until signed in', functi
   assert.match(css, /\[hidden\]\s*\{\s*display:\s*none !important;/);
 });
 
+test('Join completion separates saved state from magic-link delivery', function () {
+  var join = read('src/join.njk');
+
+  assert.match(join, /Your join details have been saved/);
+  assert.match(join, /Your join details were saved, but we couldn't send your sign-in link/);
+  assert.doesNotMatch(join, /We're sending a sign-in link/);
+});
+
 test('member data fetches include Identity bearer tokens', function () {
   var memberAuth = read('src/assets/js/member-auth.js');
 

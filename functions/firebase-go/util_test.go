@@ -3,6 +3,7 @@ package ipace
 import (
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -83,6 +84,16 @@ func TestProjectIDFallbacks(t *testing.T) {
 
 	if got := projectID(); got != "firebase-project" {
 		t.Fatalf("projectID() = %q, want firebase-project", got)
+	}
+}
+
+func TestIdentityToolkitErrorMessage(t *testing.T) {
+	body := `{"error":{"code":400,"message":"INVALID_CONTINUE_URI : Continue URL is not whitelisted.","status":"INVALID_ARGUMENT"}}`
+
+	got := identityToolkitErrorMessage(strings.NewReader(body))
+
+	if !strings.Contains(got, "INVALID_ARGUMENT") || !strings.Contains(got, "INVALID_CONTINUE_URI") {
+		t.Fatalf("identityToolkitErrorMessage() = %q", got)
 	}
 }
 

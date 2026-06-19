@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -354,9 +355,36 @@ func sendFirebaseEmailLink(ctx context.Context, email string) error {
 	}
 	defer res.Body.Close()
 	if res.StatusCode < 200 || res.StatusCode > 299 {
-		return fmt.Errorf("identity toolkit returned %d", res.StatusCode)
+		return fmt.Errorf("identity toolkit returned %d: %s", res.StatusCode, identityToolkitErrorMessage(res.Body))
 	}
 	return nil
+}
+
+func identityToolkitErrorMessage(body io.Reader) string {
+	data, err := io.ReadAll(io.LimitReader(body, 4096))
+	if err != nil || len(data) == 0 {
+		return "empty error response"
+	}
+	var parsed struct {
+		Error struct {
+			Message string `json:"message"`
+			Status  string `json:"status"`
+		} `json:"error"`
+	}
+	if err := json.Unmarshal(data, &parsed); err == nil {
+		message := cleanString(parsed.Error.Message, 300)
+		status := cleanString(parsed.Error.Status, 100)
+		if message != "" && status != "" {
+			return status + ": " + message
+		}
+		if message != "" {
+			return message
+		}
+		if status != "" {
+			return status
+		}
+	}
+	return cleanString(string(data), 300)
 }
 
 func saveJoin(ctx context.Context, record joinRecord) error {
