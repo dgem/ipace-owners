@@ -9,6 +9,22 @@ baseUrl.pathname = '/';
 baseUrl.search = '';
 baseUrl.hash = '';
 
+function isAllowedSmokeHost(hostname) {
+  return (
+    hostname === 'localhost' ||
+    hostname === '127.0.0.1' ||
+    hostname === 'ipace-owners.org' ||
+    hostname === 'www.ipace-owners.org' ||
+    hostname.endsWith('.ipace-owners.org') ||
+    hostname.endsWith('.web.app') ||
+    hostname.endsWith('.firebaseapp.com')
+  );
+}
+
+if (!isAllowedSmokeHost(baseUrl.hostname)) {
+  throw new Error(`Refusing to smoke test unsupported host: ${baseUrl.hostname}`);
+}
+
 function url(path) {
   return new URL(path, baseUrl).toString();
 }
