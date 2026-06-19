@@ -58,18 +58,29 @@ func SendMagicLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if r.Method != http.MethodPost {
+		logEvent("send-magic-link", "warn", "request rejected: method not allowed", map[string]any{
+			"method": r.Method,
+			"origin": r.Header.Get("Origin"),
+		})
 		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"error": "Method Not Allowed"})
 		return
 	}
 
 	var req magicLinkRequest
 	if err := decodeJSON(r, &req); err != nil {
+		logEvent("send-magic-link", "warn", "request rejected: invalid body", map[string]any{
+			"origin": r.Header.Get("Origin"),
+			"error":  err.Error(),
+		})
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "Invalid request body"})
 		return
 	}
 
 	email := cleanEmail(req.Email)
 	if !isEmail(email) {
+		logEvent("send-magic-link", "warn", "request rejected: invalid email", map[string]any{
+			"origin": r.Header.Get("Origin"),
+		})
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "Valid email address required"})
 		return
 	}
@@ -78,6 +89,10 @@ func SendMagicLink(w http.ResponseWriter, r *http.Request) {
 		logEvent("send-magic-link", "warn", "firebase email link handoff failed", map[string]any{
 			"emailHash": emailFingerprint(email),
 			"error":     err.Error(),
+		})
+	} else {
+		logEvent("send-magic-link", "info", "firebase email link handoff accepted", map[string]any{
+			"emailHash": emailFingerprint(email),
 		})
 	}
 
