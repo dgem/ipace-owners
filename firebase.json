@@ -67,6 +67,13 @@
         }
       },
       {
+        "source": "/api/submit-soh",
+        "function": {
+          "functionId": "SubmitSOH",
+          "region": "europe-west2"
+        }
+      },
+      {
         "source": "/api/member-data",
         "function": {
           "functionId": "MemberData",
@@ -77,6 +84,13 @@
         "source": "/api/admin-data",
         "function": {
           "functionId": "AdminData",
+          "region": "europe-west2"
+        }
+      },
+      {
+        "source": "/api/public-stats",
+        "function": {
+          "functionId": "PublicStats",
           "region": "europe-west2"
         }
       },

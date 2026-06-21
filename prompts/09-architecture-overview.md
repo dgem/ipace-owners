@@ -61,9 +61,11 @@ the retired hosting or Function platform.
 |---|---|---|---|
 | `POST /api/send-magic-link` | `SendMagicLink` | No | Send passwordless sign-in email link. |
 | `POST /api/submit-join` | `SubmitJoin` | Optional | Save Join submission; send email link for guests. |
-| `POST /api/submit-vehicle-basics` | `SubmitVehicleBasics` | Member | Save one vehicle basics record. Members may own multiple vehicles. |
+| `POST /api/submit-vehicle-basics` | `SubmitVehicleBasics` | Member | Save one vehicle basics record and optional initial SoH reading. |
+| `POST /api/submit-soh` | `SubmitSOH` | Member | Append an SoH reading after verifying vehicle ownership. |
 | `GET /api/member-data` | `MemberData` | Member | Return the signed-in user's generated snapshot. |
 | `GET /api/admin-data` | `AdminData` | Admin | Return review data for administrators. |
+| `GET /api/public-stats` | `PublicStats` | No | Return the generated anonymised aggregate snapshot. |
 
 Templates and client JavaScript use `/api/*`; Firebase Hosting rewrites those routes to Go
 Functions.
@@ -79,6 +81,10 @@ Functions.
   exclusion rules have been applied.
 - One member can have zero, one, or many vehicles; do not model the member account as a
   single-car profile.
+- Store SoH measurements as append-only `batteryReadings` records tied to a vehicle. The
+  embedded vehicle battery value is the latest compatibility value, not the historical
+  source of truth.
+- Regenerate private member and public aggregate JSON snapshots after vehicle or SoH writes.
 - Full VINs are never stored. Store only an HMAC-SHA-256 digest using `VIN_PEPPER` plus the
   final six VIN characters for member reference.
 - Raw email addresses and names must never appear in public static files or public

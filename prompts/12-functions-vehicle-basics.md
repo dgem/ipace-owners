@@ -21,6 +21,11 @@ storing full VINs. Members may register multiple vehicles.
   with `data-database-requires-auth`.
 - The Go `SubmitVehicleBasics` Function verifies the ID token server-side.
 - Records are stored in Firestore and the private member/account snapshot is regenerated.
+- An initial SoH value creates an append-only `batteryReadings` record.
+- Members append later readings with `POST /api/submit-soh`; `SubmitSOH` verifies that the
+  authenticated UID owns the referenced vehicle before writing.
+- Vehicle and SoH writes regenerate both the private member snapshot and consent-filtered
+  public aggregate snapshot.
 
 ## Collected fields
 
@@ -67,6 +72,9 @@ Vehicle-basics records include:
 Keep the API response shape compatible with `member-auth.js` unless changing that client
 code deliberately.
 
+SoH reading records include `id`, timestamps, `identityUserId`, `vehicleId`, the battery
+measurement fields, and review metadata. Earlier measurements must never be overwritten.
+
 ## Tests
 
 Update Node tests for browser wiring and Go tests for handler behavior. Required coverage:
@@ -78,6 +86,10 @@ Update Node tests for browser wiring and Go tests for handler behavior. Required
 - Stored records never include the full VIN.
 - Vehicle and battery fields are cleaned and shaped correctly.
 - Firestore-backed saves trigger private member snapshot regeneration.
+- SoH updates reject unauthenticated users, non-owners, missing dates/sources, and values
+  outside 0-100.
+- Public aggregates use the latest SoH per car for fleet averages and first-to-latest values
+  for degradation statistics.
 
 ## Validation
 

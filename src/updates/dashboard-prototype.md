@@ -1,7 +1,7 @@
 ---
 title: Evidence dashboard prototype published
 date: 2025-03-01
-summary: "The public evidence dashboard is now live — currently showing illustrative data while we prepare for real data collection."
+summary: "The initial public evidence dashboard established the intended aggregate-data layout."
 layout: page.njk
 eyebrow: Update
 ---
@@ -15,6 +15,8 @@ presented, including:
 - Bar charts for SoH distribution, model year distribution, recall status, loan car provision
 - Warranty status breakdown (inside vs outside 8-year / 100,000-mile battery warranty)
 
-All figures are currently illustrative — real data collection has not yet begun.
+At publication these figures were illustrative. The dashboard has since been replaced with
+live consent-filtered aggregates for registered cars and State of Health measurements; it no
+longer displays sample percentages for data the forms do not collect.
 
 [View the evidence dashboard →](/evidence-dashboard/)

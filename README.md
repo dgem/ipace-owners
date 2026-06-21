@@ -306,18 +306,23 @@ not required for Firebase Hosting and would require a careful migration of every
 
 Cloud Firestore is the intended canonical source for structured owner data.
 
-Join submissions and vehicle basics are handled by Go Cloud Functions:
+Join submissions, vehicle basics, and SoH updates are handled by Go Cloud Functions:
 
 - `submit-join` stores membership expressions of interest and consent choices, then sends
   the Identity magic link for logged-out users.
 - `submit-vehicle-basics` stores the first vehicle registration slice for signed-in users:
   VIN HMAC / final six characters, registration, country, model year, ownership dates,
   mileage, State of Health, measurement date, measurement mileage, and SoH source.
+- `submit-soh` appends a dated State of Health reading to a vehicle after verifying that
+  the signed-in member owns the referenced record. Earlier readings are retained for
+  degradation analysis.
+- `public-stats` serves a cacheable, consent-filtered aggregate snapshot containing current
+  vehicle counts, SoH totals and distributions, without exposing member records.
 
-Member/account JSON snapshots are regenerated after signup and vehicle changes, written to
+Member/account JSON snapshots are regenerated after signup, vehicle, and SoH changes, written to
 Firestore and optionally Cloud Storage, then served only through `member-data` after
-server-side Firebase ID-token verification. Public evidence dashboard JSON should be
-generated only from anonymised aggregate data.
+server-side Firebase ID-token verification. Vehicle and SoH writes also regenerate the
+anonymised public evidence snapshot in Cloud Storage.
 
 Members may register more than one I-PACE. The account and member dashboard UX should treat
 vehicle records as a list, not as a single profile.
@@ -371,7 +376,9 @@ The following features are **not yet implemented** in this version:
   review status updates, exports, and moderation actions are not yet implemented.
 - **Privacy policy** — The current policy is a placeholder. A formal policy is required
   before broader live evidence collection.
-- **Evidence dashboard data** — All figures are illustrative. Real data collection has not begun.
+- **Later evidence dashboard metrics** — Registered-car and SoH figures are live aggregates.
+  Recall, repair, loan-car, warranty, and payment metrics remain unavailable until their
+  corresponding form slices are implemented.
 
 ---
 

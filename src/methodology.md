@@ -19,10 +19,14 @@ media, and consumer rights bodies can understand and trust our evidence.
 ## How data is collected
 
 Owners submit data voluntarily through the [vehicle data form](/submit-vehicle-data/). The form
-is structured to capture:
+currently captures:
 
 - Vehicle details and identification
 - Battery State of Health measurements (with source and date)
+
+Members can append further SoH measurements to each registered car. Earlier readings are
+retained so first-to-latest change can be calculated. Later form phases are planned to capture:
+
 - HV battery work history (type, dates, duration, outcome)
 - Recall status (H570, H571, H572)
 - Warranty and additional cover details
@@ -57,9 +61,12 @@ excluded from public statistics are retained internally for review but not count
 The public [evidence dashboard](/evidence-dashboard/) shows:
 
 - Aggregate counts and percentages
-- Distribution charts (SoH, model year, work type, recall status, etc.)
-- Average figures (days off road, etc.)
-- Comparative breakdowns
+- Registered-car and contributing-owner counts
+- Latest SoH and model-year distributions
+- Latest average SoH and first-to-latest change for cars with repeat readings
+
+Repair, recall, warranty, loan-car, payment, and goodwill statistics will be added only after
+the corresponding structured fields are implemented.
 
 All published data is anonymised. No individual entry, name, email, full VIN, or registration
 is published.
@@ -79,6 +86,9 @@ is published.
   dashboard may over-represent negative experiences relative to the total fleet.
 - **Measurement uncertainty.** SoH figures may come from different tools and methods. We capture
   source information to allow for this.
+- **Different measurement intervals.** First-to-latest SoH change is not an annual degradation
+  rate. Cars may have readings taken over different periods and mileages; dates and mileage
+  must be considered in deeper analysis.
 - **Recall status may be out of date.** Owners submit a snapshot at a point in time.
 
 We publish these limitations clearly so that our evidence is not overstated.

@@ -58,7 +58,7 @@ test('member data fetches include Identity bearer tokens', function () {
   var memberAuth = read('src/assets/js/member-auth.js');
 
   assert.match(memberAuth, /function fetchWithIdentity/);
-  assert.match(memberAuth, /Authorization: 'Bearer ' \+ token/);
+  assert.match(memberAuth, /headers\.Authorization = 'Bearer ' \+ token/);
   assert.match(memberAuth, /fetchWithIdentity\('\/api\/member-data'\)/);
   assert.match(memberAuth, /fetchWithIdentity\('\/api\/admin-data'\)/);
   assert.match(read('src/assets/js/identity.js'), /identity:ready/);

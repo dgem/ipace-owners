@@ -45,10 +45,11 @@ Use Firestore for structured data:
 - Members, Join submissions, vehicles, battery readings, review state, and audit events are
   stored as documents.
 - A member can have multiple vehicle records.
-- Member/account JSON snapshots are generated after signup and vehicle changes, stored
+- Member/account JSON snapshots are generated after signup, vehicle, and SoH changes, stored
   privately, and served only after server-side Firebase verification.
-- Public aggregate JSON snapshots are generated from reviewed/anonymised data for static
-  dashboard rendering.
+- Public aggregate JSON snapshots are regenerated after relevant writes, filtered by
+  anonymised-analysis consent and review exclusion state, and served through a cacheable
+  public Function for dashboard rendering without exposing canonical records.
 - Store evidence files as Cloud Storage objects with generated names; keep ownership,
   permissions, and review metadata in Firestore.
 
