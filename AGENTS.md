@@ -62,6 +62,18 @@ Eleventy v3 is used. The Eleventy config file is `.eleventy.js` (CommonJS format
 - **Hosting:** Firebase Hosting / Google Cloud
 - **Backend:** Go Cloud Functions + Cloud Firestore for structured data; Cloud Storage for generated snapshots and future binary evidence files
 
+## Version policy
+
+- Use the latest stable production-supported toolchain: the current Node.js Active LTS,
+  the latest Go runtime supported by GCP Cloud Functions, and the current stable OpenTofu.
+- Keep OpenTofu providers on their latest compatible major and commit the exact selections
+  in `.terraform.lock.hcl`. Do not retain an old provider major to avoid migration work.
+- Keep npm and Go dependencies current through committed lock/checksum files. Dependabot
+  checks npm, Go modules, GitHub Actions and OpenTofu providers weekly.
+- Review major-version migration guides and run `make test`, `make build`, and
+  `tofu -chdir=infra/opentofu/env validate` before merging dependency updates.
+- Prefer an Active LTS runtime over a numerically newer non-LTS release for production.
+
 ## CSS conventions
 
 All CSS is in `src/assets/css/site.css`. It is structured as:

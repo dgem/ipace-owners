@@ -125,10 +125,15 @@ during migration, but templates and client JavaScript should use `/api/*`.
 - GitHub Actions must delegate common operations through Make targets. Before deploying,
   run `make test-node`, `make test-go`, and `make build`; local verification can use
   `make test` and `make build`.
-- GitHub Actions should use the current Node.js LTS from `.nvmrc`, Go 1.26 / `go126` for
-  Cloud Run functions, and Node 24-compatible action majors. Deploy Cloud Function runtime
+- GitHub Actions should use the current Node.js Active LTS from `.nvmrc`, Go 1.26 / `go126` for
+  Cloud Run functions, and current runtime-compatible action majors. Deploy Cloud Function runtime
   environment variables from an env vars file rather than comma-separated `--set-env-vars`,
   because values such as `ALLOWED_ORIGINS` contain commas.
+- Keep runtime, provider, dependency and action versions current. Use the latest production
+  Active LTS for Node, latest GCP-supported Go runtime, current stable OpenTofu, latest
+  compatible provider major, and latest compatible stable package releases. Commit lockfiles,
+  run weekly Dependabot checks for npm, Go modules, Actions and OpenTofu, and require migration
+  guide review plus full tests/build/provider validation for major updates.
 - PRs deploy to staging preview channels and run smoke tests against the published URL.
 - Merges to `main` deploy production.
 

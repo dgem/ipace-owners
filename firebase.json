@@ -125,7 +125,7 @@
     {
       "source": "functions/firebase-go",
       "codebase": "firebase-go",
-      "runtime": "go123"
+      "runtime": "go126"
     }
   ]
 }

@@ -33,7 +33,7 @@ Static, mobile-first, accessible website built with:
 - Go 1.26+
 - Make
 - Firebase CLI, installed through `npm install`
-- OpenTofu 1.8+ for infrastructure changes
+- OpenTofu 1.12.3+ for infrastructure changes
 
 Most local and CI tasks are exposed through `make`. Run this to list available targets:
 
@@ -73,6 +73,25 @@ FIREBASE_STORAGE_BUCKET=...
 ```
 
 Do not commit `.env` files containing real values.
+
+### Version policy
+
+Use the latest stable, supported version that is appropriate for production, not simply the
+highest preview or Current release number:
+
+- Node.js uses the latest Active LTS major in `.nvmrc` and `package.json`. Node 24 is the
+  production line; Node 26 remains a Current release until it reaches LTS.
+- Go uses the latest runtime supported by second-generation Google Cloud Functions. The
+  module and deployments currently use Go 1.26 / `go126`.
+- OpenTofu uses the current stable release line. Provider constraints follow the latest
+  supported major, while `.terraform.lock.hcl` pins the exact reviewed provider versions.
+- npm and Go dependencies use current compatible stable releases recorded in their lock or
+  checksum files. GitHub Actions use their latest supported major releases.
+
+Dependabot checks npm, Go modules, GitHub Actions and OpenTofu providers weekly. Update PRs
+must pass `make test`, `make build`, and `tofu -chdir=infra/opentofu/env validate`; major
+updates require release-note and migration-guide review before merging. Do not retain an old
+major solely to avoid addressing a documented migration.
 
 ### Production build
 

@@ -43,6 +43,9 @@ Create a small, maintainable Eleventy 3 site that can be deployed to Firebase Ho
     Firebase, or gcloud command bodies.
 - Include `package-lock.json`.
 - Include `firebase-tools` as a development dependency so deployments and preview channels are repeatable.
+- Use the current Node.js Active LTS and latest compatible stable npm dependencies. Commit
+  `package-lock.json`, configure weekly Dependabot updates, and do not select a non-LTS Node
+  release merely because its version number is newer.
 - Configure Firebase Hosting in `firebase.json` with publish directory `_site`, security
   headers, and `/api/*` rewrites to Go Cloud Functions.
 - Add security headers suitable for a static site using Firebase Authentication.

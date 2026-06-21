@@ -17,11 +17,10 @@
   "dependencies": {
     "@11ty/eleventy": "^3.0.0",
     "@netlify/blobs": "^10.7.9",
-    "@netlify/database": "^1.0.0",
-    "netlify-identity-widget": "^1.9.2"
+    "@netlify/database": "^1.0.0"
   },
   "devDependencies": {
-    "firebase-tools": "^13.29.1",
+    "firebase-tools": "^15.22.0",
     "netlify-cli": "^26.1.0"
   }
 }
