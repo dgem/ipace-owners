@@ -54,3 +54,25 @@ test("fails when required function env vars are missing", () => {
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /Missing required function environment values/);
 });
+
+test("derives bootstrap values before OpenTofu has populated GitHub variables", () => {
+  const cwd = mkdtempSync(join(tmpdir(), "ipace-functions-env-"));
+
+  execFileSync(process.execPath, [scriptPath], {
+    cwd,
+    env: {
+      PATH: process.env.PATH,
+      FIREBASE_PROJECT_ID: "ipace-owners-staging",
+      FIREBASE_WEB_API_KEY: "api-key",
+      VIN_PEPPER: "pepper",
+      SNAPSHOT_BUCKET: "snapshots",
+      ALLOWED_ORIGINS: "https://stage.ipace-owners.org",
+      FIREBASE_EMAIL_CONTINUE_URL: "https://stage.ipace-owners.org/account/",
+    },
+  });
+
+  const written = JSON.parse(readFileSync(join(cwd, "functions-env.json"), "utf8"));
+
+  assert.equal(written.FIRESTORE_DATABASE_ID, "ipace-owners-staging");
+  assert.equal(written.FIREBASE_EMAIL_LINK_DOMAIN, "stage.ipace-owners.org");
+});

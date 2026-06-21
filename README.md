@@ -199,7 +199,10 @@ the generated Firebase web config needed by the site build. Each environment use
 Firestore database whose ID matches its GCP project ID; Functions receive that value as
 `FIRESTORE_DATABASE_ID` and do not use the `(default)` database. The old default database
 is abandoned from OpenTofu state during replacement rather than deleted; migrate any data
-that must be retained before directing production Functions to the named database.
+that must be retained before directing production Functions to the named database. During
+initial infrastructure rollout, the Function environment generator derives the database ID
+from `FIREBASE_PROJECT_ID` and the email link domain from `FIREBASE_EMAIL_CONTINUE_URL` if
+the new GitHub environment variables have not been populated yet.
 
 The same OpenTofu module bootstraps the GitHub Actions `staging` and `production`
 environments. It creates the environment variables and secrets consumed by the deploy
