@@ -43,6 +43,8 @@ Firebase/GCP unless explicitly maintaining the old deployment path.
 3. Magic-link forms call `POST /api/send-magic-link`.
 4. The Go `SendMagicLink` Function calls Firebase Identity Toolkit to send an email sign-in
    link and returns account-enumeration-resistant `{ ok: true }` for valid email syntax.
+   Set Identity Toolkit's `linkDomain` to the environment's verified Firebase Hosting
+   custom domain, while `continueUrl` points to that environment's account page.
 5. When the user opens the email link, `identity.js` completes
    `signInWithEmailLink`, stores the session locally, clears auth query parameters, and
    exposes `window.ipaceGetIdentityToken()`.

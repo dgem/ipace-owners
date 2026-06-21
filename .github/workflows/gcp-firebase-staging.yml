@@ -61,6 +61,7 @@ jobs:
           SNAPSHOT_BUCKET: ${{ vars.SNAPSHOT_BUCKET_STAGING }}
           ALLOWED_ORIGINS: ${{ vars.ALLOWED_ORIGINS_STAGING }}
           FIREBASE_EMAIL_CONTINUE_URL: ${{ vars.FIREBASE_EMAIL_CONTINUE_URL_STAGING }}
+          FIREBASE_EMAIL_LINK_DOMAIN: ${{ vars.FIREBASE_EMAIL_LINK_DOMAIN_STAGING }}
         run: make deploy-functions
 
       - name: Deploy Firebase Hosting preview

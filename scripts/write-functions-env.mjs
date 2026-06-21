@@ -7,6 +7,7 @@ const required = [
   "SNAPSHOT_BUCKET",
   "ALLOWED_ORIGINS",
   "FIREBASE_EMAIL_CONTINUE_URL",
+  "FIREBASE_EMAIL_LINK_DOMAIN",
 ];
 
 const missing = required.filter((name) => !process.env[name]);

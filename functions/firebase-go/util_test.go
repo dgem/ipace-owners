@@ -144,6 +144,24 @@ func TestIdentityToolkitSuccessFields(t *testing.T) {
 	}
 }
 
+func TestFirebaseEmailLinkPayloadUsesCustomHostingDomain(t *testing.T) {
+	payload := firebaseEmailLinkPayload(
+		"driver@example.com",
+		"https://ipace-owners.org/account/",
+		"ipace-owners.org",
+	)
+
+	if payload["linkDomain"] != "ipace-owners.org" {
+		t.Fatalf("linkDomain = %v", payload["linkDomain"])
+	}
+	if payload["continueUrl"] != "https://ipace-owners.org/account/" {
+		t.Fatalf("continueUrl = %v", payload["continueUrl"])
+	}
+	if payload["canHandleCodeInApp"] != true {
+		t.Fatalf("canHandleCodeInApp = %v", payload["canHandleCodeInApp"])
+	}
+}
+
 func TestCORSPreflight(t *testing.T) {
 	req := httptest.NewRequest(http.MethodOptions, "/api/send-magic-link", nil)
 	req.Header.Set("Origin", "https://ipace-owners.org")

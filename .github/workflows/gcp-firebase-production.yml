@@ -63,6 +63,7 @@ jobs:
           SNAPSHOT_BUCKET: ${{ vars.SNAPSHOT_BUCKET_PRODUCTION }}
           ALLOWED_ORIGINS: ${{ vars.ALLOWED_ORIGINS_PRODUCTION }}
           FIREBASE_EMAIL_CONTINUE_URL: ${{ vars.FIREBASE_EMAIL_CONTINUE_URL_PRODUCTION }}
+          FIREBASE_EMAIL_LINK_DOMAIN: ${{ vars.FIREBASE_EMAIL_LINK_DOMAIN_PRODUCTION }}
         run: make deploy-functions
 
       - name: Deploy Firebase Hosting production
