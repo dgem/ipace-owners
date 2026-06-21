@@ -35,6 +35,13 @@ func projectID() string {
 	return ""
 }
 
+func firestoreDatabaseID() string {
+	if value := os.Getenv("FIRESTORE_DATABASE_ID"); value != "" {
+		return value
+	}
+	return projectID()
+}
+
 func firebaseApp(ctx context.Context) (*firebase.App, error) {
 	appOnce.Do(func() {
 		appClient, appErr = firebase.NewApp(ctx, nil)
@@ -56,7 +63,7 @@ func firebaseAuth(ctx context.Context) (*auth.Client, error) {
 
 func firestoreClient(ctx context.Context) (*firestore.Client, error) {
 	firestoreOnce.Do(func() {
-		firestoreDB, firestoreErr = firestore.NewClient(ctx, projectID())
+		firestoreDB, firestoreErr = firestore.NewClientWithDatabase(ctx, projectID(), firestoreDatabaseID())
 	})
 	return firestoreDB, firestoreErr
 }

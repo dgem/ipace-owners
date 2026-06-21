@@ -9,7 +9,10 @@ It is the current source of truth for the I-PACE Owners' Advocacy Group architec
 - **Frontend JavaScript:** vanilla IIFEs loaded with `defer`; no bundler.
 - **Authentication:** Firebase Authentication passwordless email links.
 - **Backend:** Cloud Functions for Firebase / Google Cloud Functions, written in Go.
-- **Canonical data:** Cloud Firestore.
+- **Canonical data:** A named Cloud Firestore database per environment, with its database
+  ID matching the GCP project ID. Go Functions select it explicitly using
+  `firestore.NewClientWithDatabase`. Function environment generation may derive this ID
+  from `FIREBASE_PROJECT_ID` during the initial OpenTofu/GitHub variable rollout.
 - **Generated snapshots:** member/private and future public aggregate JSON written to
   Firestore and Cloud Storage so page loads avoid repeated canonical-store reads.
 - **Hosting:** Firebase Hosting with rewrites from `/api/*` to Go Functions.
@@ -43,6 +46,8 @@ Firebase/GCP unless explicitly maintaining the old deployment path.
 3. Magic-link forms call `POST /api/send-magic-link`.
 4. The Go `SendMagicLink` Function calls Firebase Identity Toolkit to send an email sign-in
    link and returns account-enumeration-resistant `{ ok: true }` for valid email syntax.
+   Set Identity Toolkit's `linkDomain` to the environment's verified Firebase Hosting
+   custom domain, while `continueUrl` points to that environment's account page.
 5. When the user opens the email link, `identity.js` completes
    `signInWithEmailLink`, stores the session locally, clears auth query parameters, and
    exposes `window.ipaceGetIdentityToken()`.
@@ -136,6 +141,17 @@ during migration, but templates and client JavaScript should use `/api/*`.
   run weekly Dependabot checks for npm, Go modules, Actions and OpenTofu, and require migration
   guide review plus full tests/build/provider validation for major updates.
 - PRs deploy to staging preview channels and run smoke tests against the published URL.
+  Discover the generated preview URL before deploying Functions, use it for the staging
+  Function CORS origin and email-link continue URL, append its hostname to Firebase
+  Auth's authorized domains, then redeploy the channel so its rewrites pin the current
+  Function revisions. Serialize staging deployments because preview channels share the
+  staging Functions and Auth configuration. Do not depend on a staging custom domain for PR
+  flows. Grant the GitHub deployer only `firebaseauth.configs.get` and
+  `firebaseauth.configs.update` through a project custom role rather than an Identity Toolkit
+  administrator role.
+- Do not pass a Firebase Hosting preview/default `web.app` hostname as Identity Toolkit's
+  `linkDomain`; omit that field for previews so Firebase uses its default action handler,
+  while keeping the PR URL as `continueUrl`. Production uses its verified custom domain.
 - Merges to `main` deploy production.
 
 ## Prompt maintenance

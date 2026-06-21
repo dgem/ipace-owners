@@ -8,6 +8,10 @@ permissions:
   id-token: write
   pull-requests: write
 
+concurrency:
+  group: firebase-staging-deploy
+  cancel-in-progress: false
+
 jobs:
   deploy-preview:
     runs-on: ubuntu-latest
@@ -50,21 +54,34 @@ jobs:
 
       - uses: google-github-actions/setup-gcloud@v3
 
+      - name: Deploy Firebase Hosting preview
+        id: hosting
+        env:
+          GCP_PROJECT_ID: ${{ vars.FIREBASE_STAGING_PROJECT_ID }}
+          CHANNEL_ID: pr-${{ github.event.pull_request.number }}
+        run: make deploy-hosting-preview
+
+      - name: Authorize Firebase Hosting preview for passwordless sign-in
+        env:
+          GCP_PROJECT_ID: ${{ vars.FIREBASE_STAGING_PROJECT_ID }}
+          FIREBASE_PREVIEW_URL: ${{ steps.hosting.outputs.url }}
+        run: make authorize-preview-domain
+
       - name: Deploy Go Cloud Functions
         env:
           GCP_PROJECT_ID: ${{ vars.FIREBASE_STAGING_PROJECT_ID }}
           FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_STAGING_PROJECT_ID }}
+          FIRESTORE_DATABASE_ID: ${{ vars.FIRESTORE_DATABASE_ID_STAGING }}
           GCP_REGION: ${{ vars.GCP_REGION || 'europe-west2' }}
           FUNCTIONS_SERVICE_ACCOUNT: ${{ secrets.GCP_FUNCTIONS_SERVICE_ACCOUNT_STAGING }}
           FIREBASE_WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY_STAGING }}
           VIN_PEPPER: ${{ secrets.VIN_PEPPER_STAGING }}
           SNAPSHOT_BUCKET: ${{ vars.SNAPSHOT_BUCKET_STAGING }}
-          ALLOWED_ORIGINS: ${{ vars.ALLOWED_ORIGINS_STAGING }}
-          FIREBASE_EMAIL_CONTINUE_URL: ${{ vars.FIREBASE_EMAIL_CONTINUE_URL_STAGING }}
+          ALLOWED_ORIGINS: ${{ steps.hosting.outputs.url }}
+          FIREBASE_EMAIL_CONTINUE_URL: ${{ format('{0}/account/', steps.hosting.outputs.url) }}
         run: make deploy-functions
 
-      - name: Deploy Firebase Hosting preview
-        id: hosting
+      - name: Refresh Firebase Hosting preview with current Function revisions
         env:
           GCP_PROJECT_ID: ${{ vars.FIREBASE_STAGING_PROJECT_ID }}
           CHANNEL_ID: pr-${{ github.event.pull_request.number }}

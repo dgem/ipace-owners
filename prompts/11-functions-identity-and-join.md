@@ -34,6 +34,17 @@ magic-link request path for existing users.
   provider status/error summaries. On success, log response size and whether the provider
   echoed the expected email without logging the raw response. Never log raw email addresses,
   request bodies, Identity tokens, action links, or full provider response bodies.
+- Configure `FIREBASE_EMAIL_LINK_DOMAIN` from the environment's verified Firebase Hosting
+  custom domain and pass it as Identity Toolkit's `linkDomain`. Keep
+  `FIREBASE_EMAIL_CONTINUE_URL` as the post-action account URL. Firebase web API keys are
+  public project identifiers and may appear in action URLs; restrict them to the required
+  Firebase APIs, but do not treat their presence in an email link as credential exposure.
+- For PR deployments, derive `FIREBASE_EMAIL_CONTINUE_URL` from that PR's generated Firebase
+  Hosting preview URL rather than a shared staging custom domain. Omit `linkDomain` because
+  Firebase rejects preview/default `web.app` domains for that field. Before exercising Auth,
+  append the validated project-owned preview hostname to Firebase Auth's `authorizedDomains`
+  without removing permanent entries; replace stale PR preview hostnames to keep the list
+  bounded.
 - If the same email address submits Join more than once, keep the browser response generic
   but log that the email hash has previous Join submissions so operators can distinguish
   repeat attempts from first-time registration.

@@ -22,6 +22,10 @@ Firestore is the source of truth for:
 Use Go Cloud Functions with the Firebase Admin SDK and Firestore client. Do not make
 private Firestore collections directly readable from browser code.
 
+Provision one named Firestore database per environment with a database ID matching the GCP
+project ID. Pass it to Functions as `FIRESTORE_DATABASE_ID` and create clients with
+`firestore.NewClientWithDatabase`; do not rely on the `(default)` database.
+
 Cloud Storage is for generated JSON snapshots and future binary evidence files. Store file
 metadata, ownership, review status, and permissions in Firestore.
 

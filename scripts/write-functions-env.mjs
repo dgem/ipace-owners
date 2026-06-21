@@ -16,6 +16,13 @@ if (missing.length) {
 }
 
 const values = Object.fromEntries(required.map((name) => [name, process.env[name]]));
+values.FIRESTORE_DATABASE_ID = process.env.FIRESTORE_DATABASE_ID || values.FIREBASE_PROJECT_ID;
+values.FIREBASE_EMAIL_LINK_DOMAIN = process.env.FIREBASE_EMAIL_LINK_DOMAIN || "";
+try {
+  new URL(values.FIREBASE_EMAIL_CONTINUE_URL);
+} catch {
+  throw new Error("FIREBASE_EMAIL_CONTINUE_URL must be an absolute URL");
+}
 values.GOOGLE_CLOUD_PROJECT = values.FIREBASE_PROJECT_ID;
 values.GCP_PROJECT = values.FIREBASE_PROJECT_ID;
 

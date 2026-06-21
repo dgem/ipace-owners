@@ -195,7 +195,29 @@ The OpenTofu config can create the GCP project, then enables Firebase, Firestore
 Functions, Cloud Storage, Secret Manager and GitHub Workload Identity Federation. It also
 creates the Firebase Web App, configures Firebase Authentication for passwordless email
 sign-in, creates service accounts for GitHub deployment and Functions runtime, and reads
-the generated Firebase web config needed by the site build.
+the generated Firebase web config needed by the site build. Each environment uses a named
+Firestore database whose ID matches its GCP project ID; Functions receive that value as
+`FIRESTORE_DATABASE_ID` and do not use the `(default)` database. The old default database
+is abandoned from OpenTofu state during replacement rather than deleted; migrate any data
+that must be retained before directing production Functions to the named database. During
+initial infrastructure rollout, the Function environment generator derives the database ID
+from `FIREBASE_PROJECT_ID` if the new GitHub environment variable has not been populated.
+
+PR deployments do not depend on `stage.ipace-owners.org`. The staging workflow first
+creates the PR's Firebase Hosting preview channel, configures Functions with that generated
+`web.app` URL for CORS and passwordless email links, adds the generated hostname to Firebase
+Auth's authorized domains, then refreshes the channel so Hosting rewrites use the newly
+deployed Function revisions. Staging deployments are serialized because they share one
+Firebase Auth configuration and one set of Cloud Functions. The allowlist updater removes
+stale PR preview entries while retaining permanent authorized domains. OpenTofu grants the
+GitHub deployer a custom role containing only `firebaseauth.configs.get` and
+`firebaseauth.configs.update`; apply staging infrastructure after changing these permissions
+and before rerunning the preview workflow.
+
+Firebase does not permit preview or default `web.app` domains as Identity Toolkit's
+`linkDomain`. Preview emails therefore use Firebase's default action-handler domain and the
+PR preview URL as `continueUrl`; production continues to use `ipace-owners.org` as its
+custom action-link domain.
 
 The same OpenTofu module bootstraps the GitHub Actions `staging` and `production`
 environments. It creates the environment variables and secrets consumed by the deploy
@@ -207,8 +229,11 @@ workflows:
 - `FIREBASE_WEB_API_KEY_STAGING` / `FIREBASE_WEB_API_KEY_PRODUCTION`
 - `VIN_PEPPER_STAGING` / `VIN_PEPPER_PRODUCTION`
 - `FIREBASE_STAGING_PROJECT_ID` / `FIREBASE_PRODUCTION_PROJECT_ID`
+- `FIRESTORE_DATABASE_ID_STAGING` / `FIRESTORE_DATABASE_ID_PRODUCTION`
 - `FIREBASE_AUTH_DOMAIN_*`, `FIREBASE_APP_ID_*`, `FIREBASE_STORAGE_BUCKET_*`
 - `SNAPSHOT_BUCKET_*`, `ALLOWED_ORIGINS_*`, `FIREBASE_EMAIL_CONTINUE_URL_*`
+- `FIREBASE_EMAIL_LINK_DOMAIN_*`, which makes Firebase Auth action links use the
+  environment's verified Firebase Hosting custom domain
 
 Bootstrap requirements:
 
@@ -231,6 +256,12 @@ Bootstrap requirements:
 - Provide `site_url`, used as the Firebase email-link continue URL for that environment.
   OpenTofu adds the host from `site_url` to Firebase Auth authorized domains. Add any
   extra hosts, such as `www.ipace-owners.org`, with `firebase_auth_authorized_domains`.
+  Add the required DNS records and wait for the Firebase Hosting custom domain to become active
+  before deploying Functions with that host as `FIREBASE_EMAIL_LINK_DOMAIN`.
+- Firebase web API keys identify the Firebase project and are expected to appear in web
+  authentication action URLs. Restrict each generated key to the Firebase APIs the site
+  uses in Google Cloud API Credentials; do not handle it as a server credential. The
+  one-time action code in an email link is sensitive and must never be logged.
 - Provide `vin_pepper` through an uncommitted tfvars file or `TF_VAR_vin_pepper`.
 - Set `manage_github_actions = false` only if you want to create the GCP resources without
   touching GitHub repository settings.
@@ -268,8 +299,9 @@ domain association is removed from state or Firebase.
 
 Repeat for production only after staging is connected. The output combines Firebase Hosting
 traffic/ownership records with certificate ACME TXT records. The recommended domains are
-`stage.ipace-owners.org` for staging, `ipace-owners.org` as the production canonical domain,
-and `www.ipace-owners.org` as a redirect to the apex. Do not remove or alter existing MX,
+`stage.ipace-owners.org` for an optional permanent staging site, `ipace-owners.org` as the
+production canonical domain, and `www.ipace-owners.org` as a redirect to the apex. PRs use
+their generated Firebase Hosting preview URLs instead. Do not remove or alter existing MX,
 SPF, DKIM or DMARC records.
 
 No documented Fasthosts DNS API, RFC 2136 endpoint, or maintained OpenTofu provider was

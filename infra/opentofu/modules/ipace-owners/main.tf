@@ -115,10 +115,11 @@ data "google_firebase_web_app_config" "default" {
 }
 
 resource "google_firestore_database" "default" {
-  project     = var.project_id
-  name        = "(default)"
-  location_id = var.region
-  type        = "FIRESTORE_NATIVE"
+  project         = var.project_id
+  name            = var.project_id
+  location_id     = var.region
+  type            = "FIRESTORE_NATIVE"
+  deletion_policy = "ABANDON"
 
   depends_on = [google_project_service.required]
 }
@@ -208,6 +209,23 @@ resource "google_service_account" "github_deployer" {
   display_name = "GitHub Actions deployer for ${var.environment}"
 
   depends_on = [google_project_service.required]
+}
+
+resource "google_project_iam_custom_role" "github_firebase_auth_config" {
+  project     = var.project_id
+  role_id     = "ipaceFirebaseAuthConfig"
+  title       = "I-PACE Firebase Auth config updater"
+  description = "Allows CI to maintain Firebase Auth domains for Hosting previews."
+  permissions = [
+    "firebaseauth.configs.get",
+    "firebaseauth.configs.update",
+  ]
+}
+
+resource "google_project_iam_member" "github_firebase_auth_config" {
+  project = var.project_id
+  role    = google_project_iam_custom_role.github_firebase_auth_config.name
+  member  = "serviceAccount:${google_service_account.github_deployer.email}"
 }
 
 resource "google_project_iam_member" "github_deployer_roles" {

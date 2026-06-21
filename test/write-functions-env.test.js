@@ -15,11 +15,13 @@ test("writes function env vars as JSON without splitting comma-separated origins
     env: {
       ...process.env,
       FIREBASE_PROJECT_ID: "ipace-owners-staging",
+      FIRESTORE_DATABASE_ID: "ipace-owners-staging",
       FIREBASE_WEB_API_KEY: "api-key",
       VIN_PEPPER: "pepper",
       SNAPSHOT_BUCKET: "snapshots",
       ALLOWED_ORIGINS: "https://stage.ipace-owners.org,http://localhost:8080,http://localhost:5000",
       FIREBASE_EMAIL_CONTINUE_URL: "https://stage.ipace-owners.org/account/",
+      FIREBASE_EMAIL_LINK_DOMAIN: "stage.ipace-owners.org",
     },
   });
 
@@ -27,11 +29,13 @@ test("writes function env vars as JSON without splitting comma-separated origins
 
   assert.deepEqual(written, {
     FIREBASE_PROJECT_ID: "ipace-owners-staging",
+    FIRESTORE_DATABASE_ID: "ipace-owners-staging",
     FIREBASE_WEB_API_KEY: "api-key",
     VIN_PEPPER: "pepper",
     SNAPSHOT_BUCKET: "snapshots",
     ALLOWED_ORIGINS: "https://stage.ipace-owners.org,http://localhost:8080,http://localhost:5000",
     FIREBASE_EMAIL_CONTINUE_URL: "https://stage.ipace-owners.org/account/",
+    FIREBASE_EMAIL_LINK_DOMAIN: "stage.ipace-owners.org",
     GOOGLE_CLOUD_PROJECT: "ipace-owners-staging",
     GCP_PROJECT: "ipace-owners-staging",
   });
@@ -49,4 +53,26 @@ test("fails when required function env vars are missing", () => {
 
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /Missing required function environment values/);
+});
+
+test("derives the database ID while leaving the preview link domain unset", () => {
+  const cwd = mkdtempSync(join(tmpdir(), "ipace-functions-env-"));
+
+  execFileSync(process.execPath, [scriptPath], {
+    cwd,
+    env: {
+      PATH: process.env.PATH,
+      FIREBASE_PROJECT_ID: "ipace-owners-staging",
+      FIREBASE_WEB_API_KEY: "api-key",
+      VIN_PEPPER: "pepper",
+      SNAPSHOT_BUCKET: "snapshots",
+      ALLOWED_ORIGINS: "https://stage.ipace-owners.org",
+      FIREBASE_EMAIL_CONTINUE_URL: "https://stage.ipace-owners.org/account/",
+    },
+  });
+
+  const written = JSON.parse(readFileSync(join(cwd, "functions-env.json"), "utf8"));
+
+  assert.equal(written.FIRESTORE_DATABASE_ID, "ipace-owners-staging");
+  assert.equal(written.FIREBASE_EMAIL_LINK_DOMAIN, "");
 });

@@ -374,15 +374,14 @@ func sendFirebaseEmailLink(ctx context.Context, email string) error {
 	if continueURL == "" {
 		continueURL = "https://ipace-owners.org/account/"
 	}
+	linkDomain := os.Getenv("FIREBASE_EMAIL_LINK_DOMAIN")
 	fields := emailLogFields(email)
 	fields["continueHost"] = urlHost(continueURL)
-	logEvent("firebase-email-link", "info", "identity toolkit request prepared", fields)
-	payload := map[string]any{
-		"requestType":        "EMAIL_SIGNIN",
-		"email":              email,
-		"continueUrl":        continueURL,
-		"canHandleCodeInApp": true,
+	if linkDomain != "" {
+		fields["linkDomain"] = linkDomain
 	}
+	logEvent("firebase-email-link", "info", "identity toolkit request prepared", fields)
+	payload := firebaseEmailLinkPayload(email, continueURL, linkDomain)
 	body, _ := json.Marshal(payload)
 	endpoint := "https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=" + url.QueryEscape(apiKey)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, strings.NewReader(string(body)))
@@ -405,6 +404,19 @@ func sendFirebaseEmailLink(ctx context.Context, email string) error {
 	fields = identityToolkitSuccessFields(responseBody, email, continueURL)
 	logEvent("firebase-email-link", "info", "identity toolkit request accepted", fields)
 	return nil
+}
+
+func firebaseEmailLinkPayload(email string, continueURL string, linkDomain string) map[string]any {
+	payload := map[string]any{
+		"requestType":        "EMAIL_SIGNIN",
+		"email":              email,
+		"continueUrl":        continueURL,
+		"canHandleCodeInApp": true,
+	}
+	if linkDomain != "" {
+		payload["linkDomain"] = linkDomain
+	}
+	return payload
 }
 
 func identityToolkitSuccessFields(body []byte, email string, continueURL string) map[string]any {

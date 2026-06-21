@@ -6,6 +6,7 @@ const { join, resolve } = require('node:path');
 const { test } = require('node:test');
 
 const scriptPath = resolve(__dirname, '../scripts/extract-firebase-preview-url.mjs');
+const workflowPath = resolve(__dirname, '../.github/workflows/gcp-firebase-staging.yml');
 
 test('extracts the Firebase Hosting preview URL from nested deploy JSON', function () {
   const cwd = mkdtempSync(join(tmpdir(), 'ipace-preview-url-'));
@@ -61,4 +62,28 @@ test('writes the Firebase Hosting preview URL to GitHub output when available', 
     readFileSync(outputPath, 'utf8').trim(),
     'url=https://ipace-owners-staging--pr-15-a1b2c3d4.web.app',
   );
+});
+
+test('staging Functions use the current PR preview URL', function () {
+  const workflow = readFileSync(workflowPath, 'utf8');
+  const firstHostingDeploy = workflow.indexOf('- name: Deploy Firebase Hosting preview');
+  const authorizePreview = workflow.indexOf(
+    '- name: Authorize Firebase Hosting preview for passwordless sign-in',
+  );
+  const functionDeploy = workflow.indexOf('- name: Deploy Go Cloud Functions');
+  const refreshedHostingDeploy = workflow.indexOf(
+    '- name: Refresh Firebase Hosting preview with current Function revisions',
+  );
+
+  assert.ok(firstHostingDeploy > -1 && firstHostingDeploy < functionDeploy);
+  assert.ok(authorizePreview > firstHostingDeploy && authorizePreview < functionDeploy);
+  assert.ok(refreshedHostingDeploy > functionDeploy);
+  assert.match(workflow, /run: make authorize-preview-domain/);
+  assert.match(workflow, /group: firebase-staging-deploy/);
+  assert.match(workflow, /ALLOWED_ORIGINS: \$\{\{ steps\.hosting\.outputs\.url \}\}/);
+  assert.match(
+    workflow,
+    /FIREBASE_EMAIL_CONTINUE_URL: \$\{\{ format\('\{0\}\/account\/', steps\.hosting\.outputs\.url\) \}\}/,
+  );
+  assert.doesNotMatch(workflow, /FIREBASE_EMAIL_(?:CONTINUE_URL|LINK_DOMAIN)_STAGING/);
 });
