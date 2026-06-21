@@ -21,11 +21,10 @@ github_repo  = "ipace-owners"
 allowed_origins = "https://stage.ipace-owners.org,http://localhost:8080,http://localhost:5000"
 site_url        = "https://stage.ipace-owners.org/account/"
 
-# Apply once with waiting disabled, add the output DNS records at Fasthosts, then set true.
+# Apply once, then add every output DNS record at Fasthosts.
 firebase_hosting_custom_domains = {
   "stage.ipace-owners.org" = {}
 }
-firebase_hosting_wait_for_dns_verification = false
 
 manage_github_actions = true
 

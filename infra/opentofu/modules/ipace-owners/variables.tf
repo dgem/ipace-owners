@@ -98,12 +98,6 @@ variable "firebase_hosting_custom_domains" {
   default = {}
 }
 
-variable "firebase_hosting_wait_for_dns_verification" {
-  description = "Whether custom-domain creation should wait for DNS verification. Keep false until the reported DNS records have been added."
-  type        = bool
-  default     = false
-}
-
 variable "manage_github_actions" {
   description = "Whether this module should create/update GitHub Actions environments, variables and secrets."
   type        = bool

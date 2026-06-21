@@ -14,9 +14,11 @@ test('OpenTofu manages Firebase Hosting custom domains and reports DNS state', f
   const moduleOutputs = read('infra/opentofu/modules/ipace-owners/outputs.tf');
 
   assert.match(moduleMain, /google_firebase_hosting_custom_domain/);
-  assert.match(moduleMain, /wait_dns_verification\s*=\s*var\.firebase_hosting_wait_for_dns_verification/);
-  assert.match(moduleMain, /deletion_policy\s*=\s*"ABANDON"/);
+  assert.match(moduleMain, /wait_dns_verification\s*=\s*false/);
+  assert.match(moduleMain, /deletion_policy\s*=\s*"PREVENT"/);
   assert.match(moduleOutputs, /required_dns_updates/);
+  assert.match(moduleOutputs, /certificate\.verification/);
+  assert.match(moduleOutputs, /verification\.dns/);
   assert.match(moduleOutputs, /ownership_state/);
   assert.match(moduleOutputs, /certificate_state/);
 });

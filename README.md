@@ -248,19 +248,26 @@ Firebase Hosting provides managed SSL certificates for connected custom domains.
 registers each domain from `firebase_hosting_custom_domains` and outputs its ownership,
 hosting and certificate state together with the required DNS changes.
 
-Use a two-phase deployment because Fasthosts DNS changes are currently manual:
+Fasthosts DNS changes are currently manual:
 
 ```bash
-# Keep firebase_hosting_wait_for_dns_verification = false for the first apply.
 make deploy-hosting-env ENV=staging
 make infra-dns-records ENV=staging
 
-# Add the reported A, TXT, CNAME or other records in Fasthosts Advanced DNS.
-# Then enable waiting in staging.tfvars and apply again.
-make deploy-hosting-env ENV=staging
+# Add every reported A, TXT, CNAME or other record in Fasthosts Advanced DNS.
+# Refresh until ownership, hosting and certificate states become active.
+make infra-plan ENV=staging
+make infra-dns-records ENV=staging
 ```
 
-Repeat for production only after staging is connected. The recommended domains are
+The custom-domain resource deliberately never waits during creation because changing that
+provider field later forces destructive replacement. Firebase validates DNS asynchronously;
+planning or reading the outputs refreshes its current state without recreating the domain.
+Its deletion policy is `PREVENT`, so an accidental replacement or removal fails before the
+domain association is removed from state or Firebase.
+
+Repeat for production only after staging is connected. The output combines Firebase Hosting
+traffic/ownership records with certificate ACME TXT records. The recommended domains are
 `stage.ipace-owners.org` for staging, `ipace-owners.org` as the production canonical domain,
 and `www.ipace-owners.org` as a redirect to the apex. Do not remove or alter existing MX,
 SPF, DKIM or DMARC records.

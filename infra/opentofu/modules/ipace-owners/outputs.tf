@@ -29,18 +29,36 @@ output "firebase_hosting_custom_domains" {
       host_state        = domain.host_state
       ownership_state   = domain.ownership_state
       certificate_state = try(one(domain.cert).state, null)
-      dns_records = flatten([
-        for update in domain.required_dns_updates : [
-          for desired in update.desired : [
-            for record in desired.records : {
-              name            = record.domain_name
-              type            = record.type
-              value           = record.rdata
-              required_action = record.required_action
-            }
+      dns_records = distinct(concat(
+        flatten([
+          for update in domain.required_dns_updates : [
+            for desired in update.desired : [
+              for record in desired.records : {
+                name            = record.domain_name
+                type            = record.type
+                value           = record.rdata
+                required_action = record.required_action
+              }
+            ]
           ]
-        ]
-      ])
+        ]),
+        flatten([
+          for certificate in domain.cert : [
+            for verification in certificate.verification : [
+              for dns in verification.dns : [
+                for desired in dns.desired : [
+                  for record in desired.records : {
+                    name            = record.domain_name
+                    type            = record.type
+                    value           = record.rdata
+                    required_action = record.required_action
+                  }
+                ]
+              ]
+            ]
+          ]
+        ])
+      ))
     }
   }
 }

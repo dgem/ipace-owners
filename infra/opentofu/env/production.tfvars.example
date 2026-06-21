@@ -27,7 +27,6 @@ firebase_hosting_custom_domains = {
   "ipace-owners.org"     = {}
   "www.ipace-owners.org" = { redirect_target = "ipace-owners.org" }
 }
-firebase_hosting_wait_for_dns_verification = false
 
 manage_github_actions = true
 

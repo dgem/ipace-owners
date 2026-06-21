@@ -117,11 +117,12 @@ during migration, but templates and client JavaScript should use `/api/*`.
   gcloud user/ADC authentication, set an accessible ADC quota project, initialise the
   shared OpenTofu root, and select or create the workspace matching `ENV` before planning
   or applying the matching tfvars file. Never default an infrastructure apply to production.
-- Define Firebase Hosting custom domains per environment. The first apply must not wait for
-  DNS; it must output the required A, TXT, CNAME, CAA or other records. After those records
-  are entered at Fasthosts, allow verification waiting to be enabled and expose ownership,
-  host and certificate state through `make infra-dns-records`. Do not attempt unsupported
-  Fasthosts API automation or modify unrelated email DNS records.
+- Define Firebase Hosting custom domains per environment without provider-side DNS waiting,
+  because toggling that field forces replacement. Output both Hosting traffic/ownership and
+  certificate ACME records. After those records are entered at Fasthosts, refresh and expose
+  ownership, host and certificate state through `make infra-plan` and
+  `make infra-dns-records`. Do not attempt unsupported Fasthosts API automation or modify
+  unrelated email DNS records. Protect custom-domain resources from accidental deletion.
 - GitHub Actions must delegate common operations through Make targets. Before deploying,
   run `make test-node`, `make test-go`, and `make build`; local verification can use
   `make test` and `make build`.
