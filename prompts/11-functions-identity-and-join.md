@@ -31,11 +31,18 @@ magic-link request path for existing users.
   for syntactically valid requests. Do not reveal whether the email address is registered.
 - Reject disallowed origins before triggering email side effects.
 - Log email fingerprints, masked email addresses, origin/continue-host diagnostics, and
-  provider status/error summaries. Never log raw email addresses, request bodies, Identity
-  tokens, or full provider response bodies.
+  provider status/error summaries. On success, log response size and whether the provider
+  echoed the expected email without logging the raw response. Never log raw email addresses,
+  request bodies, Identity tokens, action links, or full provider response bodies.
 - If the same email address submits Join more than once, keep the browser response generic
   but log that the email hash has previous Join submissions so operators can distinguish
   repeat attempts from first-time registration.
+- Treat a successful Identity Toolkit response as request acceptance, not proof of mailbox
+  delivery. User-facing copy must not claim that an email was delivered or sent; advise
+  checking spam/filtering and requesting another link.
+- Document Firebase email-link sending quotas and the option to generate action links with
+  the Admin SDK and send through a transactional email/SMTP provider when delivery tracking
+  is required.
 
 ## Join record shape
 

@@ -123,6 +123,27 @@ func TestIdentityToolkitErrorMessage(t *testing.T) {
 	}
 }
 
+func TestIdentityToolkitSuccessFields(t *testing.T) {
+	fields := identityToolkitSuccessFields(
+		[]byte(`{"email":"driver@example.com"}`),
+		"driver@example.com",
+		"https://stage.ipace-owners.org/account/",
+	)
+
+	if fields["providerEmailMatched"] != true {
+		t.Fatalf("providerEmailMatched = %v", fields["providerEmailMatched"])
+	}
+	if fields["continueHost"] != "stage.ipace-owners.org" {
+		t.Fatalf("continueHost = %v", fields["continueHost"])
+	}
+	if fields["emailMasked"] != "d***@e***.com" {
+		t.Fatalf("emailMasked = %v", fields["emailMasked"])
+	}
+	if fields["responseBytes"] != len(`{"email":"driver@example.com"}`) {
+		t.Fatalf("responseBytes = %v", fields["responseBytes"])
+	}
+}
+
 func TestCORSPreflight(t *testing.T) {
 	req := httptest.NewRequest(http.MethodOptions, "/api/send-magic-link", nil)
 	req.Header.Set("Origin", "https://ipace-owners.org")

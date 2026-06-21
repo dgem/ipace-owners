@@ -248,6 +248,29 @@ Set `VIN_PEPPER` as a GCP Secret Manager value and Function environment variable
 collecting VINs. Full VINs are not stored; the Function uses `VIN_PEPPER` to create an HMAC
 for deduplication.
 
+### Magic-link delivery troubleshooting
+
+A successful Identity Toolkit response means Firebase accepted the email-link request; it
+does not provide mailbox-delivery confirmation. Function logs include a one-way email hash,
+masked address, continue host, response size, and whether Firebase echoed the expected email.
+They never include the raw address or sign-in link.
+
+If a link does not arrive:
+
+1. Check spam/junk filtering and test a mailbox at a different provider.
+2. Confirm the Firebase project is on the intended billing plan and has not reached its
+   [Authentication email sending limit](https://firebase.google.com/docs/auth/limits).
+   Firebase currently limits email-link sign-in delivery to 5 emails/day on Spark and
+   25,000 emails/day on Blaze.
+3. Check the Firebase Authentication email template and sender settings.
+4. For delivery tracking and control, generate sign-in links with the Firebase Admin SDK
+   and send them through a configured transactional email/SMTP provider, as described in
+   [Firebase's custom email action link guidance](https://firebase.google.com/docs/auth/admin/email-action-links).
+
+Submitting Join more than once with the same email remains enumeration-safe. Each submission
+is retained for review, while Function logs record the previous submission count for that
+email hash.
+
 ### Admin role assignment
 
 To grant a member admin access:

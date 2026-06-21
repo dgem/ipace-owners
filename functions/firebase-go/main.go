@@ -395,10 +395,28 @@ func sendFirebaseEmailLink(ctx context.Context, email string) error {
 		return err
 	}
 	defer res.Body.Close()
-	if res.StatusCode < 200 || res.StatusCode > 299 {
-		return fmt.Errorf("identity toolkit returned %d: %s", res.StatusCode, identityToolkitErrorMessage(res.Body))
+	responseBody, readErr := io.ReadAll(io.LimitReader(res.Body, 4096))
+	if readErr != nil {
+		return fmt.Errorf("identity toolkit response read failed: %w", readErr)
 	}
+	if res.StatusCode < 200 || res.StatusCode > 299 {
+		return fmt.Errorf("identity toolkit returned %d: %s", res.StatusCode, identityToolkitErrorMessage(strings.NewReader(string(responseBody))))
+	}
+	fields = identityToolkitSuccessFields(responseBody, email, continueURL)
+	logEvent("firebase-email-link", "info", "identity toolkit request accepted", fields)
 	return nil
+}
+
+func identityToolkitSuccessFields(body []byte, email string, continueURL string) map[string]any {
+	var response struct {
+		Email string `json:"email"`
+	}
+	_ = json.Unmarshal(body, &response)
+	fields := emailLogFields(email)
+	fields["continueHost"] = urlHost(continueURL)
+	fields["providerEmailMatched"] = cleanEmail(response.Email) == cleanEmail(email)
+	fields["responseBytes"] = len(body)
+	return fields
 }
 
 func identityToolkitErrorMessage(body io.Reader) string {
