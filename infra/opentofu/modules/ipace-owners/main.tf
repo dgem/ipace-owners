@@ -211,12 +211,28 @@ resource "google_service_account" "github_deployer" {
   depends_on = [google_project_service.required]
 }
 
+resource "google_project_iam_custom_role" "github_firebase_auth_config" {
+  project     = var.project_id
+  role_id     = "ipaceFirebaseAuthConfig"
+  title       = "I-PACE Firebase Auth config updater"
+  description = "Allows CI to maintain Firebase Auth domains for Hosting previews."
+  permissions = [
+    "firebaseauth.configs.get",
+    "firebaseauth.configs.update",
+  ]
+}
+
+resource "google_project_iam_member" "github_firebase_auth_config" {
+  project = var.project_id
+  role    = google_project_iam_custom_role.github_firebase_auth_config.name
+  member  = "serviceAccount:${google_service_account.github_deployer.email}"
+}
+
 resource "google_project_iam_member" "github_deployer_roles" {
   for_each = toset([
     "roles/artifactregistry.writer",
     "roles/cloudbuild.builds.editor",
     "roles/cloudfunctions.developer",
-    "roles/firebaseauth.admin",
     "roles/firebasehosting.admin",
     "roles/iam.serviceAccountUser",
     "roles/run.admin",

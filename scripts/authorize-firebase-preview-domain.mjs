@@ -20,10 +20,15 @@ export function mergeAuthorizedDomains(existing, hostname, projectId) {
   return [...new Set([...permanentDomains, hostname])].sort();
 }
 
-async function request(url, options) {
+async function request(url, options, requiredPermission) {
   const response = await fetch(url, options);
   if (!response.ok) {
     const detail = (await response.text()).slice(0, 1000);
+    if (response.status === 403) {
+      throw new Error(
+        `Identity Toolkit config request requires ${requiredPermission}; apply the staging OpenTofu IAM changes and retry: ${detail}`,
+      );
+    }
     throw new Error(`Identity Toolkit config request failed (${response.status}): ${detail}`);
   }
   return response.json();
@@ -35,7 +40,7 @@ async function main() {
   const token = execFileSync("gcloud", ["auth", "print-access-token"], { encoding: "utf8" }).trim();
   const endpoint = `https://identitytoolkit.googleapis.com/admin/v2/projects/${encodeURIComponent(projectId)}/config`;
   const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
-  const config = await request(endpoint, { headers });
+  const config = await request(endpoint, { headers }, "firebaseauth.configs.get");
   const authorizedDomains = mergeAuthorizedDomains(config.authorizedDomains, hostname, projectId);
 
   const existingDomains = [...(config.authorizedDomains || [])].sort();
@@ -44,11 +49,15 @@ async function main() {
     return;
   }
 
-  await request(`${endpoint}?updateMask=authorizedDomains`, {
-    method: "PATCH",
-    headers,
-    body: JSON.stringify({ name: `projects/${projectId}/config`, authorizedDomains }),
-  });
+  await request(
+    `${endpoint}?updateMask=authorizedDomains`,
+    {
+      method: "PATCH",
+      headers,
+      body: JSON.stringify({ name: `projects/${projectId}/config`, authorizedDomains }),
+    },
+    "firebaseauth.configs.update",
+  );
   console.log(`Firebase Auth now authorizes ${hostname}`);
 }
 

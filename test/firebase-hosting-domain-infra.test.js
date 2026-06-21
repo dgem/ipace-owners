@@ -51,3 +51,12 @@ test('OpenTofu and deployment workflows select the named Firestore database', fu
   assert.match(productionWorkflow, /FIRESTORE_DATABASE_ID_PRODUCTION/);
   assert.match(stagingWorkflow, /FIRESTORE_DATABASE_ID_STAGING/);
 });
+
+test('the GitHub deployer can update only Firebase Auth preview-domain configuration', function () {
+  const moduleMain = read('infra/opentofu/modules/ipace-owners/main.tf');
+
+  assert.match(moduleMain, /resource "google_project_iam_custom_role" "github_firebase_auth_config"/);
+  assert.match(moduleMain, /"firebaseauth\.configs\.get"/);
+  assert.match(moduleMain, /"firebaseauth\.configs\.update"/);
+  assert.doesNotMatch(moduleMain, /github_deployer_roles[\s\S]*"roles\/identitytoolkit\.admin"/);
+});

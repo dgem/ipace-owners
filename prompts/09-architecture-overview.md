@@ -146,7 +146,9 @@ during migration, but templates and client JavaScript should use `/api/*`.
   Auth's authorized domains, then redeploy the channel so its rewrites pin the current
   Function revisions. Serialize staging deployments because preview channels share the
   staging Functions and Auth configuration. Do not depend on a staging custom domain for PR
-  flows.
+  flows. Grant the GitHub deployer only `firebaseauth.configs.get` and
+  `firebaseauth.configs.update` through a project custom role rather than an Identity Toolkit
+  administrator role.
 - Merges to `main` deploy production.
 
 ## Prompt maintenance

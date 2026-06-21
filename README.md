@@ -210,7 +210,10 @@ creates the PR's Firebase Hosting preview channel, configures Functions with tha
 Auth's authorized domains, then refreshes the channel so Hosting rewrites use the newly
 deployed Function revisions. Staging deployments are serialized because they share one
 Firebase Auth configuration and one set of Cloud Functions. The allowlist updater removes
-stale PR preview entries while retaining permanent authorized domains.
+stale PR preview entries while retaining permanent authorized domains. OpenTofu grants the
+GitHub deployer a custom role containing only `firebaseauth.configs.get` and
+`firebaseauth.configs.update`; apply staging infrastructure after changing these permissions
+and before rerunning the preview workflow.
 
 The same OpenTofu module bootstraps the GitHub Actions `staging` and `production`
 environments. It creates the environment variables and secrets consumed by the deploy
