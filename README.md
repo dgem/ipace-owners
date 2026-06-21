@@ -14,10 +14,13 @@ Static, mobile-first, accessible website built with:
 - **[Eleventy 3](https://www.11ty.dev/)** — static site generator
 - **Nunjucks + Markdown** — templating and content
 - **Custom CSS** — mobile-first design system, no Tailwind or Bootstrap
-- **Vanilla JavaScript** — mobile nav, Netlify Identity, multi-step forms
-- **[Netlify Identity](https://docs.netlify.com/visitor-access/identity/)** — member authentication
-- **Netlify Database/Postgres** — canonical structured data store
-- **[Netlify](https://www.netlify.com/)** — hosting and deployment
+- **Vanilla JavaScript** — mobile nav, Firebase Authentication, multi-step forms
+- **Firebase Authentication** — passwordless email-link member authentication
+- **Cloud Functions for Firebase, written in Go** — form handling and member/admin APIs
+- **Cloud Firestore** — canonical structured data store
+- **Cloud Storage** — generated member/public JSON snapshots and future evidence blobs
+- **Firebase Hosting / Google Cloud** — staging and production hosting
+- **OpenTofu/Terraform** — GCP resource configuration
 
 ---
 
@@ -25,49 +28,75 @@ Static, mobile-first, accessible website built with:
 
 ### Prerequisites
 
-- Node.js 18+ (20 recommended)
+- Node.js 24 LTS
 - npm 9+
+- Go 1.26+
+- Make
+- Firebase CLI, installed through `npm install`
+- OpenTofu 1.12.3+ for infrastructure changes
+
+Most local and CI tasks are exposed through `make`. Run this to list available targets:
+
+```bash
+make
+```
 
 ### Install
 
 ```bash
-npm install
+make install
 ```
 
 ### Development server
 
 ```bash
-npm run dev
+make dev
 ```
 
-Starts Netlify Dev at `http://localhost:8888`, proxying the Eleventy dev server and
-serving Netlify Functions. Use this when testing Join submission and magic-link flows,
-because requests to `/.netlify/functions/*` are handled only by Netlify Dev or a deployed
-Netlify site.
-
-Netlify Dev does not provide a local Netlify Identity API. To send real Identity emails
-from local development, add this to `.env.local` using the deployed Netlify site URL:
+Starts the current local development server. During the GCP migration, the static site can
+also be run directly with:
 
 ```bash
-NETLIFY_IDENTITY_BASE_URL=https://ipace-owners.netlify.app/.netlify/identity
-VIN_PEPPER=replace-with-a-long-random-secret-for-local-testing
+make dev-eleventy
 ```
 
-Do not commit `.env.local`.
-
-You can also run Eleventy directly (without Netlify Functions) with:
+To test Firebase Authentication and Go Functions locally, run the Firebase emulators or test
+against the staging Firebase project. Build-time Firebase web config is read from
+environment variables:
 
 ```bash
-npm run dev:eleventy
+FIREBASE_WEB_API_KEY=...
+FIREBASE_AUTH_DOMAIN=...
+FIREBASE_PROJECT_ID=...
+FIREBASE_APP_ID=...
+FIREBASE_STORAGE_BUCKET=...
 ```
 
-That starts Eleventy directly at `http://localhost:8080`, but it does not serve Netlify
-Functions. Contributors should normally use `npm run dev`.
+Do not commit `.env` files containing real values.
+
+### Version policy
+
+Use the latest stable, supported version that is appropriate for production, not simply the
+highest preview or Current release number:
+
+- Node.js uses the latest Active LTS major in `.nvmrc` and `package.json`. Node 24 is the
+  production line; Node 26 remains a Current release until it reaches LTS.
+- Go uses the latest runtime supported by second-generation Google Cloud Functions. The
+  module and deployments currently use Go 1.26 / `go126`.
+- OpenTofu uses the current stable release line. Provider constraints follow the latest
+  supported major, while `.terraform.lock.hcl` pins the exact reviewed provider versions.
+- npm and Go dependencies use current compatible stable releases recorded in their lock or
+  checksum files. GitHub Actions use their latest supported major releases.
+
+Dependabot checks npm, Go modules, GitHub Actions and OpenTofu providers weekly. Update PRs
+must pass `make test`, `make build`, and `tofu -chdir=infra/opentofu/env validate`; major
+updates require release-note and migration-guide review before merging. Do not retain an old
+major solely to avoid addressing a documented migration.
 
 ### Production build
 
 ```bash
-npm run build
+make build
 ```
 
 Output is written to `_site/`.
@@ -75,16 +104,21 @@ Output is written to `_site/`.
 ### Tests
 
 ```bash
-npm test
+make test
 ```
 
-Runs the Node test suite for Netlify Function validation, storage-shaping, magic-link
-handoff behavior, and the Join form single-submit regression guard.
+Runs the Node test suite for form wiring, auth UI behaviour, legacy backend guards, and
+the Go Cloud Function tests. They can also be run separately:
+
+```bash
+make test-node
+make test-go
+```
 
 ### Clean
 
 ```bash
-npm run clean
+make clean
 ```
 
 Removes the `_site/` directory.
@@ -107,55 +141,147 @@ src/
     css/site.css   # Main stylesheet
     js/
       main.js            # Mobile menu, nav helpers
-      identity.js        # Netlify Identity integration
+      identity.js        # Firebase Auth email-link integration
       member-auth.js     # Server-verified member/admin data loading
       multistep-form.js  # Multi-step form controller
 public/images/     # Static images
-netlify/functions/ # Netlify Functions
-netlify/database/  # Netlify Database migrations
+functions/firebase-go/ # Go Cloud Functions for Firebase
+infra/opentofu/   # GCP/Firebase infrastructure
 prompts/           # Sequenced prompts and architecture blueprint
 .eleventy.js       # Eleventy configuration
-netlify.toml       # Netlify configuration
+firebase.json      # Firebase Hosting rewrites, headers and Functions config
 ```
 
 ---
 
-## Netlify deployment
+## GCP / Firebase deployment
 
-1. Fork or clone this repository.
-2. Create a new site in Netlify connected to your repository.
-3. Build settings are pre-configured in `netlify.toml`:
-   - **Build command:** `npm run build`
-   - **Publish directory:** `_site`
-   - **Functions directory:** `netlify/functions`
+The target deployment is two Firebase/GCP projects:
 
-### Enable Netlify Identity
+- **staging** — PR preview channels and pre-merge testing.
+- **production** — `ipace-owners.org`, deployed after merge to `main`.
 
-After deploying to Netlify, you **must** enable Netlify Identity manually:
+Infrastructure is configured with OpenTofu under `infra/opentofu/`. The reusable module is
+in `infra/opentofu/modules/ipace-owners`; the single environment root is
+`infra/opentofu/env`. Staging and production use the same root with different tfvars.
+Use separate OpenTofu workspaces so the two environments cannot share one local state file.
 
-1. Go to your site in the Netlify dashboard.
-2. Navigate to **Site configuration → Identity**.
-3. Click **Enable Identity**.
-4. Configure registration settings:
-   - For a closed group, set **Registration preferences** to **Invite only**.
-   - For open registration, leave as **Open**.
-   - Keep email confirmation enabled so Netlify sends the account confirmation link.
-5. Optional: configure external OAuth providers (Google, GitHub) if desired.
+```bash
+make infra-config ENV=staging
+make infra-plan ENV=staging
+make deploy-hosting-env ENV=staging
 
-> The site uses passwordless email links. The Netlify Identity script is currently loaded
-> only to process Identity email links and expose the current session/JWT; the product UI
-> must not open Netlify's password modal.
-> The Join form makes one request to `submit-join`, which saves the answers in the
-> structured data store and sends a sign-in magic link to the user's email address.
-> In local development, Identity email Functions need `NETLIFY_IDENTITY_BASE_URL` because
-> Netlify Identity itself only runs on the deployed Netlify site.
+make infra-config ENV=production
+make infra-plan ENV=production
+make deploy-hosting-env ENV=production
+```
+
+`deploy-hosting-env` applies all GCP/Firebase infrastructure for the selected environment,
+not only the Hosting resource. It requires an explicit `ENV=staging` or `ENV=production`.
+By default it uses `infra/opentofu/env/<environment>.tfvars`; override that with
+`TFVARS=path/to/file.tfvars` when needed.
+
+The infrastructure targets check the current gcloud user and Application Default
+Credentials. If either credential is missing or expired, they start the relevant
+`gcloud auth login` flow. They set the ADC quota project when it already exists, initialise
+OpenTofu, and select or create the workspace matching `ENV` before planning or applying.
+Useful individual targets are `make infra-auth`, `make infra-init`, and
+`make infra-workspace`, each with the same `ENV` and optional `TFVARS` arguments.
+
+Do not commit real `*.tfvars` files. Use the checked-in `staging.tfvars.example` and
+`production.tfvars.example` files as templates, or provide values with `TF_VAR_*`.
+
+The OpenTofu config can create the GCP project, then enables Firebase, Firestore, Cloud
+Functions, Cloud Storage, Secret Manager and GitHub Workload Identity Federation. It also
+creates the Firebase Web App, configures Firebase Authentication for passwordless email
+sign-in, creates service accounts for GitHub deployment and Functions runtime, and reads
+the generated Firebase web config needed by the site build.
+
+The same OpenTofu module bootstraps the GitHub Actions `staging` and `production`
+environments. It creates the environment variables and secrets consumed by the deploy
+workflows:
+
+- `GCP_WORKLOAD_IDENTITY_PROVIDER_STAGING` / `GCP_WORKLOAD_IDENTITY_PROVIDER_PRODUCTION`
+- `GCP_DEPLOYER_SERVICE_ACCOUNT_STAGING` / `GCP_DEPLOYER_SERVICE_ACCOUNT_PRODUCTION`
+- `GCP_FUNCTIONS_SERVICE_ACCOUNT_STAGING` / `GCP_FUNCTIONS_SERVICE_ACCOUNT_PRODUCTION`
+- `FIREBASE_WEB_API_KEY_STAGING` / `FIREBASE_WEB_API_KEY_PRODUCTION`
+- `VIN_PEPPER_STAGING` / `VIN_PEPPER_PRODUCTION`
+- `FIREBASE_STAGING_PROJECT_ID` / `FIREBASE_PRODUCTION_PROJECT_ID`
+- `FIREBASE_AUTH_DOMAIN_*`, `FIREBASE_APP_ID_*`, `FIREBASE_STORAGE_BUCKET_*`
+- `SNAPSHOT_BUCKET_*`, `ALLOWED_ORIGINS_*`, `FIREBASE_EMAIL_CONTINUE_URL_*`
+
+Bootstrap requirements:
+
+- Set `GITHUB_TOKEN` locally with permission to administer repository Actions
+  environments, variables and secrets.
+- For an existing GCP project, provide `project_id`.
+- If `create_gcp_project = true`, either provide `project_id` explicitly or leave it empty
+  and let OpenTofu derive `${project_id_prefix}-${environment}`. The default prefix creates
+  `ipace-owners-staging` or `ipace-owners-production`; override `project_id` if that global
+  ID is unavailable. Also provide either `gcp_org_id` or `gcp_folder_id`, plus
+  `billing_account`.
+- The Google credentials running OpenTofu need enough bootstrap permission to create or
+  manage the target project, enable services, create service accounts, create Workload
+  Identity pools, create Secret Manager secrets and write project IAM bindings.
+- If using local Application Default Credentials, Firebase APIs require a quota project.
+  The provider sends `quota_project` as `x-goog-user-project`; by default this is the
+  environment project, or you can set `quota_project` in tfvars to an existing bootstrap
+  project. You can also align local ADC with:
+  `gcloud auth application-default set-quota-project ipace-owners-staging`.
+- Provide `site_url`, used as the Firebase email-link continue URL for that environment.
+  OpenTofu adds the host from `site_url` to Firebase Auth authorized domains. Add any
+  extra hosts, such as `www.ipace-owners.org`, with `firebase_auth_authorized_domains`.
+- Provide `vin_pepper` through an uncommitted tfvars file or `TF_VAR_vin_pepper`.
+- Set `manage_github_actions = false` only if you want to create the GCP resources without
+  touching GitHub repository settings.
+
+Firebase API keys, Firebase app IDs, auth domains, storage bucket names, Workload Identity
+provider names and service account emails are generated by OpenTofu and written into the
+GitHub Actions environment settings automatically.
+
+GitHub Actions deploys PRs to Firebase Hosting preview channels and deploys `main` to the
+production Firebase Hosting site.
+
+### SSL and DNS
+
+Firebase Hosting provides managed SSL certificates for connected custom domains. OpenTofu
+registers each domain from `firebase_hosting_custom_domains` and outputs its ownership,
+hosting and certificate state together with the required DNS changes.
+
+Fasthosts DNS changes are currently manual:
+
+```bash
+make deploy-hosting-env ENV=staging
+make infra-dns-records ENV=staging
+
+# Add every reported A, TXT, CNAME or other record in Fasthosts Advanced DNS.
+# Refresh until ownership, hosting and certificate states become active.
+make infra-plan ENV=staging
+make infra-dns-records ENV=staging
+```
+
+The custom-domain resource deliberately never waits during creation because changing that
+provider field later forces destructive replacement. Firebase validates DNS asynchronously;
+planning or reading the outputs refreshes its current state without recreating the domain.
+Its deletion policy is `PREVENT`, so an accidental replacement or removal fails before the
+domain association is removed from state or Firebase.
+
+Repeat for production only after staging is connected. The output combines Firebase Hosting
+traffic/ownership records with certificate ACME TXT records. The recommended domains are
+`stage.ipace-owners.org` for staging, `ipace-owners.org` as the production canonical domain,
+and `www.ipace-owners.org` as a redirect to the apex. Do not remove or alter existing MX,
+SPF, DKIM or DMARC records.
+
+No documented Fasthosts DNS API, RFC 2136 endpoint, or maintained OpenTofu provider was
+found, so the configuration deliberately does not automate changes in Fasthosts. Moving
+authoritative DNS to Cloud DNS would make the records fully manageable in OpenTofu, but is
+not required for Firebase Hosting and would require a careful migration of every DNS record.
 
 ### Submission storage
 
-Postgres is the intended canonical source for structured owner data. Netlify Database
-migrations live in `netlify/database/migrations/`.
+Cloud Firestore is the intended canonical source for structured owner data.
 
-Join submissions and vehicle basics are handled by Netlify Functions:
+Join submissions and vehicle basics are handled by Go Cloud Functions:
 
 - `submit-join` stores membership expressions of interest and consent choices, then sends
   the Identity magic link for logged-out users.
@@ -163,23 +289,47 @@ Join submissions and vehicle basics are handled by Netlify Functions:
   VIN HMAC / final six characters, registration, country, model year, ownership dates,
   mileage, State of Health, measurement date, measurement mileage, and SoH source.
 
-Member/account JSON snapshots should be regenerated after signup and vehicle changes, then
-served only through `member-data` after server-side Identity verification. Public evidence
-dashboard JSON should be generated only from anonymised aggregate data.
+Member/account JSON snapshots are regenerated after signup and vehicle changes, written to
+Firestore and optionally Cloud Storage, then served only through `member-data` after
+server-side Firebase ID-token verification. Public evidence dashboard JSON should be
+generated only from anonymised aggregate data.
 
 Members may register more than one I-PACE. The account and member dashboard UX should treat
 vehicle records as a list, not as a single profile.
 
-Set `VIN_PEPPER` in Netlify environment variables before collecting VINs. Full VINs are
-not stored; the Function uses `VIN_PEPPER` to create an HMAC for deduplication.
+Set `VIN_PEPPER` as a GCP Secret Manager value and Function environment variable before
+collecting VINs. Full VINs are not stored; the Function uses `VIN_PEPPER` to create an HMAC
+for deduplication.
+
+### Magic-link delivery troubleshooting
+
+A successful Identity Toolkit response means Firebase accepted the email-link request; it
+does not provide mailbox-delivery confirmation. Function logs include a one-way email hash,
+masked address, continue host, response size, and whether Firebase echoed the expected email.
+They never include the raw address or sign-in link.
+
+If a link does not arrive:
+
+1. Check spam/junk filtering and test a mailbox at a different provider.
+2. Confirm the Firebase project is on the intended billing plan and has not reached its
+   [Authentication email sending limit](https://firebase.google.com/docs/auth/limits).
+   Firebase currently limits email-link sign-in delivery to 5 emails/day on Spark and
+   25,000 emails/day on Blaze.
+3. Check the Firebase Authentication email template and sender settings.
+4. For delivery tracking and control, generate sign-in links with the Firebase Admin SDK
+   and send them through a configured transactional email/SMTP provider, as described in
+   [Firebase's custom email action link guidance](https://firebase.google.com/docs/auth/admin/email-action-links).
+
+Submitting Join more than once with the same email remains enumeration-safe. Each submission
+is retained for review, while Function logs record the previous submission count for that
+email hash.
 
 ### Admin role assignment
 
 To grant a member admin access:
 
-1. Go to **Site configuration → Identity → Users**.
-2. Select the user.
-3. Edit their metadata and add `roles: ["admin"]` to `app_metadata`.
+Set a Firebase Auth custom claim for the user, for example `admin: true` or
+`roles: ["admin"]`. Admin APIs verify this claim server-side.
 
 ---
 
@@ -187,11 +337,11 @@ To grant a member admin access:
 
 The following features are **not yet implemented** in this version:
 
-- **Full vehicle/evidence submission persistence** — Join submissions and vehicle basics
-  are the first structured slices. Recall, repair, loan car, payment, responsibility,
-  consent-review, and evidence upload details are not yet stored.
+- **Full vehicle/evidence submission persistence** — Join submissions and vehicle basics are
+  the first structured slices. Recall, repair, loan car, payment, responsibility,
+  consent-review, and evidence upload details are not yet stored in the GCP model.
 - **Evidence document uploads** — A placeholder message explains what will be supported.
-  Requires Netlify Blobs for files plus Postgres metadata and Functions integration.
+  Requires Cloud Storage for files plus Firestore metadata and Functions integration.
 - **Admin review workflow** — The review queue can read server-side data for admins, but
   review status updates, exports, and moderation actions are not yet implemented.
 - **Privacy policy** — The current policy is a placeholder. A formal policy is required
@@ -213,7 +363,7 @@ Do not add Tailwind, Bootstrap, or other CSS frameworks.
 
 Plain vanilla JS, no bundler. Three files:
 - `main.js` — mobile menu toggle, current-page nav highlighting
-- `identity.js` — Netlify Identity init and UI state
+- `identity.js` — Firebase Auth email-link and UI state
 - `multistep-form.js` — generic multi-step form (data-attribute driven)
 
 ### Adding pages
@@ -228,9 +378,9 @@ Posts appear automatically on `/updates/`.
 
 ### Architecture
 
-See `prompts/09-architecture-overview.md` for the intended architecture using Netlify
-Functions, Netlify Database/Postgres for structured data, Blobs for files, and generated
-JSON snapshots for read-heavy views.
+See `prompts/09-architecture-overview.md` for the intended architecture using Firebase
+Auth, Go Cloud Functions, Firestore for structured data, Cloud Storage for files, and
+generated JSON snapshots for read-heavy views.
 
 ### Copilot PR reviews
 
@@ -270,8 +420,8 @@ when joining the group.
 
 - Tests are required for behavioural changes (Functions, Identity handoff, form submission wiring,
   shared utilities).
-- Run `npm test` for behavioural changes and ensure all tests pass.
-- Run `npm run build` for every change and ensure the site builds cleanly.
+- Run `make test` for behavioural changes and ensure all tests pass.
+- Run `make build` for every change and ensure the site builds cleanly.
 - Pressure-test your changes locally (happy path, error paths, and access-control paths where relevant)
   before opening a PR.
 
@@ -284,7 +434,7 @@ when joining the group.
   - How to verify locally.
   - Which tests were added/updated (or why tests were not needed).
 - Use Copilot automatic review as a first pass, but require human review before merge.
-- Do not merge until both `npm run build` and `npm test` pass.
+- Do not merge until `make build` and `make test` pass.
 
 ### Commit message conventions
 

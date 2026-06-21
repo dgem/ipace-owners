@@ -7,7 +7,7 @@ description: "Register basic I-PACE vehicle and battery health data with the own
 multiStepForm: true
 ---
 
-<!-- Server-side auth container: member-auth.js verifies via /.netlify/functions/member-data -->
+<!-- Server-side auth container: member-auth.js verifies via /api/member-data -->
 <div data-auth-container>
 
 	<!-- Login gate — shown by default when server confirms not authenticated -->
@@ -56,9 +56,9 @@ multiStepForm: true
 		style="max-width: none;"
 		name="vehicle-basics"
 		method="POST"
-		action="/.netlify/functions/submit-vehicle-basics"
+		action="/api/submit-vehicle-basics"
 		data-multistep-form
-		data-database-submit="/.netlify/functions/submit-vehicle-basics"
+		data-database-submit="/api/submit-vehicle-basics"
 		data-database-requires-auth
 		novalidate
 		aria-label="Register I-PACE vehicle basics"

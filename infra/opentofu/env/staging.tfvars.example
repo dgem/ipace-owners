@@ -1,0 +1,32 @@
+environment = "staging"
+region      = "europe-west2"
+
+# Set an explicit GCP project ID when using an existing project or when the derived
+# default is unavailable. With create_gcp_project=true and project_id left empty,
+# OpenTofu derives "ipace-owners-staging".
+# project_id        = "replace-with-staging-project-id"
+# project_id_prefix = "ipace-owners"
+# quota_project     = "ipace-owners-staging"
+
+# Set true if OpenTofu should create the GCP project. Leave false to use an existing project.
+create_gcp_project = false
+# project_name      = "I-PACE Owners Staging"
+# gcp_org_id        = "replace-with-org-id"
+# gcp_folder_id     = "replace-with-folder-id"
+# billing_account   = "000000-000000-000000"
+
+github_owner = "dgem"
+github_repo  = "ipace-owners"
+
+allowed_origins = "https://stage.ipace-owners.org,http://localhost:8080,http://localhost:5000"
+site_url        = "https://stage.ipace-owners.org/account/"
+
+# Apply once, then add every output DNS record at Fasthosts.
+firebase_hosting_custom_domains = {
+  "stage.ipace-owners.org" = {}
+}
+
+manage_github_actions = true
+
+# Set the real secret value via environment variables or an uncommitted tfvars file:
+# TF_VAR_vin_pepper=...

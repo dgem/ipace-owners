@@ -1,174 +1,153 @@
 # Architecture Overview Prompt
 
-Read this prompt alongside the feature-specific prompts to understand the full system
-architecture, data flows, and security constraints for the I-PACE Owners' Advocacy Group
-platform.
+Read this prompt alongside the feature-specific prompts before making cross-layer changes.
+It is the current source of truth for the I-PACE Owners' Advocacy Group architecture.
 
-## Goal
+## Current target architecture
 
-Ensure every agent has a complete picture of how the pieces fit together — static site,
-authentication, form handling, storage, and security — before making changes that affect
-more than one layer.
+- **Static site:** Eleventy 3, Markdown/Nunjucks, custom CSS, no frontend framework.
+- **Frontend JavaScript:** vanilla IIFEs loaded with `defer`; no bundler.
+- **Authentication:** Firebase Authentication passwordless email links.
+- **Backend:** Cloud Functions for Firebase / Google Cloud Functions, written in Go.
+- **Canonical data:** Cloud Firestore.
+- **Generated snapshots:** member/private and future public aggregate JSON written to
+  Firestore and Cloud Storage so page loads avoid repeated canonical-store reads.
+- **Hosting:** Firebase Hosting with rewrites from `/api/*` to Go Functions.
+- **Infrastructure:** OpenTofu/Terraform under `infra/opentofu/`.
+- **CI/CD:** GitHub Actions with GCP Workload Identity Federation. PRs deploy to staging
+  Firebase Hosting preview channels; `main` deploys to production.
+- **Domains/SSL:** Firebase Hosting managed SSL for `ipace-owners.org`; DNS remains at
+  Fasthosts. OpenTofu owns Firebase custom-domain associations, reports the required DNS
+  records and validation state, while the records are entered manually in Fasthosts.
 
-## Current Architecture (MVP)
-
-### Stack
-
-- **Static site generator:** Eleventy 3 (`@11ty/eleventy`) with CommonJS config (`.eleventy.js`).
-- **Templates:** Nunjucks (`.njk`) for complex pages; Markdown (`.md`) for content pages.
-- **CSS:** Custom CSS only — no Tailwind, Bootstrap, or utility frameworks. All styles in
-     `src/assets/css/site.css` (reset → tokens → typography → layout → components → print).
-- **JavaScript:** Plain vanilla JS — no React, Vue, Svelte, TypeScript, or bundler. Each
-  file is an IIFE loaded with `defer`.
-- **Authentication:** passwordless Netlify Identity email links + server-side JWT verification via Netlify Functions. The Identity widget may remain only as a session/JWT adapter; do not use its modal UI.
-- **Hosting:** Netlify (build command `npm run build`, publish directory `_site`).
-- **Backend target:** Netlify Functions + Netlify Database/Postgres for structured data.
-  Netlify Blobs are reserved for future binary evidence files only.
-
-### Directory structure
+## Directory structure
 
 ```
-src/
-   *.md / *.njk               — top-level page templates
-   member/                    — member-gated pages (server-side auth)
-   admin/                     — admin-gated pages (server-side auth)
-   updates/                   — update/news posts (.md)
-    _data/                    — global data (site.json, navigation.json)
-    _includes/layouts/        — base.njk, page.njk, form-page.njk
-    _includes/partials/       — header.njk, footer.njk, mobile-nav.njk, card.njk, callout.njk
-   assets/css/site.css        — all styles
-   assets/js/main.js          — mobile menu, nav current-page detection
-   assets/js/identity.js      — Netlify Identity UI (header only, no content gating)
-   assets/js/member-auth.js   — server-side auth verification and data population
-   assets/js/multistep-form.js — generic multi-step form controller
-public/images/               — static images (passed through to _site root)
-netlify/functions/           — Netlify Functions
-   lib/                       — shared Function utilities
-     submission-utils.js      — CORS, origin allowlist, input sanitization, HMAC
-     identity-magic-link.js   — server-side Identity signup/magiclink flow
-   send-magic-link.js         — standalone magic sign-in link request
-   submit-join.js             — Join form: validate, store, send magic link
-   submit-vehicle-basics.js   — signed-in vehicle basics: validate, store VIN HMAC
-   member-data.js             — authenticated user's own records (server-side JWT check)
-   admin-data.js              — all records for admins (server-side JWT + role check)
-netlify/database/migrations/ — Postgres schema migrations for Netlify Database
-prompts/                     — sequenced prompts for rebuilding the product
-.eleventy.js                 — Eleventy configuration
-netlify.toml                 — build, redirect, header, and dev configuration
+src/                         Static Eleventy source
+src/assets/js/identity.js    Firebase Auth email-link adapter
+src/assets/js/member-auth.js Server-verified member/admin data loading
+functions/firebase-go/       Go Cloud Functions
+infra/opentofu/              GCP/Firebase infrastructure
+firebase.json                Hosting headers, rewrites and Functions config
+Makefile                     Shared local and CI command entrypoints
+prompts/                     Sequenced rebuild/evolution prompts
 ```
 
-## Authentication Flow
+Keep the legacy `netlify/` files only while migration is in progress. New work should target
+Firebase/GCP unless explicitly maintaining the old deployment path.
 
-### Netlify Identity
+## Authentication flow
 
-- The Identity widget is loaded from CDN in `base.njk` only to process Identity links and expose the current session/JWT while this adapter remains.
-- Visible sign-in UI is custom and passwordless. Magic-link forms call
-  `POST /.netlify/functions/send-magic-link`; no Netlify modal/password dialog is opened.
-- `identity.init()` uses `{ APIUrl: window.location.origin + '/.netlify/identity' }` so it
-  works in all environments (no hard-coded domain).
-- Owner accounts are created via the magic link flow (server-side signup, magiclink, and
-  recover fallback where Netlify Identity does not expose `/magiclink`).
-- Admin roles are assigned in `app_metadata.roles` via the Netlify Identity admin UI.
+1. Build-time Firebase web config is emitted by `.eleventy.js` from environment variables.
+2. `identity.js` initialises Firebase Auth and never opens a password modal.
+3. Magic-link forms call `POST /api/send-magic-link`.
+4. The Go `SendMagicLink` Function calls Firebase Identity Toolkit to send an email sign-in
+   link and returns account-enumeration-resistant `{ ok: true }` for valid email syntax.
+5. When the user opens the email link, `identity.js` completes
+   `signInWithEmailLink`, stores the session locally, clears auth query parameters, and
+   exposes `window.ipaceGetIdentityToken()`.
+6. Private API calls include `Authorization: Bearer <Firebase ID token>`.
+7. Go Functions verify Firebase ID tokens server-side. Admin endpoints require an `admin`
+   custom claim or a `roles` claim containing `admin`.
 
-### Server-Side Auth Verification
+## Implemented API contracts
 
-**Client-side gating has been removed.** All data access is now verified server-side:
+| Route | Function | Auth | Purpose |
+|---|---|---|---|
+| `POST /api/send-magic-link` | `SendMagicLink` | No | Send passwordless sign-in email link. |
+| `POST /api/submit-join` | `SubmitJoin` | Optional | Save Join submission; send email link for guests. |
+| `POST /api/submit-vehicle-basics` | `SubmitVehicleBasics` | Member | Save one vehicle basics record. Members may own multiple vehicles. |
+| `GET /api/member-data` | `MemberData` | Member | Return the signed-in user's generated snapshot. |
+| `GET /api/admin-data` | `AdminData` | Admin | Return review data for administrators. |
 
-1. `member-auth.js` loads on every page (via `base.njk`).
-2. On DOM ready, it finds `[data-auth-container]` or `[data-admin-container]`.
-3. It fetches the appropriate Function (`member-data` or `admin-data`) with an explicit
-   `Authorization: Bearer <Identity JWT>` header.
-4. The Function verifies `context.clientContext.user` server-side (JWT validation by Netlify runtime).
-5. On 200: `member-auth.js` hides the gate, shows content, and populates data from the response.
-6. On 401/403: the gate stays visible — no private data is exposed.
+Firebase Hosting may also keep temporary rewrites for old `/.netlify/functions/*` paths
+during migration, but templates and client JavaScript should use `/api/*`.
 
-**No client-side attribute manipulation can bypass auth.** The login gate is shown by default (`hidden` is on the content, not the gate). Content is only revealed after the server confirms authorization.
+## Data model principles
 
-## Form Handling and Storage
+- Firestore is canonical for structured owner, membership, vehicle, evidence, and review
+  data.
+- Cloud Storage is for generated JSON snapshots and future uploaded evidence blobs.
+- Member pages read a generated member snapshot through `MemberData`; the Function verifies
+  auth before returning it.
+- Public dashboard pages should read anonymised aggregate JSON only after verification and
+  exclusion rules have been applied.
+- One member can have zero, one, or many vehicles; do not model the member account as a
+  single-car profile.
+- Full VINs are never stored. Store only an HMAC-SHA-256 digest using `VIN_PEPPER` plus the
+  final six VIN characters for member reference.
+- Raw email addresses and names must never appear in public static files or public
+  aggregate JSON.
 
-### Implemented Functions
+## Security constraints
 
-| Function | Auth Required | What it does |
-|---|---|---|
-| `send-magic-link.js` | No | Standalone magic sign-in link request. Validates origin, email; calls Identity signup/magiclink/recover server-side. Returns account-enumeration-resistant `{ ok }` flag for valid email syntax. |
-| `submit-join.js` | No (optional) | Validates Join form, writes membership interest, sends magic link for logged-out users, and regenerates the member/account JSON snapshot. |
-| `submit-vehicle-basics.js` | Yes (signed-in user) | Validates vehicle identity and battery health slice, writes vehicle rows, and regenerates the member/account JSON snapshot. |
-| `member-data.js` | Yes (signed-in user) | Returns the authenticated user's private member/account snapshot. Verifies `context.clientContext.user.sub`. Does not expose admin-only review data. |
-| `admin-data.js` | Yes (admin role) | Returns all join and vehicle-basics records. Verifies JWT + `app_metadata.roles` contains `admin`. Exposes review data and userEmailHash to admins only. |
+- Verify every private request server-side with Firebase Admin SDK.
+- Do not trust client-side `hidden` attributes or auth UI state.
+- Do not log raw VINs, Identity tokens, full request bodies, or personal records.
+- Return generic magic-link responses so account existence cannot be enumerated.
+- Store secrets in GCP Secret Manager and GitHub environment secrets, never in git.
+- Restrict CORS to production, staging preview hosts, and local development origins.
+- Uploaded evidence must be validated server-side before storage.
 
-### Storage Model (Postgres + JSON Snapshots)
+## Infrastructure and deployment
 
-- Postgres is the canonical store for all structured data.
-- The initial migration lives at
-  `netlify/database/migrations/20260616120000_create_owner_data_model.sql`.
-- One member may have many vehicles. UI and data access must treat vehicle records as a
-  list, not a single car.
-- Join and vehicle writes regenerate a private member/account JSON snapshot. This snapshot
-  is served by `member-data.js` after server-side Identity verification.
-- Public evidence dashboard data is served from anonymised aggregate JSON snapshots. These
-  snapshots may be emitted as public static JSON only after exclusion and verification
-  rules have been applied.
-- Blobs are for uploaded evidence files only. File metadata, review status, and ownership
-  remain in Postgres.
+- Use the shared OpenTofu module in `infra/opentofu/modules/ipace-owners` from the single
+  environment root in `infra/opentofu/env`. Staging and production must use the same root
+  and differ only by workspace plus tfvars/input values. Use the `staging` workspace with
+  `staging.tfvars` and the `production` workspace with `production.tfvars`.
+- The environment root should allow `project_id` to be omitted when creating a GCP project,
+  deriving `${project_id_prefix}-${environment}` by default while still allowing an explicit
+  project ID for existing projects or global ID collisions.
+- Required resources include Firebase project enablement, Firestore native mode, Cloud
+  Web App config, Firestore native mode, Cloud Storage snapshot bucket, Secret Manager
+  secrets, Function runtime service account, and GitHub Workload Identity Federation.
+- OpenTofu must configure Firebase Authentication / Identity Platform for passwordless
+  email sign-in, with email sign-in enabled, password-required disabled, and authorized
+  domains derived from `site_url` plus any explicit extra auth domains.
+- The OpenTofu module should also bootstrap the GitHub Actions `staging` and `production`
+  environments, including the variables and secrets consumed by the deploy workflows.
+  Firebase web API keys, app IDs, auth domains and storage bucket values should be derived
+  from resources created by OpenTofu, not pasted manually. Keep real secret values out of
+  git; provide the remaining secret `VIN_PEPPER` through uncommitted tfvars or `TF_VAR_*`.
+- The repository Makefile is the shared command surface for local development and CI.
+  `make` and `make help` must print documented targets; `make functions` must list the
+  Cloud Function entrypoints deployed by `make deploy-functions`.
+- Infrastructure operations must use explicit `ENV=staging` or `ENV=production` Make
+  targets. `make infra-plan` and `make deploy-hosting-env` should conditionally refresh
+  gcloud user/ADC authentication, set an accessible ADC quota project, initialise the
+  shared OpenTofu root, and select or create the workspace matching `ENV` before planning
+  or applying the matching tfvars file. Never default an infrastructure apply to production.
+- Define Firebase Hosting custom domains per environment without provider-side DNS waiting,
+  because toggling that field forces replacement. Output both Hosting traffic/ownership and
+  certificate ACME records. After those records are entered at Fasthosts, refresh and expose
+  ownership, host and certificate state through `make infra-plan` and
+  `make infra-dns-records`. Do not attempt unsupported Fasthosts API automation or modify
+  unrelated email DNS records. Protect custom-domain resources from accidental deletion.
+- GitHub Actions must delegate common operations through Make targets. Before deploying,
+  run `make test-node`, `make test-go`, and `make build`; local verification can use
+  `make test` and `make build`.
+- GitHub Actions should use the current Node.js Active LTS from `.nvmrc`, Go 1.26 / `go126` for
+  Cloud Run functions, and current runtime-compatible action majors. Deploy Cloud Function runtime
+  environment variables from an env vars file rather than comma-separated `--set-env-vars`,
+  because values such as `ALLOWED_ORIGINS` contain commas.
+- Keep runtime, provider, dependency and action versions current. Use the latest production
+  Active LTS for Node, latest GCP-supported Go runtime, current stable OpenTofu, latest
+  compatible provider major, and latest compatible stable package releases. Commit lockfiles,
+  run weekly Dependabot checks for npm, Go modules, Actions and OpenTofu, and require migration
+  guide review plus full tests/build/provider validation for major updates.
+- PRs deploy to staging preview channels and run smoke tests against the published URL.
+- Merges to `main` deploy production.
 
-### VIN Deduplication
+## Prompt maintenance
 
-- Full VINs are never stored. The Function creates an HMAC-SHA-256 using `VIN_PEPPER` and
-  stores only the HMAC digest plus the final six characters of the VIN for reference.
-- If a VIN is provided and `VIN_PEPPER` is missing, do not store or derive any VIN
-  identifier. If registration is present, save the registration-based record; if VIN is the
-  only identifier, reject the write with a clear configuration message.
+Keep these related prompts aligned when the architecture changes:
 
-## Public vs Private Data Boundaries
-
-| Layer | What it serves | Access control |
-|---|---|---|
-| **Public pages** (evidence dashboard, methodology, FAQ) | Anonymised aggregate statistics only. No individual records, no VINs, no personal data. | None — served as static HTML. |
-| **Member pages** (dashboard, account, submit vehicle data) | Server-side verified via `member-data.js`. Shows the user's private generated member/account JSON snapshot, including zero, one, or many vehicle records. Login gate shown by default; content revealed only after Function returns 200. | Server-side JWT verification in `member-data.js`. No client-side gating — `member-auth.js` relies entirely on Function response. |
-| **Admin pages** (review queue, submissions) | Server-side verified via `admin-data.js`. Shows all join and vehicle records with review data. Login gate + admin-only gate shown by default; content revealed only after Function returns 200. | Server-side JWT + role check in `admin-data.js` (`app_metadata.roles` contains `admin`). Returns 403 for non-admin users. |
-
-## Security Constraints
-
-1. **Never store raw VINs, email addresses, or names in public static files.**
-2. **All data access is server-side verified.** `member-data.js` and `admin-data.js` verify Identity JWTs via `context.clientContext.user`. No private data is accessible without a valid JWT.
-3. **Client-side gating is cosmetic only.** `identity.js` does not show/hide gated content. `member-auth.js` fetches from Functions and only reveals content on 200 response. Login gates are shown by default (content has `hidden` attribute).
-4. **Use HMAC (with pepper) for VIN deduplication**, not plain SHA-256 hashes.
-5. **Netlify environment variables** must be used for all secrets (`VIN_PEPPER`, API tokens).
-6. **CSP headers** are configured in `netlify.toml` to restrict script sources.
-7. **Origin allowlist** in Functions rejects cross-site `no-cors` requests that could trigger
-  unsolicited emails.
-8. **Function logs** may include structured diagnostics (request IDs, methods, origins, status
-  codes, email fingerprints) but must never log raw VINs, full personal records, Identity
-  tokens, request bodies, or Identity response bodies.
-9. **Uploads must be validated server-side** before storage — never trust client-supplied
-  content types or filenames.
-
-## Future Considerations
-
-- **Email notifications** — Netlify Functions can trigger emails via transactional providers
-   (Postmark, SendGrid) for submission confirmations and status updates.
-- **Evidence document uploads** — Blobs can store binary files. Requires server-side
-  validation of file type, size, and content before storage.
-- **Proposed Functions:** `submit-vehicle.js` (full evidence),
-  `admin-update-submission.js` (review status changes), `publish-public-stats.js`
-  (aggregate static JSON generation).
-
-## Component Prompts
-
-Use the smaller backend prompts for implementation details:
-
-- `08-backend-security-and-storage.md` — shared backend security and storage constraints.
-- `10-functions-shared-utilities.md` — shared Function utilities.
-- `11-functions-identity-and-join.md` — magic links and Join submission.
-- `12-functions-vehicle-basics.md` — signed-in vehicle basics.
-- `13-functions-member-admin-data.md` — member/admin data reads.
-- `14-functions-future-evidence-and-stats.md` — future evidence, uploads, review mutation, and public statistics.
-- `15-postgres-static-json-data-model.md` — canonical Postgres model and JSON snapshot rules.
-
-## Validation
-
-- Run `npm run build` to confirm the site builds cleanly.
-- Run `npm test` to confirm all Function tests pass.
-- Confirm no real owner data, raw VINs, or personal information appears in static output.
-- Keep this prompt aligned with README, AGENTS.md, and the component prompts when the
-  architecture evolves.
+- `05-identity-member-admin-gating.md`
+- `06-forms-and-evidence-collection.md`
+- `08-backend-security-and-storage.md`
+- `10-functions-shared-utilities.md`
+- `11-functions-identity-and-join.md`
+- `12-functions-vehicle-basics.md`
+- `13-functions-member-admin-data.md`
+- `14-functions-future-evidence-and-stats.md`
+- `15-firestore-static-json-data-model.md`

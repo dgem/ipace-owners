@@ -1,0 +1,93 @@
+name: GCP Firebase staging
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+
+jobs:
+  deploy-preview:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: functions/firebase-go/go.mod
+          cache-dependency-path: functions/firebase-go/go.sum
+
+      - name: Install dependencies
+        run: make ci-install
+
+      - name: Test site
+        run: make test-node
+
+      - name: Test Go functions
+        run: make test-go
+
+      - name: Build site
+        env:
+          FIREBASE_WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY_STAGING }}
+          FIREBASE_AUTH_DOMAIN: ${{ vars.FIREBASE_AUTH_DOMAIN_STAGING }}
+          FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_STAGING_PROJECT_ID }}
+          FIREBASE_APP_ID: ${{ vars.FIREBASE_APP_ID_STAGING }}
+          FIREBASE_STORAGE_BUCKET: ${{ vars.FIREBASE_STORAGE_BUCKET_STAGING }}
+        run: make build
+
+      - uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER_STAGING }}
+          service_account: ${{ secrets.GCP_DEPLOYER_SERVICE_ACCOUNT_STAGING }}
+
+      - uses: google-github-actions/setup-gcloud@v3
+
+      - name: Deploy Go Cloud Functions
+        env:
+          GCP_PROJECT_ID: ${{ vars.FIREBASE_STAGING_PROJECT_ID }}
+          FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_STAGING_PROJECT_ID }}
+          GCP_REGION: ${{ vars.GCP_REGION || 'europe-west2' }}
+          FUNCTIONS_SERVICE_ACCOUNT: ${{ secrets.GCP_FUNCTIONS_SERVICE_ACCOUNT_STAGING }}
+          FIREBASE_WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY_STAGING }}
+          VIN_PEPPER: ${{ secrets.VIN_PEPPER_STAGING }}
+          SNAPSHOT_BUCKET: ${{ vars.SNAPSHOT_BUCKET_STAGING }}
+          ALLOWED_ORIGINS: ${{ vars.ALLOWED_ORIGINS_STAGING }}
+          FIREBASE_EMAIL_CONTINUE_URL: ${{ vars.FIREBASE_EMAIL_CONTINUE_URL_STAGING }}
+        run: make deploy-functions
+
+      - name: Deploy Firebase Hosting preview
+        id: hosting
+        env:
+          GCP_PROJECT_ID: ${{ vars.FIREBASE_STAGING_PROJECT_ID }}
+          CHANNEL_ID: pr-${{ github.event.pull_request.number }}
+        run: make deploy-hosting-preview
+
+      - name: Smoke test preview
+        env:
+          SMOKE_BASE_URL: ${{ steps.hosting.outputs.url }}
+        run: make smoke
+
+      - name: Comment preview details
+        if: always()
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require('fs');
+            let body = 'Firebase staging deploy finished.';
+            if (fs.existsSync('firebase-preview.json')) {
+              body += '\n\n```json\n' + fs.readFileSync('firebase-preview.json', 'utf8').slice(0, 4000) + '\n```';
+            }
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body
+            });

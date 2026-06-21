@@ -3,7 +3,7 @@
 ## Project overview
 
 This is the I-PACE Owners' Advocacy Group website — a static, mobile-first, accessible
-public site built with Eleventy (11ty) and deployed to Netlify.
+public site built with Eleventy (11ty) and deployed to Firebase/GCP.
 
 ## Repository structure
 
@@ -22,19 +22,16 @@ public site built with Eleventy (11ty) and deployed to Netlify.
 │       ├── css/site.css # Main stylesheet — all styles, no Tailwind
 │       └── js/
 │           ├── main.js            # Mobile menu, nav current-page detection
-│           ├── identity.js        # Netlify Identity UI integration
+│           ├── identity.js        # Firebase Auth email-link integration
 │           ├── member-auth.js     # Server-verified member/admin data loading
 │           └── multistep-form.js  # Generic multi-step form controller
 ├── public/images/       # Static images (passed through to _site)
-├── netlify/functions/   # Netlify Functions
-│   ├── lib/             # Shared Function utilities
-│   ├── send-magic-link.js
-│   ├── submit-join.js
-│   └── submit-vehicle-basics.js
-├── netlify/database/    # Netlify Database migrations
+├── functions/firebase-go/ # Go Cloud Functions for Firebase/GCP
+├── infra/opentofu/      # GCP/Firebase infrastructure
 ├── prompts/             # Sequenced prompts for rebuilding and evolving the product
 ├── .eleventy.js         # Eleventy configuration
-├── netlify.toml         # Netlify build, redirect and header configuration
+├── firebase.json        # Firebase Hosting rewrites, headers and Functions config
+├── Makefile             # Shared local/CI command entrypoints
 ├── package.json         # npm scripts and dependencies
 ├── AGENTS.md            # This file
 └── README.md            # Setup and deployment documentation
@@ -43,12 +40,14 @@ public site built with Eleventy (11ty) and deployed to Netlify.
 ## Development commands
 
 ```bash
-npm install    # Install dependencies
-npm run dev    # Start Netlify Dev with Eleventy and Functions
-npm run dev:eleventy # Start Eleventy only, without Netlify Functions
-npm run build  # Build production site to _site/
-npm test       # Run Node tests for Functions and critical form wiring
-npm run clean  # Remove _site/ directory
+make            # List available local/CI targets
+make install    # Install dependencies for local development
+make dev        # Start the local development server
+make dev-eleventy # Start Eleventy only, without backend APIs
+make build      # Build production site to _site/
+make test       # Run Node and Go tests
+make clean      # Remove _site/ directory
+make functions  # List deployed Cloud Function entrypoints
 ```
 
 Eleventy v3 is used. The Eleventy config file is `.eleventy.js` (CommonJS format).
@@ -59,10 +58,21 @@ Eleventy v3 is used. The Eleventy config file is `.eleventy.js` (CommonJS format
 - **Templates:** Nunjucks (`.njk`) for complex pages; Markdown for content pages
 - **CSS:** Custom CSS only — no Tailwind, no Bootstrap, no utility frameworks
 - **JavaScript:** Plain vanilla JS — no React, Vue, Svelte, or heavy frameworks
-- **Authentication:** passwordless Netlify Identity email links. The widget script may be
-  used only as a session/JWT adapter; do not use the Netlify modal UI.
-- **Hosting:** Netlify
-- **Backend:** Netlify Functions + Netlify Database/Postgres for structured data; Netlify Blobs for future binary evidence files
+- **Authentication:** Firebase Authentication passwordless email links.
+- **Hosting:** Firebase Hosting / Google Cloud
+- **Backend:** Go Cloud Functions + Cloud Firestore for structured data; Cloud Storage for generated snapshots and future binary evidence files
+
+## Version policy
+
+- Use the latest stable production-supported toolchain: the current Node.js Active LTS,
+  the latest Go runtime supported by GCP Cloud Functions, and the current stable OpenTofu.
+- Keep OpenTofu providers on their latest compatible major and commit the exact selections
+  in `.terraform.lock.hcl`. Do not retain an old provider major to avoid migration work.
+- Keep npm and Go dependencies current through committed lock/checksum files. Dependabot
+  checks npm, Go modules, GitHub Actions and OpenTofu providers weekly.
+- Review major-version migration guides and run `make test`, `make build`, and
+  `tofu -chdir=infra/opentofu/env validate` before merging dependency updates.
+- Prefer an Active LTS runtime over a numerically newer non-LTS release for production.
 
 ## CSS conventions
 
@@ -101,26 +111,27 @@ Defined in `:root` in `site.css`. Key tokens:
   `data-next`, `data-prev`, `data-submit`, `data-progress`, etc.) and is not hardcoded
   to any specific form.
 
-## Authentication (Netlify Identity)
+## Authentication (Firebase Auth)
 
-- Identity script is loaded from the CDN in `base.njk` as a session/JWT adapter.
-- `identity.js` updates the header UI, submits passwordless magic-link forms, and injects JWTs into protected form submissions.
-- On Join form completion, `identity.js` calls `POST /.netlify/functions/submit-join`
-  once. The function stores the Join submission and dispatches a Netlify Identity
-  confirmation or passwordless magic-link email server-side.
-- Existing users can request another magic link through `POST /.netlify/functions/send-magic-link`
+- Firebase Auth SDK is loaded from the CDN in `base.njk` when build-time config is present.
+- `identity.js` completes email-link sign-in, updates the header UI, submits passwordless
+  magic-link forms, and injects Firebase ID tokens into protected form submissions.
+- On Join form completion, `identity.js` calls `POST /api/submit-join` once. The Go
+  Function stores the Join submission and dispatches a Firebase email sign-in link
+  server-side.
+- Existing users can request another magic link through `POST /api/send-magic-link`
   without resubmitting the Join form.
-- Signed-in vehicle basics are stored by `POST /.netlify/functions/submit-vehicle-basics`.
-- Member/admin data fetches must send the Identity JWT in the `Authorization` header.
+- Signed-in vehicle basics are stored by `POST /api/submit-vehicle-basics`.
+- Member/admin data fetches must send the Firebase ID token in the `Authorization` header.
 - Members may register multiple vehicles. Account/member pages should render vehicle lists,
   not a single vehicle assumption.
 - Member/account JSON snapshots are private data and must be served only after
-  `member-data.js` verifies Identity server-side. Public static JSON is for anonymised
+  `MemberData` verifies Firebase Auth server-side. Public static JSON is for anonymised
   aggregate data only.
 - Member pages use `data-auth-gate` / `data-auth-content` attributes.
 - Admin pages use `data-admin-gate` / `data-admin-content` attributes.
-- **Frontend gating is not sufficient for real data access.** Future Netlify Functions
-  must verify Identity JWTs server-side.
+- **Frontend gating is not sufficient for real data access.** Go Functions must verify
+  Firebase ID tokens server-side.
 
 ## Adding a new page
 
@@ -147,17 +158,17 @@ Defined in `:root` in `site.css`. Key tokens:
 
 ## Testing
 
-- **Tests are required for all behavioural changes.** Any change to Netlify Functions,
-  form submission wiring, Identity handoff, or shared utilities must include or update
-  Node tests in `test/`.
-- Run `npm test` before considering a change complete. All existing tests must pass.
+- **Tests are required for all behavioural changes.** Any change to Go Functions, form
+  submission wiring, Firebase Auth handoff, or shared utilities must include or update
+  tests.
+- Run `make test` before considering a change complete. All existing tests must pass.
 - Tests should cover:
   - Server-side validation and authorization paths (unauthenticated, authenticated, admin).
   - Input sanitisation and edge cases (empty bodies, invalid JSON, honeypot fields).
-- Storage-shaping logic (Postgres row structure, generated JSON snapshots, metadata, HMAC behaviour).
+  - Storage-shaping logic (Firestore document structure, generated JSON snapshots, metadata, HMAC behaviour).
   - Magic-link handoff behaviour (new vs existing user flow).
 - Content-only changes (Markdown copy, CSS, static templates) need not add tests but must
-  pass `npm run build`.
+  pass `make build`.
 
 ## Code review and pull requests
 
@@ -166,12 +177,12 @@ Defined in `:root` in `site.css`. Key tokens:
 - Every PR must include a clear description covering:
   - What changed and why.
   - Which files were added or modified.
-  - How to verify the change locally (e.g., `npm run dev` and navigate to X).
+  - How to verify the change locally (e.g., `make dev` and navigate to X).
   - Whether tests were added or updated.
 - **Code review is required before merging.** Use GitHub's automatic Copilot code review
   (configured via repository branch ruleset) as a first pass, but every PR must receive
   human review for logic, security, accessibility, and tone.
-- Do not merge until `npm run build` and `npm test` both pass cleanly.
+- Do not merge until `make build` and `make test` pass cleanly.
 
 ## Commit message conventions
 

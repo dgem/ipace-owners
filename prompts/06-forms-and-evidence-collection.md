@@ -41,18 +41,18 @@ Provide accessible multi-step forms that collect membership interest now, help o
   membership answers are saved with `submit-join` and the name/email are used for the
   Identity email flow.
 - Configure backend-backed forms with `data-database-submit` pointing to the relevant
-  Netlify Function. Use JSON `fetch` from `identity.js`, and send an Identity JWT in the
-  `Authorization` header when `data-database-requires-auth` is present.
-- Configure the Join form to call only `POST /.netlify/functions/submit-join` from the
-  browser. Do not also call `POST /.netlify/functions/send-magic-link` on Join completion.
+  `/api/*` Go Cloud Function. Use JSON `fetch` from `identity.js`, and send a Firebase ID
+  token in the `Authorization` header when `data-database-requires-auth` is present.
+- Configure the Join form to call only `POST /api/submit-join` from the browser. Do not
+  also call `POST /api/send-magic-link` on Join completion.
 - After successful Join form validation, `identity.js` calls `submit-join` with the form
   payload. The Function stores the Join answers and sends a confirmation or passwordless
-  magic-link email via shared server-side Netlify Identity code.
-  The email address **is** sent to Netlify Identity; detailed join answers (combined
-  relationship/ownership status, skills, consent) are saved to Postgres. The result screen reports storage success
+  magic-link email via shared server-side Firebase code.
+  The email address **is** sent to Firebase Authentication; detailed join answers (combined
+  relationship/ownership status, skills, consent) are saved to Firestore. The result screen reports storage success
   and the `magicLinkSent` state returned by `submit-join`.
 - Do not claim "no data was sent or stored" in the Join result. Clarify that the Join
-  answers are saved to the structured data store and the email address is sent to Netlify Identity.
+  answers are saved to the structured data store and the email address is sent to Firebase Authentication.
 - The result area uses these data attributes for state management:
   - `data-registration-guest` — wrapper shown for unauthenticated users
   - `data-registration-signed-in` — shown if user is already logged in
@@ -93,7 +93,7 @@ Collect:
 ## Vehicle data form
 
 The currently implemented vehicle form is the first database-backed slice. It requires a
-signed-in Netlify Identity user and calls `POST /.netlify/functions/submit-vehicle-basics`.
+signed-in Firebase Auth user and calls `POST /api/submit-vehicle-basics`.
 It collects:
 
 - VIN, registration, country, model year, ownership dates, mileage.
@@ -139,12 +139,12 @@ future summary of entered information.
 - Do not send form data to a backend until a backend prompt implements it for that specific
   flow. The current exceptions are:
   - the Join form's single `submit-join` call, which stores membership interest and consent
-    in Postgres and sends email/name to Netlify Identity via shared server-side
+    in Firestore and sends email/name to Firebase Authentication via shared server-side
     magic-link code;
   - the signed-in vehicle basics form's `submit-vehicle-basics` call, which stores the
-    initial vehicle and battery health slice in Postgres.
+    initial vehicle and battery health slice in Firestore.
 - Do not store raw VINs in public static files.
-- Do not store full VINs in Postgres, Blobs, or static JSON. Store an HMAC generated with `VIN_PEPPER` and only the
+- Do not store full VINs in Firestore, Cloud Storage, or static JSON. Store an HMAC generated with `VIN_PEPPER` and only the
   final six characters for reference. If `VIN_PEPPER` is not configured, ignore the VIN
   when registration is present, and reject VIN-only submissions with a clear configuration
   message.

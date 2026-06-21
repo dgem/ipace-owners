@@ -8,14 +8,26 @@
   <title>{% if title %}{{ title }} — {% endif %}{{ site.title }}</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 
-  <!-- Netlify Identity Widget -->
-  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  {% if firebase.apiKey %}
+  <script>
+    window.ipaceFirebaseConfig = {
+      apiKey: "{{ firebase.apiKey }}",
+      authDomain: "{{ firebase.authDomain }}",
+      projectId: "{{ firebase.projectId }}",
+      appId: "{{ firebase.appId }}",
+      storageBucket: "{{ firebase.storageBucket }}"
+    };
+  </script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  {% endif %}
 
   <!-- Styles -->
   <link rel="stylesheet" href="/assets/css/site.css">
 
   <!-- Preload key assets -->
-  <link rel="preconnect" href="https://identity.netlify.com">
+  <link rel="preconnect" href="https://www.gstatic.com">
+  <link rel="preconnect" href="https://identitytoolkit.googleapis.com">
 </head>
 <body{% if bodyClass %} class="{{ bodyClass }}"{% endif %}{% if authRedirectOnLogin %} data-auth-redirect-on-login="{{ authRedirectOnLogin }}"{% endif %}{% if authRedirectOnLogout %} data-auth-redirect-on-logout="{{ authRedirectOnLogout }}"{% endif %}>
 
@@ -40,7 +52,7 @@
     <div class="cookie-notice__content">
       <p class="cookie-notice__title">Cookies and privacy</p>
       <p>
-        We use essential site services only. Netlify Identity may use cookies or
+        We use essential site services only. Firebase Authentication may use cookies or
         browser storage for sign-in, and this notice stores your choice. We do
         not use analytics or advertising cookies.
       </p>
@@ -55,7 +67,7 @@
       <div class="cookie-notice__content">
         <p class="cookie-notice__title">Cookies and privacy</p>
         <p>
-          We use essential site services only. Netlify Identity may use cookies
+          We use essential site services only. Firebase Authentication may use cookies
           or browser storage for sign-in. We do not use analytics or advertising
           cookies.
         </p>

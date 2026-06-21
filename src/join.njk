@@ -16,9 +16,9 @@ compactSection: true
   class="form form--compact"
   name="join"
   method="POST"
-  action="/.netlify/functions/submit-join"
+  action="/api/submit-join"
   data-multistep-form
-  data-database-submit="/.netlify/functions/submit-join"
+  data-database-submit="/api/submit-join"
   novalidate
   aria-label="Join the I-PACE Owners' Group"
 >
@@ -258,21 +258,26 @@ compactSection: true
 
       <!-- Shown for guests — revealed by identity.js after form submit -->
       <div data-registration-guest hidden>
-        <p style="color: var(--color-text-muted);">We're sending a sign-in link to
-          <strong data-registration-email>your email address</strong>.
+        <p style="color: var(--color-text-muted);">Your sign-in link status for
+          <strong data-registration-email>your email address</strong> is shown below.
         </p>
 
-        <!-- Shown once the magic link email has been dispatched -->
+        <!-- Shown once Firebase accepts the magic-link request -->
         <div data-registration-link-sent hidden style="margin-top: var(--space-4);">
           <div style="font-size: 2rem; margin-bottom: var(--space-3);" aria-hidden="true">📧</div>
-          <p><strong>Check your inbox.</strong> We've sent an email to your address.
-          Click the link inside to complete your registration and sign in.</p>
-          <p style="color: var(--color-text-muted); font-size: 0.875rem; margin-top: var(--space-2);">Can't find it? Check your spam folder. You can add vehicle data after opening the sign-in link.</p>
+          <p><strong>Check your inbox.</strong> Our sign-in provider accepted the request
+          for your email address. When the message arrives, click its link to complete
+          registration and sign in.</p>
+          <p style="color: var(--color-text-muted); font-size: 0.875rem; margin-top: var(--space-2);">
+          Delivery can be delayed or filtered. Check spam or junk folders, then use Sign in
+          to request another link if it has not arrived. You can add vehicle data after
+          opening the sign-in link.</p>
         </div>
 
         <!-- Shown if the API call fails -->
         <div data-registration-error hidden style="margin-top: var(--space-4);">
-          <p style="color: var(--color-text-muted);">We couldn't send your link right now.
+          <p style="color: var(--color-danger);"><strong>Your join details were saved, but we couldn't send your sign-in link.</strong></p>
+          <p style="color: var(--color-text-muted);">
           Use the <strong>Sign in</strong> button in the header, or email us at
           <a href="mailto:contact@ipace-owners.org">contact@ipace-owners.org</a>.</p>
         </div>
@@ -292,9 +297,9 @@ compactSection: true
       <span class="callout__icon" aria-hidden="true">ℹ️</span>
       <div class="callout__content">
         <p class="callout__title">Join answers are saved</p>
-        <p>At the end, the join answers are saved securely and we send an
-        email to the address you provide so you can create or access your member account.
-        Vehicle evidence storage is still separate and not yet active.</p>
+            <p>At the end, the join answers are saved securely and we ask our sign-in
+            provider to email the address you provide so you can create or access your
+            member account. Vehicle evidence storage is still separate and not yet active.</p>
       </div>
     </div>
   </aside>

@@ -9,21 +9,54 @@ baseUrl.pathname = '/';
 baseUrl.search = '';
 baseUrl.hash = '';
 
+function isAllowedSmokeHost(hostname) {
+  return (
+    hostname === 'localhost' ||
+    hostname === '127.0.0.1' ||
+    hostname === 'ipace-owners.org' ||
+    hostname === 'www.ipace-owners.org' ||
+    hostname.endsWith('.ipace-owners.org') ||
+    hostname.endsWith('.web.app') ||
+    hostname.endsWith('.firebaseapp.com')
+  );
+}
+
+if (!isAllowedSmokeHost(baseUrl.hostname)) {
+  throw new Error(`Refusing to smoke test unsupported host: ${baseUrl.hostname}`);
+}
+
 function url(path) {
   return new URL(path, baseUrl).toString();
 }
 
 async function fetchText(path) {
-  const res = await fetch(url(path), { redirect: 'follow' });
+  const target = url(path);
+  const res = await fetch(target, { redirect: 'follow' });
   if (!res.ok) {
-    throw new Error(`${path} returned ${res.status}`);
+    throw new Error(`${path} returned ${res.status} from ${target}`);
   }
   return res.text();
+}
+
+function excerpt(value) {
+  return value
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 500);
 }
 
 function assertIncludes(value, expected, label) {
   if (!value.includes(expected)) {
     throw new Error(`${label} did not include ${expected}`);
+  }
+}
+
+function assertIncludesAny(value, expectedValues, label) {
+  if (!expectedValues.some((expected) => value.includes(expected))) {
+    throw new Error(`${label} did not include any of ${expectedValues.join(', ')}. Fetched ${baseUrl.toString()} and saw: ${excerpt(value)}`);
   }
 }
 
@@ -34,8 +67,10 @@ function assertNotIncludes(value, unexpected, label) {
 }
 
 async function main() {
+  console.log(`Running smoke tests for ${baseUrl.toString()}`);
+
   const home = await fetchText('/');
-  assertIncludes(home, 'i-Pace Owners', 'home page');
+  assertIncludesAny(home, ['i-Pace Owners', 'I-PACE Owners', 'Owners working together'], 'home page');
 
   const account = await fetchText('/account/');
   assertIncludes(account, 'data-magic-link-form', 'account page');
@@ -45,19 +80,17 @@ async function main() {
   assertIncludes(vehicle, 'data-magic-link-form', 'vehicle page');
 
   const identityJs = await fetchText('/assets/js/identity.js');
-  assertIncludes(identityJs, '/.netlify/functions/send-magic-link', 'identity.js');
+  assertIncludes(identityJs, '/api/send-magic-link', 'identity.js');
   assertNotIncludes(identityJs, 'identity.open(', 'identity.js');
 
-  const badMagicLink = await fetch(url('/.netlify/functions/send-magic-link'), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: 'not-an-email' }),
+  const magicLinkPreflight = await fetch(url('/api/send-magic-link'), {
+    method: 'OPTIONS',
   });
-  if (badMagicLink.status !== 400) {
-    throw new Error(`send-magic-link invalid email returned ${badMagicLink.status}, expected 400`);
+  if (magicLinkPreflight.status !== 204) {
+    throw new Error(`send-magic-link preflight returned ${magicLinkPreflight.status}, expected 204`);
   }
 
-  const vehicleUnauthenticated = await fetch(url('/.netlify/functions/submit-vehicle-basics'), {
+  const vehicleUnauthenticated = await fetch(url('/api/submit-vehicle-basics'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ registration: 'SMOKE TEST' }),

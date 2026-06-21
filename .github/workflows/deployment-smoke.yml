@@ -5,14 +5,23 @@ on:
 
 jobs:
   smoke:
-    if: ${{ github.event.deployment_status.state == 'success' && github.event.deployment_status.target_url != '' }}
+    if: >-
+      ${{
+        github.event.deployment_status.state == 'success' &&
+        github.event.deployment_status.target_url != '' &&
+        (
+          contains(github.event.deployment_status.target_url, 'ipace-owners.org') ||
+          contains(github.event.deployment_status.target_url, '.web.app') ||
+          contains(github.event.deployment_status.target_url, '.firebaseapp.com')
+        )
+      }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
       - name: Run deployment smoke tests
         env:
           SMOKE_BASE_URL: ${{ github.event.deployment_status.target_url }}
-        run: node scripts/smoke-test-deployment.mjs
+        run: make smoke

@@ -1,6 +1,6 @@
 # Backend Security and Storage Prompt
 
-Use this prompt before changing Netlify Functions, stored records, Identity-backed data
+Use this prompt before changing Go Cloud Functions, stored records, Firebase-backed data
 access, or any backend-adjacent form flow.
 
 ## Goal
@@ -8,69 +8,54 @@ access, or any backend-adjacent form flow.
 Keep backend behaviour secure, testable, and consistent while the product grows from the
 current Join and vehicle-basics storage into fuller evidence collection.
 
-## Current Backend Stack
+## Current backend stack
 
-- Netlify Functions for validation, permissions, form handling, and data access.
-- Netlify Database/Postgres for structured owner data.
-- Netlify Blobs only for binary evidence uploads.
-- Netlify Identity for authentication and roles.
-- Node tests with `node --test`.
+- Go Cloud Functions for validation, permissions, form handling, and data access.
+- Firebase Authentication for member sessions and admin custom claims.
+- Cloud Firestore for structured owner data.
+- Cloud Storage for generated JSON snapshots and future binary evidence uploads.
+- OpenTofu/Terraform for GCP resource configuration.
 
-## Non-Negotiable Security Rules
+## Non-negotiable security rules
 
-- Every Function that receives or returns private data must verify Netlify Identity
-  server-side through `context.clientContext.user`.
-- Admin Functions must verify both authentication and the `admin` role in
-  `user.app_metadata.roles`.
-- Never store raw VINs in public static files, logs, test fixtures, Blob records, or
-  Postgres rows.
+- Every Function that receives or returns private data must verify Firebase ID tokens
+  server-side.
+- Admin Functions must verify both authentication and the `admin` role/custom claim.
+- Never store raw VINs in public static files, logs, test fixtures, Firestore, or Cloud
+  Storage.
 - Do not use plain SHA-256 for VIN deduplication.
-- Use HMAC-SHA-256 with `VIN_PEPPER` from Netlify environment variables for VIN
-  deduplication.
+- Use HMAC-SHA-256 with `VIN_PEPPER` from GCP Secret Manager / Function env vars.
 - If a VIN is provided and `VIN_PEPPER` is missing, do not store or derive any VIN
   identifier. If registration is present, save the registration-based record; if VIN is the
   only identifier, reject the write with a clear configuration message.
 - Never log raw VINs, uploaded evidence contents, full personal records, Identity tokens,
-  request bodies, or Identity response bodies.
+  request bodies, or provider response bodies.
 - Function logs may include request IDs, methods, origins, response status codes,
-  submission IDs, short one-way email/user fingerprints, and boolean diagnostics.
-- Reject disallowed browser origins before any side effects such as sending Identity emails
-  or writing records.
+  submission IDs, short one-way email/user fingerprints, masked email addresses, provider
+  error summaries, continue URL hosts, and boolean diagnostics.
+- Reject disallowed browser origins before side effects such as sending emails or writing
+  records.
 - Validate all input server-side, even when the browser form already validates it.
-- Validate uploaded evidence server-side by size, type, and content checks before storage
-  when uploads are implemented.
+- Validate uploaded evidence server-side by size, type, and content checks before storage.
 
-## Storage Model
+## Storage model
 
-Use Netlify Database/Postgres for structured data:
+Use Firestore for structured data:
 
 - Members, Join submissions, vehicles, battery readings, review state, and audit events are
-  stored in relational tables.
+  stored as documents.
 - A member can have multiple vehicle records.
 - Member/account JSON snapshots are generated after signup and vehicle changes, stored
-  privately, and served only after server-side Identity verification.
+  privately, and served only after server-side Firebase verification.
 - Public aggregate JSON snapshots are generated from reviewed/anonymised data for static
   dashboard rendering.
-- Store evidence files as separate blobs with generated names when uploads are implemented;
-  keep ownership, permissions, and review metadata in Postgres.
-
-## Data Model Guidance
-
-Separate:
-
-- Identity user ID.
-- Contact metadata.
-- Vehicle evidence.
-- VIN HMAC.
-- Review status.
-- Verification level.
-- Evidence file metadata.
-- Public aggregate inclusion status.
+- Store evidence files as Cloud Storage objects with generated names; keep ownership,
+  permissions, and review metadata in Firestore.
 
 ## Validation
 
-- Run `npm test`.
-- Run `npm run build`.
+- Run `make test`.
+- Run `make build`.
 - Add or update tests for server-side validation, authorization, storage shaping, and
   security boundaries.
 - Confirm no real owner data, raw VINs, Identity tokens, or private evidence files are

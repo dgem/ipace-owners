@@ -2,7 +2,7 @@
 
 Use this prompt when changing:
 
-- `netlify/functions/submit-vehicle-basics.js`
+- `functions/firebase-go` vehicle basics handler
 - `src/submit-vehicle-data.njk`
 - vehicle-basics submission behavior in `src/assets/js/identity.js`
 
@@ -10,25 +10,19 @@ Use this prompt when changing:
 
 Maintain the first database-backed vehicle evidence slice: signed-in members can register
 basic vehicle identity, ownership, mileage, and battery State of Health details without
-storing full VINs.
+storing full VINs. Members may register multiple vehicles.
 
-## Current Flow
+## Current flow
 
-- The vehicle data page is currently a two-step vehicle-basics form.
-- It requires a signed-in Netlify Identity user.
-- The browser posts JSON to `/.netlify/functions/submit-vehicle-basics`.
-- `identity.js` sends the Identity JWT in the `Authorization` header for forms marked with
-  `data-database-requires-auth`.
-- Netlify runtime exposes the verified user as `context.clientContext.user`.
-- Records are stored in Postgres vehicle and battery-reading tables via
-  `netlify/functions/lib/owner-data.js` and `@netlify/database`. Blob record writes are
-  only a local/no-database fallback.
-- After saving, regenerate the private member/account JSON snapshot and write it to
-  `member_static_snapshots` plus the private Blob snapshot key used by `member-data.js`.
-- Members can register multiple vehicles. Do not overwrite or assume a single vehicle per
-  member.
+- The vehicle data page is a two-step vehicle-basics form.
+- It requires a signed-in Firebase Auth user.
+- The browser posts JSON to `POST /api/submit-vehicle-basics`.
+- `identity.js` sends a Firebase ID token in the `Authorization` header for forms marked
+  with `data-database-requires-auth`.
+- The Go `SubmitVehicleBasics` Function verifies the ID token server-side.
+- Records are stored in Firestore and the private member/account snapshot is regenerated.
 
-## Collected Fields
+## Collected fields
 
 Vehicle details:
 
@@ -46,7 +40,7 @@ Battery health:
 - Mileage at SoH measurement.
 - Source of SoH reading.
 
-## VIN Rules
+## VIN rules
 
 - Full VINs are never stored.
 - Normalize VINs server-side before validation.
@@ -57,11 +51,8 @@ Battery health:
   identifier. If registration is present, save the registration-based record and log a
   warning. If VIN is the only identifier, reject the write with a clear configuration
   message.
-- In the form UI, place VIN and registration helper copy below the input controls. Explain
-  that VIN is optional when registration is provided, where to find the VIN, and that full
-  VINs are never stored.
 
-## Record Shape
+## Record shape
 
 Vehicle-basics records include:
 
@@ -73,15 +64,12 @@ Vehicle-basics records include:
 - `battery`: stateOfHealth, measuredAt, mileageAtMeasurement, source.
 - `review`: status and verification level.
 
-In Postgres, vehicle rows belong to `members`, and `vehicle_battery_readings` belong to a
-vehicle. Keep the response shape compatible with `member-auth.js` until that client code is
-changed deliberately.
+Keep the API response shape compatible with `member-auth.js` unless changing that client
+code deliberately.
 
 ## Tests
 
-Update `test/submit-vehicle-basics.test.js`.
-
-Required coverage:
+Update Node tests for browser wiring and Go tests for handler behavior. Required coverage:
 
 - Unauthenticated requests return 401.
 - Missing VIN and registration returns 400.
@@ -89,9 +77,10 @@ Required coverage:
   identifier when the secret is missing.
 - Stored records never include the full VIN.
 - Vehicle and battery fields are cleaned and shaped correctly.
-- Database-backed saves trigger private member snapshot regeneration.
+- Firestore-backed saves trigger private member snapshot regeneration.
 
 ## Validation
 
 - Run `npm test`.
 - Run `npm run build`.
+- Run `go test ./...` in `functions/firebase-go`.

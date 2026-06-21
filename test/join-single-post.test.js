@@ -11,7 +11,7 @@ test('Join form submits only to submit-join from the browser', function () {
   var joinTemplate = fs.readFileSync(path.join(repoRoot, 'src/join.njk'), 'utf8');
   var identityJs = fs.readFileSync(path.join(repoRoot, 'src/assets/js/identity.js'), 'utf8');
 
-  assert.match(joinTemplate, /data-database-submit="\/\.netlify\/functions\/submit-join"/);
+  assert.match(joinTemplate, /data-database-submit="\/api\/submit-join"/);
   assert.doesNotMatch(joinTemplate, /data-identity-signup-on-submit/);
   assert.doesNotMatch(joinTemplate, /data-netlify=/);
   assert.doesNotMatch(joinTemplate, /name="ownership"/);

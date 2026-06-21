@@ -40,3 +40,10 @@ go.work.sum
 # Local Netlify folder
 .netlify
 deno.lock
+
+# Local OpenTofu/Terraform working directories
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example

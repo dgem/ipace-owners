@@ -1,0 +1,34 @@
+environment = "production"
+region      = "europe-west2"
+
+# Set an explicit GCP project ID when using an existing project or when the derived
+# default is unavailable. With create_gcp_project=true and project_id left empty,
+# OpenTofu derives "ipace-owners-production".
+# project_id        = "replace-with-production-project-id"
+# project_id_prefix = "ipace-owners"
+# quota_project     = "ipace-owners-production"
+
+# Set true if OpenTofu should create the GCP project. Leave false to use an existing project.
+create_gcp_project = false
+# project_name      = "I-PACE Owners Production"
+# gcp_org_id        = "replace-with-org-id"
+# gcp_folder_id     = "replace-with-folder-id"
+# billing_account   = "000000-000000-000000"
+
+github_owner = "dgem"
+github_repo  = "ipace-owners"
+
+allowed_origins = "https://ipace-owners.org,https://www.ipace-owners.org"
+site_url        = "https://ipace-owners.org/account/"
+# firebase_auth_authorized_domains = ["www.ipace-owners.org"]
+
+# The apex is canonical; Firebase Hosting redirects www after both domains validate.
+firebase_hosting_custom_domains = {
+  "ipace-owners.org"     = {}
+  "www.ipace-owners.org" = { redirect_target = "ipace-owners.org" }
+}
+
+manage_github_actions = true
+
+# Set the real secret value via environment variables or an uncommitted tfvars file:
+# TF_VAR_vin_pepper=...
