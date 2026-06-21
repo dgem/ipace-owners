@@ -53,16 +53,9 @@ make install
 make dev
 ```
 
-Starts the current local development server. During the GCP migration, the static site can
-also be run directly with:
-
-```bash
-make dev-eleventy
-```
-
-To test Firebase Authentication and Go Functions locally, run the Firebase emulators or test
-against the staging Firebase project. Build-time Firebase web config is read from
-environment variables:
+Starts the Eleventy development server. Test Firebase Authentication and Go Functions with
+the Firebase emulators or against the staging Firebase project. Build-time Firebase web
+config is read from environment variables:
 
 ```bash
 FIREBASE_WEB_API_KEY=...
@@ -107,7 +100,7 @@ Output is written to `_site/`.
 make test
 ```
 
-Runs the Node test suite for form wiring, auth UI behaviour, legacy backend guards, and
+Runs the Node test suite for form wiring, auth UI behaviour, deployment configuration, and
 the Go Cloud Function tests. They can also be run separately:
 
 ```bash

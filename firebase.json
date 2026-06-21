@@ -81,41 +81,6 @@
         }
       },
       {
-        "source": "/.netlify/functions/send-magic-link",
-        "function": {
-          "functionId": "SendMagicLink",
-          "region": "europe-west2"
-        }
-      },
-      {
-        "source": "/.netlify/functions/submit-join",
-        "function": {
-          "functionId": "SubmitJoin",
-          "region": "europe-west2"
-        }
-      },
-      {
-        "source": "/.netlify/functions/submit-vehicle-basics",
-        "function": {
-          "functionId": "SubmitVehicleBasics",
-          "region": "europe-west2"
-        }
-      },
-      {
-        "source": "/.netlify/functions/member-data",
-        "function": {
-          "functionId": "MemberData",
-          "region": "europe-west2"
-        }
-      },
-      {
-        "source": "/.netlify/functions/admin-data",
-        "function": {
-          "functionId": "AdminData",
-          "region": "europe-west2"
-        }
-      },
-      {
         "source": "**",
         "destination": "/404.html"
       }

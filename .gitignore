@@ -37,8 +37,6 @@ go.work
 go.work.sum
 
 .ignore/
-# Local Netlify folder
-.netlify
 deno.lock
 
 # Local OpenTofu/Terraform working directories

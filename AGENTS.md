@@ -43,7 +43,6 @@ public site built with Eleventy (11ty) and deployed to Firebase/GCP.
 make            # List available local/CI targets
 make install    # Install dependencies for local development
 make dev        # Start the local development server
-make dev-eleventy # Start Eleventy only, without backend APIs
 make build      # Build production site to _site/
 make test       # Run Node and Go tests
 make clean      # Remove _site/ directory

@@ -13,7 +13,6 @@ test('Join form submits only to submit-join from the browser', function () {
 
   assert.match(joinTemplate, /data-database-submit="\/api\/submit-join"/);
   assert.doesNotMatch(joinTemplate, /data-identity-signup-on-submit/);
-  assert.doesNotMatch(joinTemplate, /data-netlify=/);
   assert.doesNotMatch(joinTemplate, /name="ownership"/);
   assert.match(joinTemplate, /value="current-owner-one"/);
   assert.match(joinTemplate, /value="prospective-buyer"/);

@@ -36,8 +36,8 @@ Makefile                     Shared local and CI command entrypoints
 prompts/                     Sequenced rebuild/evolution prompts
 ```
 
-Keep the legacy `netlify/` files only while migration is in progress. New work should target
-Firebase/GCP unless explicitly maintaining the old deployment path.
+Firebase/GCP is the only deployment and backend target. Do not add compatibility code for
+the retired hosting or Function platform.
 
 ## Authentication flow
 
@@ -65,8 +65,8 @@ Firebase/GCP unless explicitly maintaining the old deployment path.
 | `GET /api/member-data` | `MemberData` | Member | Return the signed-in user's generated snapshot. |
 | `GET /api/admin-data` | `AdminData` | Admin | Return review data for administrators. |
 
-Firebase Hosting may also keep temporary rewrites for old `/.netlify/functions/*` paths
-during migration, but templates and client JavaScript should use `/api/*`.
+Templates and client JavaScript use `/api/*`; Firebase Hosting rewrites those routes to Go
+Functions.
 
 ## Data model principles
 
