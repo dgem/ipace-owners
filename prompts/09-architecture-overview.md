@@ -111,6 +111,11 @@ during migration, but templates and client JavaScript should use `/api/*`.
 - The repository Makefile is the shared command surface for local development and CI.
   `make` and `make help` must print documented targets; `make functions` must list the
   Cloud Function entrypoints deployed by `make deploy-functions`.
+- Infrastructure operations must use explicit `ENV=staging` or `ENV=production` Make
+  targets. `make infra-plan` and `make deploy-hosting-env` should conditionally refresh
+  gcloud user/ADC authentication, set an accessible ADC quota project, initialise the
+  shared OpenTofu root, and select or create the workspace matching `ENV` before planning
+  or applying the matching tfvars file. Never default an infrastructure apply to production.
 - GitHub Actions must delegate common operations through Make targets. Before deploying,
   run `make test-node`, `make test-go`, and `make build`; local verification can use
   `make test` and `make build`.

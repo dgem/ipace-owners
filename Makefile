@@ -5,8 +5,9 @@ SHELL := /bin/bash
 GCP_REGION ?= europe-west2
 FUNCTION_ENTRYPOINTS ?= SendMagicLink SubmitJoin SubmitVehicleBasics MemberData AdminData
 FIREBASE_PREVIEW_JSON ?= firebase-preview.json
+INFRA_ENV_SCRIPT := scripts/infra-env.sh
 
-.PHONY: help functions install ci-install dev dev-eleventy build clean test test-node test-go smoke write-functions-env deploy-functions deploy-hosting-preview deploy-hosting-production
+.PHONY: help functions install ci-install dev dev-eleventy build clean test test-node test-go smoke write-functions-env deploy-functions deploy-hosting-preview deploy-hosting-production infra-config infra-auth infra-init infra-workspace infra-plan infra-apply deploy-hosting-env
 
 help: ## Show available make targets.
 	@awk 'BEGIN {FS = ":.*##"; printf "Available targets:\n"} /^[a-zA-Z0-9_.-]+:.*##/ {printf "  %-28s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -42,6 +43,26 @@ test-go: ## Run Go Cloud Function tests.
 
 smoke: ## Run deployment smoke tests against SMOKE_BASE_URL.
 	npm run smoke:deployment
+
+infra-config: ## Show resolved infrastructure values for ENV=staging|production.
+	@ENV="$(ENV)" TFVARS="$(TFVARS)" $(INFRA_ENV_SCRIPT) config
+
+infra-auth: ## Ensure gcloud user/ADC authentication and quota project for ENV.
+	@ENV="$(ENV)" TFVARS="$(TFVARS)" $(INFRA_ENV_SCRIPT) auth
+
+infra-init: ## Initialise the shared OpenTofu infrastructure root for ENV.
+	@ENV="$(ENV)" TFVARS="$(TFVARS)" $(INFRA_ENV_SCRIPT) init
+
+infra-workspace: ## Select or create the OpenTofu workspace matching ENV.
+	@ENV="$(ENV)" TFVARS="$(TFVARS)" $(INFRA_ENV_SCRIPT) workspace
+
+infra-plan: ## Authenticate and create an OpenTofu plan for ENV.
+	@ENV="$(ENV)" TFVARS="$(TFVARS)" $(INFRA_ENV_SCRIPT) plan
+
+infra-apply: ## Authenticate and apply OpenTofu infrastructure for ENV.
+	@ENV="$(ENV)" TFVARS="$(TFVARS)" $(INFRA_ENV_SCRIPT) apply
+
+deploy-hosting-env: infra-apply ## Deploy all GCP/Firebase infrastructure for ENV.
 
 write-functions-env: ## Write the Cloud Functions environment file from current env vars.
 	node scripts/write-functions-env.mjs

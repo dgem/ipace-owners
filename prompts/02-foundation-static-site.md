@@ -36,6 +36,9 @@ Create a small, maintainable Eleventy 3 site that can be deployed to Firebase Ho
     `make test-node`, `make test-go`, and `make test` delegate to the underlying npm/Go
     commands.
   - `make functions` lists deployed Cloud Function entrypoints.
+  - `make infra-config`, `make infra-plan`, and `make deploy-hosting-env` require an
+    explicit `ENV=staging|production`, use the matching OpenTofu workspace/tfvars, and
+    conditionally establish gcloud user and Application Default Credentials.
   - Deployment workflows should call Make targets rather than duplicating raw npm, Go,
     Firebase, or gcloud command bodies.
 - Include `package-lock.json`.

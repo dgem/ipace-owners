@@ -148,20 +148,26 @@ in `infra/opentofu/modules/ipace-owners`; the single environment root is
 Use separate OpenTofu workspaces so the two environments cannot share one local state file.
 
 ```bash
-cd infra/opentofu/env
-tofu init
-tofu workspace new staging || tofu workspace select staging
-tofu plan -var-file=staging.tfvars
-tofu apply -var-file=staging.tfvars
+make infra-config ENV=staging
+make infra-plan ENV=staging
+make deploy-hosting-env ENV=staging
 
-tofu workspace new production || tofu workspace select production
-tofu plan -var-file=production.tfvars
-tofu apply -var-file=production.tfvars
+make infra-config ENV=production
+make infra-plan ENV=production
+make deploy-hosting-env ENV=production
 ```
 
-Before applying, check the active workspace with `tofu workspace show`. It should match the
-tfvars file you are about to use: `staging` with `staging.tfvars`, and `production` with
-`production.tfvars`.
+`deploy-hosting-env` applies all GCP/Firebase infrastructure for the selected environment,
+not only the Hosting resource. It requires an explicit `ENV=staging` or `ENV=production`.
+By default it uses `infra/opentofu/env/<environment>.tfvars`; override that with
+`TFVARS=path/to/file.tfvars` when needed.
+
+The infrastructure targets check the current gcloud user and Application Default
+Credentials. If either credential is missing or expired, they start the relevant
+`gcloud auth login` flow. They set the ADC quota project when it already exists, initialise
+OpenTofu, and select or create the workspace matching `ENV` before planning or applying.
+Useful individual targets are `make infra-auth`, `make infra-init`, and
+`make infra-workspace`, each with the same `ENV` and optional `TFVARS` arguments.
 
 Do not commit real `*.tfvars` files. Use the checked-in `staging.tfvars.example` and
 `production.tfvars.example` files as templates, or provide values with `TF_VAR_*`.
