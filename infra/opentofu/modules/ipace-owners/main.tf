@@ -71,7 +71,6 @@ resource "google_firebase_hosting_custom_domain" "default" {
   custom_domain         = each.key
   redirect_target       = each.value.redirect_target != "" ? each.value.redirect_target : null
   wait_dns_verification = var.firebase_hosting_wait_for_dns_verification
-  deletion_policy       = "ABANDON"
 
   depends_on = [google_firebase_project.default]
 }
