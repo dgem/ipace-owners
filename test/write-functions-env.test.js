@@ -55,7 +55,7 @@ test("fails when required function env vars are missing", () => {
   assert.match(result.stderr, /Missing required function environment values/);
 });
 
-test("derives bootstrap values before OpenTofu has populated GitHub variables", () => {
+test("derives the database ID while leaving the preview link domain unset", () => {
   const cwd = mkdtempSync(join(tmpdir(), "ipace-functions-env-"));
 
   execFileSync(process.execPath, [scriptPath], {
@@ -74,5 +74,5 @@ test("derives bootstrap values before OpenTofu has populated GitHub variables", 
   const written = JSON.parse(readFileSync(join(cwd, "functions-env.json"), "utf8"));
 
   assert.equal(written.FIRESTORE_DATABASE_ID, "ipace-owners-staging");
-  assert.equal(written.FIREBASE_EMAIL_LINK_DOMAIN, "stage.ipace-owners.org");
+  assert.equal(written.FIREBASE_EMAIL_LINK_DOMAIN, "");
 });

@@ -201,8 +201,7 @@ Firestore database whose ID matches its GCP project ID; Functions receive that v
 is abandoned from OpenTofu state during replacement rather than deleted; migrate any data
 that must be retained before directing production Functions to the named database. During
 initial infrastructure rollout, the Function environment generator derives the database ID
-from `FIREBASE_PROJECT_ID` and the email link domain from `FIREBASE_EMAIL_CONTINUE_URL` if
-the new GitHub environment variables have not been populated yet.
+from `FIREBASE_PROJECT_ID` if the new GitHub environment variable has not been populated.
 
 PR deployments do not depend on `stage.ipace-owners.org`. The staging workflow first
 creates the PR's Firebase Hosting preview channel, configures Functions with that generated
@@ -214,6 +213,11 @@ stale PR preview entries while retaining permanent authorized domains. OpenTofu 
 GitHub deployer a custom role containing only `firebaseauth.configs.get` and
 `firebaseauth.configs.update`; apply staging infrastructure after changing these permissions
 and before rerunning the preview workflow.
+
+Firebase does not permit preview or default `web.app` domains as Identity Toolkit's
+`linkDomain`. Preview emails therefore use Firebase's default action-handler domain and the
+PR preview URL as `continueUrl`; production continues to use `ipace-owners.org` as its
+custom action-link domain.
 
 The same OpenTofu module bootstraps the GitHub Actions `staging` and `production`
 environments. It creates the environment variables and secrets consumed by the deploy

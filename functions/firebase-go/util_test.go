@@ -182,6 +182,18 @@ func TestFirebaseEmailLinkPayloadUsesCustomHostingDomain(t *testing.T) {
 	}
 }
 
+func TestFirebaseEmailLinkPayloadOmitsCustomDomainForPreview(t *testing.T) {
+	payload := firebaseEmailLinkPayload(
+		"driver@example.com",
+		"https://ipace-owners-staging--pr-20-ef2wibc5.web.app/account/",
+		"",
+	)
+
+	if _, present := payload["linkDomain"]; present {
+		t.Fatal("linkDomain should be omitted for Firebase Hosting previews")
+	}
+}
+
 func TestCORSPreflight(t *testing.T) {
 	req := httptest.NewRequest(http.MethodOptions, "/api/send-magic-link", nil)
 	req.Header.Set("Origin", "https://ipace-owners.org")

@@ -17,9 +17,9 @@ if (missing.length) {
 
 const values = Object.fromEntries(required.map((name) => [name, process.env[name]]));
 values.FIRESTORE_DATABASE_ID = process.env.FIRESTORE_DATABASE_ID || values.FIREBASE_PROJECT_ID;
+values.FIREBASE_EMAIL_LINK_DOMAIN = process.env.FIREBASE_EMAIL_LINK_DOMAIN || "";
 try {
-  values.FIREBASE_EMAIL_LINK_DOMAIN =
-    process.env.FIREBASE_EMAIL_LINK_DOMAIN || new URL(values.FIREBASE_EMAIL_CONTINUE_URL).hostname;
+  new URL(values.FIREBASE_EMAIL_CONTINUE_URL);
 } catch {
   throw new Error("FIREBASE_EMAIL_CONTINUE_URL must be an absolute URL");
 }

@@ -375,12 +375,11 @@ func sendFirebaseEmailLink(ctx context.Context, email string) error {
 		continueURL = "https://ipace-owners.org/account/"
 	}
 	linkDomain := os.Getenv("FIREBASE_EMAIL_LINK_DOMAIN")
-	if linkDomain == "" {
-		return fmt.Errorf("FIREBASE_EMAIL_LINK_DOMAIN is not configured")
-	}
 	fields := emailLogFields(email)
 	fields["continueHost"] = urlHost(continueURL)
-	fields["linkDomain"] = linkDomain
+	if linkDomain != "" {
+		fields["linkDomain"] = linkDomain
+	}
 	logEvent("firebase-email-link", "info", "identity toolkit request prepared", fields)
 	payload := firebaseEmailLinkPayload(email, continueURL, linkDomain)
 	body, _ := json.Marshal(payload)
@@ -408,13 +407,16 @@ func sendFirebaseEmailLink(ctx context.Context, email string) error {
 }
 
 func firebaseEmailLinkPayload(email string, continueURL string, linkDomain string) map[string]any {
-	return map[string]any{
+	payload := map[string]any{
 		"requestType":        "EMAIL_SIGNIN",
 		"email":              email,
 		"continueUrl":        continueURL,
 		"canHandleCodeInApp": true,
-		"linkDomain":         linkDomain,
 	}
+	if linkDomain != "" {
+		payload["linkDomain"] = linkDomain
+	}
+	return payload
 }
 
 func identityToolkitSuccessFields(body []byte, email string, continueURL string) map[string]any {

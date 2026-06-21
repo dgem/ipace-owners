@@ -142,13 +142,16 @@ during migration, but templates and client JavaScript should use `/api/*`.
   guide review plus full tests/build/provider validation for major updates.
 - PRs deploy to staging preview channels and run smoke tests against the published URL.
   Discover the generated preview URL before deploying Functions, use it for the staging
-  Function CORS origin and email-link continue URL/domain, append its hostname to Firebase
+  Function CORS origin and email-link continue URL, append its hostname to Firebase
   Auth's authorized domains, then redeploy the channel so its rewrites pin the current
   Function revisions. Serialize staging deployments because preview channels share the
   staging Functions and Auth configuration. Do not depend on a staging custom domain for PR
   flows. Grant the GitHub deployer only `firebaseauth.configs.get` and
   `firebaseauth.configs.update` through a project custom role rather than an Identity Toolkit
   administrator role.
+- Do not pass a Firebase Hosting preview/default `web.app` hostname as Identity Toolkit's
+  `linkDomain`; omit that field for previews so Firebase uses its default action handler,
+  while keeping the PR URL as `continueUrl`. Production uses its verified custom domain.
 - Merges to `main` deploy production.
 
 ## Prompt maintenance
