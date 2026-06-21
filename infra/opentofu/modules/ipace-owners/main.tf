@@ -216,6 +216,7 @@ resource "google_project_iam_member" "github_deployer_roles" {
     "roles/artifactregistry.writer",
     "roles/cloudbuild.builds.editor",
     "roles/cloudfunctions.developer",
+    "roles/firebaseauth.admin",
     "roles/firebasehosting.admin",
     "roles/iam.serviceAccountUser",
     "roles/run.admin",

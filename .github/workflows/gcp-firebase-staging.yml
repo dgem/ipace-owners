@@ -8,6 +8,10 @@ permissions:
   id-token: write
   pull-requests: write
 
+concurrency:
+  group: firebase-staging-deploy
+  cancel-in-progress: false
+
 jobs:
   deploy-preview:
     runs-on: ubuntu-latest
@@ -56,6 +60,12 @@ jobs:
           GCP_PROJECT_ID: ${{ vars.FIREBASE_STAGING_PROJECT_ID }}
           CHANNEL_ID: pr-${{ github.event.pull_request.number }}
         run: make deploy-hosting-preview
+
+      - name: Authorize Firebase Hosting preview for passwordless sign-in
+        env:
+          GCP_PROJECT_ID: ${{ vars.FIREBASE_STAGING_PROJECT_ID }}
+          FIREBASE_PREVIEW_URL: ${{ steps.hosting.outputs.url }}
+        run: make authorize-preview-domain
 
       - name: Deploy Go Cloud Functions
         env:

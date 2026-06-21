@@ -7,7 +7,7 @@ FUNCTION_ENTRYPOINTS ?= SendMagicLink SubmitJoin SubmitVehicleBasics MemberData 
 FIREBASE_PREVIEW_JSON ?= firebase-preview.json
 INFRA_ENV_SCRIPT := scripts/infra-env.sh
 
-.PHONY: help functions install ci-install dev dev-eleventy build clean test test-node test-go smoke write-functions-env deploy-functions deploy-hosting-preview deploy-hosting-production infra-config infra-auth infra-init infra-workspace infra-dns-records infra-plan infra-apply deploy-hosting-env
+.PHONY: help functions install ci-install dev dev-eleventy build clean test test-node test-go smoke write-functions-env authorize-preview-domain deploy-functions deploy-hosting-preview deploy-hosting-production infra-config infra-auth infra-init infra-workspace infra-dns-records infra-plan infra-apply deploy-hosting-env
 
 help: ## Show available make targets.
 	@awk 'BEGIN {FS = ":.*##"; printf "Available targets:\n"} /^[a-zA-Z0-9_.-]+:.*##/ {printf "  %-28s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -69,6 +69,9 @@ deploy-hosting-env: infra-apply ## Deploy all GCP/Firebase infrastructure for EN
 
 write-functions-env: ## Write the Cloud Functions environment file from current env vars.
 	node scripts/write-functions-env.mjs
+
+authorize-preview-domain: ## Add FIREBASE_PREVIEW_URL to the Firebase Auth allowlist.
+	node scripts/authorize-firebase-preview-domain.mjs
 
 deploy-functions: write-functions-env ## Deploy all Go Cloud Functions to GCP.
 	@if [ -z "$${GCP_PROJECT_ID}" ]; then echo "GCP_PROJECT_ID is required"; exit 1; fi

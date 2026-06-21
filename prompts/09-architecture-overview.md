@@ -142,9 +142,11 @@ during migration, but templates and client JavaScript should use `/api/*`.
   guide review plus full tests/build/provider validation for major updates.
 - PRs deploy to staging preview channels and run smoke tests against the published URL.
   Discover the generated preview URL before deploying Functions, use it for the staging
-  Function CORS origin and email-link continue URL/domain, then redeploy the channel so its
-  rewrites pin the current Function revisions. Do not depend on a staging custom domain for
-  PR flows.
+  Function CORS origin and email-link continue URL/domain, append its hostname to Firebase
+  Auth's authorized domains, then redeploy the channel so its rewrites pin the current
+  Function revisions. Serialize staging deployments because preview channels share the
+  staging Functions and Auth configuration. Do not depend on a staging custom domain for PR
+  flows.
 - Merges to `main` deploy production.
 
 ## Prompt maintenance

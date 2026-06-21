@@ -67,13 +67,19 @@ test('writes the Firebase Hosting preview URL to GitHub output when available', 
 test('staging Functions use the current PR preview URL', function () {
   const workflow = readFileSync(workflowPath, 'utf8');
   const firstHostingDeploy = workflow.indexOf('- name: Deploy Firebase Hosting preview');
+  const authorizePreview = workflow.indexOf(
+    '- name: Authorize Firebase Hosting preview for passwordless sign-in',
+  );
   const functionDeploy = workflow.indexOf('- name: Deploy Go Cloud Functions');
   const refreshedHostingDeploy = workflow.indexOf(
     '- name: Refresh Firebase Hosting preview with current Function revisions',
   );
 
   assert.ok(firstHostingDeploy > -1 && firstHostingDeploy < functionDeploy);
+  assert.ok(authorizePreview > firstHostingDeploy && authorizePreview < functionDeploy);
   assert.ok(refreshedHostingDeploy > functionDeploy);
+  assert.match(workflow, /run: make authorize-preview-domain/);
+  assert.match(workflow, /group: firebase-staging-deploy/);
   assert.match(workflow, /ALLOWED_ORIGINS: \$\{\{ steps\.hosting\.outputs\.url \}\}/);
   assert.match(
     workflow,

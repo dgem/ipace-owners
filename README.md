@@ -206,8 +206,11 @@ the new GitHub environment variables have not been populated yet.
 
 PR deployments do not depend on `stage.ipace-owners.org`. The staging workflow first
 creates the PR's Firebase Hosting preview channel, configures Functions with that generated
-`web.app` URL for CORS and passwordless email links, then refreshes the channel so Hosting
-rewrites use the newly deployed Function revisions.
+`web.app` URL for CORS and passwordless email links, adds the generated hostname to Firebase
+Auth's authorized domains, then refreshes the channel so Hosting rewrites use the newly
+deployed Function revisions. Staging deployments are serialized because they share one
+Firebase Auth configuration and one set of Cloud Functions. The allowlist updater removes
+stale PR preview entries while retaining permanent authorized domains.
 
 The same OpenTofu module bootstraps the GitHub Actions `staging` and `production`
 environments. It creates the environment variables and secrets consumed by the deploy
