@@ -45,8 +45,8 @@ The homepage should include:
   approaching or beyond the 8-year / 100,000-mile battery warranty, and inconsistent owner
   experiences around support, loan cars, parts delays, and goodwill payments.
 - Place "Why now?" immediately after the hero and arrange its issue items in two responsive
-  columns. Follow it with the three feature cards, then a two-column section containing the
-  "This is not a legal action" callout and "Get started" panel.
+  columns. Follow it with the three feature cards, then a two-column section with the "Get
+  started" panel first and the "This is not a legal action" callout second.
 
 ## About Detail
 

@@ -17,4 +17,8 @@ test('homepage orders Why now, features, and participation actions', function ()
   assert.match(homepage.slice(whyNow, features), /class="two-column"/);
   assert.match(homepage.slice(participation), /This is not a legal action/);
   assert.match(homepage.slice(participation), /Get started/);
+  assert.ok(
+    homepage.indexOf('Get started', participation) <
+      homepage.indexOf('This is not a legal action', participation)
+  );
 });
