@@ -54,6 +54,7 @@ jobs:
         env:
           GCP_PROJECT_ID: ${{ vars.FIREBASE_STAGING_PROJECT_ID }}
           FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_STAGING_PROJECT_ID }}
+          FIRESTORE_DATABASE_ID: ${{ vars.FIRESTORE_DATABASE_ID_STAGING }}
           GCP_REGION: ${{ vars.GCP_REGION || 'europe-west2' }}
           FUNCTIONS_SERVICE_ACCOUNT: ${{ secrets.GCP_FUNCTIONS_SERVICE_ACCOUNT_STAGING }}
           FIREBASE_WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY_STAGING }}
@@ -61,6 +62,7 @@ jobs:
           SNAPSHOT_BUCKET: ${{ vars.SNAPSHOT_BUCKET_STAGING }}
           ALLOWED_ORIGINS: ${{ vars.ALLOWED_ORIGINS_STAGING }}
           FIREBASE_EMAIL_CONTINUE_URL: ${{ vars.FIREBASE_EMAIL_CONTINUE_URL_STAGING }}
+          FIREBASE_EMAIL_LINK_DOMAIN: ${{ vars.FIREBASE_EMAIL_LINK_DOMAIN_STAGING }}
         run: make deploy-functions
 
       - name: Deploy Firebase Hosting preview

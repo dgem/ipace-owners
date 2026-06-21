@@ -38,3 +38,16 @@ test('Makefile exposes Firebase Hosting DNS records for an explicit environment'
   assert.match(makefile, /infra-dns-records:.*##/);
   assert.match(makefile, /\$\(INFRA_ENV_SCRIPT\) dns/);
 });
+
+test('OpenTofu and deployment workflows select the named Firestore database', function () {
+  const moduleMain = read('infra/opentofu/modules/ipace-owners/main.tf');
+  const moduleVariables = read('infra/opentofu/modules/ipace-owners/github-actions.tf');
+  const productionWorkflow = read('.github/workflows/gcp-firebase-production.yml');
+  const stagingWorkflow = read('.github/workflows/gcp-firebase-staging.yml');
+
+  assert.match(moduleMain, /resource "google_firestore_database" "default"[\s\S]*name\s*=\s*var\.project_id/);
+  assert.match(moduleMain, /resource "google_firestore_database" "default"[\s\S]*deletion_policy\s*=\s*"ABANDON"/);
+  assert.match(moduleVariables, /FIRESTORE_DATABASE_ID_/);
+  assert.match(productionWorkflow, /FIRESTORE_DATABASE_ID_PRODUCTION/);
+  assert.match(stagingWorkflow, /FIRESTORE_DATABASE_ID_STAGING/);
+});

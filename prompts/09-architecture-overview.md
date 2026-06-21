@@ -9,7 +9,9 @@ It is the current source of truth for the I-PACE Owners' Advocacy Group architec
 - **Frontend JavaScript:** vanilla IIFEs loaded with `defer`; no bundler.
 - **Authentication:** Firebase Authentication passwordless email links.
 - **Backend:** Cloud Functions for Firebase / Google Cloud Functions, written in Go.
-- **Canonical data:** Cloud Firestore.
+- **Canonical data:** A named Cloud Firestore database per environment, with its database
+  ID matching the GCP project ID. Go Functions select it explicitly using
+  `firestore.NewClientWithDatabase`.
 - **Generated snapshots:** member/private and future public aggregate JSON written to
   Firestore and Cloud Storage so page loads avoid repeated canonical-store reads.
 - **Hosting:** Firebase Hosting with rewrites from `/api/*` to Go Functions.
@@ -43,6 +45,8 @@ Firebase/GCP unless explicitly maintaining the old deployment path.
 3. Magic-link forms call `POST /api/send-magic-link`.
 4. The Go `SendMagicLink` Function calls Firebase Identity Toolkit to send an email sign-in
    link and returns account-enumeration-resistant `{ ok: true }` for valid email syntax.
+   Set Identity Toolkit's `linkDomain` to the environment's verified Firebase Hosting
+   custom domain, while `continueUrl` points to that environment's account page.
 5. When the user opens the email link, `identity.js` completes
    `signInWithEmailLink`, stores the session locally, clears auth query parameters, and
    exposes `window.ipaceGetIdentityToken()`.

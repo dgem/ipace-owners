@@ -10,6 +10,10 @@ output "snapshot_bucket" {
   value = google_storage_bucket.snapshots.name
 }
 
+output "firestore_database_id" {
+  value = google_firestore_database.default.name
+}
+
 output "firebase_web_app_id" {
   value = google_firebase_web_app.default.app_id
 }

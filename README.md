@@ -195,7 +195,11 @@ The OpenTofu config can create the GCP project, then enables Firebase, Firestore
 Functions, Cloud Storage, Secret Manager and GitHub Workload Identity Federation. It also
 creates the Firebase Web App, configures Firebase Authentication for passwordless email
 sign-in, creates service accounts for GitHub deployment and Functions runtime, and reads
-the generated Firebase web config needed by the site build.
+the generated Firebase web config needed by the site build. Each environment uses a named
+Firestore database whose ID matches its GCP project ID; Functions receive that value as
+`FIRESTORE_DATABASE_ID` and do not use the `(default)` database. The old default database
+is abandoned from OpenTofu state during replacement rather than deleted; migrate any data
+that must be retained before directing production Functions to the named database.
 
 The same OpenTofu module bootstraps the GitHub Actions `staging` and `production`
 environments. It creates the environment variables and secrets consumed by the deploy
@@ -207,8 +211,11 @@ workflows:
 - `FIREBASE_WEB_API_KEY_STAGING` / `FIREBASE_WEB_API_KEY_PRODUCTION`
 - `VIN_PEPPER_STAGING` / `VIN_PEPPER_PRODUCTION`
 - `FIREBASE_STAGING_PROJECT_ID` / `FIREBASE_PRODUCTION_PROJECT_ID`
+- `FIRESTORE_DATABASE_ID_STAGING` / `FIRESTORE_DATABASE_ID_PRODUCTION`
 - `FIREBASE_AUTH_DOMAIN_*`, `FIREBASE_APP_ID_*`, `FIREBASE_STORAGE_BUCKET_*`
 - `SNAPSHOT_BUCKET_*`, `ALLOWED_ORIGINS_*`, `FIREBASE_EMAIL_CONTINUE_URL_*`
+- `FIREBASE_EMAIL_LINK_DOMAIN_*`, which makes Firebase Auth action links use the
+  environment's verified Firebase Hosting custom domain
 
 Bootstrap requirements:
 
@@ -231,6 +238,12 @@ Bootstrap requirements:
 - Provide `site_url`, used as the Firebase email-link continue URL for that environment.
   OpenTofu adds the host from `site_url` to Firebase Auth authorized domains. Add any
   extra hosts, such as `www.ipace-owners.org`, with `firebase_auth_authorized_domains`.
+  Add the required DNS records and wait for the Firebase Hosting custom domain to become active
+  before deploying Functions with that host as `FIREBASE_EMAIL_LINK_DOMAIN`.
+- Firebase web API keys identify the Firebase project and are expected to appear in web
+  authentication action URLs. Restrict each generated key to the Firebase APIs the site
+  uses in Google Cloud API Credentials; do not handle it as a server credential. The
+  one-time action code in an email link is sensitive and must never be logged.
 - Provide `vin_pepper` through an uncommitted tfvars file or `TF_VAR_vin_pepper`.
 - Set `manage_github_actions = false` only if you want to create the GCP resources without
   touching GitHub repository settings.
