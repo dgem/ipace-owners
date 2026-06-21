@@ -1,9 +1,10 @@
 locals {
-  project_name         = var.project_name != "" ? var.project_name : "ipace-owners-${var.environment}"
-  firebase_app_name    = var.firebase_web_app_display_name != "" ? var.firebase_web_app_display_name : "ipace-owners-${var.environment}"
-  snapshot_bucket_name = "${var.project_id}-member-snapshots"
-  deployer_account_id  = "github-deployer"
-  email_continue_host  = regex("^https?://([^/]+)", var.site_url)[0]
+  project_name             = var.project_name != "" ? var.project_name : "ipace-owners-${var.environment}"
+  firebase_app_name        = var.firebase_web_app_display_name != "" ? var.firebase_web_app_display_name : "ipace-owners-${var.environment}"
+  snapshot_bucket_name     = "${var.project_id}-member-snapshots"
+  deployer_account_id      = "github-deployer"
+  firebase_hosting_site_id = var.firebase_hosting_site_id != "" ? var.firebase_hosting_site_id : var.project_id
+  email_continue_host      = regex("^https?://([^/]+)", var.site_url)[0]
   firebase_auth_authorized_domains = distinct(compact(concat([
     local.email_continue_host,
     "${var.project_id}.firebaseapp.com",
@@ -59,6 +60,20 @@ resource "google_firebase_project" "default" {
   project  = var.project_id
 
   depends_on = [google_project_service.required]
+}
+
+resource "google_firebase_hosting_custom_domain" "default" {
+  provider = google-beta
+  for_each = var.firebase_hosting_custom_domains
+
+  project               = var.project_id
+  site_id               = local.firebase_hosting_site_id
+  custom_domain         = each.key
+  redirect_target       = each.value.redirect_target != "" ? each.value.redirect_target : null
+  wait_dns_verification = var.firebase_hosting_wait_for_dns_verification
+  deletion_policy       = "ABANDON"
+
+  depends_on = [google_firebase_project.default]
 }
 
 resource "google_firebase_web_app" "default" {

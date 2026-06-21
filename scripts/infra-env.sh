@@ -114,6 +114,12 @@ case "${action}" in
 		ensure_init
 		ensure_workspace
 		;;
+	dns)
+		show_config
+		ensure_init
+		ensure_workspace
+		tofu -chdir="${infra_dir}" output firebase_hosting_custom_domains
+		;;
 	plan)
 		show_config
 		ensure_auth

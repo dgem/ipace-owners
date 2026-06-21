@@ -14,9 +14,12 @@ module "ipace_owners" {
   github_repo  = var.github_repo
   vin_pepper   = var.vin_pepper
 
-  allowed_origins                  = var.allowed_origins
-  site_url                         = var.site_url
-  firebase_auth_authorized_domains = var.firebase_auth_authorized_domains
-  firebase_web_app_display_name    = var.firebase_web_app_display_name
-  manage_github_actions            = var.manage_github_actions
+  allowed_origins                            = var.allowed_origins
+  site_url                                   = var.site_url
+  firebase_auth_authorized_domains           = var.firebase_auth_authorized_domains
+  firebase_web_app_display_name              = var.firebase_web_app_display_name
+  firebase_hosting_site_id                   = var.firebase_hosting_site_id
+  firebase_hosting_custom_domains            = var.firebase_hosting_custom_domains
+  firebase_hosting_wait_for_dns_verification = var.firebase_hosting_wait_for_dns_verification
+  manage_github_actions                      = var.manage_github_actions
 }

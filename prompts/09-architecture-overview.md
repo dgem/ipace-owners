@@ -17,7 +17,8 @@ It is the current source of truth for the I-PACE Owners' Advocacy Group architec
 - **CI/CD:** GitHub Actions with GCP Workload Identity Federation. PRs deploy to staging
   Firebase Hosting preview channels; `main` deploys to production.
 - **Domains/SSL:** Firebase Hosting managed SSL for `ipace-owners.org`; DNS remains at
-  Fasthosts and must point to the records Firebase provides.
+  Fasthosts. OpenTofu owns Firebase custom-domain associations, reports the required DNS
+  records and validation state, while the records are entered manually in Fasthosts.
 
 ## Directory structure
 
@@ -116,6 +117,11 @@ during migration, but templates and client JavaScript should use `/api/*`.
   gcloud user/ADC authentication, set an accessible ADC quota project, initialise the
   shared OpenTofu root, and select or create the workspace matching `ENV` before planning
   or applying the matching tfvars file. Never default an infrastructure apply to production.
+- Define Firebase Hosting custom domains per environment. The first apply must not wait for
+  DNS; it must output the required A, TXT, CNAME, CAA or other records. After those records
+  are entered at Fasthosts, allow verification waiting to be enabled and expose ownership,
+  host and certificate state through `make infra-dns-records`. Do not attempt unsupported
+  Fasthosts API automation or modify unrelated email DNS records.
 - GitHub Actions must delegate common operations through Make targets. Before deploying,
   run `make test-node`, `make test-go`, and `make build`; local verification can use
   `make test` and `make build`.

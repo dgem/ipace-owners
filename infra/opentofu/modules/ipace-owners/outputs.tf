@@ -22,6 +22,29 @@ output "firebase_storage_bucket" {
   value = data.google_firebase_web_app_config.default.storage_bucket
 }
 
+output "firebase_hosting_custom_domains" {
+  description = "Firebase Hosting domain status and DNS records to create at the authoritative DNS provider."
+  value = {
+    for name, domain in google_firebase_hosting_custom_domain.default : name => {
+      host_state        = domain.host_state
+      ownership_state   = domain.ownership_state
+      certificate_state = try(one(domain.cert).state, null)
+      dns_records = flatten([
+        for update in domain.required_dns_updates : [
+          for desired in update.desired : [
+            for record in desired.records : {
+              name            = record.domain_name
+              type            = record.type
+              value           = record.rdata
+              required_action = record.required_action
+            }
+          ]
+        ]
+      ])
+    }
+  }
+}
+
 output "github_workload_identity_provider" {
   value = google_iam_workload_identity_pool_provider.github.name
 }

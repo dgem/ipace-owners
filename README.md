@@ -225,10 +225,31 @@ production Firebase Hosting site.
 
 ### SSL and DNS
 
-Firebase Hosting provides managed SSL certificates for connected custom domains. For
-`ipace-owners.org`, add the domain in Firebase Hosting, then update DNS records in
-Fasthosts exactly as Firebase instructs. Firebase will verify ownership and provision the
-certificate automatically. Keep the production cutover separate from staging validation.
+Firebase Hosting provides managed SSL certificates for connected custom domains. OpenTofu
+registers each domain from `firebase_hosting_custom_domains` and outputs its ownership,
+hosting and certificate state together with the required DNS changes.
+
+Use a two-phase deployment because Fasthosts DNS changes are currently manual:
+
+```bash
+# Keep firebase_hosting_wait_for_dns_verification = false for the first apply.
+make deploy-hosting-env ENV=staging
+make infra-dns-records ENV=staging
+
+# Add the reported A, TXT, CNAME or other records in Fasthosts Advanced DNS.
+# Then enable waiting in staging.tfvars and apply again.
+make deploy-hosting-env ENV=staging
+```
+
+Repeat for production only after staging is connected. The recommended domains are
+`stage.ipace-owners.org` for staging, `ipace-owners.org` as the production canonical domain,
+and `www.ipace-owners.org` as a redirect to the apex. Do not remove or alter existing MX,
+SPF, DKIM or DMARC records.
+
+No documented Fasthosts DNS API, RFC 2136 endpoint, or maintained OpenTofu provider was
+found, so the configuration deliberately does not automate changes in Fasthosts. Moving
+authoritative DNS to Cloud DNS would make the records fully manageable in OpenTofu, but is
+not required for Firebase Hosting and would require a careful migration of every DNS record.
 
 ### Submission storage
 

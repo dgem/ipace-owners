@@ -7,7 +7,7 @@ FUNCTION_ENTRYPOINTS ?= SendMagicLink SubmitJoin SubmitVehicleBasics MemberData 
 FIREBASE_PREVIEW_JSON ?= firebase-preview.json
 INFRA_ENV_SCRIPT := scripts/infra-env.sh
 
-.PHONY: help functions install ci-install dev dev-eleventy build clean test test-node test-go smoke write-functions-env deploy-functions deploy-hosting-preview deploy-hosting-production infra-config infra-auth infra-init infra-workspace infra-plan infra-apply deploy-hosting-env
+.PHONY: help functions install ci-install dev dev-eleventy build clean test test-node test-go smoke write-functions-env deploy-functions deploy-hosting-preview deploy-hosting-production infra-config infra-auth infra-init infra-workspace infra-dns-records infra-plan infra-apply deploy-hosting-env
 
 help: ## Show available make targets.
 	@awk 'BEGIN {FS = ":.*##"; printf "Available targets:\n"} /^[a-zA-Z0-9_.-]+:.*##/ {printf "  %-28s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -55,6 +55,9 @@ infra-init: ## Initialise the shared OpenTofu infrastructure root for ENV.
 
 infra-workspace: ## Select or create the OpenTofu workspace matching ENV.
 	@ENV="$(ENV)" TFVARS="$(TFVARS)" $(INFRA_ENV_SCRIPT) workspace
+
+infra-dns-records: ## Show Firebase Hosting DNS records and validation state for ENV.
+	@ENV="$(ENV)" TFVARS="$(TFVARS)" $(INFRA_ENV_SCRIPT) dns
 
 infra-plan: ## Authenticate and create an OpenTofu plan for ENV.
 	@ENV="$(ENV)" TFVARS="$(TFVARS)" $(INFRA_ENV_SCRIPT) plan

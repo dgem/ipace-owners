@@ -97,6 +97,26 @@ variable "firebase_web_app_display_name" {
   default     = ""
 }
 
+variable "firebase_hosting_site_id" {
+  description = "Firebase Hosting site ID. Defaults to the effective GCP project ID."
+  type        = string
+  default     = ""
+}
+
+variable "firebase_hosting_custom_domains" {
+  description = "Custom Firebase Hosting domains keyed by domain name, with an optional redirect target."
+  type = map(object({
+    redirect_target = optional(string, "")
+  }))
+  default = {}
+}
+
+variable "firebase_hosting_wait_for_dns_verification" {
+  description = "Whether custom-domain creation should wait for the required DNS records to resolve."
+  type        = bool
+  default     = false
+}
+
 variable "manage_github_actions" {
   description = "Whether this module should create/update GitHub Actions environments, variables and secrets."
   type        = bool

@@ -18,9 +18,14 @@ create_gcp_project = false
 github_owner = "dgem"
 github_repo  = "ipace-owners"
 
-allowed_origins = "https://replace-with-staging-project.web.app,http://localhost:8080,http://localhost:5000"
-site_url        = "https://replace-with-staging-project.web.app/account/"
-# firebase_auth_authorized_domains = ["stage.ipace-owners.org"]
+allowed_origins = "https://stage.ipace-owners.org,http://localhost:8080,http://localhost:5000"
+site_url        = "https://stage.ipace-owners.org/account/"
+
+# Apply once with waiting disabled, add the output DNS records at Fasthosts, then set true.
+firebase_hosting_custom_domains = {
+  "stage.ipace-owners.org" = {}
+}
+firebase_hosting_wait_for_dns_verification = false
 
 manage_github_actions = true
 

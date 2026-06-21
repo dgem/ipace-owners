@@ -22,6 +22,13 @@ allowed_origins = "https://ipace-owners.org,https://www.ipace-owners.org"
 site_url        = "https://ipace-owners.org/account/"
 # firebase_auth_authorized_domains = ["www.ipace-owners.org"]
 
+# The apex is canonical; Firebase Hosting redirects www after both domains validate.
+firebase_hosting_custom_domains = {
+  "ipace-owners.org"     = {}
+  "www.ipace-owners.org" = { redirect_target = "ipace-owners.org" }
+}
+firebase_hosting_wait_for_dns_verification = false
+
 manage_github_actions = true
 
 # Set the real secret value via environment variables or an uncommitted tfvars file:
