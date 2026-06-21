@@ -115,10 +115,11 @@ data "google_firebase_web_app_config" "default" {
 }
 
 resource "google_firestore_database" "default" {
-  project     = var.project_id
-  name        = "(default)"
-  location_id = var.region
-  type        = "FIRESTORE_NATIVE"
+  project         = var.project_id
+  name            = var.project_id
+  location_id     = var.region
+  type            = "FIRESTORE_NATIVE"
+  deletion_policy = "ABANDON"
 
   depends_on = [google_project_service.required]
 }

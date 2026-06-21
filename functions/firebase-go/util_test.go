@@ -113,6 +113,26 @@ func TestProjectIDFallbacks(t *testing.T) {
 	}
 }
 
+func TestFirestoreDatabaseIDUsesConfiguredNamedDatabase(t *testing.T) {
+	t.Setenv("FIRESTORE_DATABASE_ID", "ipace-owners-production")
+	t.Setenv("FIREBASE_PROJECT_ID", "ipace-owners-production")
+
+	if got := firestoreDatabaseID(); got != "ipace-owners-production" {
+		t.Fatalf("firestoreDatabaseID() = %q", got)
+	}
+}
+
+func TestFirestoreDatabaseIDFallsBackToProjectID(t *testing.T) {
+	t.Setenv("FIRESTORE_DATABASE_ID", "")
+	t.Setenv("GOOGLE_CLOUD_PROJECT", "")
+	t.Setenv("GCP_PROJECT", "")
+	t.Setenv("FIREBASE_PROJECT_ID", "ipace-owners-staging")
+
+	if got := firestoreDatabaseID(); got != "ipace-owners-staging" {
+		t.Fatalf("firestoreDatabaseID() = %q", got)
+	}
+}
+
 func TestIdentityToolkitErrorMessage(t *testing.T) {
 	body := `{"error":{"code":400,"message":"INVALID_CONTINUE_URI : Continue URL is not whitelisted.","status":"INVALID_ARGUMENT"}}`
 

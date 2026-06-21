@@ -15,6 +15,7 @@ test("writes function env vars as JSON without splitting comma-separated origins
     env: {
       ...process.env,
       FIREBASE_PROJECT_ID: "ipace-owners-staging",
+      FIRESTORE_DATABASE_ID: "ipace-owners-staging",
       FIREBASE_WEB_API_KEY: "api-key",
       VIN_PEPPER: "pepper",
       SNAPSHOT_BUCKET: "snapshots",
@@ -28,6 +29,7 @@ test("writes function env vars as JSON without splitting comma-separated origins
 
   assert.deepEqual(written, {
     FIREBASE_PROJECT_ID: "ipace-owners-staging",
+    FIRESTORE_DATABASE_ID: "ipace-owners-staging",
     FIREBASE_WEB_API_KEY: "api-key",
     VIN_PEPPER: "pepper",
     SNAPSHOT_BUCKET: "snapshots",

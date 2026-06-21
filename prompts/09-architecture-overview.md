@@ -9,7 +9,9 @@ It is the current source of truth for the I-PACE Owners' Advocacy Group architec
 - **Frontend JavaScript:** vanilla IIFEs loaded with `defer`; no bundler.
 - **Authentication:** Firebase Authentication passwordless email links.
 - **Backend:** Cloud Functions for Firebase / Google Cloud Functions, written in Go.
-- **Canonical data:** Cloud Firestore.
+- **Canonical data:** A named Cloud Firestore database per environment, with its database
+  ID matching the GCP project ID. Go Functions select it explicitly using
+  `firestore.NewClientWithDatabase`.
 - **Generated snapshots:** member/private and future public aggregate JSON written to
   Firestore and Cloud Storage so page loads avoid repeated canonical-store reads.
 - **Hosting:** Firebase Hosting with rewrites from `/api/*` to Go Functions.

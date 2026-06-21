@@ -195,7 +195,11 @@ The OpenTofu config can create the GCP project, then enables Firebase, Firestore
 Functions, Cloud Storage, Secret Manager and GitHub Workload Identity Federation. It also
 creates the Firebase Web App, configures Firebase Authentication for passwordless email
 sign-in, creates service accounts for GitHub deployment and Functions runtime, and reads
-the generated Firebase web config needed by the site build.
+the generated Firebase web config needed by the site build. Each environment uses a named
+Firestore database whose ID matches its GCP project ID; Functions receive that value as
+`FIRESTORE_DATABASE_ID` and do not use the `(default)` database. The old default database
+is abandoned from OpenTofu state during replacement rather than deleted; migrate any data
+that must be retained before directing production Functions to the named database.
 
 The same OpenTofu module bootstraps the GitHub Actions `staging` and `production`
 environments. It creates the environment variables and secrets consumed by the deploy
@@ -207,6 +211,7 @@ workflows:
 - `FIREBASE_WEB_API_KEY_STAGING` / `FIREBASE_WEB_API_KEY_PRODUCTION`
 - `VIN_PEPPER_STAGING` / `VIN_PEPPER_PRODUCTION`
 - `FIREBASE_STAGING_PROJECT_ID` / `FIREBASE_PRODUCTION_PROJECT_ID`
+- `FIRESTORE_DATABASE_ID_STAGING` / `FIRESTORE_DATABASE_ID_PRODUCTION`
 - `FIREBASE_AUTH_DOMAIN_*`, `FIREBASE_APP_ID_*`, `FIREBASE_STORAGE_BUCKET_*`
 - `SNAPSHOT_BUCKET_*`, `ALLOWED_ORIGINS_*`, `FIREBASE_EMAIL_CONTINUE_URL_*`
 - `FIREBASE_EMAIL_LINK_DOMAIN_*`, which makes Firebase Auth action links use the

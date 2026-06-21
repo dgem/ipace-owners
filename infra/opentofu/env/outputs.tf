@@ -10,6 +10,10 @@ output "snapshot_bucket" {
   value = module.ipace_owners.snapshot_bucket
 }
 
+output "firestore_database_id" {
+  value = module.ipace_owners.firestore_database_id
+}
+
 output "firebase_web_app_id" {
   value = module.ipace_owners.firebase_web_app_id
 }
