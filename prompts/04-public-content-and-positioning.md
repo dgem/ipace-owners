@@ -44,6 +44,9 @@ The homepage should include:
   HV battery work and module replacements, battery State of Health concerns, vehicles
   approaching or beyond the 8-year / 100,000-mile battery warranty, and inconsistent owner
   experiences around support, loan cars, parts delays, and goodwill payments.
+- Place "Why now?" immediately after the hero and arrange its issue items in two responsive
+  columns. Follow it with the three feature cards, then a two-column section containing the
+  "This is not a legal action" callout and "Get started" panel.
 
 ## About Detail
 
