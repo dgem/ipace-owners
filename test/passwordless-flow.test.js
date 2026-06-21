@@ -11,7 +11,7 @@ function read(relativePath) {
   return fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
 }
 
-test('site UI uses passwordless magic-link forms instead of Netlify modal triggers', function () {
+test('site UI uses Firebase passwordless magic-link forms', function () {
   var files = [
     'src/account.njk',
     'src/member/dashboard.njk',

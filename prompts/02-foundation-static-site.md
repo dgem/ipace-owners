@@ -26,13 +26,12 @@ Create a small, maintainable Eleventy 3 site that can be deployed to Firebase Ho
   in browser storage, but users without JavaScript must still see the disclosure and a
   privacy-policy link.
 - Add npm scripts:
-  - `npm run dev` starts the local development server.
-  - `npm run dev:eleventy` starts the plain Eleventy dev server for static-only debugging.
+  - `npm run dev` starts the Eleventy development server.
   - `npm run build` builds the production site.
   - `npm run clean` removes `_site/`.
 - Add a `Makefile` as the shared local and CI command surface:
   - `make` and `make help` list available targets extracted from target descriptions.
-  - `make install`, `make dev`, `make dev-eleventy`, `make build`, `make clean`,
+  - `make install`, `make dev`, `make build`, `make clean`,
     `make test-node`, `make test-go`, and `make test` delegate to the underlying npm/Go
     commands.
   - `make functions` lists deployed Cloud Function entrypoints.
@@ -77,7 +76,6 @@ Create a small, maintainable Eleventy 3 site that can be deployed to Firebase Ho
 - Confirm generated pages appear in `_site/`.
 - Confirm `make` lists available targets.
 - Confirm `make dev` starts the documented local development server.
-- Confirm `make dev-eleventy` starts the Eleventy development server.
 - Confirm `make clean` removes `_site/`.
 - Confirm implemented persistence is limited to Join submissions and signed-in vehicle
   basics, with no real seed/test owner data committed to the repository.

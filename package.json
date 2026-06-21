@@ -7,20 +7,16 @@
     "node": ">=24 <25"
   },
   "scripts": {
-    "dev": "npx netlify dev",
-    "dev:eleventy": "eleventy --serve",
+    "dev": "eleventy --serve",
     "build": "eleventy",
     "clean": "rm -rf _site",
     "test": "node --test",
     "smoke:deployment": "node scripts/smoke-test-deployment.mjs"
   },
   "dependencies": {
-    "@11ty/eleventy": "^3.0.0",
-    "@netlify/blobs": "^10.7.9",
-    "@netlify/database": "^1.0.0"
+    "@11ty/eleventy": "^3.0.0"
   },
   "devDependencies": {
-    "firebase-tools": "^15.22.0",
-    "netlify-cli": "^26.1.0"
+    "firebase-tools": "^15.22.0"
   }
 }
