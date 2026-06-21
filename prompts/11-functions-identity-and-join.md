@@ -39,6 +39,8 @@ magic-link request path for existing users.
   `FIREBASE_EMAIL_CONTINUE_URL` as the post-action account URL. Firebase web API keys are
   public project identifiers and may appear in action URLs; restrict them to the required
   Firebase APIs, but do not treat their presence in an email link as credential exposure.
+- For PR deployments, derive both values from that PR's generated Firebase Hosting preview
+  URL rather than a shared staging custom domain.
 - If the same email address submits Join more than once, keep the browser response generic
   but log that the email hash has previous Join submissions so operators can distinguish
   repeat attempts from first-time registration.

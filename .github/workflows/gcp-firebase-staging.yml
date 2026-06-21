@@ -50,6 +50,13 @@ jobs:
 
       - uses: google-github-actions/setup-gcloud@v3
 
+      - name: Deploy Firebase Hosting preview
+        id: hosting
+        env:
+          GCP_PROJECT_ID: ${{ vars.FIREBASE_STAGING_PROJECT_ID }}
+          CHANNEL_ID: pr-${{ github.event.pull_request.number }}
+        run: make deploy-hosting-preview
+
       - name: Deploy Go Cloud Functions
         env:
           GCP_PROJECT_ID: ${{ vars.FIREBASE_STAGING_PROJECT_ID }}
@@ -60,13 +67,11 @@ jobs:
           FIREBASE_WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY_STAGING }}
           VIN_PEPPER: ${{ secrets.VIN_PEPPER_STAGING }}
           SNAPSHOT_BUCKET: ${{ vars.SNAPSHOT_BUCKET_STAGING }}
-          ALLOWED_ORIGINS: ${{ vars.ALLOWED_ORIGINS_STAGING }}
-          FIREBASE_EMAIL_CONTINUE_URL: ${{ vars.FIREBASE_EMAIL_CONTINUE_URL_STAGING }}
-          FIREBASE_EMAIL_LINK_DOMAIN: ${{ vars.FIREBASE_EMAIL_LINK_DOMAIN_STAGING }}
+          ALLOWED_ORIGINS: ${{ steps.hosting.outputs.url }}
+          FIREBASE_EMAIL_CONTINUE_URL: ${{ format('{0}/account/', steps.hosting.outputs.url) }}
         run: make deploy-functions
 
-      - name: Deploy Firebase Hosting preview
-        id: hosting
+      - name: Refresh Firebase Hosting preview with current Function revisions
         env:
           GCP_PROJECT_ID: ${{ vars.FIREBASE_STAGING_PROJECT_ID }}
           CHANNEL_ID: pr-${{ github.event.pull_request.number }}

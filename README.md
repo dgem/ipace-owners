@@ -204,6 +204,11 @@ initial infrastructure rollout, the Function environment generator derives the d
 from `FIREBASE_PROJECT_ID` and the email link domain from `FIREBASE_EMAIL_CONTINUE_URL` if
 the new GitHub environment variables have not been populated yet.
 
+PR deployments do not depend on `stage.ipace-owners.org`. The staging workflow first
+creates the PR's Firebase Hosting preview channel, configures Functions with that generated
+`web.app` URL for CORS and passwordless email links, then refreshes the channel so Hosting
+rewrites use the newly deployed Function revisions.
+
 The same OpenTofu module bootstraps the GitHub Actions `staging` and `production`
 environments. It creates the environment variables and secrets consumed by the deploy
 workflows:
@@ -284,8 +289,9 @@ domain association is removed from state or Firebase.
 
 Repeat for production only after staging is connected. The output combines Firebase Hosting
 traffic/ownership records with certificate ACME TXT records. The recommended domains are
-`stage.ipace-owners.org` for staging, `ipace-owners.org` as the production canonical domain,
-and `www.ipace-owners.org` as a redirect to the apex. Do not remove or alter existing MX,
+`stage.ipace-owners.org` for an optional permanent staging site, `ipace-owners.org` as the
+production canonical domain, and `www.ipace-owners.org` as a redirect to the apex. PRs use
+their generated Firebase Hosting preview URLs instead. Do not remove or alter existing MX,
 SPF, DKIM or DMARC records.
 
 No documented Fasthosts DNS API, RFC 2136 endpoint, or maintained OpenTofu provider was
