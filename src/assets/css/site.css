@@ -1620,6 +1620,10 @@ details .details-body p:last-child {
 }
 
 /* Why-now grid item */
+.why-now__intro {
+  max-width: none;
+}
+
 .why-item {
   display: flex;
   gap: var(--space-4);
