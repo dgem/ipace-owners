@@ -23,9 +23,12 @@ currently captures:
 
 - Vehicle details and identification
 - Battery State of Health measurements (with source and date)
+- Dated service, fault, repair, recall, and inspection records
 
 Members can append further SoH measurements to each registered car. Earlier readings are
-retained so first-to-latest change can be calculated. Later form phases are planned to capture:
+retained so first-to-latest change can be calculated. Members can also maintain a private
+service/fault timeline; those records are not yet published in aggregate. Later form phases
+are planned to capture:
 
 - HV battery work history (type, dates, duration, outcome)
 - Recall status (H570, H571, H572)

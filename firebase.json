@@ -74,6 +74,13 @@
         }
       },
       {
+        "source": "/api/upsert-service-event",
+        "function": {
+          "functionId": "UpsertServiceEvent",
+          "region": "europe-west2"
+        }
+      },
+      {
         "source": "/api/member-data",
         "function": {
           "functionId": "MemberData",

@@ -63,6 +63,7 @@ the retired hosting or Function platform.
 | `POST /api/submit-join` | `SubmitJoin` | Optional | Save Join submission; send email link for guests. |
 | `POST /api/submit-vehicle-basics` | `SubmitVehicleBasics` | Member | Save one vehicle basics record and optional initial SoH reading. |
 | `POST /api/submit-soh` | `SubmitSOH` | Member | Append an SoH reading after verifying vehicle ownership. |
+| `POST /api/upsert-service-event` | `UpsertServiceEvent` | Member | Add or edit an owned vehicle's service/fault timeline record. |
 | `GET /api/member-data` | `MemberData` | Member | Return the signed-in user's generated snapshot. |
 | `GET /api/admin-data` | `AdminData` | Admin | Return review data for administrators. |
 | `GET /api/public-stats` | `PublicStats` | No | Return the generated anonymised aggregate snapshot. |
@@ -84,7 +85,10 @@ Functions.
 - Store SoH measurements as append-only `batteryReadings` records tied to a vehicle. The
   embedded vehicle battery value is the latest compatibility value, not the historical
   source of truth.
-- Regenerate private member and public aggregate JSON snapshots after vehicle or SoH writes.
+- Store editable service and fault history in `serviceEvents`, tied to both the authenticated
+  member UID and vehicle ID. Preserve creation timestamps and review metadata on edits.
+- Regenerate private member snapshots after vehicle, SoH, or service-event writes. Regenerate
+  public aggregate snapshots only for data with defined consent and publication rules.
 - Full VINs are never stored. Store only an HMAC-SHA-256 digest using `VIN_PEPPER` plus the
   final six VIN characters for member reference.
 - Raw email addresses and names must never appear in public static files or public

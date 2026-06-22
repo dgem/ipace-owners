@@ -19,6 +19,8 @@ Use these prompts as a maintainable product blueprint. They are ordered so a fre
 13. Use `13-functions-member-admin-data.md` for member/admin data access Functions.
 14. Use `14-functions-future-evidence-and-stats.md` for future evidence, upload, review mutation, and public statistics work.
 15. Use `15-firestore-static-json-data-model.md` for the canonical Firestore model and JSON snapshot strategy.
+16. Use `16-member-vehicle-workspace-and-service-history.md` for the tabbed member vehicle
+    dashboard, SoH graph, and editable service/fault timeline.
 
 ## Global constraints for every prompt
 

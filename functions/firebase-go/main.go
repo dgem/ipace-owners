@@ -50,6 +50,7 @@ func init() {
 	functions.HTTP("SubmitJoin", SubmitJoin)
 	functions.HTTP("SubmitVehicleBasics", SubmitVehicleBasics)
 	functions.HTTP("SubmitSOH", SubmitSOH)
+	functions.HTTP("UpsertServiceEvent", UpsertServiceEvent)
 	functions.HTTP("MemberData", MemberData)
 	functions.HTTP("AdminData", AdminData)
 	functions.HTTP("PublicStats", PublicStats)
@@ -598,6 +599,7 @@ func buildMemberSnapshot(ctx context.Context, uid string, email string) (memberS
 		JoinRecords:     []joinRecord{},
 		VehicleRecords:  []vehicleRecord{},
 		BatteryReadings: []batteryReadingRecord{},
+		ServiceEvents:   []serviceEventRecord{},
 	}
 	if email != "" {
 		emailHash := emailFingerprint(email)
@@ -646,6 +648,20 @@ func buildMemberSnapshot(ctx context.Context, uid string, email string) (memberS
 			snapshot.BatteryReadings = append(snapshot.BatteryReadings, record)
 		}
 	}
+	eventIter := db.Collection("serviceEvents").Where("identityUserId", "==", uid).Documents(ctx)
+	for {
+		doc, err := eventIter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return memberSnapshot{}, err
+		}
+		var record serviceEventRecord
+		if err := doc.DataTo(&record); err == nil {
+			snapshot.ServiceEvents = append(snapshot.ServiceEvents, record)
+		}
+	}
 	readVehicles := map[string]bool{}
 	for _, reading := range snapshot.BatteryReadings {
 		readVehicles[reading.VehicleID] = true
@@ -665,6 +681,12 @@ func buildMemberSnapshot(ctx context.Context, uid string, email string) (memberS
 	})
 	sort.Slice(snapshot.BatteryReadings, func(i, j int) bool {
 		return normalisedMeasurementDate(snapshot.BatteryReadings[i]).After(normalisedMeasurementDate(snapshot.BatteryReadings[j]))
+	})
+	sort.Slice(snapshot.ServiceEvents, func(i, j int) bool {
+		if snapshot.ServiceEvents[i].OccurredAt == snapshot.ServiceEvents[j].OccurredAt {
+			return snapshot.ServiceEvents[i].UpdatedAt.After(snapshot.ServiceEvents[j].UpdatedAt)
+		}
+		return snapshot.ServiceEvents[i].OccurredAt > snapshot.ServiceEvents[j].OccurredAt
 	})
 	return snapshot, nil
 }

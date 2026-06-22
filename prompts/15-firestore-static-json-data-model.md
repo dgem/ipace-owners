@@ -16,6 +16,7 @@ Firestore is the source of truth for:
 - Join submissions, relationship status, skills, and consents;
 - vehicles, with one member able to own or submit data for multiple vehicles;
 - battery State of Health readings;
+- service, fault, repair, recall, and inspection timeline records;
 - future recall, repair, loan car, payment, goodwill, responsibility, and review data;
 - admin review state, verification levels, and audit events.
 
@@ -39,6 +40,9 @@ Generate JSON snapshots after write operations:
   and public aggregate snapshots.
 - `SubmitSOH` appends a battery reading and regenerates the member/account and public
   aggregate snapshots.
+- `UpsertServiceEvent` adds or edits an owned service/fault record and regenerates the
+  member/account snapshot. These records are not public aggregates until explicit review,
+  consent, and publication rules are implemented.
 - Admin review or publish actions regenerate public aggregate statistics.
 
 Member/account snapshots are private data. Store them in Firestore under
@@ -56,6 +60,7 @@ only after anonymisation, verification, and exclusion rules have been applied.
 - `vehicles`
 - `batteryReadings` as the append-only SoH history; `vehicles.battery` may retain the latest
   reading for compatibility
+- `serviceEvents` as member-editable vehicle history with ownership and review metadata
 - `evidenceFiles`
 - `memberSnapshots`
 - `publicStatsSnapshots`
@@ -65,7 +70,8 @@ only after anonymisation, verification, and exclusion rules have been applied.
 
 The UX must assume a member can own, have owned, or help with more than one I-PACE.
 
-- Member/account pages should show a list of vehicles, not a single vehicle panel.
+- Member/account data must retain all vehicles. On the desktop member dashboard, use a tab
+  list to select one vehicle and show its full-width workspace rather than narrow car cards.
 - Vehicle data submission is an "add/register a vehicle" flow.
 - After saving a vehicle, provide a route back to account/member dashboard and a clear
   option to add another vehicle.
@@ -90,6 +96,7 @@ Update or add tests for:
 - vehicle writes update canonical Firestore documents and refresh the private snapshot;
 - only the authenticated vehicle owner can append an SoH reading;
 - repeated readings remain ordered and available in the member snapshot;
+- only the authenticated vehicle owner can add or edit service/fault records;
 - admin/public stats generation excludes records marked out of public statistics.
 
 ## Validation

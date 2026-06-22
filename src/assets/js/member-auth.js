@@ -244,12 +244,17 @@
 
         // Expose raw data for other scripts to consume
         container.dataset.memberData = JSON.stringify(data);
+        document.dispatchEvent(new CustomEvent('member:data', {
+          detail: { container: container, data: data },
+        }));
        } catch (err) {
       console.warn('[member-auth] Failed to verify auth:', err);
       showMemberGate(container);
      }
     });
    }
+
+  window.ipaceRefreshMemberData = verifyMemberAuth;
 
    // ── Admin auth ───────────────────────────────────────────────────────────────
 

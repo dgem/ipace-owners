@@ -19,7 +19,7 @@ Go Cloud Functions. Do not rely on client-side gating for private data access.
 - Content is hidden by default and is revealed only after the relevant Function returns 200.
 - Login/admin gates remain visible for 401 or 403 responses.
 - Firestore is canonical. Member/account pages should be served from a private generated
-  JSON snapshot regenerated during Join signup and vehicle add/update flows.
+  JSON snapshot regenerated during Join signup, vehicle add/update, SoH, and service-event flows.
 - `MemberData` should read the private generated snapshot first, then regenerate it from
   Firestore if missing.
 
@@ -27,7 +27,8 @@ Go Cloud Functions. Do not rely on client-side gating for private data access.
 
 - Requires a valid Firebase ID token.
 - Returns only the authenticated user's own private member/account snapshot.
-- The snapshot may include Join information and a list of zero, one, or many vehicles.
+- The snapshot may include Join information, zero or more vehicles, append-only SoH readings,
+  and editable service/fault records.
 - Do not serve member snapshots from public static files. Return them only after
   server-side Firebase verification.
 - Does not expose admin-only review data to members.
@@ -38,6 +39,8 @@ Member responses may include:
 - `email`
 - `joinRecords`
 - `vehicleRecords`
+- `batteryReadings`
+- `serviceEvents`
 
 ## AdminData
 
@@ -51,13 +54,15 @@ Member responses may include:
 
 ## Browser rendering
 
-`member-auth.js` may populate:
+`member-auth.js` populates shared account fields and dispatches a `member:data` event so the
+dashboard workspace can render server-verified data. Browser rendering may populate:
 
 - `[data-vehicle-list]`
 - `[data-join-info]`
 - `[data-admin-stats]`
 - `[data-admin-join-table]`
 - `[data-admin-vehicle-table]`
+- `[data-vehicle-workspace]`
 
 Rendering must not leak private data before a successful Function response. Avoid placing
 private data directly in static HTML.
