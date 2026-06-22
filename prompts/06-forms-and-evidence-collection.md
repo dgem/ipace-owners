@@ -102,6 +102,11 @@ It collects:
 The UX must support members registering multiple vehicles. Treat this as an "add/register a
 vehicle" flow and provide an obvious route to add another vehicle after saving.
 
+Member/account vehicle cards must also show the car's SoH measurement history and an
+accessible inline form for appending another reading. Post updates to `POST /api/submit-soh`
+with the vehicle ID, SoH percentage, measurement date, optional mileage, and source. Never
+overwrite or discard earlier readings; degradation analysis depends on the time series.
+
 Full VINs must not be stored. The Function should create an HMAC using `VIN_PEPPER` and
 store only the HMAC plus final six characters for reference.
 The first vehicle-basics slice should require at least one vehicle identifier: VIN or
@@ -142,7 +147,9 @@ future summary of entered information.
     in Firestore and sends email/name to Firebase Authentication via shared server-side
     magic-link code;
   - the signed-in vehicle basics form's `submit-vehicle-basics` call, which stores the
-    initial vehicle and battery health slice in Firestore.
+    initial vehicle and battery health slice in Firestore;
+  - the signed-in member SoH form's `submit-soh` call, which appends a measurement after
+    server-side vehicle ownership verification.
 - Do not store raw VINs in public static files.
 - Do not store full VINs in Firestore, Cloud Storage, or static JSON. Store an HMAC generated with `VIN_PEPPER` and only the
   final six characters for reference. If `VIN_PEPPER` is not configured, ignore the VIN

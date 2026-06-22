@@ -99,6 +99,20 @@ async function main() {
     throw new Error(`submit-vehicle-basics unauthenticated returned ${vehicleUnauthenticated.status}, expected 401`);
   }
 
+  const sohUnauthenticated = await fetch(url('/api/submit-soh'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ vehicleId: 'smoke', soh: '90', sohDate: '2026-06-22', sohSource: 'diagnostic-app' }),
+  });
+  if (sohUnauthenticated.status !== 401) {
+    throw new Error(`submit-soh unauthenticated returned ${sohUnauthenticated.status}, expected 401`);
+  }
+
+  const publicStats = await fetch(url('/api/public-stats'));
+  if (!publicStats.ok) {
+    throw new Error(`public-stats returned ${publicStats.status}, expected 200`);
+  }
+
   console.log(`Smoke tests passed for ${baseUrl.toString()}`);
 }
 

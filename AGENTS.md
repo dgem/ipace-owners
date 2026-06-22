@@ -121,6 +121,8 @@ Defined in `:root` in `site.css`. Key tokens:
 - Existing users can request another magic link through `POST /api/send-magic-link`
   without resubmitting the Join form.
 - Signed-in vehicle basics are stored by `POST /api/submit-vehicle-basics`.
+- Signed-in members append SoH history through `POST /api/submit-soh`; the Function verifies
+  vehicle ownership server-side.
 - Member/admin data fetches must send the Firebase ID token in the `Authorization` header.
 - Members may register multiple vehicles. Account/member pages should render vehicle lists,
   not a single vehicle assumption.
@@ -210,4 +212,5 @@ Examples:
 - Admin review queue can read server-side data for admins, but review status updates,
   exports, and moderation actions are not yet implemented.
 - Privacy policy is a placeholder — review required before broader evidence data collection.
-- Evidence dashboard shows illustrative data only.
+- Public evidence statistics cover registered cars and SoH history; later evidence metrics
+  remain unavailable until their form slices are implemented.

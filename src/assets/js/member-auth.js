@@ -95,17 +95,29 @@
     return Promise.resolve('');
   }
 
-  function fetchWithIdentity(url) {
+  function fetchWithIdentity(url, options) {
     return getIdentityToken().then(function (token) {
-      var options = {};
+      options = options || {};
+      options.headers = options.headers || {};
       if (token) {
-        options.headers = { Authorization: 'Bearer ' + token };
+        options.headers.Authorization = 'Bearer ' + token;
       }
       return fetch(url, options);
     });
   }
 
-  function populateVehicleRecords(container, records) {
+  function formatSOHSource(value) {
+    var labels = {
+      'dealer-report': 'Dealer report',
+      'diagnostic-app': 'Diagnostic app / OBD',
+      'service-paperwork': 'Service paperwork',
+      'jlr-communication': 'JLR communication',
+      'estimate-unsure': 'Estimate / unsure',
+    };
+    return labels[value] || String(value || '').replace(/-/g, ' ');
+  }
+
+  function populateVehicleRecords(container, records, readings) {
     var vehicleList = container.querySelector('[data-vehicle-list]');
     if (!vehicleList) return;
 
@@ -116,7 +128,7 @@
       return;
     }
 
-    var html = '<dl class="vehicle-list">';
+    var html = '<div class="vehicle-list">';
     records.forEach(function (rec) {
       var veh = rec.vehicle || {};
       var bat = rec.battery || {};
@@ -132,11 +144,42 @@
       if (veh.mileage != null) details.push('Mileage: ' + Number(veh.mileage).toLocaleString());
       if (veh.ownedSince) details.push('Owned since: ' + escapeHtml(veh.ownedSince));
       if (bat.stateOfHealth != null) details.push('SoH: ' + bat.stateOfHealth + '%');
-      if (bat.source) details.push('SoH source: ' + escapeHtml(bat.source));
+      if (bat.source) details.push('SoH source: ' + escapeHtml(formatSOHSource(bat.source)));
 
       if (details.length > 0) {
         html += '<p style="color:var(--color-text-muted); font-size:var(--text-sm);">' + details.join(' &middot; ') + '</p>';
        }
+
+      var vehicleReadings = (readings || []).filter(function (reading) {
+        return reading.vehicleId === rec.id;
+      });
+      if (vehicleReadings.length > 0) {
+        html += '<h4>State of Health history</h4><ul class="stack stack--sm">';
+        vehicleReadings.forEach(function (reading) {
+          var measurement = reading.battery || {};
+          html += '<li><strong>' + escapeHtml(measurement.stateOfHealth) + '%</strong>';
+          if (measurement.measuredAt) html += ' on ' + escapeHtml(formatDate(measurement.measuredAt));
+          if (measurement.mileageAtMeasurement != null) html += ' at ' + Number(measurement.mileageAtMeasurement).toLocaleString() + ' miles';
+          if (measurement.source) html += ' (' + escapeHtml(formatSOHSource(measurement.source)) + ')';
+          html += '</li>';
+        });
+        html += '</ul>';
+      } else {
+        html += '<p class="text-muted">No State of Health readings recorded yet.</p>';
+      }
+
+      var id = escapeHtml(rec.id);
+      html += '<details style="margin-top:var(--space-4);"><summary>Add a State of Health reading</summary>';
+      html += '<form data-soh-update-form style="margin-top:var(--space-4);">';
+      html += '<input type="hidden" name="vehicleId" value="' + id + '">';
+      html += '<div class="two-column">';
+      html += '<div class="form-group"><label for="soh-' + id + '">State of Health (%)</label><input id="soh-' + id + '" name="soh" type="number" min="0" max="100" step="0.1" required></div>';
+      html += '<div class="form-group"><label for="soh-date-' + id + '">Measurement date</label><input id="soh-date-' + id + '" name="sohDate" type="date" required></div>';
+      html += '<div class="form-group"><label for="soh-mileage-' + id + '">Mileage at measurement</label><input id="soh-mileage-' + id + '" name="sohMileage" type="number" min="0" max="500000"></div>';
+      html += '<div class="form-group"><label for="soh-source-' + id + '">Measurement source</label><select id="soh-source-' + id + '" name="sohSource" required><option value="">Select source</option><option value="dealer-report">Dealer report</option><option value="diagnostic-app">Diagnostic app / OBD</option><option value="service-paperwork">Service paperwork</option><option value="jlr-communication">JLR communication</option><option value="estimate-unsure">Estimate / unsure</option></select></div>';
+      html += '</div><button class="btn btn--primary" type="submit">Save SoH reading</button>';
+      html += '<p class="form-hint" data-soh-update-status role="status" aria-live="polite"></p>';
+      html += '</form></details>';
 
       html += '<p style="margin-bottom:0; font-size:var(--text-sm); color:var(--color-text-muted);">';
       html += 'Submitted: ' + escapeHtml(formatDate(rec.createdAt));
@@ -146,7 +189,7 @@
       html += '</p>';
       html += '</div>';
      });
-    html += '</dl>';
+    html += '</div>';
     vehicleList.innerHTML = html;
    }
 
@@ -191,7 +234,7 @@
         // Populate vehicle records
         var vehicleContainer = container.querySelector('[data-vehicle-container]');
         if (vehicleContainer && data.vehicleRecords) {
-          populateVehicleRecords(vehicleContainer, data.vehicleRecords);
+          populateVehicleRecords(vehicleContainer, data.vehicleRecords, data.batteryReadings || []);
         }
 
         var joinContainer = container.querySelector('[data-join-container]');
@@ -403,6 +446,37 @@
   function initSoon() {
     window.setTimeout(init, 0);
   }
+
+  document.addEventListener('submit', function (event) {
+    var form = event.target.closest('[data-soh-update-form]');
+    if (!form) return;
+    event.preventDefault();
+    var status = form.querySelector('[data-soh-update-status]');
+    var button = form.querySelector('button[type="submit"]');
+    var payload = {};
+    new FormData(form).forEach(function (value, key) { payload[key] = value; });
+    if (button) button.disabled = true;
+    if (status) status.textContent = 'Saving reading...';
+
+    fetchWithIdentity('/api/submit-soh', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }).then(function (response) {
+      return response.json().catch(function () { return {}; }).then(function (data) {
+        if (!response.ok || !data.ok) throw new Error(data.error || 'Could not save reading');
+        return data;
+      });
+    }).then(function () {
+      if (status) status.textContent = 'Reading saved. Refreshing history...';
+      verifyMemberAuth();
+    }).catch(function (error) {
+      console.warn('[member-auth] SoH update failed:', error);
+      if (status) status.textContent = error.message || 'Could not save the reading.';
+    }).finally(function () {
+      if (button) button.disabled = false;
+    });
+  });
 
   function initWhenIdentityReady() {
     if (window.ipaceIdentityReady) {

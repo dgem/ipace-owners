@@ -33,6 +33,9 @@ The Join form also asks Firebase Authentication to send a sign-in email link.
 Signed-in members can also register one or more vehicles. A vehicle-basics submission may include
 registration, country, model year, ownership dates, mileage, battery State of Health,
 measurement date, measurement mileage, and SoH source.
+Members can add later SoH measurements to a registered vehicle. We retain the dated reading
+history so changes over time can be analysed. With aggregate-analysis consent, anonymised
+counts, averages, changes, and distributions may appear on the public evidence dashboard.
 
 Full VINs are not stored. If you provide a VIN, it is converted server-side to an HMAC for
 deduplication and the final six characters are kept for member-facing reference.
@@ -98,4 +101,4 @@ contact us at [contact@ipace-owners.org](mailto:contact@ipace-owners.org).
 This policy will be updated before broader live evidence collection begins. We will notify
 members of material changes.
 
-*Last updated: 14 June 2026. This is a placeholder document.*
+*Last updated: 22 June 2026. This is a placeholder document.*

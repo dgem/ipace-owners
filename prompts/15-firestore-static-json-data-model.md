@@ -36,7 +36,9 @@ Generate JSON snapshots after write operations:
 - `SubmitJoin` writes Firestore documents and regenerates the member/account snapshot when
   a Firebase user is known.
 - `SubmitVehicleBasics` writes the vehicle basics record and regenerates the member/account
-  snapshot.
+  and public aggregate snapshots.
+- `SubmitSOH` appends a battery reading and regenerates the member/account and public
+  aggregate snapshots.
 - Admin review or publish actions regenerate public aggregate statistics.
 
 Member/account snapshots are private data. Store them in Firestore under
@@ -52,7 +54,8 @@ only after anonymisation, verification, and exclusion rules have been applied.
 - `members`
 - `joinSubmissions`
 - `vehicles`
-- `vehicleBatteryReadings` or embedded latest reading in `vehicles`
+- `batteryReadings` as the append-only SoH history; `vehicles.battery` may retain the latest
+  reading for compatibility
 - `evidenceFiles`
 - `memberSnapshots`
 - `publicStatsSnapshots`
@@ -85,6 +88,8 @@ Update or add tests for:
 - member snapshots are private and not generated under public static output;
 - Join and vehicle writes trigger member snapshot regeneration;
 - vehicle writes update canonical Firestore documents and refresh the private snapshot;
+- only the authenticated vehicle owner can append an SoH reading;
+- repeated readings remain ordered and available in the member snapshot;
 - admin/public stats generation excludes records marked out of public statistics.
 
 ## Validation

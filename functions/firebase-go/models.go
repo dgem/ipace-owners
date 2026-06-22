@@ -28,6 +28,14 @@ type vehicleRequest struct {
 	SOHSource    string `json:"sohSource"`
 }
 
+type batteryReadingRequest struct {
+	VehicleID  string `json:"vehicleId"`
+	SOH        string `json:"soh"`
+	SOHDate    string `json:"sohDate"`
+	SOHMileage string `json:"sohMileage"`
+	SOHSource  string `json:"sohSource"`
+}
+
 type magicLinkRequest struct {
 	Email string `json:"email"`
 	Name  string `json:"name"`
@@ -98,17 +106,47 @@ type vehicleRecord struct {
 	Review         reviewRecord   `json:"review" firestore:"review"`
 }
 
+type batteryReadingRecord struct {
+	ID             string         `json:"id" firestore:"id"`
+	Type           string         `json:"type" firestore:"type"`
+	CreatedAt      time.Time      `json:"createdAt" firestore:"createdAt"`
+	UpdatedAt      time.Time      `json:"updatedAt" firestore:"updatedAt"`
+	IdentityUserID string         `json:"identityUserId" firestore:"identityUserId"`
+	VehicleID      string         `json:"vehicleId" firestore:"vehicleId"`
+	Battery        batteryDetails `json:"battery" firestore:"battery"`
+	Review         reviewRecord   `json:"review" firestore:"review"`
+}
+
 type memberSnapshot struct {
-	IdentityUserID string          `json:"identityUserId" firestore:"identityUserId"`
-	Email          string          `json:"email,omitempty" firestore:"email,omitempty"`
-	GeneratedAt    time.Time       `json:"generatedAt" firestore:"generatedAt"`
-	JoinRecords    []joinRecord    `json:"joinRecords" firestore:"joinRecords"`
-	VehicleRecords []vehicleRecord `json:"vehicleRecords" firestore:"vehicleRecords"`
+	IdentityUserID  string                 `json:"identityUserId" firestore:"identityUserId"`
+	Email           string                 `json:"email,omitempty" firestore:"email,omitempty"`
+	GeneratedAt     time.Time              `json:"generatedAt" firestore:"generatedAt"`
+	JoinRecords     []joinRecord           `json:"joinRecords" firestore:"joinRecords"`
+	VehicleRecords  []vehicleRecord        `json:"vehicleRecords" firestore:"vehicleRecords"`
+	BatteryReadings []batteryReadingRecord `json:"batteryReadings" firestore:"batteryReadings"`
 }
 
 type adminData struct {
 	JoinRecords    []joinRecord    `json:"joinRecords"`
 	VehicleRecords []vehicleRecord `json:"vehicleRecords"`
+}
+
+type publicDistributionBucket struct {
+	Label string `json:"label"`
+	Count int    `json:"count"`
+}
+
+type publicStatsSnapshot struct {
+	GeneratedAt           time.Time                  `json:"generatedAt"`
+	OwnersContributed     int                        `json:"ownersContributed"`
+	VehiclesRegistered    int                        `json:"vehiclesRegistered"`
+	VehiclesWithSOH       int                        `json:"vehiclesWithSoh"`
+	SOHReadings           int                        `json:"sohReadings"`
+	VehiclesWithRepeatSOH int                        `json:"vehiclesWithRepeatSoh"`
+	AverageReportedSOH    *float64                   `json:"averageReportedSoh,omitempty"`
+	AverageSOHChange      *float64                   `json:"averageSohChange,omitempty"`
+	SOHDistribution       []publicDistributionBucket `json:"sohDistribution"`
+	ModelYearDistribution []publicDistributionBucket `json:"modelYearDistribution"`
 }
 
 type stringArray []string

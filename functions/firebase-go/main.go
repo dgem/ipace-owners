@@ -49,8 +49,10 @@ func init() {
 	functions.HTTP("SendMagicLink", SendMagicLink)
 	functions.HTTP("SubmitJoin", SubmitJoin)
 	functions.HTTP("SubmitVehicleBasics", SubmitVehicleBasics)
+	functions.HTTP("SubmitSOH", SubmitSOH)
 	functions.HTTP("MemberData", MemberData)
 	functions.HTTP("AdminData", AdminData)
+	functions.HTTP("PublicStats", PublicStats)
 }
 
 func SendMagicLink(w http.ResponseWriter, r *http.Request) {
@@ -196,6 +198,9 @@ func SubmitJoin(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusInternalServerError, map[string]any{"ok": false, "error": "Could not save submission"})
 		return
 	}
+	if err := regeneratePublicStatsSnapshot(r.Context()); err != nil {
+		logEvent("submit-join", "warn", "public snapshot regeneration failed", map[string]any{"error": err.Error()})
+	}
 
 	magicLinkSent := true
 	if user == nil {
@@ -296,13 +301,16 @@ func SubmitVehicleBasics(w http.ResponseWriter, r *http.Request) {
 		Review: reviewRecord{Status: "new", VerificationLevel: "self-reported"},
 	}
 
-	if err := saveVehicle(r.Context(), record); err != nil {
+	if err := saveVehicle(r.Context(), record, initialBatteryReading(record)); err != nil {
 		logEvent("submit-vehicle-basics", "error", "record save failed", map[string]any{"uid": user.UID, "error": err.Error()})
 		writeJSON(w, http.StatusInternalServerError, map[string]any{"ok": false, "error": "Could not save vehicle basics"})
 		return
 	}
 	if err := regenerateMemberSnapshot(r.Context(), user.UID, user.Email); err != nil {
 		logEvent("submit-vehicle-basics", "warn", "snapshot regeneration failed", map[string]any{"uid": user.UID, "error": err.Error()})
+	}
+	if err := regeneratePublicStatsSnapshot(r.Context()); err != nil {
+		logEvent("submit-vehicle-basics", "warn", "public snapshot regeneration failed", map[string]any{"error": err.Error()})
 	}
 
 	writeJSON(w, http.StatusOK, map[string]any{"ok": true, "id": record.ID})
@@ -496,16 +504,22 @@ func joinSubmissionCount(ctx context.Context, emailHash string) (int, error) {
 	}
 }
 
-func saveVehicle(ctx context.Context, record vehicleRecord) error {
+func saveVehicle(ctx context.Context, record vehicleRecord, reading *batteryReadingRecord) error {
 	db, err := firestoreClient(ctx)
 	if err != nil {
 		return err
 	}
-	_, err = db.Collection("vehicles").Doc(record.ID).Set(ctx, record)
-	if err != nil {
-		return err
+	batch := db.Batch()
+	batch.Set(db.Collection("vehicles").Doc(record.ID), record)
+	if reading != nil {
+		batch.Set(db.Collection("batteryReadings").Doc(reading.ID), reading)
 	}
-	return upsertMember(ctx, record.IdentityUserID, "", "", "", "")
+	batch.Set(db.Collection("members").Doc(record.IdentityUserID), map[string]any{
+		"identityUserId": record.IdentityUserID,
+		"updatedAt":      time.Now().UTC(),
+	}, firestore.MergeAll)
+	_, err = batch.Commit(ctx)
+	return err
 }
 
 func upsertMember(ctx context.Context, uid string, email string, name string, country string, relationship string) error {
@@ -578,11 +592,12 @@ func buildMemberSnapshot(ctx context.Context, uid string, email string) (memberS
 		return memberSnapshot{}, err
 	}
 	snapshot := memberSnapshot{
-		IdentityUserID: uid,
-		Email:          email,
-		GeneratedAt:    time.Now().UTC(),
-		JoinRecords:    []joinRecord{},
-		VehicleRecords: []vehicleRecord{},
+		IdentityUserID:  uid,
+		Email:           email,
+		GeneratedAt:     time.Now().UTC(),
+		JoinRecords:     []joinRecord{},
+		VehicleRecords:  []vehicleRecord{},
+		BatteryReadings: []batteryReadingRecord{},
 	}
 	if email != "" {
 		emailHash := emailFingerprint(email)
@@ -617,11 +632,39 @@ func buildMemberSnapshot(ctx context.Context, uid string, email string) (memberS
 			snapshot.VehicleRecords = append(snapshot.VehicleRecords, record)
 		}
 	}
+	readingIter := db.Collection("batteryReadings").Where("identityUserId", "==", uid).Documents(ctx)
+	for {
+		doc, err := readingIter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return memberSnapshot{}, err
+		}
+		var record batteryReadingRecord
+		if err := doc.DataTo(&record); err == nil {
+			snapshot.BatteryReadings = append(snapshot.BatteryReadings, record)
+		}
+	}
+	readVehicles := map[string]bool{}
+	for _, reading := range snapshot.BatteryReadings {
+		readVehicles[reading.VehicleID] = true
+	}
+	for _, vehicle := range snapshot.VehicleRecords {
+		if !readVehicles[vehicle.ID] {
+			if reading := initialBatteryReading(vehicle); reading != nil {
+				snapshot.BatteryReadings = append(snapshot.BatteryReadings, *reading)
+			}
+		}
+	}
 	sort.Slice(snapshot.JoinRecords, func(i, j int) bool {
 		return snapshot.JoinRecords[i].CreatedAt.After(snapshot.JoinRecords[j].CreatedAt)
 	})
 	sort.Slice(snapshot.VehicleRecords, func(i, j int) bool {
 		return snapshot.VehicleRecords[i].CreatedAt.After(snapshot.VehicleRecords[j].CreatedAt)
+	})
+	sort.Slice(snapshot.BatteryReadings, func(i, j int) bool {
+		return normalisedMeasurementDate(snapshot.BatteryReadings[i]).After(normalisedMeasurementDate(snapshot.BatteryReadings[j]))
 	})
 	return snapshot, nil
 }

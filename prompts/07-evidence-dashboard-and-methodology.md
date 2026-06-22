@@ -4,12 +4,18 @@ Implement or refine the public evidence dashboard and methodology pages.
 
 ## Goal
 
-Show how owner evidence will be presented once collection is live, without pretending placeholder figures are real.
+Show truthful, current aggregates from collected owner evidence without presenting
+illustrative figures as real data.
 
 ## Evidence dashboard
 
 - Present anonymised aggregate statistics only.
-- Mark all placeholder figures as illustrative or sample data.
+- Read the generated public statistics snapshot through `GET /api/public-stats`; do not
+  query canonical member records from the browser.
+- Show only metrics supported by fields currently collected. Use a clear "Not collected"
+  state where a value has no eligible observations, and do not render sample percentages.
+- Include owners contributing data, cars registered, latest average reported SoH, total SoH
+  readings, cars with repeat readings, and average first-to-latest SoH change.
 - Include a visible disclaimer explaining:
   - voluntary submission bias,
   - verification levels,
@@ -17,9 +23,11 @@ Show how owner evidence will be presented once collection is live, without prete
   - aggregation,
   - exclusions from public statistics where needed.
 - Include summary statistic cards.
-- Include chart-like panels for distributions such as:
-  - State of Health,
-  - model year,
+- Include chart-like panels for currently collected distributions:
+  - latest State of Health per car;
+  - registered cars by model year.
+- Add future panels only when their source fields are persisted, reviewed, and included in
+  the public aggregate snapshot, such as:
   - HV battery work by model year,
   - modules replaced,
   - recall completion,
@@ -60,4 +68,4 @@ Use a clear model such as:
 
 - Run `npm run build`.
 - Confirm no real private data appears in static output.
-- Confirm every placeholder number is clearly labelled.
+- Confirm no illustrative numbers remain in live statistic or chart elements.
