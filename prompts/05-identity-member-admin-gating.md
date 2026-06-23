@@ -28,6 +28,9 @@ server-side by Go Cloud Functions that validate Firebase ID tokens.
 - Initialise Firebase Auth defensively.
 - Complete `signInWithEmailLink` when the user opens a Firebase email link.
 - Store and clear `ipaceEmailForSignIn` in `localStorage` for the email-link flow.
+- If the stored email is missing or rejected by Firebase, prompt the user to confirm the
+  email address that received the link before falling back to the logged-out UI. Surface a
+  visible error in `[data-magic-link-status]` if completion still fails.
 - Expose `window.ipaceGetIdentityToken()` so form/API code can attach
   `Authorization: Bearer <Firebase ID token>`.
 - Update header and mobile controls based on current user state.
