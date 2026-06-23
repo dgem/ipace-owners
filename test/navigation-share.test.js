@@ -7,15 +7,17 @@ var test = require('node:test');
 
 var repoRoot = path.join(__dirname, '..');
 
-test('header swaps Join navigation for Account when signed in', function () {
+test('header exposes dashboard and account navigation when signed in', function () {
   var header = fs.readFileSync(path.join(repoRoot, 'src/_includes/partials/header.njk'), 'utf8');
   var mobileNav = fs.readFileSync(path.join(repoRoot, 'src/_includes/partials/mobile-nav.njk'), 'utf8');
   var identityJs = fs.readFileSync(path.join(repoRoot, 'src/assets/js/identity.js'), 'utf8');
 
   assert.match(header, /data-requires-guest[\s\S]*>\{\{ item\.label \}\}<\/a>/);
-  assert.match(header, /href="\/account\/"[\s\S]*data-requires-auth/);
+  assert.match(header, /href="\/member\/dashboard\/"[\s\S]*data-requires-auth[\s\S]*>Dashboard<\/a>/);
+  assert.match(header, /href="\/account\/"[\s\S]*data-requires-auth[\s\S]*>Account<\/a>/);
   assert.match(mobileNav, /data-requires-guest[\s\S]*>\{\{ item\.label \}\}<\/a>/);
-  assert.match(mobileNav, /href="\/account\/"[\s\S]*data-requires-auth/);
+  assert.match(mobileNav, /href="\/member\/dashboard\/"[\s\S]*data-requires-auth[\s\S]*>Dashboard<\/a>/);
+  assert.match(mobileNav, /href="\/account\/"[\s\S]*data-requires-auth[\s\S]*>Account<\/a>/);
   assert.match(identityJs, /setVisibility\('\[data-requires-auth\]', true\)/);
   assert.match(identityJs, /setVisibility\('\[data-requires-guest\]', false\)/);
 });

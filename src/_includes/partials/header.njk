@@ -19,12 +19,12 @@
               data-requires-guest
             >{{ item.label }}</a>
             <a
-              href="/account/"
+              href="/member/dashboard/"
               class="site-nav__link site-nav__link--highlight"
               data-nav-link
               data-requires-auth
               style="display:none"
-            >Account</a>
+            >Dashboard</a>
           {% else %}
             <a
               href="{{ item.url }}"
@@ -40,6 +40,7 @@
         <div class="identity-controls">
           <span id="identity-user-display" class="identity-controls__user" style="display:none"></span>
           <a id="identity-login-btn" class="btn btn--sm btn--ghost" href="/account/">Sign in</a>
+          <a href="/member/dashboard/" class="btn btn--sm btn--primary" data-requires-auth style="display:none">Dashboard</a>
           <a href="/account/" class="btn btn--sm btn--secondary" data-requires-auth style="display:none">Account</a>
           <button id="identity-logout-btn" class="btn btn--sm btn--ghost" type="button" style="display:none">Sign out</button>
         </div>
