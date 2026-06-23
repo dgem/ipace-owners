@@ -241,6 +241,53 @@
         }
       });
 
+      if (!validateRequiredGroups(step)) {
+        valid = false;
+      }
+
+      return valid;
+    }
+
+    function validateRequiredGroups(step) {
+      var groups = Array.from(step.querySelectorAll('[data-require-one]'));
+      var valid = true;
+
+      groups.forEach(function (group) {
+        var names = (group.getAttribute('data-require-one') || '').split(/[\s,]+/).filter(Boolean);
+        var errorEl = group.querySelector('[data-require-one-error]');
+        var controls = names.map(function (name) {
+          return form.elements[name];
+        }).filter(Boolean);
+        var hasValue = controls.some(function (control) {
+          if (typeof RadioNodeList !== 'undefined' && control instanceof RadioNodeList) {
+            return Array.from(control).some(function (item) { return !!String(item.value || '').trim(); });
+          }
+          if (control.type === 'checkbox' || control.type === 'radio') {
+            return control.checked;
+          }
+          return !!String(control.value || '').trim();
+        });
+
+        controls.forEach(function (control) {
+          if (typeof RadioNodeList !== 'undefined' && control instanceof RadioNodeList) {
+            Array.from(control).forEach(function (item) {
+              item.setAttribute('aria-invalid', hasValue ? 'false' : 'true');
+            });
+          } else if (hasValue) {
+            control.removeAttribute('aria-invalid');
+          } else {
+            control.setAttribute('aria-invalid', 'true');
+          }
+        });
+
+        if (errorEl) errorEl.hidden = hasValue;
+        if (!hasValue) {
+          valid = false;
+          var first = typeof RadioNodeList !== 'undefined' && controls[0] instanceof RadioNodeList ? controls[0][0] : controls[0];
+          if (first && document.activeElement !== first) first.focus();
+        }
+      });
+
       return valid;
     }
 

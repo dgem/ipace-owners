@@ -175,23 +175,47 @@
 		});
 	}
 
+	function setResultIcon(result, icon) {
+		if (!result) return;
+		result.querySelectorAll('[data-database-result-icon]').forEach(function (el) {
+			el.textContent = icon;
+		});
+	}
+
+	function setDatabaseErrorMessage(result, message) {
+		if (!result) return;
+		result.querySelectorAll('[data-database-error-message]').forEach(function (el) {
+			el.textContent = message || 'We could not save the form right now.';
+		});
+	}
+
 	function showDatabaseSaved(result, id) {
 		setSubmissionId(result, id);
+		setResultIcon(result, '✅');
 		setResultVisibility(result, '[data-database-success]', true);
 		setResultVisibility(result, '[data-database-error]', false);
 		setResultVisibility(result, '[data-database-auth-error]', false);
+		setResultVisibility(result, '[data-database-success-actions]', true);
+		setResultVisibility(result, '[data-database-error-actions]', false);
 	}
 
-	function showDatabaseError(result) {
+	function showDatabaseError(result, message) {
+		setResultIcon(result, '⚠️');
+		setDatabaseErrorMessage(result, message);
 		setResultVisibility(result, '[data-database-success]', false);
 		setResultVisibility(result, '[data-database-error]', true);
 		setResultVisibility(result, '[data-database-auth-error]', false);
+		setResultVisibility(result, '[data-database-success-actions]', false);
+		setResultVisibility(result, '[data-database-error-actions]', true);
 	}
 
 	function showDatabaseAuthError(result) {
+		setResultIcon(result, '🔒');
 		setResultVisibility(result, '[data-database-success]', false);
 		setResultVisibility(result, '[data-database-error]', false);
 		setResultVisibility(result, '[data-database-auth-error]', true);
+		setResultVisibility(result, '[data-database-success-actions]', false);
+		setResultVisibility(result, '[data-database-error-actions]', true);
 	}
 
 	function showRegistrationState(result, data) {
@@ -321,7 +345,7 @@
 			});
 		}).catch(function (err) {
 			console.warn('[identity.js] Database submission failed.', err);
-			showDatabaseError(result);
+			showDatabaseError(result, err && err.message ? err.message : '');
 		});
 	}
 

@@ -40,11 +40,13 @@ multiStepForm: true
 	<div class="callout callout--info" style="margin-bottom: var(--space-8);">
 		<span class="callout__icon" aria-hidden="true">ℹ️</span>
 		<div class="callout__content">
-			<p class="callout__title">Vehicle basics are stored securely</p>
-			<p>This first release stores vehicle identity, ownership dates, mileage, and battery
-			State of Health details. It does not yet collect recall, repair, loan car, payment,
-			or evidence upload information.</p>
-			<p>Add one vehicle at a time. You can return here to register another I-PACE.</p>
+			<p class="callout__title">Vehicle data starts here</p>
+			<p>Register one I-PACE with vehicle identity, ownership dates, mileage, and optional
+			battery State of Health details. After saving, use My Data to add further SoH readings
+			and service or fault history for that vehicle.</p>
+			<p>Full recall, repair, loan car, payment, goodwill, and evidence upload fields will be
+			added as the evidence workflow expands. Add one vehicle at a time; you can return here
+			to register another I-PACE.</p>
 			<p style="margin-bottom:0;">Full VINs are not stored. If provided, the VIN is converted
 			to a server-side HMAC for deduplication, and only the final six characters are kept
 			for member-facing reference.</p>
@@ -77,8 +79,9 @@ multiStepForm: true
 		<div data-step="1">
 			<h2 class="step-heading" data-step-heading tabindex="-1">Vehicle details</h2>
 
-			<fieldset>
+			<fieldset data-require-one="vin registration">
 				<legend>About your I-PACE</legend>
+				<p class="form-error" data-require-one-error role="alert" hidden>Provide either the VIN or registration before continuing.</p>
 
 				<div class="two-column">
 					<div class="form-group">
@@ -202,7 +205,7 @@ multiStepForm: true
 
 		<div class="submit-result" data-submit-result tabindex="-1" role="status">
 			<div style="text-align: center; padding: var(--space-4);">
-				<div style="font-size: 3rem; margin-bottom: var(--space-4);" aria-hidden="true">✅</div>
+				<div style="font-size: 3rem; margin-bottom: var(--space-4);" aria-hidden="true" data-database-result-icon>⏳</div>
 				<h2>Vehicle basics</h2>
 
 				<div data-database-success hidden>
@@ -221,15 +224,20 @@ multiStepForm: true
 
 				<div data-database-error hidden>
 					<p style="color: var(--color-danger);">
-						We could not save the vehicle basics right now. Please try again later or contact
+						<span data-database-error-message>We could not save the vehicle basics right now.</span>
+						Please try again later or contact
 						<a href="mailto:contact@ipace-owners.org">contact@ipace-owners.org</a>.
 					</p>
 				</div>
 
-				<div class="cluster" style="justify-content:center; margin-top: var(--space-4);">
+				<div class="cluster" style="justify-content:center; margin-top: var(--space-4);" data-database-success-actions hidden>
 					<a href="/member/dashboard/" class="btn btn--primary">My Data</a>
 					<a href="/submit-vehicle-data/" class="btn btn--secondary">Add another vehicle</a>
 					<a href="/evidence-dashboard/" class="btn btn--secondary">View Evidence Dashboard</a>
+				</div>
+				<div class="cluster" style="justify-content:center; margin-top: var(--space-4);" data-database-error-actions hidden>
+					<a href="/submit-vehicle-data/" class="btn btn--secondary">Try again</a>
+					<a href="/member/dashboard/" class="btn btn--secondary">My Data</a>
 				</div>
 			</div>
 		</div>

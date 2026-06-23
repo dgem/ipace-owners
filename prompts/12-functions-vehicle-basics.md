@@ -19,6 +19,9 @@ storing full VINs. Members may register multiple vehicles.
 - The browser posts JSON to `POST /api/submit-vehicle-basics`.
 - `identity.js` sends a Firebase ID token in the `Authorization` header for forms marked
   with `data-database-requires-auth`.
+- The form must validate that at least one identifier, VIN or registration, is present
+  before the user leaves the vehicle-details step. Use generic multistep validation
+  attributes rather than custom one-off page JavaScript.
 - The Go `SubmitVehicleBasics` Function verifies the ID token server-side.
 - Records are stored in Firestore and the private member/account snapshot is regenerated.
 - An initial SoH value creates an append-only `batteryReadings` record.
@@ -56,6 +59,20 @@ Battery health:
   identifier. If registration is present, save the registration-based record and log a
   warning. If VIN is the only identifier, reject the write with a clear configuration
   message.
+
+## Frontend copy and result state
+
+- The vehicle page callout should say that this form registers one I-PACE and that, after
+  saving, members can use My Data to add further SoH readings and service/fault history.
+- Do not describe service or fault history as unavailable now that the member workspace
+  supports it.
+- Keep fuller recall, repair, loan car, payment, goodwill and evidence upload collection
+  framed as future evidence-workflow expansion until those fields are implemented.
+- The result panel must reflect the actual API outcome: success icon and success actions
+  only after the API returns `ok: true`; auth and save failures must show a non-success icon,
+  a clear message, and no "add another vehicle" success action.
+- When the API returns a validation or configuration error, display the server-provided
+  message in the result panel so testers can diagnose failures without opening DevTools.
 
 ## Record shape
 

@@ -113,6 +113,16 @@ It collects:
 
 The UX must support members registering multiple vehicles. Treat this as an "add/register a
 vehicle" flow and provide an obvious route to add another vehicle after saving.
+The vehicle identifier requirement must be enforced client-side before leaving the vehicle
+details step, and server-side in `SubmitVehicleBasics`. If the API rejects a save, show the
+server-provided error in the result panel and do not show success-only actions such as "Add
+another vehicle".
+
+The vehicle form callout should explain that this page starts the vehicle record and that,
+after saving, members can use My Data to add further SoH readings and service/fault history.
+Do not use stale copy saying service/fault history is unavailable; only fuller recall,
+repair, loan car, payment, goodwill and evidence upload collection should be framed as
+future expansion until those fields exist.
 
 The member dashboard must show one selected car at a time, with tabs for switching cars and
 a separate Add vehicle command. Show the selected car's SoH measurement history as an
