@@ -1299,6 +1299,112 @@ legend {
   margin: 0;
 }
 
+.dashboard-panel__lede {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  margin: var(--space-1) 0 0;
+}
+
+.account-layout {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.account-layout__wide {
+  min-width: 0;
+}
+
+.account-vehicle-grid {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.account-vehicle-card {
+  align-items: stretch;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  display: grid;
+  gap: var(--space-5);
+  grid-template-columns: minmax(0, 1fr);
+  padding: var(--space-5);
+}
+
+.account-vehicle-card h3 {
+  font-size: var(--text-xl);
+  margin: 0 0 var(--space-2);
+}
+
+.account-vehicle-card__main {
+  min-width: 0;
+}
+
+.account-vehicle-card__meta,
+.account-vehicle-card__footer,
+.account-vehicle-card__hint {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.account-vehicle-card__meta {
+  margin: 0;
+}
+
+.account-vehicle-card__footer {
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+}
+
+.account-vehicle-card__stats {
+  align-content: start;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--space-4);
+}
+
+.account-vehicle-card__stat {
+  margin: 0;
+}
+
+.account-vehicle-card__stat strong {
+  color: var(--color-primary);
+  display: block;
+  font-size: var(--text-2xl);
+  line-height: 1;
+}
+
+.account-vehicle-card__stat span {
+  color: var(--color-text-muted);
+  display: block;
+  font-size: var(--text-sm);
+  margin-top: var(--space-1);
+}
+
+.account-vehicle-card__hint {
+  margin: 0;
+}
+
+@media (min-width: 48em) {
+  .account-layout {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .account-layout__wide {
+    grid-column: 1 / -1;
+  }
+
+  .account-vehicle-card {
+    grid-template-columns: minmax(0, 1fr) minmax(14rem, 18rem);
+  }
+}
+
 /* Member vehicle workspace */
 .member-workspace {
   width: 100%;

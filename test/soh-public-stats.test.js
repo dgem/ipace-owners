@@ -8,12 +8,13 @@ const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 
 test('member UI appends authenticated SoH readings to owned vehicles', function () {
   const memberAuth = read('src/assets/js/member-auth.js');
+  const memberDashboard = read('src/assets/js/member-dashboard.js');
   const firebase = read('firebase.json');
 
-  assert.match(memberAuth, /data-soh-update-form/);
+  assert.match(memberDashboard, /data-soh-update-form/);
+  assert.match(memberDashboard, /name="vehicleId"/);
+  assert.match(memberDashboard, /State of Health history/);
   assert.match(memberAuth, /fetchWithIdentity\('\/api\/submit-soh'/);
-  assert.match(memberAuth, /name=\"vehicleId\"/);
-  assert.match(memberAuth, /State of Health history/);
   assert.match(firebase, /"source": "\/api\/submit-soh"/);
   assert.match(firebase, /"functionId": "SubmitSOH"/);
 });

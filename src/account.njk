@@ -43,47 +43,46 @@ description: "Your account — I-PACE Owners' Advocacy Group."
 
 				 <!-- Content — revealed by member-auth.js after server confirms auth -->
 				<div class="auth-content" data-auth-content hidden>
-					<div class="two-column">
+					<div class="account-layout">
 
-						<div class="stack">
-							<div class="dashboard-panel">
-								<div class="dashboard-panel__header">
-									<h2 class="dashboard-panel__title">Account details</h2>
-								</div>
-								<dl style="display:grid; grid-template-columns: 8rem 1fr; gap: var(--space-2) var(--space-4); font-size: var(--text-sm);">
-									<dt style="color:var(--color-text-muted); font-weight:600;">Email</dt>
-									<dd id="account-email" style="margin:0;">—</dd>
-									<dt style="color:var(--color-text-muted); font-weight:600;">Member since</dt>
-									<dd id="account-created" style="margin:0;">—</dd>
-									<dt style="color:var(--color-text-muted); font-weight:600;">Role</dt>
-									<dd id="account-role" style="margin:0;"><span class="badge">Member</span></dd>
-								</dl>
-								<div style="margin-top: var(--space-5); padding-top: var(--space-5); border-top: 1px solid var(--color-border);">
-									<button id="account-logout-btn" class="btn btn--secondary btn--sm" type="button">Sign out</button>
-								</div>
+						<div class="dashboard-panel">
+							<div class="dashboard-panel__header">
+								<h2 class="dashboard-panel__title">Account details</h2>
 							</div>
-
-							<div class="dashboard-panel">
-								<div class="dashboard-panel__header">
-									<h2 class="dashboard-panel__title">Your vehicles</h2>
-								</div>
-								<div data-vehicle-container>
-									<div data-vehicle-list>
-										<p style="color:var(--color-text-muted); font-size:var(--text-sm);">Loading...</p>
-									</div>
-								</div>
-								<a href="/submit-vehicle-data/" class="btn btn--primary btn--sm">Add another vehicle</a>
+							<dl style="display:grid; grid-template-columns: 8rem 1fr; gap: var(--space-2) var(--space-4); font-size: var(--text-sm);">
+								<dt style="color:var(--color-text-muted); font-weight:600;">Email</dt>
+								<dd id="account-email" style="margin:0;">—</dd>
+								<dt style="color:var(--color-text-muted); font-weight:600;">Member since</dt>
+								<dd id="account-created" style="margin:0;">—</dd>
+								<dt style="color:var(--color-text-muted); font-weight:600;">Role</dt>
+								<dd id="account-role" style="margin:0;"><span class="badge">Member</span></dd>
+							</dl>
+							<div style="margin-top: var(--space-5); padding-top: var(--space-5); border-top: 1px solid var(--color-border);">
+								<button id="account-logout-btn" class="btn btn--secondary btn--sm" type="button">Sign out</button>
 							</div>
 						</div>
 
-						<div class="stack">
-							<div class="dashboard-panel">
-								<div class="dashboard-panel__header">
-									<h2 class="dashboard-panel__title">Your preferences</h2>
+						<div class="dashboard-panel">
+							<div class="dashboard-panel__header">
+								<h2 class="dashboard-panel__title">Your preferences</h2>
+							</div>
+							<p style="color:var(--color-text-muted); font-size:var(--text-sm);">
+								Notification and data use preferences will be manageable here in a future release.
+							</p>
+						</div>
+
+						<div class="dashboard-panel account-layout__wide">
+							<div class="dashboard-panel__header">
+								<div>
+									<h2 class="dashboard-panel__title">Your vehicles</h2>
+									<p class="dashboard-panel__lede">Registered I-PACE records attached to your member account.</p>
 								</div>
-								<p style="color:var(--color-text-muted); font-size:var(--text-sm);">
-									Notification and data use preferences will be manageable here in a future release.
-								</p>
+								<a href="/submit-vehicle-data/" class="btn btn--primary btn--sm">Add another vehicle</a>
+							</div>
+							<div data-vehicle-container>
+								<div data-vehicle-list>
+									<p style="color:var(--color-text-muted); font-size:var(--text-sm);">Loading...</p>
+								</div>
 							</div>
 						</div>
 

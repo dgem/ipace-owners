@@ -74,6 +74,9 @@ Required coverage:
 - Member endpoint rejects unauthenticated users.
 - Member endpoint returns only the current user's records.
 - Member endpoint supports multiple vehicle records for one user.
+- Account pages should present vehicles as a full-width summary section, not a narrow
+  column. Keep detailed SoH and service/fault editing in the member dashboard workspace,
+  and link account vehicle summaries to that workspace.
 - Member endpoint can serve the private generated snapshot without scanning canonical
   records on every page load.
 - Admin endpoint rejects unauthenticated users.
