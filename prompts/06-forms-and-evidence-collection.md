@@ -22,6 +22,8 @@ Provide accessible multi-step forms that collect membership interest now, help o
   - `data-progress-text`
   - `data-progress-step`
   - `data-submit-result`
+  - `data-enable-when-checked` for submit buttons that must remain disabled until named
+    consent checkboxes are ticked
 - Without JavaScript, all form steps should remain visible and usable as a single-page form.
 - With JavaScript, show one step at a time.
 - On large screens, place form-level notices or storage-status callouts beside the form instead of above it when that improves first-step visibility.
@@ -67,6 +69,8 @@ Provide accessible multi-step forms that collect membership interest now, help o
   the user to open the email sign-in link first. Vehicle/account CTAs may be shown only in
   the signed-in state.
 - Validate required text, email, select, checkbox, and radio controls according to their actual user state. Required checkboxes must be checked; required radio groups must have a checked option.
+- On the Join form, the final "Join the Group" submit button should be enabled only after
+  the contact consent and not-a-legal-claim acknowledgement checkboxes are ticked.
 - When submission completes, hide all step navigation containers and all form steps before showing the placeholder result.
 
 ## Join form
