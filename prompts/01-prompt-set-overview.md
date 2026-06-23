@@ -43,3 +43,11 @@ Use these prompts as a maintainable product blueprint. They are ordered so a fre
   prompts from `01-` onward when requirements evolve.
 - Keep prompts aligned with implementation and README so the project can be recreated from
   prompt files plus README alone.
+- Treat durable knowledge from user conversations as source material for these prompts.
+  When a debugging session, deployment attempt, UX review, or architecture discussion
+  reveals a constraint future agents need, encode it in the relevant numbered prompt during
+  the same PR. Do not leave important decisions only in chat context.
+- Before closing a task, check whether any prompt needs updates for changed behaviour,
+  operational lessons, CI/deployment rules, data model decisions, security/privacy
+  constraints, or UX/content direction. If the knowledge does not fit an existing prompt,
+  create or split a sequenced prompt by concern.
