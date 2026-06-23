@@ -95,6 +95,10 @@ Firebase/GCP.
   - checking Firebase email template/sender settings;
   - future option to generate action links with Firebase Admin SDK and send through a
     transactional email/SMTP provider if delivery tracking is needed.
+- Firebase Authentication email templates are part of the user experience. Configure
+  sender name, subject, and body copy professionally for the owners' group, with clear
+  explanation that the link signs the user in, no unnecessary provider jargon, and no
+  claim that the request creates a legal claim.
 - Repeat Join or login requests for the same email must remain account-enumeration safe.
   Logs may include one-way email hashes, masked email addresses, previous Join counts,
   continue hosts, provider status summaries, and response diagnostics, but never raw

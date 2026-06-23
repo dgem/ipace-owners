@@ -94,9 +94,11 @@ test('protected pages do not show login gates before auth verification completes
   assert.match(memberAuth, /if \(runId !== authRunId\) return/);
   assert.match(identity, /clearAuthQuery/);
   assert.match(identity, /mode=signIn\|oobCode=\|apiKey=/);
-  assert.match(identity, /attemptedStoredEmail/);
-  assert.match(identity, /promptForEmail\(email\)/);
-  assert.match(identity, /setAllMagicLinkStatuses\('We could not finish sign-in with that link/);
+  assert.match(identity, /pendingEmailLinkUrl/);
+  assert.match(identity, /completePendingEmailLink/);
+  assert.match(identity, /Enter the email address that received this link to finish signing in/);
+  assert.match(identity, /auth\.signInWithEmailLink\(email, pendingEmailLinkUrl\)/);
+  assert.doesNotMatch(identity, /window\.prompt/);
 });
 
 test('homepage vehicle CTAs switch between guest and signed-in states', function () {

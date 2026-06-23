@@ -58,6 +58,11 @@ magic-link request path for existing users.
 - Treat a successful Identity Toolkit response as request acceptance, not proof of mailbox
   delivery. User-facing copy must not claim that an email was delivered or sent; advise
   checking spam/filtering and requesting another link.
+- The browser must remember the Join email in `ipaceEmailForSignIn` after a successful
+  guest Join response with `magicLinkSent: true`, so the first clicked registration link can
+  complete without an extra prompt in the same browser.
+- If the remembered email is unavailable or wrong, complete the pending Firebase email link
+  through the visible sign-in form. Do not use blocking browser prompts for this flow.
 - Keep Firebase email-link delivery troubleshooting aligned with
   `17-operations-ci-and-troubleshooting.md`, including sending quotas, spam/junk checks,
   sender-template settings, and the option to generate action links with the Admin SDK and

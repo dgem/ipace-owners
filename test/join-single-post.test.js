@@ -21,6 +21,7 @@ test('Join form submits only to submit-join from the browser', function () {
 
   assert.match(identityJs, /magicLinkSent/);
   assert.match(identityJs, /data-magic-link-form/);
+  assert.match(identityJs, /window\.localStorage\.setItem\('ipaceEmailForSignIn', email\)/);
   assert.match(multistepJs, /data-enable-when-checked/);
   assert.match(multistepJs, /checkedRequirementsMet/);
 });

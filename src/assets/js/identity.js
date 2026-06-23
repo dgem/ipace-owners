@@ -32,6 +32,9 @@
 	var userDisplay = document.getElementById('identity-user-display');
 	var mobileLoginBtn = document.getElementById('identity-mobile-login-btn');
 	var mobileLogoutBtn = document.getElementById('identity-mobile-logout-btn');
+	var pendingEmailLinkUrl = auth && auth.isSignInWithEmailLink(window.location.href)
+		? window.location.href
+		: '';
 
 	function setVisibility(selector, visible) {
 		document.querySelectorAll(selector).forEach(function (el) {
@@ -97,50 +100,53 @@
 	}
 
 	function completeEmailLinkIfNeeded() {
-		if (!auth || !auth.isSignInWithEmailLink(window.location.href)) {
+		if (!auth || !pendingEmailLinkUrl) {
 			return Promise.resolve(false);
 		}
 		var email = window.localStorage.getItem('ipaceEmailForSignIn') || '';
-		var attemptedStoredEmail = false;
-
-		function promptForEmail(defaultEmail) {
-			return (window.prompt('Confirm the email address that received this sign-in link.', defaultEmail || '') || '').trim();
-		}
 
 		function signInWithEmailLink(emailAddress) {
-			return auth.signInWithEmailLink(emailAddress, window.location.href).then(function () {
+			return auth.signInWithEmailLink(emailAddress, pendingEmailLinkUrl).then(function () {
 				window.localStorage.removeItem('ipaceEmailForSignIn');
+				pendingEmailLinkUrl = '';
 				clearAuthQuery();
 				return true;
 			});
 		}
 
 		email = email.trim();
-		if (email) {
-			attemptedStoredEmail = true;
-		} else {
-			email = promptForEmail('');
-		}
 		if (!email) {
-			setAllMagicLinkStatuses('We could not finish sign-in because the email address was not confirmed.', 'error');
+			setAllMagicLinkStatuses('Enter the email address that received this link to finish signing in.', 'info');
+			document.querySelectorAll('[data-magic-link-form] input[name="email"]').forEach(function (input) {
+				input.focus();
+			});
 			return Promise.resolve(false);
 		}
 
 		return signInWithEmailLink(email).catch(function (err) {
 			console.warn('[identity.js] Email-link sign-in failed.', err);
 			window.localStorage.removeItem('ipaceEmailForSignIn');
-			if (attemptedStoredEmail) {
-				var confirmedEmail = promptForEmail(email);
-				if (confirmedEmail && confirmedEmail !== email) {
-					return signInWithEmailLink(confirmedEmail).catch(function (retryErr) {
-						console.warn('[identity.js] Email-link sign-in retry failed.', retryErr);
-						setAllMagicLinkStatuses('We could not finish sign-in with that link. Check the email address and request a new sign-in link if needed.', 'error');
-						return false;
-					});
-				}
-			}
-			setAllMagicLinkStatuses('We could not finish sign-in with that link. Check the email address and request a new sign-in link if needed.', 'error');
+			setAllMagicLinkStatuses('We could not finish sign-in with the remembered email. Enter the email address that received this link to try again.', 'error');
 			return false;
+		});
+	}
+
+	function completePendingEmailLink(email, form, submitBtn) {
+		if (!auth || !pendingEmailLinkUrl) return Promise.resolve(false);
+		if (submitBtn) submitBtn.disabled = true;
+		setMagicLinkStatus(form, 'Completing sign-in...', 'info');
+		return auth.signInWithEmailLink(email, pendingEmailLinkUrl).then(function () {
+			window.localStorage.removeItem('ipaceEmailForSignIn');
+			pendingEmailLinkUrl = '';
+			clearAuthQuery();
+			setMagicLinkStatus(form, 'Signed in. Loading your account...', 'info');
+			return true;
+		}).catch(function (err) {
+			console.warn('[identity.js] Email-link sign-in failed from form.', err);
+			setMagicLinkStatus(form, 'We could not finish sign-in with that link. Check the email address matches the one that received the link, or request a new sign-in link.', 'error');
+			return true;
+		}).finally(function () {
+			if (submitBtn) submitBtn.disabled = false;
 		});
 	}
 
@@ -238,6 +244,11 @@
 					return;
 				}
 
+				if (pendingEmailLinkUrl) {
+					completePendingEmailLink(email, form, submitBtn);
+					return;
+				}
+
 				if (submitBtn) submitBtn.disabled = true;
 				setMagicLinkStatus(form, 'Checking registration and requesting a sign-in link...', 'info');
 				window.localStorage.setItem('ipaceEmailForSignIn', email);
@@ -299,6 +310,9 @@
 				return res.json().then(function (data) {
 					if (!res.ok || !data || !data.ok) {
 						throw new Error(data && data.error ? data.error : 'Database submission failed');
+					}
+					if (email && data.magicLinkSent && !data.signedIn) {
+						window.localStorage.setItem('ipaceEmailForSignIn', email);
 					}
 					showDatabaseSaved(result, data.id);
 					showRegistrationState(result, data);
