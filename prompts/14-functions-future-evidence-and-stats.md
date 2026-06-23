@@ -1,7 +1,7 @@
 # Future Evidence and Statistics Functions Prompt
 
 Use this prompt before implementing evidence sections beyond vehicle basics, evidence
-uploads, admin review mutation, exports, or public aggregate statistics.
+uploads, admin review mutation, exports, or expanded public aggregate statistics.
 
 ## Goal
 
@@ -9,14 +9,18 @@ Extend the stored evidence model without weakening privacy, authorization, or da
 
 ## Future Functions
 
-Potential future Functions:
+Current public statistics are already served by the Go `PublicStats` Function from a
+generated, consent-filtered aggregate snapshot. Future work should extend that path rather
+than introducing a parallel browser query or static sample-data model.
 
-- `submit-vehicle.js`: authenticated full vehicle evidence submission for recall, repair,
+Potential future Go Functions or handler extensions:
+
+- `SubmitVehicleEvidence`: authenticated full vehicle evidence submission for recall, repair,
   support, loan car, payment, responsibility, consent-review, and evidence-upload metadata.
-- `admin-update-submission.js`: admin-only review status, verification level, exclusion,
+- `AdminUpdateSubmission`: admin-only review status, verification level, exclusion,
   and moderation updates.
-- `publish-public-stats.js`: admin-only generation of anonymised aggregate statistics for
-  public static JSON snapshots.
+- `PublishPublicStats` or an admin-only `PublicStats` publish mode: explicit regeneration
+  of anonymised aggregate statistics after review changes.
 - Evidence upload Functions: authenticated upload URL generation, file metadata creation,
   server-side validation, and admin review workflows.
 - Export Functions: admin-only CSV/JSON exports with explicit audit logging.
@@ -33,8 +37,9 @@ Potential future Functions:
 ## Public Statistics Rules
 
 - Public pages may show only anonymised aggregate data.
-- Public pages should read generated static JSON snapshots rather than querying Firestore on
-  every page view.
+- Public pages should read aggregate data through `GET /api/public-stats`, backed by a
+  generated snapshot, rather than querying canonical Firestore records from the browser or
+  rendering placeholder sample figures as live data.
 - Do not publish full VINs, registrations, owner names, email addresses, uploaded
   documents, or individual case narratives without explicit permission.
 - Support verification levels:
@@ -44,8 +49,8 @@ Potential future Functions:
   - duplicate checked;
   - excluded from public statistics.
 - Aggregates must exclude records marked as excluded from public statistics.
-- Public static JSON can be written to locations such as
-  `/assets/data/public-evidence-summary.json`. Private member/account JSON must not be
+- Public aggregate JSON can be stored in Cloud Storage or another generated snapshot
+  location and served through `PublicStats`. Private member/account JSON must not be
   written to public static output.
 
 ## Admin Mutation Rules
@@ -69,6 +74,6 @@ Add tests before implementing each Function:
 
 ## Validation
 
-- Run `npm test`.
-- Run `npm run build`.
+- Run `make test`.
+- Run `make build`.
 - Manually inspect public output for accidental private data exposure.

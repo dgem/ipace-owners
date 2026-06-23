@@ -56,9 +56,10 @@ magic-link request path for existing users.
 - Treat a successful Identity Toolkit response as request acceptance, not proof of mailbox
   delivery. User-facing copy must not claim that an email was delivered or sent; advise
   checking spam/filtering and requesting another link.
-- Document Firebase email-link sending quotas and the option to generate action links with
-  the Admin SDK and send through a transactional email/SMTP provider when delivery tracking
-  is required.
+- Keep Firebase email-link delivery troubleshooting aligned with
+  `17-operations-ci-and-troubleshooting.md`, including sending quotas, spam/junk checks,
+  sender-template settings, and the option to generate action links with the Admin SDK and
+  send through a transactional email/SMTP provider when delivery tracking is required.
 
 ## Join record shape
 

@@ -101,7 +101,7 @@ Update or add tests for:
 
 ## Validation
 
-- Run `npm test`.
-- Run `npm run build`.
-- Run `go test ./...` in `functions/firebase-go`.
+- Run `make test`.
+- Run `make build`.
+- Run `GOCACHE=/tmp/ipace-owners-go-build make test-go` or `go test ./...` in `functions/firebase-go`.
 - Confirm no private member/account JSON appears under `_site/`.

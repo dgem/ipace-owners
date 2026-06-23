@@ -13,7 +13,7 @@ It is the current source of truth for the I-PACE Owners' Advocacy Group architec
   ID matching the GCP project ID. Go Functions select it explicitly using
   `firestore.NewClientWithDatabase`. Function environment generation may derive this ID
   from `FIREBASE_PROJECT_ID` during the initial OpenTofu/GitHub variable rollout.
-- **Generated snapshots:** member/private and future public aggregate JSON written to
+- **Generated snapshots:** member/private and public aggregate JSON written to
   Firestore and Cloud Storage so page loads avoid repeated canonical-store reads.
 - **Hosting:** Firebase Hosting with rewrites from `/api/*` to Go Functions.
 - **Infrastructure:** OpenTofu/Terraform under `infra/opentofu/`.
@@ -80,8 +80,9 @@ Functions.
 - Cloud Storage is for generated JSON snapshots and future uploaded evidence blobs.
 - Member pages read a generated member snapshot through `MemberData`; the Function verifies
   auth before returning it.
-- Public dashboard pages should read anonymised aggregate JSON only after verification and
-  exclusion rules have been applied.
+- Public dashboard pages read anonymised aggregate data through `PublicStats`. Aggregates
+  must be generated from consent-filtered records and must not expose canonical member
+  records, raw identifiers, registrations, VIN fragments, names, or emails.
 - One member can have zero, one, or many vehicles; do not model the member account as a
   single-car profile.
 - Store SoH measurements as append-only `batteryReadings` records tied to a vehicle. The
@@ -90,7 +91,9 @@ Functions.
 - Store editable service and fault history in `serviceEvents`, tied to both the authenticated
   member UID and vehicle ID. Preserve creation timestamps and review metadata on edits.
 - Regenerate private member snapshots after vehicle, SoH, or service-event writes. Regenerate
-  public aggregate snapshots only for data with defined consent and publication rules.
+  public aggregate snapshots after Join, vehicle, and SoH writes, using only fields with
+  defined consent and publication rules. Service/fault events stay private until explicit
+  moderation and publication rules exist.
 - Full VINs are never stored. Store only an HMAC-SHA-256 digest using `VIN_PEPPER` plus the
   final six VIN characters for member reference.
 - Raw email addresses and names must never appear in public static files or public
@@ -152,7 +155,11 @@ Functions.
   compatible provider major, and latest compatible stable package releases. Commit lockfiles,
   run weekly Dependabot checks for npm, Go modules, Actions and OpenTofu, and require migration
   guide review plus full tests/build/provider validation for major updates.
-- PRs deploy to staging preview channels and run smoke tests against the published URL.
+- PRs deploy to staging preview channels and run smoke tests directly in the staging
+  workflow against the published URL. Do not rely on GitHub `deployment_status` events
+  for smoke testing, because Firebase Hosting preview deployments do not consistently
+  provide a usable site URL through those events.
+  Production deploys should also run smoke tests directly after hosting deployment.
   Discover the generated preview URL before deploying Functions, use it for the staging
   Function CORS origin and email-link continue URL, append its hostname to Firebase
   Auth's authorized domains, then redeploy the channel so its rewrites pin the current
@@ -179,3 +186,4 @@ Keep these related prompts aligned when the architecture changes:
 - `13-functions-member-admin-data.md`
 - `14-functions-future-evidence-and-stats.md`
 - `15-firestore-static-json-data-model.md`
+- `17-operations-ci-and-troubleshooting.md`

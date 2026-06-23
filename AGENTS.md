@@ -160,6 +160,16 @@ Defined in `:root` in `site.css`. Key tokens:
   feature, update the relevant prompt file to reflect what was built so that the project
   can be recreated from the prompts and README alone. If behaviour changes (e.g., a new
   Function is added, a form field is removed), update the corresponding prompt.
+- **Externalise durable conversation knowledge into prompts.** When the user clarifies a
+  product decision, discovers an operational constraint, diagnoses a deployment/auth/data
+  issue, or chooses an approach that future work depends on, update the relevant numbered
+  prompt even if the code change is small or already complete. Examples include Firebase
+  preview/auth quirks, CI smoke-test behaviour, data-publication rules, navigation/UX
+  decisions, provider/runtime version policy, and manual DNS/deployment runbook steps.
+- Before finishing any non-trivial task, do a prompt-drift check: identify whether the
+  change affects architecture, auth, forms, data storage, CI/deploy, UX/content, or
+  operations. If yes, update the matching prompt file; if no prompt fits, add or split a
+  sequenced prompt rather than leaving the knowledge only in chat history.
 
 ## Testing
 
@@ -184,6 +194,8 @@ Defined in `:root` in `site.css`. Key tokens:
   - Which files were added or modified.
   - How to verify the change locally (e.g., `make dev` and navigate to X).
   - Whether tests were added or updated.
+- Whenever reporting that a PR was created, updated, pushed to, or is ready for review,
+  include the full clickable GitHub PR URL, not only the PR number.
 - **Code review is required before merging.** Use GitHub's automatic Copilot code review
   (configured via repository branch ruleset) as a first pass, but every PR must receive
   human review for logic, security, accessibility, and tone.

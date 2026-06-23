@@ -107,6 +107,6 @@ knowledge, and data may be used in anonymised aggregate reporting if consent is 
 
 ## Validation
 
-- Run `npm run build`.
+- Run `make build`.
 - Check that every page has front matter with `layout`, `title`, and `description`.
 - Check links among Join, Submit Vehicle Data, Evidence Dashboard, FAQ, Methodology, Privacy, and Terms.

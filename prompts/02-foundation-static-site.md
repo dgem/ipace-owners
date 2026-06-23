@@ -16,7 +16,9 @@ Create a small, maintainable Eleventy 3 site that can be deployed to Firebase Ho
 - Store global data in `src/_data/site.json` and `src/_data/navigation.json`.
 - Navigation data should include:
   - Public: Home, About, Evidence, Methodology, FAQ, Updates, Join.
-  - Member: Dashboard, My Vehicle, My Evidence, Account.
+  - Member: My Data, My Vehicle, Account. Signed-in users should see `My Data` as the
+    main member workspace link; the signed-in email address or Account link should route
+    to account management.
   - Admin: Review Queue, Submissions, Evidence Files, Public Stats, Exports, Members, Settings.
 - Pass through `src/assets/`.
 - Pass through `public/` to the site root with `eleventyConfig.addPassthroughCopy({ public: "." })`, so `public/images/example.png` is served at `/images/example.png`.
@@ -77,5 +79,6 @@ Create a small, maintainable Eleventy 3 site that can be deployed to Firebase Ho
 - Confirm `make` lists available targets.
 - Confirm `make dev` starts the documented local development server.
 - Confirm `make clean` removes `_site/`.
-- Confirm implemented persistence is limited to Join submissions and signed-in vehicle
-  basics, with no real seed/test owner data committed to the repository.
+- Confirm implemented persistence covers Join submissions, signed-in vehicle basics, SoH
+  readings, member service/fault timeline records, member snapshots, and anonymised public
+  aggregate statistics, with no real seed/test owner data committed to the repository.

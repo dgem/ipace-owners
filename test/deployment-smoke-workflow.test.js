@@ -1,15 +1,21 @@
 const assert = require('node:assert/strict');
-const { readFileSync } = require('node:fs');
+const { existsSync, readFileSync } = require('node:fs');
 const { resolve } = require('node:path');
 const { test } = require('node:test');
 
-const workflowPath = resolve(__dirname, '../.github/workflows/deployment-smoke.yml');
+const deploymentSmokeWorkflowPath = resolve(__dirname, '../.github/workflows/deployment-smoke.yml');
+const stagingWorkflowPath = resolve(__dirname, '../.github/workflows/gcp-firebase-staging.yml');
+const productionWorkflowPath = resolve(__dirname, '../.github/workflows/gcp-firebase-production.yml');
 
-test('deployment smoke workflow only runs against owned Firebase/site URLs', function () {
-  const workflow = readFileSync(workflowPath, 'utf8');
+test('deployment smoke tests run inside Firebase deploy workflows', function () {
+  const stagingWorkflow = readFileSync(stagingWorkflowPath, 'utf8');
+  const productionWorkflow = readFileSync(productionWorkflowPath, 'utf8');
 
-  assert.match(workflow, /contains\(github\.event\.deployment_status\.target_url, 'ipace-owners\.org'\)/);
-  assert.match(workflow, /contains\(github\.event\.deployment_status\.target_url, '\.web\.app'\)/);
-  assert.match(workflow, /contains\(github\.event\.deployment_status\.target_url, '\.firebaseapp\.com'\)/);
-  assert.doesNotMatch(workflow, /contains\(github\.event\.deployment_status\.target_url, 'github\.com'\)/);
+  assert.equal(existsSync(deploymentSmokeWorkflowPath), false);
+  assert.match(stagingWorkflow, /name: Smoke test preview/);
+  assert.match(stagingWorkflow, /SMOKE_BASE_URL: \$\{\{ steps\.hosting\.outputs\.url \}\}/);
+  assert.match(stagingWorkflow, /run: make smoke/);
+  assert.match(productionWorkflow, /name: Smoke test production/);
+  assert.match(productionWorkflow, /SMOKE_BASE_URL: https:\/\/ipace-owners\.org/);
+  assert.match(productionWorkflow, /run: make smoke/);
 });

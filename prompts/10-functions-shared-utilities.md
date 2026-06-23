@@ -39,6 +39,6 @@ claim handling.
 
 ## Validation
 
-- Run `go test ./...` in `functions/firebase-go`.
-- Run `npm test`.
-- Run `npm run build`.
+- Run `GOCACHE=/tmp/ipace-owners-go-build make test-go` or `go test ./...` in `functions/firebase-go`.
+- Run `make test`.
+- Run `make build`.

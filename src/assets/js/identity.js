@@ -89,23 +89,57 @@
 		}
 	}
 
+	function setAllMagicLinkStatuses(message, tone) {
+		document.querySelectorAll('[data-magic-link-status]').forEach(function (status) {
+			status.textContent = message;
+			status.style.color = tone === 'error' ? 'var(--color-danger)' : 'var(--color-text-muted)';
+		});
+	}
+
 	function completeEmailLinkIfNeeded() {
 		if (!auth || !auth.isSignInWithEmailLink(window.location.href)) {
 			return Promise.resolve(false);
 		}
 		var email = window.localStorage.getItem('ipaceEmailForSignIn') || '';
-		if (!email) {
-			email = window.prompt('Confirm your email address to finish signing in.') || '';
-		}
-		email = email.trim();
-		if (!email) return Promise.resolve(false);
+		var attemptedStoredEmail = false;
 
-		return auth.signInWithEmailLink(email, window.location.href).then(function () {
-			window.localStorage.removeItem('ipaceEmailForSignIn');
-			clearAuthQuery();
-			return true;
-		}).catch(function (err) {
+		function promptForEmail(defaultEmail) {
+			return (window.prompt('Confirm the email address that received this sign-in link.', defaultEmail || '') || '').trim();
+		}
+
+		function signInWithEmailLink(emailAddress) {
+			return auth.signInWithEmailLink(emailAddress, window.location.href).then(function () {
+				window.localStorage.removeItem('ipaceEmailForSignIn');
+				clearAuthQuery();
+				return true;
+			});
+		}
+
+		email = email.trim();
+		if (email) {
+			attemptedStoredEmail = true;
+		} else {
+			email = promptForEmail('');
+		}
+		if (!email) {
+			setAllMagicLinkStatuses('We could not finish sign-in because the email address was not confirmed.', 'error');
+			return Promise.resolve(false);
+		}
+
+		return signInWithEmailLink(email).catch(function (err) {
 			console.warn('[identity.js] Email-link sign-in failed.', err);
+			window.localStorage.removeItem('ipaceEmailForSignIn');
+			if (attemptedStoredEmail) {
+				var confirmedEmail = promptForEmail(email);
+				if (confirmedEmail && confirmedEmail !== email) {
+					return signInWithEmailLink(confirmedEmail).catch(function (retryErr) {
+						console.warn('[identity.js] Email-link sign-in retry failed.', retryErr);
+						setAllMagicLinkStatuses('We could not finish sign-in with that link. Check the email address and request a new sign-in link if needed.', 'error');
+						return false;
+					});
+				}
+			}
+			setAllMagicLinkStatuses('We could not finish sign-in with that link. Check the email address and request a new sign-in link if needed.', 'error');
 			return false;
 		});
 	}
