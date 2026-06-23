@@ -327,6 +327,14 @@ func SubmitVehicleBasics(w http.ResponseWriter, r *http.Request) {
 			"hasRegistration": true,
 		})
 	}
+	if validationMessage := vehicleDateValidationMessage(req, time.Now().UTC()); validationMessage != "" {
+		logEvent("submit-vehicle-basics", "warn", "request rejected: future vehicle date", map[string]any{
+			"uid":    user.UID,
+			"reason": validationMessage,
+		})
+		writeJSON(w, http.StatusBadRequest, map[string]any{"ok": false, "error": validationMessage})
+		return
+	}
 
 	pepper := os.Getenv("VIN_PEPPER")
 	if vin != "" && pepper == "" && registration == "" {
@@ -403,6 +411,32 @@ func vehicleIdentifiers(req vehicleRequest) (string, string, bool, string) {
 		return "", "", false, "VIN must be 17 characters and cannot contain I, O, or Q"
 	}
 	return vin, registration, false, ""
+}
+
+func vehicleDateValidationMessage(req vehicleRequest, now time.Time) string {
+	if dateIsFuture(req.OwnedSince, now) {
+		return "Owned since cannot be in the future"
+	}
+	if dateIsFuture(req.FirstReg, now) {
+		return "First registration date cannot be in the future"
+	}
+	if dateIsFuture(req.SOHDate, now) {
+		return "State of Health measurement date cannot be in the future"
+	}
+	return ""
+}
+
+func dateIsFuture(value string, now time.Time) bool {
+	value = cleanString(value, 20)
+	if value == "" {
+		return false
+	}
+	parsed, err := time.Parse("2006-01-02", value)
+	if err != nil {
+		return false
+	}
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+	return parsed.After(today)
 }
 
 func MemberData(w http.ResponseWriter, r *http.Request) {

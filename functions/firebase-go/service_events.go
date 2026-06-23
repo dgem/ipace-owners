@@ -111,6 +111,9 @@ func validatedServiceEvent(req serviceEventRequest) (cleanedServiceEvent, error)
 	if cleaned.OccurredAt == "" {
 		return cleanedServiceEvent{}, fmt.Errorf("event date is required")
 	}
+	if dateIsFuture(cleaned.OccurredAt, time.Now().UTC()) {
+		return cleanedServiceEvent{}, fmt.Errorf("event date cannot be in the future")
+	}
 	if cleaned.Title == "" {
 		return cleanedServiceEvent{}, fmt.Errorf("title is required")
 	}

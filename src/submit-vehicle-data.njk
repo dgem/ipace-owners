@@ -86,14 +86,17 @@ multiStepForm: true
 				<div class="two-column">
 					<div class="form-group">
 						<label for="vin">VIN</label>
-						<input type="text" id="vin" name="vin" maxlength="17" autocomplete="off" aria-describedby="vin-hint" pattern="[A-HJ-NPR-Z0-9]{17}">
-						<span class="form-hint" id="vin-hint">Optional 17-character Vehicle Identification Number. You can find it on the V5C/log book, windscreen plate, or Jaguar app. Full VINs are never stored.</span>
+						<input type="text" id="vin" name="vin" maxlength="25" autocomplete="off" aria-describedby="vin-hint vin-error vin-warning" data-vin-identifier data-vin-optional-with="registration">
+						<span class="form-hint" id="vin-hint">Optional 17-character Vehicle Identification Number. Spaces and hyphens are ignored. You can find it on the V5C/log book, windscreen plate, or Jaguar app. Full VINs are never stored.</span>
+						<span class="form-error" id="vin-error" role="alert" hidden>VIN must be 17 characters and cannot contain I, O, or Q. Leave it blank if you are using registration instead.</span>
+						<span class="form-warning" id="vin-warning" data-vin-warning hidden>This does not look like a typical Jaguar/JLR VIN. You can continue if it is correct.</span>
 					</div>
 
 					<div class="form-group">
 						<label for="registration">Registration / plate</label>
-						<input type="text" id="registration" name="registration" autocomplete="off" aria-describedby="registration-hint">
-						<span class="form-hint" id="registration-hint">Provide either the registration or VIN so we can identify the vehicle record.</span>
+						<input type="text" id="registration" name="registration" autocomplete="off" aria-describedby="registration-hint registration-warning" data-uk-registration data-country-field="country">
+						<span class="form-hint" id="registration-hint">Provide either the registration or VIN so we can identify the vehicle record. UK plates are checked as guidance only.</span>
+						<span class="form-warning" id="registration-warning" data-uk-registration-warning hidden>This does not look like a common UK registration format. You can continue if it is correct.</span>
 					</div>
 
 					<div class="form-group">
@@ -144,12 +147,14 @@ multiStepForm: true
 
 					<div class="form-group">
 						<label for="owned-since">Owned since</label>
-						<input type="date" id="owned-since" name="ownedSince">
+						<input type="date" id="owned-since" name="ownedSince" aria-describedby="owned-since-error" data-not-future>
+						<span class="form-error" id="owned-since-error" role="alert" hidden>Owned since cannot be in the future.</span>
 					</div>
 
 					<div class="form-group">
 						<label for="first-reg">First registration date <span style="font-weight:400; color: var(--color-text-muted);">(if known)</span></label>
-						<input type="date" id="first-reg" name="firstReg">
+						<input type="date" id="first-reg" name="firstReg" aria-describedby="first-reg-error" data-not-future>
+						<span class="form-error" id="first-reg-error" role="alert" hidden>First registration date cannot be in the future.</span>
 					</div>
 				</div>
 			</fieldset>
@@ -175,7 +180,8 @@ multiStepForm: true
 
 					<div class="form-group">
 						<label for="soh-date">Date SoH was measured</label>
-						<input type="date" id="soh-date" name="sohDate">
+						<input type="date" id="soh-date" name="sohDate" aria-describedby="soh-date-error" data-not-future>
+						<span class="form-error" id="soh-date-error" role="alert" hidden>State of Health measurement date cannot be in the future.</span>
 					</div>
 
 					<div class="form-group">

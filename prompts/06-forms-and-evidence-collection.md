@@ -117,6 +117,10 @@ The vehicle identifier requirement must be enforced client-side before leaving t
 details step, and server-side in `SubmitVehicleBasics`. If the API rejects a save, show the
 server-provided error in the result panel and do not show success-only actions such as "Add
 another vehicle".
+Use client-side validation to improve data quality without blocking legitimate edge cases:
+hard-block future dates and VIN-only invalid VINs; show soft warnings for GB registration
+formats and valid VINs that do not look like typical Jaguar/JLR VINs. Server-side validation
+must remain authoritative for future dates and identifier requirements.
 
 The vehicle form callout should explain that this page starts the vehicle record and that,
 after saving, members can use My Data to add further SoH readings and service/fault history.

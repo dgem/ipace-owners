@@ -22,6 +22,10 @@ storing full VINs. Members may register multiple vehicles.
 - The form must validate that at least one identifier, VIN or registration, is present
   before the user leaves the vehicle-details step. Use generic multistep validation
   attributes rather than custom one-off page JavaScript.
+- Client-side validation should hard-block future dates and VIN-only invalid VINs. It
+  should soft-warn, not block, when a GB registration does not look like a common UK
+  registration format or when a syntactically valid VIN does not look like a typical
+  Jaguar/JLR VIN.
 - The Go `SubmitVehicleBasics` Function verifies the ID token server-side.
 - Records are stored in Firestore and the private member/account snapshot is regenerated.
 - An initial SoH value creates an append-only `batteryReadings` record.
@@ -47,6 +51,9 @@ Battery health:
 - Date SoH was measured.
 - Mileage at SoH measurement.
 - Source of SoH reading.
+
+Date fields must not be in the future. Enforce this both in the browser and in
+`SubmitVehicleBasics` before writing Firestore records.
 
 ## VIN rules
 

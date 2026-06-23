@@ -15,6 +15,10 @@ test('member dashboard uses a full-width tabbed vehicle workspace', function () 
   assert.match(script, /State of Health history/);
   assert.match(script, /<svg[^>]+role="img"/);
   assert.match(script, /Service events and faults/);
+  assert.match(script, /data-not-future/);
+  assert.match(script, /Measurement date cannot be in the future/);
+  assert.match(script, /Event date cannot be in the future/);
+  assert.match(script, /function validateNotFutureDates/);
 });
 
 test('service event editing is wired through the protected API', function () {

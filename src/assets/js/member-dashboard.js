@@ -25,6 +25,15 @@
     return Number.isNaN(date.getTime()) ? '' : date.toLocaleDateString('en-GB');
   }
 
+  function todayString() {
+    var date = new Date();
+    return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+  }
+
+  function notFutureDateAttributes(errorId) {
+    return ' data-not-future max="' + todayString() + '" aria-describedby="' + errorId + '"';
+  }
+
   function vehicleName(record) {
     var vehicle = record.vehicle || {};
     return vehicle.registration || ('Vehicle ' + String(record.id || '').slice(-6));
@@ -129,7 +138,7 @@
     return '<div class="member-form-panel" data-soh-panel hidden><form data-soh-update-form>' +
       '<input type="hidden" name="vehicleId" value="' + id + '"><div class="member-form-grid">' +
       '<div class="form-group"><label for="dashboard-soh">State of Health (%)</label><input id="dashboard-soh" name="soh" type="number" min="0" max="100" step="0.1" required></div>' +
-      '<div class="form-group"><label for="dashboard-soh-date">Measurement date</label><input id="dashboard-soh-date" name="sohDate" type="date" required></div>' +
+      '<div class="form-group"><label for="dashboard-soh-date">Measurement date</label><input id="dashboard-soh-date" name="sohDate" type="date" required' + notFutureDateAttributes('dashboard-soh-date-error') + '><span class="form-error" id="dashboard-soh-date-error" role="alert" hidden>Measurement date cannot be in the future.</span></div>' +
       '<div class="form-group"><label for="dashboard-soh-mileage">Mileage at measurement</label><input id="dashboard-soh-mileage" name="sohMileage" type="number" min="0" max="500000"></div>' +
       '<div class="form-group"><label for="dashboard-soh-source">Measurement source</label><select id="dashboard-soh-source" name="sohSource" required><option value="">Select source</option><option value="dealer-report">Dealer report</option><option value="diagnostic-app">Diagnostic app / OBD</option><option value="service-paperwork">Service paperwork</option><option value="jlr-communication">JLR communication</option><option value="estimate-unsure">Estimate / unsure</option></select></div>' +
       '</div><div class="cluster"><button class="btn btn--primary" type="submit">Save reading</button><button class="btn btn--secondary" type="button" data-close-panel="soh">Cancel</button></div>' +
@@ -141,7 +150,7 @@
       '<input type="hidden" name="id"><input type="hidden" name="vehicleId" value="' + escapeHtml(vehicleId) + '">' +
       '<h3 data-event-form-title>Add service event or fault</h3><div class="member-form-grid">' +
       '<div class="form-group"><label for="event-type">Record type</label><select id="event-type" name="eventType" required><option value="service">Service</option><option value="fault">Fault</option><option value="repair">Repair</option><option value="recall">Recall</option><option value="inspection">Inspection</option><option value="other">Other</option></select></div>' +
-      '<div class="form-group"><label for="event-date">Date</label><input id="event-date" name="occurredAt" type="date" required></div>' +
+      '<div class="form-group"><label for="event-date">Date</label><input id="event-date" name="occurredAt" type="date" required' + notFutureDateAttributes('event-date-error') + '><span class="form-error" id="event-date-error" role="alert" hidden>Event date cannot be in the future.</span></div>' +
       '<div class="form-group"><label for="event-mileage">Mileage</label><input id="event-mileage" name="mileage" type="number" min="0" max="500000"></div>' +
       '<div class="form-group"><label for="event-status">Status</label><select id="event-status" name="status" required><option value="open">Open</option><option value="monitoring">Monitoring</option><option value="resolved">Resolved</option><option value="completed">Completed</option></select></div>' +
       '<div class="form-group member-form-grid__wide"><label for="event-title">Summary</label><input id="event-title" name="title" type="text" maxlength="160" required></div>' +
@@ -225,6 +234,25 @@
     openPanel('event');
   }
 
+  function dateIsFuture(value) {
+    return !!value && value > todayString();
+  }
+
+  function validateNotFutureDates(form) {
+    var valid = true;
+    form.querySelectorAll('input[type="date"][data-not-future]').forEach(function (input) {
+      var error = input.parentNode.querySelector('[role="alert"]');
+      var future = dateIsFuture(input.value);
+      input.setAttribute('aria-invalid', future ? 'true' : 'false');
+      if (error) error.hidden = !future;
+      if (future && valid) {
+        input.focus();
+        valid = false;
+      }
+    });
+    return valid;
+  }
+
   workspace.addEventListener('click', function (event) {
     var tab = event.target.closest('[data-vehicle-tab]');
     var open = event.target.closest('[data-open-panel]');
@@ -270,6 +298,10 @@
     var button = form.querySelector('button[type="submit"]');
     var payload = {};
     new FormData(form).forEach(function (value, key) { payload[key] = value; });
+    if (!validateNotFutureDates(form)) {
+      if (status) status.textContent = 'Check the highlighted date before saving.';
+      return;
+    }
     button.disabled = true;
     status.textContent = 'Saving record...';
     Promise.resolve(window.ipaceGetIdentityToken ? window.ipaceGetIdentityToken() : '').then(function (token) {

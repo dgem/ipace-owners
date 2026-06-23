@@ -106,6 +106,26 @@
     });
   }
 
+  function todayString() {
+    var date = new Date();
+    return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+  }
+
+  function validateNotFutureDates(form) {
+    var valid = true;
+    form.querySelectorAll('input[type="date"][data-not-future]').forEach(function (input) {
+      var error = input.parentNode.querySelector('[role="alert"]');
+      var future = !!input.value && input.value > todayString();
+      input.setAttribute('aria-invalid', future ? 'true' : 'false');
+      if (error) error.hidden = !future;
+      if (future && valid) {
+        input.focus();
+        valid = false;
+      }
+    });
+    return valid;
+  }
+
   function formatSOHSource(value) {
     var labels = {
       'dealer-report': 'Dealer report',
@@ -492,6 +512,10 @@
     var button = form.querySelector('button[type="submit"]');
     var payload = {};
     new FormData(form).forEach(function (value, key) { payload[key] = value; });
+    if (!validateNotFutureDates(form)) {
+      if (status) status.textContent = 'Check the highlighted date before saving.';
+      return;
+    }
     if (button) button.disabled = true;
     if (status) status.textContent = 'Saving reading...';
 

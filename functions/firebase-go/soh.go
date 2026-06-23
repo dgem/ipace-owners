@@ -83,6 +83,9 @@ func validatedBatteryReading(req batteryReadingRequest) (batteryDetails, error) 
 	if measuredAt == "" {
 		return batteryDetails{}, fmt.Errorf("measurement date is required")
 	}
+	if dateIsFuture(measuredAt, time.Now().UTC()) {
+		return batteryDetails{}, fmt.Errorf("measurement date cannot be in the future")
+	}
 	source := cleanEnum(req.SOHSource, sohSourceValues)
 	if source == "" {
 		return batteryDetails{}, fmt.Errorf("measurement source is required")

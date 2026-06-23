@@ -37,6 +37,7 @@ func TestValidatedServiceEventRejectsInvalidInput(t *testing.T) {
 		{EventType: valid.EventType, OccurredAt: valid.OccurredAt, Title: valid.Title, Status: valid.Status},
 		{VehicleID: valid.VehicleID, EventType: "accident", OccurredAt: valid.OccurredAt, Title: valid.Title, Status: valid.Status},
 		{VehicleID: valid.VehicleID, EventType: valid.EventType, OccurredAt: "not-a-date", Title: valid.Title, Status: valid.Status},
+		{VehicleID: valid.VehicleID, EventType: valid.EventType, OccurredAt: "2099-06-22", Title: valid.Title, Status: valid.Status},
 		{VehicleID: valid.VehicleID, EventType: valid.EventType, OccurredAt: valid.OccurredAt, Status: valid.Status},
 		{VehicleID: valid.VehicleID, EventType: valid.EventType, OccurredAt: valid.OccurredAt, Title: valid.Title, Status: "unknown"},
 		{VehicleID: valid.VehicleID, EventType: valid.EventType, OccurredAt: valid.OccurredAt, Mileage: "many", Title: valid.Title, Status: valid.Status},

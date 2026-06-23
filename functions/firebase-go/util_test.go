@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestOriginAllowed(t *testing.T) {
@@ -187,6 +188,50 @@ func TestVehicleIdentifiersNormalizeValidVIN(t *testing.T) {
 	}
 	if message != "" {
 		t.Fatalf("message = %q", message)
+	}
+}
+
+func TestVehicleDateValidationRejectsFutureDates(t *testing.T) {
+	now := time.Date(2026, 6, 24, 12, 0, 0, 0, time.UTC)
+
+	cases := []struct {
+		name string
+		req  vehicleRequest
+		want string
+	}{
+		{
+			name: "owned since",
+			req:  vehicleRequest{OwnedSince: "2026-06-25"},
+			want: "Owned since cannot be in the future",
+		},
+		{
+			name: "first registration",
+			req:  vehicleRequest{FirstReg: "2026-06-25"},
+			want: "First registration date cannot be in the future",
+		},
+		{
+			name: "soh date",
+			req:  vehicleRequest{SOHDate: "2026-06-25"},
+			want: "State of Health measurement date cannot be in the future",
+		},
+		{
+			name: "today accepted",
+			req:  vehicleRequest{OwnedSince: "2026-06-24", FirstReg: "2026-06-24", SOHDate: "2026-06-24"},
+			want: "",
+		},
+		{
+			name: "past accepted",
+			req:  vehicleRequest{OwnedSince: "2026-06-23", FirstReg: "2020-01-01", SOHDate: "2026-01-01"},
+			want: "",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := vehicleDateValidationMessage(tc.req, now); got != tc.want {
+				t.Fatalf("vehicleDateValidationMessage() = %q, want %q", got, tc.want)
+			}
+		})
 	}
 }
 

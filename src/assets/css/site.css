@@ -1014,6 +1014,13 @@ textarea + .form-hint {
   margin-top: var(--space-1);
 }
 
+.form-warning {
+  display: block;
+  font-size: var(--text-sm);
+  color: var(--color-warning);
+  margin-top: var(--space-1);
+}
+
 input[type="text"],
 input[type="email"],
 input[type="number"],
