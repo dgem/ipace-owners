@@ -69,6 +69,21 @@ test('member data fetches include Identity bearer tokens', function () {
   assert.doesNotMatch(read('src/assets/js/identity.js'), /window\.location\.reload/);
 });
 
+test('account preferences render from saved member data', function () {
+  var account = read('src/account.njk');
+  var memberAuth = read('src/assets/js/member-auth.js');
+  var css = read('src/assets/css/site.css');
+
+  assert.match(account, /data-preferences-container/);
+  assert.doesNotMatch(account, /Notification and data use preferences will be manageable here in a future release/);
+  assert.match(memberAuth, /function populatePreferences/);
+  assert.match(memberAuth, /Group contact/);
+  assert.match(memberAuth, /Anonymised aggregate analysis/);
+  assert.match(memberAuth, /Participation acknowledgement/);
+  assert.match(memberAuth, /Preference editing will be added with an audited account update flow/);
+  assert.match(css, /\.preference-list/);
+});
+
 test('protected pages do not show login gates before auth verification completes', function () {
   [
     'src/member/dashboard.njk',

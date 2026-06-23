@@ -56,8 +56,14 @@ server-side by Go Cloud Functions that validate Firebase ID tokens.
 - On 200: hide the gate, show content, populate data from response.
 - On 401: keep login gate visible.
 - On 403 for admin: show access-restricted gate.
-- Populate vehicle lists, join info, admin stats, join table, and vehicle table from the
-  API response.
+- Populate vehicle lists, join info, account preferences, admin stats, join table, and
+  vehicle table from the API response.
+- Account preferences must display the latest saved Join consent and membership state from
+  the member snapshot, including contact permission, anonymised aggregate-analysis consent,
+  participation acknowledgement, relationship, and volunteering interests where present.
+  Do not show placeholder copy saying preferences will be manageable in a future release.
+  Preference editing needs a server-side audited account update flow before controls are
+  shown as editable.
 
 ## Server-side APIs
 
