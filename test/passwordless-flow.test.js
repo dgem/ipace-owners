@@ -41,7 +41,8 @@ test('Join completion does not offer vehicle submission until signed in', functi
 
   assert.match(join, /data-registration-link-sent/);
   assert.match(join, /You can add vehicle data after\s+opening the sign-in link/);
-  assert.match(join, /data-registration-signed-in hidden[\s\S]*Add your first vehicle/);
+  assert.doesNotMatch(join, /Add your first vehicle/);
+  assert.doesNotMatch(join, /href="\/account\/" class="btn/);
   assert.match(css, /\[hidden\]\s*\{\s*display:\s*none !important;/);
 });
 

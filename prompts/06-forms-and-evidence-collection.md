@@ -65,9 +65,10 @@ Provide accessible multi-step forms that collect membership interest now, help o
   - `data-database-submission-id` — filled with the stored submission reference when present
   - `data-registration-link-sent` — shown once the API call succeeds
   - `data-registration-error` — shown if the API call fails
-- Logged-out Join completion should not offer a link to submit vehicle data. It should tell
-  the user to open the email sign-in link first. Vehicle/account CTAs may be shown only in
-  the signed-in state.
+- Join completion should not offer vehicle or account CTAs in the result panel. For guests,
+  tell the user to open the email sign-in link first. For already signed-in users, confirm
+  the Join answers were saved; onward navigation remains available through the normal
+  signed-in header controls.
 - Validate required text, email, select, checkbox, and radio controls according to their actual user state. Required checkboxes must be checked; required radio groups must have a checked option.
 - On the Join form, the final "Join the Group" submit button should be enabled only after
   the contact consent and not-a-legal-claim acknowledgement checkboxes are ticked.
