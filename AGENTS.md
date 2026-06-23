@@ -194,6 +194,8 @@ Defined in `:root` in `site.css`. Key tokens:
   - Which files were added or modified.
   - How to verify the change locally (e.g., `make dev` and navigate to X).
   - Whether tests were added or updated.
+- Whenever reporting that a PR was created, updated, pushed to, or is ready for review,
+  include the full clickable GitHub PR URL, not only the PR number.
 - **Code review is required before merging.** Use GitHub's automatic Copilot code review
   (configured via repository branch ruleset) as a first pass, but every PR must receive
   human review for logic, security, accessibility, and tone.
