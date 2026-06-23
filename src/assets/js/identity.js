@@ -60,6 +60,7 @@
 			if (userDisplay) {
 				userDisplay.style.display = '';
 				userDisplay.textContent = user.email || 'Member';
+				userDisplay.setAttribute('aria-label', 'My account');
 			}
 		} else {
 			if (loginBtn) loginBtn.style.display = '';

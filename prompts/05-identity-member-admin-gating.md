@@ -31,9 +31,9 @@ server-side by Go Cloud Functions that validate Firebase ID tokens.
 - Expose `window.ipaceGetIdentityToken()` so form/API code can attach
   `Authorization: Bearer <Firebase ID token>`.
 - Update header and mobile controls based on current user state.
-- Show public `Join` CTA only to guests. Signed-in users must have an obvious
-  `Dashboard` route to `/member/dashboard/` in desktop and mobile navigation, with
-  `Account` still available as a secondary account-management route.
+- Show public `Join` CTA only to guests. Signed-in users must have exactly one obvious
+  `My Data` route to `/member/dashboard/` in desktop and mobile navigation. The signed-in
+  email address should link to `/account/` as the account-management route.
 - Support `[data-magic-link-form]` with `[data-magic-link-status]`.
 - Handle `multistep:submitted` + `data-database-submit`.
 - Do not reveal gated content directly. Gated content is revealed only by

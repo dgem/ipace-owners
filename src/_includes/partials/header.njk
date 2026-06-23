@@ -18,13 +18,6 @@
               data-nav-link
               data-requires-guest
             >{{ item.label }}</a>
-            <a
-              href="/member/dashboard/"
-              class="site-nav__link site-nav__link--highlight"
-              data-nav-link
-              data-requires-auth
-              style="display:none"
-            >Dashboard</a>
           {% else %}
             <a
               href="{{ item.url }}"
@@ -38,10 +31,9 @@
       <!-- Header actions -->
       <div class="site-header__actions">
         <div class="identity-controls">
-          <span id="identity-user-display" class="identity-controls__user" style="display:none"></span>
+          <a id="identity-user-display" class="identity-controls__user" href="/account/" data-requires-auth style="display:none"></a>
           <a id="identity-login-btn" class="btn btn--sm btn--ghost" href="/account/">Sign in</a>
-          <a href="/member/dashboard/" class="btn btn--sm btn--primary" data-requires-auth style="display:none">Dashboard</a>
-          <a href="/account/" class="btn btn--sm btn--secondary" data-requires-auth style="display:none">Account</a>
+          <a href="/member/dashboard/" class="btn btn--sm btn--primary" data-requires-auth style="display:none">My Data</a>
           <button id="identity-logout-btn" class="btn btn--sm btn--ghost" type="button" style="display:none">Sign out</button>
         </div>
 

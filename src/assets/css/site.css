@@ -394,6 +394,12 @@ th {
 .identity-controls__user {
   font-size: var(--text-sm);
   color: rgba(255,255,255,0.8);
+  text-decoration: none;
+}
+
+.identity-controls__user:hover {
+  color: #ffffff;
+  text-decoration: underline;
 }
 
 /* ------------------------------------------------------------

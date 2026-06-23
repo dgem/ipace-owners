@@ -9,13 +9,6 @@
             data-nav-link
             data-requires-guest
           >{{ item.label }}</a>
-          <a
-            href="/member/dashboard/"
-            class="mobile-nav__link mobile-nav__link--highlight"
-            data-nav-link
-            data-requires-auth
-            style="display:none"
-          >Dashboard</a>
         {% else %}
           <a
             href="{{ item.url }}"
@@ -28,8 +21,8 @@
   </ul>
 
   <div class="mobile-nav__identity">
-    <a href="/member/dashboard/" class="btn btn--sm btn--primary full-width" data-requires-auth style="display:none">Dashboard</a>
-    <a href="/account/" class="btn btn--sm btn--secondary full-width" data-requires-auth style="display:none">Account</a>
+    <a href="/member/dashboard/" class="btn btn--sm btn--primary full-width" data-requires-auth style="display:none">My Data</a>
+    <a href="/account/" class="btn btn--sm btn--secondary full-width" data-requires-auth style="display:none">My account</a>
     <a id="identity-mobile-login-btn" class="btn btn--sm btn--secondary full-width" href="/account/">Sign in</a>
     <button id="identity-mobile-logout-btn" class="btn btn--sm btn--ghost full-width" type="button" style="display:none">Sign out</button>
   </div>
