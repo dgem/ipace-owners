@@ -81,6 +81,10 @@
       e.preventDefault();
 
       updateConditionalSubmitControls();
+      if (!conditionalSubmitControlsMet()) {
+        focusFirstMissingCheckedRequirement();
+        return;
+      }
       if (!validateCurrentStep()) return;
 
       if (resultEl) {
@@ -173,6 +177,26 @@
       conditionalSubmitBtns.forEach(function (button) {
         button.disabled = !checkedRequirementsMet(button);
       });
+    }
+
+    function conditionalSubmitControlsMet() {
+      return conditionalSubmitBtns.every(checkedRequirementsMet);
+    }
+
+    function focusFirstMissingCheckedRequirement() {
+      for (var i = 0; i < conditionalSubmitBtns.length; i++) {
+        var raw = conditionalSubmitBtns[i].getAttribute('data-enable-when-checked') || '';
+        var names = raw.split(/[\s,]+/).filter(Boolean);
+        for (var j = 0; j < names.length; j++) {
+          var missing = Array.from(form.elements).find(function (control) {
+            return control.name === names[j] && control.type === 'checkbox' && !control.checked;
+          });
+          if (missing) {
+            missing.focus();
+            return;
+          }
+        }
+      }
     }
 
     function checkedRequirementsMet(button) {
