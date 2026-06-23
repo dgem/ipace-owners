@@ -128,6 +128,68 @@ func TestHMACDoesNotExposeRawVIN(t *testing.T) {
 	}
 }
 
+func TestVehicleIdentifiersRequireVINOrRegistration(t *testing.T) {
+	vin, registration, ignoredVIN, message := vehicleIdentifiers(vehicleRequest{})
+
+	if vin != "" || registration != "" || ignoredVIN {
+		t.Fatalf("vehicleIdentifiers returned identifiers for empty request: vin=%q registration=%q ignored=%v", vin, registration, ignoredVIN)
+	}
+	if message != "VIN or registration is required" {
+		t.Fatalf("message = %q", message)
+	}
+}
+
+func TestVehicleIdentifiersRejectVINOnlyInvalid(t *testing.T) {
+	vin, registration, ignoredVIN, message := vehicleIdentifiers(vehicleRequest{VIN: "BADVIN"})
+
+	if vin != "" || registration != "" || ignoredVIN {
+		t.Fatalf("vehicleIdentifiers returned identifiers for invalid VIN-only request: vin=%q registration=%q ignored=%v", vin, registration, ignoredVIN)
+	}
+	if message != "VIN must be 17 characters and cannot contain I, O, or Q" {
+		t.Fatalf("message = %q", message)
+	}
+}
+
+func TestVehicleIdentifiersIgnoreInvalidOptionalVINWithRegistration(t *testing.T) {
+	vin, registration, ignoredVIN, message := vehicleIdentifiers(vehicleRequest{
+		VIN:          "BADVIN",
+		Registration: " hv69 voo ",
+	})
+
+	if vin != "" {
+		t.Fatalf("vin = %q, want empty", vin)
+	}
+	if registration != "HV69 VOO" {
+		t.Fatalf("registration = %q", registration)
+	}
+	if !ignoredVIN {
+		t.Fatal("invalid optional VIN was not reported as ignored")
+	}
+	if message != "" {
+		t.Fatalf("message = %q", message)
+	}
+}
+
+func TestVehicleIdentifiersNormalizeValidVIN(t *testing.T) {
+	vin, registration, ignoredVIN, message := vehicleIdentifiers(vehicleRequest{
+		VIN:          "sadha2b10-k1f12345",
+		Registration: " hv69 voo ",
+	})
+
+	if vin != "SADHA2B10K1F12345" {
+		t.Fatalf("vin = %q", vin)
+	}
+	if registration != "HV69 VOO" {
+		t.Fatalf("registration = %q", registration)
+	}
+	if ignoredVIN {
+		t.Fatal("valid VIN should not be ignored")
+	}
+	if message != "" {
+		t.Fatalf("message = %q", message)
+	}
+}
+
 func TestProjectIDFallbacks(t *testing.T) {
 	t.Setenv("GOOGLE_CLOUD_PROJECT", "")
 	t.Setenv("GCP_PROJECT", "")

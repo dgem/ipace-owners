@@ -308,15 +308,24 @@ func SubmitVehicleBasics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	vin := strings.ToUpper(strings.ReplaceAll(cleanString(req.VIN, 40), " ", ""))
-	registration := strings.ToUpper(cleanString(req.Registration, 40))
-	if vin != "" && !vinRE.MatchString(vin) {
-		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "VIN must be 17 characters and cannot contain I, O, or Q"})
+	vin, registration, ignoredInvalidVIN, validationMessage := vehicleIdentifiers(req)
+	if validationMessage != "" {
+		logEvent("submit-vehicle-basics", "warn", "request rejected: invalid vehicle identifiers", map[string]any{
+			"uid":             user.UID,
+			"reason":          validationMessage,
+			"hasVin":          cleanString(req.VIN, 40) != "",
+			"vinLength":       len(normalizeVIN(req.VIN)),
+			"hasRegistration": cleanString(req.Registration, 40) != "",
+		})
+		writeJSON(w, http.StatusBadRequest, map[string]any{"ok": false, "error": validationMessage})
 		return
 	}
-	if vin == "" && registration == "" {
-		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "VIN or registration is required"})
-		return
+	if ignoredInvalidVIN {
+		logEvent("submit-vehicle-basics", "warn", "invalid optional VIN ignored for registration-based save", map[string]any{
+			"uid":             user.UID,
+			"vinLength":       len(normalizeVIN(req.VIN)),
+			"hasRegistration": true,
+		})
 	}
 
 	pepper := os.Getenv("VIN_PEPPER")
@@ -369,6 +378,31 @@ func SubmitVehicleBasics(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusOK, map[string]any{"ok": true, "id": record.ID})
+}
+
+func normalizeVIN(value string) string {
+	value = strings.ToUpper(cleanString(value, 40))
+	value = strings.ReplaceAll(value, " ", "")
+	value = strings.ReplaceAll(value, "-", "")
+	return value
+}
+
+func vehicleIdentifiers(req vehicleRequest) (string, string, bool, string) {
+	vin := normalizeVIN(req.VIN)
+	registration := strings.ToUpper(cleanString(req.Registration, 40))
+	hasVIN := vin != ""
+	hasRegistration := registration != ""
+
+	if !hasVIN && !hasRegistration {
+		return "", "", false, "VIN or registration is required"
+	}
+	if hasVIN && !vinRE.MatchString(vin) {
+		if hasRegistration {
+			return "", registration, true, ""
+		}
+		return "", "", false, "VIN must be 17 characters and cannot contain I, O, or Q"
+	}
+	return vin, registration, false, ""
 }
 
 func MemberData(w http.ResponseWriter, r *http.Request) {

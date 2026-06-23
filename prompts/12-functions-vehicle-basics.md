@@ -53,6 +53,9 @@ Battery health:
 - Full VINs are never stored.
 - Normalize VINs server-side before validation.
 - Valid VINs use `[A-HJ-NPR-Z0-9]{17}`.
+- Treat VIN as optional when registration is provided. If a member supplies registration and
+  a malformed VIN, save a registration-based record, ignore the malformed VIN, and log a
+  sanitized warning. Reject malformed VINs only when VIN is the sole vehicle identifier.
 - If a VIN is provided, `VIN_PEPPER` must be configured.
 - Store a VIN HMAC and final six characters only.
 - If a VIN is provided and `VIN_PEPPER` is missing, do not store or derive any VIN
