@@ -50,6 +50,7 @@ func init() {
 	functions.HTTP("SubmitJoin", SubmitJoin)
 	functions.HTTP("SubmitVehicleBasics", SubmitVehicleBasics)
 	functions.HTTP("SubmitSOH", SubmitSOH)
+	functions.HTTP("UpsertServiceEvent", UpsertServiceEvent)
 	functions.HTTP("MemberData", MemberData)
 	functions.HTTP("AdminData", AdminData)
 	functions.HTTP("PublicStats", PublicStats)
@@ -90,6 +91,21 @@ func SendMagicLink(w http.ResponseWriter, r *http.Request) {
 
 	fields := emailLogFields(email)
 	fields["origin"] = r.Header.Get("Origin")
+
+	joinCount, err := joinSubmissionCount(r.Context(), emailFingerprint(email))
+	if err != nil {
+		fields["error"] = err.Error()
+		logEvent("send-magic-link", "warn", "registration check failed; email link suppressed", fields)
+		writeJSON(w, http.StatusOK, map[string]any{"ok": true})
+		return
+	}
+	if joinCount == 0 {
+		logEvent("send-magic-link", "info", "email link suppressed for unregistered address", fields)
+		writeJSON(w, http.StatusOK, map[string]any{"ok": true})
+		return
+	}
+
+	fields["joinSubmissionCount"] = joinCount
 	logEvent("send-magic-link", "info", "firebase email link handoff starting", fields)
 
 	if err := sendFirebaseEmailLink(r.Context(), email); err != nil {
@@ -373,7 +389,9 @@ func AdminData(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, data)
 }
 
-func sendFirebaseEmailLink(ctx context.Context, email string) error {
+var sendFirebaseEmailLink = sendFirebaseEmailLinkRequest
+
+func sendFirebaseEmailLinkRequest(ctx context.Context, email string) error {
 	apiKey := os.Getenv("FIREBASE_WEB_API_KEY")
 	if apiKey == "" {
 		return fmt.Errorf("FIREBASE_WEB_API_KEY is not configured")
@@ -481,7 +499,9 @@ func saveJoin(ctx context.Context, record joinRecord) error {
 	return nil
 }
 
-func joinSubmissionCount(ctx context.Context, emailHash string) (int, error) {
+var joinSubmissionCount = countJoinSubmissions
+
+func countJoinSubmissions(ctx context.Context, emailHash string) (int, error) {
 	if emailHash == "" {
 		return 0, nil
 	}
@@ -598,6 +618,7 @@ func buildMemberSnapshot(ctx context.Context, uid string, email string) (memberS
 		JoinRecords:     []joinRecord{},
 		VehicleRecords:  []vehicleRecord{},
 		BatteryReadings: []batteryReadingRecord{},
+		ServiceEvents:   []serviceEventRecord{},
 	}
 	if email != "" {
 		emailHash := emailFingerprint(email)
@@ -646,6 +667,20 @@ func buildMemberSnapshot(ctx context.Context, uid string, email string) (memberS
 			snapshot.BatteryReadings = append(snapshot.BatteryReadings, record)
 		}
 	}
+	eventIter := db.Collection("serviceEvents").Where("identityUserId", "==", uid).Documents(ctx)
+	for {
+		doc, err := eventIter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return memberSnapshot{}, err
+		}
+		var record serviceEventRecord
+		if err := doc.DataTo(&record); err == nil {
+			snapshot.ServiceEvents = append(snapshot.ServiceEvents, record)
+		}
+	}
 	readVehicles := map[string]bool{}
 	for _, reading := range snapshot.BatteryReadings {
 		readVehicles[reading.VehicleID] = true
@@ -665,6 +700,12 @@ func buildMemberSnapshot(ctx context.Context, uid string, email string) (memberS
 	})
 	sort.Slice(snapshot.BatteryReadings, func(i, j int) bool {
 		return normalisedMeasurementDate(snapshot.BatteryReadings[i]).After(normalisedMeasurementDate(snapshot.BatteryReadings[j]))
+	})
+	sort.Slice(snapshot.ServiceEvents, func(i, j int) bool {
+		if snapshot.ServiceEvents[i].OccurredAt == snapshot.ServiceEvents[j].OccurredAt {
+			return snapshot.ServiceEvents[i].UpdatedAt.After(snapshot.ServiceEvents[j].UpdatedAt)
+		}
+		return snapshot.ServiceEvents[i].OccurredAt > snapshot.ServiceEvents[j].OccurredAt
 	})
 	return snapshot, nil
 }

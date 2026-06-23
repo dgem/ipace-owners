@@ -118,11 +118,15 @@ Defined in `:root` in `site.css`. Key tokens:
 - On Join form completion, `identity.js` calls `POST /api/submit-join` once. The Go
   Function stores the Join submission and dispatches a Firebase email sign-in link
   server-side.
-- Existing users can request another magic link through `POST /api/send-magic-link`
-  without resubmitting the Join form.
+- Existing registered users can request another magic link through
+  `POST /api/send-magic-link` without resubmitting the Join form. The Function checks
+  Join submissions first and suppresses email side effects for unregistered addresses
+  while still returning a generic response.
 - Signed-in vehicle basics are stored by `POST /api/submit-vehicle-basics`.
 - Signed-in members append SoH history through `POST /api/submit-soh`; the Function verifies
   vehicle ownership server-side.
+- Signed-in members add or edit service/fault timeline records through
+  `POST /api/upsert-service-event`; the Function verifies both record and vehicle ownership.
 - Member/admin data fetches must send the Firebase ID token in the `Authorization` header.
 - Members may register multiple vehicles. Account/member pages should render vehicle lists,
   not a single vehicle assumption.
@@ -207,7 +211,8 @@ Examples:
 
 ## Known limitations
 
-- Full vehicle/evidence form submissions are not persisted yet.
+- Detailed vehicle evidence beyond basics, SoH history, and service/fault timeline records
+  is not persisted yet.
 - Evidence uploads are not implemented (placeholder message shown).
 - Admin review queue can read server-side data for admins, but review status updates,
   exports, and moderation actions are not yet implemented.

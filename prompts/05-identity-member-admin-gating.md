@@ -14,7 +14,9 @@ server-side by Go Cloud Functions that validate Firebase ID tokens.
 - Load Firebase Auth from the CDN only when build-time Firebase config is present.
 - Do not add a password form or hosted password modal.
 - Visible sign-in UI must use custom `[data-magic-link-form]` forms that call
-  `POST /api/send-magic-link`.
+  `POST /api/send-magic-link`. These forms are login-only: the server must send a Firebase
+  email link only when the email fingerprint already has a Join submission, and the UI copy
+  must use non-enumerating language such as "if this email address is registered".
 - `src/assets/js/identity.js` owns email-link completion, header UI, logout, magic-link
   form submission, protected form token injection, and Join result state.
 - `src/assets/js/member-auth.js` owns server-side auth verification and data population on
@@ -29,7 +31,9 @@ server-side by Go Cloud Functions that validate Firebase ID tokens.
 - Expose `window.ipaceGetIdentityToken()` so form/API code can attach
   `Authorization: Bearer <Firebase ID token>`.
 - Update header and mobile controls based on current user state.
-- Show public `Join` CTA only to guests; show `Account` or `My Data` to signed-in users.
+- Show public `Join` CTA only to guests. Signed-in users must have exactly one obvious
+  `My Data` route to `/member/dashboard/` in desktop and mobile navigation. The signed-in
+  email address should link to `/account/` as the account-management route.
 - Support `[data-magic-link-form]` with `[data-magic-link-status]`.
 - Handle `multistep:submitted` + `data-database-submit`.
 - Do not reveal gated content directly. Gated content is revealed only by

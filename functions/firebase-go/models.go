@@ -36,6 +36,17 @@ type batteryReadingRequest struct {
 	SOHSource  string `json:"sohSource"`
 }
 
+type serviceEventRequest struct {
+	ID          string `json:"id"`
+	VehicleID   string `json:"vehicleId"`
+	EventType   string `json:"eventType"`
+	OccurredAt  string `json:"occurredAt"`
+	Mileage     string `json:"mileage"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Status      string `json:"status"`
+}
+
 type magicLinkRequest struct {
 	Email string `json:"email"`
 	Name  string `json:"name"`
@@ -117,6 +128,22 @@ type batteryReadingRecord struct {
 	Review         reviewRecord   `json:"review" firestore:"review"`
 }
 
+type serviceEventRecord struct {
+	ID             string       `json:"id" firestore:"id"`
+	Type           string       `json:"type" firestore:"type"`
+	CreatedAt      time.Time    `json:"createdAt" firestore:"createdAt"`
+	UpdatedAt      time.Time    `json:"updatedAt" firestore:"updatedAt"`
+	IdentityUserID string       `json:"identityUserId" firestore:"identityUserId"`
+	VehicleID      string       `json:"vehicleId" firestore:"vehicleId"`
+	EventType      string       `json:"eventType" firestore:"eventType"`
+	OccurredAt     string       `json:"occurredAt" firestore:"occurredAt"`
+	Mileage        *int         `json:"mileage,omitempty" firestore:"mileage,omitempty"`
+	Title          string       `json:"title" firestore:"title"`
+	Description    string       `json:"description,omitempty" firestore:"description,omitempty"`
+	Status         string       `json:"status" firestore:"status"`
+	Review         reviewRecord `json:"review" firestore:"review"`
+}
+
 type memberSnapshot struct {
 	IdentityUserID  string                 `json:"identityUserId" firestore:"identityUserId"`
 	Email           string                 `json:"email,omitempty" firestore:"email,omitempty"`
@@ -124,6 +151,7 @@ type memberSnapshot struct {
 	JoinRecords     []joinRecord           `json:"joinRecords" firestore:"joinRecords"`
 	VehicleRecords  []vehicleRecord        `json:"vehicleRecords" firestore:"vehicleRecords"`
 	BatteryReadings []batteryReadingRecord `json:"batteryReadings" firestore:"batteryReadings"`
+	ServiceEvents   []serviceEventRecord   `json:"serviceEvents" firestore:"serviceEvents"`
 }
 
 type adminData struct {

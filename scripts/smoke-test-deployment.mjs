@@ -108,6 +108,15 @@ async function main() {
     throw new Error(`submit-soh unauthenticated returned ${sohUnauthenticated.status}, expected 401`);
   }
 
+  const eventUnauthenticated = await fetch(url('/api/upsert-service-event'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ vehicleId: 'smoke', eventType: 'fault', occurredAt: '2026-06-22', title: 'Smoke test', status: 'open' }),
+  });
+  if (eventUnauthenticated.status !== 401) {
+    throw new Error(`upsert-service-event unauthenticated returned ${eventUnauthenticated.status}, expected 401`);
+  }
+
   const publicStats = await fetch(url('/api/public-stats'));
   if (!publicStats.ok) {
     throw new Error(`public-stats returned ${publicStats.status}, expected 200`);

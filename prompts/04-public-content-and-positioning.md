@@ -10,7 +10,7 @@ The public site should explain the group clearly, invite owners to participate, 
 
 - Serious, constructive, collaborative, and evidence-led.
 - Use the display wordmark `i-Pace Owners` on the first line and `Advocacy Group` on the second line in the header brand area.
-- Use `i-Pace Owners Advocacy Group` for site-brand references where natural, while preserving `Jaguar I-PACE` when referring to the vehicle model.
+- Use `i-Pace Owners' Advocacy Group` for site-brand references where natural, while preserving `Jaguar I-PACE` when referring to the vehicle model.
 - Speak as owners organising for fair and consistent outcomes.
 - Avoid aggressive legal language on the homepage.
 - Frame legal action only as a possible alternative that a constructive resolution may help avoid.

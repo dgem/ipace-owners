@@ -128,12 +128,19 @@
       return;
     }
 
-    var html = '<div class="vehicle-list">';
+    var html = '<div class="account-vehicle-grid">';
     records.forEach(function (rec) {
       var veh = rec.vehicle || {};
       var bat = rec.battery || {};
-      html += '<div class="vehicle-card" style="border:1px solid var(--color-border); border-radius:var(--radius-sm); padding:var(--space-4); margin-bottom:var(--space-4);">';
-      html += '<h3 style="margin-top:0;">';
+      var vehicleReadings = (readings || []).filter(function (reading) {
+        return reading.vehicleId === rec.id;
+      });
+      var latestReading = vehicleReadings.length ? vehicleReadings[vehicleReadings.length - 1].battery || {} : null;
+      var latestSOH = latestReading && latestReading.stateOfHealth != null ? latestReading.stateOfHealth : bat.stateOfHealth;
+      var latestDate = latestReading && latestReading.measuredAt ? latestReading.measuredAt : bat.measuredAt;
+
+      html += '<article class="account-vehicle-card">';
+      html += '<div class="account-vehicle-card__main"><h3>';
       if (veh.registration) html += escapeHtml(veh.registration);
       else html += 'Vehicle ' + escapeHtml(rec.id.slice(-6));
       html += '</h3>';
@@ -143,52 +150,33 @@
       if (veh.modelYear) details.push('Model year: ' + escapeHtml(veh.modelYear));
       if (veh.mileage != null) details.push('Mileage: ' + Number(veh.mileage).toLocaleString());
       if (veh.ownedSince) details.push('Owned since: ' + escapeHtml(veh.ownedSince));
-      if (bat.stateOfHealth != null) details.push('SoH: ' + bat.stateOfHealth + '%');
-      if (bat.source) details.push('SoH source: ' + escapeHtml(formatSOHSource(bat.source)));
 
       if (details.length > 0) {
-        html += '<p style="color:var(--color-text-muted); font-size:var(--text-sm);">' + details.join(' &middot; ') + '</p>';
-       }
-
-      var vehicleReadings = (readings || []).filter(function (reading) {
-        return reading.vehicleId === rec.id;
-      });
-      if (vehicleReadings.length > 0) {
-        html += '<h4>State of Health history</h4><ul class="stack stack--sm">';
-        vehicleReadings.forEach(function (reading) {
-          var measurement = reading.battery || {};
-          html += '<li><strong>' + escapeHtml(measurement.stateOfHealth) + '%</strong>';
-          if (measurement.measuredAt) html += ' on ' + escapeHtml(formatDate(measurement.measuredAt));
-          if (measurement.mileageAtMeasurement != null) html += ' at ' + Number(measurement.mileageAtMeasurement).toLocaleString() + ' miles';
-          if (measurement.source) html += ' (' + escapeHtml(formatSOHSource(measurement.source)) + ')';
-          html += '</li>';
-        });
-        html += '</ul>';
+        html += '<p class="account-vehicle-card__meta">' + details.join(' &middot; ') + '</p>';
       } else {
-        html += '<p class="text-muted">No State of Health readings recorded yet.</p>';
+        html += '<p class="account-vehicle-card__meta">Vehicle details are ready to expand.</p>';
       }
 
-      var id = escapeHtml(rec.id);
-      html += '<details style="margin-top:var(--space-4);"><summary>Add a State of Health reading</summary>';
-      html += '<form data-soh-update-form style="margin-top:var(--space-4);">';
-      html += '<input type="hidden" name="vehicleId" value="' + id + '">';
-      html += '<div class="two-column">';
-      html += '<div class="form-group"><label for="soh-' + id + '">State of Health (%)</label><input id="soh-' + id + '" name="soh" type="number" min="0" max="100" step="0.1" required></div>';
-      html += '<div class="form-group"><label for="soh-date-' + id + '">Measurement date</label><input id="soh-date-' + id + '" name="sohDate" type="date" required></div>';
-      html += '<div class="form-group"><label for="soh-mileage-' + id + '">Mileage at measurement</label><input id="soh-mileage-' + id + '" name="sohMileage" type="number" min="0" max="500000"></div>';
-      html += '<div class="form-group"><label for="soh-source-' + id + '">Measurement source</label><select id="soh-source-' + id + '" name="sohSource" required><option value="">Select source</option><option value="dealer-report">Dealer report</option><option value="diagnostic-app">Diagnostic app / OBD</option><option value="service-paperwork">Service paperwork</option><option value="jlr-communication">JLR communication</option><option value="estimate-unsure">Estimate / unsure</option></select></div>';
-      html += '</div><button class="btn btn--primary" type="submit">Save SoH reading</button>';
-      html += '<p class="form-hint" data-soh-update-status role="status" aria-live="polite"></p>';
-      html += '</form></details>';
-
-      html += '<p style="margin-bottom:0; font-size:var(--text-sm); color:var(--color-text-muted);">';
-      html += 'Submitted: ' + escapeHtml(formatDate(rec.createdAt));
+      html += '<div class="account-vehicle-card__footer">';
+      html += '<span>Submitted ' + escapeHtml(formatDate(rec.createdAt)) + '</span>';
       if (rec.updatedAt !== rec.createdAt) {
-        html += ' &middot; Updated: ' + escapeHtml(formatDate(rec.updatedAt));
-       }
-      html += '</p>';
+        html += '<span>Updated ' + escapeHtml(formatDate(rec.updatedAt)) + '</span>';
+      }
       html += '</div>';
-     });
+      html += '</div>';
+
+      html += '<div class="account-vehicle-card__stats">';
+      if (latestSOH != null) {
+        html += '<p class="account-vehicle-card__stat"><strong>' + escapeHtml(latestSOH) + '%</strong><span>Latest SoH</span></p>';
+        if (latestDate) html += '<p class="account-vehicle-card__hint">Measured ' + escapeHtml(formatDate(latestDate)) + '</p>';
+      } else {
+        html += '<p class="account-vehicle-card__stat"><strong>—</strong><span>No SoH yet</span></p>';
+      }
+      html += '<p class="account-vehicle-card__hint">' + vehicleReadings.length + ' SoH ' + (vehicleReadings.length === 1 ? 'reading' : 'readings') + '</p>';
+      html += '<a class="btn btn--secondary btn--sm" href="/member/dashboard/">Manage history</a>';
+      html += '</div>';
+      html += '</article>';
+    });
     html += '</div>';
     vehicleList.innerHTML = html;
    }
@@ -244,12 +232,17 @@
 
         // Expose raw data for other scripts to consume
         container.dataset.memberData = JSON.stringify(data);
+        document.dispatchEvent(new CustomEvent('member:data', {
+          detail: { container: container, data: data },
+        }));
        } catch (err) {
       console.warn('[member-auth] Failed to verify auth:', err);
       showMemberGate(container);
      }
     });
    }
+
+  window.ipaceRefreshMemberData = verifyMemberAuth;
 
    // ── Admin auth ───────────────────────────────────────────────────────────────
 

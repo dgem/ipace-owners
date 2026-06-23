@@ -9,7 +9,7 @@
     { "label": "Join", "url": "/join/", "highlight": true }
   ],
   "member": [
-    { "label": "Dashboard", "url": "/member/dashboard/" },
+    { "label": "My Data", "url": "/member/dashboard/" },
     { "label": "My Vehicle", "url": "/submit-vehicle-data/" },
     { "label": "Account", "url": "/account/" }
   ],

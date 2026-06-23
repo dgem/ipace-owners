@@ -306,26 +306,31 @@ not required for Firebase Hosting and would require a careful migration of every
 
 Cloud Firestore is the intended canonical source for structured owner data.
 
-Join submissions, vehicle basics, and SoH updates are handled by Go Cloud Functions:
+Join submissions, vehicle basics, SoH updates, and service history are handled by Go Cloud Functions:
 
 - `submit-join` stores membership expressions of interest and consent choices, then sends
   the Identity magic link for logged-out users.
+- `send-magic-link` is a login-only path for already registered members. It checks for a
+  matching Join submission before asking Firebase to send a sign-in email, and returns a
+  generic response so registration state is not exposed to the browser.
 - `submit-vehicle-basics` stores the first vehicle registration slice for signed-in users:
   VIN HMAC / final six characters, registration, country, model year, ownership dates,
   mileage, State of Health, measurement date, measurement mileage, and SoH source.
 - `submit-soh` appends a dated State of Health reading to a vehicle after verifying that
   the signed-in member owns the referenced record. Earlier readings are retained for
   degradation analysis.
+- `upsert-service-event` adds or edits an owned vehicle's dated service, fault, repair,
+  recall, or inspection record after server-side ownership verification.
 - `public-stats` serves a cacheable, consent-filtered aggregate snapshot containing current
   vehicle counts, SoH totals and distributions, without exposing member records.
 
-Member/account JSON snapshots are regenerated after signup, vehicle, and SoH changes, written to
+Member/account JSON snapshots are regenerated after signup, vehicle, SoH, and service-event changes, written to
 Firestore and optionally Cloud Storage, then served only through `member-data` after
 server-side Firebase ID-token verification. Vehicle and SoH writes also regenerate the
 anonymised public evidence snapshot in Cloud Storage.
 
-Members may register more than one I-PACE. The account and member dashboard UX should treat
-vehicle records as a list, not as a single profile.
+Members may register more than one I-PACE. The member dashboard uses vehicle tabs and shows
+one selected car's SoH graph and service/fault timeline at a time.
 
 Set `VIN_PEPPER` as a GCP Secret Manager value and Function environment variable before
 collecting VINs. Full VINs are not stored; the Function uses `VIN_PEPPER` to create an HMAC
@@ -367,9 +372,10 @@ Set a Firebase Auth custom claim for the user, for example `admin: true` or
 
 The following features are **not yet implemented** in this version:
 
-- **Full vehicle/evidence submission persistence** — Join submissions and vehicle basics are
-  the first structured slices. Recall, repair, loan car, payment, responsibility,
-  consent-review, and evidence upload details are not yet stored in the GCP model.
+- **Full vehicle/evidence submission persistence** — Join submissions, vehicle basics, SoH
+  readings, and member service/fault timeline records are structured slices. Detailed recall,
+  battery-work, loan car, payment, responsibility, consent-review, and evidence upload fields
+  are not yet stored in the GCP model.
 - **Evidence document uploads** — A placeholder message explains what will be supported.
   Requires Cloud Storage for files plus Firestore metadata and Functions integration.
 - **Admin review workflow** — The review queue can read server-side data for admins, but

@@ -7,17 +7,23 @@ var test = require('node:test');
 
 var repoRoot = path.join(__dirname, '..');
 
-test('header swaps Join navigation for Account when signed in', function () {
+test('header exposes one My Data action and account via user email when signed in', function () {
   var header = fs.readFileSync(path.join(repoRoot, 'src/_includes/partials/header.njk'), 'utf8');
   var mobileNav = fs.readFileSync(path.join(repoRoot, 'src/_includes/partials/mobile-nav.njk'), 'utf8');
   var identityJs = fs.readFileSync(path.join(repoRoot, 'src/assets/js/identity.js'), 'utf8');
 
   assert.match(header, /data-requires-guest[\s\S]*>\{\{ item\.label \}\}<\/a>/);
-  assert.match(header, /href="\/account\/"[\s\S]*data-requires-auth/);
+  assert.equal((header.match(/>My Data<\/a>/g) || []).length, 1);
+  assert.equal((header.match(/>Dashboard<\/a>/g) || []).length, 0);
+  assert.match(header, /id="identity-user-display" class="identity-controls__user btn btn--sm btn--ghost" href="\/account\/"/);
+  assert.doesNotMatch(header, />Account<\/a>/);
   assert.match(mobileNav, /data-requires-guest[\s\S]*>\{\{ item\.label \}\}<\/a>/);
-  assert.match(mobileNav, /href="\/account\/"[\s\S]*data-requires-auth/);
+  assert.equal((mobileNav.match(/>My Data<\/a>/g) || []).length, 1);
+  assert.equal((mobileNav.match(/>Dashboard<\/a>/g) || []).length, 0);
+  assert.match(mobileNav, /href="\/account\/"[\s\S]*data-requires-auth[\s\S]*>My account<\/a>/);
   assert.match(identityJs, /setVisibility\('\[data-requires-auth\]', true\)/);
   assert.match(identityJs, /setVisibility\('\[data-requires-guest\]', false\)/);
+  assert.match(identityJs, /setAttribute\('aria-label', 'My account'\)/);
 });
 
 test('footer exposes social share links', function () {

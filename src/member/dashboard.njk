@@ -1,14 +1,14 @@
 ---
 layout: base.njk
-title: Member Dashboard
-description: "Member dashboard — I-PACE Owners' Advocacy Group."
+title: My Data
+description: "Your vehicle and evidence data — I-PACE Owners' Advocacy Group."
 permalink: /member/dashboard/
 ---
 
 <div class="page-header">
   <div class="container">
     <p class="page-header__eyebrow">Members</p>
-    <h1 class="page-header__title">Member Dashboard</h1>
+    <h1 class="page-header__title">My Data</h1>
   </div>
 </div>
 
@@ -45,41 +45,40 @@ permalink: /member/dashboard/
       <!-- Content — revealed by member-auth.js after server confirms auth -->
       <div class="auth-content" data-auth-content hidden>
 
-        <div class="grid">
-
-          <!-- Vehicle records panel -->
-          <div class="dashboard-panel">
-            <div class="dashboard-panel__header">
-              <h2 class="dashboard-panel__title">Your vehicles</h2>
+        <section class="member-workspace" data-vehicle-workspace aria-labelledby="vehicle-workspace-title">
+          <div class="member-workspace__loading" data-vehicle-workspace-loading>
+            <h2 id="vehicle-workspace-title">Your vehicles</h2>
+            <p>Loading your vehicle records...</p>
+          </div>
+          <div data-vehicle-workspace-content hidden>
+            <div class="vehicle-tabs-row">
+              <div class="vehicle-tabs" role="tablist" aria-label="Your vehicles" data-vehicle-tabs></div>
               <a href="/submit-vehicle-data/" class="btn btn--sm btn--primary">Add vehicle</a>
             </div>
-            <div data-vehicle-container>
-              <div data-vehicle-list>
-                <p style="color:var(--color-text-muted);">Loading...</p>
-              </div>
-            </div>
+            <div data-active-vehicle></div>
           </div>
+        </section>
 
-          <!-- Join info panel -->
-          <div class="dashboard-panel">
+        <div class="member-secondary-grid">
+          <section class="dashboard-panel">
             <div class="dashboard-panel__header">
               <h2 class="dashboard-panel__title">Your membership</h2>
             </div>
             <div data-join-container>
-              <p style="color:var(--color-text-muted);">Loading...</p>
+              <div data-join-info>
+                <p style="color:var(--color-text-muted);">Loading...</p>
+              </div>
             </div>
-          </div>
+          </section>
 
-          <!-- Group updates panel -->
-          <div class="dashboard-panel">
+          <section class="dashboard-panel">
             <div class="dashboard-panel__header">
               <h2 class="dashboard-panel__title">Group updates</h2>
             </div>
             <p style="color:var(--color-text-muted);">
               Check the <a href="/updates/">Updates page</a> for the latest news.
             </p>
-          </div>
-
+          </section>
         </div>
       </div>
     </div>

@@ -14,6 +14,10 @@ test('member/account UI treats vehicle records as a list', function () {
 
   assert.match(account, /Your vehicles/);
   assert.match(account, /Add another vehicle/);
+  assert.match(account, /href="\/member\/dashboard\/"[\s\S]*My Data/);
+  assert.match(account, /account-layout__wide/);
+  assert.match(memberAuth, /account-vehicle-grid/);
+  assert.match(memberAuth, /Manage history/);
   assert.match(dashboard, /Your vehicles/);
   assert.match(dashboard, /Add vehicle/);
   assert.match(memberAuth, /Add your first vehicle/);

@@ -42,6 +42,7 @@
     var prevBtns  = Array.from(form.querySelectorAll('[data-prev]'));
     var nextBtns  = Array.from(form.querySelectorAll('[data-next]'));
     var submitBtn = form.querySelector('[data-submit]');
+    var conditionalSubmitBtns = Array.from(form.querySelectorAll('[data-enable-when-checked]'));
 
     // Result area
     var resultEl = form.querySelector('[data-submit-result]');
@@ -55,6 +56,7 @@
       }
     });
 
+    updateConditionalSubmitControls();
     updateUI();
 
     // ── Navigation handlers ─────────────────────────────────────────────────
@@ -78,6 +80,7 @@
     form.addEventListener('submit', function (e) {
       e.preventDefault();
 
+      updateConditionalSubmitControls();
       if (!validateCurrentStep()) return;
 
       if (resultEl) {
@@ -103,6 +106,9 @@
         alert('Submission storage is not enabled yet. Your data has not been sent.');
       }
     });
+
+    form.addEventListener('change', updateConditionalSubmitControls);
+    form.addEventListener('input', updateConditionalSubmitControls);
 
     // ── Core: go to step ────────────────────────────────────────────────────
     function goToStep(index) {
@@ -160,6 +166,25 @@
         nextBtn.style.display = isLast ? 'none' : '';
       });
       if (submitBtn) submitBtn.style.display = isLast ? '' : 'none';
+      updateConditionalSubmitControls();
+    }
+
+    function updateConditionalSubmitControls() {
+      conditionalSubmitBtns.forEach(function (button) {
+        button.disabled = !checkedRequirementsMet(button);
+      });
+    }
+
+    function checkedRequirementsMet(button) {
+      var raw = button.getAttribute('data-enable-when-checked') || '';
+      var names = raw.split(/[\s,]+/).filter(Boolean);
+      if (!names.length) return true;
+
+      return names.every(function (name) {
+        return Array.from(form.elements).some(function (control) {
+          return control.name === name && control.type === 'checkbox' && control.checked;
+        });
+      });
     }
 
     // ── Validation (light, accessible) ─────────────────────────────────────

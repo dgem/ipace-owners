@@ -43,11 +43,13 @@ the retired hosting or Function platform.
 
 1. Build-time Firebase web config is emitted by `.eleventy.js` from environment variables.
 2. `identity.js` initialises Firebase Auth and never opens a password modal.
-3. Magic-link forms call `POST /api/send-magic-link`.
-4. The Go `SendMagicLink` Function calls Firebase Identity Toolkit to send an email sign-in
-   link and returns account-enumeration-resistant `{ ok: true }` for valid email syntax.
-   Set Identity Toolkit's `linkDomain` to the environment's verified Firebase Hosting
-   custom domain, while `continueUrl` points to that environment's account page.
+3. Magic-link login forms call `POST /api/send-magic-link`.
+4. The Go `SendMagicLink` Function first checks for an existing Join submission matching
+   the email fingerprint. It calls Firebase Identity Toolkit only for registered members
+   and suppresses email side effects for unregistered addresses or lookup failures while
+   returning account-enumeration-resistant `{ ok: true }` for valid email syntax. Set
+   Identity Toolkit's `linkDomain` to the environment's verified Firebase Hosting custom
+   domain, while `continueUrl` points to that environment's account page.
 5. When the user opens the email link, `identity.js` completes
    `signInWithEmailLink`, stores the session locally, clears auth query parameters, and
    exposes `window.ipaceGetIdentityToken()`.
@@ -59,10 +61,11 @@ the retired hosting or Function platform.
 
 | Route | Function | Auth | Purpose |
 |---|---|---|---|
-| `POST /api/send-magic-link` | `SendMagicLink` | No | Send passwordless sign-in email link. |
+| `POST /api/send-magic-link` | `SendMagicLink` | No | Request a passwordless sign-in email for an already registered member. |
 | `POST /api/submit-join` | `SubmitJoin` | Optional | Save Join submission; send email link for guests. |
 | `POST /api/submit-vehicle-basics` | `SubmitVehicleBasics` | Member | Save one vehicle basics record and optional initial SoH reading. |
 | `POST /api/submit-soh` | `SubmitSOH` | Member | Append an SoH reading after verifying vehicle ownership. |
+| `POST /api/upsert-service-event` | `UpsertServiceEvent` | Member | Add or edit an owned vehicle's service/fault timeline record. |
 | `GET /api/member-data` | `MemberData` | Member | Return the signed-in user's generated snapshot. |
 | `GET /api/admin-data` | `AdminData` | Admin | Return review data for administrators. |
 | `GET /api/public-stats` | `PublicStats` | No | Return the generated anonymised aggregate snapshot. |
@@ -84,7 +87,10 @@ Functions.
 - Store SoH measurements as append-only `batteryReadings` records tied to a vehicle. The
   embedded vehicle battery value is the latest compatibility value, not the historical
   source of truth.
-- Regenerate private member and public aggregate JSON snapshots after vehicle or SoH writes.
+- Store editable service and fault history in `serviceEvents`, tied to both the authenticated
+  member UID and vehicle ID. Preserve creation timestamps and review metadata on edits.
+- Regenerate private member snapshots after vehicle, SoH, or service-event writes. Regenerate
+  public aggregate snapshots only for data with defined consent and publication rules.
 - Full VINs are never stored. Store only an HMAC-SHA-256 digest using `VIN_PEPPER` plus the
   final six VIN characters for member reference.
 - Raw email addresses and names must never appear in public static files or public

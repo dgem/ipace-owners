@@ -3,7 +3,7 @@
 SHELL := /bin/bash
 
 GCP_REGION ?= europe-west2
-FUNCTION_ENTRYPOINTS ?= SendMagicLink SubmitJoin SubmitVehicleBasics SubmitSOH MemberData AdminData PublicStats
+FUNCTION_ENTRYPOINTS ?= SendMagicLink SubmitJoin SubmitVehicleBasics SubmitSOH UpsertServiceEvent MemberData AdminData PublicStats
 FIREBASE_PREVIEW_JSON ?= firebase-preview.json
 INFRA_ENV_SCRIPT := scripts/infra-env.sh
 
