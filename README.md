@@ -310,6 +310,9 @@ Join submissions, vehicle basics, SoH updates, and service history are handled b
 
 - `submit-join` stores membership expressions of interest and consent choices, then sends
   the Identity magic link for logged-out users.
+- `send-magic-link` is a login-only path for already registered members. It checks for a
+  matching Join submission before asking Firebase to send a sign-in email, and returns a
+  generic response so registration state is not exposed to the browser.
 - `submit-vehicle-basics` stores the first vehicle registration slice for signed-in users:
   VIN HMAC / final six characters, registration, country, model year, ownership dates,
   mileage, State of Health, measurement date, measurement mileage, and SoH source.

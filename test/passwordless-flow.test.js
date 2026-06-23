@@ -31,6 +31,8 @@ test('site UI uses Firebase passwordless magic-link forms', function () {
   assert.match(read('src/submit-vehicle-data.njk'), /data-magic-link-form/);
   assert.match(read('src/admin/review-queue.njk'), /data-magic-link-form/);
   assert.match(read('src/assets/js/identity.js'), /\/api\/send-magic-link/);
+  assert.match(read('src/assets/js/identity.js'), /If this email address is registered/);
+  assert.doesNotMatch(read('src/assets/js/identity.js'), /Check your email for a secure sign-in link/);
 });
 
 test('Join completion does not offer vehicle submission until signed in', function () {

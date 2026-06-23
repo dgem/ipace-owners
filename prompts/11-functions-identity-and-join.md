@@ -19,16 +19,21 @@ magic-link request path for existing users.
 - For logged-out users, `SubmitJoin` sends a Firebase email sign-in link in the same
   request.
 - For signed-in users, `SubmitJoin` stores the record and regenerates the member snapshot.
-- `SendMagicLink` remains available at `POST /api/send-magic-link` for users who need a
-  sign-in link without resubmitting Join.
+- `SendMagicLink` remains available at `POST /api/send-magic-link` for registered members
+  who need a sign-in link without resubmitting Join.
 
 ## Magic-link rules
 
 - Do not make Join completion fire a second browser request to `SendMagicLink`.
-- Custom passwordless sign-in forms outside Join may call `SendMagicLink`.
+- Custom passwordless sign-in forms outside Join may call `SendMagicLink`, but this is a
+  login path only, not registration.
 - Do not add a password login UI.
-- `SendMagicLink` calls Firebase Identity Toolkit server-side and returns generic success
-  for syntactically valid requests. Do not reveal whether the email address is registered.
+- `SendMagicLink` must check the Join submissions collection before triggering any email
+  side effect. If the email has not registered, or if the registration lookup fails, return
+  generic success without calling Firebase Identity Toolkit. Do not reveal whether the email
+  address is registered.
+- For registered emails, `SendMagicLink` calls Firebase Identity Toolkit server-side and
+  returns generic success for syntactically valid requests.
 - Reject disallowed origins before triggering email side effects.
 - Log email fingerprints, masked email addresses, origin/continue-host diagnostics, and
   provider status/error summaries. On success, log response size and whether the provider
@@ -96,6 +101,7 @@ Update Node tests for browser wiring and Go tests for handlers. Required coverag
 - Signed-in Join saves a record and does not send a magic link.
 - Invalid Join data does not save or send email.
 - Standalone `SendMagicLink` is account-enumeration-resistant.
+- Standalone `SendMagicLink` suppresses email side effects for unregistered addresses.
 - Disallowed origins are rejected before side effects.
 - Static regression: Join completion must not call `SendMagicLink` directly.
 

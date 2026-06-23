@@ -204,7 +204,7 @@
 				}
 
 				if (submitBtn) submitBtn.disabled = true;
-				setMagicLinkStatus(form, 'Sending sign-in link...', 'info');
+				setMagicLinkStatus(form, 'Checking registration and requesting a sign-in link...', 'info');
 				window.localStorage.setItem('ipaceEmailForSignIn', email);
 
 				fetch('/api/send-magic-link', {
@@ -216,7 +216,7 @@
 						if (!res.ok || !data.ok) {
 							throw new Error(data && data.error ? data.error : 'Could not send sign-in link');
 						}
-						setMagicLinkStatus(form, 'Check your email for a secure sign-in link. You can return here after opening it.', 'info');
+						setMagicLinkStatus(form, 'If this email address is registered, a secure sign-in link will be sent. You can return here after opening it.', 'info');
 					});
 				}).catch(function (err) {
 					console.warn('[identity.js] Magic link request failed.', err);
