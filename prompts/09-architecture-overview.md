@@ -152,7 +152,11 @@ Functions.
   compatible provider major, and latest compatible stable package releases. Commit lockfiles,
   run weekly Dependabot checks for npm, Go modules, Actions and OpenTofu, and require migration
   guide review plus full tests/build/provider validation for major updates.
-- PRs deploy to staging preview channels and run smoke tests against the published URL.
+- PRs deploy to staging preview channels and run smoke tests directly in the staging
+  workflow against the published URL. Do not rely on GitHub `deployment_status` events
+  for smoke testing, because Firebase Hosting preview deployments do not consistently
+  provide a usable site URL through those events.
+  Production deploys should also run smoke tests directly after hosting deployment.
   Discover the generated preview URL before deploying Functions, use it for the staging
   Function CORS origin and email-link continue URL, append its hostname to Firebase
   Auth's authorized domains, then redeploy the channel so its rewrites pin the current
