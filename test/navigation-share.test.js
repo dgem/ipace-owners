@@ -15,7 +15,7 @@ test('header exposes one My Data action and account via user email when signed i
   assert.match(header, /data-requires-guest[\s\S]*>\{\{ item\.label \}\}<\/a>/);
   assert.equal((header.match(/>My Data<\/a>/g) || []).length, 1);
   assert.equal((header.match(/>Dashboard<\/a>/g) || []).length, 0);
-  assert.match(header, /id="identity-user-display"[\s\S]*href="\/account\/"/);
+  assert.match(header, /id="identity-user-display" class="identity-controls__user btn btn--sm btn--ghost" href="\/account\/"/);
   assert.doesNotMatch(header, />Account<\/a>/);
   assert.match(mobileNav, /data-requires-guest[\s\S]*>\{\{ item\.label \}\}<\/a>/);
   assert.equal((mobileNav.match(/>My Data<\/a>/g) || []).length, 1);
