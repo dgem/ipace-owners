@@ -14,6 +14,9 @@ func UpsertServiceEvent(w http.ResponseWriter, r *http.Request) {
 	if cors(w, r) {
 		return
 	}
+	if rejectDisallowedOrigin(w, r) {
+		return
+	}
 	if r.Method != http.MethodPost {
 		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"error": "Method Not Allowed"})
 		return

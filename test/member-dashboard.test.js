@@ -26,6 +26,7 @@ test('service event editing is wired through the protected API', function () {
   assert.match(script, /fetch\('\/api\/upsert-service-event'/);
   assert.match(script, /ipaceGetIdentityToken/);
   assert.match(auth, /new CustomEvent\('member:data'/);
-  assert.match(firebase, /"source": "\/api\/upsert-service-event"/);
+  assert.match(firebase, /"source": "\/api\/\*\*"/);
+  assert.match(firebase, /"functionId": "Api"/);
   assert.match(layout, /assets\/js\/member-dashboard\.js/);
 });

@@ -45,11 +45,13 @@ magic-link request path for existing users.
   public project identifiers and may appear in action URLs; restrict them to the required
   Firebase APIs, but do not treat their presence in an email link as credential exposure.
 - For PR deployments, derive `FIREBASE_EMAIL_CONTINUE_URL` from that PR's generated Firebase
-  Hosting preview URL rather than a shared staging custom domain. Omit `linkDomain` because
-  Firebase rejects preview/default `web.app` domains for that field. Before exercising Auth,
-  append the validated project-owned preview hostname to Firebase Auth's `authorizedDomains`
-  without removing permanent entries; replace stale PR preview hostnames to keep the list
-  bounded.
+  Hosting preview request origin rather than a shared staging custom domain or a value baked
+  into Function environment variables. Omit `linkDomain` because Firebase rejects
+  preview/default `web.app` domains for that field. Before exercising Auth, append the
+  validated project-owned preview hostname to Firebase Auth's `authorizedDomains` without
+  removing permanent entries; replace stale PR preview hostnames to keep the list bounded.
+  Do not accept arbitrary `web.app` origins; the host must match the current Firebase
+  project preview pattern.
 - If the same email address submits Join more than once, keep the browser response generic
   but log that the email hash has previous Join submissions so operators can distinguish
   repeat attempts from first-time registration.

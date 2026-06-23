@@ -9,6 +9,7 @@ import (
 
 func TestOriginAllowed(t *testing.T) {
 	t.Setenv("ALLOWED_ORIGINS", "https://staging.example.com")
+	t.Setenv("FIREBASE_PROJECT_ID", "ipace-owners-staging")
 
 	cases := []struct {
 		origin string
@@ -16,7 +17,10 @@ func TestOriginAllowed(t *testing.T) {
 	}{
 		{"https://ipace-owners.org", true},
 		{"https://staging.example.com", true},
-		{"https://example.web.app", true},
+		{"https://ipace-owners-staging--pr-20-ef2wibc5.web.app", true},
+		{"https://ipace-owners-staging--pr-20-ef2wibc5.firebaseapp.com", true},
+		{"https://example.web.app", false},
+		{"https://ipace-owners-production--pr-20-ef2wibc5.web.app", false},
 		{"http://localhost:5000", true},
 		{"https://evil.example", false},
 		{"", false},
@@ -26,6 +30,28 @@ func TestOriginAllowed(t *testing.T) {
 		if got := originAllowed(tc.origin); got != tc.want {
 			t.Fatalf("originAllowed(%q) = %v, want %v", tc.origin, got, tc.want)
 		}
+	}
+}
+
+func TestEmailContinueURLUsesAllowedRequestOrigin(t *testing.T) {
+	t.Setenv("FIREBASE_PROJECT_ID", "ipace-owners-staging")
+	t.Setenv("FIREBASE_EMAIL_CONTINUE_URL", "https://stage.ipace-owners.org/account/")
+
+	got := emailContinueURLForOrigin("https://ipace-owners-staging--pr-20-ef2wibc5.web.app")
+
+	if got != "https://ipace-owners-staging--pr-20-ef2wibc5.web.app/account/" {
+		t.Fatalf("continue URL = %q", got)
+	}
+}
+
+func TestEmailContinueURLFallsBackForDisallowedOrigin(t *testing.T) {
+	t.Setenv("FIREBASE_PROJECT_ID", "ipace-owners-staging")
+	t.Setenv("FIREBASE_EMAIL_CONTINUE_URL", "https://stage.ipace-owners.org/account/")
+
+	got := emailContinueURLForOrigin("https://evil.example")
+
+	if got != "https://stage.ipace-owners.org/account/" {
+		t.Fatalf("continue URL = %q", got)
 	}
 }
 
@@ -207,5 +233,27 @@ func TestCORSPreflight(t *testing.T) {
 	}
 	if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "https://ipace-owners.org" {
 		t.Fatalf("allow-origin = %q", got)
+	}
+}
+
+func TestApiRoutesKnownAndUnknownPaths(t *testing.T) {
+	known := httptest.NewRequest(http.MethodPost, "/api/send-magic-link", strings.NewReader(`{}`))
+	known.Header.Set("Origin", "https://ipace-owners.org")
+	knownRec := httptest.NewRecorder()
+
+	Api(knownRec, known)
+
+	if knownRec.Code != http.StatusBadRequest {
+		t.Fatalf("known route status = %d, want handler response 400", knownRec.Code)
+	}
+
+	unknown := httptest.NewRequest(http.MethodGet, "/api/not-a-route", nil)
+	unknown.Header.Set("Origin", "https://ipace-owners.org")
+	unknownRec := httptest.NewRecorder()
+
+	Api(unknownRec, unknown)
+
+	if unknownRec.Code != http.StatusNotFound {
+		t.Fatalf("unknown route status = %d, want 404", unknownRec.Code)
 	}
 }

@@ -197,11 +197,15 @@ initial infrastructure rollout, the Function environment generator derives the d
 from `FIREBASE_PROJECT_ID` if the new GitHub environment variable has not been populated.
 
 PR deployments do not depend on `stage.ipace-owners.org`. The staging workflow first
-creates the PR's Firebase Hosting preview channel, configures Functions with that generated
-`web.app` URL for CORS and passwordless email links, adds the generated hostname to Firebase
-Auth's authorized domains, then refreshes the channel so Hosting rewrites use the newly
-deployed Function revisions. Staging deployments are serialized because they share one
-Firebase Auth configuration and one set of Cloud Functions. The allowlist updater removes
+creates the PR's Firebase Hosting preview channel and adds the generated hostname to
+Firebase Auth's authorized domains. The Go backend is deployed as a single `Api` Function;
+Firebase Hosting rewrites `/api/**` to that Function, which routes to the in-process
+handlers. The workflow deploys `Api` only when backend code, Firebase rewrites, Function
+environment generation, Make deploy logic, or deployment workflow files changed. If `Api`
+is redeployed, the workflow refreshes the preview channel so Hosting rewrites use the newly
+deployed Function revision. Otherwise the existing staging `Api` revision is reused and the
+preview still runs smoke tests. Staging deployments are serialized because they share one
+Firebase Auth configuration and one Cloud Functions backend. The allowlist updater removes
 stale PR preview entries while retaining permanent authorized domains. OpenTofu grants the
 GitHub deployer a custom role containing only `firebaseauth.configs.get` and
 `firebaseauth.configs.update`; apply staging infrastructure after changing these permissions
@@ -209,8 +213,10 @@ and before rerunning the preview workflow.
 
 Firebase does not permit preview or default `web.app` domains as Identity Toolkit's
 `linkDomain`. Preview emails therefore use Firebase's default action-handler domain and the
-PR preview URL as `continueUrl`; production continues to use `ipace-owners.org` as its
-custom action-link domain.
+validated PR preview request origin as `continueUrl`; production continues to use
+`ipace-owners.org` as its custom action-link domain. Preview origins are accepted only when
+they match the current Firebase staging project preview-host pattern, not any arbitrary
+`web.app` host.
 
 The same OpenTofu module bootstraps the GitHub Actions `staging` and `production`
 environments. It creates the environment variables and secrets consumed by the deploy

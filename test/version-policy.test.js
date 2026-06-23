@@ -24,6 +24,22 @@ test('runtime declarations use the supported Node and Go production lines', func
   assert.match(goMod, /^go 1\.26$/m);
 });
 
+test('deployment uses a single Go API Function entrypoint', function () {
+  const firebase = read('firebase.json');
+  const makefile = read('Makefile');
+  const main = read('functions/firebase-go/main.go');
+
+  assert.match(makefile, /FUNCTION_ENTRYPOINTS \?= Api/);
+  assert.match(firebase, /"source": "\/api\/\*\*"/);
+  assert.match(firebase, /"functionId": "Api"/);
+  assert.doesNotMatch(firebase, /"functionId": "SendMagicLink"/);
+  assert.doesNotMatch(firebase, /"functionId": "SubmitJoin"/);
+  assert.match(main, /functions\.HTTP\("Api", Api\)/);
+  assert.match(main, /case "\/api\/send-magic-link":/);
+  assert.match(main, /case "\/api\/public-stats":/);
+});
+
+
 test('OpenTofu uses the current provider major and committed exact selections', function () {
   const rootVersions = read('infra/opentofu/env/versions.tf');
   const moduleVersions = read('infra/opentofu/modules/ipace-owners/versions.tf');

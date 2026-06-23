@@ -46,6 +46,7 @@ var modelYearValues = []string{"2018", "2019", "2020", "2021", "2022", "2023", "
 var sohSourceValues = []string{"dealer-report", "diagnostic-app", "service-paperwork", "jlr-communication", "estimate-unsure"}
 
 func init() {
+	functions.HTTP("Api", Api)
 	functions.HTTP("SendMagicLink", SendMagicLink)
 	functions.HTTP("SubmitJoin", SubmitJoin)
 	functions.HTTP("SubmitVehicleBasics", SubmitVehicleBasics)
@@ -56,8 +57,40 @@ func init() {
 	functions.HTTP("PublicStats", PublicStats)
 }
 
+func Api(w http.ResponseWriter, r *http.Request) {
+	switch strings.TrimRight(r.URL.Path, "/") {
+	case "/api/send-magic-link":
+		SendMagicLink(w, r)
+	case "/api/submit-join":
+		SubmitJoin(w, r)
+	case "/api/submit-vehicle-basics":
+		SubmitVehicleBasics(w, r)
+	case "/api/submit-soh":
+		SubmitSOH(w, r)
+	case "/api/upsert-service-event":
+		UpsertServiceEvent(w, r)
+	case "/api/member-data":
+		MemberData(w, r)
+	case "/api/admin-data":
+		AdminData(w, r)
+	case "/api/public-stats":
+		PublicStats(w, r)
+	default:
+		if cors(w, r) {
+			return
+		}
+		if rejectDisallowedOrigin(w, r) {
+			return
+		}
+		writeJSON(w, http.StatusNotFound, map[string]any{"error": "API route not found"})
+	}
+}
+
 func SendMagicLink(w http.ResponseWriter, r *http.Request) {
 	if cors(w, r) {
+		return
+	}
+	if rejectDisallowedOrigin(w, r) {
 		return
 	}
 	if r.Method != http.MethodPost {
@@ -108,7 +141,7 @@ func SendMagicLink(w http.ResponseWriter, r *http.Request) {
 	fields["joinSubmissionCount"] = joinCount
 	logEvent("send-magic-link", "info", "firebase email link handoff starting", fields)
 
-	if err := sendFirebaseEmailLink(r.Context(), email); err != nil {
+	if err := sendFirebaseEmailLink(r.Context(), email, r.Header.Get("Origin")); err != nil {
 		fields := emailLogFields(email)
 		fields["origin"] = r.Header.Get("Origin")
 		fields["error"] = err.Error()
@@ -125,6 +158,9 @@ func SendMagicLink(w http.ResponseWriter, r *http.Request) {
 
 func SubmitJoin(w http.ResponseWriter, r *http.Request) {
 	if cors(w, r) {
+		return
+	}
+	if rejectDisallowedOrigin(w, r) {
 		return
 	}
 	if r.Method != http.MethodPost {
@@ -223,7 +259,7 @@ func SubmitJoin(w http.ResponseWriter, r *http.Request) {
 		fields := emailLogFields(email)
 		fields["origin"] = r.Header.Get("Origin")
 		logEvent("submit-join", "info", "firebase email link handoff starting", fields)
-		if err := sendFirebaseEmailLink(r.Context(), email); err != nil {
+		if err := sendFirebaseEmailLink(r.Context(), email, r.Header.Get("Origin")); err != nil {
 			magicLinkSent = false
 			fields := emailLogFields(email)
 			fields["origin"] = r.Header.Get("Origin")
@@ -250,6 +286,9 @@ func SubmitJoin(w http.ResponseWriter, r *http.Request) {
 
 func SubmitVehicleBasics(w http.ResponseWriter, r *http.Request) {
 	if cors(w, r) {
+		return
+	}
+	if rejectDisallowedOrigin(w, r) {
 		return
 	}
 	if r.Method != http.MethodPost {
@@ -336,6 +375,9 @@ func MemberData(w http.ResponseWriter, r *http.Request) {
 	if cors(w, r) {
 		return
 	}
+	if rejectDisallowedOrigin(w, r) {
+		return
+	}
 	if r.Method != http.MethodGet {
 		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"error": "Method Not Allowed"})
 		return
@@ -356,6 +398,9 @@ func MemberData(w http.ResponseWriter, r *http.Request) {
 
 func AdminData(w http.ResponseWriter, r *http.Request) {
 	if cors(w, r) {
+		return
+	}
+	if rejectDisallowedOrigin(w, r) {
 		return
 	}
 	if r.Method != http.MethodGet {
@@ -391,15 +436,12 @@ func AdminData(w http.ResponseWriter, r *http.Request) {
 
 var sendFirebaseEmailLink = sendFirebaseEmailLinkRequest
 
-func sendFirebaseEmailLinkRequest(ctx context.Context, email string) error {
+func sendFirebaseEmailLinkRequest(ctx context.Context, email string, origin string) error {
 	apiKey := os.Getenv("FIREBASE_WEB_API_KEY")
 	if apiKey == "" {
 		return fmt.Errorf("FIREBASE_WEB_API_KEY is not configured")
 	}
-	continueURL := os.Getenv("FIREBASE_EMAIL_CONTINUE_URL")
-	if continueURL == "" {
-		continueURL = "https://ipace-owners.org/account/"
-	}
+	continueURL := emailContinueURLForOrigin(origin)
 	linkDomain := os.Getenv("FIREBASE_EMAIL_LINK_DOMAIN")
 	fields := emailLogFields(email)
 	fields["continueHost"] = urlHost(continueURL)

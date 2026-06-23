@@ -46,58 +46,9 @@
     ],
     "rewrites": [
       {
-        "source": "/api/send-magic-link",
+        "source": "/api/**",
         "function": {
-          "functionId": "SendMagicLink",
-          "region": "europe-west2"
-        }
-      },
-      {
-        "source": "/api/submit-join",
-        "function": {
-          "functionId": "SubmitJoin",
-          "region": "europe-west2"
-        }
-      },
-      {
-        "source": "/api/submit-vehicle-basics",
-        "function": {
-          "functionId": "SubmitVehicleBasics",
-          "region": "europe-west2"
-        }
-      },
-      {
-        "source": "/api/submit-soh",
-        "function": {
-          "functionId": "SubmitSOH",
-          "region": "europe-west2"
-        }
-      },
-      {
-        "source": "/api/upsert-service-event",
-        "function": {
-          "functionId": "UpsertServiceEvent",
-          "region": "europe-west2"
-        }
-      },
-      {
-        "source": "/api/member-data",
-        "function": {
-          "functionId": "MemberData",
-          "region": "europe-west2"
-        }
-      },
-      {
-        "source": "/api/admin-data",
-        "function": {
-          "functionId": "AdminData",
-          "region": "europe-west2"
-        }
-      },
-      {
-        "source": "/api/public-stats",
-        "function": {
-          "functionId": "PublicStats",
+          "functionId": "Api",
           "region": "europe-west2"
         }
       },

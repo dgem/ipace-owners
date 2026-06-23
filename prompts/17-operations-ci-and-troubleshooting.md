@@ -18,6 +18,9 @@ Firebase/GCP.
   gcloud command bodies where a Make target exists.
 - Local verification for most changes is `make build` and `make test`.
 - Deployment smoke tests require `SMOKE_BASE_URL` and run through `make smoke`.
+- `make deploy-functions` should deploy the single Go `Api` Function entrypoint. Avoid
+  deploying one Cloud Function per API route because each Gen2 Function deployment triggers
+  a separate build and makes PR deployments slow.
 
 ## PR Preview Deployment
 
@@ -30,15 +33,18 @@ Firebase/GCP.
   2. Deploy the Firebase Hosting preview channel and extract its generated URL.
   3. Add that preview hostname to Firebase Auth authorized domains, replacing stale PR
      preview domains while preserving permanent domains.
-  4. Deploy Go Cloud Functions with:
-     - `ALLOWED_ORIGINS` set to the generated preview URL;
-     - `FIREBASE_EMAIL_CONTINUE_URL` set to `<preview-url>/account/`;
-     - no `FIREBASE_EMAIL_LINK_DOMAIN` for previews.
-  5. Refresh the Firebase Hosting preview channel so rewrites point at the current Function
-     revisions.
-  6. Run `make smoke` with `SMOKE_BASE_URL` set to the generated preview URL.
+  4. Detect whether backend-related files changed.
+  5. Deploy the Go `Api` Function only when backend code, Firebase rewrites, Function env
+     generation, Make deploy logic, or deployment workflow files changed.
+  6. If `Api` was deployed, refresh the Firebase Hosting preview channel so rewrites point
+     at the current Function revision.
+  7. Run `make smoke` with `SMOKE_BASE_URL` set to the generated preview URL.
 - Serialize staging deployments because PR previews share the staging Auth configuration
   and staging Functions.
+- Staging `Api` should accept project-owned Firebase PR preview origins by validated host
+  pattern, derive email-link `continueUrl` from that request origin, and omit
+  `FIREBASE_EMAIL_LINK_DOMAIN` for previews. This avoids redeploying Functions solely to
+  bake a PR-specific preview URL into environment variables.
 
 ## Production Deployment
 
@@ -47,6 +53,8 @@ Firebase/GCP.
   - `ALLOWED_ORIGINS`;
   - `FIREBASE_EMAIL_CONTINUE_URL`;
   - `FIREBASE_EMAIL_LINK_DOMAIN`.
+- Production may skip `Api` deployment when backend-related files did not change. Manual
+  workflow dispatch should deploy `Api` so operators can force a backend rollout.
 - Run `make smoke` directly in the production workflow after Hosting deploy with
   `SMOKE_BASE_URL=https://ipace-owners.org`.
 
@@ -74,6 +82,8 @@ Firebase/GCP.
 - Preview/default `web.app` domains must not be passed as Identity Toolkit `linkDomain`.
   Omit `linkDomain` for PR previews so Firebase uses its default action handler while
   preserving the PR preview URL as `continueUrl`.
+- For PR previews, derive `continueUrl` from the validated `Origin` header. Do not accept
+  arbitrary `web.app` origins; require the current Firebase project preview-host pattern.
 - Production may use the verified custom Hosting domain as `linkDomain` once DNS and
   Firebase Hosting certificate state are active.
 - A successful Identity Toolkit response means Firebase accepted the email-link request;

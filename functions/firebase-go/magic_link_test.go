@@ -34,8 +34,11 @@ func TestSendMagicLinkSuppressesUnregisteredEmail(t *testing.T) {
 
 func TestSendMagicLinkSendsForRegisteredEmail(t *testing.T) {
 	sent := ""
-	restore := stubMagicLinkDependencies(t, 2, nil, func(_ context.Context, email string) error {
+	restore := stubMagicLinkDependencies(t, 2, nil, func(_ context.Context, email string, origin string) error {
 		sent = email
+		if origin != "https://ipace-owners.org" {
+			t.Fatalf("origin = %q, want request origin", origin)
+		}
 		return nil
 	})
 	defer restore()
@@ -69,7 +72,7 @@ func TestSendMagicLinkSuppressesWhenRegistrationCheckFails(t *testing.T) {
 	}
 }
 
-func stubMagicLinkDependencies(t *testing.T, joinCount int, joinErr error, sender func(context.Context, string) error) func() {
+func stubMagicLinkDependencies(t *testing.T, joinCount int, joinErr error, sender func(context.Context, string, string) error) func() {
 	t.Helper()
 	originalCount := joinSubmissionCount
 	originalSender := sendFirebaseEmailLink
@@ -81,10 +84,10 @@ func stubMagicLinkDependencies(t *testing.T, joinCount int, joinErr error, sende
 		}
 		return joinCount, joinErr
 	}
-	sendFirebaseEmailLink = func(ctx context.Context, email string) error {
+	sendFirebaseEmailLink = func(ctx context.Context, email string, origin string) error {
 		sendCalled = true
 		if sender != nil {
-			return sender(ctx, email)
+			return sender(ctx, email, origin)
 		}
 		t.Fatalf("sendFirebaseEmailLink was called for %q", email)
 		return nil
