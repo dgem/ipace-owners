@@ -66,6 +66,6 @@ Use a clear model such as:
 
 ## Validation
 
-- Run `npm run build`.
+- Run `make build`.
 - Confirm no real private data appears in static output.
 - Confirm no illustrative numbers remain in live statistic or chart elements.

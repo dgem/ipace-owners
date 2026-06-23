@@ -89,8 +89,9 @@ the API confirms auth.
 
 ## Validation
 
-- Run `npm run build`.
-- Run `npm test` for frontend/auth wiring changes.
-- Run `go test ./...` in `functions/firebase-go` for backend/auth changes.
+- Run `make build`.
+- Run `make test` for frontend/auth wiring changes.
+- Run `GOCACHE=/tmp/ipace-owners-go-build make test-go` or `go test ./...` in
+  `functions/firebase-go` for backend/auth changes.
 - Test logged-out, logged-in, and admin states.
 - Confirm no private data appears in `_site/`.

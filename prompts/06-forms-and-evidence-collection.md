@@ -173,8 +173,8 @@ future summary of entered information.
 
 ## Validation
 
-- Run `npm run build`.
-- Run `npm test` when changing form submission wiring, Function payloads, or validation.
+- Run `make build`.
+- Run `make test` when changing form submission wiring, Function payloads, or validation.
 - Keyboard-test next, previous, validation, and final placeholder result.
 - Specifically test progressing past the second step of the Join form.
 - Confirm required fields have accessible error messages.

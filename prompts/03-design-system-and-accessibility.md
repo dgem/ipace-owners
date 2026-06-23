@@ -79,6 +79,6 @@ Use this palette unless there is a deliberate product reason to change it:
 
 ## Validation
 
-- Run `npm run build`.
+- Run `make build`.
 - Manually review narrow and desktop layouts.
 - Check keyboard access for header navigation, mobile nav, forms, and auth-gated actions.
