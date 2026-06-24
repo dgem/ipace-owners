@@ -25,8 +25,43 @@ test('member/account UI treats vehicle records as a list', function () {
 
 test('vehicle basics form invites adding each I-PACE separately', function () {
   var vehicleForm = fs.readFileSync(path.join(repoRoot, 'src/submit-vehicle-data.njk'), 'utf8');
+  var identity = fs.readFileSync(path.join(repoRoot, 'src/assets/js/identity.js'), 'utf8');
+  var multistep = fs.readFileSync(path.join(repoRoot, 'src/assets/js/multistep-form.js'), 'utf8');
+  var css = fs.readFileSync(path.join(repoRoot, 'src/assets/css/site.css'), 'utf8');
 
   assert.match(vehicleForm, /If you own, owned, or help with more than one I-PACE/);
   assert.match(vehicleForm, /Add one vehicle at a time/);
   assert.match(vehicleForm, /Add another vehicle/);
+  assert.match(vehicleForm, /Vehicle data starts here/);
+  assert.ok(
+    vehicleForm.indexOf('name="vehicle-basics"') < vehicleForm.indexOf('Vehicle data starts here'),
+    'Vehicle informational callout should appear below the form'
+  );
+  assert.match(vehicleForm, /use My Data to add further SoH readings/);
+  assert.doesNotMatch(vehicleForm, /It does not yet collect recall, repair, loan car, payment/);
+  assert.match(vehicleForm, /data-require-one="vin registration"/);
+  assert.match(vehicleForm, /Provide either the VIN or registration before continuing/);
+  assert.match(vehicleForm, /data-vin-identifier/);
+  assert.match(vehicleForm, /data-vin-optional-with="registration"/);
+  assert.match(vehicleForm, /data-uk-registration/);
+  assert.match(vehicleForm, /data-country-field="country"/);
+  assert.match(vehicleForm, /data-not-future/);
+  assert.match(vehicleForm, /Owned since cannot be in the future/);
+  assert.match(vehicleForm, /First registration date cannot be in the future/);
+  assert.match(vehicleForm, /State of Health measurement date cannot be in the future/);
+  assert.match(vehicleForm, /data-database-result-icon/);
+  assert.match(vehicleForm, /data-database-error-message/);
+  assert.match(vehicleForm, /data-database-success-actions hidden/);
+  assert.match(vehicleForm, /data-database-error-actions hidden/);
+  assert.match(multistep, /function validateRequiredGroups/);
+  assert.match(multistep, /function validateVINIdentifiers/);
+  assert.match(multistep, /function validateNotFutureDates/);
+  assert.match(multistep, /function updateUKRegistrationWarnings/);
+  assert.match(multistep, /function updateVINWarnings/);
+  assert.match(multistep, /data-require-one/);
+  assert.match(identity, /setResultIcon/);
+  assert.match(identity, /setDatabaseErrorMessage/);
+  assert.match(identity, /showDatabaseError\(result, err && err\.message/);
+  assert.doesNotMatch(css, /grid-template-columns:\s*minmax\(0,\s*1fr\)\s*minmax\(18rem,\s*23rem\)/);
+  assert.doesNotMatch(css, /position:\s*sticky;\s*\n\s*top:\s*calc\(4\.5rem \+ var\(--space-6\)\)/);
 });

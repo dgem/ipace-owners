@@ -18,6 +18,8 @@ jobs:
     environment: staging
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v6
         with:
@@ -67,7 +69,19 @@ jobs:
           FIREBASE_PREVIEW_URL: ${{ steps.hosting.outputs.url }}
         run: make authorize-preview-domain
 
+      - name: Detect backend deploy changes
+        id: backend
+        run: |
+          changed_files="$(git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.sha }}")"
+          printf '%s\n' "$changed_files"
+          if printf '%s\n' "$changed_files" | grep -Eq '^(functions/firebase-go/|firebase\.json|Makefile|scripts/write-functions-env\.mjs|\.github/workflows/gcp-firebase-staging\.yml)$'; then
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Deploy Go Cloud Functions
+        if: steps.backend.outputs.deploy == 'true'
         env:
           GCP_PROJECT_ID: ${{ vars.FIREBASE_STAGING_PROJECT_ID }}
           FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_STAGING_PROJECT_ID }}
@@ -82,6 +96,7 @@ jobs:
         run: make deploy-functions
 
       - name: Refresh Firebase Hosting preview with current Function revisions
+        if: steps.backend.outputs.deploy == 'true'
         env:
           GCP_PROJECT_ID: ${{ vars.FIREBASE_STAGING_PROJECT_ID }}
           CHANNEL_ID: pr-${{ github.event.pull_request.number }}

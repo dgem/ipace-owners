@@ -5,10 +5,12 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestOriginAllowed(t *testing.T) {
 	t.Setenv("ALLOWED_ORIGINS", "https://staging.example.com")
+	t.Setenv("FIREBASE_PROJECT_ID", "ipace-owners-staging")
 
 	cases := []struct {
 		origin string
@@ -16,7 +18,10 @@ func TestOriginAllowed(t *testing.T) {
 	}{
 		{"https://ipace-owners.org", true},
 		{"https://staging.example.com", true},
-		{"https://example.web.app", true},
+		{"https://ipace-owners-staging--pr-20-ef2wibc5.web.app", true},
+		{"https://ipace-owners-staging--pr-20-ef2wibc5.firebaseapp.com", true},
+		{"https://example.web.app", false},
+		{"https://ipace-owners-production--pr-20-ef2wibc5.web.app", false},
 		{"http://localhost:5000", true},
 		{"https://evil.example", false},
 		{"", false},
@@ -26,6 +31,28 @@ func TestOriginAllowed(t *testing.T) {
 		if got := originAllowed(tc.origin); got != tc.want {
 			t.Fatalf("originAllowed(%q) = %v, want %v", tc.origin, got, tc.want)
 		}
+	}
+}
+
+func TestEmailContinueURLUsesAllowedRequestOrigin(t *testing.T) {
+	t.Setenv("FIREBASE_PROJECT_ID", "ipace-owners-staging")
+	t.Setenv("FIREBASE_EMAIL_CONTINUE_URL", "https://stage.ipace-owners.org/account/")
+
+	got := emailContinueURLForOrigin("https://ipace-owners-staging--pr-20-ef2wibc5.web.app")
+
+	if got != "https://ipace-owners-staging--pr-20-ef2wibc5.web.app/account/" {
+		t.Fatalf("continue URL = %q", got)
+	}
+}
+
+func TestEmailContinueURLFallsBackForDisallowedOrigin(t *testing.T) {
+	t.Setenv("FIREBASE_PROJECT_ID", "ipace-owners-staging")
+	t.Setenv("FIREBASE_EMAIL_CONTINUE_URL", "https://stage.ipace-owners.org/account/")
+
+	got := emailContinueURLForOrigin("https://evil.example")
+
+	if got != "https://stage.ipace-owners.org/account/" {
+		t.Fatalf("continue URL = %q", got)
 	}
 }
 
@@ -99,6 +126,112 @@ func TestHMACDoesNotExposeRawVIN(t *testing.T) {
 	}
 	if len(digest) != 64 {
 		t.Fatalf("hmacValue length = %d, want 64", len(digest))
+	}
+}
+
+func TestVehicleIdentifiersRequireVINOrRegistration(t *testing.T) {
+	vin, registration, ignoredVIN, message := vehicleIdentifiers(vehicleRequest{})
+
+	if vin != "" || registration != "" || ignoredVIN {
+		t.Fatalf("vehicleIdentifiers returned identifiers for empty request: vin=%q registration=%q ignored=%v", vin, registration, ignoredVIN)
+	}
+	if message != "VIN or registration is required" {
+		t.Fatalf("message = %q", message)
+	}
+}
+
+func TestVehicleIdentifiersRejectVINOnlyInvalid(t *testing.T) {
+	vin, registration, ignoredVIN, message := vehicleIdentifiers(vehicleRequest{VIN: "BADVIN"})
+
+	if vin != "" || registration != "" || ignoredVIN {
+		t.Fatalf("vehicleIdentifiers returned identifiers for invalid VIN-only request: vin=%q registration=%q ignored=%v", vin, registration, ignoredVIN)
+	}
+	if message != "VIN must be 17 characters and cannot contain I, O, or Q" {
+		t.Fatalf("message = %q", message)
+	}
+}
+
+func TestVehicleIdentifiersIgnoreInvalidOptionalVINWithRegistration(t *testing.T) {
+	vin, registration, ignoredVIN, message := vehicleIdentifiers(vehicleRequest{
+		VIN:          "BADVIN",
+		Registration: " hv69 voo ",
+	})
+
+	if vin != "" {
+		t.Fatalf("vin = %q, want empty", vin)
+	}
+	if registration != "HV69 VOO" {
+		t.Fatalf("registration = %q", registration)
+	}
+	if !ignoredVIN {
+		t.Fatal("invalid optional VIN was not reported as ignored")
+	}
+	if message != "" {
+		t.Fatalf("message = %q", message)
+	}
+}
+
+func TestVehicleIdentifiersNormalizeValidVIN(t *testing.T) {
+	vin, registration, ignoredVIN, message := vehicleIdentifiers(vehicleRequest{
+		VIN:          "sadha2b10-k1f12345",
+		Registration: " hv69 voo ",
+	})
+
+	if vin != "SADHA2B10K1F12345" {
+		t.Fatalf("vin = %q", vin)
+	}
+	if registration != "HV69 VOO" {
+		t.Fatalf("registration = %q", registration)
+	}
+	if ignoredVIN {
+		t.Fatal("valid VIN should not be ignored")
+	}
+	if message != "" {
+		t.Fatalf("message = %q", message)
+	}
+}
+
+func TestVehicleDateValidationRejectsFutureDates(t *testing.T) {
+	now := time.Date(2026, 6, 24, 12, 0, 0, 0, time.UTC)
+
+	cases := []struct {
+		name string
+		req  vehicleRequest
+		want string
+	}{
+		{
+			name: "owned since",
+			req:  vehicleRequest{OwnedSince: "2026-06-25"},
+			want: "Owned since cannot be in the future",
+		},
+		{
+			name: "first registration",
+			req:  vehicleRequest{FirstReg: "2026-06-25"},
+			want: "First registration date cannot be in the future",
+		},
+		{
+			name: "soh date",
+			req:  vehicleRequest{SOHDate: "2026-06-25"},
+			want: "State of Health measurement date cannot be in the future",
+		},
+		{
+			name: "today accepted",
+			req:  vehicleRequest{OwnedSince: "2026-06-24", FirstReg: "2026-06-24", SOHDate: "2026-06-24"},
+			want: "",
+		},
+		{
+			name: "past accepted",
+			req:  vehicleRequest{OwnedSince: "2026-06-23", FirstReg: "2020-01-01", SOHDate: "2026-01-01"},
+			want: "",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := vehicleDateValidationMessage(tc.req, now); got != tc.want {
+				t.Fatalf("vehicleDateValidationMessage() = %q, want %q", got, tc.want)
+			}
+		})
 	}
 }
 
@@ -207,5 +340,27 @@ func TestCORSPreflight(t *testing.T) {
 	}
 	if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "https://ipace-owners.org" {
 		t.Fatalf("allow-origin = %q", got)
+	}
+}
+
+func TestApiRoutesKnownAndUnknownPaths(t *testing.T) {
+	known := httptest.NewRequest(http.MethodPost, "/api/send-magic-link", strings.NewReader(`{}`))
+	known.Header.Set("Origin", "https://ipace-owners.org")
+	knownRec := httptest.NewRecorder()
+
+	Api(knownRec, known)
+
+	if knownRec.Code != http.StatusBadRequest {
+		t.Fatalf("known route status = %d, want handler response 400", knownRec.Code)
+	}
+
+	unknown := httptest.NewRequest(http.MethodGet, "/api/not-a-route", nil)
+	unknown.Header.Set("Origin", "https://ipace-owners.org")
+	unknownRec := httptest.NewRecorder()
+
+	Api(unknownRec, unknown)
+
+	if unknownRec.Code != http.StatusNotFound {
+		t.Fatalf("unknown route status = %d, want 404", unknownRec.Code)
 	}
 }

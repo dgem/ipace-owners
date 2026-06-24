@@ -46,6 +46,7 @@ var modelYearValues = []string{"2018", "2019", "2020", "2021", "2022", "2023", "
 var sohSourceValues = []string{"dealer-report", "diagnostic-app", "service-paperwork", "jlr-communication", "estimate-unsure"}
 
 func init() {
+	functions.HTTP("Api", Api)
 	functions.HTTP("SendMagicLink", SendMagicLink)
 	functions.HTTP("SubmitJoin", SubmitJoin)
 	functions.HTTP("SubmitVehicleBasics", SubmitVehicleBasics)
@@ -56,8 +57,40 @@ func init() {
 	functions.HTTP("PublicStats", PublicStats)
 }
 
+func Api(w http.ResponseWriter, r *http.Request) {
+	switch strings.TrimRight(r.URL.Path, "/") {
+	case "/api/send-magic-link":
+		SendMagicLink(w, r)
+	case "/api/submit-join":
+		SubmitJoin(w, r)
+	case "/api/submit-vehicle-basics":
+		SubmitVehicleBasics(w, r)
+	case "/api/submit-soh":
+		SubmitSOH(w, r)
+	case "/api/upsert-service-event":
+		UpsertServiceEvent(w, r)
+	case "/api/member-data":
+		MemberData(w, r)
+	case "/api/admin-data":
+		AdminData(w, r)
+	case "/api/public-stats":
+		PublicStats(w, r)
+	default:
+		if cors(w, r) {
+			return
+		}
+		if rejectDisallowedOrigin(w, r) {
+			return
+		}
+		writeJSON(w, http.StatusNotFound, map[string]any{"error": "API route not found"})
+	}
+}
+
 func SendMagicLink(w http.ResponseWriter, r *http.Request) {
 	if cors(w, r) {
+		return
+	}
+	if rejectDisallowedOrigin(w, r) {
 		return
 	}
 	if r.Method != http.MethodPost {
@@ -108,7 +141,7 @@ func SendMagicLink(w http.ResponseWriter, r *http.Request) {
 	fields["joinSubmissionCount"] = joinCount
 	logEvent("send-magic-link", "info", "firebase email link handoff starting", fields)
 
-	if err := sendFirebaseEmailLink(r.Context(), email); err != nil {
+	if err := sendFirebaseEmailLink(r.Context(), email, r.Header.Get("Origin")); err != nil {
 		fields := emailLogFields(email)
 		fields["origin"] = r.Header.Get("Origin")
 		fields["error"] = err.Error()
@@ -125,6 +158,9 @@ func SendMagicLink(w http.ResponseWriter, r *http.Request) {
 
 func SubmitJoin(w http.ResponseWriter, r *http.Request) {
 	if cors(w, r) {
+		return
+	}
+	if rejectDisallowedOrigin(w, r) {
 		return
 	}
 	if r.Method != http.MethodPost {
@@ -223,7 +259,7 @@ func SubmitJoin(w http.ResponseWriter, r *http.Request) {
 		fields := emailLogFields(email)
 		fields["origin"] = r.Header.Get("Origin")
 		logEvent("submit-join", "info", "firebase email link handoff starting", fields)
-		if err := sendFirebaseEmailLink(r.Context(), email); err != nil {
+		if err := sendFirebaseEmailLink(r.Context(), email, r.Header.Get("Origin")); err != nil {
 			magicLinkSent = false
 			fields := emailLogFields(email)
 			fields["origin"] = r.Header.Get("Origin")
@@ -252,6 +288,9 @@ func SubmitVehicleBasics(w http.ResponseWriter, r *http.Request) {
 	if cors(w, r) {
 		return
 	}
+	if rejectDisallowedOrigin(w, r) {
+		return
+	}
 	if r.Method != http.MethodPost {
 		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"error": "Method Not Allowed"})
 		return
@@ -269,14 +308,31 @@ func SubmitVehicleBasics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	vin := strings.ToUpper(strings.ReplaceAll(cleanString(req.VIN, 40), " ", ""))
-	registration := strings.ToUpper(cleanString(req.Registration, 40))
-	if vin != "" && !vinRE.MatchString(vin) {
-		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "VIN must be 17 characters and cannot contain I, O, or Q"})
+	vin, registration, ignoredInvalidVIN, validationMessage := vehicleIdentifiers(req)
+	if validationMessage != "" {
+		logEvent("submit-vehicle-basics", "warn", "request rejected: invalid vehicle identifiers", map[string]any{
+			"uid":             user.UID,
+			"reason":          validationMessage,
+			"hasVin":          cleanString(req.VIN, 40) != "",
+			"vinLength":       len(normalizeVIN(req.VIN)),
+			"hasRegistration": cleanString(req.Registration, 40) != "",
+		})
+		writeJSON(w, http.StatusBadRequest, map[string]any{"ok": false, "error": validationMessage})
 		return
 	}
-	if vin == "" && registration == "" {
-		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "VIN or registration is required"})
+	if ignoredInvalidVIN {
+		logEvent("submit-vehicle-basics", "warn", "invalid optional VIN ignored for registration-based save", map[string]any{
+			"uid":             user.UID,
+			"vinLength":       len(normalizeVIN(req.VIN)),
+			"hasRegistration": true,
+		})
+	}
+	if validationMessage := vehicleDateValidationMessage(req, time.Now().UTC()); validationMessage != "" {
+		logEvent("submit-vehicle-basics", "warn", "request rejected: future vehicle date", map[string]any{
+			"uid":    user.UID,
+			"reason": validationMessage,
+		})
+		writeJSON(w, http.StatusBadRequest, map[string]any{"ok": false, "error": validationMessage})
 		return
 	}
 
@@ -332,8 +388,62 @@ func SubmitVehicleBasics(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{"ok": true, "id": record.ID})
 }
 
+func normalizeVIN(value string) string {
+	value = strings.ToUpper(cleanString(value, 40))
+	value = strings.ReplaceAll(value, " ", "")
+	value = strings.ReplaceAll(value, "-", "")
+	return value
+}
+
+func vehicleIdentifiers(req vehicleRequest) (string, string, bool, string) {
+	vin := normalizeVIN(req.VIN)
+	registration := strings.ToUpper(cleanString(req.Registration, 40))
+	hasVIN := vin != ""
+	hasRegistration := registration != ""
+
+	if !hasVIN && !hasRegistration {
+		return "", "", false, "VIN or registration is required"
+	}
+	if hasVIN && !vinRE.MatchString(vin) {
+		if hasRegistration {
+			return "", registration, true, ""
+		}
+		return "", "", false, "VIN must be 17 characters and cannot contain I, O, or Q"
+	}
+	return vin, registration, false, ""
+}
+
+func vehicleDateValidationMessage(req vehicleRequest, now time.Time) string {
+	if dateIsFuture(req.OwnedSince, now) {
+		return "Owned since cannot be in the future"
+	}
+	if dateIsFuture(req.FirstReg, now) {
+		return "First registration date cannot be in the future"
+	}
+	if dateIsFuture(req.SOHDate, now) {
+		return "State of Health measurement date cannot be in the future"
+	}
+	return ""
+}
+
+func dateIsFuture(value string, now time.Time) bool {
+	value = cleanString(value, 20)
+	if value == "" {
+		return false
+	}
+	parsed, err := time.Parse("2006-01-02", value)
+	if err != nil {
+		return false
+	}
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+	return parsed.After(today)
+}
+
 func MemberData(w http.ResponseWriter, r *http.Request) {
 	if cors(w, r) {
+		return
+	}
+	if rejectDisallowedOrigin(w, r) {
 		return
 	}
 	if r.Method != http.MethodGet {
@@ -356,6 +466,9 @@ func MemberData(w http.ResponseWriter, r *http.Request) {
 
 func AdminData(w http.ResponseWriter, r *http.Request) {
 	if cors(w, r) {
+		return
+	}
+	if rejectDisallowedOrigin(w, r) {
 		return
 	}
 	if r.Method != http.MethodGet {
@@ -391,15 +504,12 @@ func AdminData(w http.ResponseWriter, r *http.Request) {
 
 var sendFirebaseEmailLink = sendFirebaseEmailLinkRequest
 
-func sendFirebaseEmailLinkRequest(ctx context.Context, email string) error {
+func sendFirebaseEmailLinkRequest(ctx context.Context, email string, origin string) error {
 	apiKey := os.Getenv("FIREBASE_WEB_API_KEY")
 	if apiKey == "" {
 		return fmt.Errorf("FIREBASE_WEB_API_KEY is not configured")
 	}
-	continueURL := os.Getenv("FIREBASE_EMAIL_CONTINUE_URL")
-	if continueURL == "" {
-		continueURL = "https://ipace-owners.org/account/"
-	}
+	continueURL := emailContinueURLForOrigin(origin)
 	linkDomain := os.Getenv("FIREBASE_EMAIL_LINK_DOMAIN")
 	fields := emailLogFields(email)
 	fields["continueHost"] = urlHost(continueURL)

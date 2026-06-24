@@ -37,20 +37,6 @@ multiStepForm: true
 
 	<!-- Content — revealed by member-auth.js after server confirms auth -->
 	<div class="auth-content" data-auth-content hidden>
-	<div class="callout callout--info" style="margin-bottom: var(--space-8);">
-		<span class="callout__icon" aria-hidden="true">ℹ️</span>
-		<div class="callout__content">
-			<p class="callout__title">Vehicle basics are stored securely</p>
-			<p>This first release stores vehicle identity, ownership dates, mileage, and battery
-			State of Health details. It does not yet collect recall, repair, loan car, payment,
-			or evidence upload information.</p>
-			<p>Add one vehicle at a time. You can return here to register another I-PACE.</p>
-			<p style="margin-bottom:0;">Full VINs are not stored. If provided, the VIN is converted
-			to a server-side HMAC for deduplication, and only the final six characters are kept
-			for member-facing reference.</p>
-		</div>
-	</div>
-
 	<form
 		class="form"
 		style="max-width: none;"
@@ -77,20 +63,24 @@ multiStepForm: true
 		<div data-step="1">
 			<h2 class="step-heading" data-step-heading tabindex="-1">Vehicle details</h2>
 
-			<fieldset>
+			<fieldset data-require-one="vin registration">
 				<legend>About your I-PACE</legend>
+				<p class="form-error" data-require-one-error role="alert" hidden>Provide either the VIN or registration before continuing.</p>
 
 				<div class="two-column">
 					<div class="form-group">
 						<label for="vin">VIN</label>
-						<input type="text" id="vin" name="vin" maxlength="17" autocomplete="off" aria-describedby="vin-hint" pattern="[A-HJ-NPR-Z0-9]{17}">
-						<span class="form-hint" id="vin-hint">Optional 17-character Vehicle Identification Number. You can find it on the V5C/log book, windscreen plate, or Jaguar app. Full VINs are never stored.</span>
+						<input type="text" id="vin" name="vin" maxlength="25" autocomplete="off" aria-describedby="vin-hint vin-error vin-warning" data-vin-identifier data-vin-optional-with="registration">
+						<span class="form-hint" id="vin-hint">Optional 17-character Vehicle Identification Number. Spaces and hyphens are ignored. You can find it on the V5C/log book, windscreen plate, or Jaguar app. Full VINs are never stored.</span>
+						<span class="form-error" id="vin-error" role="alert" hidden>VIN must be 17 characters and cannot contain I, O, or Q. Leave it blank if you are using registration instead.</span>
+						<span class="form-warning" id="vin-warning" data-vin-warning hidden>This does not look like a typical Jaguar/JLR VIN. You can continue if it is correct.</span>
 					</div>
 
 					<div class="form-group">
 						<label for="registration">Registration / plate</label>
-						<input type="text" id="registration" name="registration" autocomplete="off" aria-describedby="registration-hint">
-						<span class="form-hint" id="registration-hint">Provide either the registration or VIN so we can identify the vehicle record.</span>
+						<input type="text" id="registration" name="registration" autocomplete="off" aria-describedby="registration-hint registration-warning" data-uk-registration data-country-field="country">
+						<span class="form-hint" id="registration-hint">Provide either the registration or VIN so we can identify the vehicle record. UK plates are checked as guidance only.</span>
+						<span class="form-warning" id="registration-warning" data-uk-registration-warning hidden>This does not look like a common UK registration format. You can continue if it is correct.</span>
 					</div>
 
 					<div class="form-group">
@@ -141,12 +131,14 @@ multiStepForm: true
 
 					<div class="form-group">
 						<label for="owned-since">Owned since</label>
-						<input type="date" id="owned-since" name="ownedSince">
+						<input type="date" id="owned-since" name="ownedSince" aria-describedby="owned-since-error" data-not-future>
+						<span class="form-error" id="owned-since-error" role="alert" hidden>Owned since cannot be in the future.</span>
 					</div>
 
 					<div class="form-group">
 						<label for="first-reg">First registration date <span style="font-weight:400; color: var(--color-text-muted);">(if known)</span></label>
-						<input type="date" id="first-reg" name="firstReg">
+						<input type="date" id="first-reg" name="firstReg" aria-describedby="first-reg-error" data-not-future>
+						<span class="form-error" id="first-reg-error" role="alert" hidden>First registration date cannot be in the future.</span>
 					</div>
 				</div>
 			</fieldset>
@@ -172,7 +164,8 @@ multiStepForm: true
 
 					<div class="form-group">
 						<label for="soh-date">Date SoH was measured</label>
-						<input type="date" id="soh-date" name="sohDate">
+						<input type="date" id="soh-date" name="sohDate" aria-describedby="soh-date-error" data-not-future>
+						<span class="form-error" id="soh-date-error" role="alert" hidden>State of Health measurement date cannot be in the future.</span>
 					</div>
 
 					<div class="form-group">
@@ -202,7 +195,7 @@ multiStepForm: true
 
 		<div class="submit-result" data-submit-result tabindex="-1" role="status">
 			<div style="text-align: center; padding: var(--space-4);">
-				<div style="font-size: 3rem; margin-bottom: var(--space-4);" aria-hidden="true">✅</div>
+				<div style="font-size: 3rem; margin-bottom: var(--space-4);" aria-hidden="true" data-database-result-icon>⏳</div>
 				<h2>Vehicle basics</h2>
 
 				<div data-database-success hidden>
@@ -221,17 +214,39 @@ multiStepForm: true
 
 				<div data-database-error hidden>
 					<p style="color: var(--color-danger);">
-						We could not save the vehicle basics right now. Please try again later or contact
+						<span data-database-error-message>We could not save the vehicle basics right now.</span>
+						Please try again later or contact
 						<a href="mailto:contact@ipace-owners.org">contact@ipace-owners.org</a>.
 					</p>
 				</div>
 
-				<div class="cluster" style="justify-content:center; margin-top: var(--space-4);">
+				<div class="cluster" style="justify-content:center; margin-top: var(--space-4);" data-database-success-actions hidden>
 					<a href="/member/dashboard/" class="btn btn--primary">My Data</a>
 					<a href="/submit-vehicle-data/" class="btn btn--secondary">Add another vehicle</a>
 					<a href="/evidence-dashboard/" class="btn btn--secondary">View Evidence Dashboard</a>
 				</div>
+				<div class="cluster" style="justify-content:center; margin-top: var(--space-4);" data-database-error-actions hidden>
+					<a href="/submit-vehicle-data/" class="btn btn--secondary">Try again</a>
+					<a href="/member/dashboard/" class="btn btn--secondary">My Data</a>
+				</div>
 			</div>
+		</div>
+	</form>
+
+	<div class="callout callout--info" style="margin-top: var(--space-8);">
+		<span class="callout__icon" aria-hidden="true">ℹ️</span>
+		<div class="callout__content">
+			<p class="callout__title">Vehicle data starts here</p>
+			<p>Register one I-PACE with vehicle identity, ownership dates, mileage, and optional
+			battery State of Health details. After saving, use My Data to add further SoH readings
+			and service or fault history for that vehicle.</p>
+			<p>Campaign involvement, fault duration, courtesy vehicle, parts delay, warranty cover,
+			and dispute details can be added from My Data as service or fault records. Payment,
+			goodwill, and evidence upload fields will be added as the evidence workflow expands.
+			Add one vehicle at a time; you can return here to register another I-PACE.</p>
+			<p style="margin-bottom:0;">Full VINs are not stored. If provided, the VIN is converted
+			to a server-side HMAC for deduplication, and only the final six characters are kept
+			for member-facing reference.</p>
 		</div>
 	</div>
 </div>

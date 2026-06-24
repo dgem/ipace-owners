@@ -48,6 +48,7 @@
     var resultEl = form.querySelector('[data-submit-result]');
 
     // ── Initial state (JS enabled) ──────────────────────────────────────────
+    setDateMaximums();
     steps.forEach(function (step, i) {
       if (i !== 0) {
         step.classList.add('step--hidden');
@@ -57,6 +58,7 @@
     });
 
     updateConditionalSubmitControls();
+    updateSoftWarnings();
     updateUI();
 
     // ── Navigation handlers ─────────────────────────────────────────────────
@@ -81,6 +83,10 @@
       e.preventDefault();
 
       updateConditionalSubmitControls();
+      if (!conditionalSubmitControlsMet()) {
+        focusFirstMissingCheckedRequirement();
+        return;
+      }
       if (!validateCurrentStep()) return;
 
       if (resultEl) {
@@ -107,8 +113,14 @@
       }
     });
 
-    form.addEventListener('change', updateConditionalSubmitControls);
-    form.addEventListener('input', updateConditionalSubmitControls);
+    form.addEventListener('change', function () {
+      updateConditionalSubmitControls();
+      updateSoftWarnings();
+    });
+    form.addEventListener('input', function () {
+      updateConditionalSubmitControls();
+      updateSoftWarnings();
+    });
 
     // ── Core: go to step ────────────────────────────────────────────────────
     function goToStep(index) {
@@ -175,6 +187,26 @@
       });
     }
 
+    function conditionalSubmitControlsMet() {
+      return conditionalSubmitBtns.every(checkedRequirementsMet);
+    }
+
+    function focusFirstMissingCheckedRequirement() {
+      for (var i = 0; i < conditionalSubmitBtns.length; i++) {
+        var raw = conditionalSubmitBtns[i].getAttribute('data-enable-when-checked') || '';
+        var names = raw.split(/[\s,]+/).filter(Boolean);
+        for (var j = 0; j < names.length; j++) {
+          var missing = Array.from(form.elements).find(function (control) {
+            return control.name === names[j] && control.type === 'checkbox' && !control.checked;
+          });
+          if (missing) {
+            missing.focus();
+            return;
+          }
+        }
+      }
+    }
+
     function checkedRequirementsMet(button) {
       var raw = button.getAttribute('data-enable-when-checked') || '';
       var names = raw.split(/[\s,]+/).filter(Boolean);
@@ -196,12 +228,14 @@
       inputs.forEach(function (input) {
         // Clear previous error
         input.removeAttribute('aria-invalid');
-        var errorEl = input.parentNode.querySelector('[role="alert"]') ||
-                      document.getElementById(input.getAttribute('aria-describedby'));
+        var errorEl = input.parentNode.querySelector('[role="alert"]');
 
         if (isRequiredMissing(input)) {
           input.setAttribute('aria-invalid', 'true');
-          if (errorEl) errorEl.textContent = 'This field is required.';
+          if (errorEl) {
+            errorEl.hidden = false;
+            errorEl.textContent = 'This field is required.';
+          }
           if (valid) {
             // Focus the first invalid field
             input.focus();
@@ -209,11 +243,177 @@
           valid = false;
         } else if (input.type === 'email' && input.value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.value)) {
           input.setAttribute('aria-invalid', 'true');
-          if (errorEl) errorEl.textContent = 'Please enter a valid email address.';
+          if (errorEl) {
+            errorEl.hidden = false;
+            errorEl.textContent = 'Please enter a valid email address.';
+          }
           if (valid) input.focus();
           valid = false;
         } else {
-          if (errorEl) errorEl.textContent = '';
+          if (errorEl && !input.hasAttribute('data-not-future') && !input.hasAttribute('data-vin-identifier')) {
+            errorEl.textContent = '';
+          }
+        }
+      });
+
+      if (!validateRequiredGroups(step)) {
+        valid = false;
+      }
+      if (!validateVINIdentifiers(step)) {
+        valid = false;
+      }
+      if (!validateNotFutureDates(step)) {
+        valid = false;
+      }
+
+      updateSoftWarnings();
+
+      return valid;
+    }
+
+    function setDateMaximums() {
+      var today = localDateString(new Date());
+      form.querySelectorAll('input[type="date"][data-not-future]').forEach(function (input) {
+        input.max = today;
+      });
+    }
+
+    function localDateString(date) {
+      var year = date.getFullYear();
+      var month = String(date.getMonth() + 1).padStart(2, '0');
+      var day = String(date.getDate()).padStart(2, '0');
+      return year + '-' + month + '-' + day;
+    }
+
+    function isFutureDate(value) {
+      if (!value) return false;
+      return value > localDateString(new Date());
+    }
+
+    function validateNotFutureDates(step) {
+      var valid = true;
+      step.querySelectorAll('input[type="date"][data-not-future]').forEach(function (input) {
+        var errorEl = input.parentNode.querySelector('[role="alert"]');
+        var future = isFutureDate(input.value);
+        if (future) {
+          input.setAttribute('aria-invalid', 'true');
+          if (errorEl) errorEl.hidden = false;
+          if (valid) input.focus();
+          valid = false;
+        } else if (errorEl) {
+          errorEl.hidden = true;
+        }
+      });
+      return valid;
+    }
+
+    function normalizeVIN(value) {
+      return String(value || '').toUpperCase().replace(/[\s-]/g, '');
+    }
+
+    function vinLooksValid(value) {
+      return /^[A-HJ-NPR-Z0-9]{17}$/.test(normalizeVIN(value));
+    }
+
+    function validateVINIdentifiers(step) {
+      var valid = true;
+      step.querySelectorAll('[data-vin-identifier]').forEach(function (input) {
+        var vin = normalizeVIN(input.value);
+        var optionalWith = input.getAttribute('data-vin-optional-with') || '';
+        var other = optionalWith && form.elements[optionalWith] ? String(form.elements[optionalWith].value || '').trim() : '';
+        var errorEl = input.parentNode.querySelector('[role="alert"]');
+        var invalidBlockingVIN = vin && !vinLooksValid(vin) && !other;
+
+        if (invalidBlockingVIN) {
+          input.setAttribute('aria-invalid', 'true');
+          if (errorEl) errorEl.hidden = false;
+          if (valid) input.focus();
+          valid = false;
+        } else {
+          input.removeAttribute('aria-invalid');
+          if (errorEl) errorEl.hidden = true;
+        }
+      });
+      return valid;
+    }
+
+    function updateSoftWarnings() {
+      updateVINWarnings();
+      updateUKRegistrationWarnings();
+    }
+
+    function updateVINWarnings() {
+      form.querySelectorAll('[data-vin-identifier]').forEach(function (input) {
+        var warningEl = input.parentNode.querySelector('[data-vin-warning]');
+        if (!warningEl) return;
+        var vin = normalizeVIN(input.value);
+        warningEl.hidden = !(vinLooksValid(vin) && !/^SAD/.test(vin));
+      });
+    }
+
+    function normalizeRegistration(value) {
+      return String(value || '').toUpperCase().replace(/\s+/g, '');
+    }
+
+    function ukRegistrationLooksPlausible(value) {
+      var reg = normalizeRegistration(value);
+      if (!reg) return true;
+      return /^[A-Z]{2}[0-9]{2}[A-Z]{3}$/.test(reg) ||
+        /^[A-Z][0-9]{1,3}[A-Z]{3}$/.test(reg) ||
+        /^[A-Z]{3}[0-9]{1,3}[A-Z]$/.test(reg) ||
+        /^[A-Z]{1,3}[0-9]{1,4}$/.test(reg) ||
+        /^[0-9]{1,4}[A-Z]{1,3}$/.test(reg) ||
+        /^[A-Z]{1,3}[0-9]{1,4}[A-Z]{0,1}$/.test(reg);
+    }
+
+    function updateUKRegistrationWarnings() {
+      form.querySelectorAll('[data-uk-registration]').forEach(function (input) {
+        var warningEl = input.parentNode.querySelector('[data-uk-registration-warning]');
+        if (!warningEl) return;
+        var countryName = input.getAttribute('data-country-field') || '';
+        var country = countryName && form.elements[countryName] ? form.elements[countryName].value : '';
+        var shouldCheck = country === 'GB';
+        warningEl.hidden = !(shouldCheck && input.value.trim() && !ukRegistrationLooksPlausible(input.value));
+      });
+    }
+
+    function validateRequiredGroups(step) {
+      var groups = Array.from(step.querySelectorAll('[data-require-one]'));
+      var valid = true;
+
+      groups.forEach(function (group) {
+        var names = (group.getAttribute('data-require-one') || '').split(/[\s,]+/).filter(Boolean);
+        var errorEl = group.querySelector('[data-require-one-error]');
+        var controls = names.map(function (name) {
+          return form.elements[name];
+        }).filter(Boolean);
+        var hasValue = controls.some(function (control) {
+          if (typeof RadioNodeList !== 'undefined' && control instanceof RadioNodeList) {
+            return Array.from(control).some(function (item) { return !!String(item.value || '').trim(); });
+          }
+          if (control.type === 'checkbox' || control.type === 'radio') {
+            return control.checked;
+          }
+          return !!String(control.value || '').trim();
+        });
+
+        controls.forEach(function (control) {
+          if (typeof RadioNodeList !== 'undefined' && control instanceof RadioNodeList) {
+            Array.from(control).forEach(function (item) {
+              item.setAttribute('aria-invalid', hasValue ? 'false' : 'true');
+            });
+          } else if (hasValue) {
+            control.removeAttribute('aria-invalid');
+          } else {
+            control.setAttribute('aria-invalid', 'true');
+          }
+        });
+
+        if (errorEl) errorEl.hidden = hasValue;
+        if (!hasValue) {
+          valid = false;
+          var first = typeof RadioNodeList !== 'undefined' && controls[0] instanceof RadioNodeList ? controls[0][0] : controls[0];
+          if (first && document.activeElement !== first) first.focus();
         }
       });
 

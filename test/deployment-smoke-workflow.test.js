@@ -19,3 +19,17 @@ test('deployment smoke tests run inside Firebase deploy workflows', function () 
   assert.match(productionWorkflow, /SMOKE_BASE_URL: https:\/\/ipace-owners\.org/);
   assert.match(productionWorkflow, /run: make smoke/);
 });
+
+test('Firebase deploy workflows skip Function deploys when backend is unchanged', function () {
+  const stagingWorkflow = readFileSync(stagingWorkflowPath, 'utf8');
+  const productionWorkflow = readFileSync(productionWorkflowPath, 'utf8');
+
+  for (const workflow of [stagingWorkflow, productionWorkflow]) {
+    assert.match(workflow, /name: Detect backend deploy changes/);
+    assert.match(workflow, /functions\/firebase-go\//);
+    assert.match(workflow, /firebase\\.json/);
+    assert.match(workflow, /if: steps\.backend\.outputs\.deploy == 'true'/);
+  }
+  assert.match(stagingWorkflow, /name: Refresh Firebase Hosting preview with current Function revisions/);
+  assert.match(stagingWorkflow, /if: steps\.backend\.outputs\.deploy == 'true'/);
+});

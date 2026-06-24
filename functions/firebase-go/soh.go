@@ -12,6 +12,9 @@ func SubmitSOH(w http.ResponseWriter, r *http.Request) {
 	if cors(w, r) {
 		return
 	}
+	if rejectDisallowedOrigin(w, r) {
+		return
+	}
 	if r.Method != http.MethodPost {
 		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"error": "Method Not Allowed"})
 		return
@@ -79,6 +82,9 @@ func validatedBatteryReading(req batteryReadingRequest) (batteryDetails, error) 
 	measuredAt := cleanDate(req.SOHDate)
 	if measuredAt == "" {
 		return batteryDetails{}, fmt.Errorf("measurement date is required")
+	}
+	if dateIsFuture(measuredAt, time.Now().UTC()) {
+		return batteryDetails{}, fmt.Errorf("measurement date cannot be in the future")
 	}
 	source := cleanEnum(req.SOHSource, sohSourceValues)
 	if source == "" {

@@ -26,6 +26,8 @@ without compressing each car into a narrow dashboard column.
 - Provide an Add reading button that reveals a focused form.
 - Post to `POST /api/submit-soh` with a Firebase ID token.
 - Refresh private member data after a successful write while preserving the selected car.
+- SoH measurement dates must not be in the future. Enforce this in the browser and in the
+  Go handler.
 
 ## Service Events and Faults
 
@@ -41,6 +43,18 @@ Below SoH history, show a dated timeline for the selected car. Support these rec
 Each record contains date, optional mileage, summary, optional details, and status (`open`,
 `monitoring`, `resolved`, or `completed`). Members can add and edit records through
 `POST /api/upsert-service-event`.
+Service/fault event dates must not be in the future. Enforce this in the browser and in the
+Go handler.
+
+New records should default to `fault`. The form should also capture optional structured
+evidence fields:
+
+- related campaigns or recalls: `H447`, `H570`, `H571`, `H572`, other, unsure, none;
+- final fix date and days from fault to final fix;
+- whether a courtesy vehicle was offered and whether one was provided;
+- whether the repair was delayed due to parts;
+- warranty cover in place at the time;
+- responsibility or warranty dispute status.
 
 The Go Function must verify Firebase Auth, vehicle ownership, and existing-record ownership.
 Store canonical records in Firestore `serviceEvents`, preserve creation/review metadata on

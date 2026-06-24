@@ -16,8 +16,10 @@ Firestore is the source of truth for:
 - Join submissions, relationship status, skills, and consents;
 - vehicles, with one member able to own or submit data for multiple vehicles;
 - battery State of Health readings;
-- service, fault, repair, recall, and inspection timeline records;
-- future recall, repair, loan car, payment, goodwill, responsibility, and review data;
+- service, fault, repair, recall, and inspection timeline records, including optional
+  campaign tags (`H447`, `H570`, `H571`, `H572`), fix duration, courtesy vehicle,
+  parts-delay, warranty-cover, and dispute fields;
+- future payment, goodwill, expense, evidence-upload, responsibility-publication, and review data;
 - admin review state, verification levels, and audit events.
 
 Use Go Cloud Functions with the Firebase Admin SDK and Firestore client. Do not make

@@ -28,9 +28,13 @@ server-side by Go Cloud Functions that validate Firebase ID tokens.
 - Initialise Firebase Auth defensively.
 - Complete `signInWithEmailLink` when the user opens a Firebase email link.
 - Store and clear `ipaceEmailForSignIn` in `localStorage` for the email-link flow.
-- If the stored email is missing or rejected by Firebase, prompt the user to confirm the
-  email address that received the link before falling back to the logged-out UI. Surface a
-  visible error in `[data-magic-link-status]` if completion still fails.
+- When Join sends a guest registration link, store the submitted email in
+  `ipaceEmailForSignIn` so the clicked link can complete without asking again in the same
+  browser.
+- Do not use `window.prompt` for email-link completion. If the stored email is missing or
+  rejected by Firebase, use the visible `[data-magic-link-form]` and
+  `[data-magic-link-status]` UI to ask for the email address that received the link, then
+  complete the pending link from that form submission.
 - Expose `window.ipaceGetIdentityToken()` so form/API code can attach
   `Authorization: Bearer <Firebase ID token>`.
 - Update header and mobile controls based on current user state.
@@ -52,8 +56,14 @@ server-side by Go Cloud Functions that validate Firebase ID tokens.
 - On 200: hide the gate, show content, populate data from response.
 - On 401: keep login gate visible.
 - On 403 for admin: show access-restricted gate.
-- Populate vehicle lists, join info, admin stats, join table, and vehicle table from the
-  API response.
+- Populate vehicle lists, join info, account preferences, admin stats, join table, and
+  vehicle table from the API response.
+- Account preferences must display the latest saved Join consent and membership state from
+  the member snapshot, including contact permission, anonymised aggregate-analysis consent,
+  participation acknowledgement, relationship, and volunteering interests where present.
+  Do not show placeholder copy saying preferences will be manageable in a future release.
+  Preference editing needs a server-side audited account update flow before controls are
+  shown as editable.
 
 ## Server-side APIs
 

@@ -38,8 +38,9 @@ history so changes over time can be analysed. With aggregate-analysis consent, a
 counts, averages, changes, and distributions may appear on the public evidence dashboard.
 
 Members can also keep dated service, fault, repair, recall, and inspection records for each
-vehicle, including optional mileage, status, and notes. These records remain private member
-data and are not currently included in public statistics.
+vehicle, including optional mileage, status, notes, related campaigns, fix duration,
+courtesy vehicle information, parts-delay information, warranty cover, and dispute status.
+These records remain private member data and are not currently included in public statistics.
 
 Full VINs are not stored. If you provide a VIN, it is converted server-side to an HMAC for
 deduplication and the final six characters are kept for member-facing reference.

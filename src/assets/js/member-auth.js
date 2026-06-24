@@ -106,6 +106,26 @@
     });
   }
 
+  function todayString() {
+    var date = new Date();
+    return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+  }
+
+  function validateNotFutureDates(form) {
+    var valid = true;
+    form.querySelectorAll('input[type="date"][data-not-future]').forEach(function (input) {
+      var error = input.parentNode.querySelector('[role="alert"]');
+      var future = !!input.value && input.value > todayString();
+      input.setAttribute('aria-invalid', future ? 'true' : 'false');
+      if (error) error.hidden = !future;
+      if (future && valid) {
+        input.focus();
+        valid = false;
+      }
+    });
+    return valid;
+  }
+
   function formatSOHSource(value) {
     var labels = {
       'dealer-report': 'Dealer report',
@@ -198,6 +218,48 @@
     joinEl.innerHTML = html;
    }
 
+  function preferenceRow(label, enabled, enabledLabel, disabledLabel) {
+    var statusClass = enabled ? 'preference-list__status preference-list__status--on' : 'preference-list__status';
+    var statusText = enabled ? enabledLabel : disabledLabel;
+    return '<div class="preference-list__row">' +
+      '<dt>' + escapeHtml(label) + '</dt>' +
+      '<dd><span class="' + statusClass + '">' + escapeHtml(statusText) + '</span></dd>' +
+      '</div>';
+  }
+
+  function populatePreferences(container, records) {
+    var preferencesEl = container.querySelector('[data-preferences-container]');
+    if (!preferencesEl) return;
+
+    if (!records || records.length === 0) {
+      preferencesEl.innerHTML =
+        '<p class="form-hint">No membership preferences have been recorded yet. Join the group to set contact and data-use preferences.</p>';
+      return;
+    }
+
+    var rec = records[0];
+    var consents = rec.consents || {};
+    var membership = rec.membership || {};
+    var skills = membership.skills || [];
+
+    var html = '<dl class="preference-list">';
+    html += preferenceRow('Group contact', consents.contact, 'Enabled', 'Not enabled');
+    html += preferenceRow('Anonymised aggregate analysis', consents.anonymisedAnalysis, 'Allowed', 'Not allowed');
+    html += preferenceRow('Participation acknowledgement', consents.notLegalClaim, 'Confirmed', 'Not recorded');
+    if (membership.relationship) {
+      html += '<div class="preference-list__row"><dt>Relationship</dt><dd>' + escapeHtml(formatRelationship(membership.relationship)) + '</dd></div>';
+    }
+    if (skills.length > 0) {
+      html += '<div class="preference-list__row"><dt>Volunteering interests</dt><dd>' + skills.map(escapeHtml).join(', ') + '</dd></div>';
+    }
+    if (rec.createdAt) {
+      html += '<div class="preference-list__row"><dt>Recorded</dt><dd>' + escapeHtml(formatDate(rec.createdAt)) + '</dd></div>';
+    }
+    html += '</dl>';
+    html += '<p class="form-hint">Preference editing will be added with an audited account update flow. For now, contact the group if these details need correcting.</p>';
+    preferencesEl.innerHTML = html;
+   }
+
   async function verifyMemberAuth() {
     var runId = ++authRunId;
     var containers = document.querySelectorAll('[data-auth-container]');
@@ -229,6 +291,8 @@
         if (joinContainer && data.joinRecords) {
           populateJoinInfo(joinContainer, data.joinRecords);
         }
+
+        populatePreferences(container, data.joinRecords || []);
 
         // Expose raw data for other scripts to consume
         container.dataset.memberData = JSON.stringify(data);
@@ -448,6 +512,10 @@
     var button = form.querySelector('button[type="submit"]');
     var payload = {};
     new FormData(form).forEach(function (value, key) { payload[key] = value; });
+    if (!validateNotFutureDates(form)) {
+      if (status) status.textContent = 'Check the highlighted date before saving.';
+      return;
+    }
     if (button) button.disabled = true;
     if (status) status.textContent = 'Saving reading...';
 

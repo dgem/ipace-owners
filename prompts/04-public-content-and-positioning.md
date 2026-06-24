@@ -40,8 +40,8 @@ The homepage should include:
 - Context for traction battery faults, recall work, degradation, warranty uncertainty, and
   cars moving beyond the 8-year battery warranty.
 - Feature cards for Collective Voice, Constructive Approach, and Evidence Based.
-- A "Why now?" section mentioning traction battery faults, H570/H571/H572 recall concerns,
-  HV battery work and module replacements, battery State of Health concerns, vehicles
+- A "Why now?" section mentioning traction battery faults, H447/H570/H571/H572 campaign
+  and recall concerns, HV battery work and module replacements, battery State of Health concerns, vehicles
   approaching or beyond the 8-year / 100,000-mile battery warranty, and inconsistent owner
   experiences around support, loan cars, parts delays, and goodwill payments.
 - Place "Why now?" immediately after the hero and arrange its issue items in two responsive

@@ -15,7 +15,7 @@ It is the current source of truth for the I-PACE Owners' Advocacy Group architec
   from `FIREBASE_PROJECT_ID` during the initial OpenTofu/GitHub variable rollout.
 - **Generated snapshots:** member/private and public aggregate JSON written to
   Firestore and Cloud Storage so page loads avoid repeated canonical-store reads.
-- **Hosting:** Firebase Hosting with rewrites from `/api/*` to Go Functions.
+- **Hosting:** Firebase Hosting with one `/api/**` rewrite to the Go `Api` Function.
 - **Infrastructure:** OpenTofu/Terraform under `infra/opentofu/`.
 - **CI/CD:** GitHub Actions with GCP Workload Identity Federation. PRs deploy to staging
   Firebase Hosting preview channels; `main` deploys to production.
@@ -44,12 +44,14 @@ the retired hosting or Function platform.
 1. Build-time Firebase web config is emitted by `.eleventy.js` from environment variables.
 2. `identity.js` initialises Firebase Auth and never opens a password modal.
 3. Magic-link login forms call `POST /api/send-magic-link`.
-4. The Go `SendMagicLink` Function first checks for an existing Join submission matching
+4. The Go `Api` Function routes the request to `SendMagicLink`, which first checks for an
+   existing Join submission matching
    the email fingerprint. It calls Firebase Identity Toolkit only for registered members
    and suppresses email side effects for unregistered addresses or lookup failures while
    returning account-enumeration-resistant `{ ok: true }` for valid email syntax. Set
-   Identity Toolkit's `linkDomain` to the environment's verified Firebase Hosting custom
-   domain, while `continueUrl` points to that environment's account page.
+   Identity Toolkit's `linkDomain` only for environments with a verified Firebase Hosting
+   custom domain. Derive `continueUrl` from a validated request origin for allowed preview
+   hosts; otherwise fall back to the environment account URL.
 5. When the user opens the email link, `identity.js` completes
    `signInWithEmailLink`, stores the session locally, clears auth query parameters, and
    exposes `window.ipaceGetIdentityToken()`.
@@ -59,7 +61,7 @@ the retired hosting or Function platform.
 
 ## Implemented API contracts
 
-| Route | Function | Auth | Purpose |
+| Route | Handler behind `Api` | Auth | Purpose |
 |---|---|---|---|
 | `POST /api/send-magic-link` | `SendMagicLink` | No | Request a passwordless sign-in email for an already registered member. |
 | `POST /api/submit-join` | `SubmitJoin` | Optional | Save Join submission; send email link for guests. |
@@ -70,8 +72,10 @@ the retired hosting or Function platform.
 | `GET /api/admin-data` | `AdminData` | Admin | Return review data for administrators. |
 | `GET /api/public-stats` | `PublicStats` | No | Return the generated anonymised aggregate snapshot. |
 
-Templates and client JavaScript use `/api/*`; Firebase Hosting rewrites those routes to Go
-Functions.
+Templates and client JavaScript use `/api/*`; Firebase Hosting rewrites `/api/**` to the
+single Go `Api` Function, which dispatches to handler functions in process. `make
+deploy-functions` deploys only `Api`; do not re-expand deployment to one Cloud Function per
+route unless there is a measured need.
 
 ## Data model principles
 
@@ -131,7 +135,8 @@ Functions.
   git; provide the remaining secret `VIN_PEPPER` through uncommitted tfvars or `TF_VAR_*`.
 - The repository Makefile is the shared command surface for local development and CI.
   `make` and `make help` must print documented targets; `make functions` must list the
-  Cloud Function entrypoints deployed by `make deploy-functions`.
+  Cloud Function entrypoints deployed by `make deploy-functions`. The expected production
+  deployment surface is the single `Api` entrypoint.
 - Infrastructure operations must use explicit `ENV=staging` or `ENV=production` Make
   targets. `make infra-plan` and `make deploy-hosting-env` should conditionally refresh
   gcloud user/ADC authentication, set an accessible ADC quota project, initialise the
@@ -160,12 +165,13 @@ Functions.
   for smoke testing, because Firebase Hosting preview deployments do not consistently
   provide a usable site URL through those events.
   Production deploys should also run smoke tests directly after hosting deployment.
-  Discover the generated preview URL before deploying Functions, use it for the staging
-  Function CORS origin and email-link continue URL, append its hostname to Firebase
-  Auth's authorized domains, then redeploy the channel so its rewrites pin the current
-  Function revisions. Serialize staging deployments because preview channels share the
-  staging Functions and Auth configuration. Do not depend on a staging custom domain for PR
-  flows. Grant the GitHub deployer only `firebaseauth.configs.get` and
+  Discover the generated preview URL, append its hostname to Firebase Auth's authorized
+  domains, and run smoke tests against that URL. Deploy the Go `Api` Function only when
+  backend-related files or Function environment generation change; otherwise reuse the
+  existing staging `Api` revision. If `Api` is redeployed, refresh the preview channel so
+  rewrites point at the current Function revision. Serialize staging deployments because
+  preview channels share the staging Functions and Auth configuration. Do not depend on a
+  staging custom domain for PR flows. Grant the GitHub deployer only `firebaseauth.configs.get` and
   `firebaseauth.configs.update` through a project custom role rather than an Identity Toolkit
   administrator role.
 - Do not pass a Firebase Hosting preview/default `web.app` hostname as Identity Toolkit's

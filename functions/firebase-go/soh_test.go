@@ -34,6 +34,7 @@ func TestValidatedBatteryReadingRejectsIncompleteMeasurement(t *testing.T) {
 		{VehicleID: "vehicle_123", SOH: "101", SOHDate: "2026-06-22", SOHSource: "diagnostic-app"},
 		{VehicleID: "vehicle_123", SOH: "90", SOHSource: "diagnostic-app"},
 		{VehicleID: "vehicle_123", SOH: "90", SOHDate: "2026-06-22"},
+		{VehicleID: "vehicle_123", SOH: "90", SOHDate: "2099-06-22", SOHSource: "diagnostic-app"},
 	}
 	for _, request := range cases {
 		if _, err := validatedBatteryReading(request); err == nil {

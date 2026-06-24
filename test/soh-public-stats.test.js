@@ -15,8 +15,9 @@ test('member UI appends authenticated SoH readings to owned vehicles', function 
   assert.match(memberDashboard, /name="vehicleId"/);
   assert.match(memberDashboard, /State of Health history/);
   assert.match(memberAuth, /fetchWithIdentity\('\/api\/submit-soh'/);
-  assert.match(firebase, /"source": "\/api\/submit-soh"/);
-  assert.match(firebase, /"functionId": "SubmitSOH"/);
+  assert.match(firebase, /"source": "\/api\/\*\*"/);
+  assert.match(firebase, /"functionId": "Api"/);
+  assert.doesNotMatch(firebase, /"functionId": "SubmitSOH"/);
 });
 
 test('homepage and evidence dashboard load real public aggregate statistics', function () {

@@ -71,7 +71,17 @@ Provide accessible multi-step forms that collect membership interest now, help o
   signed-in header controls.
 - Validate required text, email, select, checkbox, and radio controls according to their actual user state. Required checkboxes must be checked; required radio groups must have a checked option.
 - On the Join form, the final "Join the Group" submit button should be enabled only after
-  the contact consent and not-a-legal-claim acknowledgement checkboxes are ticked.
+  the contact consent and not-a-legal-claim acknowledgement checkboxes are ticked. Render it
+  with a `disabled` attribute in the initial HTML and keep a submit-time guard in JavaScript
+  so the consent requirement holds even if initial enhancement is delayed.
+- The Join page below-form callout should explain that Join answers are saved and that, after
+  confirming the emailed sign-in link, members can sign in and add vehicle details, State of
+  Health readings, and service/fault history for one or more I-PACEs. Do not describe
+  vehicle evidence storage as inactive now that vehicle basics, SoH, and service/fault
+  history are implemented.
+- Informational callouts on form pages should sit below the form, not in a right-hand rail
+  or above the first step. The form is the primary task; people who need context can continue
+  reading below it.
 - When submission completes, hide all step navigation containers and all form steps before showing the placeholder result.
 
 ## Join form
@@ -106,6 +116,20 @@ It collects:
 
 The UX must support members registering multiple vehicles. Treat this as an "add/register a
 vehicle" flow and provide an obvious route to add another vehicle after saving.
+The vehicle identifier requirement must be enforced client-side before leaving the vehicle
+details step, and server-side in `SubmitVehicleBasics`. If the API rejects a save, show the
+server-provided error in the result panel and do not show success-only actions such as "Add
+another vehicle".
+Use client-side validation to improve data quality without blocking legitimate edge cases:
+hard-block future dates and VIN-only invalid VINs; show soft warnings for GB registration
+formats and valid VINs that do not look like typical Jaguar/JLR VINs. Server-side validation
+must remain authoritative for future dates and identifier requirements.
+
+The vehicle form callout should explain that this page starts the vehicle record and that,
+after saving, members can use My Data to add further SoH readings and service/fault history.
+Do not use stale copy saying service/fault history is unavailable; only fuller recall,
+repair, loan car, payment, goodwill and evidence upload collection should be framed as
+future expansion until those fields exist.
 
 The member dashboard must show one selected car at a time, with tabs for switching cars and
 a separate Add vehicle command. Show the selected car's SoH measurement history as an
@@ -116,8 +140,13 @@ degradation analysis depends on the time series.
 
 Below the SoH history, show an editable service/fault timeline. Members can add service,
 fault, repair, recall, inspection, or other records with date, optional mileage, summary,
-details, and status. Post additions and edits to `POST /api/upsert-service-event`; the server
-must verify the signed-in member owns both the vehicle and any existing record being edited.
+details, and status. New records should default to `fault`, because fault reporting is the
+main evidence workflow. Service/fault records should optionally capture related campaigns
+(`H447`, `H570`, `H571`, `H572`, other/unsure/none), final fix date, days from fault to
+final fix, whether a courtesy vehicle was offered/provided, whether there was delay due to
+parts, warranty cover in place, and responsibility/warranty dispute status. Post additions
+and edits to `POST /api/upsert-service-event`; the server must verify the signed-in member
+owns both the vehicle and any existing record being edited.
 
 Full VINs must not be stored. The Function should create an HMAC using `VIN_PEPPER` and
 store only the HMAC plus final six characters for reference.
@@ -132,10 +161,9 @@ Future slices should collect structured, optional evidence fields such as:
 
 - High-voltage battery work, modules replaced, dates, days off road.
 - Additional warranty cover.
-- H570/H571/H572 recall status and outcomes.
-- Dealer/service experience.
-- Loan car and mobility support.
-- Goodwill, payments, refusals, or warranty responsibility.
+- Broader H447/H570/H571/H572 campaign status and outcomes beyond the per-event timeline.
+- Dealer/service experience beyond the per-event timeline.
+- Payment, goodwill, and expense records.
 - Repeat faults.
 - Notes and evidence upload placeholder.
 - Consent and review.

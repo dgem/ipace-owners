@@ -60,10 +60,42 @@ func cors(w http.ResponseWriter, r *http.Request) bool {
 	return false
 }
 
+func rejectDisallowedOrigin(w http.ResponseWriter, r *http.Request) bool {
+	origin := r.Header.Get("Origin")
+	if origin == "" || originAllowed(origin) {
+		return false
+	}
+	logEvent("api", "warn", "request rejected: disallowed origin", map[string]any{
+		"origin": origin,
+		"path":   r.URL.Path,
+		"method": r.Method,
+	})
+	writeJSON(w, http.StatusForbidden, map[string]any{"error": "Origin not allowed"})
+	return true
+}
+
 func originAllowed(origin string) bool {
 	if origin == "" {
 		return false
 	}
+	if strings.Contains(origin, ",") || strings.ContainsAny(origin, " \t\r\n") {
+		return false
+	}
+	if _, err := url.ParseRequestURI(origin); err != nil {
+		return false
+	}
+	for _, allowed := range strings.Split(os.Getenv("ALLOWED_ORIGINS"), ",") {
+		if strings.TrimSpace(allowed) == origin {
+			return true
+		}
+	}
+	if originDefaultAllowed(origin) {
+		return true
+	}
+	return firebasePreviewOriginAllowed(origin)
+}
+
+func originDefaultAllowed(origin string) bool {
 	defaults := []string{
 		"https://ipace-owners.org",
 		"https://www.ipace-owners.org",
@@ -71,23 +103,42 @@ func originAllowed(origin string) bool {
 		"http://localhost:5000",
 		"http://localhost:8888",
 	}
-	for _, allowed := range strings.Split(os.Getenv("ALLOWED_ORIGINS"), ",") {
-		if strings.TrimSpace(allowed) == origin {
-			return true
-		}
-	}
 	for _, allowed := range defaults {
 		if allowed == origin {
 			return true
 		}
 	}
-	host := origin
-	host = strings.TrimPrefix(host, "https://")
-	host = strings.TrimPrefix(host, "http://")
-	if strings.HasSuffix(host, ".web.app") || strings.HasSuffix(host, ".firebaseapp.com") {
-		return true
-	}
 	return false
+}
+
+func firebasePreviewOriginAllowed(origin string) bool {
+	parsed, err := url.Parse(origin)
+	if err != nil || parsed.Scheme != "https" || parsed.Path != "" || parsed.RawQuery != "" || parsed.Fragment != "" {
+		return false
+	}
+	host := parsed.Hostname()
+	project := projectID()
+	if project == "" {
+		return false
+	}
+	return (strings.HasPrefix(host, project+"--pr-") && strings.HasSuffix(host, ".web.app")) ||
+		(strings.HasPrefix(host, project+"--pr-") && strings.HasSuffix(host, ".firebaseapp.com"))
+}
+
+func emailContinueURLForOrigin(origin string) string {
+	if originAllowed(origin) {
+		parsed, err := url.Parse(origin)
+		if err == nil && parsed.Scheme != "" && parsed.Host != "" {
+			parsed.Path = "/account/"
+			parsed.RawQuery = ""
+			parsed.Fragment = ""
+			return parsed.String()
+		}
+	}
+	if value := os.Getenv("FIREBASE_EMAIL_CONTINUE_URL"); value != "" {
+		return value
+	}
+	return "https://ipace-owners.org/account/"
 }
 
 func cleanString(value string, max int) string {
