@@ -57,6 +57,25 @@
     return ({ open: 'Open', monitoring: 'Monitoring', resolved: 'Resolved', completed: 'Completed' })[value] || value;
   }
 
+  function supportLabel(value) {
+    return ({
+      yes: 'Yes',
+      no: 'No',
+      'not-needed': 'Not needed',
+      unsure: 'Unsure',
+      partly: 'Partly',
+      manufacturer: 'Manufacturer warranty',
+      'battery-warranty': '8-year battery warranty',
+      'extended-manufacturer': 'Extended manufacturer warranty',
+      'third-party': 'Third-party warranty',
+      none: 'None',
+      'initially-refused': 'Initially refused',
+      'partially-accepted': 'Partially accepted',
+      'still-disputed': 'Still disputed',
+      'resolved-after-escalation': 'Resolved after escalation',
+    })[value] || value;
+  }
+
   function readingsFor(vehicleId) {
     return (memberData.batteryReadings || []).filter(function (reading) {
       return reading.vehicleId === vehicleId && reading.battery && reading.battery.stateOfHealth != null;
@@ -149,10 +168,25 @@
     return '<div class="member-form-panel" data-event-panel hidden><form data-service-event-form>' +
       '<input type="hidden" name="id"><input type="hidden" name="vehicleId" value="' + escapeHtml(vehicleId) + '">' +
       '<h3 data-event-form-title>Add service event or fault</h3><div class="member-form-grid">' +
-      '<div class="form-group"><label for="event-type">Record type</label><select id="event-type" name="eventType" required><option value="service">Service</option><option value="fault">Fault</option><option value="repair">Repair</option><option value="recall">Recall</option><option value="inspection">Inspection</option><option value="other">Other</option></select></div>' +
+      '<div class="form-group"><label for="event-type">Record type</label><select id="event-type" name="eventType" required><option value="fault" selected>Fault</option><option value="service">Service</option><option value="repair">Repair</option><option value="recall">Recall</option><option value="inspection">Inspection</option><option value="other">Other</option></select></div>' +
       '<div class="form-group"><label for="event-date">Date</label><input id="event-date" name="occurredAt" type="date" required' + notFutureDateAttributes('event-date-error') + '><span class="form-error" id="event-date-error" role="alert" hidden>Event date cannot be in the future.</span></div>' +
       '<div class="form-group"><label for="event-mileage">Mileage</label><input id="event-mileage" name="mileage" type="number" min="0" max="500000"></div>' +
       '<div class="form-group"><label for="event-status">Status</label><select id="event-status" name="status" required><option value="open">Open</option><option value="monitoring">Monitoring</option><option value="resolved">Resolved</option><option value="completed">Completed</option></select></div>' +
+      '<fieldset class="form-group member-form-grid__wide"><legend>Related campaigns or recalls</legend><div class="check-group check-group--inline">' +
+      '<label class="check-label"><input type="checkbox" name="campaigns" value="H447"> H447</label>' +
+      '<label class="check-label"><input type="checkbox" name="campaigns" value="H570"> H570</label>' +
+      '<label class="check-label"><input type="checkbox" name="campaigns" value="H571"> H571</label>' +
+      '<label class="check-label"><input type="checkbox" name="campaigns" value="H572"> H572</label>' +
+      '<label class="check-label"><input type="checkbox" name="campaigns" value="other"> Other</label>' +
+      '<label class="check-label"><input type="checkbox" name="campaigns" value="unsure"> Unsure</label>' +
+      '<label class="check-label"><input type="checkbox" name="campaigns" value="none"> None</label></div></fieldset>' +
+      '<div class="form-group"><label for="event-final-fix">Final fix date</label><input id="event-final-fix" name="finalFixAt" type="date"' + notFutureDateAttributes('event-final-fix-error') + '><span class="form-error" id="event-final-fix-error" role="alert" hidden>Final fix date cannot be in the future.</span></div>' +
+      '<div class="form-group"><label for="event-days-to-fix">Days from fault to final fix</label><input id="event-days-to-fix" name="daysToFinalFix" type="number" min="0" max="5000"></div>' +
+      '<div class="form-group"><label for="event-courtesy-offered">Courtesy vehicle offered?</label><select id="event-courtesy-offered" name="courtesyVehicleOffered"><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option><option value="not-needed">Not needed</option><option value="unsure">Unsure</option></select></div>' +
+      '<div class="form-group"><label for="event-courtesy-provided">Courtesy vehicle provided?</label><select id="event-courtesy-provided" name="courtesyVehicleProvided"><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option><option value="not-needed">Not needed</option><option value="unsure">Unsure</option></select></div>' +
+      '<div class="form-group"><label for="event-parts-delay">Delay due to parts?</label><select id="event-parts-delay" name="partsDelay"><option value="">Select</option><option value="yes">Yes</option><option value="partly">Partly</option><option value="no">No</option><option value="unsure">Unsure</option></select></div>' +
+      '<div class="form-group"><label for="event-warranty-cover">Warranty cover in place</label><select id="event-warranty-cover" name="warrantyCover"><option value="">Select</option><option value="manufacturer">Manufacturer warranty</option><option value="battery-warranty">8-year battery warranty</option><option value="extended-manufacturer">Extended manufacturer warranty</option><option value="third-party">Third-party warranty</option><option value="none">No warranty cover</option><option value="unsure">Unsure</option></select></div>' +
+      '<div class="form-group"><label for="event-dispute-status">Responsibility or warranty dispute?</label><select id="event-dispute-status" name="disputeStatus"><option value="">Select</option><option value="none">No dispute</option><option value="initially-refused">Initially refused</option><option value="partially-accepted">Partially accepted only</option><option value="still-disputed">Still disputed</option><option value="resolved-after-escalation">Resolved after escalation</option><option value="unsure">Unsure</option></select></div>' +
       '<div class="form-group member-form-grid__wide"><label for="event-title">Summary</label><input id="event-title" name="title" type="text" maxlength="160" required></div>' +
       '<div class="form-group member-form-grid__wide"><label for="event-description">Details</label><textarea id="event-description" name="description" rows="4" maxlength="4000"></textarea></div>' +
       '</div><div class="cluster"><button class="btn btn--primary" type="submit">Save record</button><button class="btn btn--secondary" type="button" data-close-panel="event">Cancel</button></div>' +
@@ -164,8 +198,18 @@
     return '<div class="service-event-list">' + events.map(function (item) {
       var meta = [formatDate(item.occurredAt)];
       if (item.mileage != null) meta.push(Number(item.mileage).toLocaleString() + ' miles');
+      if (item.campaigns && item.campaigns.length) meta.push('Campaigns: ' + item.campaigns.join(', '));
+      var support = [];
+      if (item.finalFixAt) support.push('Final fix: ' + formatDate(item.finalFixAt));
+      if (item.daysToFinalFix != null) support.push('Days to final fix: ' + Number(item.daysToFinalFix).toLocaleString());
+      if (item.courtesyVehicleOffered) support.push('Courtesy offered: ' + supportLabel(item.courtesyVehicleOffered));
+      if (item.courtesyVehicleProvided) support.push('Courtesy provided: ' + supportLabel(item.courtesyVehicleProvided));
+      if (item.partsDelay) support.push('Parts delay: ' + supportLabel(item.partsDelay));
+      if (item.warrantyCover) support.push('Warranty: ' + supportLabel(item.warrantyCover));
+      if (item.disputeStatus) support.push('Dispute: ' + supportLabel(item.disputeStatus));
       return '<article class="service-event"><div class="service-event__main"><div class="cluster cluster--sm"><span class="badge">' + escapeHtml(eventTypeLabel(item.eventType)) + '</span><span class="badge badge--muted">' + escapeHtml(statusLabel(item.status)) + '</span></div>' +
         '<h3>' + escapeHtml(item.title) + '</h3><p class="service-event__meta">' + escapeHtml(meta.join(' · ')) + '</p>' +
+        (support.length ? '<p class="service-event__meta">' + escapeHtml(support.join(' · ')) + '</p>' : '') +
         (item.description ? '<p>' + escapeHtml(item.description) + '</p>' : '') + '</div>' +
         '<button class="btn btn--sm btn--secondary" type="button" data-edit-event="' + escapeHtml(item.id) + '">Edit</button></article>';
     }).join('') + '</div>';
@@ -227,6 +271,16 @@
     form.elements.eventType.value = item.eventType;
     form.elements.occurredAt.value = item.occurredAt;
     form.elements.mileage.value = item.mileage == null ? '' : item.mileage;
+    form.querySelectorAll('input[name="campaigns"]').forEach(function (input) {
+      input.checked = (item.campaigns || []).indexOf(input.value) !== -1;
+    });
+    form.elements.finalFixAt.value = item.finalFixAt || '';
+    form.elements.daysToFinalFix.value = item.daysToFinalFix == null ? '' : item.daysToFinalFix;
+    form.elements.courtesyVehicleOffered.value = item.courtesyVehicleOffered || '';
+    form.elements.courtesyVehicleProvided.value = item.courtesyVehicleProvided || '';
+    form.elements.partsDelay.value = item.partsDelay || '';
+    form.elements.warrantyCover.value = item.warrantyCover || '';
+    form.elements.disputeStatus.value = item.disputeStatus || '';
     form.elements.title.value = item.title;
     form.elements.description.value = item.description || '';
     form.elements.status.value = item.status;
@@ -297,7 +351,14 @@
     var status = form.querySelector('[data-service-event-status]');
     var button = form.querySelector('button[type="submit"]');
     var payload = {};
-    new FormData(form).forEach(function (value, key) { payload[key] = value; });
+    new FormData(form).forEach(function (value, key) {
+      if (key === 'campaigns') {
+        if (!payload[key]) payload[key] = [];
+        payload[key].push(value);
+      } else {
+        payload[key] = value;
+      }
+    });
     if (!validateNotFutureDates(form)) {
       if (status) status.textContent = 'Check the highlighted date before saving.';
       return;

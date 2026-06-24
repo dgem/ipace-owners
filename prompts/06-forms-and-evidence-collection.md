@@ -140,8 +140,13 @@ degradation analysis depends on the time series.
 
 Below the SoH history, show an editable service/fault timeline. Members can add service,
 fault, repair, recall, inspection, or other records with date, optional mileage, summary,
-details, and status. Post additions and edits to `POST /api/upsert-service-event`; the server
-must verify the signed-in member owns both the vehicle and any existing record being edited.
+details, and status. New records should default to `fault`, because fault reporting is the
+main evidence workflow. Service/fault records should optionally capture related campaigns
+(`H447`, `H570`, `H571`, `H572`, other/unsure/none), final fix date, days from fault to
+final fix, whether a courtesy vehicle was offered/provided, whether there was delay due to
+parts, warranty cover in place, and responsibility/warranty dispute status. Post additions
+and edits to `POST /api/upsert-service-event`; the server must verify the signed-in member
+owns both the vehicle and any existing record being edited.
 
 Full VINs must not be stored. The Function should create an HMAC using `VIN_PEPPER` and
 store only the HMAC plus final six characters for reference.
@@ -156,10 +161,9 @@ Future slices should collect structured, optional evidence fields such as:
 
 - High-voltage battery work, modules replaced, dates, days off road.
 - Additional warranty cover.
-- H570/H571/H572 recall status and outcomes.
-- Dealer/service experience.
-- Loan car and mobility support.
-- Goodwill, payments, refusals, or warranty responsibility.
+- Broader H447/H570/H571/H572 campaign status and outcomes beyond the per-event timeline.
+- Dealer/service experience beyond the per-event timeline.
+- Payment, goodwill, and expense records.
 - Repeat faults.
 - Notes and evidence upload placeholder.
 - Consent and review.

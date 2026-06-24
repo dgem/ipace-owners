@@ -31,7 +31,7 @@ service/fault timeline; those records are not yet published in aggregate. Later 
 are planned to capture:
 
 - HV battery work history (type, dates, duration, outcome)
-- Recall status (H570, H571, H572)
+- Campaign or recall status (H447, H570, H571, H572)
 - Warranty and additional cover details
 - Work experience, delays, and difficulties
 - Loan car provision
@@ -68,8 +68,10 @@ The public [evidence dashboard](/evidence-dashboard/) shows:
 - Latest SoH and model-year distributions
 - Latest average SoH and first-to-latest change for cars with repeat readings
 
-Repair, recall, warranty, loan-car, payment, and goodwill statistics will be added only after
-the corresponding structured fields are implemented.
+Service/fault records can already capture campaign involvement, repair duration, courtesy
+vehicle support, parts delays, warranty cover, and disputes as private member data. Public
+statistics for those fields, plus payment and goodwill statistics, will be added only after
+review, consent, moderation, and publication rules are implemented.
 
 All published data is anonymised. No individual entry, name, email, full VIN, or registration
 is published.

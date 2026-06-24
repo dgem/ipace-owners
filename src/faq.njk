@@ -36,9 +36,9 @@ description: "FAQ for the I-PACE Owners' Advocacy Group — legal status, data p
     <div class="details-body">
       <p>No. Full VINs, email addresses, names, and registration numbers are never published.
       Our public evidence dashboard shows only anonymised, aggregate statistics.</p>
-      <p>In future backend systems, VINs will be processed using a one-way cryptographic hash with
-      a secret key — not stored or published in plain text — to allow deduplication without
-      exposing owner data.</p>
+      <p>If you provide a VIN, it is processed server-side using an HMAC with a secret key.
+      The full VIN is not stored; only the HMAC and final six characters are kept for
+      deduplication and member-facing reference.</p>
     </div>
   </details>
 
@@ -57,7 +57,7 @@ description: "FAQ for the I-PACE Owners' Advocacy Group — legal status, data p
     <div class="details-body">
       <p>Yes. I-PACE owners from any country are welcome. Battery and recall issues are not
       limited to the UK. We aim to collect data from across the global I-PACE fleet.
-      The recalls listed (H570/H571/H572) are international campaigns.</p>
+      The campaigns listed (H447/H570/H571/H572) are international campaigns.</p>
     </div>
   </details>
 
@@ -66,6 +66,7 @@ description: "FAQ for the I-PACE Owners' Advocacy Group — legal status, data p
     <div class="details-body">
       <p>The main recalls we are tracking are:</p>
       <ul>
+        <li><strong>H447</strong> — related battery campaign</li>
         <li><strong>H570</strong> — HV battery software and hardware recall</li>
         <li><strong>H571</strong> — related recall campaign</li>
         <li><strong>H572</strong> — related recall campaign</li>

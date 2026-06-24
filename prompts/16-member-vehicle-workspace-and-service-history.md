@@ -46,6 +46,16 @@ Each record contains date, optional mileage, summary, optional details, and stat
 Service/fault event dates must not be in the future. Enforce this in the browser and in the
 Go handler.
 
+New records should default to `fault`. The form should also capture optional structured
+evidence fields:
+
+- related campaigns or recalls: `H447`, `H570`, `H571`, `H572`, other, unsure, none;
+- final fix date and days from fault to final fix;
+- whether a courtesy vehicle was offered and whether one was provided;
+- whether the repair was delayed due to parts;
+- warranty cover in place at the time;
+- responsibility or warranty dispute status.
+
 The Go Function must verify Firebase Auth, vehicle ownership, and existing-record ownership.
 Store canonical records in Firestore `serviceEvents`, preserve creation/review metadata on
 edits, and regenerate the private member snapshot after every successful write. Do not add
