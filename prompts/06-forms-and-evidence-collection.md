@@ -74,11 +74,14 @@ Provide accessible multi-step forms that collect membership interest now, help o
   the contact consent and not-a-legal-claim acknowledgement checkboxes are ticked. Render it
   with a `disabled` attribute in the initial HTML and keep a submit-time guard in JavaScript
   so the consent requirement holds even if initial enhancement is delayed.
-- The Join page side callout should explain that Join answers are saved and that, after
+- The Join page below-form callout should explain that Join answers are saved and that, after
   confirming the emailed sign-in link, members can sign in and add vehicle details, State of
   Health readings, and service/fault history for one or more I-PACEs. Do not describe
   vehicle evidence storage as inactive now that vehicle basics, SoH, and service/fault
   history are implemented.
+- Informational callouts on form pages should sit below the form, not in a right-hand rail
+  or above the first step. The form is the primary task; people who need context can continue
+  reading below it.
 - When submission completes, hide all step navigation containers and all form steps before showing the placeholder result.
 
 ## Join form

@@ -965,22 +965,6 @@ th {
   order: 2;
 }
 
-@media (min-width: 64em) {
-  .form-workspace {
-    grid-template-columns: minmax(0, 1fr) minmax(18rem, 23rem);
-    gap: var(--space-8);
-  }
-
-  .form-workspace__aside {
-    position: sticky;
-    top: calc(4.5rem + var(--space-6));
-  }
-
-  .form-workspace__aside .callout {
-    margin: 0;
-  }
-}
-
 .form-group {
   margin-bottom: var(--space-5);
 }

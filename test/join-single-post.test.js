@@ -21,6 +21,10 @@ test('Join form submits only to submit-join from the browser', function () {
   assert.match(joinTemplate, /data-enable-when-checked="consent-contact consent-not-legal"\s+disabled/);
   assert.match(joinTemplate, /Once you confirm the link, you can\s+sign in and add vehicle details/);
   assert.doesNotMatch(joinTemplate, /Vehicle evidence storage is still separate and not yet active/);
+  assert.ok(
+    joinTemplate.indexOf('name="join"') < joinTemplate.indexOf('Join answers are saved'),
+    'Join informational callout should appear below the form'
+  );
 
   assert.match(identityJs, /magicLinkSent/);
   assert.match(identityJs, /data-magic-link-form/);

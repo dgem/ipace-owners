@@ -37,22 +37,6 @@ multiStepForm: true
 
 	<!-- Content — revealed by member-auth.js after server confirms auth -->
 	<div class="auth-content" data-auth-content hidden>
-	<div class="callout callout--info" style="margin-bottom: var(--space-8);">
-		<span class="callout__icon" aria-hidden="true">ℹ️</span>
-		<div class="callout__content">
-			<p class="callout__title">Vehicle data starts here</p>
-			<p>Register one I-PACE with vehicle identity, ownership dates, mileage, and optional
-			battery State of Health details. After saving, use My Data to add further SoH readings
-			and service or fault history for that vehicle.</p>
-			<p>Full recall, repair, loan car, payment, goodwill, and evidence upload fields will be
-			added as the evidence workflow expands. Add one vehicle at a time; you can return here
-			to register another I-PACE.</p>
-			<p style="margin-bottom:0;">Full VINs are not stored. If provided, the VIN is converted
-			to a server-side HMAC for deduplication, and only the final six characters are kept
-			for member-facing reference.</p>
-		</div>
-	</div>
-
 	<form
 		class="form"
 		style="max-width: none;"
@@ -246,6 +230,22 @@ multiStepForm: true
 					<a href="/member/dashboard/" class="btn btn--secondary">My Data</a>
 				</div>
 			</div>
+		</div>
+	</form>
+
+	<div class="callout callout--info" style="margin-top: var(--space-8);">
+		<span class="callout__icon" aria-hidden="true">ℹ️</span>
+		<div class="callout__content">
+			<p class="callout__title">Vehicle data starts here</p>
+			<p>Register one I-PACE with vehicle identity, ownership dates, mileage, and optional
+			battery State of Health details. After saving, use My Data to add further SoH readings
+			and service or fault history for that vehicle.</p>
+			<p>Full recall, repair, loan car, payment, goodwill, and evidence upload fields will be
+			added as the evidence workflow expands. Add one vehicle at a time; you can return here
+			to register another I-PACE.</p>
+			<p style="margin-bottom:0;">Full VINs are not stored. If provided, the VIN is converted
+			to a server-side HMAC for deduplication, and only the final six characters are kept
+			for member-facing reference.</p>
 		</div>
 	</div>
 </div>
