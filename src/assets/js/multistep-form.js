@@ -196,8 +196,8 @@
         var raw = conditionalSubmitBtns[i].getAttribute('data-enable-when-checked') || '';
         var names = raw.split(/[\s,]+/).filter(Boolean);
         for (var j = 0; j < names.length; j++) {
-          var missing = Array.from(form.elements).find(function (control) {
-            return control.name === names[j] && control.type === 'checkbox' && !control.checked;
+          var missing = checkboxControlsByName(names[j]).find(function (control) {
+            return !control.checked;
           });
           if (missing) {
             missing.focus();
@@ -213,9 +213,15 @@
       if (!names.length) return true;
 
       return names.every(function (name) {
-        return Array.from(form.elements).some(function (control) {
-          return control.name === name && control.type === 'checkbox' && control.checked;
+        return checkboxControlsByName(name).some(function (control) {
+          return control.checked;
         });
+      });
+    }
+
+    function checkboxControlsByName(name) {
+      return Array.from(form.querySelectorAll('input[type="checkbox"]')).filter(function (control) {
+        return control.name === name;
       });
     }
 

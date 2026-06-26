@@ -31,6 +31,8 @@ test('Join form submits only to submit-join from the browser', function () {
   assert.match(identityJs, /window\.localStorage\.setItem\('ipaceEmailForSignIn', email\)/);
   assert.match(multistepJs, /data-enable-when-checked/);
   assert.match(multistepJs, /checkedRequirementsMet/);
+  assert.match(multistepJs, /checkboxControlsByName/);
+  assert.doesNotMatch(multistepJs, /control\.name === name && control\.type === 'checkbox' && control\.checked/);
   assert.match(multistepJs, /conditionalSubmitControlsMet/);
   assert.match(multistepJs, /focusFirstMissingCheckedRequirement/);
 });
