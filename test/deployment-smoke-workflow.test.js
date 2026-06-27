@@ -71,3 +71,10 @@ test('Firebase CLI preload reuses the short-lived GitHub access token', function
 
   assert.equal(output, 'short-lived-test-token');
 });
+
+test('Firebase CLI preload disables response compression on its legacy HTTP client', function () {
+  const preload = readFileSync(firebaseAccessTokenPreloadPath, 'utf8');
+
+  assert.match(preload, /firebaseRequire\('node-fetch'\)/);
+  assert.match(preload, /compress: false/);
+});

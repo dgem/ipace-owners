@@ -61,6 +61,10 @@ Firebase/GCP.
   repository Firebase CLI preload helper. This skips Firebase CLI's duplicate STS exchange,
   which currently fails reliably with `Premature close`; the token remains ephemeral and no
   service-account key or legacy Firebase CI token is stored.
+- The same preload helper disables response compression in Firebase CLI's legacy `node-fetch`
+  transport. GitHub runners have returned prematurely closed compressed responses from STS,
+  Cloud Resource Manager and Firebase APIs; requesting identity-encoded responses avoids that
+  transport bug without affecting the website's own HTTP behaviour.
 - Staging `Api` should accept project-owned Firebase PR preview origins by validated host
   pattern, derive email-link `continueUrl` from that request origin, and omit
   `FIREBASE_EMAIL_LINK_DOMAIN` for previews. This avoids redeploying Functions solely to
