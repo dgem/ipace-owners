@@ -93,6 +93,7 @@ test('preview deployment reports Firebase CLI diagnostics when deployment fails'
   const makefile = readFileSync(makefilePath, 'utf8');
 
   assert.match(makefile, /2>"\$\$error_log" \|\| status=\$\$\?/);
+  assert.match(makefile, /hosting:channel:deploy[^\n]+--debug/);
   assert.match(makefile, /cat "\$\$error_log" >&2/);
   assert.match(makefile, /cat "\$\(FIREBASE_PREVIEW_JSON\)" >&2/);
   assert.match(makefile, /exit "\$\$status"/);

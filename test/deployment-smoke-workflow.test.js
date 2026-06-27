@@ -33,3 +33,15 @@ test('Firebase deploy workflows skip Function deploys when backend is unchanged'
   assert.match(stagingWorkflow, /name: Refresh Firebase Hosting preview with current Function revisions/);
   assert.match(stagingWorkflow, /if: steps\.backend\.outputs\.deploy == 'true'/);
 });
+
+test('Firebase deploy workflows verify keyless GCP credentials before deployment', function () {
+  const stagingWorkflow = readFileSync(stagingWorkflowPath, 'utf8');
+  const productionWorkflow = readFileSync(productionWorkflowPath, 'utf8');
+
+  for (const workflow of [stagingWorkflow, productionWorkflow]) {
+    assert.match(workflow, /token_format: access_token/);
+    assert.match(workflow, /create_credentials_file: true/);
+    assert.match(workflow, /export_environment_variables: true/);
+    assert.match(workflow, /run: gcloud auth print-access-token >\/dev\/null/);
+  }
+});

@@ -44,6 +44,10 @@ Firebase/GCP.
   do not hide the actionable error behind shell redirection.
 - Serialize staging deployments because PR previews share the staging Auth configuration
   and staging Functions.
+- Authenticate deployments with GitHub OIDC Workload Identity Federation and short-lived
+  service-account impersonation. Explicitly generate/export ADC credentials and verify an
+  access-token exchange before invoking Firebase CLI; do not introduce long-lived Firebase
+  CI tokens or service-account keys.
 - Staging `Api` should accept project-owned Firebase PR preview origins by validated host
   pattern, derive email-link `continueUrl` from that request origin, and omit
   `FIREBASE_EMAIL_LINK_DOMAIN` for previews. This avoids redeploying Functions solely to

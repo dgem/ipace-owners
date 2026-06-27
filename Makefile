@@ -93,7 +93,7 @@ deploy-hosting-preview: ## Deploy Firebase Hosting preview channel and extract i
 	@if [ -z "$${CHANNEL_ID}" ]; then echo "CHANNEL_ID is required"; exit 1; fi
 	@error_log="$$(mktemp)"; \
 	status=0; \
-	npx firebase-tools hosting:channel:deploy "$${CHANNEL_ID}" --project "$${GCP_PROJECT_ID}" --expires 14d --json > "$(FIREBASE_PREVIEW_JSON)" 2>"$$error_log" || status=$$?; \
+	npx firebase-tools hosting:channel:deploy "$${CHANNEL_ID}" --project "$${GCP_PROJECT_ID}" --expires 14d --json --debug > "$(FIREBASE_PREVIEW_JSON)" 2>"$$error_log" || status=$$?; \
 	cat "$$error_log" >&2; \
 	if [ "$$status" -ne 0 ]; then \
 		echo "Firebase Hosting preview deployment failed with exit code $$status." >&2; \
