@@ -94,7 +94,6 @@ test('preview deployment reports Firebase CLI diagnostics when deployment fails'
   const workflow = readFileSync(workflowPath, 'utf8');
 
   assert.match(makefile, /hosting:channel:deploy[^\n]+--debug/);
-  assert.match(makefile, /firebase-access-token-preload\.cjs/);
   assert.match(makefile, /for attempt in 1 2 3/);
   assert.match(makefile, /else \\\n\s+status=\$\$\?;/);
   assert.match(makefile, /sleep \$\$\(\(attempt \* 5\)\)/);

@@ -62,6 +62,12 @@ jobs:
       - name: Verify GCP deployment credentials
         run: gcloud auth print-access-token >/dev/null
 
+      - name: Use Firebase CLI compatible Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
       - name: Detect backend deploy changes
         id: backend
         run: |
@@ -96,7 +102,6 @@ jobs:
       - name: Deploy Firebase Hosting production
         env:
           GCP_PROJECT_ID: ${{ vars.FIREBASE_PRODUCTION_PROJECT_ID }}
-          FIREBASE_CLI_ACCESS_TOKEN: ${{ steps.gcp-auth.outputs.access_token }}
         run: make deploy-hosting-production
 
       - name: Smoke test production

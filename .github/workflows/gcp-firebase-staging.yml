@@ -64,12 +64,17 @@ jobs:
       - name: Verify GCP deployment credentials
         run: gcloud auth print-access-token >/dev/null
 
+      - name: Use Firebase CLI compatible Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
       - name: Deploy Firebase Hosting preview
         id: hosting
         env:
           GCP_PROJECT_ID: ${{ vars.FIREBASE_STAGING_PROJECT_ID }}
           CHANNEL_ID: pr-${{ github.event.pull_request.number }}
-          FIREBASE_CLI_ACCESS_TOKEN: ${{ steps.gcp-auth.outputs.access_token }}
         run: make deploy-hosting-preview
 
       - name: Authorize Firebase Hosting preview for passwordless sign-in
@@ -109,7 +114,6 @@ jobs:
         env:
           GCP_PROJECT_ID: ${{ vars.FIREBASE_STAGING_PROJECT_ID }}
           CHANNEL_ID: pr-${{ github.event.pull_request.number }}
-          FIREBASE_CLI_ACCESS_TOKEN: ${{ steps.gcp-auth.outputs.access_token }}
         run: make deploy-hosting-preview
 
       - name: Smoke test preview
