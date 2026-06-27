@@ -97,7 +97,7 @@ deploy-hosting-preview: ## Deploy Firebase Hosting preview channel and extract i
 	for attempt in 1 2 3; do \
 		: > "$$error_log"; \
 		: > "$(FIREBASE_PREVIEW_JSON)"; \
-		if npx firebase-tools hosting:channel:deploy "$${CHANNEL_ID}" --project "$${GCP_PROJECT_ID}" --expires 14d --json --debug > "$(FIREBASE_PREVIEW_JSON)" 2>"$$error_log"; then \
+		if NODE_OPTIONS="$${NODE_OPTIONS:+$${NODE_OPTIONS} }--require=./scripts/firebase-access-token-preload.cjs" npx firebase-tools hosting:channel:deploy "$${CHANNEL_ID}" --project "$${GCP_PROJECT_ID}" --expires 14d --json --debug > "$(FIREBASE_PREVIEW_JSON)" 2>"$$error_log"; then \
 			status=0; \
 			break; \
 		else \
@@ -128,4 +128,4 @@ deploy-hosting-preview: ## Deploy Firebase Hosting preview channel and extract i
 
 deploy-hosting-production: ## Deploy Firebase Hosting production.
 	@if [ -z "$${GCP_PROJECT_ID}" ]; then echo "GCP_PROJECT_ID is required"; exit 1; fi
-	npx firebase-tools deploy --only hosting --project "$${GCP_PROJECT_ID}"
+	NODE_OPTIONS="$${NODE_OPTIONS:+$${NODE_OPTIONS} }--require=./scripts/firebase-access-token-preload.cjs" npx firebase-tools deploy --only hosting --project "$${GCP_PROJECT_ID}"

@@ -52,6 +52,10 @@ Firebase/GCP.
   service-account impersonation. Explicitly generate/export ADC credentials and verify an
   access-token exchange before invoking Firebase CLI; do not introduce long-lived Firebase
   CI tokens or service-account keys.
+- Pass the short-lived access token minted by `google-github-actions/auth` to Firebase CLI
+  through the repository preload helper. This avoids Firebase CLI's duplicate Node-based STS
+  exchange, which can fail with `Invalid response body ... Premature close` on GitHub runners,
+  while preserving keyless authentication and token expiry.
 - Staging `Api` should accept project-owned Firebase PR preview origins by validated host
   pattern, derive email-link `continueUrl` from that request origin, and omit
   `FIREBASE_EMAIL_LINK_DOMAIN` for previews. This avoids redeploying Functions solely to
