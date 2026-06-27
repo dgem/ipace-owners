@@ -91,7 +91,17 @@ deploy-functions: write-functions-env ## Deploy all Go Cloud Functions to GCP.
 deploy-hosting-preview: ## Deploy Firebase Hosting preview channel and extract its URL.
 	@if [ -z "$${GCP_PROJECT_ID}" ]; then echo "GCP_PROJECT_ID is required"; exit 1; fi
 	@if [ -z "$${CHANNEL_ID}" ]; then echo "CHANNEL_ID is required"; exit 1; fi
-	npx firebase-tools hosting:channel:deploy "$${CHANNEL_ID}" --project "$${GCP_PROJECT_ID}" --expires 14d --json > "$(FIREBASE_PREVIEW_JSON)"
+	@error_log="$$(mktemp)"; \
+	status=0; \
+	npx firebase-tools hosting:channel:deploy "$${CHANNEL_ID}" --project "$${GCP_PROJECT_ID}" --expires 14d --json > "$(FIREBASE_PREVIEW_JSON)" 2>"$$error_log" || status=$$?; \
+	cat "$$error_log" >&2; \
+	if [ "$$status" -ne 0 ]; then \
+		echo "Firebase Hosting preview deployment failed with exit code $$status." >&2; \
+		if [ -s "$(FIREBASE_PREVIEW_JSON)" ]; then cat "$(FIREBASE_PREVIEW_JSON)" >&2; fi; \
+		rm -f "$$error_log"; \
+		exit "$$status"; \
+	fi; \
+	rm -f "$$error_log"
 	node scripts/extract-firebase-preview-url.mjs "$(FIREBASE_PREVIEW_JSON)"
 
 deploy-hosting-production: ## Deploy Firebase Hosting production.

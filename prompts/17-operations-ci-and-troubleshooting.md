@@ -39,6 +39,9 @@ Firebase/GCP.
   6. If `Api` was deployed, refresh the Firebase Hosting preview channel so rewrites point
      at the current Function revision.
   7. Run `make smoke` with `SMOKE_BASE_URL` set to the generated preview URL.
+- Keep Firebase CLI deployment JSON available for URL extraction and PR diagnostics. If a
+  preview deployment fails, CI must print both Firebase CLI stderr and any JSON error payload;
+  do not hide the actionable error behind shell redirection.
 - Serialize staging deployments because PR previews share the staging Auth configuration
   and staging Functions.
 - Staging `Api` should accept project-owned Firebase PR preview origins by validated host
