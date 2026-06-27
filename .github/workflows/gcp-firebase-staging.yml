@@ -131,6 +131,12 @@ jobs:
                 body += '\n\n<details><summary>Firebase CLI diagnostics</summary>\n\n```text\n' + diagnostics + '\n```\n</details>';
               }
             }
+            if (fs.existsSync('firebase-debug.log')) {
+              const debugLog = fs.readFileSync('firebase-debug.log', 'utf8').slice(-6000);
+              if (debugLog.trim()) {
+                body += '\n\n<details><summary>Firebase debug log</summary>\n\n```text\n' + debugLog + '\n```\n</details>';
+              }
+            }
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
