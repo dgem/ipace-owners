@@ -96,5 +96,7 @@ test('preview deployment reports Firebase CLI diagnostics when deployment fails'
   assert.match(makefile, /hosting:channel:deploy[^\n]+--debug/);
   assert.match(makefile, /cat "\$\$error_log" >&2/);
   assert.match(makefile, /cat "\$\(FIREBASE_PREVIEW_JSON\)" >&2/);
+  assert.match(makefile, /tail -80 "\$\$error_log"/);
+  assert.match(makefile, /GITHUB_STEP_SUMMARY/);
   assert.match(makefile, /exit "\$\$status"/);
 });

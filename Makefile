@@ -98,6 +98,14 @@ deploy-hosting-preview: ## Deploy Firebase Hosting preview channel and extract i
 	if [ "$$status" -ne 0 ]; then \
 		echo "Firebase Hosting preview deployment failed with exit code $$status." >&2; \
 		if [ -s "$(FIREBASE_PREVIEW_JSON)" ]; then cat "$(FIREBASE_PREVIEW_JSON)" >&2; fi; \
+		if [ -n "$${GITHUB_STEP_SUMMARY:-}" ]; then \
+			{ \
+				echo "### Firebase Hosting preview deployment error"; \
+				echo '```text'; \
+				tail -80 "$$error_log"; \
+				echo '```'; \
+			} >> "$${GITHUB_STEP_SUMMARY}"; \
+		fi; \
 		rm -f "$$error_log"; \
 		exit "$$status"; \
 	fi; \
