@@ -42,6 +42,10 @@ Firebase/GCP.
 - Keep Firebase CLI deployment JSON available for URL extraction and PR diagnostics. If a
   preview deployment fails, CI must print both Firebase CLI stderr and any JSON error payload;
   do not hide the actionable error behind shell redirection.
+- Retry Firebase Hosting preview deployment a small, bounded number of times because the
+  Firebase CLI performs its own STS exchange and can receive transient connection closures
+  even after the workflow's GCP credential check succeeds. Preserve diagnostics from the
+  final attempt and still fail deterministically after the retry limit.
 - Serialize staging deployments because PR previews share the staging Auth configuration
   and staging Functions.
 - Authenticate deployments with GitHub OIDC Workload Identity Federation and short-lived

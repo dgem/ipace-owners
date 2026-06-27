@@ -93,9 +93,22 @@ deploy-hosting-preview: ## Deploy Firebase Hosting preview channel and extract i
 	@if [ -z "$${GCP_PROJECT_ID}" ]; then echo "GCP_PROJECT_ID is required"; exit 1; fi
 	@if [ -z "$${CHANNEL_ID}" ]; then echo "CHANNEL_ID is required"; exit 1; fi
 	@error_log="$(FIREBASE_PREVIEW_ERROR)"; \
-	: > "$$error_log"; \
-	status=0; \
-	npx firebase-tools hosting:channel:deploy "$${CHANNEL_ID}" --project "$${GCP_PROJECT_ID}" --expires 14d --json --debug > "$(FIREBASE_PREVIEW_JSON)" 2>"$$error_log" || status=$$?; \
+	status=1; \
+	for attempt in 1 2 3; do \
+		: > "$$error_log"; \
+		: > "$(FIREBASE_PREVIEW_JSON)"; \
+		if npx firebase-tools hosting:channel:deploy "$${CHANNEL_ID}" --project "$${GCP_PROJECT_ID}" --expires 14d --json --debug > "$(FIREBASE_PREVIEW_JSON)" 2>"$$error_log"; then \
+			status=0; \
+			break; \
+		else \
+			status=$$?; \
+		fi; \
+		cat "$$error_log" >&2; \
+		if [ "$$attempt" -lt 3 ]; then \
+			echo "Firebase Hosting preview deployment attempt $$attempt failed; retrying." >&2; \
+			sleep $$((attempt * 5)); \
+		fi; \
+	done; \
 	cat "$$error_log" >&2; \
 	if [ "$$status" -ne 0 ]; then \
 		echo "Firebase Hosting preview deployment failed with exit code $$status." >&2; \

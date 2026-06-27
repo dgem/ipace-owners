@@ -11,15 +11,13 @@ function read(path) {
 
 test('runtime declarations use the supported Node and Go production lines', function () {
   const packageJson = JSON.parse(read('package.json'));
-  const firebase = read('firebase.json');
   const makefile = read('Makefile');
   const goMod = read('functions/firebase-go/go.mod');
 
   assert.equal(read('.nvmrc').trim(), '24');
   assert.equal(packageJson.engines.node, '>=24 <25');
   assert.match(packageJson.devDependencies['firebase-tools'], /^\^15\./);
-  assert.match(firebase, /"runtime": "go126"/);
-  assert.doesNotMatch(firebase, /go123/);
+  assert.doesNotMatch(makefile, /go123/);
   assert.match(makefile, /--runtime=go126/);
   assert.match(goMod, /^go 1\.26$/m);
 });

@@ -31,7 +31,7 @@ src/assets/js/identity.js    Firebase Auth email-link adapter
 src/assets/js/member-auth.js Server-verified member/admin data loading
 functions/firebase-go/       Go Cloud Functions
 infra/opentofu/              GCP/Firebase infrastructure
-firebase.json                Hosting headers, rewrites and Functions config
+firebase.json                Firebase Hosting headers and rewrites
 Makefile                     Shared local and CI command entrypoints
 prompts/                     Sequenced rebuild/evolution prompts
 ```

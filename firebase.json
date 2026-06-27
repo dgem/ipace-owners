@@ -57,12 +57,5 @@
         "destination": "/404.html"
       }
     ]
-  },
-  "functions": [
-    {
-      "source": "functions/firebase-go",
-      "codebase": "firebase-go",
-      "runtime": "go126"
-    }
-  ]
+  }
 }
