@@ -91,6 +91,7 @@ test('staging Functions use the current PR preview URL', function () {
 
 test('preview deployment reports Firebase CLI diagnostics when deployment fails', function () {
   const makefile = readFileSync(makefilePath, 'utf8');
+  const workflow = readFileSync(workflowPath, 'utf8');
 
   assert.match(makefile, /2>"\$\$error_log" \|\| status=\$\$\?/);
   assert.match(makefile, /hosting:channel:deploy[^\n]+--debug/);
@@ -98,5 +99,7 @@ test('preview deployment reports Firebase CLI diagnostics when deployment fails'
   assert.match(makefile, /cat "\$\(FIREBASE_PREVIEW_JSON\)" >&2/);
   assert.match(makefile, /tail -80 "\$\$error_log"/);
   assert.match(makefile, /GITHUB_STEP_SUMMARY/);
+  assert.match(makefile, /FIREBASE_PREVIEW_ERROR \?= firebase-preview-error\.log/);
+  assert.match(workflow, /Firebase CLI diagnostics/);
   assert.match(makefile, /exit "\$\$status"/);
 });

@@ -125,6 +125,12 @@ jobs:
             if (fs.existsSync('firebase-preview.json')) {
               body += '\n\n```json\n' + fs.readFileSync('firebase-preview.json', 'utf8').slice(0, 4000) + '\n```';
             }
+            if (fs.existsSync('firebase-preview-error.log')) {
+              const diagnostics = fs.readFileSync('firebase-preview-error.log', 'utf8').slice(-6000);
+              if (diagnostics.trim()) {
+                body += '\n\n<details><summary>Firebase CLI diagnostics</summary>\n\n```text\n' + diagnostics + '\n```\n</details>';
+              }
+            }
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,

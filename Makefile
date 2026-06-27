@@ -5,6 +5,7 @@ SHELL := /bin/bash
 GCP_REGION ?= europe-west2
 FUNCTION_ENTRYPOINTS ?= Api
 FIREBASE_PREVIEW_JSON ?= firebase-preview.json
+FIREBASE_PREVIEW_ERROR ?= firebase-preview-error.log
 INFRA_ENV_SCRIPT := scripts/infra-env.sh
 
 .PHONY: help functions install ci-install dev build clean test test-node test-go smoke write-functions-env authorize-preview-domain deploy-functions deploy-hosting-preview deploy-hosting-production infra-config infra-auth infra-init infra-workspace infra-dns-records infra-plan infra-apply deploy-hosting-env
@@ -91,7 +92,8 @@ deploy-functions: write-functions-env ## Deploy all Go Cloud Functions to GCP.
 deploy-hosting-preview: ## Deploy Firebase Hosting preview channel and extract its URL.
 	@if [ -z "$${GCP_PROJECT_ID}" ]; then echo "GCP_PROJECT_ID is required"; exit 1; fi
 	@if [ -z "$${CHANNEL_ID}" ]; then echo "CHANNEL_ID is required"; exit 1; fi
-	@error_log="$$(mktemp)"; \
+	@error_log="$(FIREBASE_PREVIEW_ERROR)"; \
+	: > "$$error_log"; \
 	status=0; \
 	npx firebase-tools hosting:channel:deploy "$${CHANNEL_ID}" --project "$${GCP_PROJECT_ID}" --expires 14d --json --debug > "$(FIREBASE_PREVIEW_JSON)" 2>"$$error_log" || status=$$?; \
 	cat "$$error_log" >&2; \
@@ -106,7 +108,6 @@ deploy-hosting-preview: ## Deploy Firebase Hosting preview channel and extract i
 				echo '```'; \
 			} >> "$${GITHUB_STEP_SUMMARY}"; \
 		fi; \
-		rm -f "$$error_log"; \
 		exit "$$status"; \
 	fi; \
 	rm -f "$$error_log"
