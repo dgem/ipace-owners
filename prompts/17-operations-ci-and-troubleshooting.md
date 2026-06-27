@@ -57,6 +57,10 @@ Firebase/GCP.
   for Firebase deployment and following deployment scripts. The observed Node 24 failure is
   `Invalid response body ... Premature close` across STS and Firebase APIs. Remove this scoped
   compatibility exception once the current Firebase CLI works reliably on Node 24.
+- Reuse the short-lived access token minted by `google-github-actions/auth` through the
+  repository Firebase CLI preload helper. This skips Firebase CLI's duplicate STS exchange,
+  which currently fails reliably with `Premature close`; the token remains ephemeral and no
+  service-account key or legacy Firebase CI token is stored.
 - Staging `Api` should accept project-owned Firebase PR preview origins by validated host
   pattern, derive email-link `continueUrl` from that request origin, and omit
   `FIREBASE_EMAIL_LINK_DOMAIN` for previews. This avoids redeploying Functions solely to
