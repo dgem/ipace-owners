@@ -105,5 +105,6 @@ test('preview deployment reports Firebase CLI diagnostics when deployment fails'
   assert.match(makefile, /FIREBASE_PREVIEW_ERROR \?= firebase-preview-error\.log/);
   assert.match(workflow, /Firebase CLI diagnostics/);
   assert.match(workflow, /Firebase debug log/);
+  assert.match(workflow, /deployFailed && fs\.existsSync\('firebase-debug\.log'\)/);
   assert.match(makefile, /exit "\$\$status"/);
 });

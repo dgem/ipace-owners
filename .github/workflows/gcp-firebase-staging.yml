@@ -130,16 +130,23 @@ jobs:
           script: |
             const fs = require('fs');
             let body = 'Firebase staging deploy finished.';
+            let deployFailed = false;
             if (fs.existsSync('firebase-preview.json')) {
-              body += '\n\n```json\n' + fs.readFileSync('firebase-preview.json', 'utf8').slice(0, 4000) + '\n```';
+              const deployJson = fs.readFileSync('firebase-preview.json', 'utf8');
+              body += '\n\n```json\n' + deployJson.slice(0, 4000) + '\n```';
+              try {
+                deployFailed = JSON.parse(deployJson).status === 'error';
+              } catch {
+                deployFailed = true;
+              }
             }
-            if (fs.existsSync('firebase-preview-error.log')) {
+            if (deployFailed && fs.existsSync('firebase-preview-error.log')) {
               const diagnostics = fs.readFileSync('firebase-preview-error.log', 'utf8').slice(-6000);
               if (diagnostics.trim()) {
                 body += '\n\n<details><summary>Firebase CLI diagnostics</summary>\n\n```text\n' + diagnostics + '\n```\n</details>';
               }
             }
-            if (fs.existsSync('firebase-debug.log')) {
+            if (deployFailed && fs.existsSync('firebase-debug.log')) {
               const debugLog = fs.readFileSync('firebase-debug.log', 'utf8').slice(-6000);
               if (debugLog.trim()) {
                 body += '\n\n<details><summary>Firebase debug log</summary>\n\n```text\n' + debugLog + '\n```\n</details>';
