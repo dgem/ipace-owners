@@ -22,6 +22,17 @@ output "firebase_auth_domain" {
   value = data.google_firebase_web_app_config.default.auth_domain
 }
 
+output "firebase_auth_email" {
+  description = "Managed Firebase Auth email sender and action-domain configuration."
+  value = {
+    custom_sender_domain = var.firebase_auth_email_domain
+    action_domain        = local.firebase_auth_email_action_domain
+    sender_local_part    = var.firebase_auth_email_sender_local_part
+    sender_display_name  = var.firebase_auth_email_sender_display_name
+    reply_to             = var.firebase_auth_email_reply_to
+  }
+}
+
 output "firebase_storage_bucket" {
   value = data.google_firebase_web_app_config.default.storage_bucket
 }

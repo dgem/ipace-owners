@@ -78,6 +78,42 @@ variable "firebase_auth_authorized_domains" {
   default     = []
 }
 
+variable "manage_firebase_auth_email_templates" {
+  description = "Whether OpenTofu applies the Firebase Auth email templates and action-domain configuration."
+  type        = bool
+  default     = true
+}
+
+variable "firebase_auth_email_domain" {
+  description = "Verified custom sender domain for Firebase Auth emails. Leave empty to retain Firebase's default sender domain."
+  type        = string
+  default     = ""
+}
+
+variable "firebase_auth_email_action_domain" {
+  description = "Firebase Hosting domain used for email action links. Defaults to the host from site_url."
+  type        = string
+  default     = ""
+}
+
+variable "firebase_auth_email_sender_local_part" {
+  description = "Local part used for Firebase Auth's From address."
+  type        = string
+  default     = "members"
+}
+
+variable "firebase_auth_email_sender_display_name" {
+  description = "Display name used for Firebase Auth email senders."
+  type        = string
+  default     = "I-PACE Owners Advocacy Group"
+}
+
+variable "firebase_auth_email_reply_to" {
+  description = "Reply-to address used by Firebase Auth email templates."
+  type        = string
+  default     = "contact@ipace-owners.org"
+}
+
 variable "firebase_web_app_display_name" {
   description = "Display name for the Firebase Web App created for this environment."
   type        = string

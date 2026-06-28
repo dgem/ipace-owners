@@ -122,6 +122,20 @@ Firebase/GCP.
   sender name, subject, and body copy professionally for the owners' group, with clear
   explanation that the link signs the user in, no unnecessary provider jargon, and no
   claim that the request creates a legal claim.
+- Keep configurable account-management HTML templates in
+  `infra/opentofu/modules/ipace-owners/templates/auth-email` and apply them through the
+  shared OpenTofu module's Identity Platform Admin v2 bridge. The provider does not expose
+  the complete notification configuration, so template hashes and sender/action-domain
+  inputs must trigger the bridge until first-class provider support exists.
+- Set `firebase_auth_email_domain` per environment for the From domain and
+  `firebase_auth_email_action_domain` for the action callback host. Add the TXT and CNAME
+  records returned by Firebase to Fasthosts, wait for DNS propagation, then rerun
+  `make infra-email-domain ENV=<environment>` to complete `VERIFY` and `APPLY`. Maintain one
+  SPF TXT record per domain by merging includes instead of adding competing SPF records.
+- The built-in passwordless `EMAIL_SIGNIN` body cannot be replaced through the Admin v2
+  account-management templates. Fully custom sign-in copy requires generated action links
+  and a transactional email/SMTP provider; document and secure that provider before making
+  such a change.
 - Repeat Join or login requests for the same email must remain account-enumeration safe.
   Logs may include one-way email hashes, masked email addresses, previous Join counts,
   continue hosts, provider status summaries, and response diagnostics, but never raw

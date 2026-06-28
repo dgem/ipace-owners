@@ -67,6 +67,11 @@ magic-link request path for existing users.
   `17-operations-ci-and-troubleshooting.md`, including sending quotas, spam/junk checks,
   sender-template settings, and the option to generate action links with the Admin SDK and
   send through a transactional email/SMTP provider when delivery tracking is required.
+- Firebase-managed account emails use the versioned HTML templates, sender identity,
+  reply-to address, callback domain, and verified sender domain configured by OpenTofu.
+  The built-in passwordless `EMAIL_SIGNIN` body is fixed by Firebase and is not one of those
+  configurable templates. Do not promise branded sign-in copy unless the implementation
+  changes to server-generated action links and an explicitly managed email provider.
 
 ## Join record shape
 
