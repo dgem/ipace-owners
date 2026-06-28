@@ -45,8 +45,8 @@ test('Firebase deploy workflows verify keyless GCP credentials before deployment
     assert.match(workflow, /create_credentials_file: true/);
     assert.match(workflow, /export_environment_variables: true/);
     assert.match(workflow, /run: gcloud auth print-access-token >\/dev\/null/);
-    assert.match(workflow, /name: Use Firebase CLI compatible Node\.js/);
-    assert.match(workflow, /node-version: 22/);
+    assert.match(workflow, /node-version-file: \.nvmrc/);
+    assert.doesNotMatch(workflow, /node-version: 22/);
     assert.match(workflow, /FIREBASE_CLI_ACCESS_TOKEN: \$\{\{ steps\.gcp-auth\.outputs\.access_token \}\}/);
   }
 });

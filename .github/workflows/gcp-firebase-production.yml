@@ -62,12 +62,6 @@ jobs:
       - name: Verify GCP deployment credentials
         run: gcloud auth print-access-token >/dev/null
 
-      - name: Use Firebase CLI compatible Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: 22
-          cache: npm
-
       - name: Detect backend deploy changes
         id: backend
         run: |

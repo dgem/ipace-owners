@@ -52,11 +52,10 @@ Firebase/GCP.
   service-account impersonation. Explicitly generate/export ADC credentials and verify an
   access-token exchange before invoking Firebase CLI; do not introduce long-lived Firebase
   CI tokens or service-account keys.
-- Build and test with the project's current Node Active LTS. Until Firebase CLI's HTTP stack
-  handles GitHub runner responses reliably under Node 24, switch CI to supported Node 22 only
-  for Firebase deployment and following deployment scripts. The observed Node 24 failure is
-  `Invalid response body ... Premature close` across STS and Firebase APIs. Remove this scoped
-  compatibility exception once the current Firebase CLI works reliably on Node 24.
+- Build, test and deploy with the project's current Node Active LTS from `.nvmrc`; do not
+  silently downgrade deployment steps to an older Node line. The Firebase CLI transport
+  workaround below is scoped to its legacy HTTP client and allows deployment to remain on
+  Node 24.
 - Reuse the short-lived access token minted by `google-github-actions/auth` through the
   repository Firebase CLI preload helper. This skips Firebase CLI's duplicate STS exchange,
   which currently fails reliably with `Premature close`; the token remains ephemeral and no
