@@ -1197,7 +1197,7 @@ legend {
   display: block;
 }
 
-.submit-result.p {
+.submit-result>p {
   max-width: 0;
 }
 
