@@ -1197,8 +1197,8 @@ legend {
   display: block;
 }
 
-.submit-result>p {
-  max-width: 0;
+.submit-result p {
+  max-width: stretch;
 }
 
 /* ------------------------------------------------------------
