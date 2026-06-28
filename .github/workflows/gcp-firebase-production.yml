@@ -47,12 +47,20 @@ jobs:
           FIREBASE_STORAGE_BUCKET: ${{ vars.FIREBASE_STORAGE_BUCKET_PRODUCTION }}
         run: make build
 
-      - uses: google-github-actions/auth@v3
+      - id: gcp-auth
+        uses: google-github-actions/auth@v3
         with:
+          project_id: ${{ vars.FIREBASE_PRODUCTION_PROJECT_ID }}
           workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER_PRODUCTION }}
           service_account: ${{ secrets.GCP_DEPLOYER_SERVICE_ACCOUNT_PRODUCTION }}
+          create_credentials_file: true
+          export_environment_variables: true
+          token_format: access_token
 
       - uses: google-github-actions/setup-gcloud@v3
+
+      - name: Verify GCP deployment credentials
+        run: gcloud auth print-access-token >/dev/null
 
       - name: Detect backend deploy changes
         id: backend
@@ -88,6 +96,7 @@ jobs:
       - name: Deploy Firebase Hosting production
         env:
           GCP_PROJECT_ID: ${{ vars.FIREBASE_PRODUCTION_PROJECT_ID }}
+          FIREBASE_CLI_ACCESS_TOKEN: ${{ steps.gcp-auth.outputs.access_token }}
         run: make deploy-hosting-production
 
       - name: Smoke test production

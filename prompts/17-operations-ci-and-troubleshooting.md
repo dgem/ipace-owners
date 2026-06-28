@@ -39,8 +39,31 @@ Firebase/GCP.
   6. If `Api` was deployed, refresh the Firebase Hosting preview channel so rewrites point
      at the current Function revision.
   7. Run `make smoke` with `SMOKE_BASE_URL` set to the generated preview URL.
+- Keep Firebase CLI deployment JSON available for URL extraction and PR diagnostics. If a
+  preview deployment fails, CI must print both Firebase CLI stderr and any JSON error payload;
+  do not hide the actionable error behind shell redirection.
+- Retry Firebase Hosting preview deployment a small, bounded number of times because the
+  Firebase CLI performs its own STS exchange and can receive transient connection closures
+  even after the workflow's GCP credential check succeeds. Preserve diagnostics from the
+  final attempt and still fail deterministically after the retry limit.
 - Serialize staging deployments because PR previews share the staging Auth configuration
   and staging Functions.
+- Authenticate deployments with GitHub OIDC Workload Identity Federation and short-lived
+  service-account impersonation. Explicitly generate/export ADC credentials and verify an
+  access-token exchange before invoking Firebase CLI; do not introduce long-lived Firebase
+  CI tokens or service-account keys.
+- Build, test and deploy with the project's current Node Active LTS from `.nvmrc`; do not
+  silently downgrade deployment steps to an older Node line. The Firebase CLI transport
+  workaround below is scoped to its legacy HTTP client and allows deployment to remain on
+  Node 24.
+- Reuse the short-lived access token minted by `google-github-actions/auth` through the
+  repository Firebase CLI preload helper. This skips Firebase CLI's duplicate STS exchange,
+  which currently fails reliably with `Premature close`; the token remains ephemeral and no
+  service-account key or legacy Firebase CI token is stored.
+- The same preload helper disables response compression in Firebase CLI's legacy `node-fetch`
+  transport. GitHub runners have returned prematurely closed compressed responses from STS,
+  Cloud Resource Manager and Firebase APIs; requesting identity-encoded responses avoids that
+  transport bug without affecting the website's own HTTP behaviour.
 - Staging `Api` should accept project-owned Firebase PR preview origins by validated host
   pattern, derive email-link `continueUrl` from that request origin, and omit
   `FIREBASE_EMAIL_LINK_DOMAIN` for previews. This avoids redeploying Functions solely to

@@ -142,7 +142,7 @@ functions/firebase-go/ # Go Cloud Functions for Firebase
 infra/opentofu/   # GCP/Firebase infrastructure
 prompts/           # Sequenced prompts and architecture blueprint
 .eleventy.js       # Eleventy configuration
-firebase.json      # Firebase Hosting rewrites, headers and Functions config
+firebase.json      # Firebase Hosting rewrites and security headers
 ```
 
 ---

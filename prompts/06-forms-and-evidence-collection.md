@@ -26,7 +26,7 @@ Provide accessible multi-step forms that collect membership interest now, help o
     consent checkboxes are ticked
 - Without JavaScript, all form steps should remain visible and usable as a single-page form.
 - With JavaScript, show one step at a time.
-- On large screens, place form-level notices or storage-status callouts beside the form instead of above it when that improves first-step visibility.
+- Place form-level notices or storage-status callouts below the form, not beside or above it.
 - Keep the first actionable form fields visible as high as practical; avoid stacking large notices above progress indicators.
 - Keep step navigation, especially the first Next button, visible without excessive scrolling on common laptop-height viewports.
 - Do not scroll the viewport on every step change by default. Only enable
@@ -74,6 +74,9 @@ Provide accessible multi-step forms that collect membership interest now, help o
   the contact consent and not-a-legal-claim acknowledgement checkboxes are ticked. Render it
   with a `disabled` attribute in the initial HTML and keep a submit-time guard in JavaScript
   so the consent requirement holds even if initial enhancement is delayed.
+- Implement conditional checkbox enablement by reading checkbox controls directly by
+  `name` from the form DOM and checking their actual `checked` state; do not infer this
+  from broad form-control collections or serialized form data.
 - The Join page below-form callout should explain that Join answers are saved and that, after
   confirming the emailed sign-in link, members can sign in and add vehicle details, State of
   Health readings, and service/fault history for one or more I-PACEs. Do not describe

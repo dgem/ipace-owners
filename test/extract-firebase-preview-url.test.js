@@ -7,6 +7,7 @@ const { test } = require('node:test');
 
 const scriptPath = resolve(__dirname, '../scripts/extract-firebase-preview-url.mjs');
 const workflowPath = resolve(__dirname, '../.github/workflows/gcp-firebase-staging.yml');
+const makefilePath = resolve(__dirname, '../Makefile');
 
 test('extracts the Firebase Hosting preview URL from nested deploy JSON', function () {
   const cwd = mkdtempSync(join(tmpdir(), 'ipace-preview-url-'));
@@ -86,4 +87,24 @@ test('staging Functions use the current PR preview URL', function () {
     /FIREBASE_EMAIL_CONTINUE_URL: \$\{\{ format\('\{0\}\/account\/', steps\.hosting\.outputs\.url\) \}\}/,
   );
   assert.doesNotMatch(workflow, /FIREBASE_EMAIL_(?:CONTINUE_URL|LINK_DOMAIN)_STAGING/);
+});
+
+test('preview deployment reports Firebase CLI diagnostics when deployment fails', function () {
+  const makefile = readFileSync(makefilePath, 'utf8');
+  const workflow = readFileSync(workflowPath, 'utf8');
+
+  assert.match(makefile, /hosting:channel:deploy[^\n]+--debug/);
+  assert.match(makefile, /firebase-access-token-preload\.cjs/);
+  assert.match(makefile, /for attempt in 1 2 3/);
+  assert.match(makefile, /else \\\n\s+status=\$\$\?;/);
+  assert.match(makefile, /sleep \$\$\(\(attempt \* 5\)\)/);
+  assert.match(makefile, /cat "\$\$error_log" >&2/);
+  assert.match(makefile, /cat "\$\(FIREBASE_PREVIEW_JSON\)" >&2/);
+  assert.match(makefile, /tail -80 "\$\$error_log"/);
+  assert.match(makefile, /GITHUB_STEP_SUMMARY/);
+  assert.match(makefile, /FIREBASE_PREVIEW_ERROR \?= firebase-preview-error\.log/);
+  assert.match(workflow, /Firebase CLI diagnostics/);
+  assert.match(workflow, /Firebase debug log/);
+  assert.match(workflow, /deployFailed && fs\.existsSync\('firebase-debug\.log'\)/);
+  assert.match(makefile, /exit "\$\$status"/);
 });

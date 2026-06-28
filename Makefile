@@ -5,6 +5,7 @@ SHELL := /bin/bash
 GCP_REGION ?= europe-west2
 FUNCTION_ENTRYPOINTS ?= Api
 FIREBASE_PREVIEW_JSON ?= firebase-preview.json
+FIREBASE_PREVIEW_ERROR ?= firebase-preview-error.log
 INFRA_ENV_SCRIPT := scripts/infra-env.sh
 
 .PHONY: help functions install ci-install dev build clean test test-node test-go smoke write-functions-env authorize-preview-domain deploy-functions deploy-hosting-preview deploy-hosting-production infra-config infra-auth infra-init infra-workspace infra-dns-records infra-plan infra-apply deploy-hosting-env
@@ -91,9 +92,40 @@ deploy-functions: write-functions-env ## Deploy all Go Cloud Functions to GCP.
 deploy-hosting-preview: ## Deploy Firebase Hosting preview channel and extract its URL.
 	@if [ -z "$${GCP_PROJECT_ID}" ]; then echo "GCP_PROJECT_ID is required"; exit 1; fi
 	@if [ -z "$${CHANNEL_ID}" ]; then echo "CHANNEL_ID is required"; exit 1; fi
-	npx firebase-tools hosting:channel:deploy "$${CHANNEL_ID}" --project "$${GCP_PROJECT_ID}" --expires 14d --json > "$(FIREBASE_PREVIEW_JSON)"
+	@error_log="$(FIREBASE_PREVIEW_ERROR)"; \
+	status=1; \
+	for attempt in 1 2 3; do \
+		: > "$$error_log"; \
+		: > "$(FIREBASE_PREVIEW_JSON)"; \
+		if NODE_OPTIONS="$${NODE_OPTIONS:+$${NODE_OPTIONS} }--require=./scripts/firebase-access-token-preload.cjs" npx firebase-tools hosting:channel:deploy "$${CHANNEL_ID}" --project "$${GCP_PROJECT_ID}" --expires 14d --json --debug > "$(FIREBASE_PREVIEW_JSON)" 2>"$$error_log"; then \
+			status=0; \
+			break; \
+		else \
+			status=$$?; \
+		fi; \
+		cat "$$error_log" >&2; \
+		if [ "$$attempt" -lt 3 ]; then \
+			echo "Firebase Hosting preview deployment attempt $$attempt failed; retrying." >&2; \
+			sleep $$((attempt * 5)); \
+		fi; \
+	done; \
+	cat "$$error_log" >&2; \
+	if [ "$$status" -ne 0 ]; then \
+		echo "Firebase Hosting preview deployment failed with exit code $$status." >&2; \
+		if [ -s "$(FIREBASE_PREVIEW_JSON)" ]; then cat "$(FIREBASE_PREVIEW_JSON)" >&2; fi; \
+		if [ -n "$${GITHUB_STEP_SUMMARY:-}" ]; then \
+			{ \
+				echo "### Firebase Hosting preview deployment error"; \
+				echo '```text'; \
+				tail -80 "$$error_log"; \
+				echo '```'; \
+			} >> "$${GITHUB_STEP_SUMMARY}"; \
+		fi; \
+		exit "$$status"; \
+	fi; \
+	rm -f "$$error_log"
 	node scripts/extract-firebase-preview-url.mjs "$(FIREBASE_PREVIEW_JSON)"
 
 deploy-hosting-production: ## Deploy Firebase Hosting production.
 	@if [ -z "$${GCP_PROJECT_ID}" ]; then echo "GCP_PROJECT_ID is required"; exit 1; fi
-	npx firebase-tools deploy --only hosting --project "$${GCP_PROJECT_ID}"
+	NODE_OPTIONS="$${NODE_OPTIONS:+$${NODE_OPTIONS} }--require=./scripts/firebase-access-token-preload.cjs" npx firebase-tools deploy --only hosting --project "$${GCP_PROJECT_ID}"

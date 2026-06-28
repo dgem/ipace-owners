@@ -49,18 +49,27 @@ jobs:
           FIREBASE_STORAGE_BUCKET: ${{ vars.FIREBASE_STORAGE_BUCKET_STAGING }}
         run: make build
 
-      - uses: google-github-actions/auth@v3
+      - id: gcp-auth
+        uses: google-github-actions/auth@v3
         with:
+          project_id: ${{ vars.FIREBASE_STAGING_PROJECT_ID }}
           workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER_STAGING }}
           service_account: ${{ secrets.GCP_DEPLOYER_SERVICE_ACCOUNT_STAGING }}
+          create_credentials_file: true
+          export_environment_variables: true
+          token_format: access_token
 
       - uses: google-github-actions/setup-gcloud@v3
+
+      - name: Verify GCP deployment credentials
+        run: gcloud auth print-access-token >/dev/null
 
       - name: Deploy Firebase Hosting preview
         id: hosting
         env:
           GCP_PROJECT_ID: ${{ vars.FIREBASE_STAGING_PROJECT_ID }}
           CHANNEL_ID: pr-${{ github.event.pull_request.number }}
+          FIREBASE_CLI_ACCESS_TOKEN: ${{ steps.gcp-auth.outputs.access_token }}
         run: make deploy-hosting-preview
 
       - name: Authorize Firebase Hosting preview for passwordless sign-in
@@ -100,6 +109,7 @@ jobs:
         env:
           GCP_PROJECT_ID: ${{ vars.FIREBASE_STAGING_PROJECT_ID }}
           CHANNEL_ID: pr-${{ github.event.pull_request.number }}
+          FIREBASE_CLI_ACCESS_TOKEN: ${{ steps.gcp-auth.outputs.access_token }}
         run: make deploy-hosting-preview
 
       - name: Smoke test preview
@@ -114,8 +124,27 @@ jobs:
           script: |
             const fs = require('fs');
             let body = 'Firebase staging deploy finished.';
+            let deployFailed = false;
             if (fs.existsSync('firebase-preview.json')) {
-              body += '\n\n```json\n' + fs.readFileSync('firebase-preview.json', 'utf8').slice(0, 4000) + '\n```';
+              const deployJson = fs.readFileSync('firebase-preview.json', 'utf8');
+              body += '\n\n```json\n' + deployJson.slice(0, 4000) + '\n```';
+              try {
+                deployFailed = JSON.parse(deployJson).status === 'error';
+              } catch {
+                deployFailed = true;
+              }
+            }
+            if (deployFailed && fs.existsSync('firebase-preview-error.log')) {
+              const diagnostics = fs.readFileSync('firebase-preview-error.log', 'utf8').slice(-6000);
+              if (diagnostics.trim()) {
+                body += '\n\n<details><summary>Firebase CLI diagnostics</summary>\n\n```text\n' + diagnostics + '\n```\n</details>';
+              }
+            }
+            if (deployFailed && fs.existsSync('firebase-debug.log')) {
+              const debugLog = fs.readFileSync('firebase-debug.log', 'utf8').slice(-6000);
+              if (debugLog.trim()) {
+                body += '\n\n<details><summary>Firebase debug log</summary>\n\n```text\n' + debugLog + '\n```\n</details>';
+              }
             }
             await github.rest.issues.createComment({
               owner: context.repo.owner,

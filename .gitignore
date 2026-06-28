@@ -21,6 +21,9 @@ Thumbs.db
 # Eleventy cache
 .cache/
 .11ty-cache/
+firebase-preview.json
+firebase-preview-error.log
+firebase-debug.log
 
 # Go artifacts (legacy from initial gitignore)
 *.exe
