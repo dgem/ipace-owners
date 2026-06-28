@@ -4,7 +4,7 @@ go 1.26
 
 require (
 	cloud.google.com/go/firestore v1.22.0
-	cloud.google.com/go/storage v1.62.3
+	cloud.google.com/go/storage v1.63.0
 	firebase.google.com/go/v4 v4.20.0
 	github.com/GoogleCloudPlatform/functions-framework-go v1.9.2
 	google.golang.org/api v0.285.0
