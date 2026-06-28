@@ -7,7 +7,7 @@ require (
 	cloud.google.com/go/storage v1.62.3
 	firebase.google.com/go/v4 v4.20.0
 	github.com/GoogleCloudPlatform/functions-framework-go v1.9.2
-	google.golang.org/api v0.285.0
+	google.golang.org/api v0.286.0
 )
 
 require (
