@@ -22,6 +22,11 @@ output "firebase_auth_domain" {
   value = module.ipace_owners.firebase_auth_domain
 }
 
+output "firebase_auth_email" {
+  description = "Managed Firebase Auth email sender and action-domain configuration."
+  value       = module.ipace_owners.firebase_auth_email
+}
+
 output "firebase_storage_bucket" {
   value = module.ipace_owners.firebase_storage_bucket
 }

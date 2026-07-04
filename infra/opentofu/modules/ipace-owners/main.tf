@@ -1,10 +1,13 @@
 locals {
-  project_name             = var.project_name != "" ? var.project_name : "ipace-owners-${var.environment}"
-  firebase_app_name        = var.firebase_web_app_display_name != "" ? var.firebase_web_app_display_name : "ipace-owners-${var.environment}"
-  snapshot_bucket_name     = "${var.project_id}-member-snapshots"
-  deployer_account_id      = "github-deployer"
-  firebase_hosting_site_id = var.firebase_hosting_site_id != "" ? var.firebase_hosting_site_id : var.project_id
-  email_continue_host      = regex("^https?://([^/]+)", var.site_url)[0]
+  project_name                      = var.project_name != "" ? var.project_name : "ipace-owners-${var.environment}"
+  firebase_app_name                 = var.firebase_web_app_display_name != "" ? var.firebase_web_app_display_name : "ipace-owners-${var.environment}"
+  snapshot_bucket_name              = "${var.project_id}-member-snapshots"
+  deployer_account_id               = "github-deployer"
+  firebase_hosting_site_id          = var.firebase_hosting_site_id != "" ? var.firebase_hosting_site_id : var.project_id
+  email_continue_host               = regex("^https?://([^/]+)", var.site_url)[0]
+  firebase_auth_email_action_domain = var.firebase_auth_email_action_domain != "" ? var.firebase_auth_email_action_domain : local.email_continue_host
+  firebase_auth_email_template_dir  = abspath("${path.module}/templates/auth-email")
+  firebase_auth_email_script        = abspath("${path.module}/../../../../scripts/configure-firebase-auth-email.mjs")
   firebase_auth_authorized_domains = distinct(compact(concat([
     local.email_continue_host,
     "${var.project_id}.firebaseapp.com",
@@ -105,6 +108,38 @@ resource "google_identity_platform_config" "default" {
   }
 
   depends_on = [google_project_service.required]
+}
+
+resource "terraform_data" "firebase_auth_email" {
+  count = var.manage_firebase_auth_email_templates ? 1 : 0
+
+  triggers_replace = concat(
+    [
+      var.project_id,
+      var.firebase_auth_email_domain,
+      local.firebase_auth_email_action_domain,
+      var.firebase_auth_email_sender_local_part,
+      var.firebase_auth_email_sender_display_name,
+      var.firebase_auth_email_reply_to,
+    ],
+    [for filename in sort(fileset(local.firebase_auth_email_template_dir, "*.html")) : filesha256("${local.firebase_auth_email_template_dir}/${filename}")],
+  )
+
+  provisioner "local-exec" {
+    command = "node ${local.firebase_auth_email_script}"
+
+    environment = {
+      GCP_PROJECT_ID                          = var.project_id
+      FIREBASE_AUTH_EMAIL_TEMPLATE_DIR        = local.firebase_auth_email_template_dir
+      FIREBASE_AUTH_EMAIL_DOMAIN              = var.firebase_auth_email_domain
+      FIREBASE_AUTH_EMAIL_ACTION_DOMAIN       = local.firebase_auth_email_action_domain
+      FIREBASE_AUTH_EMAIL_SENDER_LOCAL_PART   = var.firebase_auth_email_sender_local_part
+      FIREBASE_AUTH_EMAIL_SENDER_DISPLAY_NAME = var.firebase_auth_email_sender_display_name
+      FIREBASE_AUTH_EMAIL_REPLY_TO            = var.firebase_auth_email_reply_to
+    }
+  }
+
+  depends_on = [google_identity_platform_config.default]
 }
 
 data "google_firebase_web_app_config" "default" {

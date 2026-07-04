@@ -1197,6 +1197,14 @@ legend {
   display: block;
 }
 
+.submit-result p {
+  max-width: stretch;
+}
+
+.submit-result strong {
+  display: block;
+}
+
 /* ------------------------------------------------------------
    14. CHART PLACEHOLDERS
    ------------------------------------------------------------ */

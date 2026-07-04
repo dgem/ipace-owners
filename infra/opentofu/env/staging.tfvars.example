@@ -21,6 +21,11 @@ github_repo  = "ipace-owners"
 allowed_origins = "https://stage.ipace-owners.org,http://localhost:8080,http://localhost:5000"
 site_url        = "https://stage.ipace-owners.org/account/"
 
+# Use a separate sender subdomain so staging DNS cannot affect production mail.
+# Add Firebase's TXT/CNAME records, then run: make infra-email-domain ENV=staging
+firebase_auth_email_domain        = "auth.stage.ipace-owners.org"
+firebase_auth_email_action_domain = "stage.ipace-owners.org"
+
 # Apply once, then add every output DNS record at Fasthosts.
 firebase_hosting_custom_domains = {
   "stage.ipace-owners.org" = {}

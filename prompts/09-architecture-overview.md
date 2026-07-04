@@ -22,6 +22,11 @@ It is the current source of truth for the I-PACE Owners' Advocacy Group architec
 - **Domains/SSL:** Firebase Hosting managed SSL for `ipace-owners.org`; DNS remains at
   Fasthosts. OpenTofu owns Firebase custom-domain associations, reports the required DNS
   records and validation state, while the records are entered manually in Fasthosts.
+- **Authentication email branding:** versioned HTML account-management email templates,
+  sender identity, reply-to address, action callback domain, and custom sender-domain
+  verification are managed from the shared OpenTofu module. The Google provider does not
+  expose all Identity Platform notification fields, so a tested Admin v2 API bridge runs
+  from `terraform_data` until first-class provider support exists.
 
 ## Directory structure
 
@@ -128,6 +133,22 @@ route unless there is a measured need.
 - OpenTofu must configure Firebase Authentication / Identity Platform for passwordless
   email sign-in, with email sign-in enabled, password-required disabled, and authorized
   domains derived from `site_url` plus any explicit extra auth domains.
+- Store the professional account-management email templates under
+  `infra/opentofu/modules/ipace-owners/templates/auth-email`. OpenTofu must apply their
+  subject, HTML body, sender display name/local part, reply-to address, callback URI, and
+  optional custom sender domain through the Identity Platform Admin v2 API. Template or
+  configuration changes must replace the `terraform_data` bridge and reapply the settings.
+  Keep the bridge narrowly scoped and tested so it can be removed when the provider exposes
+  equivalent notification configuration.
+- Custom authentication sender domains require Firebase-issued TXT and CNAME records at
+  Fasthosts. Verification is a two-stage `VERIFY` then `APPLY` operation and must be safely
+  rerunnable with `make infra-email-domain ENV=<environment>`. Do not create a second SPF
+  record; merge the Firebase include into the domain's existing SPF policy.
+- Firebase's built-in passwordless `EMAIL_SIGNIN` message body is not represented by the
+  configurable Admin v2 account-management templates. Do not claim that its copy is managed
+  by these HTML files. Fully branded magic-link copy requires generating the action link
+  server-side and sending it through an explicitly selected transactional email or SMTP
+  provider, with secrets managed outside git.
 - The OpenTofu module should also bootstrap the GitHub Actions `staging` and `production`
   environments, including the variables and secrets consumed by the deploy workflows.
   Firebase web API keys, app IDs, auth domains and storage bucket values should be derived
