@@ -36,20 +36,20 @@ test('site UI uses Firebase passwordless magic-link forms', function () {
 });
 
 test('Join completion does not offer vehicle submission until signed in', function () {
-  var join = read('src/join.njk');
+  var join = read('src/join.njk') + read('src/_includes/partials/join-result.njk');
   var css = read('src/assets/css/site.css');
 
   assert.match(join, /data-registration-link-sent/);
-  assert.match(join, /You can add vehicle data after\s+opening the sign-in link/);
+  assert.match(join, /Adding vehicle information after signing in is optional/);
   assert.doesNotMatch(join, /Add your first vehicle/);
   assert.doesNotMatch(join, /href="\/account\/" class="btn/);
   assert.match(css, /\[hidden\]\s*\{\s*display:\s*none !important;/);
 });
 
 test('Join completion separates saved state from magic-link delivery', function () {
-  var join = read('src/join.njk');
+  var join = read('src/join.njk') + read('src/_includes/partials/join-result.njk');
 
-  assert.match(join, /Your join details have been saved/);
+  assert.match(join, /Your membership details have been saved/);
   assert.match(join, /sign-in provider accepted the request/);
   assert.match(join, /Delivery can be delayed or filtered/);
   assert.match(join, /Your join details were saved, but we couldn't send your sign-in link/);

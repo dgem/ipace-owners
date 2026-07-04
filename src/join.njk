@@ -2,15 +2,108 @@
 layout: form-page.njk
 title: Join the Group
 eyebrow: Membership
-subtitle: "Free to join. Takes less than a minuet."
-description: "Join the I-PACE Owners' Advocacy Group — free membership, no obligation."
+subtitle: "Free to join. Takes less than a minute."
+description: "Add your voice to the I-PACE Owners' Advocacy Group — free membership, no obligation."
 multiStepForm: true
 formPageWide: true
 compactHeader: true
 compactSection: true
 ---
 
-<div class="form-workspace">
+<div class="form-workspace" data-site-mode-only="launch">
+  <form
+    class="form form--compact"
+    name="join-launch"
+    method="POST"
+    action="/api/submit-join"
+    data-multistep-form
+    data-database-submit="/api/submit-join"
+    novalidate
+    aria-label="Join the I-PACE Owners' Group"
+  >
+    <p class="visually-hidden">
+      <label>Do not fill this in if you are human: <input name="bot-field" tabindex="-1" autocomplete="off"></label>
+    </p>
+
+    <div data-step="1">
+      <h2 class="step-heading" data-step-heading tabindex="-1">Your membership details</h2>
+
+      <fieldset>
+        <legend>Add your voice</legend>
+
+        <div class="form-grid form-grid--2">
+          <div class="form-group">
+            <label for="launch-join-name">Full name <span aria-hidden="true">*</span></label>
+            <span class="form-hint" id="launch-join-name-hint">How you'd like to be addressed</span>
+            <input
+              type="text"
+              id="launch-join-name"
+              name="name"
+              required
+              autocomplete="name"
+              aria-describedby="launch-join-name-hint launch-join-name-error"
+            >
+            <span class="form-error" id="launch-join-name-error" role="alert"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="launch-join-email">Email address <span aria-hidden="true">*</span></label>
+            <span class="form-hint" id="launch-join-email-hint">We'll use this to contact you about the group</span>
+            <input
+              type="email"
+              id="launch-join-email"
+              name="email"
+              required
+              autocomplete="email"
+              aria-describedby="launch-join-email-hint launch-join-email-error"
+            >
+            <span class="form-error" id="launch-join-email-error" role="alert"></span>
+          </div>
+        </div>
+
+        <div class="check-group">
+          <label class="check-label">
+            <input type="checkbox" name="consent-contact" value="yes" required>
+            I agree to be contacted about the I-PACE Owners' Group. <span aria-hidden="true">*</span>
+          </label>
+          <label class="check-label">
+            <input type="checkbox" name="consent-not-legal" value="yes" required>
+            I understand that joining does not enrol me in legal action or create a legal
+            relationship. <span aria-hidden="true">*</span>
+          </label>
+        </div>
+
+        <p class="form-hint join-privacy-note">See our <a href="/privacy/">Privacy Policy</a>
+        and <a href="/terms/">Participation Statement</a>.</p>
+      </fieldset>
+
+      <div class="step-nav join-launch-submit">
+        <button
+          type="submit"
+          class="btn btn--primary btn--lg"
+          data-submit
+          data-enable-when-checked="consent-contact consent-not-legal"
+          disabled
+        >Join the Group</button>
+      </div>
+    </div>
+
+    {% include "partials/join-result.njk" %}
+  </form>
+
+  <aside class="form-workspace__aside" aria-label="What happens after joining">
+    <div class="callout callout--info">
+      <span class="callout__icon" aria-hidden="true">ℹ️</span>
+      <div class="callout__content">
+        <p class="callout__title">What happens next</p>
+        <p>We save your membership securely and email you a sign-in link. You can add
+        vehicle information later if you want to, but it is not required to join.</p>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<div class="form-workspace" data-site-mode-only="full">
 
 <form
   class="form form--compact"
@@ -240,56 +333,7 @@ compactSection: true
     </div>
   </div>
 
-  <!-- Submission result (shown after submit) -->
-  <div class="submit-result" data-submit-result tabindex="-1" role="status">
-    <div style="text-align: center; padding: var(--space-4);">
-      <div style="font-size: 3rem; margin-bottom: var(--space-4);" aria-hidden="true">✅</div>
-      <h2 style="color: var(--color-success);">Thank you for joining</h2>
-
-      <!-- Shown when user is already signed in -->
-      <p style="color: var(--color-text-muted);" data-registration-signed-in hidden>
-        You are already signed in. Your join answers have been submitted to the group.
-      </p>
-
-      <div data-database-success hidden style="margin-top: var(--space-4);">
-        <p><strong>Your join details have been saved.</strong> The group will use this
-        information to understand membership interest and volunteering offers.</p>
-      </div>
-
-      <div data-database-error hidden style="margin-top: var(--space-4);">
-        <p style="color: var(--color-danger);"><strong>We could not save your join form just now.</strong>
-        Please try again or contact
-        <a href="mailto:contact@ipace-owners.org">contact@ipace-owners.org</a>.</p>
-      </div>
-
-      <!-- Shown for guests — revealed by identity.js after form submit -->
-      <div data-registration-guest hidden>
-        <p style="color: var(--color-text-muted);">Your sign-in link status for
-          <strong data-registration-email>your email address</strong> is shown below.
-        </p>
-
-        <!-- Shown once Firebase accepts the magic-link request -->
-        <div data-registration-link-sent hidden style="margin-top: var(--space-4);">
-          <div style="font-size: 2rem; margin-bottom: var(--space-3);" aria-hidden="true">📧</div>
-          <p><strong>Check your inbox.</strong> Our sign-in provider accepted the request
-          for your email address. When the message arrives, click its link to complete
-          registration and sign in.</p>
-          <p style="color: var(--color-text-muted); font-size: 0.875rem; margin-top: var(--space-2);">
-          Delivery can be delayed or filtered. Check spam or junk folders, then use Sign in
-          to request another link if it has not arrived. You can add vehicle data after
-          opening the sign-in link.</p>
-        </div>
-
-        <!-- Shown if the API call fails -->
-        <div data-registration-error hidden style="margin-top: var(--space-4);">
-          <p style="color: var(--color-danger);"><strong>Your join details were saved, but we couldn't send your sign-in link.</strong></p>
-          <p style="color: var(--color-text-muted);">
-          Use the <strong>Sign in</strong> button in the header, or email us at
-          <a href="mailto:contact@ipace-owners.org">contact@ipace-owners.org</a>.</p>
-        </div>
-      </div>
-    </div>
-  </div>
+  {% include "partials/join-result.njk" %}
 
 </form>
 
@@ -297,10 +341,10 @@ compactSection: true
     <div class="callout callout--info">
       <span class="callout__icon" aria-hidden="true">ℹ️</span>
       <div class="callout__content">
-        <p class="callout__title">Join answers are saved</p>
-            <p>At the end, your join answers are saved securely and we ask our sign-in
+        <p class="callout__title">Membership details are saved</p>
+            <p>At the end, your membership details are saved securely and we ask our sign-in
             provider to email the address you provide. Once you confirm the link, you can
-            sign in and add vehicle details, State of Health readings, and service or fault
+            optionally add vehicle details, State of Health readings, and service or fault
             history for one or more I-PACEs.</p>
       </div>
     </div>

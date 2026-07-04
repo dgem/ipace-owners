@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-site-mode="{{ site.defaultMode or 'launch' }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +7,9 @@
   <meta name="theme-color" content="#12324a">
   <title>{% if title %}{{ title }} — {% endif %}{{ site.title }}</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+
+  {# Synchronous by design: set the requested mode before styles render. #}
+  <script src="/assets/js/site-mode.js"></script>
 
   {% if firebase.apiKey %}
   <script>
@@ -42,7 +45,25 @@
 
   <!-- Main content -->
   <main id="main-content" tabindex="-1">
-    {{ content | safe }}
+    {% if fullModeOnly %}
+    <section class="section" data-site-mode-only="launch">
+      <div class="container container--narrow">
+        <div class="callout callout--info launch-unavailable" role="status">
+          <span class="callout__icon" aria-hidden="true">ℹ️</span>
+          <div class="callout__content">
+            <p class="callout__title">This section is not part of the public launch</p>
+            <p>We are keeping the launch site focused on bringing owners together. Existing members can still sign in and use their private account tools.</p>
+            <p><a class="btn btn--primary" href="/">Return to the homepage</a></p>
+          </div>
+        </div>
+      </div>
+    </section>
+    <div data-site-mode-only="full">
+      {{ content | safe }}
+    </div>
+    {% else %}
+      {{ content | safe }}
+    {% endif %}
   </main>
 
   <!-- Site footer -->

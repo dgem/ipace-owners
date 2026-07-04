@@ -3,6 +3,7 @@ title: Evidence dashboard prototype published
 date: 2025-03-01
 summary: "The initial public evidence dashboard established the intended aggregate-data layout."
 layout: page.njk
+fullModeOnly: true
 eyebrow: Update
 ---
 

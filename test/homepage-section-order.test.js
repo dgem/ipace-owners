@@ -5,6 +5,19 @@ const assert = require('node:assert/strict');
 
 const homepage = fs.readFileSync(path.join(__dirname, '..', 'src', 'index.njk'), 'utf8');
 
+test('launch homepage leads with recruitment and constructive resolution', function () {
+  const launchEnd = homepage.indexOf('<div data-site-mode-only="full">');
+  const launchHomepage = homepage.slice(0, launchEnd);
+
+  assert.match(launchHomepage, /One organised voice for I-PACE owners/);
+  assert.match(launchHomepage, /shape a fair offer that works for as many people as possible/);
+  assert.match(launchHomepage, /before Jaguar's next vehicle launch/);
+  assert.match(launchHomepage, /not another forum/);
+  assert.match(launchHomepage, /does not enrol you in\s+legal action/);
+  assert.equal((launchHomepage.match(/href="\/join\/"/g) || []).length, 2);
+  assert.doesNotMatch(launchHomepage, /H447|H570|State of Health/);
+});
+
 test('homepage orders Why now, features, and participation actions', function () {
   const whyNow = homepage.indexOf('<!-- Why now? -->');
   const features = homepage.indexOf('<!-- Feature cards -->');

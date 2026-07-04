@@ -67,6 +67,14 @@ FIREBASE_STORAGE_BUCKET=...
 
 Do not commit `.env` files containing real values.
 
+### Launch and full presentation modes
+
+The public site defaults to the recruitment-focused `launch` presentation configured by
+`site.defaultMode`. Append `?site-mode=full` to any page to enable the complete evidence and
+data-oriented presentation for the current browser session. Append `?site-mode=launch` to
+return to launch mode. This flag controls public discoverability only; Firebase authentication
+and server-side authorization continue to protect member and admin data.
+
 ### Version policy
 
 Use the latest stable, supported version that is appropriate for production, not simply the
