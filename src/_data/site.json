@@ -1,8 +1,9 @@
 {
   "title": "i-Pace Owners Advocacy Group",
-  "description": "The i-Pace Owners Advocacy Group — owners working together for fair outcomes on traction battery faults, recalls and warranty.",
+  "description": "The i-Pace Owners Advocacy Group — one organised voice helping owners and JLR reach fair outcomes.",
   "url": "https://ipace-owners.org",
   "author": "i-Pace Owners Advocacy Group",
   "email": "contact@ipace-owners.org",
-  "currentYear": 2025
+  "currentYear": 2025,
+  "defaultMode": "launch"
 }

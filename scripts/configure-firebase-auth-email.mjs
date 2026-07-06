@@ -1,13 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
-
-const templateNames = {
-  resetPasswordTemplate: "reset-password.html",
-  verifyEmailTemplate: "verify-email.html",
-  changeEmailTemplate: "change-email.html",
-  revertSecondFactorAdditionTemplate: "revert-second-factor.html",
-};
 
 export function normalizeDomain(value, name) {
   const domain = String(value || "").trim().toLowerCase();
@@ -18,48 +10,41 @@ export function normalizeDomain(value, name) {
   return domain;
 }
 
-export function buildEmailConfig(options, templates) {
-  const emailTemplate = (body) => ({
-    senderLocalPart: options.senderLocalPart,
-    senderDisplayName: options.senderDisplayName,
-    subject: body.subject,
-    body: body.html,
-    bodyFormat: "HTML",
-    replyTo: options.replyTo,
-  });
-
+export function buildEmailConfig() {
   const sendEmail = {
     method: "DEFAULT",
-    callbackUri: `https://${options.actionDomain}/__/auth/action`,
-    resetPasswordTemplate: emailTemplate({ subject: "Reset your I-PACE Owners password", html: templates.resetPasswordTemplate }),
-    verifyEmailTemplate: emailTemplate({ subject: "Confirm your I-PACE Owners email address", html: templates.verifyEmailTemplate }),
-    changeEmailTemplate: emailTemplate({ subject: "Your I-PACE Owners sign-in email changed", html: templates.changeEmailTemplate }),
-    revertSecondFactorAdditionTemplate: emailTemplate({ subject: "Your I-PACE Owners account security changed", html: templates.revertSecondFactorAdditionTemplate }),
   };
 
-  if (options.emailDomain) sendEmail.dnsInfo = { useCustomDomain: true };
   return { notification: { defaultLocale: "en-GB", sendEmail } };
 }
 
-export function emailConfigUpdateMask(includeDomain) {
-  const fields = [
+export function emailConfigUpdateMask() {
+  return [
     "notification.defaultLocale",
     "notification.sendEmail.method",
-    "notification.sendEmail.callbackUri",
-    ...Object.keys(templateNames).map((name) => `notification.sendEmail.${name}`),
+  ].join(",");
+}
+
+export function emailConfigUpdates(config) {
+  const sendEmail = config.notification.sendEmail;
+  const updates = [
+    {
+      name: "default locale",
+      mask: "notification.defaultLocale",
+      payload: { notification: { defaultLocale: config.notification.defaultLocale } },
+    },
+    {
+      name: "email delivery method",
+      mask: "notification.sendEmail.method",
+      payload: { notification: { sendEmail: { method: sendEmail.method } } },
+    },
   ];
-  if (includeDomain) fields.push("notification.sendEmail.dnsInfo.useCustomDomain");
-  return fields.join(",");
+
+  return updates;
 }
 
 export function emailDomainVerificationEndpoint(configEndpoint) {
   return `${configEndpoint.replace(/\/config$/, "")}/domain:verify`;
-}
-
-function loadTemplates(directory) {
-  return Object.fromEntries(
-    Object.entries(templateNames).map(([name, filename]) => [name, readFileSync(`${directory}/${filename}`, "utf8")]),
-  );
 }
 
 async function request(url, options, operation) {
@@ -105,34 +90,25 @@ async function reconcileEmailDomain(endpoint, headers, config, emailDomain) {
 
 async function main() {
   const projectId = process.env.GCP_PROJECT_ID;
-  const templateDirectory = process.env.FIREBASE_AUTH_EMAIL_TEMPLATE_DIR;
   if (!projectId) throw new Error("GCP_PROJECT_ID is required");
-  if (!templateDirectory) throw new Error("FIREBASE_AUTH_EMAIL_TEMPLATE_DIR is required");
 
-  const actionDomain = normalizeDomain(process.env.FIREBASE_AUTH_EMAIL_ACTION_DOMAIN, "FIREBASE_AUTH_EMAIL_ACTION_DOMAIN");
-  if (!actionDomain) throw new Error("FIREBASE_AUTH_EMAIL_ACTION_DOMAIN is required");
   const emailDomain = normalizeDomain(process.env.FIREBASE_AUTH_EMAIL_DOMAIN, "FIREBASE_AUTH_EMAIL_DOMAIN");
-  const options = {
-    actionDomain,
-    emailDomain,
-    senderLocalPart: process.env.FIREBASE_AUTH_EMAIL_SENDER_LOCAL_PART || "members",
-    senderDisplayName: process.env.FIREBASE_AUTH_EMAIL_SENDER_DISPLAY_NAME || "I-PACE Owners Advocacy Group",
-    replyTo: process.env.FIREBASE_AUTH_EMAIL_REPLY_TO || "contact@ipace-owners.org",
-  };
-
   const token = execFileSync("gcloud", ["auth", "print-access-token"], { encoding: "utf8" }).trim();
   const endpoint = `https://identitytoolkit.googleapis.com/admin/v2/projects/${encodeURIComponent(projectId)}/config`;
   const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json", "X-Goog-User-Project": projectId };
   const currentConfig = await request(endpoint, { headers }, "Firebase Auth config read");
-  const payload = buildEmailConfig(options, loadTemplates(templateDirectory));
-  const updateMask = emailConfigUpdateMask(Boolean(emailDomain));
-
-  await request(
-    `${endpoint}?updateMask=${encodeURIComponent(updateMask)}`,
-    { method: "PATCH", headers, body: JSON.stringify(payload) },
-    "Firebase Auth email-template update",
-  );
-  console.log(`Firebase Auth email templates configured for ${projectId}`);
+  const payload = buildEmailConfig();
+  // Domain verification is a separate two-phase API. Attempting to set
+  // dnsInfo.useCustomDomain before VERIFY succeeds causes
+  // EMAIL_TEMPLATE_UPDATE_NOT_ALLOWED and rejects this whole PATCH.
+  for (const update of emailConfigUpdates(payload)) {
+    await request(
+      `${endpoint}?updateMask=${encodeURIComponent(update.mask)}`,
+      { method: "PATCH", headers, body: JSON.stringify(update.payload) },
+      `Firebase Auth ${update.name} update`,
+    );
+  }
+  console.log(`Firebase Auth email settings configured for ${projectId}`);
   await reconcileEmailDomain(endpoint, headers, currentConfig, emailDomain);
 }
 

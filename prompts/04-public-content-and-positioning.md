@@ -20,6 +20,17 @@ The public site should explain the group clearly, invite owners to participate, 
 
 ## Public pages
 
+The public presentation has two feature-flagged modes:
+
+- `launch` is the deployed default and focuses on recruitment. Its main navigation contains
+  Home, About, FAQ, and Join; authenticated identity/member controls remain available.
+- `full` preserves Evidence, Methodology, Updates, technical homepage sections, and extended
+  data-oriented calls to action. Reviewers can select it with `?site-mode=full`; the choice
+  persists in session storage. `?site-mode=launch` restores launch mode.
+
+This mode is a presentation/discoverability flag, not an authorization boundary. Protected
+member data must always retain server-side Firebase ID-token verification.
+
 Create or maintain:
 
 - Home: clear proposition, why now, calls to join and submit vehicle data, and an integrated I-PACE-style vehicle image or equivalent original visual asset.
@@ -32,9 +43,24 @@ Create or maintain:
 - Privacy: placeholder until formal review before broader vehicle/evidence data collection.
 - Participation statement/terms: non-legal-action participation framing.
 
-## Homepage Detail
+## Launch Homepage Detail
 
-The homepage should include:
+The default homepage should be a concise, mobile-first recruitment landing page that:
+
+- Presents one organised owner voice and one primary Join call to action.
+- Offers JLR a direct route to understand owner preferences and shape a broadly acceptable offer.
+- Prefers a constructive agreement before Jaguar's next vehicle launch without inventing a date.
+- Explains neutrally that data-protection restrictions prevent JLR sharing customer identities,
+  so an independent consent-based group is needed to bring owners together.
+- Clarifies that this is an advocacy group pursuing an outcome, not another discussion forum.
+- Keeps credible escalation available without confrontational language.
+- States that joining does not enrol an owner in legal action; any future proposal is explained
+  separately and each owner chooses whether to take part.
+- Does not lead with recall codes, evidence methodology, statistics, or vehicle-data requests.
+
+## Full Homepage Detail
+
+The retained full-mode homepage should include:
 
 - Headline around owners working together for fair outcomes.
 - Context for traction battery faults, recall work, degradation, warranty uncertainty, and

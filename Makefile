@@ -57,7 +57,7 @@ infra-workspace: ## Select or create the OpenTofu workspace matching ENV.
 infra-dns-records: ## Show Firebase Hosting DNS records and validation state for ENV.
 	@ENV="$(ENV)" TFVARS="$(TFVARS)" $(INFRA_ENV_SCRIPT) dns
 
-infra-email-domain: ## Reapply templates and check/apply Firebase Auth email-domain verification for ENV.
+infra-email-domain: ## Reconcile supported Firebase Auth email settings and sender-domain verification for ENV.
 	@ENV="$(ENV)" TFVARS="$(TFVARS)" $(INFRA_ENV_SCRIPT) email-domain
 
 infra-plan: ## Authenticate and create an OpenTofu plan for ENV.

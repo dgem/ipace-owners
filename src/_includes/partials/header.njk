@@ -17,12 +17,14 @@
               class="site-nav__link site-nav__link--highlight"
               data-nav-link
               data-requires-guest
+              {% if item.launchVisible == false %}data-site-mode-only="full"{% endif %}
             >{{ item.label }}</a>
           {% else %}
             <a
               href="{{ item.url }}"
               class="site-nav__link"
               data-nav-link
+              {% if item.launchVisible == false %}data-site-mode-only="full"{% endif %}
             >{{ item.label }}</a>
           {% endif %}
         {% endfor %}

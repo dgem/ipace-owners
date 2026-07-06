@@ -89,6 +89,23 @@ Provide accessible multi-step forms that collect membership interest now, help o
 
 ## Join form
 
+The Join page has two presentation variants that post to the same `POST /api/submit-join`
+contract:
+
+- Default `launch` mode is a single-step minimum-data form containing name, email, contact
+  consent, the not-a-legal-claim acknowledgement, and Privacy/Participation links. Country,
+  relationship, skills, and anonymised-analysis consent are omitted and therefore retain their
+  existing optional/false backend defaults.
+- `full` mode retains the complete four-step form described below. It is available through the
+  session-persisted `?site-mode=full` presentation flag.
+
+Both variants must retain the honeypot, accessible validation, disabled-until-consented submit
+button, one browser POST, automatic server-side magic-link handoff, and shared completion state.
+Completion copy must not imply that vehicle data is required; adding it after sign-in is optional.
+Render completion as a compact, centred confirmation card rather than stretching it across the
+form workspace. Keep emphasis inline within sentences and hide the pre-submit informational
+callout once the result is shown so it does not repeat the next-step guidance.
+
 Collect:
 
 - Contact details.

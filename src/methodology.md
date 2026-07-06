@@ -1,5 +1,6 @@
 ---
 layout: page.njk
+fullModeOnly: true
 title: Evidence Methodology
 eyebrow: How We Work
 subtitle: "How data is collected, verified, and published."

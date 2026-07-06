@@ -1,7 +1,7 @@
 <nav id="mobile-nav" class="mobile-nav" aria-label="Mobile navigation" aria-hidden="false">
   <ul class="mobile-nav__list" role="list">
     {% for item in navigation.public %}
-      <li>
+      <li{% if item.launchVisible == false %} data-site-mode-only="full"{% endif %}>
         {% if item.highlight %}
           <a
             href="{{ item.url }}"

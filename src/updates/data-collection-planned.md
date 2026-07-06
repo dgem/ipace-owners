@@ -3,6 +3,7 @@ title: First owner data collection planned
 date: 2025-02-01
 summary: "We are preparing to open the vehicle data submission form. Sign up now to be among the first to contribute."
 layout: page.njk
+fullModeOnly: true
 eyebrow: Update
 ---
 

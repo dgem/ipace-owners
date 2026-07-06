@@ -2,19 +2,28 @@
 layout: page.njk
 title: About Us
 eyebrow: About the Group
-subtitle: "An independent, constructive, evidence-led group of Jaguar I-PACE owners."
+subtitle: "An independent, organised voice for Jaguar I-PACE owners."
 description: "Learn about the I-PACE Owners' Advocacy Group — our purpose, principles and goals."
 ---
 
 ## Who we are
 
-The I-PACE Owners' Advocacy Group is an informal, independent collective of Jaguar I-PACE owners
-who have come together to address shared concerns about traction battery faults, recall outcomes,
-warranty questions, and inconsistent support from JLR and its dealer network.
+The I-PACE Owners' Advocacy Group is an informal, independent collective bringing Jaguar I-PACE
+owners together around their shared concerns and priorities. Our immediate aim is to give JLR a
+direct route to understand what owners need and shape a fair offer that works for as many people
+as possible.
 
 We are not affiliated with Jaguar Land Rover. We are not funded by any commercial interest.
 We are owners — people who chose the I-PACE, who care about the car, and who believe that
-problems of this scale deserve an organised, evidence-led response.
+problems of this scale deserve an organised response.
+
+This is not another discussion forum. Forums are valuable places for owners to exchange views,
+but this group exists to understand owner preferences, represent them clearly, and pursue an
+outcome.
+
+Data-protection rules rightly prevent JLR from sharing customer details simply so owners can find
+one another. An independent, consent-based group gives owners a safe way to organise and speak
+with collective weight.
 
 > "Speak softly and carry a big stick."
 > The best outcome is a constructive one. But a collective of well-organised owners with
@@ -23,16 +32,17 @@ problems of this scale deserve an organised, evidence-led response.
 
 ## Our approach
 
-We take a constructive approach. Our goal is to work positively with JLR where possible — to
-present robust evidence, to seek senior engagement, and to pursue fair and consistent outcomes
-for all I-PACE owners.
+We take a constructive approach. Our preferred route is to help JLR understand the range of owner
+preferences, seek senior engagement, and reach a fair and consistent resolution before Jaguar's
+next vehicle launch. A positive outcome would benefit owners, JLR, and confidence in the brand.
 
 We believe that a well-organised, evidence-led owners' group is more likely to achieve results
 than aggressive or fragmented complaints — and that it is more likely to protect owner
 confidence and vehicle value in the long run.
 
-Legal action, consumer rights claims, and media campaigns remain options if constructive
-engagement fails. We do not rule them out. But they are not our primary aim.
+Other appropriate routes remain options if constructive engagement fails. Joining the group does
+not enrol anyone in legal action. Any future proposal would be explained separately, and each
+owner would choose whether to take part.
 
 ## Our principles
 
