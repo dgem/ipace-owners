@@ -35,6 +35,7 @@ test('Join form submits only to submit-join from the browser', function () {
   assert.doesNotMatch(multistepJs, /control\.name === name && control\.type === 'checkbox' && control\.checked/);
   assert.match(multistepJs, /conditionalSubmitControlsMet/);
   assert.match(multistepJs, /focusFirstMissingCheckedRequirement/);
+  assert.match(multistepJs, /workspace\.classList\.add\('is-submitted'\)/);
 });
 
 test('launch mode uses a one-step minimum-data Join form and retains the extended form', function () {

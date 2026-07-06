@@ -90,6 +90,8 @@
       if (!validateCurrentStep()) return;
 
       if (resultEl) {
+        var workspace = form.closest('.form-workspace');
+        if (workspace) workspace.classList.add('is-submitted');
         resultEl.classList.add('is-visible');
         resultEl.focus();
         // Hide step nav

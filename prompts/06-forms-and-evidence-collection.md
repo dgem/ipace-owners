@@ -102,6 +102,9 @@ contract:
 Both variants must retain the honeypot, accessible validation, disabled-until-consented submit
 button, one browser POST, automatic server-side magic-link handoff, and shared completion state.
 Completion copy must not imply that vehicle data is required; adding it after sign-in is optional.
+Render completion as a compact, centred confirmation card rather than stretching it across the
+form workspace. Keep emphasis inline within sentences and hide the pre-submit informational
+callout once the result is shown so it does not repeat the next-step guidance.
 
 Collect:
 

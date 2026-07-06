@@ -50,11 +50,23 @@ test('Join completion separates saved state from magic-link delivery', function 
   var join = read('src/join.njk') + read('src/_includes/partials/join-result.njk');
 
   assert.match(join, /Your membership details have been saved/);
-  assert.match(join, /sign-in provider accepted the request/);
+  assert.match(join, /We asked our sign-in provider to email/);
   assert.match(join, /Delivery can be delayed or filtered/);
   assert.match(join, /Your join details were saved, but we couldn't send your sign-in link/);
   assert.doesNotMatch(join, /We've sent an email/);
   assert.doesNotMatch(join, /We're sending a sign-in link/);
+});
+
+test('Join completion uses a compact result card and removes pre-submit guidance', function () {
+  var result = read('src/_includes/partials/join-result.njk');
+  var css = read('src/assets/css/site.css');
+
+  assert.match(result, /class="submit-result join-result"/);
+  assert.match(result, /class="join-result__next-step"/);
+  assert.doesNotMatch(result, /✅|📧/);
+  assert.match(css, /\.join-result\s*\{[\s\S]*width: min\(100%, 44rem\)/);
+  assert.match(css, /\.join-result strong\s*\{\s*display: inline;/);
+  assert.match(css, /\.form-workspace\.is-submitted \.form-workspace__aside\s*\{\s*display: none;/);
 });
 
 test('member data fetches include Identity bearer tokens', function () {

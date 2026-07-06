@@ -1,13 +1,13 @@
-<div class="submit-result" data-submit-result tabindex="-1" role="status">
+<div class="submit-result join-result" data-submit-result tabindex="-1" role="status">
   <div class="join-result__inner">
-    <div class="join-result__icon" aria-hidden="true">✅</div>
+    <span class="join-result__icon" aria-hidden="true"></span>
     <h2 class="join-result__title">Thank you for joining</h2>
 
     <p class="text-muted" data-registration-signed-in hidden>
       You are already signed in. Your membership details have been submitted to the group.
     </p>
 
-    <div data-database-success hidden>
+    <div class="join-result__summary" data-database-success hidden>
       <p><strong>Your membership details have been saved.</strong> Your support helps show
       that I-PACE owners are organised and ready to engage constructively.</p>
     </div>
@@ -19,15 +19,11 @@
     </div>
 
     <div data-registration-guest hidden>
-      <p class="text-muted">Your sign-in link status for
-        <strong data-registration-email>your email address</strong> is shown below.
-      </p>
-
-      <div data-registration-link-sent hidden>
-        <div class="join-result__email-icon" aria-hidden="true">📧</div>
-        <p><strong>Check your inbox.</strong> Our sign-in provider accepted the request
-        for your email address. When the message arrives, click its link to complete
-        registration and sign in.</p>
+      <div class="join-result__next-step" data-registration-link-sent hidden>
+        <h3>Check your inbox</h3>
+        <p>We asked our sign-in provider to email
+        <strong data-registration-email>your email address</strong>. When the message arrives,
+        open its link to complete registration and sign in.</p>
         <p class="join-result__note">Delivery can be delayed or filtered. Check spam or
         junk folders, then use Sign in to request another link if it has not arrived.
         Adding vehicle information after signing in is optional.</p>
