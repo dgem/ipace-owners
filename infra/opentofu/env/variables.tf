@@ -92,7 +92,7 @@ variable "firebase_auth_authorized_domains" {
 }
 
 variable "manage_firebase_auth_email_templates" {
-  description = "Whether OpenTofu applies Firebase Auth email templates and action-domain configuration."
+  description = "Whether OpenTofu manages supported Firebase Auth email settings and sender-domain verification."
   type        = bool
   default     = true
 }

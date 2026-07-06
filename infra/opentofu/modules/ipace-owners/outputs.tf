@@ -23,13 +23,12 @@ output "firebase_auth_domain" {
 }
 
 output "firebase_auth_email" {
-  description = "Managed Firebase Auth email sender and action-domain configuration."
+  description = "Managed Firebase Auth email delivery and passwordless action-domain configuration."
   value = {
-    custom_sender_domain = var.firebase_auth_email_domain
-    action_domain        = local.firebase_auth_email_action_domain
-    sender_local_part    = var.firebase_auth_email_sender_local_part
-    sender_display_name  = var.firebase_auth_email_sender_display_name
-    reply_to             = var.firebase_auth_email_reply_to
+    delivery_method            = "DEFAULT"
+    custom_sender_domain       = var.firebase_auth_email_domain
+    passwordless_action_domain = local.firebase_auth_email_action_domain
+    passwordless_template      = "FIREBASE_DEFAULT"
   }
 }
 

@@ -26,11 +26,10 @@ It is the current source of truth for the I-PACE Owners' Advocacy Group architec
 - **Domains/SSL:** Firebase Hosting managed SSL for `ipace-owners.org`; DNS remains at
   Fasthosts. OpenTofu owns Firebase custom-domain associations, reports the required DNS
   records and validation state, while the records are entered manually in Fasthosts.
-- **Authentication email branding:** versioned HTML account-management email templates,
-  sender identity, reply-to address, action callback domain, and custom sender-domain
-  verification are managed from the shared OpenTofu module. The Google provider does not
-  expose all Identity Platform notification fields, so a tested Admin v2 API bridge runs
-  from `terraform_data` until first-class provider support exists.
+- **Authentication email delivery:** the shared OpenTofu module manages supported Identity
+  Platform notification settings and custom sender-domain verification through a tested Admin
+  v2 API bridge. Firebase's passwordless email-link body is fixed; versioned HTML account-action
+  designs remain future assets until custom transactional delivery is implemented.
 
 ## Directory structure
 

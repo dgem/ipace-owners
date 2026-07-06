@@ -132,6 +132,17 @@ Firebase/GCP.
   records returned by Firebase to Fasthosts, wait for DNS propagation, then rerun
   `make infra-email-domain ENV=<environment>` to complete `VERIFY` and `APPLY`. Maintain one
   SPF TXT record per domain by merging includes instead of adding competing SPF records.
+- Treat custom sender setup as a two-phase Identity Platform operation. Patch template fields
+  without `notification.sendEmail.dnsInfo.useCustomDomain`, initiate `domain:verify` with
+  `VERIFY`, and use `APPLY` only after verification succeeds. Setting `useCustomDomain` in the
+  initial template update causes `EMAIL_TEMPLATE_UPDATE_NOT_ALLOWED` and fails OpenTofu apply.
+- Do not PATCH `notification.sendEmail.callbackUri` when using Firebase's default email
+  provider; that field is rejected with the same error. Passwordless Functions set the action
+  `linkDomain` and validated `continueUrl` on each email-link request instead.
+- Do not PATCH account-action templates while the product uses passwordless email-link sign-in.
+  Identity Platform rejects the unrelated reset and verification templates with
+  `EMAIL_TEMPLATE_UPDATE_NOT_ALLOWED`. Keep the versioned files as future assets; fully branded
+  magic links require server-generated links and a custom transactional delivery service.
 - The built-in passwordless `EMAIL_SIGNIN` body cannot be replaced through the Admin v2
   account-management templates. Fully custom sign-in copy requires generated action links
   and a transactional email/SMTP provider; document and secure that provider before making
