@@ -136,17 +136,21 @@ route unless there is a measured need.
 - OpenTofu must configure Firebase Authentication / Identity Platform for passwordless
   email sign-in, with email sign-in enabled, password-required disabled, and authorized
   domains derived from `site_url` plus any explicit extra auth domains.
-- Store the professional account-management email templates under
-  `infra/opentofu/modules/ipace-owners/templates/auth-email`. OpenTofu must apply their
-  subject, HTML body, sender display name/local part, reply-to address, callback URI, and
-  optional custom sender domain through the Identity Platform Admin v2 API. Template or
-  configuration changes must replace the `terraform_data` bridge and reapply the settings.
-  Keep the bridge narrowly scoped and tested so it can be removed when the provider exposes
-  equivalent notification configuration.
+- Store future professional account-management email designs under
+  `infra/opentofu/modules/ipace-owners/templates/auth-email`, but do not PATCH them while the
+  product uses Firebase's passwordless email-link message. The Admin v2 account-management
+  templates do not represent `EMAIL_SIGNIN`, and Firebase rejects those unrelated template
+  fields in this configuration. The `terraform_data` bridge reconciles only supported locale
+  and delivery settings plus sender-domain verification.
 - Custom authentication sender domains require Firebase-issued TXT and CNAME records at
   Fasthosts. Verification is a two-stage `VERIFY` then `APPLY` operation and must be safely
   rerunnable with `make infra-email-domain ENV=<environment>`. Do not create a second SPF
   record; merge the Firebase include into the domain's existing SPF policy.
+- Use `auth.stage.ipace-owners.org` for staging and `auth.ipace-owners.org` for production.
+  Fasthosts remains the registrar, authoritative DNS host, and human-mail provider for launch.
+  Sender-domain verification needs only TXT/CNAME additions at Fasthosts; it does not require
+  nameserver, apex MX, mailbox, or Google Workspace changes. Treat any later Cloud DNS or mail
+  migration as a separate project that first inventories every hosting and mail record.
 - Firebase's built-in passwordless `EMAIL_SIGNIN` message body is not represented by the
   configurable Admin v2 account-management templates. Do not claim that its copy is managed
   by these HTML files. Fully branded magic-link copy requires generating the action link

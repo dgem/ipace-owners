@@ -42,6 +42,9 @@ test('builds supported passwordless email configuration without restricted field
 test('stores future email designs and manages supported settings through infrastructure', function () {
   const moduleMain = readFileSync(resolve(repoRoot, 'infra/opentofu/modules/ipace-owners/main.tf'), 'utf8');
   const moduleVariables = readFileSync(resolve(repoRoot, 'infra/opentofu/modules/ipace-owners/variables.tf'), 'utf8');
+  const envVariables = readFileSync(resolve(repoRoot, 'infra/opentofu/env/variables.tf'), 'utf8');
+  const stagingConfig = readFileSync(resolve(repoRoot, 'infra/opentofu/env/staging.tfvars.example'), 'utf8');
+  const productionConfig = readFileSync(resolve(repoRoot, 'infra/opentofu/env/production.tfvars.example'), 'utf8');
   const makefile = readFileSync(resolve(repoRoot, 'Makefile'), 'utf8');
   const script = readFileSync(scriptPath, 'utf8');
 
@@ -50,6 +53,10 @@ test('stores future email designs and manages supported settings through infrast
   assert.match(moduleMain, /filesha256\(local\.firebase_auth_email_script\)/);
   assert.doesNotMatch(moduleMain, /FIREBASE_AUTH_EMAIL_TEMPLATE_DIR/);
   assert.match(moduleVariables, /variable "firebase_auth_email_domain"/);
+  assert.doesNotMatch(moduleVariables, /firebase_auth_email_reply_to/);
+  assert.doesNotMatch(envVariables, /firebase_auth_email_sender_display_name/);
+  assert.match(stagingConfig, /firebase_auth_email_domain\s*=\s*"auth\.stage\.ipace-owners\.org"/);
+  assert.match(productionConfig, /firebase_auth_email_domain\s*=\s*"auth\.ipace-owners\.org"/);
   assert.match(makefile, /infra-email-domain:/);
   assert.match(script, /\/domain:verify/);
   assert.match(script, /action: "VERIFY"/);

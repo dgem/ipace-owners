@@ -96,24 +96,6 @@ variable "firebase_auth_email_action_domain" {
   default     = ""
 }
 
-variable "firebase_auth_email_sender_local_part" {
-  description = "Local part used for Firebase Auth's From address."
-  type        = string
-  default     = "members"
-}
-
-variable "firebase_auth_email_sender_display_name" {
-  description = "Display name used for Firebase Auth email senders."
-  type        = string
-  default     = "I-PACE Owners Advocacy Group"
-}
-
-variable "firebase_auth_email_reply_to" {
-  description = "Reply-to address used by Firebase Auth email templates."
-  type        = string
-  default     = "contact@ipace-owners.org"
-}
-
 variable "firebase_web_app_display_name" {
   description = "Display name for the Firebase Web App created for this environment."
   type        = string

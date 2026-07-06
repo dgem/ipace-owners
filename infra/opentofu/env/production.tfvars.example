@@ -22,11 +22,11 @@ allowed_origins = "https://ipace-owners.org,https://www.ipace-owners.org"
 site_url        = "https://ipace-owners.org/account/"
 # firebase_auth_authorized_domains = ["www.ipace-owners.org"]
 
-# Firebase supplies TXT/CNAME records after the first apply. Add them at Fasthosts,
-# then run: make infra-email-domain ENV=production
-firebase_auth_email_domain        = "ipace-owners.org"
+# Isolate automated authentication mail from the apex domain's human mailboxes.
+# Firebase supplies TXT/CNAME records after the first apply. Add them at Fasthosts;
+# do not change the apex MX records. Then run: make infra-email-domain ENV=production
+firebase_auth_email_domain        = "auth.ipace-owners.org"
 firebase_auth_email_action_domain = "ipace-owners.org"
-firebase_auth_email_reply_to      = "contact@ipace-owners.org"
 
 # The apex is canonical; Firebase Hosting redirects www after both domains validate.
 firebase_hosting_custom_domains = {

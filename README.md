@@ -289,17 +289,26 @@ locale/delivery settings and custom sender-domain verification. Do not PATCH
 rejects that field with `EMAIL_TEMPLATE_UPDATE_NOT_ALLOWED`. Passwordless action and continue
 domains are supplied per request by the Function's `linkDomain` and `continueUrl` settings.
 
-Set `firebase_auth_email_domain` to use a custom From domain. The first apply starts Firebase
-domain verification. Add the TXT and CNAME records shown in Firebase Authentication >
-Templates at Fasthosts, allow DNS to propagate, then run:
+Set `firebase_auth_email_domain` to a dedicated automated-mail subdomain:
+`auth.stage.ipace-owners.org` for staging and `auth.ipace-owners.org` for production. This
+keeps Firebase's sender authentication separate from human mail at `@ipace-owners.org` and
+avoids SPF collisions at the apex. It does not create a mailbox and does not require Google
+Workspace, a registrar transfer, a nameserver change, or an MX-record change.
+
+The first apply starts Firebase domain verification. In the matching Firebase project, open
+Authentication > Templates and copy every TXT and CNAME record shown for the sender domain
+into Fasthosts DNS. Record names may be displayed as fully qualified names; enter them using
+Fasthosts' expected relative-host format. Do not edit or remove the apex MX records used by
+Fasthosts webmail. Allow DNS to propagate, then run:
 
 ```bash
 make infra-email-domain ENV=production
 ```
 
-This command safely reapplies the templates and activates the domain once Firebase reports
-verification success. Keep a single SPF TXT record at the selected domain; merge Firebase's
-SPF include with any existing senders instead of publishing a second SPF record.
+This command safely reconciles the supported email settings and activates the sender domain
+once Firebase reports verification success. Keep a single SPF TXT record at each selected
+sender subdomain; merge includes if another sender is ever added instead of publishing a
+second SPF record. Normal inbound mail continues to follow the apex MX records to Fasthosts.
 Template updates and domain activation use separate API calls: never include
 `notification.sendEmail.dnsInfo.useCustomDomain` in the template PATCH before verification,
 because Identity Platform rejects the entire update with `EMAIL_TEMPLATE_UPDATE_NOT_ALLOWED`.

@@ -118,20 +118,26 @@ Firebase/GCP.
   - checking Firebase email template/sender settings;
   - future option to generate action links with Firebase Admin SDK and send through a
     transactional email/SMTP provider if delivery tracking is needed.
-- Firebase Authentication email templates are part of the user experience. Configure
-  sender name, subject, and body copy professionally for the owners' group, with clear
-  explanation that the link signs the user in, no unnecessary provider jargon, and no
-  claim that the request creates a legal claim.
-- Keep configurable account-management HTML templates in
-  `infra/opentofu/modules/ipace-owners/templates/auth-email` and apply them through the
-  shared OpenTofu module's Identity Platform Admin v2 bridge. The provider does not expose
-  the complete notification configuration, so template hashes and sender/action-domain
-  inputs must trigger the bridge until first-class provider support exists.
-- Set `firebase_auth_email_domain` per environment for the From domain and
-  `firebase_auth_email_action_domain` for the action callback host. Add the TXT and CNAME
-  records returned by Firebase to Fasthosts, wait for DNS propagation, then rerun
-  `make infra-email-domain ENV=<environment>` to complete `VERIFY` and `APPLY`. Maintain one
-  SPF TXT record per domain by merging includes instead of adding competing SPF records.
+- Firebase Authentication email is part of the user experience, but Firebase's built-in
+  passwordless `EMAIL_SIGNIN` body cannot be replaced through the Admin v2 account-management
+  templates. Keep the future HTML designs in
+  `infra/opentofu/modules/ipace-owners/templates/auth-email` without applying them. A fully
+  branded message requires a separately selected transactional provider and server-generated
+  action links; do not claim that sender name, reply-to, subject, or body are infrastructure-
+  managed while Firebase performs default passwordless delivery.
+- Set `firebase_auth_email_domain` to `auth.stage.ipace-owners.org` in staging and
+  `auth.ipace-owners.org` in production; keep `firebase_auth_email_action_domain` on the
+  environment's Firebase Hosting domain. Add the TXT and CNAME records returned by Firebase
+  to Fasthosts, wait for DNS propagation, then rerun
+  `make infra-email-domain ENV=<environment>` to complete `VERIFY` and `APPLY`. These sender
+  subdomains require no mailbox and no changes to the apex MX records used by Fasthosts
+  webmail. Maintain one SPF TXT record per sender subdomain by merging includes instead of
+  adding competing SPF records.
+- DNS hosting, registration, human mailbox hosting, Firebase Hosting, and authentication-mail
+  delivery are independent services. Keep registration, authoritative DNS, and human mail at
+  Fasthosts for launch. Moving the whole zone to Cloud DNS or mailboxes to Google Workspace is
+  not required for Firebase Auth and must be treated as a separate migration with a complete
+  inventory of MX, SPF, DKIM, DMARC, Hosting, and verification records.
 - Treat custom sender setup as a two-phase Identity Platform operation. Patch template fields
   without `notification.sendEmail.dnsInfo.useCustomDomain`, initiate `domain:verify` with
   `VERIFY`, and use `APPLY` only after verification succeeds. Setting `useCustomDomain` in the
