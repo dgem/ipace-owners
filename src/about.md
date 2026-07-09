@@ -2,16 +2,17 @@
 layout: page.njk
 title: About Us
 eyebrow: About the Group
-subtitle: "An independent, organised voice for Jaguar I-PACE owners."
-description: "Learn about the I-PACE Owners' Advocacy Group — our purpose, principles and goals."
+subtitle: "A UK-led, independent voice for Jaguar I-PACE owners."
+description: "Learn about the I-PACE Owners' Advocacy Group — our purpose, UK-led scope, principles and goals."
 ---
 
 ## Who we are
 
 The I-PACE Owners' Advocacy Group is an informal, independent collective bringing Jaguar I-PACE
-owners together around their shared concerns and priorities. Our immediate aim is to give JLR a
-direct route to understand what owners need and shape a fair offer that works for as many people
-as possible.
+owners together around their shared concerns and priorities. It is UK-led because UK owners
+share the same market context, consumer framework, and likely route to JLR. Our immediate aim is
+to give JLR a direct route to understand what owners need and shape a fair offer that works for
+as many UK owners as possible.
 
 We are not affiliated with Jaguar Land Rover. We are not funded by any commercial interest.
 We are owners — people who chose the I-PACE, who care about the car, and who believe that
@@ -19,7 +20,7 @@ problems of this scale deserve an organised response.
 
 This is not another discussion forum. Forums are valuable places for owners to exchange views,
 but this group exists to understand owner preferences, represent them clearly, and pursue an
-outcome.
+outcome. We are not building an open comment board or encouraging fragmented settlement demands.
 
 Data-protection rules rightly prevent JLR from sharing customer details simply so owners can find
 one another. An independent, consent-based group gives owners a safe way to organise and speak
@@ -44,6 +45,10 @@ Other appropriate routes remain options if constructive engagement fails. Joinin
 not enrol anyone in legal action. Any future proposal would be explained separately, and each
 owner would choose whether to take part.
 
+Owners outside the UK may register interest, but market-specific representation or any future
+legal route would need to be scoped separately. Where useful, we can keep non-UK interest
+separate and share learning with regional groups that form.
+
 ## Our principles
 
 **Evidence based** — We collect structured, verifiable data. We distinguish between
@@ -64,11 +69,12 @@ organise so that if it is needed, we are ready.
 
 ## Our goals
 
-- Build the largest possible community of I-PACE owners affected by battery and recall issues.
+- Build the largest possible UK community of I-PACE owners affected by battery and recall issues,
+  while recording overseas interest separately where useful.
 - Collect robust, structured owner data that can withstand scrutiny.
 - Understand the true scale of battery faults, SoH degradation, and recall outcomes across the fleet.
 - Engage JLR at senior level with credible, documented evidence.
-- Seek fair and consistent treatment for all affected owners — on warranty, recall work, loan
+- Seek fair and consistent treatment for affected UK owners — on warranty, recall work, loan
   cars, goodwill, and ongoing support.
 - Reduce fragmented individual complaints that are easily dismissed.
 - Avoid unnecessary legal action where a constructive resolution is possible.

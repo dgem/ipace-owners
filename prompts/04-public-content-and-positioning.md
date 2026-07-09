@@ -11,7 +11,8 @@ The public site should explain the group clearly, invite owners to participate, 
 - Serious, constructive, collaborative, and evidence-led.
 - Use the display wordmark `i-Pace Owners` on the first line and `Advocacy Group` on the second line in the header brand area.
 - Use `i-Pace Owners' Advocacy Group` for site-brand references where natural, while preserving `Jaguar I-PACE` when referring to the vehicle model.
-- Speak as owners organising for fair and consistent outcomes.
+- Speak as owners organising for fair and consistent outcomes. For launch, describe the public
+  effort as UK-led while allowing non-UK owners to register interest separately.
 - Avoid aggressive legal language on the homepage.
 - Frame legal action only as a possible alternative that a constructive resolution may help avoid.
 - Do not claim the group is formally incorporated, legally represented, or already operating a legal claim unless that is explicitly true.
@@ -48,11 +49,17 @@ Create or maintain:
 The default homepage should be a concise, mobile-first recruitment landing page that:
 
 - Presents one organised owner voice and one primary Join call to action.
+- Use the launch headline direction "I-PACE owners working together for fair outcomes" rather
+  than duplicating separate scene-setting sections.
 - Offers JLR a direct route to understand owner preferences and shape a broadly acceptable offer.
 - Prefers a constructive agreement before Jaguar's next vehicle launch without inventing a date.
 - Explains neutrally that data-protection restrictions prevent JLR sharing customer identities,
   so an independent consent-based group is needed to bring owners together.
 - Clarifies that this is an advocacy group pursuing an outcome, not another discussion forum.
+- States that the group is not an open comment board and is not intended to fragment into
+  individual settlement demands.
+- Explains that this is a UK-led initiative; overseas owners can register interest, but any
+  market-specific representation or future legal route must be scoped separately.
 - Keeps credible escalation available without confrontational language.
 - States that joining does not enrol an owner in legal action; any future proposal is explained
   separately and each owner chooses whether to take part.
@@ -83,10 +90,11 @@ The About page should include:
 - Independence from JLR.
 - Principles: evidence based, respectful and constructive, transparent with members,
   independent of JLR, prepared to escalate if required.
-- Goals: build the largest possible I-PACE owner community, collect robust owner data,
+- Goals: build the largest possible UK I-PACE owner community, collect robust owner data,
   understand the scale of battery and recall issues, engage JLR at senior level, seek fair
-  and consistent treatment, avoid fragmented complaints and unnecessary legal action where
-  possible, and protect owner confidence and vehicle value.
+  and consistent treatment, record overseas interest separately where useful, avoid fragmented
+  complaints and unnecessary legal action where possible, and protect owner confidence and
+  vehicle value.
 
 ## FAQ Detail
 
@@ -96,7 +104,8 @@ Include at least:
 - Is this anti-JLR?
 - Will my VIN be public?
 - Will my personal data be shared?
-- Can non-UK owners join?
+- Can non-UK owners register interest in a UK-led initiative?
+- Can members still pursue their own complaint or claim?
 - What recalls are relevant?
 - What is SoH?
 - Can I join without submitting vehicle data?
