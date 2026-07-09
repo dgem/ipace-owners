@@ -9,10 +9,13 @@ test('launch homepage leads with recruitment and constructive resolution', funct
   const launchEnd = homepage.indexOf('<div data-site-mode-only="full">');
   const launchHomepage = homepage.slice(0, launchEnd);
 
-  assert.match(launchHomepage, /One organised voice for I-PACE owners/);
-  assert.match(launchHomepage, /shape a fair offer that works for as many people as possible/);
+  assert.match(launchHomepage, /I-PACE owners working together for fair outcomes/);
+  assert.match(launchHomepage, /shape a fair offer that works for as many UK owners as possible/);
+  assert.match(launchHomepage, /UK-led owner initiative/);
+  assert.match(launchHomepage, /Owners elsewhere can still register interest/);
   assert.match(launchHomepage, /before Jaguar's next vehicle launch/);
   assert.match(launchHomepage, /not another forum/);
+  assert.match(launchHomepage, /not building an open comment\s+board/);
   assert.match(launchHomepage, /does not enrol you in\s+legal action/);
   assert.equal((launchHomepage.match(/href="\/join\/"/g) || []).length, 2);
   assert.doesNotMatch(launchHomepage, /H447|H570|State of Health/);
