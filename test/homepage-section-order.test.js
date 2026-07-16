@@ -16,15 +16,11 @@ test('launch homepage leads with recruitment and constructive resolution', funct
   assert.match(launch, /I-PACE owners working together for fair outcomes/);
   assert.match(launch, /Register your support around I-PACE battery and recall issues/);
   assert.match(launch, /Traction battery faults/);
-  assert.match(launch, /Recall and customer notice work/);
-  assert.match(launch, /Warranty uncertainty/);
-  assert.match(launch, /Inconsistent support/);
-  assert.match(launch, /A UK-led route/);
-  assert.match(launch, /Registration first/);
-  assert.match(launch, /shape a fair offer that works for as many UK owners\s+as possible/);
+  assert.match(launch, /H447 \/ H570 \/ H571 \/ H572 campaigns/);
+  assert.match(launch, /Approaching the 8-year \/ 100,000-mile battery warranty/);
+  assert.match(launch, /Inconsistent owner experiences/);
   assert.match(launch, /Why now\?/);
-  assert.match(launch, /Battery issues and recalls need an organised response/);
-  assert.match(launch, /Owners elsewhere can register interest\s+separately/);
+  assert.match(launch, /Recalls and traction battery failures need an organised response/);
   assert.match(launch, /before Jaguar's next vehicle launch/);
   assert.match(launch, /not another forum/);
   assert.match(launch, /not building an open comment\s+board/);
@@ -32,7 +28,7 @@ test('launch homepage leads with recruitment and constructive resolution', funct
   assert.match(launch, /does not enrol you in legal\s+action/);
   assert.match(launch, /only asking owners to register with a name\s+and email address/);
   assert.equal((launch.match(/href="\/join\/"/g) || []).length, 2);
-  assert.doesNotMatch(launch, /H447|H570|State of Health/);
+  assert.doesNotMatch(launch, /State of Health|Submit Vehicle Data/);
 });
 
 test('launch homepage uses the structured Why now design, not the full-mode section', function () {
@@ -45,9 +41,9 @@ test('launch homepage uses the structured Why now design, not the full-mode sect
   assert.ok(routeStart > whyStart);
   assert.match(launchWhy, /class="text-muted why-now__intro"/);
   assert.match(launchWhy, /class="two-column launch-why-grid"/);
-  assert.equal((launchWhy.match(/class="why-item"/g) || []).length, 6);
+  assert.equal((launchWhy.match(/class="why-item"/g) || []).length, 4);
   assert.match(launchWhy, /class="callout callout--info launch-registration-callout"/);
-  assert.doesNotMatch(launchWhy, /H447|H570|H571|H572|State of Health|Submit Vehicle Data/);
+  assert.doesNotMatch(launchWhy, /State of Health|Submit Vehicle Data/);
 });
 
 test('homepage orders Why now, features, and participation actions', function () {
