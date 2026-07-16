@@ -10,7 +10,8 @@ test('launch homepage leads with recruitment and constructive resolution', funct
   const launchHomepage = homepage.slice(0, launchEnd);
 
   assert.match(launchHomepage, /I-PACE owners working together for fair outcomes/);
-  assert.match(launchHomepage, /traction battery faults and recall uncertainty/);
+  assert.match(launchHomepage, /traction battery faults/);
+  assert.match(launchHomepage, /recall and customer notice work/);
   assert.match(launchHomepage, /shape a fair offer that works for as many UK owners\s+as possible/);
   assert.match(launchHomepage, /Why now\?/);
   assert.match(launchHomepage, /Battery issues and recalls need an organised response/);
