@@ -51,6 +51,9 @@ The default homepage should be a concise, mobile-first recruitment landing page 
 - Presents one organised owner voice and one primary Join call to action.
 - Use the launch headline direction "I-PACE owners working together for fair outcomes" rather
   than duplicating separate scene-setting sections.
+- Include concise launch-visible "Why now?" context naming traction battery faults, recall or
+  customer notice work, warranty uncertainty, and inconsistent support. Keep this high-level;
+  do not restore recall-code/statistics-heavy content to launch mode.
 - Offers JLR a direct route to understand owner preferences and shape a broadly acceptable offer.
 - Prefers a constructive agreement before Jaguar's next vehicle launch without inventing a date.
 - Explains neutrally that data-protection restrictions prevent JLR sharing customer identities,
@@ -61,6 +64,9 @@ The default homepage should be a concise, mobile-first recruitment landing page 
 - Explains that this is a UK-led initiative; overseas owners can register interest, but any
   market-specific representation or future legal route must be scoped separately.
 - Keeps credible escalation available without confrontational language.
+- May state that legal counsel exists within the group to inform the process and assess options,
+  but must also state that this does not make the group a law firm, a current legal claim, or
+  formal legal representation for members.
 - States that joining does not enrol an owner in legal action; any future proposal is explained
   separately and each owner chooses whether to take part.
 - Does not lead with recall codes, evidence methodology, statistics, or vehicle-data requests.
@@ -86,6 +92,8 @@ The retained full-mode homepage should include:
 The About page should include:
 
 - Purpose of the group.
+- Immediate focus on I-PACE traction battery faults, recall/customer-notice work, warranty
+  uncertainty, and inconsistent support.
 - Constructive engagement with JLR.
 - Independence from JLR.
 - Principles: evidence based, respectful and constructive, transparent with members,
@@ -101,6 +109,7 @@ The About page should include:
 Include at least:
 
 - Is this a legal action?
+- Do you have legal counsel or legal input?
 - Is this anti-JLR?
 - Will my VIN be public?
 - Will my personal data be shared?

@@ -60,3 +60,23 @@ Again, thanks for the feedback, will pass it along to the imps to interpret!
 - Reinforce that this is aligned advocacy, not an open forum, not a moany comment board, and
   not a mechanism for fragmented individual settlement demands. Individual owners may still
   pursue their own routes; the group cannot and should not claim otherwise.
+
+## Round 3 - 16 July 2026
+
+### Stakeholder feedback
+
+1. The launch edit removed too much "why now" context. Launch copy should say enough about the
+   traction battery issue, recalls/notices, and owner impact that a first-time visitor knows the
+   group's initial focus.
+2. The site should mention that the group has legal counsel available, framed as expert input
+   into the process rather than an intent to litigate. JLR should understand the group has
+   credible tools available if needed.
+
+### Round 3 implementation interpretation
+
+- Restore a concise launch-visible "Why now?" section focused on traction battery faults, recall
+  and customer notice work, warranty uncertainty, and inconsistent support.
+- Keep recall codes, detailed technical statistics, and methodology detail in full mode rather
+  than making launch mode feel data-heavy again.
+- State that legal counsel exists within the group to help test the process and options, while
+  explicitly preserving the existing no-legal-claim/no-formal-representation positioning.

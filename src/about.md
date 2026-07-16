@@ -9,10 +9,11 @@ description: "Learn about the I-PACE Owners' Advocacy Group — our purpose, UK-
 ## Who we are
 
 The I-PACE Owners' Advocacy Group is an informal, independent collective bringing Jaguar I-PACE
-owners together around their shared concerns and priorities. It is UK-led because UK owners
-share the same market context, consumer framework, and likely route to JLR. Our immediate aim is
-to give JLR a direct route to understand what owners need and shape a fair offer that works for
-as many UK owners as possible.
+owners together around their shared concerns and priorities. The immediate focus is I-PACE
+traction battery faults, recall and customer notice work, warranty uncertainty, and inconsistent
+support. It is UK-led because UK owners share the same market context, consumer framework, and
+likely route to JLR. Our aim is to give JLR a direct route to understand what owners need and
+shape a fair offer that works for as many UK owners as possible.
 
 We are not affiliated with Jaguar Land Rover. We are not funded by any commercial interest.
 We are owners — people who chose the I-PACE, who care about the car, and who believe that
@@ -45,6 +46,11 @@ Other appropriate routes remain options if constructive engagement fails. Joinin
 not enrol anyone in legal action. Any future proposal would be explained separately, and each
 owner would choose whether to take part.
 
+We have legal counsel within the group to help test the process, assess options, and avoid weak
+assumptions. That expert input is there to support a credible constructive approach; it does not
+mean the group is currently running a legal claim or that members become legally represented by
+joining.
+
 Owners outside the UK may register interest, but market-specific representation or any future
 legal route would need to be scoped separately. Where useful, we can keep non-UK interest
 separate and share learning with regional groups that form.
@@ -65,7 +71,7 @@ our decisions openly. Members are not left in the dark.
 commercial partner influences what we collect, report, or decide.
 
 **Prepared to escalate if required** — We hope escalation is unnecessary. But we
-organise so that if it is needed, we are ready.
+organise so that if it is needed, we are ready and properly informed.
 
 ## Our goals
 
@@ -82,8 +88,9 @@ organise so that if it is needed, we are ready.
 
 ## What we are not
 
-We are not a law firm. We do not provide legal advice. Joining this group does not create
-any legal relationship with a lawyer or consumer rights body.
+We are not a law firm. We do not provide legal advice. Legal expertise within the group helps
+inform the organising process, but joining this group does not create any legal relationship
+with a lawyer or consumer rights body.
 
 We are not formally incorporated as a legal entity at this stage. We are an informal
 owners' initiative unless and until a formal structure is created.
