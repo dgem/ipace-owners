@@ -661,6 +661,10 @@ th {
   height: 100%;
 }
 
+.launch-registration-callout {
+  margin-top: var(--space-8);
+}
+
 .launch-final-cta p {
   max-width: 48rem;
   margin: 0 auto var(--space-6);

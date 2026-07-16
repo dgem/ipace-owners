@@ -57,6 +57,9 @@ The default homepage should be a concise, mobile-first recruitment landing page 
 - Include concise launch-visible "Why now?" context naming traction battery faults, recall or
   customer notice work, warranty uncertainty, and inconsistent support. Keep this high-level;
   do not restore recall-code/statistics-heavy content to launch mode.
+- The launch "Why now?" section should use the same structured visual design language as the
+  full homepage's issue list: responsive columns, `why-item` rows, and a clear callout. Its
+  copy remains launch-specific and registration-only.
 - Offers JLR a direct route to understand owner preferences and shape a broadly acceptable offer.
 - Prefers a constructive agreement before Jaguar's next vehicle launch without inventing a date.
 - Explains neutrally that data-protection restrictions prevent JLR sharing customer identities,

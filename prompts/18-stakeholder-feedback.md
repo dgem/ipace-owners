@@ -89,3 +89,6 @@ Again, thanks for the feedback, will pass it along to the imps to interpret!
   later step in the coming weeks, explained separately if needed.
 - Keep protected/member/full-mode functionality available behind existing navigation and mode
   flags, but do not make vehicle-data submission part of the launch user journey.
+- Sync the launch homepage's copy and design with the stronger full-mode "Why now?" treatment:
+  use structured issue rows and a clear registration-only callout in launch mode, while keeping
+  recall codes, State of Health detail, and vehicle-data CTAs out of launch mode.
