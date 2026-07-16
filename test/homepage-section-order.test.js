@@ -5,20 +5,45 @@ const assert = require('node:assert/strict');
 
 const homepage = fs.readFileSync(path.join(__dirname, '..', 'src', 'index.njk'), 'utf8');
 
-test('launch homepage leads with recruitment and constructive resolution', function () {
+function launchHomepage() {
   const launchEnd = homepage.indexOf('<div data-site-mode-only="full">');
-  const launchHomepage = homepage.slice(0, launchEnd);
+  return homepage.slice(0, launchEnd);
+}
 
-  assert.match(launchHomepage, /I-PACE owners working together for fair outcomes/);
-  assert.match(launchHomepage, /shape a fair offer that works for as many UK owners as possible/);
-  assert.match(launchHomepage, /UK-led owner initiative/);
-  assert.match(launchHomepage, /Owners elsewhere can still register interest/);
-  assert.match(launchHomepage, /before Jaguar's next vehicle launch/);
-  assert.match(launchHomepage, /not another forum/);
-  assert.match(launchHomepage, /not building an open comment\s+board/);
-  assert.match(launchHomepage, /does not enrol you in\s+legal action/);
-  assert.equal((launchHomepage.match(/href="\/join\/"/g) || []).length, 2);
-  assert.doesNotMatch(launchHomepage, /H447|H570|State of Health/);
+test('launch homepage leads with recruitment and constructive resolution', function () {
+  const launch = launchHomepage();
+
+  assert.match(launch, /I-PACE owners working together for fair outcomes/);
+  assert.match(launch, /Register and help shape a fair and consistent resolution/);
+  assert.match(launch, /Traction battery faults/);
+  assert.match(launch, /H447 \/ H570 \/ H571 \/ H572 campaigns/);
+  assert.match(launch, /Approaching the 8-year \/ 100,000-mile battery warranty/);
+  assert.match(launch, /Inconsistent experiences/);
+  assert.match(launch, /Why now\?/);
+  assert.match(launch, /Recalls and traction battery failures need an organised response/);
+  assert.match(launch, /before Jaguar's next vehicle launch/);
+  assert.match(launch, /not another forum/);
+  assert.match(launch, /not building an open comment\s+board/);
+  assert.match(launch, /legal counsel within the group\s+to help test the process and options/);
+  assert.match(launch, /does not enrol you in legal\s+action/);
+  assert.match(launch, /only asking owners to register with a name\s+and email address/);
+  assert.equal((launch.match(/href="\/join\/"/g) || []).length, 2);
+  assert.doesNotMatch(launch, /State of Health|Submit Vehicle Data/);
+});
+
+test('launch homepage uses the structured Why now design, not the full-mode section', function () {
+  const launch = launchHomepage();
+  const whyStart = launch.indexOf('<!-- Launch Why now? -->');
+  const routeStart = launch.indexOf('<section class="section bg-muted">', whyStart);
+  const launchWhy = launch.slice(whyStart, routeStart);
+
+  assert.ok(whyStart > -1);
+  assert.ok(routeStart > whyStart);
+  assert.match(launchWhy, /class="text-muted why-now__intro"/);
+  assert.match(launchWhy, /class="two-column launch-why-grid"/);
+  assert.equal((launchWhy.match(/class="why-item"/g) || []).length, 4);
+  assert.match(launchWhy, /class="callout callout--info launch-registration-callout"/);
+  assert.doesNotMatch(launchWhy, /State of Health|Submit Vehicle Data/);
 });
 
 test('homepage orders Why now, features, and participation actions', function () {
