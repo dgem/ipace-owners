@@ -80,3 +80,12 @@ Again, thanks for the feedback, will pass it along to the imps to interpret!
   than making launch mode feel data-heavy again.
 - State that legal counsel exists within the group to help test the process and options, while
   explicitly preserving the existing no-legal-claim/no-formal-representation positioning.
+
+## Launch registration clarification - 16 July 2026
+
+- For launch, the public ask is registration only: name, email, contact consent, and confirmation
+  that joining is not a legal claim.
+- Vehicle details, structured evidence, and fuller data collection should be positioned as a
+  later step in the coming weeks, explained separately if needed.
+- Keep protected/member/full-mode functionality available behind existing navigation and mode
+  flags, but do not make vehicle-data submission part of the launch user journey.

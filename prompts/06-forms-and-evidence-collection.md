@@ -96,12 +96,16 @@ contract:
   consent, the not-a-legal-claim acknowledgement, and Privacy/Participation links. Country,
   relationship, skills, and anonymised-analysis consent are omitted and therefore retain their
   existing optional/false backend defaults.
+- During launch, the public registration ask is intentionally limited to name and email. Do not
+  describe vehicle data submission as the current public task; say that vehicle details may be
+  requested separately in the coming weeks if needed.
 - `full` mode retains the complete four-step form described below. It is available through the
   session-persisted `?site-mode=full` presentation flag.
 
 Both variants must retain the honeypot, accessible validation, disabled-until-consented submit
 button, one browser POST, automatic server-side magic-link handoff, and shared completion state.
-Completion copy must not imply that vehicle data is required; adding it after sign-in is optional.
+Completion copy must not imply that vehicle data is required or expected immediately; any later
+request for vehicle details should be explained separately.
 Render completion as a compact, centred confirmation card rather than stretching it across the
 form workspace. Keep emphasis inline within sentences and hide the pre-submit informational
 callout once the result is shown so it does not repeat the next-step guidance.

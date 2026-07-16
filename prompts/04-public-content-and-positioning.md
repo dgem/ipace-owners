@@ -51,6 +51,9 @@ The default homepage should be a concise, mobile-first recruitment landing page 
 - Presents one organised owner voice and one primary Join call to action.
 - Use the launch headline direction "I-PACE owners working together for fair outcomes" rather
   than duplicating separate scene-setting sections.
+- For launch, the public ask is registration only. Ask owners for name, email, contact consent,
+  and the non-legal-claim acknowledgement. Do not ask for vehicle details in launch mode, and
+  do not imply that structured evidence collection is already the current public task.
 - Include concise launch-visible "Why now?" context naming traction battery faults, recall or
   customer notice work, warranty uncertainty, and inconsistent support. Keep this high-level;
   do not restore recall-code/statistics-heavy content to launch mode.
@@ -70,6 +73,8 @@ The default homepage should be a concise, mobile-first recruitment landing page 
 - States that joining does not enrol an owner in legal action; any future proposal is explained
   separately and each owner chooses whether to take part.
 - Does not lead with recall codes, evidence methodology, statistics, or vehicle-data requests.
+- Explains that vehicle details and fuller structured evidence may be requested in the coming
+  weeks, separately and with clear purpose, if needed.
 
 ## Full Homepage Detail
 

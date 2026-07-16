@@ -14,6 +14,7 @@ html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   scroll-behavior: smooth;
+  overflow-x: clip;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -38,6 +39,7 @@ body {
   margin: 0;
   min-height: 100vh;
   line-height: 1.6;
+  overflow-x: clip;
 }
 
 [hidden] {
@@ -360,6 +362,7 @@ th {
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
+  min-width: 0;
 }
 
 .site-header__logo {
@@ -369,7 +372,8 @@ th {
   font-size: var(--text-lg);
   letter-spacing: -0.02em;
   line-height: 1.2;
-  flex-shrink: 0;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .site-header__logo:hover {
@@ -389,6 +393,7 @@ th {
   align-items: center;
   gap: var(--space-3);
   flex-shrink: 0;
+  min-width: 0;
 }
 
 /* Identity UI in header */
@@ -396,6 +401,7 @@ th {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  min-width: 0;
 }
 
 .identity-controls__user {
@@ -563,11 +569,14 @@ th {
   display: grid;
   gap: var(--space-10);
   align-items: center;
+  min-width: 0;
 }
 
 .hero__content {
+  width: 100%;
   max-width: 44rem;
   margin-inline: auto;
+  min-width: 0;
 }
 
 .hero__eyebrow {
@@ -585,11 +594,13 @@ th {
   font-size: clamp(var(--text-3xl), 6vw, var(--text-5xl));
   margin-bottom: var(--space-6);
   line-height: 1.1;
+  max-width: 100%;
 }
 
 .hero__subtitle {
   font-size: clamp(var(--text-base), 2.5vw, var(--text-xl));
   color: rgba(255,255,255,0.8);
+  width: 100%;
   max-width: 56ch;
   margin-inline: auto;
   margin-bottom: var(--space-8);
@@ -605,6 +616,8 @@ th {
 .hero__media {
   margin-inline: auto;
   width: min(100%, 42rem);
+  max-width: 100%;
+  min-width: 0;
 }
 
 .hero__media img {
@@ -1152,6 +1165,8 @@ textarea {
   cursor: pointer;
   font-size: var(--text-base);
   line-height: 1.5;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .check-label input[type="checkbox"],
@@ -2090,6 +2105,61 @@ legend {
   border: 1px solid rgba(255,255,255,0.14);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
+}
+
+@media (max-width: 39.99em) {
+  :root {
+    --container-padding: 0.875rem;
+  }
+
+  .site-header__inner {
+    gap: var(--space-2);
+  }
+
+  .site-header__logo {
+    font-size: var(--text-base);
+  }
+
+  .site-header__logo span {
+    font-size: 0.8125rem;
+  }
+
+  .site-header__actions {
+    gap: var(--space-2);
+  }
+
+  .site-header .identity-controls {
+    display: none;
+  }
+
+  .hero__title {
+    font-size: clamp(2rem, 10vw, 2.5rem);
+  }
+
+  .form--compact fieldset,
+  fieldset {
+    padding-inline: var(--space-4);
+  }
+
+  .cookie-notice {
+    right: var(--space-2);
+    bottom: var(--space-2);
+    left: var(--space-2);
+    gap: var(--space-3);
+    max-height: 34vh;
+    overflow: auto;
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
+  }
+
+  .cookie-notice__content p:not(.cookie-notice__title) {
+    font-size: 0.8125rem;
+    line-height: 1.45;
+  }
+
+  .cookie-notice__actions .btn {
+    padding: var(--space-2) var(--space-3);
+  }
 }
 
 .cookie-notice[hidden] {

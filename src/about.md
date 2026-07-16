@@ -100,10 +100,10 @@ explains exactly how data is collected and what verification levels we apply.
 
 ## Get involved
 
-The group is free to join. You can join without submitting vehicle data — though
-vehicle data is what makes our evidence credible. The more owners who submit structured
-data, the stronger our collective position.
+The group is free to join. For launch, we are asking owners only to register with their name
+and email address so we can show that UK I-PACE owners are organised. We expect to ask for
+vehicle details and more structured information in the coming weeks, but that will be explained
+separately and is not required to join now.
 
 - [Join the Group](/join/)
-- [Submit Vehicle Data](/submit-vehicle-data/)
 - [Read the FAQ](/faq/)
