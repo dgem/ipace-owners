@@ -14,11 +14,11 @@ test('launch homepage leads with recruitment and constructive resolution', funct
   const launch = launchHomepage();
 
   assert.match(launch, /I-PACE owners working together for fair outcomes/);
-  assert.match(launch, /Register your support around I-PACE battery and recall issues/);
+  assert.match(launch, /Register and help shape a fair and consistent resolution for all of us/);
   assert.match(launch, /Traction battery faults/);
   assert.match(launch, /H447 \/ H570 \/ H571 \/ H572 campaigns/);
   assert.match(launch, /Approaching the 8-year \/ 100,000-mile battery warranty/);
-  assert.match(launch, /Inconsistent owner experiences/);
+  assert.match(launch, /Inconsistent experiences/);
   assert.match(launch, /Why now\?/);
   assert.match(launch, /Recalls and traction battery failures need an organised response/);
   assert.match(launch, /before Jaguar's next vehicle launch/);
