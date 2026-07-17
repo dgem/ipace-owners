@@ -25,18 +25,24 @@ site_url        = "https://stage.ipace-owners.org/account/"
 # Use a separate sender subdomain so staging DNS cannot affect production mail.
 # Add Firebase's TXT/CNAME records at Fasthosts without changing MX records, then run:
 # make infra-email-domain ENV=staging
+
 firebase_auth_email_domain        = "auth.stage.ipace-owners.org"
 firebase_auth_email_action_domain = "stage.ipace-owners.org"
 
 resend_from           = "I-PACE Owners Staging <members@stage.ipace-owners.org>"
 resend_reply_to       = "contact@ipace-owners.org"
 resend_asset_base_url = "https://stage.ipace-owners.org"
+
 # Set bootstrap_resend_api_key_secret=true and provide the real API key via
 # TF_VAR_resend_api_key or an uncommitted tfvars file if OpenTofu should bootstrap
 # the GitHub environment secret RESEND_API_KEY_STAGING. Leave false if you manage
 # that GitHub secret manually.
+
 # bootstrap_resend_api_key_secret = true
 # resend_api_key = "re_replace_with_staging_resend_api_key"
+manage_resend_domain = true
+resend_domain        = "stage.ipace-owners.org"
+resend_region        = "eu-west-1"
 
 # Apply once, then add every output DNS record at Fasthosts.
 firebase_hosting_custom_domains = {

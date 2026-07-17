@@ -15,3 +15,7 @@ provider "google-beta" {
 provider "github" {
   owner = var.github_owner
 }
+
+provider "resend" {
+  api_key = var.resend_api_key
+}

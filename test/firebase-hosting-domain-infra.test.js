@@ -23,6 +23,18 @@ test('OpenTofu manages Firebase Hosting custom domains and reports DNS state', f
   assert.match(moduleOutputs, /certificate_state/);
 });
 
+test('OpenTofu can manage Resend domains and report DNS state', function () {
+  const moduleMain = read('infra/opentofu/modules/ipace-owners/main.tf');
+  const moduleOutputs = read('infra/opentofu/modules/ipace-owners/outputs.tf');
+  const envOutputs = read('infra/opentofu/env/outputs.tf');
+
+  assert.match(moduleMain, /resource "resend_domain" "auth_email"/);
+  assert.match(moduleMain, /count\s*=\s*var\.manage_resend_domain && var\.resend_domain != "" \? 1 : 0/);
+  assert.match(moduleOutputs, /output "resend_email_domain"/);
+  assert.match(moduleOutputs, /dns_records/);
+  assert.match(envOutputs, /output "resend_email_domain"/);
+});
+
 test('environment examples define staging and canonical production domains', function () {
   const staging = read('infra/opentofu/env/staging.tfvars.example');
   const production = read('infra/opentofu/env/production.tfvars.example');
@@ -37,6 +49,16 @@ test('Makefile exposes Firebase Hosting DNS records for an explicit environment'
 
   assert.match(makefile, /infra-dns-records:.*##/);
   assert.match(makefile, /\$\(INFRA_ENV_SCRIPT\) dns/);
+});
+
+test('Makefile exposes Resend DNS records for an explicit environment', function () {
+  const makefile = read('Makefile');
+  const infraScript = read('scripts/infra-env.sh');
+
+  assert.match(makefile, /infra-resend-dns-records:.*##/);
+  assert.match(makefile, /\$\(INFRA_ENV_SCRIPT\) resend-dns/);
+  assert.match(infraScript, /resend-dns\)/);
+  assert.match(infraScript, /output resend_email_domain/);
 });
 
 test('OpenTofu and deployment workflows select the named Firestore database', function () {

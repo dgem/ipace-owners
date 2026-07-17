@@ -32,6 +32,11 @@ output "firebase_auth_email" {
   value       = module.ipace_owners.firebase_auth_email
 }
 
+output "resend_email_domain" {
+  description = "Resend sending domain status and DNS records to create at the authoritative DNS provider."
+  value       = module.ipace_owners.resend_email_domain
+}
+
 output "firebase_storage_bucket" {
   value = module.ipace_owners.firebase_storage_bucket
 }

@@ -135,6 +135,16 @@ resource "terraform_data" "firebase_auth_email" {
   depends_on = [google_identity_platform_config.default]
 }
 
+resource "resend_domain" "auth_email" {
+  count = var.manage_resend_domain && var.resend_domain != "" ? 1 : 0
+
+  name           = var.resend_domain
+  region         = var.resend_region
+  open_tracking  = false
+  click_tracking = false
+  tls            = "enforced"
+}
+
 data "google_firebase_web_app_config" "default" {
   provider = google-beta
 

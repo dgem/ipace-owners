@@ -29,5 +29,8 @@ module "ipace_owners" {
   resend_from                          = var.resend_from
   resend_reply_to                      = var.resend_reply_to
   resend_asset_base_url                = var.resend_asset_base_url
+  manage_resend_domain                 = var.manage_resend_domain
+  resend_domain                        = var.resend_domain
+  resend_region                        = var.resend_region
   manage_github_actions                = var.manage_github_actions
 }

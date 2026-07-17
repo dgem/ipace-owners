@@ -133,6 +133,13 @@ Firebase/GCP.
 - Resend emails should include both HTML and plain text. The HTML email uses the public
   launch hero image at `/images/ipace-hero.png` through an absolute custom-domain asset
   URL; avoid Firebase preview/default domains and localhost for email image assets.
+- OpenTofu can optionally create/read the Resend sending domain with
+  `manage_resend_domain = true`, `resend_domain`, `resend_region`, and a Resend API key
+  supplied through the sensitive `resend_api_key` variable or `TF_VAR_resend_api_key`.
+  Because Fasthosts DNS is not managed by OpenTofu, use the `resend_email_domain` output or
+  `make infra-resend-dns-records ENV=<environment>` to copy the required Resend SPF/DKIM/MX
+  records into Fasthosts manually. Keep Resend open/click tracking disabled for
+  passwordless sign-in emails.
 - A successful Identity Toolkit response means Firebase accepted the email-link request;
   it does not prove mailbox delivery.
 - Delivery troubleshooting should document:

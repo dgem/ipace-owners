@@ -81,7 +81,12 @@ Required Resend configuration:
   GitHub secret is managed manually.
 - `RESEND_FROM_<ENV>`, `RESEND_REPLY_TO_<ENV>`, and `RESEND_ASSET_BASE_URL_<ENV>` as GitHub
   environment variables, managed by OpenTofu where possible.
-- Resend sender domain DNS must pass SPF/DKIM/DMARC checks before enabling production use.
+- The Resend sending domain may be created/read by OpenTofu with
+  `manage_resend_domain = true` and `resend_api_key` supplied through an uncommitted tfvars
+  file or `TF_VAR_resend_api_key`. Use `make infra-resend-dns-records ENV=<environment>` to
+  print the required Resend DNS records, then add them at Fasthosts while Fasthosts remains
+  authoritative. Resend sender domain DNS must pass SPF/DKIM/DMARC checks before enabling
+  production use.
 
 ## Infrastructure and data protection
 

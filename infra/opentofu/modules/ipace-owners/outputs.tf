@@ -47,6 +47,26 @@ output "firebase_auth_email" {
   }
 }
 
+output "resend_email_domain" {
+  description = "Resend sending domain status and DNS records to create at the authoritative DNS provider."
+  value = {
+    enabled = var.manage_resend_domain && var.resend_domain != ""
+    domain  = try(resend_domain.auth_email[0].name, var.resend_domain)
+    status  = try(resend_domain.auth_email[0].status, null)
+    dns_records = [
+      for record in try(resend_domain.auth_email[0].records, []) : {
+        record   = record.record
+        name     = record.name
+        type     = record.type
+        value    = record.value
+        priority = record.priority
+        ttl      = record.ttl
+        status   = record.status
+      }
+    ]
+  }
+}
+
 output "firebase_storage_bucket" {
   value = data.google_firebase_web_app_config.default.storage_bucket
 }

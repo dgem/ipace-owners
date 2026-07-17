@@ -166,6 +166,24 @@ variable "resend_asset_base_url" {
   default     = ""
 }
 
+variable "manage_resend_domain" {
+  description = "Whether OpenTofu should create/read the Resend sending domain and output its DNS verification records."
+  type        = bool
+  default     = false
+}
+
+variable "resend_domain" {
+  description = "Resend sending domain to manage."
+  type        = string
+  default     = ""
+}
+
+variable "resend_region" {
+  description = "Resend region for the sending domain."
+  type        = string
+  default     = "eu-west-1"
+}
+
 variable "manage_github_actions" {
   description = "Whether this module should create/update GitHub Actions environments, variables and secrets."
   type        = bool

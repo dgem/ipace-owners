@@ -224,7 +224,8 @@ route unless there is a measured need.
   `bootstrap_resend_api_key_secret` is true, but should leave it alone when that boolean is
   false. Non-secret
   sender/reply-to/asset-base values may be managed as GitHub environment variables by
-  OpenTofu.
+  OpenTofu. OpenTofu may also manage the Resend sending-domain resource and output DNS
+  verification records; DNS remains manual while Fasthosts is authoritative.
 - Merges to `main` deploy production.
 
 ## Prompt maintenance
