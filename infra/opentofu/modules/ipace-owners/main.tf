@@ -7,6 +7,8 @@ locals {
   email_continue_host               = regex("^https?://([^/]+)", var.site_url)[0]
   firebase_auth_email_action_domain = var.firebase_auth_email_action_domain != "" ? var.firebase_auth_email_action_domain : local.email_continue_host
   firebase_auth_email_script        = abspath("${path.module}/../../../../scripts/configure-firebase-auth-email.mjs")
+  production_data_protection        = var.environment == "production"
+  firestore_backup_retention        = "8467200s" # 14 weeks, the Firestore scheduled-backup maximum.
   firebase_auth_authorized_domains = distinct(compact(concat([
     local.email_continue_host,
     "${var.project_id}.firebaseapp.com",
@@ -138,13 +140,26 @@ data "google_firebase_web_app_config" "default" {
 }
 
 resource "google_firestore_database" "default" {
-  project         = var.project_id
-  name            = var.project_id
-  location_id     = var.region
-  type            = "FIRESTORE_NATIVE"
-  deletion_policy = "ABANDON"
+  project                           = var.project_id
+  name                              = var.project_id
+  location_id                       = var.region
+  type                              = "FIRESTORE_NATIVE"
+  point_in_time_recovery_enablement = local.production_data_protection ? "POINT_IN_TIME_RECOVERY_ENABLED" : null
+  delete_protection_state           = local.production_data_protection ? "DELETE_PROTECTION_ENABLED" : null
+  deletion_policy                   = local.production_data_protection ? "PREVENT" : "ABANDON"
 
   depends_on = [google_project_service.required]
+}
+
+resource "google_firestore_backup_schedule" "default" {
+  count = local.production_data_protection ? 1 : 0
+
+  project         = var.project_id
+  database        = google_firestore_database.default.name
+  retention       = local.firestore_backup_retention
+  deletion_policy = "PREVENT"
+
+  daily_recurrence {}
 }
 
 resource "google_storage_bucket" "snapshots" {

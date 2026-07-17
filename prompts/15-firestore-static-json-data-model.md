@@ -29,6 +29,19 @@ Provision one named Firestore database per environment with a database ID matchi
 project ID. Pass it to Functions as `FIRESTORE_DATABASE_ID` and create clients with
 `firestore.NewClientWithDatabase`; do not rely on the `(default)` database.
 
+Production data protection is environment-driven in OpenTofu:
+
+- Firestore is encrypted at rest with Google-managed encryption. Do not add CMEK to the
+  existing production database as an incidental change; treat CMEK as a separate migration
+  because it can require allowlisting and careful recreation planning.
+- Production enables `POINT_IN_TIME_RECOVERY_ENABLED` for short-window recovery.
+- Production enables Firestore `DELETE_PROTECTION_ENABLED` and OpenTofu
+  `deletion_policy = "PREVENT"` to block accidental database deletion.
+- Production creates a daily `google_firestore_backup_schedule` with the maximum 14-week
+  retention (`8467200s`) and its own `deletion_policy = "PREVENT"`.
+- Staging keeps these production-only backup/delete-protection settings disabled unless an
+  explicit future decision changes the cost/risk trade-off.
+
 Cloud Storage is for generated JSON snapshots and future binary evidence files. Store file
 metadata, ownership, review status, and permissions in Firestore.
 

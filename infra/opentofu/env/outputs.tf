@@ -14,6 +14,11 @@ output "firestore_database_id" {
   value = module.ipace_owners.firestore_database_id
 }
 
+output "firestore_data_protection" {
+  description = "Firestore encryption, PITR, delete-protection, and backup posture."
+  value       = module.ipace_owners.firestore_data_protection
+}
+
 output "firebase_web_app_id" {
   value = module.ipace_owners.firebase_web_app_id
 }
