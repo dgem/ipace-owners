@@ -16,7 +16,11 @@ It is the current source of truth for the I-PACE Owners' Advocacy Group architec
 - **Canonical data:** A named Cloud Firestore database per environment, with its database
   ID matching the GCP project ID. Go Functions select it explicitly using
   `firestore.NewClientWithDatabase`. Function environment generation may derive this ID
-  from `FIREBASE_PROJECT_ID` during the initial OpenTofu/GitHub variable rollout.
+  from `FIREBASE_PROJECT_ID` during the initial OpenTofu/GitHub variable rollout. Production
+  Firestore data is encrypted at rest with Google-managed encryption, has point-in-time
+  recovery enabled, has Firestore delete protection and OpenTofu destroy prevention, and is
+  covered by a daily Firestore backup schedule retained for 14 weeks. Staging intentionally
+  does not carry those production-only backup/delete-protection settings.
 - **Generated snapshots:** member/private and public aggregate JSON written to
   Firestore and Cloud Storage so page loads avoid repeated canonical-store reads.
 - **Hosting:** Firebase Hosting with one `/api/**` rewrite to the Go `Api` Function.

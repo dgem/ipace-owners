@@ -46,10 +46,32 @@ test('OpenTofu and deployment workflows select the named Firestore database', fu
   const stagingWorkflow = read('.github/workflows/gcp-firebase-staging.yml');
 
   assert.match(moduleMain, /resource "google_firestore_database" "default"[\s\S]*name\s*=\s*var\.project_id/);
-  assert.match(moduleMain, /resource "google_firestore_database" "default"[\s\S]*deletion_policy\s*=\s*"ABANDON"/);
+  assert.match(moduleMain, /resource "google_firestore_database" "default"[\s\S]*deletion_policy\s*=\s*local\.production_data_protection \? "PREVENT" : "ABANDON"/);
   assert.match(moduleVariables, /FIRESTORE_DATABASE_ID_/);
   assert.match(productionWorkflow, /FIRESTORE_DATABASE_ID_PRODUCTION/);
   assert.match(stagingWorkflow, /FIRESTORE_DATABASE_ID_STAGING/);
+});
+
+test('production Firestore has delete protection, PITR, and scheduled backups', function () {
+  const moduleMain = read('infra/opentofu/modules/ipace-owners/main.tf');
+  const moduleOutputs = read('infra/opentofu/modules/ipace-owners/outputs.tf');
+  const envOutputs = read('infra/opentofu/env/outputs.tf');
+  const productionExample = read('infra/opentofu/env/production.tfvars.example');
+  const stagingExample = read('infra/opentofu/env/staging.tfvars.example');
+
+  assert.match(moduleMain, /production_data_protection\s*=\s*var\.environment == "production"/);
+  assert.match(moduleMain, /point_in_time_recovery_enablement\s*=\s*local\.production_data_protection \? "POINT_IN_TIME_RECOVERY_ENABLED" : null/);
+  assert.match(moduleMain, /delete_protection_state\s*=\s*local\.production_data_protection \? "DELETE_PROTECTION_ENABLED" : null/);
+  assert.match(moduleMain, /resource "google_firestore_backup_schedule" "default"[\s\S]*count\s*=\s*local\.production_data_protection \? 1 : 0/);
+  assert.match(moduleMain, /retention\s*=\s*local\.firestore_backup_retention/);
+  assert.match(moduleMain, /daily_recurrence\s*\{\}/);
+  assert.match(moduleMain, /resource "google_firestore_backup_schedule" "default"[\s\S]*deletion_policy\s*=\s*"PREVENT"/);
+  assert.match(moduleMain, /firestore_backup_retention\s*=\s*"8467200s"/);
+  assert.match(moduleOutputs, /encrypted_at_rest\s*=\s*"GOOGLE_MANAGED"/);
+  assert.match(moduleOutputs, /backup_schedule_enabled/);
+  assert.match(envOutputs, /output "firestore_data_protection"/);
+  assert.doesNotMatch(stagingExample, /firestore_backup|delete_protection|point_in_time_recovery/);
+  assert.doesNotMatch(productionExample, /firestore_backup|delete_protection|point_in_time_recovery/);
 });
 
 test('the GitHub deployer can update only Firebase Auth preview-domain configuration', function () {

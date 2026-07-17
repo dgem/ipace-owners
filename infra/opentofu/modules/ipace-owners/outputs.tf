@@ -14,6 +14,19 @@ output "firestore_database_id" {
   value = google_firestore_database.default.name
 }
 
+output "firestore_data_protection" {
+  description = "Firestore protection posture for this environment."
+  value = {
+    encrypted_at_rest                 = "GOOGLE_MANAGED"
+    point_in_time_recovery_enablement = google_firestore_database.default.point_in_time_recovery_enablement
+    delete_protection_state           = google_firestore_database.default.delete_protection_state
+    terraform_deletion_policy         = google_firestore_database.default.deletion_policy
+    backup_schedule_enabled           = local.production_data_protection
+    backup_schedule_id                = try(google_firestore_backup_schedule.default[0].id, null)
+    backup_retention                  = try(google_firestore_backup_schedule.default[0].retention, null)
+  }
+}
+
 output "firebase_web_app_id" {
   value = google_firebase_web_app.default.app_id
 }
