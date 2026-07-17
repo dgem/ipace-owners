@@ -107,8 +107,17 @@ Firebase/GCP.
   preserving the PR preview URL as `continueUrl`.
 - For PR previews, derive `continueUrl` from the validated `Origin` header. Do not accept
   arbitrary `web.app` origins; require the current Firebase project preview-host pattern.
-- Production may use the verified custom Hosting domain as `linkDomain` once DNS and
-  Firebase Hosting certificate state are active.
+- Production should use the verified custom Hosting domain as `linkDomain` once DNS and
+  Firebase Hosting certificate state are active. DNS cannot issue an HTTP 302 for Firebase
+  Auth action links; the action-link host must be a Firebase Hosting/Auth domain accepted
+  by Firebase. Keep the sender-domain subdomain separate unless it is also deliberately
+  configured as an action-link Hosting domain.
+- If `FIREBASE_EMAIL_LINK_DOMAIN` is not present, Functions derive `linkDomain` from an
+  HTTPS custom-domain `continueUrl` and suppress it for preview/default Firebase domains,
+  localhost, and non-HTTPS URLs.
+- Manage the Firebase public-facing project display name with OpenTofu. Firebase's default
+  Auth email template inserts that value as `%APP_NAME%`; stale values such as a previous
+  product name require an infra apply before new default emails change.
 - A successful Identity Toolkit response means Firebase accepted the email-link request;
   it does not prove mailbox delivery.
 - Delivery troubleshooting should document:

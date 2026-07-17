@@ -62,8 +62,11 @@ the retired hosting or Function platform.
    and suppresses email side effects for unregistered addresses or lookup failures while
    returning account-enumeration-resistant `{ ok: true }` for valid email syntax. Set
    Identity Toolkit's `linkDomain` only for environments with a verified Firebase Hosting
-   custom domain. Derive `continueUrl` from a validated request origin for allowed preview
-   hosts; otherwise fall back to the environment account URL.
+   custom domain. If `FIREBASE_EMAIL_LINK_DOMAIN` is absent, derive it from the validated
+   custom-domain `continueUrl`; never pass Firebase preview, default `web.app` /
+   `firebaseapp.com`, localhost, or non-HTTPS hosts as `linkDomain`. Derive `continueUrl`
+   from a validated request origin for allowed preview hosts; otherwise fall back to the
+   environment account URL.
 5. When the user opens the email link, `identity.js` completes
    `signInWithEmailLink`, stores the session locally, clears auth query parameters, and
    exposes `window.ipaceGetIdentityToken()`.
@@ -209,6 +212,9 @@ route unless there is a measured need.
 - Do not pass a Firebase Hosting preview/default `web.app` hostname as Identity Toolkit's
   `linkDomain`; omit that field for previews so Firebase uses its default action handler,
   while keeping the PR URL as `continueUrl`. Production uses its verified custom domain.
+- Manage the Firebase project's public-facing display name through OpenTofu because
+  Firebase's default Auth emails insert that value as `%APP_NAME%`. Production uses
+  `I-PACE Owners`; staging uses `I-PACE Owners Staging`.
 - Merges to `main` deploy production.
 
 ## Prompt maintenance

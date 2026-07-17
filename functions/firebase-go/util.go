@@ -141,6 +141,21 @@ func emailContinueURLForOrigin(origin string) string {
 	return "https://ipace-owners.org/account/"
 }
 
+func firebaseEmailLinkDomainForContinueURL(continueURL string) string {
+	parsed, err := url.Parse(continueURL)
+	if err != nil || parsed.Scheme != "https" {
+		return ""
+	}
+	host := parsed.Hostname()
+	if host == "" ||
+		host == "localhost" ||
+		strings.HasSuffix(host, ".web.app") ||
+		strings.HasSuffix(host, ".firebaseapp.com") {
+		return ""
+	}
+	return host
+}
+
 func cleanString(value string, max int) string {
 	value = strings.TrimSpace(value)
 	if max > 0 && len(value) > max {

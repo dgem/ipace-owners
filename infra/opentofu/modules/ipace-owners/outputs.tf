@@ -40,6 +40,7 @@ output "firebase_auth_email" {
   value = {
     delivery_method            = "DEFAULT"
     custom_sender_domain       = var.firebase_auth_email_domain
+    project_display_name       = local.firebase_project_display_name
     passwordless_action_domain = local.firebase_auth_email_action_domain
     passwordless_template      = "FIREBASE_DEFAULT"
   }

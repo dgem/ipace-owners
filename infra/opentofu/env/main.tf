@@ -1,13 +1,14 @@
 module "ipace_owners" {
   source = "../modules/ipace-owners"
 
-  environment        = var.environment
-  project_id         = local.effective_project_id
-  create_gcp_project = var.create_gcp_project
-  project_name       = var.project_name
-  gcp_org_id         = var.gcp_org_id
-  gcp_folder_id      = var.gcp_folder_id
-  billing_account    = var.billing_account
+  environment                   = var.environment
+  project_id                    = local.effective_project_id
+  create_gcp_project            = var.create_gcp_project
+  project_name                  = var.project_name
+  firebase_project_display_name = var.firebase_project_display_name
+  gcp_org_id                    = var.gcp_org_id
+  gcp_folder_id                 = var.gcp_folder_id
+  billing_account               = var.billing_account
 
   region       = var.region
   github_owner = var.github_owner

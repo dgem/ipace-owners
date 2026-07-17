@@ -40,7 +40,9 @@ magic-link request path for existing users.
   echoed the expected email without logging the raw response. Never log raw email addresses,
   request bodies, Identity tokens, action links, or full provider response bodies.
 - Configure `FIREBASE_EMAIL_LINK_DOMAIN` from the environment's verified Firebase Hosting
-  custom domain and pass it as Identity Toolkit's `linkDomain`. Keep
+  custom domain and pass it as Identity Toolkit's `linkDomain`. If the environment variable
+  is absent, derive `linkDomain` from the custom-domain `continueUrl` so production links
+  use `ipace-owners.org` rather than the default `firebaseapp.com` action host. Keep
   `FIREBASE_EMAIL_CONTINUE_URL` as the post-action account URL. Firebase web API keys are
   public project identifiers and may appear in action URLs; restrict them to the required
   Firebase APIs, but do not treat their presence in an email link as credential exposure.

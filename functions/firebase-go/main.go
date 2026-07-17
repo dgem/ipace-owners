@@ -511,6 +511,9 @@ func sendFirebaseEmailLinkRequest(ctx context.Context, email string, origin stri
 	}
 	continueURL := emailContinueURLForOrigin(origin)
 	linkDomain := os.Getenv("FIREBASE_EMAIL_LINK_DOMAIN")
+	if linkDomain == "" {
+		linkDomain = firebaseEmailLinkDomainForContinueURL(continueURL)
+	}
 	fields := emailLogFields(email)
 	fields["continueHost"] = urlHost(continueURL)
 	if linkDomain != "" {

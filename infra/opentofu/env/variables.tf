@@ -33,6 +33,12 @@ variable "project_name" {
   default     = ""
 }
 
+variable "firebase_project_display_name" {
+  description = "Public-facing Firebase project name shown in default Firebase Auth emails."
+  type        = string
+  default     = ""
+}
+
 variable "gcp_org_id" {
   description = "GCP organisation ID for project creation. Leave empty when using folder_id or an existing project."
   type        = string

@@ -56,6 +56,48 @@ func TestEmailContinueURLFallsBackForDisallowedOrigin(t *testing.T) {
 	}
 }
 
+func TestFirebaseEmailLinkDomainForContinueURLUsesCustomHostingDomain(t *testing.T) {
+	cases := []struct {
+		name        string
+		continueURL string
+		want        string
+	}{
+		{
+			name:        "production custom domain",
+			continueURL: "https://ipace-owners.org/account/",
+			want:        "ipace-owners.org",
+		},
+		{
+			name:        "staging custom domain",
+			continueURL: "https://stage.ipace-owners.org/account/",
+			want:        "stage.ipace-owners.org",
+		},
+		{
+			name:        "preview web app",
+			continueURL: "https://ipace-owners-staging--pr-20-ef2wibc5.web.app/account/",
+			want:        "",
+		},
+		{
+			name:        "preview firebaseapp",
+			continueURL: "https://ipace-owners-staging--pr-20-ef2wibc5.firebaseapp.com/account/",
+			want:        "",
+		},
+		{
+			name:        "localhost",
+			continueURL: "http://localhost:8080/account/",
+			want:        "",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := firebaseEmailLinkDomainForContinueURL(tc.continueURL); got != tc.want {
+				t.Fatalf("firebaseEmailLinkDomainForContinueURL(%q) = %q, want %q", tc.continueURL, got, tc.want)
+			}
+		})
+	}
+}
+
 func TestCleaners(t *testing.T) {
 	if got := cleanEmail(" TEST@Example.COM "); got != "test@example.com" {
 		t.Fatalf("cleanEmail() = %q", got)

@@ -6,7 +6,7 @@ locals {
     "FIREBASE_APP_ID_${local.github_actions_suffix}"             = google_firebase_web_app.default.app_id
     "FIREBASE_AUTH_DOMAIN_${local.github_actions_suffix}"        = data.google_firebase_web_app_config.default.auth_domain
     "FIREBASE_EMAIL_CONTINUE_URL_${local.github_actions_suffix}" = var.site_url
-    "FIREBASE_EMAIL_LINK_DOMAIN_${local.github_actions_suffix}"  = local.email_continue_host
+    "FIREBASE_EMAIL_LINK_DOMAIN_${local.github_actions_suffix}"  = local.firebase_auth_email_action_domain
     "FIREBASE_STORAGE_BUCKET_${local.github_actions_suffix}"     = data.google_firebase_web_app_config.default.storage_bucket
     "FIREBASE_${local.github_actions_suffix}_PROJECT_ID"         = var.project_id
     "FIRESTORE_DATABASE_ID_${local.github_actions_suffix}"       = google_firestore_database.default.name

@@ -11,6 +11,7 @@ region      = "europe-west2"
 # Set true if OpenTofu should create the GCP project. Leave false to use an existing project.
 create_gcp_project = false
 # project_name      = "I-PACE Owners Staging"
+firebase_project_display_name = "I-PACE Owners Staging"
 # gcp_org_id        = "replace-with-org-id"
 # gcp_folder_id     = "replace-with-folder-id"
 # billing_account   = "000000-000000-000000"

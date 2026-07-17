@@ -18,6 +18,15 @@ export function buildEmailConfig() {
   return { notification: { defaultLocale: "en-GB", sendEmail } };
 }
 
+export function normalizeDisplayName(value) {
+  const displayName = String(value || "").trim();
+  if (!displayName) return "";
+  if (displayName.length > 80) {
+    throw new Error("FIREBASE_PROJECT_DISPLAY_NAME must be 80 characters or fewer");
+  }
+  return displayName;
+}
+
 export function emailConfigUpdateMask() {
   return [
     "notification.defaultLocale",
@@ -88,14 +97,32 @@ async function reconcileEmailDomain(endpoint, headers, config, emailDomain) {
   console.log("Add the TXT and CNAME records shown under Firebase Authentication > Templates, then run make infra-email-domain ENV=<environment>.");
 }
 
+async function reconcileFirebaseProjectDisplayName(projectId, headers, displayName) {
+  if (!displayName) return;
+  const endpoint = `https://firebase.googleapis.com/v1beta1/projects/${encodeURIComponent(projectId)}`;
+  const current = await request(endpoint, { headers }, "Firebase project read");
+  if (current.displayName === displayName) {
+    console.log(`Firebase project public-facing name is active: ${displayName}`);
+    return;
+  }
+  await request(
+    `${endpoint}?updateMask=${encodeURIComponent("displayName")}`,
+    { method: "PATCH", headers, body: JSON.stringify({ displayName }) },
+    "Firebase project public-facing name update",
+  );
+  console.log(`Firebase project public-facing name configured: ${displayName}`);
+}
+
 async function main() {
   const projectId = process.env.GCP_PROJECT_ID;
   if (!projectId) throw new Error("GCP_PROJECT_ID is required");
 
   const emailDomain = normalizeDomain(process.env.FIREBASE_AUTH_EMAIL_DOMAIN, "FIREBASE_AUTH_EMAIL_DOMAIN");
+  const displayName = normalizeDisplayName(process.env.FIREBASE_PROJECT_DISPLAY_NAME);
   const token = execFileSync("gcloud", ["auth", "print-access-token"], { encoding: "utf8" }).trim();
   const endpoint = `https://identitytoolkit.googleapis.com/admin/v2/projects/${encodeURIComponent(projectId)}/config`;
   const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json", "X-Goog-User-Project": projectId };
+  await reconcileFirebaseProjectDisplayName(projectId, headers, displayName);
   const currentConfig = await request(endpoint, { headers }, "Firebase Auth config read");
   const payload = buildEmailConfig();
   // Domain verification is a separate two-phase API. Attempting to set
