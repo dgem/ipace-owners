@@ -49,8 +49,10 @@ magic-link request path for existing users.
 - If `RESEND_API_KEY` and `RESEND_FROM` are configured, use Firebase Admin
   `EmailSignInLink` to generate the passwordless link without asking Firebase to send the
   email, then send a branded HTML and plain-text email through Resend. Include the launch
-  hero image from `/images/ipace-hero.png` using an absolute asset URL. Keep Firebase's
-  default email delivery as the automatic fallback when Resend is not configured or fails.
+  hero image from `/images/ipace-hero.png` using an absolute asset URL. For PR preview
+  continue URLs, use the PR preview origin for email image assets so the email points at the
+  image deployed with that branch. Keep Firebase's default email delivery as the automatic
+  fallback when Resend is not configured or fails.
   Never log the generated action link, API key, or raw provider response body.
 - For PR deployments, derive `FIREBASE_EMAIL_CONTINUE_URL` from that PR's generated Firebase
   Hosting preview request origin rather than a shared staging custom domain or a value baked

@@ -93,14 +93,17 @@ func resendMagicLinkPayload(email string, actionLink string, continueURL string)
 }
 
 func emailAssetBaseURL(continueURL string) string {
-	if value := strings.TrimRight(strings.TrimSpace(os.Getenv("RESEND_ASSET_BASE_URL")), "/"); value != "" {
-		return value
-	}
 	parsed, err := url.Parse(continueURL)
 	if err != nil || parsed.Scheme != "https" || parsed.Hostname() == "" {
 		return "https://ipace-owners.org"
 	}
 	host := parsed.Hostname()
+	if strings.HasSuffix(host, ".web.app") && strings.Contains(host, "--pr-") {
+		return parsed.Scheme + "://" + parsed.Host
+	}
+	if value := strings.TrimRight(strings.TrimSpace(os.Getenv("RESEND_ASSET_BASE_URL")), "/"); value != "" {
+		return value
+	}
 	if host == "localhost" || strings.HasSuffix(host, ".web.app") || strings.HasSuffix(host, ".firebaseapp.com") {
 		return "https://ipace-owners.org"
 	}

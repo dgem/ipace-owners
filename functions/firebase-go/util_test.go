@@ -458,10 +458,11 @@ func TestResendMagicLinkPayloadUsesHeroImageAndReplyTo(t *testing.T) {
 	}
 }
 
-func TestEmailAssetBaseURLAvoidsPreviewAndLocalHosts(t *testing.T) {
+func TestEmailAssetBaseURLUsesPreviewOriginAndAvoidsGenericFirebaseHosts(t *testing.T) {
 	cases := []struct {
 		name        string
 		continueURL string
+		envBaseURL  string
 		want        string
 	}{
 		{
@@ -470,8 +471,14 @@ func TestEmailAssetBaseURLAvoidsPreviewAndLocalHosts(t *testing.T) {
 			want:        "https://stage.ipace-owners.org",
 		},
 		{
-			name:        "preview host",
+			name:        "preview host overrides static staging asset base",
 			continueURL: "https://ipace-owners-staging--pr-20-ef2wibc5.web.app/account/",
+			envBaseURL:  "https://stage.ipace-owners.org",
+			want:        "https://ipace-owners-staging--pr-20-ef2wibc5.web.app",
+		},
+		{
+			name:        "generic Firebase host",
+			continueURL: "https://ipace-owners-staging.web.app/account/",
 			want:        "https://ipace-owners.org",
 		},
 		{
@@ -483,6 +490,9 @@ func TestEmailAssetBaseURLAvoidsPreviewAndLocalHosts(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
+			if tc.envBaseURL != "" {
+				t.Setenv("RESEND_ASSET_BASE_URL", tc.envBaseURL)
+			}
 			if got := emailAssetBaseURL(tc.continueURL); got != tc.want {
 				t.Fatalf("emailAssetBaseURL(%q) = %q, want %q", tc.continueURL, got, tc.want)
 			}

@@ -131,8 +131,11 @@ Firebase/GCP.
   sanitized warning and fall back to Firebase default delivery so users still get a sign-in
   link.
 - Resend emails should include both HTML and plain text. The HTML email uses the public
-  launch hero image at `/images/ipace-hero.png` through an absolute custom-domain asset
-  URL; avoid Firebase preview/default domains and localhost for email image assets.
+  launch hero image at `/images/ipace-hero.png` through an absolute HTTPS asset URL. For PR
+  previews, use that PR's generated Firebase Hosting preview origin for assets because the
+  image is deployed with the preview branch and the magic link is short-lived. For normal
+  staging/production sends, prefer `RESEND_ASSET_BASE_URL_<ENV>` pointing at a stable custom
+  domain; avoid localhost and generic Firebase default domains for long-lived email assets.
 - OpenTofu can optionally create/read the Resend sending domain with
   `manage_resend_domain = true`, `resend_domain`, `resend_region`, and a Resend API key
   supplied through the sensitive `resend_api_key` variable or `TF_VAR_resend_api_key`.

@@ -67,8 +67,10 @@ Branded Resend path:
   link server-side with Firebase Admin `EmailSignInLink`, then send the message through
   Resend.
 - Include both HTML and plain-text bodies.
-- Use `/images/ipace-hero.png` in the HTML email through an absolute HTTPS custom-domain
-  asset URL.
+- Use `/images/ipace-hero.png` in the HTML email through an absolute HTTPS asset URL. In PR
+  previews, derive the asset URL from the PR preview origin so the email references the
+  image deployed on the same preview branch. In normal staging/production, use the configured
+  stable asset base URL.
 - Never log raw action links, API keys, raw provider responses, request bodies, Firebase ID
   tokens, or personal email addresses.
 - If Resend link generation or delivery fails, log a sanitized warning and fall back to
