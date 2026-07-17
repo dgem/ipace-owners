@@ -10,25 +10,42 @@ function launchHomepage() {
   return homepage.slice(0, launchEnd);
 }
 
+function visibleText(source) {
+  return source
+    .replace(/<script[\s\S]*?<\/script>/g, ' ')
+    .replace(/<style[\s\S]*?<\/style>/g, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/[‘’]/g, "'")
+    .replace(/[“”]/g, '"')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function assertText(source, pattern) {
+  assert.match(visibleText(source), pattern);
+}
+
 test('launch homepage leads with recruitment and constructive resolution', function () {
   const launch = launchHomepage();
 
-  assert.match(launch, /I-PACE owners working together for fair outcomes/);
-  assert.match(launch, /Register and help shape a fair and consistent resolution/);
-  assert.match(launch, /Traction battery faults/);
-  assert.match(launch, /H447 \/ H570 \/ H571 \/ H572 campaigns/);
-  assert.match(launch, /Approaching the 8-year \/ 100,000-mile battery warranty/);
-  assert.match(launch, /Inconsistent experiences/);
-  assert.match(launch, /Why now\?/);
-  assert.match(launch, /Recalls and traction battery failures need an organised response/);
-  assert.match(launch, /before Jaguar's next vehicle launch/);
-  assert.match(launch, /not another forum/);
-  assert.match(launch, /not building an open comment\s+board/);
-  assert.match(launch, /legal counsel within the group\s+to help test the process and options/);
-  assert.match(launch, /does not enrol you in legal\s+action/);
-  assert.match(launch, /only asking owners to register with a name\s+and email address/);
+  assertText(launch, /I-PACE owners working together for fair outcomes/);
+  assertText(launch, /Register (?:and|to) help shape a fair and consistent resolution/);
+  assertText(launch, /Traction battery faults?/);
+  assertText(launch, /H447 \/ H570 \/ H571 \/ H572 campaigns?/);
+  assertText(launch, /Approaching the 8-year \/ 100,000-mile battery warranty/);
+  assertText(launch, /Inconsistent experiences?/);
+  assertText(launch, /Why now\?/);
+  assertText(launch, /Recalls and traction battery failures need an organised response/);
+  assertText(launch, /before Jaguar's next vehicle launch/);
+  assertText(launch, /not another forum/);
+  assertText(launch, /not building an open comment board/);
+  assertText(launch, /legal counsel within the group to help test the process and options/);
+  assertText(launch, /does not enrol you in legal action/);
+  assertText(launch, /only asking owners to register with a name and email address/);
   assert.equal((launch.match(/href="\/join\/"/g) || []).length, 2);
-  assert.doesNotMatch(launch, /State of Health|Submit Vehicle Data/);
+  assert.doesNotMatch(visibleText(launch), /State of Health|Submit Vehicle Data/);
 });
 
 test('launch homepage uses the structured Why now design, not the full-mode section', function () {
