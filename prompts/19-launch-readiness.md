@@ -48,6 +48,77 @@ site templates and through an absolute custom-domain URL in email HTML.
 Do not introduce Jaguar/JLR logos or copyrighted third-party imagery. Keep alt text neutral
 and descriptive.
 
+### Owners' group logo
+
+Keep the generated logo source at `public/images/ipace-owners-logo.png`. To recreate or refine
+it with an image-generation model, use this prompt as the baseline:
+
+> Create a clean, vector-friendly side-profile logo of an I-PACE-style electric crossover in
+> strict side view, facing left. Use a solid black vehicle body and tyres, with all windows and
+> glass rendered as pure white negative space. Avoid manufacturer badges, Jaguar wordmarks, and
+> other third-party marks. Set `iPace-Owners.org` as a friendly rounded italic sans-serif racing
+> decal, using one consistent font size and weight from beginning to end. Run the decal diagonally
+> upward from just behind the front wheel towards the rear side window. Use a pure white background,
+> crisp flat shapes, no greys, gradients, shadows, reflections, extra text, or watermark. Keep the
+> silhouette bold and suitable for later vector tracing.
+
+The standalone logo and business-card front must use the same car-and-decal artwork. Set the decal
+in bright teal (`#2DD4BF`), keep its typography and angle identical in both assets, and end the URL
+around the rear-wheel centreline so `.org` retains normal spacing and does not appear compressed.
+When either treatment changes, regenerate the other from the same source artwork rather than
+allowing the logo and card to drift independently.
+
+Use `public/favicon.png` as the favicon-sized logo treatment. Derive it directly from the same
+black side-profile car used by the logo, remove the URL decal completely, and scale the full car
+proportionally onto a square white canvas. Do not substitute a separately drawn or stylised car.
+
+### Printable owner-distribution cards
+
+Store the generated card artwork at:
+
+- `public/images/ipace-owners-card-front.png`
+- `public/images/ipace-owners-card-back.png`
+
+Both sides use a straight-on UK landscape business-card composition, approximately 85 × 55 mm,
+with a white background, a thin dark-teal (`#0f766e`) rounded border, generous print-safe margins,
+friendly rounded sans-serif typography, and flat colours only. Do not render the cards as physical
+mockups and do not add shadows, gradients, phone numbers, manufacturer badges, or watermarks.
+
+Generate the front from the logo with this prompt:
+
+> Create the front of a landscape advocacy business card. At the top, set
+> `H447/H570 Battery issues?` on one line in a bold, friendly italic rounded sans-serif, leaving
+> enough space at the top right for a functional QR code on the same visual line.
+> Place the black side-view car logo across the centre. Preserve its white glass and wheel details,
+> and set the diagonal `iPace-Owners.org` decal in vivid bright teal (`#2DD4BF`). Across the bottom,
+> use a solid dark-teal (`#0f766e`) rounded CTA band with centred white text reading exactly
+> `Join us to help get a fair deal for all.` Keep every element inside print-safe margins and make
+> the copy readable at physical business-card size.
+
+Generate the front QR code deterministically rather than asking an image model to draw it. Encode
+`https://ipace-owners.org` with high error correction, retain the full four-module white quiet zone,
+and place it at the top right in line with the headline. Target at least 10 mm square at final print
+size and test the printed proof with multiple phone cameras before distribution. Never distort,
+rotate, crop, recolour, or place artwork inside the QR modules.
+
+Generate the matching back with this prompt:
+
+> Create the back of the same landscape advocacy business card, matching the front's white
+> background, thin dark-teal rounded border, friendly typography, spacing, and teal accents. Do not
+> repeat the car. Use the headline `I-PACE owners working together for fair outcomes`, followed by
+> `An independent owners' group engaging constructively with JLR to pursue a fair and consistent
+> resolution.` Add a `Why now?` section in a tidy two-column grid with four items:
+> `Recall campaigns — H447, H570, H571 and H572`; `Traction battery faults — Power loss, warnings
+> and reduced performance`; `Battery warranty pressure — 8 years / 100,000 miles`; and
+> `Inconsistent support — Delays, loan cars, goodwill and warranty outcomes`. Finish with a compact
+> dark-teal strip reading `Free to join • Less than a minute • iPace-Owners.org`. Use accessible
+> contrast and card-size-readable text; do not invent statistics or legal claims.
+
+Treat generated text as artwork that requires proofreading. Before publishing or printing, verify
+every campaign number, URL, apostrophe, slash, capital letter, and punctuation mark against the
+copy above. Preserve editable or higher-resolution source artwork when preparing a commercial
+print run; the committed PNG files are the approved visual references.
+
 ## Passwordless email delivery
 
 Firebase remains the authentication authority. The site uses passwordless email-link sign-in.
