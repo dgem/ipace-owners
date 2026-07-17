@@ -119,10 +119,12 @@ Firebase/GCP.
   Auth email template inserts that value as `%APP_NAME%`; stale values such as a previous
   product name require an infra apply before new default emails change.
 - Resend is the custom email transport for branded passwordless emails. Configure
-  `RESEND_API_KEY_<ENV>` as a GitHub environment secret and manage non-secret
-  `RESEND_FROM_<ENV>`, `RESEND_REPLY_TO_<ENV>`, and `RESEND_ASSET_BASE_URL_<ENV>` through
-  OpenTofu/GitHub environment variables. The Function sends custom Resend email only when
-  both `RESEND_API_KEY` and `RESEND_FROM` are present; otherwise it uses Firebase's default
+  `RESEND_API_KEY_<ENV>` as a GitHub environment secret, either manually or by supplying the
+  sensitive `resend_api_key` OpenTofu variable during bootstrap. Leave the variable empty to
+  avoid creating or overwriting the GitHub secret. Manage non-secret `RESEND_FROM_<ENV>`,
+  `RESEND_REPLY_TO_<ENV>`, and `RESEND_ASSET_BASE_URL_<ENV>` through OpenTofu/GitHub
+  environment variables. The Function sends custom Resend email only when both
+  `RESEND_API_KEY` and `RESEND_FROM` are present; otherwise it uses Firebase's default
   sender. If Resend generation or delivery fails, log a sanitized warning and fall back to
   Firebase default delivery so users still get a sign-in link.
 - Resend emails should include both HTML and plain text. The HTML email uses the public

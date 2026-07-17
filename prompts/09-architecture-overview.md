@@ -220,8 +220,10 @@ route unless there is a measured need.
   `I-PACE Owners`; staging uses `I-PACE Owners Staging`.
 - Custom branded passwordless emails use Resend only when the API key and sender are
   configured in the Function environment. The Resend API key must be a GitHub environment
-  secret, not a Terraform variable; non-secret sender/reply-to/asset-base values may be
-  managed as GitHub environment variables by OpenTofu.
+  secret; OpenTofu may bootstrap it from the sensitive `resend_api_key` variable when
+  supplied, but should leave it alone when that value is empty. Non-secret
+  sender/reply-to/asset-base values may be managed as GitHub environment variables by
+  OpenTofu.
 - Merges to `main` deploy production.
 
 ## Prompt maintenance

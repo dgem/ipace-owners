@@ -141,6 +141,13 @@ variable "resend_from" {
   default     = ""
 }
 
+variable "resend_api_key" {
+  description = "Optional Resend API key to bootstrap into the GitHub environment secret RESEND_API_KEY_<ENV>. Leave empty to manage the secret manually."
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
 variable "resend_reply_to" {
   description = "Optional Reply-To address for Resend passwordless Auth emails."
   type        = string

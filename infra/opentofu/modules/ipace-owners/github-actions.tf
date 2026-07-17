@@ -17,21 +17,15 @@ locals {
     "SNAPSHOT_BUCKET_${local.github_actions_suffix}"             = google_storage_bucket.snapshots.name
   }
 
-  github_actions_secret_names = toset([
-    "FIREBASE_WEB_API_KEY_${local.github_actions_suffix}",
-    "GCP_DEPLOYER_SERVICE_ACCOUNT_${local.github_actions_suffix}",
-    "GCP_FUNCTIONS_SERVICE_ACCOUNT_${local.github_actions_suffix}",
-    "GCP_WORKLOAD_IDENTITY_PROVIDER_${local.github_actions_suffix}",
-    "VIN_PEPPER_${local.github_actions_suffix}",
-  ])
-
-  github_actions_secrets = {
+  github_actions_secrets = merge({
     "FIREBASE_WEB_API_KEY_${local.github_actions_suffix}"           = data.google_firebase_web_app_config.default.api_key
     "GCP_DEPLOYER_SERVICE_ACCOUNT_${local.github_actions_suffix}"   = google_service_account.github_deployer.email
     "GCP_FUNCTIONS_SERVICE_ACCOUNT_${local.github_actions_suffix}"  = google_service_account.runtime.email
     "GCP_WORKLOAD_IDENTITY_PROVIDER_${local.github_actions_suffix}" = google_iam_workload_identity_pool_provider.github.name
     "VIN_PEPPER_${local.github_actions_suffix}"                     = var.vin_pepper
-  }
+    }, var.resend_api_key != "" ? {
+    "RESEND_API_KEY_${local.github_actions_suffix}" = var.resend_api_key
+  } : {})
 }
 
 resource "github_repository_environment" "actions" {
@@ -53,12 +47,12 @@ resource "github_actions_environment_variable" "actions" {
 }
 
 resource "github_actions_environment_secret" "actions" {
-  for_each = var.manage_github_actions ? local.github_actions_secret_names : []
+  for_each = var.manage_github_actions ? local.github_actions_secrets : {}
 
   repository  = var.github_repo
   environment = var.environment
   secret_name = each.key
-  value       = local.github_actions_secrets[each.key]
+  value       = each.value
 
   depends_on = [github_repository_environment.actions]
 }

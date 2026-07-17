@@ -70,12 +70,18 @@ test('stores future email designs and manages supported settings through infrast
   assert.match(stagingConfig, /firebase_auth_email_domain\s*=\s*"auth\.stage\.ipace-owners\.org"/);
   assert.match(productionConfig, /firebase_auth_email_domain\s*=\s*"auth\.ipace-owners\.org"/);
   assert.match(moduleVariables, /variable "resend_from"/);
+  assert.match(moduleVariables, /variable "resend_api_key"[\s\S]*sensitive\s*=\s*true/);
   assert.match(envVariables, /variable "resend_from"/);
+  assert.match(envVariables, /variable "resend_api_key"[\s\S]*sensitive\s*=\s*true/);
   assert.match(githubActions, /RESEND_FROM_\$\{local\.github_actions_suffix\}/);
   assert.match(githubActions, /RESEND_REPLY_TO_\$\{local\.github_actions_suffix\}/);
   assert.match(githubActions, /RESEND_ASSET_BASE_URL_\$\{local\.github_actions_suffix\}/);
+  assert.match(githubActions, /RESEND_API_KEY_\$\{local\.github_actions_suffix\}/);
+  assert.match(githubActions, /var\.resend_api_key != ""/);
   assert.match(productionConfig, /resend_from\s*=\s*"I-PACE Owners <members@ipace-owners\.org>"/);
   assert.match(productionConfig, /resend_asset_base_url\s*=\s*"https:\/\/ipace-owners\.org"/);
+  assert.match(stagingConfig, /resend_api_key = "re_replace_with_staging_resend_api_key"/);
+  assert.match(productionConfig, /resend_api_key = "re_replace_with_production_resend_api_key"/);
   assert.match(makefile, /infra-email-domain:/);
   assert.match(script, /\/domain:verify/);
   assert.match(script, /action: "VERIFY"/);

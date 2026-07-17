@@ -32,6 +32,10 @@ firebase_auth_email_action_domain = "ipace-owners.org"
 resend_from           = "I-PACE Owners <members@ipace-owners.org>"
 resend_reply_to       = "contact@ipace-owners.org"
 resend_asset_base_url = "https://ipace-owners.org"
+# Set the real API key via TF_VAR_resend_api_key or an uncommitted tfvars file if
+# OpenTofu should bootstrap the GitHub environment secret RESEND_API_KEY_PRODUCTION.
+# Leave unset if you manage that GitHub secret manually.
+# resend_api_key = "re_replace_with_production_resend_api_key"
 
 # The apex is canonical; Firebase Hosting redirects www after both domains validate.
 firebase_hosting_custom_domains = {
