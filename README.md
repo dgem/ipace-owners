@@ -90,9 +90,19 @@ highest preview or Current release number:
   checksum files. GitHub Actions use their latest supported major releases.
 
 Dependabot checks npm, Go modules, GitHub Actions and OpenTofu providers weekly. Update PRs
-must pass `make test`, `make build`, and `tofu -chdir=infra/opentofu/env validate`; major
+must pass `make lint`, `make test`, `make build`, and
+`tofu -chdir=infra/opentofu/env validate`; major
 updates require release-note and migration-guide review before merging. Do not retain an old
 major solely to avoid addressing a documented migration.
+
+### Linting
+
+```bash
+make lint
+```
+
+Checks JavaScript, CSS, Markdown, JSON/YAML, Nunjucks templates, Bash, Go, OpenTofu/HCL,
+and SVG/XML. Each check is also available through the corresponding `make lint-*` target.
 
 ### Production build
 

@@ -8,7 +8,7 @@ FIREBASE_PREVIEW_JSON ?= firebase-preview.json
 FIREBASE_PREVIEW_ERROR ?= firebase-preview-error.log
 INFRA_ENV_SCRIPT := scripts/infra-env.sh
 
-.PHONY: help functions install ci-install dev build clean test test-node test-go smoke write-functions-env authorize-preview-domain deploy-functions deploy-hosting-preview deploy-hosting-production infra-config infra-auth infra-init infra-workspace infra-dns-records infra-resend-dns-records infra-email-domain infra-plan infra-apply deploy-hosting-env
+.PHONY: help functions install ci-install dev build clean lint lint-js lint-css lint-markdown lint-data lint-templates lint-shell lint-go lint-tofu lint-svg test test-node test-go smoke write-functions-env authorize-preview-domain deploy-functions deploy-hosting-preview deploy-hosting-production infra-config infra-auth infra-init infra-workspace infra-dns-records infra-resend-dns-records infra-email-domain infra-plan infra-apply deploy-hosting-env
 
 help: ## Show available make targets.
 	@awk 'BEGIN {FS = ":.*##"; printf "Available targets:\n"} /^[a-zA-Z0-9_.-]+:.*##/ {printf "  %-28s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -30,6 +30,36 @@ build: ## Build the static site into _site/.
 
 clean: ## Remove generated static site output.
 	npm run clean
+
+lint: lint-js lint-css lint-markdown lint-data lint-templates lint-shell lint-go lint-tofu lint-svg ## Lint all source languages.
+
+lint-js: ## Lint JavaScript with ESLint.
+	npm run lint:js
+
+lint-css: ## Lint CSS with Stylelint.
+	npm run lint:css
+
+lint-markdown: ## Lint Markdown content and documentation.
+	npm run lint:markdown
+
+lint-data: ## Check JSON and YAML formatting and syntax.
+	npm run lint:data
+
+lint-templates: ## Compile Nunjucks and HTML templates with Eleventy.
+	npm run build
+
+lint-shell: ## Check Bash script syntax.
+	bash -n scripts/*.sh
+
+lint-go: ## Check Go formatting and run go vet.
+	@test -z "$$(gofmt -l functions/firebase-go)" || { gofmt -l functions/firebase-go; echo "Go files above require gofmt" >&2; exit 1; }
+	cd functions/firebase-go && go vet ./...
+
+lint-tofu: ## Check OpenTofu/HCL formatting recursively.
+	tofu fmt -check -recursive infra/opentofu
+
+lint-svg: ## Validate SVG/XML syntax.
+	@find public -type f -name '*.svg' -exec xmllint --noout {} +
 
 test: test-node test-go ## Run all local test suites.
 

@@ -1,0 +1,22 @@
+{
+  "config": {
+    "default": true,
+    "MD009": false,
+    "MD013": false,
+    "MD022": false,
+    "MD024": { "siblings_only": true },
+    "MD032": false,
+    "MD033": false,
+    "MD040": false,
+    "MD041": false,
+    "MD060": false
+  },
+  "globs": [
+    "*.md",
+    ".github/**/*.md",
+    "prompts/**/*.md",
+    "src/**/*.md",
+    "!node_modules/**",
+    "!_site/**"
+  ]
+}

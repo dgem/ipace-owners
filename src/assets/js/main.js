@@ -62,14 +62,14 @@
       if (window.localStorage.getItem(cookieStorageKey) !== 'true') {
         cookieNotice.hidden = false;
       }
-    } catch (e) {
+    } catch {
       cookieNotice.hidden = false;
     }
 
     cookieAccept.addEventListener('click', function () {
       try {
         window.localStorage.setItem(cookieStorageKey, 'true');
-      } catch (e) {
+      } catch {
         // Storage may be unavailable; still dismiss for the current page view.
       }
       cookieNotice.hidden = true;
