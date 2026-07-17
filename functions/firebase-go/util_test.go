@@ -369,6 +369,40 @@ func TestFirebaseEmailLinkPayloadOmitsCustomDomainForPreview(t *testing.T) {
 	}
 }
 
+func TestJoinRecordFromRequestCapturesOptionalAggregateConsent(t *testing.T) {
+	now := time.Date(2026, time.July, 17, 12, 0, 0, 0, time.UTC)
+	record := joinRecordFromRequest(joinRequest{
+		Country:      "GB",
+		Relationship: "current-owner-one",
+		Skills:       stringArray{"legal", "data"},
+		ConsentData:  "yes",
+	}, "Driver Example", "driver@example.com", now)
+
+	if record.Contact.Name != "Driver Example" {
+		t.Fatalf("name = %q", record.Contact.Name)
+	}
+	if record.Contact.Email != "driver@example.com" {
+		t.Fatalf("email = %q", record.Contact.Email)
+	}
+	if record.Consents.Contact != true {
+		t.Fatalf("contact consent = %v", record.Consents.Contact)
+	}
+	if record.Consents.NotLegalClaim != true {
+		t.Fatalf("not legal consent = %v", record.Consents.NotLegalClaim)
+	}
+	if record.Consents.AnonymisedAnalysis != true {
+		t.Fatalf("anonymised consent = %v", record.Consents.AnonymisedAnalysis)
+	}
+	if record.CreatedAt != now || record.UpdatedAt != now {
+		t.Fatalf("timestamps = %v/%v", record.CreatedAt, record.UpdatedAt)
+	}
+
+	withoutConsent := joinRecordFromRequest(joinRequest{}, "Driver Example", "driver@example.com", now)
+	if withoutConsent.Consents.AnonymisedAnalysis {
+		t.Fatal("anonymised consent should default to false")
+	}
+}
+
 func TestFirebaseEmailActionCodeSettings(t *testing.T) {
 	settings := firebaseEmailActionCodeSettings("https://ipace-owners.org/account/", "ipace-owners.org")
 

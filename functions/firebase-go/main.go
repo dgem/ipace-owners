@@ -203,30 +203,7 @@ func SubmitJoin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	now := time.Now().UTC()
-	record := joinRecord{
-		ID:             submissionID("join"),
-		Type:           "join",
-		CreatedAt:      now,
-		UpdatedAt:      now,
-		IdentityUserID: "",
-		UserEmailHash:  emailFingerprint(email),
-		Contact: contactRecord{
-			Name:    name,
-			Email:   email,
-			Country: cleanEnum(req.Country, countryValues),
-		},
-		Membership: membershipRecord{
-			Relationship: cleanEnum(req.Relationship, relationshipValues),
-			Skills:       cleanEnums([]string(req.Skills), skillValues),
-		},
-		Consents: consentRecord{
-			Contact:            true,
-			NotLegalClaim:      true,
-			AnonymisedAnalysis: req.ConsentData == "yes",
-		},
-		Review: reviewRecord{Status: "new", VerificationLevel: "self-reported"},
-	}
+	record := joinRecordFromRequest(req, name, email, time.Now().UTC())
 	if user != nil {
 		record.IdentityUserID = user.UID
 	}
@@ -282,6 +259,32 @@ func SubmitJoin(w http.ResponseWriter, r *http.Request) {
 		"magicLinkSent": magicLinkSent,
 		"signedIn":      user != nil,
 	})
+}
+
+func joinRecordFromRequest(req joinRequest, name string, email string, now time.Time) joinRecord {
+	return joinRecord{
+		ID:             submissionID("join"),
+		Type:           "join",
+		CreatedAt:      now,
+		UpdatedAt:      now,
+		IdentityUserID: "",
+		UserEmailHash:  emailFingerprint(email),
+		Contact: contactRecord{
+			Name:    name,
+			Email:   email,
+			Country: cleanEnum(req.Country, countryValues),
+		},
+		Membership: membershipRecord{
+			Relationship: cleanEnum(req.Relationship, relationshipValues),
+			Skills:       cleanEnums([]string(req.Skills), skillValues),
+		},
+		Consents: consentRecord{
+			Contact:            true,
+			NotLegalClaim:      true,
+			AnonymisedAnalysis: req.ConsentData == "yes",
+		},
+		Review: reviewRecord{Status: "new", VerificationLevel: "self-reported"},
+	}
 }
 
 func SubmitVehicleBasics(w http.ResponseWriter, r *http.Request) {

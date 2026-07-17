@@ -30,7 +30,8 @@ Before launch:
 - Check Home, About, FAQ, Join, Sign in, privacy, terms, and footer links on mobile,
   tablet, and desktop.
 - Confirm the launch Join form asks only for name, email, contact consent, legal-claim
-  acknowledgement, and privacy/participation links.
+  acknowledgement, optional anonymised aggregate-publication consent, and
+  privacy/participation links.
 - Confirm completion copy says vehicle information can be added later and is optional.
 - Confirm hidden full-mode public routes show a concise unavailable-at-launch panel when
   opened directly.

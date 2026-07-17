@@ -85,8 +85,9 @@ Again, thanks for the feedback, will pass it along to the imps to interpret!
 
 ## Launch registration clarification - 16 July 2026
 
-- For launch, the public ask is registration only: name, email, contact consent, and confirmation
-  that joining is not a legal claim.
+- For launch, the public ask is registration only: name, email, contact consent, optional
+  anonymised aggregate-publication consent, and confirmation that joining is not a legal
+  claim.
 - Vehicle details, structured evidence, and fuller data collection should be positioned as a
   later step in the coming weeks, explained separately if needed.
 - Keep protected/member/full-mode functionality available behind existing navigation and mode
