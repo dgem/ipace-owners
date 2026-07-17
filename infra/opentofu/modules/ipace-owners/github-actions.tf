@@ -26,6 +26,14 @@ locals {
     }, var.resend_api_key != "" ? {
     "RESEND_API_KEY_${local.github_actions_suffix}" = var.resend_api_key
   } : {})
+
+  github_actions_secret_names = toset(concat([
+    "FIREBASE_WEB_API_KEY_${local.github_actions_suffix}",
+    "GCP_DEPLOYER_SERVICE_ACCOUNT_${local.github_actions_suffix}",
+    "GCP_FUNCTIONS_SERVICE_ACCOUNT_${local.github_actions_suffix}",
+    "GCP_WORKLOAD_IDENTITY_PROVIDER_${local.github_actions_suffix}",
+    "VIN_PEPPER_${local.github_actions_suffix}",
+  ], var.bootstrap_resend_api_key_secret ? ["RESEND_API_KEY_${local.github_actions_suffix}"] : []))
 }
 
 resource "github_repository_environment" "actions" {
@@ -47,12 +55,12 @@ resource "github_actions_environment_variable" "actions" {
 }
 
 resource "github_actions_environment_secret" "actions" {
-  for_each = var.manage_github_actions ? local.github_actions_secrets : {}
+  for_each = var.manage_github_actions ? local.github_actions_secret_names : []
 
   repository  = var.github_repo
   environment = var.environment
   secret_name = each.key
-  value       = each.value
+  value       = local.github_actions_secrets[each.key]
 
   depends_on = [github_repository_environment.actions]
 }

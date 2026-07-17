@@ -221,7 +221,8 @@ route unless there is a measured need.
 - Custom branded passwordless emails use Resend only when the API key and sender are
   configured in the Function environment. The Resend API key must be a GitHub environment
   secret; OpenTofu may bootstrap it from the sensitive `resend_api_key` variable when
-  supplied, but should leave it alone when that value is empty. Non-secret
+  `bootstrap_resend_api_key_secret` is true, but should leave it alone when that boolean is
+  false. Non-secret
   sender/reply-to/asset-base values may be managed as GitHub environment variables by
   OpenTofu.
 - Merges to `main` deploy production.

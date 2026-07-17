@@ -76,8 +76,9 @@ Branded Resend path:
 Required Resend configuration:
 
 - `RESEND_API_KEY_<ENV>` as a GitHub environment secret. This may be created manually, or
-  bootstrapped by supplying the sensitive OpenTofu `resend_api_key` variable. Leave
-  `resend_api_key` empty when the GitHub secret is managed manually.
+  bootstrapped by setting `bootstrap_resend_api_key_secret = true` and supplying the
+  sensitive OpenTofu `resend_api_key` variable. Leave the bootstrap boolean false when the
+  GitHub secret is managed manually.
 - `RESEND_FROM_<ENV>`, `RESEND_REPLY_TO_<ENV>`, and `RESEND_ASSET_BASE_URL_<ENV>` as GitHub
   environment variables, managed by OpenTofu where possible.
 - Resend sender domain DNS must pass SPF/DKIM/DMARC checks before enabling production use.

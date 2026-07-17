@@ -120,13 +120,16 @@ Firebase/GCP.
   product name require an infra apply before new default emails change.
 - Resend is the custom email transport for branded passwordless emails. Configure
   `RESEND_API_KEY_<ENV>` as a GitHub environment secret, either manually or by supplying the
-  sensitive `resend_api_key` OpenTofu variable during bootstrap. Leave the variable empty to
-  avoid creating or overwriting the GitHub secret. Manage non-secret `RESEND_FROM_<ENV>`,
-  `RESEND_REPLY_TO_<ENV>`, and `RESEND_ASSET_BASE_URL_<ENV>` through OpenTofu/GitHub
-  environment variables. The Function sends custom Resend email only when both
-  `RESEND_API_KEY` and `RESEND_FROM` are present; otherwise it uses Firebase's default
-  sender. If Resend generation or delivery fails, log a sanitized warning and fall back to
-  Firebase default delivery so users still get a sign-in link.
+  sensitive `resend_api_key` OpenTofu variable during bootstrap with
+  `bootstrap_resend_api_key_secret = true`. Leave that boolean false to avoid creating or
+  overwriting the GitHub secret. Do not use sensitive values in OpenTofu `for_each` keys;
+  use the non-sensitive bootstrap boolean for resource shape and the sensitive variable only
+  for the secret value. Manage non-secret `RESEND_FROM_<ENV>`, `RESEND_REPLY_TO_<ENV>`, and
+  `RESEND_ASSET_BASE_URL_<ENV>` through OpenTofu/GitHub environment variables. The Function
+  sends custom Resend email only when both `RESEND_API_KEY` and `RESEND_FROM` are present;
+  otherwise it uses Firebase's default sender. If Resend generation or delivery fails, log a
+  sanitized warning and fall back to Firebase default delivery so users still get a sign-in
+  link.
 - Resend emails should include both HTML and plain text. The HTML email uses the public
   launch hero image at `/images/ipace-hero.png` through an absolute custom-domain asset
   URL; avoid Firebase preview/default domains and localhost for email image assets.

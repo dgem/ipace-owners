@@ -25,6 +25,7 @@ module "ipace_owners" {
   firebase_hosting_site_id             = var.firebase_hosting_site_id
   firebase_hosting_custom_domains      = var.firebase_hosting_custom_domains
   resend_api_key                       = var.resend_api_key
+  bootstrap_resend_api_key_secret      = var.bootstrap_resend_api_key_secret
   resend_from                          = var.resend_from
   resend_reply_to                      = var.resend_reply_to
   resend_asset_base_url                = var.resend_asset_base_url

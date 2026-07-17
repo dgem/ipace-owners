@@ -135,6 +135,12 @@ variable "resend_api_key" {
   sensitive   = true
 }
 
+variable "bootstrap_resend_api_key_secret" {
+  description = "Whether OpenTofu should create/update the GitHub environment secret RESEND_API_KEY_<ENV> from resend_api_key."
+  type        = bool
+  default     = false
+}
+
 variable "resend_reply_to" {
   description = "Optional Reply-To address for Resend passwordless Auth emails."
   type        = string
