@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 550" role="img" aria-labelledby="title desc">
+  <title id="title">I-PACE owners advocacy card back</title>
+  <desc id="desc">Information about the independent owners' group and why owners should organise now.</desc>
+  <rect width="850" height="550" fill="#ffffff"/>
+  <rect x="14" y="14" width="822" height="522" rx="17" fill="none" stroke="#0f766e" stroke-width="3"/>
+
+  <g font-family="Arial, Helvetica, sans-serif">
+    <text x="425" y="64" text-anchor="middle" fill="#050505" font-size="34" font-weight="700">I-PACE owners working together</text>
+    <text x="425" y="104" text-anchor="middle" fill="#050505" font-size="34" font-weight="700">for fair outcomes</text>
+    <text x="425" y="141" text-anchor="middle" fill="#333333" font-size="18">An independent owners' group engaging constructively with JLR</text>
+    <text x="425" y="166" text-anchor="middle" fill="#333333" font-size="18">to pursue a fair and consistent resolution.</text>
+
+    <line x1="48" y1="208" x2="315" y2="208" stroke="#0f766e" stroke-width="2"/>
+    <text x="425" y="219" text-anchor="middle" fill="#0f766e" font-size="30" font-weight="700">Why now?</text>
+    <line x1="535" y1="208" x2="802" y2="208" stroke="#0f766e" stroke-width="2"/>
+
+    <g transform="translate(62 254)">
+      <circle cx="24" cy="24" r="24" fill="#0f766e"/>
+      <text x="24" y="32" text-anchor="middle" fill="#ffffff" font-size="24" font-weight="700">1</text>
+      <text x="65" y="17" fill="#050505" font-size="21" font-weight="700">Recall campaigns</text>
+      <text x="65" y="43" fill="#333333" font-size="17">H447, H570, H571 and H572</text>
+    </g>
+
+    <g transform="translate(442 254)">
+      <circle cx="24" cy="24" r="24" fill="#0f766e"/>
+      <text x="24" y="32" text-anchor="middle" fill="#ffffff" font-size="24" font-weight="700">2</text>
+      <text x="65" y="17" fill="#050505" font-size="21" font-weight="700">Traction battery faults</text>
+      <text x="65" y="43" fill="#333333" font-size="17">Power loss, warnings and</text>
+      <text x="65" y="64" fill="#333333" font-size="17">reduced performance</text>
+    </g>
+
+    <g transform="translate(62 352)">
+      <circle cx="24" cy="24" r="24" fill="#0f766e"/>
+      <text x="24" y="32" text-anchor="middle" fill="#ffffff" font-size="24" font-weight="700">3</text>
+      <text x="65" y="17" fill="#050505" font-size="21" font-weight="700">Battery warranty pressure</text>
+      <text x="65" y="43" fill="#333333" font-size="17">8 years / 100,000 miles</text>
+    </g>
+
+    <g transform="translate(442 352)">
+      <circle cx="24" cy="24" r="24" fill="#0f766e"/>
+      <text x="24" y="32" text-anchor="middle" fill="#ffffff" font-size="24" font-weight="700">4</text>
+      <text x="65" y="17" fill="#050505" font-size="21" font-weight="700">Inconsistent support</text>
+      <text x="65" y="43" fill="#333333" font-size="17">Delays, loan cars, goodwill</text>
+      <text x="65" y="64" fill="#333333" font-size="17">and warranty outcomes</text>
+    </g>
+
+    <rect x="42" y="466" width="766" height="52" rx="12" fill="#0f766e"/>
+    <text x="425" y="501" text-anchor="middle" fill="#ffffff" font-size="23" font-weight="700">Free to join  •  Less than a minute  •  iPace-Owners.org</text>
+  </g>
+</svg>
