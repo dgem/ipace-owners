@@ -9,8 +9,10 @@ It is the current source of truth for the I-PACE Owners' Advocacy Group architec
 - **Frontend JavaScript:** vanilla IIFEs loaded with `defer`; no bundler.
 - **Public presentation mode:** `site.defaultMode` controls the deployed `launch` or `full`
   experience. Synchronous `site-mode.js` runs before CSS, accepts `?site-mode=launch|full`, and
-  persists valid overrides in session storage. Templates use `data-site-mode-only`; this only
-  controls discoverability and never replaces server authorization.
+  persists valid overrides in session storage. Templates use `data-site-mode-only`; full-only
+  content is hidden by default by a critical head style and the main stylesheet, and is only
+  revealed when the root document is explicitly `data-site-mode="full"`. This only controls
+  discoverability and never replaces server authorization.
 - **Authentication:** Firebase Authentication passwordless email links.
 - **Backend:** Cloud Functions for Firebase / Google Cloud Functions, written in Go.
 - **Canonical data:** A named Cloud Firestore database per environment, with its database

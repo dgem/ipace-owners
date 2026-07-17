@@ -68,6 +68,21 @@ test('site mode still follows the query when session storage is unavailable', fu
   assert.equal(runMode({ storageError: true }).mode, 'launch');
 });
 
+test('mode CSS fails closed before JavaScript selects the presentation mode', function () {
+  var base = fs.readFileSync(path.join(repoRoot, 'src/_includes/layouts/base.njk'), 'utf8');
+  var css = fs.readFileSync(path.join(repoRoot, 'src/assets/css/site.css'), 'utf8');
+  var failClosedSelector = /:root:not\(\[data-site-mode="full"\]\)\s+\[data-site-mode-only="full"\]/;
+  var scriptIndex = base.indexOf('script src="/assets/js/site-mode.js"');
+  var failClosedSelectorIndex = base.search(failClosedSelector);
+
+  assert.ok(scriptIndex > -1);
+  assert.ok(failClosedSelectorIndex > -1);
+  assert.ok(failClosedSelectorIndex < scriptIndex);
+  assert.match(base, failClosedSelector);
+  assert.match(css, failClosedSelector);
+  assert.doesNotMatch(css, /\[data-site-mode="launch"\] \[data-site-mode-only="full"\]/);
+});
+
 test('launch navigation and complete routes are marked declaratively', function () {
   var site = JSON.parse(fs.readFileSync(path.join(repoRoot, 'src/_data/site.json'), 'utf8'));
   var navigation = JSON.parse(fs.readFileSync(path.join(repoRoot, 'src/_data/navigation.json'), 'utf8'));
@@ -80,7 +95,9 @@ test('launch navigation and complete routes are marked declaratively', function 
     ['Evidence', 'Methodology', 'Updates']
   );
   assert.match(base, /data-site-mode="\{\{ site\.defaultMode or 'launch' \}\}"/);
+  assert.match(base, /:root:not\(\[data-site-mode="full"\]\)\s+\[data-site-mode-only="full"\]/);
   assert.match(base, /script src="\/assets\/js\/site-mode\.js"/);
   assert.match(base, /This section is not part of the public launch/);
-  assert.match(css, /\[data-site-mode="launch"\] \[data-site-mode-only="full"\]/);
+  assert.match(css, /:root:not\(\[data-site-mode="full"\]\)\s+\[data-site-mode-only="full"\]/);
+  assert.match(css, /:root\[data-site-mode="full"\]\s+\[data-site-mode-only="launch"\]/);
 });

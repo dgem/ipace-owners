@@ -29,9 +29,10 @@ html {
 }
 
 /* Site presentation flags. These control discoverability only; protected data
-   continues to rely on server-side authorization. */
-[data-site-mode="launch"] [data-site-mode-only="full"],
-[data-site-mode="full"] [data-site-mode-only="launch"] {
+   continues to rely on server-side authorization. Full-mode content is hidden
+   unless full mode is explicitly selected, so the default render fails closed. */
+:root:not([data-site-mode="full"]) [data-site-mode-only="full"],
+:root[data-site-mode="full"] [data-site-mode-only="launch"] {
   display: none !important;
 }
 

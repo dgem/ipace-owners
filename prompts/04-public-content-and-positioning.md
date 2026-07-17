@@ -30,7 +30,10 @@ The public presentation has two feature-flagged modes:
   persists in session storage. `?site-mode=launch` restores launch mode.
 
 This mode is a presentation/discoverability flag, not an authorization boundary. Protected
-member data must always retain server-side Firebase ID-token verification.
+member data must always retain server-side Firebase ID-token verification. Full-mode content
+must be hidden by default and only shown when the root document is explicitly in
+`data-site-mode="full"`; keep a small critical head style and the main stylesheet aligned so
+mobile browsers fail closed rather than showing both launch and full content.
 
 Create or maintain:
 

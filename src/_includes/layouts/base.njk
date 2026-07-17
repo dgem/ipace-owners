@@ -8,7 +8,15 @@
   <title>{% if title %}{{ title }} — {% endif %}{{ site.title }}</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 
-  {# Synchronous by design: set the requested mode before styles render. #}
+  {# Critical fail-closed mode CSS: hide full-mode content unless full mode is explicit. #}
+  <style>
+    :root:not([data-site-mode="full"]) [data-site-mode-only="full"],
+    :root[data-site-mode="full"] [data-site-mode-only="launch"] {
+      display: none !important;
+    }
+  </style>
+
+  {# Synchronous by design: set the requested mode before the main stylesheet renders. #}
   <script src="/assets/js/site-mode.js"></script>
 
   {% if firebase.apiKey %}
