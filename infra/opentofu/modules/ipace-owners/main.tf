@@ -1,5 +1,6 @@
 locals {
   project_name                      = var.project_name != "" ? var.project_name : "ipace-owners-${var.environment}"
+  firebase_project_display_name     = var.firebase_project_display_name != "" ? var.firebase_project_display_name : (var.environment == "production" ? "I-PACE Owners" : "I-PACE Owners ${var.environment}")
   firebase_app_name                 = var.firebase_web_app_display_name != "" ? var.firebase_web_app_display_name : "ipace-owners-${var.environment}"
   snapshot_bucket_name              = "${var.project_id}-member-snapshots"
   deployer_account_id               = "github-deployer"
@@ -117,6 +118,7 @@ resource "terraform_data" "firebase_auth_email" {
   triggers_replace = [
     var.project_id,
     var.firebase_auth_email_domain,
+    local.firebase_project_display_name,
     filesha256(local.firebase_auth_email_script),
   ]
 
@@ -124,12 +126,23 @@ resource "terraform_data" "firebase_auth_email" {
     command = "node ${local.firebase_auth_email_script}"
 
     environment = {
-      GCP_PROJECT_ID                          = var.project_id
-      FIREBASE_AUTH_EMAIL_DOMAIN = var.firebase_auth_email_domain
+      GCP_PROJECT_ID                = var.project_id
+      FIREBASE_AUTH_EMAIL_DOMAIN    = var.firebase_auth_email_domain
+      FIREBASE_PROJECT_DISPLAY_NAME = local.firebase_project_display_name
     }
   }
 
   depends_on = [google_identity_platform_config.default]
+}
+
+resource "resend_domain" "auth_email" {
+  count = var.manage_resend_domain && var.resend_domain != "" ? 1 : 0
+
+  name           = var.resend_domain
+  region         = var.resend_region
+  open_tracking  = false
+  click_tracking = false
+  tls            = "enforced"
 }
 
 data "google_firebase_web_app_config" "default" {

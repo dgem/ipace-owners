@@ -40,10 +40,20 @@ magic-link request path for existing users.
   echoed the expected email without logging the raw response. Never log raw email addresses,
   request bodies, Identity tokens, action links, or full provider response bodies.
 - Configure `FIREBASE_EMAIL_LINK_DOMAIN` from the environment's verified Firebase Hosting
-  custom domain and pass it as Identity Toolkit's `linkDomain`. Keep
+  custom domain and pass it as Identity Toolkit's `linkDomain`. If the environment variable
+  is absent, derive `linkDomain` from the custom-domain `continueUrl` so production links
+  use `ipace-owners.org` rather than the default `firebaseapp.com` action host. Keep
   `FIREBASE_EMAIL_CONTINUE_URL` as the post-action account URL. Firebase web API keys are
   public project identifiers and may appear in action URLs; restrict them to the required
   Firebase APIs, but do not treat their presence in an email link as credential exposure.
+- If `RESEND_API_KEY` and `RESEND_FROM` are configured, use Firebase Admin
+  `EmailSignInLink` to generate the passwordless link without asking Firebase to send the
+  email, then send a branded HTML and plain-text email through Resend. Include the launch
+  hero image from `/images/ipace-hero.png` using an absolute asset URL. For PR preview
+  continue URLs, use the PR preview origin for email image assets so the email points at the
+  image deployed with that branch. Keep Firebase's default email delivery as the automatic
+  fallback when Resend is not configured or fails.
+  Never log the generated action link, API key, or raw provider response body.
 - For PR deployments, derive `FIREBASE_EMAIL_CONTINUE_URL` from that PR's generated Firebase
   Hosting preview request origin rather than a shared staging custom domain or a value baked
   into Function environment variables. Omit `linkDomain` because Firebase rejects

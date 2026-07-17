@@ -93,12 +93,12 @@ The Join page has two presentation variants that post to the same `POST /api/sub
 contract:
 
 - Default `launch` mode is a single-step minimum-data form containing name, email, contact
-  consent, the not-a-legal-claim acknowledgement, and Privacy/Participation links. Country,
-  relationship, skills, and anonymised-analysis consent are omitted and therefore retain their
-  existing optional/false backend defaults.
-- During launch, the public registration ask is intentionally limited to name and email. Do not
-  describe vehicle data submission as the current public task; say that vehicle details may be
-  requested separately in the coming weeks if needed.
+  consent, the not-a-legal-claim acknowledgement, optional anonymised aggregate-publication
+  consent, and Privacy/Participation links. Country, relationship, and skills are omitted
+  and therefore retain their existing optional/empty backend defaults.
+- During launch, the public registration ask is intentionally limited to name, email, and
+  consent preferences. Do not describe vehicle data submission as the current public task; say
+  that vehicle details may be requested separately in the coming weeks if needed.
 - `full` mode retains the complete four-step form described below. It is available through the
   session-persisted `?site-mode=full` presentation flag.
 

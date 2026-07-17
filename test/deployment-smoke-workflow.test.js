@@ -48,6 +48,10 @@ test('Firebase deploy workflows verify keyless GCP credentials before deployment
     assert.match(workflow, /node-version-file: \.nvmrc/);
     assert.doesNotMatch(workflow, /node-version: 22/);
     assert.match(workflow, /FIREBASE_CLI_ACCESS_TOKEN: \$\{\{ steps\.gcp-auth\.outputs\.access_token \}\}/);
+    assert.match(workflow, /RESEND_API_KEY: \$\{\{ secrets\.RESEND_API_KEY_/);
+    assert.match(workflow, /RESEND_FROM: \$\{\{ vars\.RESEND_FROM_/);
+    assert.match(workflow, /RESEND_REPLY_TO: \$\{\{ vars\.RESEND_REPLY_TO_/);
+    assert.match(workflow, /RESEND_ASSET_BASE_URL: \$\{\{ vars\.RESEND_ASSET_BASE_URL_/);
   }
 });
 

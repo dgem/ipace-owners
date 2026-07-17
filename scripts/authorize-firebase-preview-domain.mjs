@@ -34,18 +34,41 @@ async function request(url, options, requiredPermission) {
   return response.json();
 }
 
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function readAuthorizedDomains(endpoint, headers) {
+  const config = await request(endpoint, { headers }, "firebaseauth.configs.get");
+  return Array.isArray(config.authorizedDomains) ? config.authorizedDomains : [];
+}
+
+async function verifyAuthorizedDomain(endpoint, headers, hostname) {
+  for (let attempt = 1; attempt <= 6; attempt += 1) {
+    const authorizedDomains = await readAuthorizedDomains(endpoint, headers);
+    if (authorizedDomains.includes(hostname)) {
+      console.log(`Firebase Auth authorization verified for ${hostname}`);
+      return;
+    }
+    if (attempt < 6) {
+      await wait(attempt * 1000);
+    }
+  }
+  throw new Error(`Firebase Auth authorization did not verify for ${hostname}`);
+}
+
 async function main() {
   const projectId = process.env.GCP_PROJECT_ID;
   const hostname = previewHostname(projectId, process.env.FIREBASE_PREVIEW_URL);
   const token = execFileSync("gcloud", ["auth", "print-access-token"], { encoding: "utf8" }).trim();
   const endpoint = `https://identitytoolkit.googleapis.com/admin/v2/projects/${encodeURIComponent(projectId)}/config`;
   const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
-  const config = await request(endpoint, { headers }, "firebaseauth.configs.get");
-  const authorizedDomains = mergeAuthorizedDomains(config.authorizedDomains, hostname, projectId);
+  const existingDomains = await readAuthorizedDomains(endpoint, headers);
+  const authorizedDomains = mergeAuthorizedDomains(existingDomains, hostname, projectId);
 
-  const existingDomains = [...(config.authorizedDomains || [])].sort();
-  if (JSON.stringify(existingDomains) === JSON.stringify(authorizedDomains)) {
+  if (JSON.stringify([...existingDomains].sort()) === JSON.stringify(authorizedDomains)) {
     console.log(`Firebase Auth already authorizes ${hostname}`);
+    await verifyAuthorizedDomain(endpoint, headers, hostname);
     return;
   }
 
@@ -59,6 +82,7 @@ async function main() {
     "firebaseauth.configs.update",
   );
   console.log(`Firebase Auth now authorizes ${hostname}`);
+  await verifyAuthorizedDomain(endpoint, headers, hostname);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

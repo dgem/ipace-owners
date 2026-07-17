@@ -23,6 +23,9 @@ Use these prompts as a maintainable product blueprint. They are ordered so a fre
     dashboard, SoH graph, and editable service/fault timeline.
 17. Use `17-operations-ci-and-troubleshooting.md` for CI/CD, preview deployments, smoke
     tests, Firebase Auth delivery troubleshooting, and operational runbooks.
+18. Use `18-stakeholder-feedback.md` as the current stakeholder-feedback intake log.
+19. Use `19-launch-readiness.md` for public launch preparation, launch-week checks,
+    passwordless email delivery, DNS/auth readiness, data protection, and rollback planning.
 
 ## Global constraints for every prompt
 

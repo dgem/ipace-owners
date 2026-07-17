@@ -107,8 +107,42 @@ Firebase/GCP.
   preserving the PR preview URL as `continueUrl`.
 - For PR previews, derive `continueUrl` from the validated `Origin` header. Do not accept
   arbitrary `web.app` origins; require the current Firebase project preview-host pattern.
-- Production may use the verified custom Hosting domain as `linkDomain` once DNS and
-  Firebase Hosting certificate state are active.
+- Production should use the verified custom Hosting domain as `linkDomain` once DNS and
+  Firebase Hosting certificate state are active. DNS cannot issue an HTTP 302 for Firebase
+  Auth action links; the action-link host must be a Firebase Hosting/Auth domain accepted
+  by Firebase. Keep the sender-domain subdomain separate unless it is also deliberately
+  configured as an action-link Hosting domain.
+- If `FIREBASE_EMAIL_LINK_DOMAIN` is not present, Functions derive `linkDomain` from an
+  HTTPS custom-domain `continueUrl` and suppress it for preview/default Firebase domains,
+  localhost, and non-HTTPS URLs.
+- Manage the Firebase public-facing project display name with OpenTofu. Firebase's default
+  Auth email template inserts that value as `%APP_NAME%`; stale values such as a previous
+  product name require an infra apply before new default emails change.
+- Resend is the custom email transport for branded passwordless emails. Configure
+  `RESEND_API_KEY_<ENV>` as a GitHub environment secret, either manually or by supplying the
+  sensitive `resend_api_key` OpenTofu variable during bootstrap with
+  `bootstrap_resend_api_key_secret = true`. Leave that boolean false to avoid creating or
+  overwriting the GitHub secret. Do not use sensitive values in OpenTofu `for_each` keys;
+  use the non-sensitive bootstrap boolean for resource shape and the sensitive variable only
+  for the secret value. Manage non-secret `RESEND_FROM_<ENV>`, `RESEND_REPLY_TO_<ENV>`, and
+  `RESEND_ASSET_BASE_URL_<ENV>` through OpenTofu/GitHub environment variables. The Function
+  sends custom Resend email only when both `RESEND_API_KEY` and `RESEND_FROM` are present;
+  otherwise it uses Firebase's default sender. If Resend generation or delivery fails, log a
+  sanitized warning and fall back to Firebase default delivery so users still get a sign-in
+  link.
+- Resend emails should include both HTML and plain text. The HTML email uses the public
+  launch hero image at `/images/ipace-hero.png` through an absolute HTTPS asset URL. For PR
+  previews, use that PR's generated Firebase Hosting preview origin for assets because the
+  image is deployed with the preview branch and the magic link is short-lived. For normal
+  staging/production sends, prefer `RESEND_ASSET_BASE_URL_<ENV>` pointing at a stable custom
+  domain; avoid localhost and generic Firebase default domains for long-lived email assets.
+- OpenTofu can optionally create/read the Resend sending domain with
+  `manage_resend_domain = true`, `resend_domain`, `resend_region`, and a Resend API key
+  supplied through the sensitive `resend_api_key` variable or `TF_VAR_resend_api_key`.
+  Because Fasthosts DNS is not managed by OpenTofu, use the `resend_email_domain` output or
+  `make infra-resend-dns-records ENV=<environment>` to copy the required Resend SPF/DKIM/MX
+  records into Fasthosts manually. Keep Resend open/click tracking disabled for
+  passwordless sign-in emails.
 - A successful Identity Toolkit response means Firebase accepted the email-link request;
   it does not prove mailbox delivery.
 - Delivery troubleshooting should document:

@@ -33,6 +33,12 @@ variable "project_name" {
   default     = ""
 }
 
+variable "firebase_project_display_name" {
+  description = "Public-facing Firebase project name shown in default Firebase Auth emails."
+  type        = string
+  default     = ""
+}
+
 variable "gcp_org_id" {
   description = "GCP organisation ID for project creation. Leave empty when using folder_id or an existing project."
   type        = string
@@ -127,6 +133,55 @@ variable "firebase_hosting_custom_domains" {
     redirect_target = optional(string, "")
   }))
   default = {}
+}
+
+variable "resend_from" {
+  description = "Optional Resend sender address for custom passwordless Auth emails."
+  type        = string
+  default     = ""
+}
+
+variable "resend_api_key" {
+  description = "Optional Resend API key to bootstrap into the GitHub environment secret RESEND_API_KEY_<ENV>. Leave empty to manage the secret manually."
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "bootstrap_resend_api_key_secret" {
+  description = "Whether OpenTofu should create/update the GitHub environment secret RESEND_API_KEY_<ENV> from resend_api_key."
+  type        = bool
+  default     = false
+}
+
+variable "resend_reply_to" {
+  description = "Optional Reply-To address for Resend passwordless Auth emails."
+  type        = string
+  default     = ""
+}
+
+variable "resend_asset_base_url" {
+  description = "Optional absolute base URL for email image assets."
+  type        = string
+  default     = ""
+}
+
+variable "manage_resend_domain" {
+  description = "Whether OpenTofu should create/read the Resend sending domain and output its DNS verification records."
+  type        = bool
+  default     = false
+}
+
+variable "resend_domain" {
+  description = "Resend sending domain to manage."
+  type        = string
+  default     = ""
+}
+
+variable "resend_region" {
+  description = "Resend region for the sending domain."
+  type        = string
+  default     = "eu-west-1"
 }
 
 variable "manage_github_actions" {

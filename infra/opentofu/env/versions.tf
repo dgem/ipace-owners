@@ -14,5 +14,9 @@ terraform {
       source  = "integrations/github"
       version = "~> 6.0"
     }
+    resend = {
+      source  = "y0n0zawa/resend"
+      version = "~> 1.0"
+    }
   }
 }

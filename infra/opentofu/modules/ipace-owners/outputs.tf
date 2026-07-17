@@ -40,8 +40,30 @@ output "firebase_auth_email" {
   value = {
     delivery_method            = "DEFAULT"
     custom_sender_domain       = var.firebase_auth_email_domain
+    project_display_name       = local.firebase_project_display_name
     passwordless_action_domain = local.firebase_auth_email_action_domain
     passwordless_template      = "FIREBASE_DEFAULT"
+    custom_resend_sender       = var.resend_from
+  }
+}
+
+output "resend_email_domain" {
+  description = "Resend sending domain status and DNS records to create at the authoritative DNS provider."
+  value = {
+    enabled = var.manage_resend_domain && var.resend_domain != ""
+    domain  = try(resend_domain.auth_email[0].name, var.resend_domain)
+    status  = try(resend_domain.auth_email[0].status, null)
+    dns_records = [
+      for record in try(resend_domain.auth_email[0].records, []) : {
+        record   = record.record
+        name     = record.name
+        type     = record.type
+        value    = record.value
+        priority = record.priority
+        ttl      = record.ttl
+        status   = record.status
+      }
+    ]
   }
 }
 

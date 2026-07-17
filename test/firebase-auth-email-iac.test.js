@@ -13,6 +13,7 @@ test('builds supported passwordless email configuration without restricted field
     emailConfigUpdates,
     emailDomainVerificationEndpoint,
     normalizeDomain,
+    normalizeDisplayName,
   } = await import(scriptPath);
   const config = buildEmailConfig({
     emailDomain: 'ipace-owners.org',
@@ -37,11 +38,19 @@ test('builds supported passwordless email configuration without restricted field
     'https://identitytoolkit.googleapis.com/admin/v2/projects/example/domain:verify',
   );
   assert.throws(() => normalizeDomain('https://ipace-owners.org/account/', 'action domain'));
+  assert.equal(normalizeDisplayName(' I-PACE Owners '), 'I-PACE Owners');
+  assert.throws(() => normalizeDisplayName('x'.repeat(81)));
 });
 
 test('stores future email designs and manages supported settings through infrastructure', function () {
   const moduleMain = readFileSync(resolve(repoRoot, 'infra/opentofu/modules/ipace-owners/main.tf'), 'utf8');
   const moduleVariables = readFileSync(resolve(repoRoot, 'infra/opentofu/modules/ipace-owners/variables.tf'), 'utf8');
+  const githubActions = readFileSync(resolve(repoRoot, 'infra/opentofu/modules/ipace-owners/github-actions.tf'), 'utf8');
+  const moduleOutputs = readFileSync(resolve(repoRoot, 'infra/opentofu/modules/ipace-owners/outputs.tf'), 'utf8');
+  const moduleVersions = readFileSync(resolve(repoRoot, 'infra/opentofu/modules/ipace-owners/versions.tf'), 'utf8');
+  const envVersions = readFileSync(resolve(repoRoot, 'infra/opentofu/env/versions.tf'), 'utf8');
+  const envProviders = readFileSync(resolve(repoRoot, 'infra/opentofu/env/providers.tf'), 'utf8');
+  const envOutputs = readFileSync(resolve(repoRoot, 'infra/opentofu/env/outputs.tf'), 'utf8');
   const envVariables = readFileSync(resolve(repoRoot, 'infra/opentofu/env/variables.tf'), 'utf8');
   const stagingConfig = readFileSync(resolve(repoRoot, 'infra/opentofu/env/staging.tfvars.example'), 'utf8');
   const productionConfig = readFileSync(resolve(repoRoot, 'infra/opentofu/env/production.tfvars.example'), 'utf8');
@@ -51,16 +60,63 @@ test('stores future email designs and manages supported settings through infrast
   assert.match(moduleMain, /resource "terraform_data" "firebase_auth_email"/);
   assert.match(moduleMain, /configure-firebase-auth-email\.mjs/);
   assert.match(moduleMain, /filesha256\(local\.firebase_auth_email_script\)/);
+  assert.match(moduleMain, /firebase_project_display_name/);
+  assert.match(moduleMain, /FIREBASE_PROJECT_DISPLAY_NAME\s*=\s*local\.firebase_project_display_name/);
   assert.doesNotMatch(moduleMain, /FIREBASE_AUTH_EMAIL_TEMPLATE_DIR/);
   assert.match(moduleVariables, /variable "firebase_auth_email_domain"/);
+  assert.match(moduleVariables, /variable "firebase_project_display_name"/);
+  assert.match(envVariables, /variable "firebase_project_display_name"/);
+  assert.match(githubActions, /FIREBASE_EMAIL_LINK_DOMAIN_\$\{local\.github_actions_suffix\}"\s*=\s*local\.firebase_auth_email_action_domain/);
+  assert.doesNotMatch(githubActions, /FIREBASE_EMAIL_LINK_DOMAIN_\$\{local\.github_actions_suffix\}"\s*=\s*local\.email_continue_host/);
   assert.doesNotMatch(moduleVariables, /firebase_auth_email_reply_to/);
   assert.doesNotMatch(envVariables, /firebase_auth_email_sender_display_name/);
+  assert.match(stagingConfig, /firebase_project_display_name\s*=\s*"I-PACE Owners Staging"/);
+  assert.match(productionConfig, /firebase_project_display_name\s*=\s*"I-PACE Owners"/);
   assert.match(stagingConfig, /firebase_auth_email_domain\s*=\s*"auth\.stage\.ipace-owners\.org"/);
   assert.match(productionConfig, /firebase_auth_email_domain\s*=\s*"auth\.ipace-owners\.org"/);
+  assert.match(moduleVersions, /source\s*=\s*"y0n0zawa\/resend"/);
+  assert.match(envVersions, /source\s*=\s*"y0n0zawa\/resend"/);
+  assert.match(envProviders, /provider "resend"/);
+  assert.match(envProviders, /api_key\s*=\s*var\.resend_api_key/);
+  assert.match(moduleMain, /resource "resend_domain" "auth_email"/);
+  assert.match(moduleMain, /open_tracking\s*=\s*false/);
+  assert.match(moduleMain, /click_tracking\s*=\s*false/);
+  assert.match(moduleMain, /tls\s*=\s*"enforced"/);
+  assert.match(moduleOutputs, /output "resend_email_domain"/);
+  assert.match(moduleOutputs, /dns_records/);
+  assert.match(envOutputs, /output "resend_email_domain"/);
+  assert.match(moduleVariables, /variable "resend_from"/);
+  assert.match(moduleVariables, /variable "resend_api_key"[\s\S]*sensitive\s*=\s*true/);
+  assert.match(moduleVariables, /variable "bootstrap_resend_api_key_secret"/);
+  assert.match(moduleVariables, /variable "manage_resend_domain"/);
+  assert.match(moduleVariables, /variable "resend_domain"/);
+  assert.match(envVariables, /variable "resend_from"/);
+  assert.match(envVariables, /variable "resend_api_key"[\s\S]*sensitive\s*=\s*true/);
+  assert.match(envVariables, /variable "bootstrap_resend_api_key_secret"/);
+  assert.match(envVariables, /variable "manage_resend_domain"/);
+  assert.match(envVariables, /variable "resend_domain"/);
+  assert.match(githubActions, /RESEND_FROM_\$\{local\.github_actions_suffix\}/);
+  assert.match(githubActions, /RESEND_REPLY_TO_\$\{local\.github_actions_suffix\}/);
+  assert.match(githubActions, /RESEND_ASSET_BASE_URL_\$\{local\.github_actions_suffix\}/);
+  assert.match(githubActions, /RESEND_API_KEY_\$\{local\.github_actions_suffix\}/);
+  assert.match(githubActions, /var\.bootstrap_resend_api_key_secret/);
+  assert.doesNotMatch(githubActions, /for_each\s*=\s*var\.manage_github_actions \? local\.github_actions_secrets/);
+  assert.match(productionConfig, /resend_from\s*=\s*"I-PACE Owners <members@ipace-owners\.org>"/);
+  assert.match(productionConfig, /resend_asset_base_url\s*=\s*"https:\/\/ipace-owners\.org"/);
+  assert.match(stagingConfig, /bootstrap_resend_api_key_secret = true/);
+  assert.match(productionConfig, /bootstrap_resend_api_key_secret = true/);
+  assert.match(stagingConfig, /# resend_api_key = "re_replace_with_staging_resend_api_key"/);
+  assert.match(productionConfig, /# resend_api_key = "re_replace_with_production_resend_api_key"/);
+  assert.match(stagingConfig, /manage_resend_domain\s*=\s*true/);
+  assert.match(stagingConfig, /resend_domain\s*=\s*"stage\.ipace-owners\.org"/);
+  assert.match(productionConfig, /manage_resend_domain\s*=\s*true/);
+  assert.match(productionConfig, /resend_domain\s*=\s*"ipace-owners\.org"/);
   assert.match(makefile, /infra-email-domain:/);
   assert.match(script, /\/domain:verify/);
   assert.match(script, /action: "VERIFY"/);
   assert.match(script, /action: "APPLY"/);
+  assert.match(script, /firebase\.googleapis\.com\/v1beta1\/projects/);
+  assert.match(script, /updateMask=.*displayName/);
   assert.doesNotMatch(script, /fields\.push\("notification\.sendEmail\.dnsInfo\.useCustomDomain"\)/);
 
   for (const filename of [

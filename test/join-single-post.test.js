@@ -47,13 +47,14 @@ test('launch mode uses a one-step minimum-data Join form and retains the extende
 
   assert.ok(launchStart > -1 && fullStart > launchStart);
   assert.equal((launchForm.match(/data-step=/g) || []).length, 1);
-  ['name="name"', 'name="email"', 'name="consent-contact"', 'name="consent-not-legal"'].forEach(function (field) {
+  ['name="name"', 'name="email"', 'name="consent-contact"', 'name="consent-not-legal"', 'name="consent-data"'].forEach(function (field) {
     assert.match(launchForm, new RegExp(field));
   });
-  ['name="country"', 'name="relationship"', 'name="skills"', 'name="consent-data"'].forEach(function (field) {
+  ['name="country"', 'name="relationship"', 'name="skills"'].forEach(function (field) {
     assert.doesNotMatch(launchForm, new RegExp(field));
     assert.match(fullForm, new RegExp(field));
   });
+  assert.match(launchForm, /anonymised aggregate form/);
   assert.match(launchForm, /Privacy Policy/);
   assert.match(launchForm, /Participation Statement/);
   assert.match(launchForm, /data-enable-when-checked="consent-contact consent-not-legal"/);

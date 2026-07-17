@@ -91,6 +91,10 @@ jobs:
           ALLOWED_ORIGINS: ${{ vars.ALLOWED_ORIGINS_PRODUCTION }}
           FIREBASE_EMAIL_CONTINUE_URL: ${{ vars.FIREBASE_EMAIL_CONTINUE_URL_PRODUCTION }}
           FIREBASE_EMAIL_LINK_DOMAIN: ${{ vars.FIREBASE_EMAIL_LINK_DOMAIN_PRODUCTION }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY_PRODUCTION }}
+          RESEND_FROM: ${{ vars.RESEND_FROM_PRODUCTION }}
+          RESEND_REPLY_TO: ${{ vars.RESEND_REPLY_TO_PRODUCTION }}
+          RESEND_ASSET_BASE_URL: ${{ vars.RESEND_ASSET_BASE_URL_PRODUCTION }}
         run: make deploy-functions
 
       - name: Deploy Firebase Hosting production

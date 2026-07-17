@@ -81,6 +81,8 @@ test('staging Functions use the current PR preview URL', function () {
   assert.ok(refreshedHostingDeploy > functionDeploy);
   assert.match(workflow, /run: make authorize-preview-domain/);
   assert.match(workflow, /group: firebase-staging-deploy/);
+  assert.match(readFileSync(resolve(__dirname, '../scripts/authorize-firebase-preview-domain.mjs'), 'utf8'), /verifyAuthorizedDomain/);
+  assert.match(readFileSync(resolve(__dirname, '../scripts/authorize-firebase-preview-domain.mjs'), 'utf8'), /Firebase Auth authorization verified/);
   assert.match(workflow, /ALLOWED_ORIGINS: \$\{\{ steps\.hosting\.outputs\.url \}\}/);
   assert.match(
     workflow,
