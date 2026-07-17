@@ -69,6 +69,13 @@ test('stores future email designs and manages supported settings through infrast
   assert.match(productionConfig, /firebase_project_display_name\s*=\s*"I-PACE Owners"/);
   assert.match(stagingConfig, /firebase_auth_email_domain\s*=\s*"auth\.stage\.ipace-owners\.org"/);
   assert.match(productionConfig, /firebase_auth_email_domain\s*=\s*"auth\.ipace-owners\.org"/);
+  assert.match(moduleVariables, /variable "resend_from"/);
+  assert.match(envVariables, /variable "resend_from"/);
+  assert.match(githubActions, /RESEND_FROM_\$\{local\.github_actions_suffix\}/);
+  assert.match(githubActions, /RESEND_REPLY_TO_\$\{local\.github_actions_suffix\}/);
+  assert.match(githubActions, /RESEND_ASSET_BASE_URL_\$\{local\.github_actions_suffix\}/);
+  assert.match(productionConfig, /resend_from\s*=\s*"I-PACE Owners <members@ipace-owners\.org>"/);
+  assert.match(productionConfig, /resend_asset_base_url\s*=\s*"https:\/\/ipace-owners\.org"/);
   assert.match(makefile, /infra-email-domain:/);
   assert.match(script, /\/domain:verify/);
   assert.match(script, /action: "VERIFY"/);

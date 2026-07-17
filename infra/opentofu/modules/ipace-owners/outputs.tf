@@ -43,6 +43,7 @@ output "firebase_auth_email" {
     project_display_name       = local.firebase_project_display_name
     passwordless_action_domain = local.firebase_auth_email_action_domain
     passwordless_template      = "FIREBASE_DEFAULT"
+    custom_resend_sender       = var.resend_from
   }
 }
 

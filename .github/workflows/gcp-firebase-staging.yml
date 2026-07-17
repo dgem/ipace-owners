@@ -102,6 +102,10 @@ jobs:
           SNAPSHOT_BUCKET: ${{ vars.SNAPSHOT_BUCKET_STAGING }}
           ALLOWED_ORIGINS: ${{ steps.hosting.outputs.url }}
           FIREBASE_EMAIL_CONTINUE_URL: ${{ format('{0}/account/', steps.hosting.outputs.url) }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY_STAGING }}
+          RESEND_FROM: ${{ vars.RESEND_FROM_STAGING }}
+          RESEND_REPLY_TO: ${{ vars.RESEND_REPLY_TO_STAGING }}
+          RESEND_ASSET_BASE_URL: ${{ vars.RESEND_ASSET_BASE_URL_STAGING }}
         run: make deploy-functions
 
       - name: Refresh Firebase Hosting preview with current Function revisions

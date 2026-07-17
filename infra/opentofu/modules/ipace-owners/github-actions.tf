@@ -11,6 +11,9 @@ locals {
     "FIREBASE_${local.github_actions_suffix}_PROJECT_ID"         = var.project_id
     "FIRESTORE_DATABASE_ID_${local.github_actions_suffix}"       = google_firestore_database.default.name
     "GCP_REGION"                                                 = var.region
+    "RESEND_ASSET_BASE_URL_${local.github_actions_suffix}"       = var.resend_asset_base_url
+    "RESEND_FROM_${local.github_actions_suffix}"                 = var.resend_from
+    "RESEND_REPLY_TO_${local.github_actions_suffix}"             = var.resend_reply_to
     "SNAPSHOT_BUCKET_${local.github_actions_suffix}"             = google_storage_bucket.snapshots.name
   }
 

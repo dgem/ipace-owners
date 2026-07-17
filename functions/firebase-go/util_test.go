@@ -369,6 +369,93 @@ func TestFirebaseEmailLinkPayloadOmitsCustomDomainForPreview(t *testing.T) {
 	}
 }
 
+func TestFirebaseEmailActionCodeSettings(t *testing.T) {
+	settings := firebaseEmailActionCodeSettings("https://ipace-owners.org/account/", "ipace-owners.org")
+
+	if settings.URL != "https://ipace-owners.org/account/" {
+		t.Fatalf("URL = %q", settings.URL)
+	}
+	if settings.HandleCodeInApp != true {
+		t.Fatalf("HandleCodeInApp = %v", settings.HandleCodeInApp)
+	}
+	if settings.LinkDomain != "ipace-owners.org" {
+		t.Fatalf("LinkDomain = %q", settings.LinkDomain)
+	}
+
+	previewSettings := firebaseEmailActionCodeSettings("https://ipace-owners-staging--pr-20-ef2wibc5.web.app/account/", "")
+	if previewSettings.LinkDomain != "" {
+		t.Fatalf("preview LinkDomain = %q", previewSettings.LinkDomain)
+	}
+}
+
+func TestResendMagicLinkPayloadUsesHeroImageAndReplyTo(t *testing.T) {
+	t.Setenv("RESEND_FROM", "I-PACE Owners <members@ipace-owners.org>")
+	t.Setenv("RESEND_REPLY_TO", "contact@ipace-owners.org")
+	t.Setenv("RESEND_ASSET_BASE_URL", "https://ipace-owners.org")
+
+	payload := resendMagicLinkPayload(
+		"driver@example.com",
+		"https://ipace-owners.org/__/auth/action?mode=signIn&oobCode=secret",
+		"https://ipace-owners.org/account/",
+	)
+
+	if payload["from"] != "I-PACE Owners <members@ipace-owners.org>" {
+		t.Fatalf("from = %v", payload["from"])
+	}
+	if payload["reply_to"] != "contact@ipace-owners.org" {
+		t.Fatalf("reply_to = %v", payload["reply_to"])
+	}
+	htmlBody, ok := payload["html"].(string)
+	if !ok {
+		t.Fatal("html payload missing")
+	}
+	if !strings.Contains(htmlBody, "https://ipace-owners.org/images/ipace-hero.png") {
+		t.Fatalf("html does not include hero image: %s", htmlBody)
+	}
+	if !strings.Contains(htmlBody, "Sign in securely") {
+		t.Fatalf("html does not include CTA")
+	}
+	textBody, ok := payload["text"].(string)
+	if !ok {
+		t.Fatal("text payload missing")
+	}
+	if !strings.Contains(textBody, "https://ipace-owners.org/__/auth/action") {
+		t.Fatalf("text does not include action link: %s", textBody)
+	}
+}
+
+func TestEmailAssetBaseURLAvoidsPreviewAndLocalHosts(t *testing.T) {
+	cases := []struct {
+		name        string
+		continueURL string
+		want        string
+	}{
+		{
+			name:        "custom domain",
+			continueURL: "https://stage.ipace-owners.org/account/",
+			want:        "https://stage.ipace-owners.org",
+		},
+		{
+			name:        "preview host",
+			continueURL: "https://ipace-owners-staging--pr-20-ef2wibc5.web.app/account/",
+			want:        "https://ipace-owners.org",
+		},
+		{
+			name:        "local",
+			continueURL: "http://localhost:8080/account/",
+			want:        "https://ipace-owners.org",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := emailAssetBaseURL(tc.continueURL); got != tc.want {
+				t.Fatalf("emailAssetBaseURL(%q) = %q, want %q", tc.continueURL, got, tc.want)
+			}
+		})
+	}
+}
+
 func TestCORSPreflight(t *testing.T) {
 	req := httptest.NewRequest(http.MethodOptions, "/api/send-magic-link", nil)
 	req.Header.Set("Origin", "https://ipace-owners.org")

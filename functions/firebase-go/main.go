@@ -519,6 +519,22 @@ func sendFirebaseEmailLinkRequest(ctx context.Context, email string, origin stri
 	if linkDomain != "" {
 		fields["linkDomain"] = linkDomain
 	}
+	if resendEmailConfigured() {
+		fields["provider"] = "resend"
+		logEvent("firebase-email-link", "info", "custom email link request prepared", fields)
+		actionLink, err := generateFirebaseEmailSignInLink(ctx, email, continueURL, linkDomain)
+		if err == nil {
+			err = sendResendMagicLinkEmail(ctx, email, actionLink, continueURL)
+		}
+		if err == nil {
+			logEvent("firebase-email-link", "info", "custom email link request accepted", fields)
+			return nil
+		}
+		fields["error"] = err.Error()
+		logEvent("firebase-email-link", "warn", "custom email link failed; falling back to Firebase default email", fields)
+		delete(fields, "error")
+	}
+	fields["provider"] = "firebase-default"
 	logEvent("firebase-email-link", "info", "identity toolkit request prepared", fields)
 	payload := firebaseEmailLinkPayload(email, continueURL, linkDomain)
 	body, _ := json.Marshal(payload)

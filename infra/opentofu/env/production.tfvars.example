@@ -29,6 +29,10 @@ site_url        = "https://ipace-owners.org/account/"
 firebase_auth_email_domain        = "auth.ipace-owners.org"
 firebase_auth_email_action_domain = "ipace-owners.org"
 
+resend_from           = "I-PACE Owners <members@ipace-owners.org>"
+resend_reply_to       = "contact@ipace-owners.org"
+resend_asset_base_url = "https://ipace-owners.org"
+
 # The apex is canonical; Firebase Hosting redirects www after both domains validate.
 firebase_hosting_custom_domains = {
   "ipace-owners.org"     = {}

@@ -18,6 +18,10 @@ if (missing.length) {
 const values = Object.fromEntries(required.map((name) => [name, process.env[name]]));
 values.FIRESTORE_DATABASE_ID = process.env.FIRESTORE_DATABASE_ID || values.FIREBASE_PROJECT_ID;
 values.FIREBASE_EMAIL_LINK_DOMAIN = process.env.FIREBASE_EMAIL_LINK_DOMAIN || "";
+values.RESEND_API_KEY = process.env.RESEND_API_KEY || "";
+values.RESEND_FROM = process.env.RESEND_FROM || "";
+values.RESEND_REPLY_TO = process.env.RESEND_REPLY_TO || "";
+values.RESEND_ASSET_BASE_URL = process.env.RESEND_ASSET_BASE_URL || "";
 try {
   new URL(values.FIREBASE_EMAIL_CONTINUE_URL);
 } catch {

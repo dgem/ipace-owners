@@ -46,6 +46,12 @@ magic-link request path for existing users.
   `FIREBASE_EMAIL_CONTINUE_URL` as the post-action account URL. Firebase web API keys are
   public project identifiers and may appear in action URLs; restrict them to the required
   Firebase APIs, but do not treat their presence in an email link as credential exposure.
+- If `RESEND_API_KEY` and `RESEND_FROM` are configured, use Firebase Admin
+  `EmailSignInLink` to generate the passwordless link without asking Firebase to send the
+  email, then send a branded HTML and plain-text email through Resend. Include the launch
+  hero image from `/images/ipace-hero.png` using an absolute asset URL. Keep Firebase's
+  default email delivery as the automatic fallback when Resend is not configured or fails.
+  Never log the generated action link, API key, or raw provider response body.
 - For PR deployments, derive `FIREBASE_EMAIL_CONTINUE_URL` from that PR's generated Firebase
   Hosting preview request origin rather than a shared staging custom domain or a value baked
   into Function environment variables. Omit `linkDomain` because Firebase rejects

@@ -66,7 +66,10 @@ the retired hosting or Function platform.
    custom-domain `continueUrl`; never pass Firebase preview, default `web.app` /
    `firebaseapp.com`, localhost, or non-HTTPS hosts as `linkDomain`. Derive `continueUrl`
    from a validated request origin for allowed preview hosts; otherwise fall back to the
-   environment account URL.
+   environment account URL. When `RESEND_API_KEY` and `RESEND_FROM` are configured,
+   generate the Firebase sign-in link server-side and send a branded Resend HTML/plain-text
+   email using `/images/ipace-hero.png`; otherwise fall back to Firebase's default email
+   sender.
 5. When the user opens the email link, `identity.js` completes
    `signInWithEmailLink`, stores the session locally, clears auth query parameters, and
    exposes `window.ipaceGetIdentityToken()`.
@@ -215,6 +218,10 @@ route unless there is a measured need.
 - Manage the Firebase project's public-facing display name through OpenTofu because
   Firebase's default Auth emails insert that value as `%APP_NAME%`. Production uses
   `I-PACE Owners`; staging uses `I-PACE Owners Staging`.
+- Custom branded passwordless emails use Resend only when the API key and sender are
+  configured in the Function environment. The Resend API key must be a GitHub environment
+  secret, not a Terraform variable; non-secret sender/reply-to/asset-base values may be
+  managed as GitHub environment variables by OpenTofu.
 - Merges to `main` deploy production.
 
 ## Prompt maintenance

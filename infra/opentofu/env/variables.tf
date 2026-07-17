@@ -135,6 +135,24 @@ variable "firebase_hosting_custom_domains" {
   default = {}
 }
 
+variable "resend_from" {
+  description = "Optional Resend sender address for custom passwordless Auth emails."
+  type        = string
+  default     = ""
+}
+
+variable "resend_reply_to" {
+  description = "Optional Reply-To address for Resend passwordless Auth emails."
+  type        = string
+  default     = ""
+}
+
+variable "resend_asset_base_url" {
+  description = "Optional absolute base URL for email image assets."
+  type        = string
+  default     = ""
+}
+
 variable "manage_github_actions" {
   description = "Whether this module should create/update GitHub Actions environments, variables and secrets."
   type        = bool
