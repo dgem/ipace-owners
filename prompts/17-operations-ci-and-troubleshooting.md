@@ -56,6 +56,10 @@ Firebase/GCP.
   final attempt and still fail deterministically after the retry limit.
 - Serialize staging deployments because PR previews share the staging Auth configuration
   and staging Functions.
+- Before pushing additional commits to an existing PR branch, cancel any in-progress staging
+  deployment for that same branch so obsolete code does not continue through the deployment
+  sequence. Keep this cancellation branch-scoped: do not cancel another PR's deployment, and
+  do not enable global `cancel-in-progress` while staging infrastructure is shared.
 - Authenticate deployments with GitHub OIDC Workload Identity Federation and short-lived
   service-account impersonation. Explicitly generate/export ADC credentials and verify an
   access-token exchange before invoking Firebase CLI; do not introduce long-lived Firebase
