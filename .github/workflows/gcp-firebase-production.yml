@@ -78,7 +78,7 @@ jobs:
           fi
           changed_files="$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}")"
           printf '%s\n' "$changed_files"
-          if printf '%s\n' "$changed_files" | grep -Eq '^(functions/firebase-go/|firebase\.json|Makefile|scripts/write-functions-env\.mjs|\.github/workflows/gcp-firebase-production\.yml)$'; then
+          if printf '%s\n' "$changed_files" | grep -Eq '^(functions/firebase-go/.*|firebase\.json|Makefile|scripts/write-functions-env\.mjs|\.github/workflows/gcp-firebase-production\.yml)$'; then
             echo "deploy=true" >> "$GITHUB_OUTPUT"
           else
             echo "deploy=false" >> "$GITHUB_OUTPUT"

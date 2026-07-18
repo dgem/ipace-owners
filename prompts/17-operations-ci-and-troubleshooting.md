@@ -86,6 +86,8 @@ Firebase/GCP.
   - `FIREBASE_EMAIL_LINK_DOMAIN`.
 - Production may skip `Api` deployment when backend-related files did not change. Manual
   workflow dispatch should deploy `Api` so operators can force a backend rollout.
+- Backend change detection must match files beneath `functions/firebase-go/`, not only the
+  directory name, so Go changes deploy the Function and refresh preview Hosting rewrites.
 - Run `make smoke` directly in the production workflow after Hosting deploy with
   `SMOKE_BASE_URL=https://ipace-owners.org`.
 

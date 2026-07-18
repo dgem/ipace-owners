@@ -153,7 +153,8 @@ knowledge, and data may be used in anonymised aggregate reporting if consent is 
 - Do not include real owner data.
 - Do not include unverifiable statistics as real figures.
 - The launch homepage may show the live aggregate count of unique, non-excluded registered
-  members since the 17 July 2026 launch as restrained social proof near the primary hero.
+  members since the 17 July 2026 launch as restrained social proof immediately before the
+  second Join CTA, keeping the primary hero focused.
 - Mark placeholder figures and illustrative examples clearly.
 - Do not use Jaguar/JLR logos, badges, readable plates, copyrighted press imagery, or other unlicensed manufacturer assets.
 - If using a vehicle image, make it original/licensed/generated, avoid visible brand marks, and provide meaningful alt text.

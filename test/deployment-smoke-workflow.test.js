@@ -40,12 +40,23 @@ test('Firebase deploy workflows skip Function deploys when backend is unchanged'
 
   for (const workflow of [stagingWorkflow, productionWorkflow]) {
     assert.match(workflow, /name: Detect backend deploy changes/);
-    assert.match(workflow, /functions\/firebase-go\//);
+    assert.match(workflow, /functions\/firebase-go\/\.\*/);
     assert.match(workflow, /firebase\\.json/);
     assert.match(workflow, /if: steps\.backend\.outputs\.deploy == 'true'/);
   }
   assert.match(stagingWorkflow, /name: Refresh Firebase Hosting preview with current Function revisions/);
   assert.match(stagingWorkflow, /if: steps\.backend\.outputs\.deploy == 'true'/);
+});
+
+test('Firebase deploy workflows detect files within the Go functions directory', function () {
+  const stagingWorkflow = readFileSync(stagingWorkflowPath, 'utf8');
+  const productionWorkflow = readFileSync(productionWorkflowPath, 'utf8');
+
+  for (const workflow of [stagingWorkflow, productionWorkflow]) {
+    const pattern = workflow.match(/grep -Eq '([^']+)'/);
+    assert.ok(pattern, 'backend change-detection pattern is missing');
+    assert.equal(new RegExp(pattern[1]).test('functions/firebase-go/stats.go'), true);
+  }
 });
 
 test('Firebase deploy workflows verify keyless GCP credentials before deployment', function () {
