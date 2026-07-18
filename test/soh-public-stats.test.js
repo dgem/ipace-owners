@@ -27,7 +27,7 @@ test('homepage and evidence dashboard load real public aggregate statistics', fu
 
   assert.match(home, /data-public-stat="vehiclesRegistered"/);
   assert.match(home, /data-public-stat="registeredMembers"/);
-  assert.match(home, /datetime="2026-07-17">17 July 2026/);
+  assert.match(home, /datetime="2026-07-17">17 Jul ’26/);
   assert.match(dashboard, /data-public-stat="averageReportedSoh"/);
   assert.match(dashboard, /data-public-distribution="soh"/);
   assert.doesNotMatch(dashboard, /Illustrative data|Sample data|Placeholder data/);
