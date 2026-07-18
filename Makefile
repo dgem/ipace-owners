@@ -59,7 +59,7 @@ lint-tofu: ## Check OpenTofu/HCL formatting recursively.
 	tofu fmt -check -recursive infra/opentofu
 
 lint-svg: ## Validate SVG/XML syntax.
-	@find public -type f -name '*.svg' -exec xmllint --noout {} +
+	node scripts/lint-svg.mjs
 
 test: test-node test-go ## Run all local test suites.
 

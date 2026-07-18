@@ -22,6 +22,9 @@ Firebase/GCP.
   formatting, and SVG/XML syntax; keep focused `lint-*` targets available for iteration.
 - Both staging pull-request and production deployment workflows must install OpenTofu and
   run `make lint` after dependency installation and before tests or deployment.
+- Keep lint targets self-contained in the declared project toolchains. In particular, SVG/XML
+  validation should use the pinned Node dependency rather than assuming runners provide
+  `xmllint` or another OS package.
 - Deployment smoke tests require `SMOKE_BASE_URL` and run through `make smoke`.
 - `make deploy-functions` should deploy the single Go `Api` Function entrypoint. Avoid
   deploying one Cloud Function per API route because each Gen2 Function deployment triggers
