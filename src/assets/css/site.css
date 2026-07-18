@@ -666,23 +666,22 @@ th {
   filter: drop-shadow(0 0.12rem 0.12rem rgb(0 0 0 / 0.35));
 }
 
-.launch-member-count__leaf,
-.launch-member-count__tie {
+.launch-member-count__leaf {
   fill: #e9bd52;
-  stroke: #090909;
-  stroke-width: 1.25;
+  stroke: #2a210c;
+  stroke-width: 0.55;
 }
 
 .launch-member-count__stem-outline {
   fill: none;
   stroke: #090909;
-  stroke-width: 4.3;
+  stroke-width: 3;
 }
 
 .launch-member-count__stem {
   fill: none;
   stroke: #e9bd52;
-  stroke-width: 2.2;
+  stroke-width: 1.7;
 }
 
 .launch-member-count__flag {
@@ -711,29 +710,28 @@ th {
 }
 
 .launch-member-count__value {
+  color: #f2ca6b;
   font-size: 1.7rem;
   font-weight: 800;
   letter-spacing: -0.04em;
   line-height: 1;
-  -webkit-text-stroke: 0.04rem #000;
-  text-shadow: 0 0.12rem 0.16rem rgb(0 0 0 / 0.55);
+  text-shadow: 0 0.12rem 0.16rem rgb(0 0 0 / 0.5);
 }
 
 .launch-member-count__label {
   margin-top: 0.1rem;
   font-size: 0.6rem;
   font-weight: 800;
-  color: #f2ca6b;
-  letter-spacing: 0.035em;
+  color: #fff;
+  letter-spacing: 0.025em;
   line-height: 1.08;
-  text-shadow:
-    0 1px 0 #000,
-    0 0 0.14rem #000;
+  text-shadow: 0 0.1rem 0.15rem rgb(0 0 0 / 0.7);
 }
 
 .launch-member-count__date {
   margin-top: 0.2rem;
   font-size: 0.48rem;
+  color: #f2ca6b;
   letter-spacing: 0.01em;
   opacity: 0.9;
   text-shadow: 0 1px 0 #000;
