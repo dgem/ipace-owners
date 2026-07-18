@@ -651,8 +651,8 @@ th {
   position: relative;
   display: grid;
   flex: 0 0 auto;
-  width: 9rem;
-  min-height: 6.75rem;
+  width: 7.5rem;
+  aspect-ratio: 1;
   color: #fff;
   place-items: center;
 }
@@ -698,7 +698,7 @@ th {
   align-items: center;
   text-align: center;
   text-shadow: 0 0.12rem 0.2rem rgb(0 0 0 / 0.55);
-  transform: translateY(-0.45rem);
+  transform: translateY(-0.25rem);
 }
 
 .launch-member-count__value {
@@ -789,6 +789,12 @@ th {
   .launch-hero .btn,
   .launch-final-cta .btn {
     justify-content: center;
+  }
+}
+
+@media (min-width: 40em) {
+  .launch-hero__actions {
+    flex-direction: row;
   }
 }
 
