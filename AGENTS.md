@@ -189,6 +189,9 @@ Defined in `:root` in `site.css`. Key tokens:
 
 - **All changes must be submitted via pull requests.** Do not push directly to the default
   branch.
+- Before pushing additional commits to an existing PR branch, cancel any in-progress staging
+  deployment for that same branch. Do not cancel deployments for other PR branches; staging
+  deployments remain globally serialized because they share infrastructure.
 - Every PR must include a clear description covering:
   - What changed and why.
   - Which files were added or modified.

@@ -633,9 +633,120 @@ th {
 }
 
 .launch-hero__note {
-  margin: var(--space-4) 0 0;
+  margin: var(--space-2) 0 0;
   color: rgba(255,255,255,0.72);
   font-size: var(--text-sm);
+  text-align: center;
+}
+
+.launch-hero__join {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.launch-hero__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  align-items: center;
+  width: fit-content;
+  margin-top: var(--space-6);
+}
+
+.launch-member-count {
+  position: relative;
+  display: grid;
+  flex: 0 0 auto;
+  width: 7.5rem;
+  aspect-ratio: 1;
+  color: #fff;
+  place-items: center;
+}
+
+.launch-member-count-group {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: var(--space-1);
+  align-items: center;
+}
+
+.launch-member-count__laurels {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0.12rem 0.12rem rgb(0 0 0 / 0.35));
+}
+
+.launch-member-count__leaf {
+  fill: #e9bd52;
+  stroke: #9d7925;
+  stroke-width: 0.65;
+}
+
+.launch-member-count__vein {
+  fill: none;
+  stroke: #9d7925;
+  stroke-width: 0.65;
+}
+
+.launch-member-count__stem {
+  fill: #e9bd52;
+  stroke: #9d7925;
+  stroke-width: 0.6;
+}
+
+.launch-member-count__content {
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  text-shadow: 0 0.12rem 0.2rem rgb(0 0 0 / 0.55);
+  transform: translateY(-0.25rem);
+}
+
+.launch-member-count__value {
+  color: #f2ca6b;
+  font-size: 2.35rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  text-shadow: 0 0.12rem 0.16rem rgb(0 0 0 / 0.5);
+}
+
+.launch-member-count__value[data-count-size="four"] {
+  font-size: 1.8rem;
+}
+
+.launch-member-count__value[data-count-size="five"] {
+  font-size: 1.55rem;
+}
+
+.launch-member-count__value[data-count-size="large"] {
+  font-size: 1.3rem;
+}
+
+.launch-member-count__label {
+  font-size: 0.64rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-transform: uppercase;
+  text-shadow: 0 0.1rem 0.15rem rgb(0 0 0 / 0.7);
+}
+
+.launch-member-count__date {
+  color: rgb(255 255 255 / 0.78);
+  font-size: 0.58rem;
+  letter-spacing: 0.025em;
+  line-height: 1;
 }
 
 .launch-purpose h2,
@@ -678,7 +789,8 @@ th {
 }
 
 @media (max-width: 39.99em) {
-  .launch-hero .hero__ctas,
+  .launch-hero__actions,
+  .launch-hero__join,
   .launch-hero .btn,
   .launch-final-cta .btn {
     width: 100%;
@@ -687,6 +799,12 @@ th {
   .launch-hero .btn,
   .launch-final-cta .btn {
     justify-content: center;
+  }
+}
+
+@media (min-width: 40em) {
+  .launch-hero__actions {
+    flex-direction: row;
   }
 }
 

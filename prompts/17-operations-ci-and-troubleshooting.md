@@ -56,6 +56,10 @@ Firebase/GCP.
   final attempt and still fail deterministically after the retry limit.
 - Serialize staging deployments because PR previews share the staging Auth configuration
   and staging Functions.
+- Before pushing additional commits to an existing PR branch, cancel any in-progress staging
+  deployment for that same branch so obsolete code does not continue through the deployment
+  sequence. Keep this cancellation branch-scoped: do not cancel another PR's deployment, and
+  do not enable global `cancel-in-progress` while staging infrastructure is shared.
 - Authenticate deployments with GitHub OIDC Workload Identity Federation and short-lived
   service-account impersonation. Explicitly generate/export ADC credentials and verify an
   access-token exchange before invoking Firebase CLI; do not introduce long-lived Firebase
@@ -86,6 +90,8 @@ Firebase/GCP.
   - `FIREBASE_EMAIL_LINK_DOMAIN`.
 - Production may skip `Api` deployment when backend-related files did not change. Manual
   workflow dispatch should deploy `Api` so operators can force a backend rollout.
+- Backend change detection must match files beneath `functions/firebase-go/`, not only the
+  directory name, so Go changes deploy the Function and refresh preview Hosting rewrites.
 - Run `make smoke` directly in the production workflow after Hosting deploy with
   `SMOKE_BASE_URL=https://ipace-owners.org`.
 

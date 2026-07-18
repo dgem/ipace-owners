@@ -11,6 +11,10 @@ import (
 	"time"
 )
 
+const publicStatsSchemaVersion = 2
+
+var publicLaunchDate = time.Date(2026, time.July, 17, 0, 0, 0, 0, time.UTC)
+
 func PublicStats(w http.ResponseWriter, r *http.Request) {
 	if cors(w, r) {
 		return
@@ -23,6 +27,9 @@ func PublicStats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	snapshot, err := readPublicStatsObject(r.Context())
+	if err == nil && snapshot.SchemaVersion < publicStatsSchemaVersion {
+		err = fmt.Errorf("public statistics snapshot schema is outdated")
+	}
 	if err != nil {
 		snapshot, err = buildPublicStatsSnapshot(r.Context())
 		if err != nil {
@@ -66,10 +73,22 @@ func buildPublicStatsSnapshot(ctx context.Context) (publicStatsSnapshot, error) 
 			consented[record.UserEmailHash] = true
 		}
 	}
-	return aggregatePublicStats(vehicles, readings, consented, time.Now().UTC()), nil
+	registeredMembers := registeredMembersSince(joins, publicLaunchDate)
+	return aggregatePublicStats(vehicles, readings, consented, registeredMembers, time.Now().UTC()), nil
 }
 
-func aggregatePublicStats(vehicles []vehicleRecord, readings []batteryReadingRecord, consented map[string]bool, generatedAt time.Time) publicStatsSnapshot {
+func registeredMembersSince(joins []joinRecord, launchDate time.Time) int {
+	members := map[string]bool{}
+	for _, record := range joins {
+		if record.UserEmailHash == "" || record.CreatedAt.Before(launchDate) || record.Review.Status == "excluded" {
+			continue
+		}
+		members[record.UserEmailHash] = true
+	}
+	return len(members)
+}
+
+func aggregatePublicStats(vehicles []vehicleRecord, readings []batteryReadingRecord, consented map[string]bool, registeredMembers int, generatedAt time.Time) publicStatsSnapshot {
 	filteredVehicles := map[string]vehicleRecord{}
 	owners := map[string]bool{}
 	modelYears := map[string]int{}
@@ -129,7 +148,9 @@ func aggregatePublicStats(vehicles []vehicleRecord, readings []batteryReadingRec
 	}
 
 	snapshot := publicStatsSnapshot{
+		SchemaVersion:         publicStatsSchemaVersion,
 		GeneratedAt:           generatedAt,
+		RegisteredMembers:     registeredMembers,
 		OwnersContributed:     len(owners),
 		VehiclesRegistered:    len(filteredVehicles),
 		VehiclesWithSOH:       len(byVehicle),

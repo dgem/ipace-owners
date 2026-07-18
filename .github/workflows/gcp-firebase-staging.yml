@@ -90,7 +90,7 @@ jobs:
         run: |
           changed_files="$(git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.sha }}")"
           printf '%s\n' "$changed_files"
-          if printf '%s\n' "$changed_files" | grep -Eq '^(functions/firebase-go/|firebase\.json|Makefile|scripts/write-functions-env\.mjs|\.github/workflows/gcp-firebase-staging\.yml)$'; then
+          if printf '%s\n' "$changed_files" | grep -Eq '^(functions/firebase-go/.*|firebase\.json|Makefile|scripts/write-functions-env\.mjs|\.github/workflows/gcp-firebase-staging\.yml)$'; then
             echo "deploy=true" >> "$GITHUB_OUTPUT"
           else
             echo "deploy=false" >> "$GITHUB_OUTPUT"

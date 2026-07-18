@@ -90,7 +90,10 @@ func TestAggregatePublicStatsUsesLatestConsentedReadings(t *testing.T) {
 		{ID: "r4", VehicleID: "v3", Battery: batteryDetails{StateOfHealth: soh(10), MeasuredAt: "2026-06-22"}, Review: reviewRecord{Status: "new"}},
 	}
 
-	got := aggregatePublicStats(vehicles, readings, map[string]bool{"consented": true}, now)
+	got := aggregatePublicStats(vehicles, readings, map[string]bool{"consented": true}, 12, now)
+	if got.RegisteredMembers != 12 || got.SchemaVersion != publicStatsSchemaVersion {
+		t.Fatalf("membership aggregate = %+v", got)
+	}
 	if got.OwnersContributed != 1 || got.VehiclesRegistered != 2 || got.SOHReadings != 3 || got.VehiclesWithRepeatSOH != 1 {
 		t.Fatalf("unexpected counts: %+v", got)
 	}
@@ -112,9 +115,25 @@ func TestAggregatePublicStatsUsesLegacyEmbeddedReading(t *testing.T) {
 		Battery: batteryDetails{StateOfHealth: &value, MeasuredAt: "2025-01-01"},
 		Review:  reviewRecord{Status: "new"},
 	}
-	got := aggregatePublicStats([]vehicleRecord{vehicle}, nil, map[string]bool{"consented": true}, time.Now())
+	got := aggregatePublicStats([]vehicleRecord{vehicle}, nil, map[string]bool{"consented": true}, 1, time.Now())
 	if got.SOHReadings != 1 || got.VehiclesWithSOH != 1 || got.AverageReportedSOH == nil || *got.AverageReportedSOH != 88 {
 		t.Fatalf("legacy aggregate = %+v", got)
+	}
+}
+
+func TestRegisteredMembersSinceLaunchCountsUniqueNonExcludedMembers(t *testing.T) {
+	launch := time.Date(2026, time.July, 17, 0, 0, 0, 0, time.UTC)
+	joins := []joinRecord{
+		{UserEmailHash: "member-1", CreatedAt: launch},
+		{UserEmailHash: "member-1", CreatedAt: launch.Add(time.Hour)},
+		{UserEmailHash: "member-2", CreatedAt: launch.Add(24 * time.Hour)},
+		{UserEmailHash: "before-launch", CreatedAt: launch.Add(-time.Second)},
+		{UserEmailHash: "excluded", CreatedAt: launch, Review: reviewRecord{Status: "excluded"}},
+		{CreatedAt: launch},
+	}
+
+	if got := registeredMembersSince(joins, launch); got != 2 {
+		t.Fatalf("registeredMembersSince() = %d, want 2", got)
 	}
 }
 

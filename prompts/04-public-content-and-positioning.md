@@ -152,6 +152,28 @@ knowledge, and data may be used in anonymised aggregate reporting if consent is 
 
 - Do not include real owner data.
 - Do not include unverifiable statistics as real figures.
+- The launch homepage may show the live aggregate count of unique, non-excluded registered
+  members since the 17 July 2026 launch as a compact, non-interactive racing winner's garland.
+  Place it to the right of the hero Join CTA on desktop, tablets, and wide or landscape phones;
+  stack it below the CTA only on narrow mobile screens. Keep the CTA and garland as one unit
+  above the fold, with the social proof visually subordinate to the CTA and without button
+  affordance. Keep `Free to join. It takes less than a minute.` directly beneath the Join CTA
+  in its own CTA sub-group, not beneath the combined CTA-and-garland row. Model the garland
+  closely on a clean gold car-decal winner's wreath:
+  a near-circular, open-crown arch built around continuous curved branches, with eight broad
+  alternating leaves per side plus one small final leaf close to each tip. Rotate leaves away
+  from the branch so each silhouette remains distinct, and progressively reduce their size
+  toward the crown. Use tapered filled stems that finish at a true point, are visibly heavier
+  at the crossed base and finer near the open tips; extend the lower
+  branches well beyond the join. Give every leaf the same subtle darker-gold vein and faint
+  edge, and use SVG paint order so an overlapping leaf or branch has a clear front edge. Do
+  not use flags, a filled badge, wax-stamp treatment, heavy
+  outlines, or a decorative tie. Display only the large, unoutlined gold count inside the
+  wreath and optically centre it slightly above the geometric midpoint. Place compact white
+  `Registered members` text and `Since 17 July 2026` as two quiet lines below and outside the
+  garland rather than squeezing supporting copy into the artwork. Format the count with UK
+  thousands separators and reduce only its font size at four, five, and six-plus digits so
+  growth beyond 1,000 members cannot collide with the wreath.
 - Mark placeholder figures and illustrative examples clearly.
 - Do not use Jaguar/JLR logos, badges, readable plates, copyrighted press imagery, or other unlicensed manufacturer assets.
 - If using a vehicle image, make it original/licensed/generated, avoid visible brand marks, and provide meaningful alt text.
