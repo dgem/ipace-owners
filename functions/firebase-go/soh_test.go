@@ -1,13 +1,34 @@
 package ipace
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
+
+	"firebase.google.com/go/v4/auth"
+	"google.golang.org/api/iterator"
 )
+
+type fakeFirebaseAuthUserIterator struct {
+	remaining int
+	err       error
+}
+
+func (it *fakeFirebaseAuthUserIterator) Next() (*auth.ExportedUserRecord, error) {
+	if it.remaining > 0 {
+		it.remaining--
+		return &auth.ExportedUserRecord{}, nil
+	}
+	if it.err != nil {
+		return nil, it.err
+	}
+	return nil, iterator.Done
+}
 
 func TestValidatedBatteryReading(t *testing.T) {
 	reading, err := validatedBatteryReading(batteryReadingRequest{
@@ -121,19 +142,61 @@ func TestAggregatePublicStatsUsesLegacyEmbeddedReading(t *testing.T) {
 	}
 }
 
-func TestRegisteredMembersSinceRegistrationCountsUniqueNonExcludedMembers(t *testing.T) {
-	registration := time.Date(2026, time.July, 16, 0, 0, 0, 0, time.UTC)
-	joins := []joinRecord{
-		{UserEmailHash: "member-1", CreatedAt: registration},
-		{UserEmailHash: "member-1", CreatedAt: registration.Add(time.Hour)},
-		{UserEmailHash: "member-2", CreatedAt: registration.Add(24 * time.Hour)},
-		{UserEmailHash: "before-registration", CreatedAt: registration.Add(-time.Second)},
-		{UserEmailHash: "excluded", CreatedAt: registration, Review: reviewRecord{Status: "excluded"}},
-		{CreatedAt: registration},
+func TestRegisteredFirebaseAuthUsersCountsEveryPaginatedUser(t *testing.T) {
+	original := firebaseAuthUsers
+	t.Cleanup(func() { firebaseAuthUsers = original })
+	firebaseAuthUsers = func(context.Context) (firebaseAuthUserIterator, error) {
+		return &fakeFirebaseAuthUserIterator{remaining: 209}, nil
 	}
 
-	if got := registeredMembersSince(joins, registration); got != 2 {
-		t.Fatalf("registeredMembersSince() = %d, want 2", got)
+	got, err := registeredFirebaseAuthUsers(context.Background())
+	if err != nil {
+		t.Fatalf("registeredFirebaseAuthUsers() error = %v", err)
+	}
+	if got != 209 {
+		t.Fatalf("registeredFirebaseAuthUsers() = %d, want 209", got)
+	}
+}
+
+func TestRegisteredFirebaseAuthUsersReturnsIteratorError(t *testing.T) {
+	original := firebaseAuthUsers
+	t.Cleanup(func() { firebaseAuthUsers = original })
+	want := errors.New("list users failed")
+	firebaseAuthUsers = func(context.Context) (firebaseAuthUserIterator, error) {
+		return &fakeFirebaseAuthUserIterator{remaining: 2, err: want}, nil
+	}
+
+	got, err := registeredFirebaseAuthUsers(context.Background())
+	if !errors.Is(err, want) || got != 0 {
+		t.Fatalf("registeredFirebaseAuthUsers() = (%d, %v), want (0, %v)", got, err, want)
+	}
+}
+
+func TestRefreshRegisteredMemberCountUpdatesChangedAuthTotal(t *testing.T) {
+	original := firebaseAuthUsers
+	t.Cleanup(func() { firebaseAuthUsers = original })
+	firebaseAuthUsers = func(context.Context) (firebaseAuthUserIterator, error) {
+		return &fakeFirebaseAuthUserIterator{remaining: 209}, nil
+	}
+	generatedAt := time.Date(2026, time.July, 18, 15, 0, 0, 0, time.UTC)
+
+	got, updated := refreshRegisteredMemberCount(context.Background(), publicStatsSnapshot{RegisteredMembers: 119}, generatedAt)
+	if !updated || got.RegisteredMembers != 209 || !got.GeneratedAt.Equal(generatedAt) {
+		t.Fatalf("refreshRegisteredMemberCount() = (%+v, %t), want total 209 at %v", got, updated, generatedAt)
+	}
+}
+
+func TestRefreshRegisteredMemberCountKeepsSnapshotWhenAuthFails(t *testing.T) {
+	original := firebaseAuthUsers
+	t.Cleanup(func() { firebaseAuthUsers = original })
+	firebaseAuthUsers = func(context.Context) (firebaseAuthUserIterator, error) {
+		return nil, errors.New("auth unavailable")
+	}
+	want := publicStatsSnapshot{RegisteredMembers: 119}
+
+	got, updated := refreshRegisteredMemberCount(context.Background(), want, time.Now())
+	if updated || got.RegisteredMembers != want.RegisteredMembers {
+		t.Fatalf("refreshRegisteredMemberCount() = (%+v, %t), want unchanged snapshot", got, updated)
 	}
 }
 

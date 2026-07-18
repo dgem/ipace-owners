@@ -67,14 +67,17 @@ Firebase ID-token verification.
 
 Public aggregate snapshots may be written to static JSON files or Cloud Storage objects
 only after anonymisation, verification, and exclusion rules have been applied.
-The public statistics snapshot includes only an aggregate registered-member count: unique
-non-excluded Join email hashes created since registrations opened at 00:00 UTC on 16 July
-2026. This is deliberately distinct from the Firebase Authentication user total, which may
-contain earlier, test, duplicate, or otherwise non-qualifying accounts. The official public
-launch date remains 17 July 2026. The snapshot never exposes hashes or underlying Join
-records, and snapshot schema changes must force cached objects to regenerate. Version the
-browser's public-stats request when the response schema changes so previously cached API
-responses cannot hide newly introduced fields.
+The public statistics snapshot includes only an aggregate registered-member count obtained
+from the complete, paginated Firebase Authentication user list. Do not derive this headline
+count from Join submissions, because Auth is the canonical registration record. Do not show
+a "since" date beside the total when the count includes all Auth users. The official public
+launch date remains 17 July 2026. The snapshot never exposes user records or identifiers, and
+snapshot schema changes must force cached objects to regenerate. Version the browser's
+public-stats request when the response schema changes so previously cached API responses
+cannot hide newly introduced fields. Completing an email activation creates the Auth user
+after the Join handler has finished, so each uncached `PublicStats` request must refresh the
+Auth total while the existing five-minute HTTP cache limits repeated list operations. If that
+refresh fails, serve the last valid aggregate snapshot rather than failing the public page.
 
 ## Suggested Collections
 
