@@ -164,7 +164,9 @@ knowledge, and data may be used in anonymised aggregate reporting if consent is 
   outlines, or a decorative tie. Display only the large, unoutlined gold count inside the
   wreath and optically centre it slightly above the geometric midpoint. Place compact white
   `Registered members` text and `Since 17 July 2026` as two quiet lines below and outside the
-  garland rather than squeezing supporting copy into the artwork.
+  garland rather than squeezing supporting copy into the artwork. Format the count with UK
+  thousands separators and reduce only its font size at four, five, and six-plus digits so
+  growth beyond 1,000 members cannot collide with the wreath.
 - Mark placeholder figures and illustrative examples clearly.
 - Do not use Jaguar/JLR logos, badges, readable plates, copyrighted press imagery, or other unlicensed manufacturer assets.
 - If using a vehicle image, make it original/licensed/generated, avoid visible brand marks, and provide meaningful alt text.

@@ -705,9 +705,22 @@ th {
   color: #f2ca6b;
   font-size: 2.35rem;
   font-weight: 800;
+  font-variant-numeric: tabular-nums;
   letter-spacing: -0.04em;
   line-height: 1;
   text-shadow: 0 0.12rem 0.16rem rgb(0 0 0 / 0.5);
+}
+
+.launch-member-count__value[data-count-size="four"] {
+  font-size: 1.8rem;
+}
+
+.launch-member-count__value[data-count-size="five"] {
+  font-size: 1.55rem;
+}
+
+.launch-member-count__value[data-count-size="large"] {
+  font-size: 1.3rem;
 }
 
 .launch-member-count__label {

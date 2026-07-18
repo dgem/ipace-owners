@@ -32,4 +32,10 @@ test('homepage and evidence dashboard load real public aggregate statistics', fu
   assert.match(dashboard, /data-public-distribution="soh"/);
   assert.doesNotMatch(dashboard, /Illustrative data|Sample data|Placeholder data/);
   assert.match(stats, /fetch\('\/api\/public-stats\?v=2'\)/);
+  assert.match(stats, /count >= 100000 \? 'large' : count >= 10000 \? 'five' : count >= 1000 \? 'four'/);
+
+  const css = read('src/assets/css/site.css');
+  assert.match(css, /data-count-size="four"/);
+  assert.match(css, /data-count-size="five"/);
+  assert.match(css, /data-count-size="large"/);
 });

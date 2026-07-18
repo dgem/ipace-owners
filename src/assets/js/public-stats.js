@@ -43,7 +43,13 @@
   function render(root, data) {
     root.querySelectorAll('[data-public-stat]').forEach(function (element) {
       var key = element.getAttribute('data-public-stat');
-      element.textContent = displayValue(data[key], element.getAttribute('data-public-stat-format'));
+      var value = data[key];
+      element.textContent = displayValue(value, element.getAttribute('data-public-stat-format'));
+      if (element.classList.contains('launch-member-count__value') && Number.isFinite(Number(value))) {
+        var count = Math.max(0, Math.round(Number(value)));
+        var countSize = count >= 100000 ? 'large' : count >= 10000 ? 'five' : count >= 1000 ? 'four' : 'standard';
+        element.setAttribute('data-count-size', countSize);
+      }
     });
     root.querySelectorAll('[data-public-generated-at]').forEach(function (element) {
       var generated = new Date(data.generatedAt);
