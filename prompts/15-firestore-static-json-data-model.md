@@ -67,6 +67,10 @@ Firebase ID-token verification.
 
 Public aggregate snapshots may be written to static JSON files or Cloud Storage objects
 only after anonymisation, verification, and exclusion rules have been applied.
+The public statistics snapshot includes only an aggregate registered-member count: unique
+non-excluded Join email hashes created on or after the 17 July 2026 launch. It never exposes
+the hashes or underlying Join records, and snapshot schema changes must force cached objects
+to regenerate.
 
 ## Suggested Collections
 
