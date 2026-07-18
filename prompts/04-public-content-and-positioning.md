@@ -156,9 +156,12 @@ knowledge, and data may be used in anonymised aggregate reporting if consent is 
   members since the 17 July 2026 launch as a compact, non-interactive racing winner's garland
   beside the hero Join CTA on wide screens and below it on narrow screens. Keep it above the
   fold as supporting social proof, visually subordinate to the CTA, and do not give it button
-  affordance. Use a full open gold laurel sweeping upward from crossed, tied stems without a
-  filled badge or wax-stamp treatment, and keep the launch date notably smaller than the count
-  and membership label.
+  affordance. Model it on a classic racing winner's garland: a full open laurel with long,
+  pointed, tightly layered gold leaves sweeping upward from crossed stems. Give the leaves a
+  black outline and black central veins, with a small pair of crossed chequered racing flags
+  behind the joined stems. Do not use a filled badge or wax-stamp treatment. Keep the launch
+  date notably smaller than the count and membership label, and outline white text in black so
+  it remains legible over the hero artwork.
 - Mark placeholder figures and illustrative examples clearly.
 - Do not use Jaguar/JLR logos, badges, readable plates, copyrighted press imagery, or other unlicensed manufacturer assets.
 - If using a vehicle image, make it original/licensed/generated, avoid visible brand marks, and provide meaningful alt text.
