@@ -41,8 +41,19 @@ test('preview deployment runs a blocking passive OWASP ZAP scan', function () {
   assert.ok(smokeIndex >= 0 && zapIndex > smokeIndex);
   assert.match(workflow, /zaproxy\/action-baseline@v0\.15\.0/);
   assert.match(workflow, /docker_name: ghcr\.io\/zaproxy\/zaproxy:2\.17\.0/);
+  assert.match(workflow, /rules_file_name: \.zap\/rules\.tsv/);
   assert.match(workflow, /fail_action: true/);
   assert.match(workflow, /allow_issue_writing: false/);
+
+  var rules = read('.zap/rules.tsv');
+  assert.match(rules, /^10015\tIGNORE\t/m);
+  assert.match(rules, /^90004\tIGNORE\t/m);
+});
+
+test('passwordless login fallback never places email addresses in page URLs', function () {
+  var gate = read('src/_includes/partials/auth-login-gate.njk');
+
+  assert.match(gate, /<form[^>]+method="POST"[^>]+action="\/api\/send-magic-link"/);
 });
 
 test('Dependabot groups compatible updates on a weekly schedule', function () {

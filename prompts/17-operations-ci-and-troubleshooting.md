@@ -24,8 +24,12 @@ Firebase/GCP.
   a high-severity threshold; and pinned `govulncheck` analysis for reachable Go issues.
 - After a Firebase Hosting PR preview passes its smoke test, run a blocking passive OWASP ZAP
   baseline scan against that preview. Use a versioned ZAP container, disable issue creation,
-  and retain the report as an Actions artifact. Do not run active attacks against production
-  or authenticated member data.
+  retain the report as an Actions artifact, and keep reviewed platform/CDN findings in the
+  committed `.zap/rules.tsv` baseline so new alert categories still fail the check. Do not run
+  active attacks against production or authenticated member data.
+- Shared passwordless login forms must declare `method="POST"` and
+  `action="/api/send-magic-link"` even though JavaScript normally handles submission, so a
+  script failure cannot fall back to a GET request that places a member email in the page URL.
 - Dependabot must check npm, Go modules, GitHub Actions, and OpenTofu weekly. Group compatible
   minor and patch updates by ecosystem to reduce PR noise; review major upgrades separately.
 - `make lint` is the aggregate source-quality gate. It checks JavaScript, CSS, Markdown,
