@@ -55,6 +55,18 @@ Create or maintain:
 - Privacy: placeholder until formal review before broader vehicle/evidence data collection.
 - Participation statement/terms: non-legal-action participation framing.
 
+## Search and social metadata
+
+- Render common SEO metadata through a single reusable head partial included by the base
+  layout. Use page title and description front matter with site-wide fallbacks.
+- Public pages should emit a production canonical URL, `index, follow`, Open Graph metadata,
+  a large Twitter card, descriptive social-image alt text, and Organisation/WebSite JSON-LD.
+- Use the original vehicle hero image as the default social preview and the public logo PNG as
+  the Organisation logo. Allow pages to override the canonical URL, social image, image alt,
+  and Open Graph type through front matter.
+- Mark authenticated member, account, vehicle-entry, and admin routes `noindex, nofollow`.
+  Do not add obsolete meta-keywords tags.
+
 ## Launch Homepage Detail
 
 The default homepage should be a concise, mobile-first recruitment landing page that:

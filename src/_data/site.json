@@ -4,6 +4,9 @@
   "url": "https://ipace-owners.org",
   "author": "i-Pace Owners Advocacy Group",
   "email": "contact@ipace-owners.org",
+  "logo": "/images/ipace-owners-logo.png",
+  "socialImage": "/images/ipace-hero.png",
+  "socialImageAlt": "A dark electric SUV representing I-PACE owners working together",
   "currentYear": 2025,
   "defaultMode": "launch"
 }

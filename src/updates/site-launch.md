@@ -4,6 +4,7 @@ date: 2026-07-18
 summary: "Join the group, add your cars and start building a stronger shared evidence base."
 layout: page.njk
 eyebrow: Site launch
+seoType: article
 ---
 
 The I-PACE Owners' Advocacy Group site is now live and ready for owners to join.
