@@ -157,11 +157,14 @@ knowledge, and data may be used in anonymised aggregate reporting if consent is 
   Place it to the right of the hero Join CTA on desktop, tablets, and wide or landscape phones;
   stack it below the CTA only on narrow mobile screens. Keep the CTA and garland as one unit
   above the fold, with the social proof visually subordinate to the CTA and without button
-  affordance. Model it closely on a clean gold car-decal winner's wreath:
+  affordance. Keep `Free to join. It takes less than a minute.` directly beneath the Join CTA
+  in its own CTA sub-group, not beneath the combined CTA-and-garland row. Model the garland
+  closely on a clean gold car-decal winner's wreath:
   a near-circular, open-crown arch built around continuous curved branches, with eight broad
-  alternating leaves per side. Rotate leaves away from the branch so each silhouette remains
-  distinct, and progressively reduce their size toward the crown. Use tapered filled stems
-  that are visibly heavier at the crossed base and finer near the open tips; extend the lower
+  alternating leaves per side plus one small final leaf close to each tip. Rotate leaves away
+  from the branch so each silhouette remains distinct, and progressively reduce their size
+  toward the crown. Use tapered filled stems that finish at a true point, are visibly heavier
+  at the crossed base and finer near the open tips; extend the lower
   branches well beyond the join. Give every leaf the same subtle darker-gold vein and faint
   edge, and use SVG paint order so an overlapping leaf or branch has a clear front edge. Do
   not use flags, a filled badge, wax-stamp treatment, heavy

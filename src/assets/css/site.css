@@ -633,9 +633,16 @@ th {
 }
 
 .launch-hero__note {
-  margin: var(--space-4) 0 0;
+  margin: var(--space-2) 0 0;
   color: rgba(255,255,255,0.72);
   font-size: var(--text-sm);
+  text-align: center;
+}
+
+.launch-hero__join {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .launch-hero__actions {
@@ -783,6 +790,7 @@ th {
 
 @media (max-width: 39.99em) {
   .launch-hero__actions,
+  .launch-hero__join,
   .launch-hero .btn,
   .launch-final-cta .btn {
     width: 100%;
