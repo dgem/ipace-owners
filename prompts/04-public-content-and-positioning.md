@@ -154,14 +154,17 @@ knowledge, and data may be used in anonymised aggregate reporting if consent is 
 - Do not include unverifiable statistics as real figures.
 - The launch homepage may show the live aggregate count of unique, non-excluded registered
   members since the 17 July 2026 launch as a compact, non-interactive racing winner's garland
-  beside the hero Join CTA on wide screens and below it on narrow screens. Keep it above the
-  fold as supporting social proof, visually subordinate to the CTA, and do not give it button
-  affordance. Model it on a clean gold motorsport decal: a broad oval winner's wreath with
-  fewer, larger leaves, generous central space, crossed bare stems, and flat gold colour. Do
-  not use flags, dark edging, a filled badge, wax-stamp treatment, leaf veins, heavy outlines,
-  or a decorative tie. Display only the large, unoutlined gold count inside the wreath. Place
-  compact white `Registered members` text and `Since 17 July 2026` as two quiet lines below
-  and outside the garland rather than squeezing supporting copy into the artwork.
+  directly below the hero Join CTA on both wide and narrow screens. Keep the CTA and garland
+  as one vertical unit above the fold, with the social proof visually subordinate to the CTA
+  and without button affordance. Model it closely on a clean gold car-decal winner's wreath:
+  a broad oval with
+  sparse, large leaves, generous central space, and long lower branches that cross and extend
+  beyond the join. Use flat gold without dark edging, adding subtle darker-gold veins to only a
+  few leaves for definition. Do not use flags, a filled badge, wax-stamp treatment, heavy
+  outlines, or a decorative tie. Display only the large, unoutlined gold count inside the
+  wreath and optically centre it slightly above the geometric midpoint. Place compact white
+  `Registered members` text and `Since 17 July 2026` as two quiet lines below and outside the
+  garland rather than squeezing supporting copy into the artwork.
 - Mark placeholder figures and illustrative examples clearly.
 - Do not use Jaguar/JLR logos, badges, readable plates, copyrighted press imagery, or other unlicensed manufacturer assets.
 - If using a vehicle image, make it original/licensed/generated, avoid visible brand marks, and provide meaningful alt text.

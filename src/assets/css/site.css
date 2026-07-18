@@ -643,6 +643,7 @@ th {
   flex-direction: column;
   gap: var(--space-4);
   align-items: center;
+  width: fit-content;
   margin-top: var(--space-6);
 }
 
@@ -678,6 +679,12 @@ th {
   fill: #e9bd52;
 }
 
+.launch-member-count__vein {
+  fill: none;
+  stroke: #80631e;
+  stroke-width: 0.7;
+}
+
 .launch-member-count__stem {
   fill: none;
   stroke: #e9bd52;
@@ -691,6 +698,7 @@ th {
   align-items: center;
   text-align: center;
   text-shadow: 0 0.12rem 0.2rem rgb(0 0 0 / 0.55);
+  transform: translateY(-0.45rem);
 }
 
 .launch-member-count__value {
@@ -768,13 +776,6 @@ th {
   .launch-hero .btn,
   .launch-final-cta .btn {
     justify-content: center;
-  }
-}
-
-@media (min-width: 48em) {
-  .launch-hero__actions {
-    flex-direction: row;
-    justify-content: flex-start;
   }
 }
 
