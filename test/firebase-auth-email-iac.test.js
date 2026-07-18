@@ -37,7 +37,7 @@ test('builds supported passwordless email configuration without restricted field
     emailDomainVerificationEndpoint('https://identitytoolkit.googleapis.com/admin/v2/projects/example/config'),
     'https://identitytoolkit.googleapis.com/admin/v2/projects/example/domain:verify',
   );
-  assert.throws(() => normalizeDomain('https://ipace-owners.org/account/', 'action domain'));
+  assert.throws(() => normalizeDomain('https://ipace-owners.org/member/account/', 'action domain'));
   assert.equal(normalizeDisplayName(' I-PACE Owners '), 'I-PACE Owners');
   assert.throws(() => normalizeDisplayName('x'.repeat(81)));
 });

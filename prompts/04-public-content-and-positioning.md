@@ -24,8 +24,8 @@ The public site should explain the group clearly, invite owners to participate, 
 The public presentation has two feature-flagged modes:
 
 - `launch` is the deployed default and focuses on recruitment. Its main navigation contains
-  Home, About, FAQ, and Join; authenticated identity/member controls remain available.
-- `full` preserves Evidence, Methodology, Updates, technical homepage sections, and extended
+  Home, About, FAQ, Updates, and Join; authenticated identity/member controls remain available.
+- `full` preserves Evidence, Methodology, technical homepage sections, and extended
   data-oriented calls to action. Reviewers can select it with `?site-mode=full`; the choice
   persists in session storage. `?site-mode=launch` restores launch mode.
 
@@ -43,9 +43,31 @@ Create or maintain:
 - Methodology: how evidence is collected, verified, anonymised, aggregated, and caveated.
 - Updates index: list update posts from `src/updates/`.
 - Individual update posts: Markdown with front matter.
+- Keep the Updates index and its navigation/footer links visible in launch mode. Launch-mode
+  visitors should see current operational updates, while historical posts marked
+  `fullModeOnly` remain hidden until full mode.
+- Publish a site-launch update dated 18 July 2026 that explains joining, passwordless access,
+  multiple vehicle registration, vehicle basics, SoH readings, service/fault timelines,
+  My Data, and consent-filtered aggregate reporting. Remind owners who do not receive their
+  activation link to check junk/spam/promotions, verify the address, and request a fresh link
+  rather than submitting the Join form again. Under "What you can do now", ask members to
+  spread the word by posting about the group on social media and sending the site link to
+  other I-PACE owners they know.
 - Contact: volunteer-run contact information and ways to help.
 - Privacy: placeholder until formal review before broader vehicle/evidence data collection.
 - Participation statement/terms: non-legal-action participation framing.
+
+## Search and social metadata
+
+- Render common SEO metadata through a single reusable head partial included by the base
+  layout. Use page title and description front matter with site-wide fallbacks.
+- Public pages should emit a production canonical URL, `index, follow`, Open Graph metadata,
+  a large Twitter card, descriptive social-image alt text, and Organisation/WebSite JSON-LD.
+- Use the original vehicle hero image as the default social preview and the public logo PNG as
+  the Organisation logo. Allow pages to override the canonical URL, social image, image alt,
+  and Open Graph type through front matter.
+- Mark authenticated member, account, vehicle-entry, and admin routes `noindex, nofollow`.
+  Do not add obsolete meta-keywords tags.
 
 ## Launch Homepage Detail
 

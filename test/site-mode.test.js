@@ -92,7 +92,7 @@ test('launch navigation and complete routes are marked declaratively', function 
   assert.equal(site.defaultMode, 'launch');
   assert.deepEqual(
     navigation.public.filter(function (item) { return item.launchVisible === false; }).map(function (item) { return item.label; }),
-    ['Evidence', 'Methodology', 'Updates']
+    ['Evidence', 'Methodology']
   );
   assert.match(base, /data-site-mode="\{\{ site\.defaultMode or 'launch' \}\}"/);
   assert.match(base, /:root:not\(\[data-site-mode="full"\]\)\s+\[data-site-mode-only="full"\]/);
@@ -100,4 +100,22 @@ test('launch navigation and complete routes are marked declaratively', function 
   assert.match(base, /This section is not part of the public launch/);
   assert.match(css, /:root:not\(\[data-site-mode="full"\]\)\s+\[data-site-mode-only="full"\]/);
   assert.match(css, /:root\[data-site-mode="full"\]\s+\[data-site-mode-only="launch"\]/);
+});
+
+test('launch mode exposes the current site update while hiding historical full-mode posts', function () {
+  var updatesIndex = fs.readFileSync(path.join(repoRoot, 'src/updates.njk'), 'utf8');
+  var launchUpdate = fs.readFileSync(path.join(repoRoot, 'src/updates/site-launch.md'), 'utf8');
+  var footer = fs.readFileSync(path.join(repoRoot, 'src/_includes/partials/footer.njk'), 'utf8');
+
+  assert.doesNotMatch(updatesIndex, /fullModeOnly: true/);
+  assert.match(updatesIndex, /post\.data\.fullModeOnly.*data-site-mode-only="full"/);
+  assert.match(footer, /<li><a href="\/updates\/"/);
+  assert.match(launchUpdate, /Register each of your I-PACEs/);
+  assert.match(launchUpdate, /State of Health readings/);
+  assert.match(launchUpdate, /service and fault timeline/);
+  assert.match(launchUpdate, /Post about the group on social media/);
+  assert.match(launchUpdate, /Send \[ipace-owners\.org\].*to other I-PACE owners you know/);
+  assert.match(launchUpdate, /help spread the word/);
+  assert.match(launchUpdate, /Check your junk, spam and promotions folders/);
+  assert.match(launchUpdate, /Request another link from the sign-in form/);
 });

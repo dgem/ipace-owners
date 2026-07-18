@@ -68,10 +68,13 @@ Firebase ID-token verification.
 Public aggregate snapshots may be written to static JSON files or Cloud Storage objects
 only after anonymisation, verification, and exclusion rules have been applied.
 The public statistics snapshot includes only an aggregate registered-member count: unique
-non-excluded Join email hashes created on or after the 17 July 2026 launch. It never exposes
-the hashes or underlying Join records, and snapshot schema changes must force cached objects
-to regenerate. Version the browser's public-stats request when the response schema changes so
-previously cached API responses cannot hide newly introduced fields.
+non-excluded Join email hashes created since registrations opened at 00:00 UTC on 16 July
+2026. This is deliberately distinct from the Firebase Authentication user total, which may
+contain earlier, test, duplicate, or otherwise non-qualifying accounts. The official public
+launch date remains 17 July 2026. The snapshot never exposes hashes or underlying Join
+records, and snapshot schema changes must force cached objects to regenerate. Version the
+browser's public-stats request when the response schema changes so previously cached API
+responses cannot hide newly introduced fields.
 
 ## Suggested Collections
 

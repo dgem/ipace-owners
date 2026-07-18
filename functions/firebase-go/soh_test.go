@@ -121,18 +121,18 @@ func TestAggregatePublicStatsUsesLegacyEmbeddedReading(t *testing.T) {
 	}
 }
 
-func TestRegisteredMembersSinceLaunchCountsUniqueNonExcludedMembers(t *testing.T) {
-	launch := time.Date(2026, time.July, 17, 0, 0, 0, 0, time.UTC)
+func TestRegisteredMembersSinceRegistrationCountsUniqueNonExcludedMembers(t *testing.T) {
+	registration := time.Date(2026, time.July, 16, 0, 0, 0, 0, time.UTC)
 	joins := []joinRecord{
-		{UserEmailHash: "member-1", CreatedAt: launch},
-		{UserEmailHash: "member-1", CreatedAt: launch.Add(time.Hour)},
-		{UserEmailHash: "member-2", CreatedAt: launch.Add(24 * time.Hour)},
-		{UserEmailHash: "before-launch", CreatedAt: launch.Add(-time.Second)},
-		{UserEmailHash: "excluded", CreatedAt: launch, Review: reviewRecord{Status: "excluded"}},
-		{CreatedAt: launch},
+		{UserEmailHash: "member-1", CreatedAt: registration},
+		{UserEmailHash: "member-1", CreatedAt: registration.Add(time.Hour)},
+		{UserEmailHash: "member-2", CreatedAt: registration.Add(24 * time.Hour)},
+		{UserEmailHash: "before-registration", CreatedAt: registration.Add(-time.Second)},
+		{UserEmailHash: "excluded", CreatedAt: registration, Review: reviewRecord{Status: "excluded"}},
+		{CreatedAt: registration},
 	}
 
-	if got := registeredMembersSince(joins, launch); got != 2 {
+	if got := registeredMembersSince(joins, registration); got != 2 {
 		t.Fatalf("registeredMembersSince() = %d, want 2", got)
 	}
 }

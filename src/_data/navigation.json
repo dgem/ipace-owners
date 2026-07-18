@@ -9,13 +9,13 @@
     },
     { "label": "Methodology", "url": "/methodology/", "launchVisible": false },
     { "label": "FAQ", "url": "/faq/" },
-    { "label": "Updates", "url": "/updates/", "launchVisible": false },
+    { "label": "Updates", "url": "/updates/" },
     { "label": "Join", "url": "/join/", "highlight": true }
   ],
   "member": [
     { "label": "My Data", "url": "/member/dashboard/" },
-    { "label": "My Vehicle", "url": "/submit-vehicle-data/" },
-    { "label": "Account", "url": "/account/" }
+    { "label": "My Vehicle", "url": "/member/submit-vehicle-data/" },
+    { "label": "Account", "url": "/member/account/" }
   ],
   "admin": [
     { "label": "Review Queue", "url": "/admin/review-queue/" },

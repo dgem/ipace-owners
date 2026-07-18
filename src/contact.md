@@ -20,7 +20,7 @@ Please check the [FAQ](/faq/) — many common questions are answered there.
 
 If you want to join the group, use the [Join page](/join/).
 
-If you want to submit vehicle data, use the [Submit Vehicle Data](/submit-vehicle-data/) form.
+If you want to submit vehicle data, use the [Submit Vehicle Data](/member/submit-vehicle-data/) form.
 
 ## Want to help?
 

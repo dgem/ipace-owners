@@ -7,7 +7,7 @@ test("accepts a preview URL belonging to the staging Firebase project", async ()
   assert.equal(
     previewHostname(
       "ipace-owners-staging",
-      "https://ipace-owners-staging--pr-20-ef2wibc5.web.app/account/",
+      "https://ipace-owners-staging--pr-20-ef2wibc5.web.app/member/account/",
     ),
     "ipace-owners-staging--pr-20-ef2wibc5.web.app",
   );

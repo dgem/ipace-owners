@@ -36,22 +36,22 @@ func TestOriginAllowed(t *testing.T) {
 
 func TestEmailContinueURLUsesAllowedRequestOrigin(t *testing.T) {
 	t.Setenv("FIREBASE_PROJECT_ID", "ipace-owners-staging")
-	t.Setenv("FIREBASE_EMAIL_CONTINUE_URL", "https://stage.ipace-owners.org/account/")
+	t.Setenv("FIREBASE_EMAIL_CONTINUE_URL", "https://stage.ipace-owners.org/member/account/")
 
 	got := emailContinueURLForOrigin("https://ipace-owners-staging--pr-20-ef2wibc5.web.app")
 
-	if got != "https://ipace-owners-staging--pr-20-ef2wibc5.web.app/account/" {
+	if got != "https://ipace-owners-staging--pr-20-ef2wibc5.web.app/member/account/" {
 		t.Fatalf("continue URL = %q", got)
 	}
 }
 
 func TestEmailContinueURLFallsBackForDisallowedOrigin(t *testing.T) {
 	t.Setenv("FIREBASE_PROJECT_ID", "ipace-owners-staging")
-	t.Setenv("FIREBASE_EMAIL_CONTINUE_URL", "https://stage.ipace-owners.org/account/")
+	t.Setenv("FIREBASE_EMAIL_CONTINUE_URL", "https://stage.ipace-owners.org/member/account/")
 
 	got := emailContinueURLForOrigin("https://evil.example")
 
-	if got != "https://stage.ipace-owners.org/account/" {
+	if got != "https://stage.ipace-owners.org/member/account/" {
 		t.Fatalf("continue URL = %q", got)
 	}
 }
@@ -64,27 +64,27 @@ func TestFirebaseEmailLinkDomainForContinueURLUsesCustomHostingDomain(t *testing
 	}{
 		{
 			name:        "production custom domain",
-			continueURL: "https://ipace-owners.org/account/",
+			continueURL: "https://ipace-owners.org/member/account/",
 			want:        "ipace-owners.org",
 		},
 		{
 			name:        "staging custom domain",
-			continueURL: "https://stage.ipace-owners.org/account/",
+			continueURL: "https://stage.ipace-owners.org/member/account/",
 			want:        "stage.ipace-owners.org",
 		},
 		{
 			name:        "preview web app",
-			continueURL: "https://ipace-owners-staging--pr-20-ef2wibc5.web.app/account/",
+			continueURL: "https://ipace-owners-staging--pr-20-ef2wibc5.web.app/member/account/",
 			want:        "",
 		},
 		{
 			name:        "preview firebaseapp",
-			continueURL: "https://ipace-owners-staging--pr-20-ef2wibc5.firebaseapp.com/account/",
+			continueURL: "https://ipace-owners-staging--pr-20-ef2wibc5.firebaseapp.com/member/account/",
 			want:        "",
 		},
 		{
 			name:        "localhost",
-			continueURL: "http://localhost:8080/account/",
+			continueURL: "http://localhost:8080/member/account/",
 			want:        "",
 		},
 	}
@@ -152,7 +152,7 @@ func TestEmailLogHelpersDoNotExposeRawEmail(t *testing.T) {
 }
 
 func TestURLHost(t *testing.T) {
-	if got := urlHost("https://stage.ipace-owners.org/account/?x=1"); got != "stage.ipace-owners.org" {
+	if got := urlHost("https://stage.ipace-owners.org/member/account/?x=1"); got != "stage.ipace-owners.org" {
 		t.Fatalf("urlHost() = %q", got)
 	}
 }
@@ -322,7 +322,7 @@ func TestIdentityToolkitSuccessFields(t *testing.T) {
 	fields := identityToolkitSuccessFields(
 		[]byte(`{"email":"driver@example.com"}`),
 		"driver@example.com",
-		"https://stage.ipace-owners.org/account/",
+		"https://stage.ipace-owners.org/member/account/",
 	)
 
 	if fields["providerEmailMatched"] != true {
@@ -342,14 +342,14 @@ func TestIdentityToolkitSuccessFields(t *testing.T) {
 func TestFirebaseEmailLinkPayloadUsesCustomHostingDomain(t *testing.T) {
 	payload := firebaseEmailLinkPayload(
 		"driver@example.com",
-		"https://ipace-owners.org/account/",
+		"https://ipace-owners.org/member/account/",
 		"ipace-owners.org",
 	)
 
 	if payload["linkDomain"] != "ipace-owners.org" {
 		t.Fatalf("linkDomain = %v", payload["linkDomain"])
 	}
-	if payload["continueUrl"] != "https://ipace-owners.org/account/" {
+	if payload["continueUrl"] != "https://ipace-owners.org/member/account/" {
 		t.Fatalf("continueUrl = %v", payload["continueUrl"])
 	}
 	if payload["canHandleCodeInApp"] != true {
@@ -360,7 +360,7 @@ func TestFirebaseEmailLinkPayloadUsesCustomHostingDomain(t *testing.T) {
 func TestFirebaseEmailLinkPayloadOmitsCustomDomainForPreview(t *testing.T) {
 	payload := firebaseEmailLinkPayload(
 		"driver@example.com",
-		"https://ipace-owners-staging--pr-20-ef2wibc5.web.app/account/",
+		"https://ipace-owners-staging--pr-20-ef2wibc5.web.app/member/account/",
 		"",
 	)
 
@@ -404,9 +404,9 @@ func TestJoinRecordFromRequestCapturesOptionalAggregateConsent(t *testing.T) {
 }
 
 func TestFirebaseEmailActionCodeSettings(t *testing.T) {
-	settings := firebaseEmailActionCodeSettings("https://ipace-owners.org/account/", "ipace-owners.org")
+	settings := firebaseEmailActionCodeSettings("https://ipace-owners.org/member/account/", "ipace-owners.org")
 
-	if settings.URL != "https://ipace-owners.org/account/" {
+	if settings.URL != "https://ipace-owners.org/member/account/" {
 		t.Fatalf("URL = %q", settings.URL)
 	}
 	if settings.HandleCodeInApp != true {
@@ -416,7 +416,7 @@ func TestFirebaseEmailActionCodeSettings(t *testing.T) {
 		t.Fatalf("LinkDomain = %q", settings.LinkDomain)
 	}
 
-	previewSettings := firebaseEmailActionCodeSettings("https://ipace-owners-staging--pr-20-ef2wibc5.web.app/account/", "")
+	previewSettings := firebaseEmailActionCodeSettings("https://ipace-owners-staging--pr-20-ef2wibc5.web.app/member/account/", "")
 	if previewSettings.LinkDomain != "" {
 		t.Fatalf("preview LinkDomain = %q", previewSettings.LinkDomain)
 	}
@@ -430,7 +430,7 @@ func TestResendMagicLinkPayloadUsesHeroImageAndReplyTo(t *testing.T) {
 	payload := resendMagicLinkPayload(
 		"driver@example.com",
 		"https://ipace-owners.org/__/auth/action?mode=signIn&oobCode=secret",
-		"https://ipace-owners.org/account/",
+		"https://ipace-owners.org/member/account/",
 	)
 
 	if payload["from"] != "I-PACE Owners <members@ipace-owners.org>" {
@@ -467,23 +467,23 @@ func TestEmailAssetBaseURLUsesPreviewOriginAndAvoidsGenericFirebaseHosts(t *test
 	}{
 		{
 			name:        "custom domain",
-			continueURL: "https://stage.ipace-owners.org/account/",
+			continueURL: "https://stage.ipace-owners.org/member/account/",
 			want:        "https://stage.ipace-owners.org",
 		},
 		{
 			name:        "preview host overrides static staging asset base",
-			continueURL: "https://ipace-owners-staging--pr-20-ef2wibc5.web.app/account/",
+			continueURL: "https://ipace-owners-staging--pr-20-ef2wibc5.web.app/member/account/",
 			envBaseURL:  "https://stage.ipace-owners.org",
 			want:        "https://ipace-owners-staging--pr-20-ef2wibc5.web.app",
 		},
 		{
 			name:        "generic Firebase host",
-			continueURL: "https://ipace-owners-staging.web.app/account/",
+			continueURL: "https://ipace-owners-staging.web.app/member/account/",
 			want:        "https://ipace-owners.org",
 		},
 		{
 			name:        "local",
-			continueURL: "http://localhost:8080/account/",
+			continueURL: "http://localhost:8080/member/account/",
 			want:        "https://ipace-owners.org",
 		},
 	}

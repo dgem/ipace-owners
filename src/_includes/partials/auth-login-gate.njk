@@ -1,0 +1,23 @@
+{% macro authLoginGate(inputId, title, body, sessionLabel = "member", showJoinLink = true) %}
+  <div class="auth-gate" data-auth-pending>
+    <h2 class="auth-gate__title">Checking sign-in...</h2>
+    <p class="auth-gate__body">One moment while we confirm your {{ sessionLabel }} session.</p>
+  </div>
+
+  <div class="auth-gate" data-auth-login-gate hidden>
+    <div class="auth-gate__icon" aria-hidden="true">🔒</div>
+    <h2 class="auth-gate__title">{{ title }}</h2>
+    <p class="auth-gate__body">{{ body }}</p>
+    <form class="magic-link-form" data-magic-link-form>
+      <label for="{{ inputId }}">Email address</label>
+      <input id="{{ inputId }}" name="email" type="email" autocomplete="email" required>
+      <button class="btn btn--primary full-width" type="submit">Email me a sign-in link</button>
+      <p class="form-hint" data-magic-link-status role="status" aria-live="polite"></p>
+    </form>
+    {% if showJoinLink %}
+      <p class="form-hint" style="margin-top: var(--space-3);">
+        Not a member yet? <a href="/join/">Join the group</a> first.
+      </p>
+    {% endif %}
+  </div>
+{% endmacro %}

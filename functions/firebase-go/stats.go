@@ -11,9 +11,9 @@ import (
 	"time"
 )
 
-const publicStatsSchemaVersion = 2
+const publicStatsSchemaVersion = 3
 
-var publicLaunchDate = time.Date(2026, time.July, 17, 0, 0, 0, 0, time.UTC)
+var publicRegistrationDate = time.Date(2026, time.July, 16, 0, 0, 0, 0, time.UTC)
 
 func PublicStats(w http.ResponseWriter, r *http.Request) {
 	if cors(w, r) {
@@ -73,7 +73,7 @@ func buildPublicStatsSnapshot(ctx context.Context) (publicStatsSnapshot, error) 
 			consented[record.UserEmailHash] = true
 		}
 	}
-	registeredMembers := registeredMembersSince(joins, publicLaunchDate)
+	registeredMembers := registeredMembersSince(joins, publicRegistrationDate)
 	return aggregatePublicStats(vehicles, readings, consented, registeredMembers, time.Now().UTC()), nil
 }
 

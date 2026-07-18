@@ -129,7 +129,7 @@ func emailContinueURLForOrigin(origin string) string {
 	if originAllowed(origin) {
 		parsed, err := url.Parse(origin)
 		if err == nil && parsed.Scheme != "" && parsed.Host != "" {
-			parsed.Path = "/account/"
+			parsed.Path = "/member/account/"
 			parsed.RawQuery = ""
 			parsed.Fragment = ""
 			return parsed.String()
@@ -138,7 +138,7 @@ func emailContinueURLForOrigin(origin string) string {
 	if value := os.Getenv("FIREBASE_EMAIL_CONTINUE_URL"); value != "" {
 		return value
 	}
-	return "https://ipace-owners.org/account/"
+	return "https://ipace-owners.org/member/account/"
 }
 
 func firebaseEmailLinkDomainForContinueURL(continueURL string) string {

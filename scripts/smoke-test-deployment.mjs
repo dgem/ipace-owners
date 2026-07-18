@@ -72,11 +72,11 @@ async function main() {
   const home = await fetchText('/');
   assertIncludesAny(home, ['i-Pace Owners', 'I-PACE Owners', 'Owners working together'], 'home page');
 
-  const account = await fetchText('/account/');
+  const account = await fetchText('/member/account/');
   assertIncludes(account, 'data-magic-link-form', 'account page');
   assertNotIncludes(account, 'data-identity-open', 'account page');
 
-  const vehicle = await fetchText('/submit-vehicle-data/');
+  const vehicle = await fetchText('/member/submit-vehicle-data/');
   assertIncludes(vehicle, 'data-magic-link-form', 'vehicle page');
 
   const identityJs = await fetchText('/assets/js/identity.js');

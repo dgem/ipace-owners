@@ -2,7 +2,10 @@
 layout: base.njk
 title: Account
 description: "Your account — I-PACE Owners' Advocacy Group."
+noindex: true
 ---
+
+{% from "partials/auth-login-gate.njk" import authLoginGate %}
 
 <div class="page-header">
 	<div class="container">
@@ -17,29 +20,7 @@ description: "Your account — I-PACE Owners' Advocacy Group."
 			 <!-- Server-side auth container: member-auth.js verifies via /api/member-data -->
 			<div data-auth-container>
 
-				 <!-- Login gate — shown by default when server confirms not authenticated -->
-				<div class="auth-gate" data-auth-pending>
-					<h2 class="auth-gate__title">Checking sign-in...</h2>
-					<p class="auth-gate__body">One moment while we confirm your member session.</p>
-				</div>
-
-				<div class="auth-gate" data-auth-login-gate hidden>
-					<div class="auth-gate__icon" aria-hidden="true">🔒</div>
-					<h2 class="auth-gate__title">Sign in to view your account</h2>
-					<p class="auth-gate__body">
-						Enter your email address and we will send a secure sign-in link so you can access your membership details,
-						track data for one or more vehicles, and manage your preferences.
-					</p>
-					<form class="magic-link-form" data-magic-link-form>
-						<label for="account-magic-email">Email address</label>
-						<input id="account-magic-email" name="email" type="email" autocomplete="email" required>
-						<button class="btn btn--primary full-width" type="submit">Email me a sign-in link</button>
-						<p class="form-hint" data-magic-link-status role="status" aria-live="polite"></p>
-					</form>
-					<p class="form-hint" style="margin-top: var(--space-3);">
-						Not a member yet? <a href="/join/">Join the group</a> first.
-					</p>
-				</div>
+				{{ authLoginGate("account-magic-email", "Sign in to view your account", "Enter your email address and we will send a secure sign-in link so you can access your membership details, track data for one or more vehicles, and manage your preferences.") }}
 
 				 <!-- Content — revealed by member-auth.js after server confirms auth -->
 				<div class="auth-content" data-auth-content hidden>
@@ -78,7 +59,7 @@ description: "Your account — I-PACE Owners' Advocacy Group."
 									<h2 class="dashboard-panel__title">Your vehicles</h2>
 									<p class="dashboard-panel__lede">Registered I-PACE records attached to your member account.</p>
 								</div>
-								<a href="/submit-vehicle-data/" class="btn btn--primary btn--sm">Add another vehicle</a>
+								<a href="/member/submit-vehicle-data/" class="btn btn--primary btn--sm">Add another vehicle</a>
 							</div>
 							<div data-vehicle-container>
 								<div data-vehicle-list>
