@@ -158,11 +158,13 @@ knowledge, and data may be used in anonymised aggregate reporting if consent is 
   stack it below the CTA only on narrow mobile screens. Keep the CTA and garland as one unit
   above the fold, with the social proof visually subordinate to the CTA and without button
   affordance. Model it closely on a clean gold car-decal winner's wreath:
-  a near-circular arch built around continuous curved branches, with sparse broad leaves
-  anchored to and aligned tangentially along each branch. The lower branches should cross and
-  extend well beyond the join. Use flat gold without dark edging, adding subtle darker-gold
-  veins to only a few leaves for definition. Do not use flags, a filled badge, wax-stamp
-  treatment, heavy
+  a near-circular, open-crown arch built around continuous curved branches, with eight broad
+  alternating leaves per side. Rotate leaves away from the branch so each silhouette remains
+  distinct, and progressively reduce their size toward the crown. Use tapered filled stems
+  that are visibly heavier at the crossed base and finer near the open tips; extend the lower
+  branches well beyond the join. Give every leaf the same subtle darker-gold vein and faint
+  edge, and use SVG paint order so an overlapping leaf or branch has a clear front edge. Do
+  not use flags, a filled badge, wax-stamp treatment, heavy
   outlines, or a decorative tie. Display only the large, unoutlined gold count inside the
   wreath and optically centre it slightly above the geometric midpoint. Place compact white
   `Registered members` text and `Since 17 July 2026` as two quiet lines below and outside the

@@ -677,18 +677,20 @@ th {
 
 .launch-member-count__leaf {
   fill: #e9bd52;
+  stroke: #9d7925;
+  stroke-width: 0.65;
 }
 
 .launch-member-count__vein {
   fill: none;
-  stroke: #80631e;
-  stroke-width: 0.7;
+  stroke: #9d7925;
+  stroke-width: 0.65;
 }
 
 .launch-member-count__stem {
-  fill: none;
-  stroke: #e9bd52;
-  stroke-width: 1.7;
+  fill: #e9bd52;
+  stroke: #9d7925;
+  stroke-width: 0.6;
 }
 
 .launch-member-count__content {
