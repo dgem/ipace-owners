@@ -55,7 +55,7 @@
     renderDistribution(root.querySelector('[data-public-distribution="model-year"]'), data.modelYearDistribution);
   }
 
-  fetch('/api/public-stats')
+  fetch('/api/public-stats?v=2')
     .then(function (response) {
       if (!response.ok) throw new Error('Public statistics returned ' + response.status);
       return response.json();

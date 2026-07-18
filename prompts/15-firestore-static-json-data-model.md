@@ -70,7 +70,8 @@ only after anonymisation, verification, and exclusion rules have been applied.
 The public statistics snapshot includes only an aggregate registered-member count: unique
 non-excluded Join email hashes created on or after the 17 July 2026 launch. It never exposes
 the hashes or underlying Join records, and snapshot schema changes must force cached objects
-to regenerate.
+to regenerate. Version the browser's public-stats request when the response schema changes so
+previously cached API responses cannot hide newly introduced fields.
 
 ## Suggested Collections
 

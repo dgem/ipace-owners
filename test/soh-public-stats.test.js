@@ -31,5 +31,5 @@ test('homepage and evidence dashboard load real public aggregate statistics', fu
   assert.match(dashboard, /data-public-stat="averageReportedSoh"/);
   assert.match(dashboard, /data-public-distribution="soh"/);
   assert.doesNotMatch(dashboard, /Illustrative data|Sample data|Placeholder data/);
-  assert.match(stats, /fetch\('\/api\/public-stats'\)/);
+  assert.match(stats, /fetch\('\/api\/public-stats\?v=2'\)/);
 });
