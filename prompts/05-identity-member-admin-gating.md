@@ -40,7 +40,10 @@ server-side by Go Cloud Functions that validate Firebase ID tokens.
 - Update header and mobile controls based on current user state.
 - Show public `Join` CTA only to guests. Signed-in users must have exactly one obvious
   `My Data` route to `/member/dashboard/` in desktop and mobile navigation. The signed-in
-  email address should link to `/account/` as the account-management route.
+  email address should link to `/member/account/` as the account-management route.
+- Keep authenticated account and vehicle-registration templates within `src/member/`, at
+  `/member/account/` and `/member/submit-vehicle-data/`. Permanently redirect their former
+  top-level routes so bookmarks and previously issued links remain usable.
 - Support `[data-magic-link-form]` with `[data-magic-link-status]`.
 - Handle `multistep:submitted` + `data-database-submit`.
 - Do not reveal gated content directly. Gated content is revealed only by

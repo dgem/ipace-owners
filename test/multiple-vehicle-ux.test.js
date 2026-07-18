@@ -8,7 +8,7 @@ var test = require('node:test');
 var repoRoot = path.join(__dirname, '..');
 
 test('member/account UI treats vehicle records as a list', function () {
-  var account = fs.readFileSync(path.join(repoRoot, 'src/account.njk'), 'utf8');
+  var account = fs.readFileSync(path.join(repoRoot, 'src/member/account.njk'), 'utf8');
   var dashboard = fs.readFileSync(path.join(repoRoot, 'src/member/dashboard.njk'), 'utf8');
   var memberAuth = fs.readFileSync(path.join(repoRoot, 'src/assets/js/member-auth.js'), 'utf8');
 
@@ -24,7 +24,7 @@ test('member/account UI treats vehicle records as a list', function () {
 });
 
 test('vehicle basics form invites adding each I-PACE separately', function () {
-  var vehicleForm = fs.readFileSync(path.join(repoRoot, 'src/submit-vehicle-data.njk'), 'utf8');
+  var vehicleForm = fs.readFileSync(path.join(repoRoot, 'src/member/submit-vehicle-data.njk'), 'utf8');
   var identity = fs.readFileSync(path.join(repoRoot, 'src/assets/js/identity.js'), 'utf8');
   var multistep = fs.readFileSync(path.join(repoRoot, 'src/assets/js/multistep-form.js'), 'utf8');
   var css = fs.readFileSync(path.join(repoRoot, 'src/assets/css/site.css'), 'utf8');

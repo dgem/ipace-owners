@@ -20,7 +20,7 @@ github_owner = "dgem"
 github_repo  = "ipace-owners"
 
 allowed_origins = "https://ipace-owners.org,https://www.ipace-owners.org"
-site_url        = "https://ipace-owners.org/account/"
+site_url        = "https://ipace-owners.org/member/account/"
 # firebase_auth_authorized_domains = ["www.ipace-owners.org"]
 
 # Isolate automated authentication mail from the apex domain's human mailboxes.

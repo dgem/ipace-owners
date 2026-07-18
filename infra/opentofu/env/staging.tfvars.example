@@ -20,7 +20,7 @@ github_owner = "dgem"
 github_repo  = "ipace-owners"
 
 allowed_origins = "https://stage.ipace-owners.org,http://localhost:8080,http://localhost:5000"
-site_url        = "https://stage.ipace-owners.org/account/"
+site_url        = "https://stage.ipace-owners.org/member/account/"
 
 # Use a separate sender subdomain so staging DNS cannot affect production mail.
 # Add Firebase's TXT/CNAME records at Fasthosts without changing MX records, then run:

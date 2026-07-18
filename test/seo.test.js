@@ -32,8 +32,8 @@ test('base layout renders shared canonical, social and structured SEO metadata',
 
 test('private account, vehicle, member and admin pages opt out of indexing', function () {
   [
-    'src/account.njk',
-    'src/submit-vehicle-data.njk',
+    'src/member/account.njk',
+    'src/member/submit-vehicle-data.njk',
     'src/member/dashboard.njk',
     'src/admin/review-queue.njk',
   ].forEach(function (file) {

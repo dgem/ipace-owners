@@ -242,7 +242,7 @@
     content.hidden = false;
     if (!vehicles.length) {
       tabs.innerHTML = '<h2>Your vehicles</h2>';
-      target.innerHTML = '<div class="vehicle-empty-state vehicle-empty-state--large"><h2>Add your first vehicle</h2><p>Register the basics to start recording battery health and service history.</p><a class="btn btn--primary" href="/submit-vehicle-data/">Add vehicle</a></div>';
+      target.innerHTML = '<div class="vehicle-empty-state vehicle-empty-state--large"><h2>Add your first vehicle</h2><p>Register the basics to start recording battery health and service history.</p><a class="btn btn--primary" href="/member/submit-vehicle-data/">Add vehicle</a></div>';
       return;
     }
     if (!vehicles.some(function (vehicle) { return vehicle.id === activeVehicleId; })) activeVehicleId = vehicles[0].id;

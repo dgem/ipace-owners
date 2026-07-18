@@ -4,7 +4,7 @@ Use this prompt when changing:
 
 - `functions/firebase-go` `MemberData` or `AdminData`
 - `src/assets/js/member-auth.js`
-- member dashboard/account/admin review queue data rendering
+- member dashboard/member/account/admin review queue data rendering
 
 ## Goal
 

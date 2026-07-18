@@ -3,7 +3,7 @@
 Use this prompt when changing:
 
 - `functions/firebase-go` vehicle basics handler
-- `src/submit-vehicle-data.njk`
+- `src/member/submit-vehicle-data.njk`
 - vehicle-basics submission behavior in `src/assets/js/identity.js`
 
 ## Goal

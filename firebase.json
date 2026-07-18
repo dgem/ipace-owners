@@ -40,6 +40,28 @@
         ]
       }
     ],
+    "redirects": [
+      {
+        "source": "/account",
+        "destination": "/member/account/",
+        "type": 301
+      },
+      {
+        "source": "/account/**",
+        "destination": "/member/account/",
+        "type": 301
+      },
+      {
+        "source": "/submit-vehicle-data",
+        "destination": "/member/submit-vehicle-data/",
+        "type": 301
+      },
+      {
+        "source": "/submit-vehicle-data/**",
+        "destination": "/member/submit-vehicle-data/",
+        "type": 301
+      }
+    ],
     "rewrites": [
       {
         "source": "/api/**",

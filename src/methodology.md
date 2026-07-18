@@ -19,7 +19,7 @@ media, and consumer rights bodies can understand and trust our evidence.
 
 ## How data is collected
 
-Owners submit data voluntarily through the [vehicle data form](/submit-vehicle-data/). The form
+Owners submit data voluntarily through the [vehicle data form](/member/submit-vehicle-data/). The form
 currently captures:
 
 - Vehicle details and identification

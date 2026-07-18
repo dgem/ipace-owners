@@ -13,9 +13,9 @@ function read(relativePath) {
 
 test('site UI uses Firebase passwordless magic-link forms', function () {
   var files = [
-    'src/account.njk',
+    'src/member/account.njk',
     'src/member/dashboard.njk',
-    'src/submit-vehicle-data.njk',
+    'src/member/submit-vehicle-data.njk',
     'src/admin/review-queue.njk',
     'src/assets/js/identity.js',
   ];
@@ -26,9 +26,9 @@ test('site UI uses Firebase passwordless magic-link forms', function () {
     assert.doesNotMatch(source, /identity\.open\(/, file);
   });
 
-  assert.match(read('src/account.njk'), /data-magic-link-form/);
+  assert.match(read('src/member/account.njk'), /data-magic-link-form/);
   assert.match(read('src/member/dashboard.njk'), /data-magic-link-form/);
-  assert.match(read('src/submit-vehicle-data.njk'), /data-magic-link-form/);
+  assert.match(read('src/member/submit-vehicle-data.njk'), /data-magic-link-form/);
   assert.match(read('src/admin/review-queue.njk'), /data-magic-link-form/);
   assert.match(read('src/assets/js/identity.js'), /\/api\/send-magic-link/);
   assert.match(read('src/assets/js/identity.js'), /If this email address is registered/);
@@ -83,7 +83,7 @@ test('member data fetches include Identity bearer tokens', function () {
 });
 
 test('account preferences render from saved member data', function () {
-  var account = read('src/account.njk');
+  var account = read('src/member/account.njk');
   var memberAuth = read('src/assets/js/member-auth.js');
   var css = read('src/assets/css/site.css');
 
@@ -100,8 +100,8 @@ test('account preferences render from saved member data', function () {
 test('protected pages do not show login gates before auth verification completes', function () {
   [
     'src/member/dashboard.njk',
-    'src/account.njk',
-    'src/submit-vehicle-data.njk',
+    'src/member/account.njk',
+    'src/member/submit-vehicle-data.njk',
     'src/admin/review-queue.njk',
   ].forEach(function (file) {
     var source = read(file);
@@ -133,7 +133,7 @@ test('homepage vehicle CTAs switch between guest and signed-in states', function
   var home = read('src/index.njk');
 
   assert.match(home, /data-requires-guest[\s\S]*Join to Submit Vehicle Data/);
-  assert.match(home, /href="\/submit-vehicle-data\/"[\s\S]*data-requires-auth/);
+  assert.match(home, /href="\/member\/submit-vehicle-data\/"[\s\S]*data-requires-auth/);
 });
 
 test('multi-step forms do not scroll on every step unless explicitly opted in', function () {
@@ -141,5 +141,5 @@ test('multi-step forms do not scroll on every step unless explicitly opted in', 
 
   assert.match(multistep, /data-scroll-on-step-change/);
   assert.doesNotMatch(read('src/join.njk'), /data-scroll-on-step-change/);
-  assert.doesNotMatch(read('src/submit-vehicle-data.njk'), /data-scroll-on-step-change/);
+  assert.doesNotMatch(read('src/member/submit-vehicle-data.njk'), /data-scroll-on-step-change/);
 });
