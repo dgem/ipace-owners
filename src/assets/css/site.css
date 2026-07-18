@@ -650,41 +650,22 @@ th {
   position: relative;
   display: grid;
   flex: 0 0 auto;
-  width: 7.25rem;
-  aspect-ratio: 1;
-  overflow: hidden;
-  color: #180509;
-  background: radial-gradient(circle at 34% 28%, #d65355 0, #a92436 44%, #701524 100%);
-  border: 0.18rem solid #e4b954;
-  border-radius: 50%;
-  box-shadow:
-    inset 0 0 0 0.18rem rgb(82 9 23 / 0.55),
-    inset 0.3rem 0.35rem 0.7rem rgb(255 255 255 / 0.14),
-    inset -0.3rem -0.4rem 0.75rem rgb(45 3 12 / 0.38),
-    0 0.5rem 1rem rgb(0 0 0 / 0.28);
-  transform: rotate(-2deg);
+  width: 9.5rem;
+  min-height: 7rem;
+  color: #fff;
   place-items: center;
-}
-
-.launch-member-count::before {
-  position: absolute;
-  inset: 0.28rem;
-  content: "";
-  border: 1px solid rgb(255 231 168 / 0.62);
-  border-radius: inherit;
-  box-shadow: 0 0 0 1px rgb(82 9 23 / 0.45);
 }
 
 .launch-member-count__laurels {
   position: absolute;
-  inset: 0.35rem;
-  width: calc(100% - 0.7rem);
-  height: calc(100% - 0.7rem);
-  fill: #f3cb69;
-  stroke: #f3cb69;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: #e9bd52;
+  stroke: #e9bd52;
   stroke-linecap: round;
-  stroke-width: 1.5;
-  filter: drop-shadow(0 1px 0 rgb(82 9 23 / 0.65));
+  stroke-width: 1.7;
+  filter: drop-shadow(0 0.12rem 0.12rem rgb(0 0 0 / 0.35));
 }
 
 .launch-member-count__content {
@@ -693,9 +674,7 @@ th {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  text-shadow:
-    0 1px 0 rgb(255 231 168 / 0.55),
-    0 -1px 0 rgb(82 9 23 / 0.35);
+  text-shadow: 0 0.12rem 0.2rem rgb(0 0 0 / 0.55);
 }
 
 .launch-member-count__value {
@@ -703,15 +682,13 @@ th {
   font-weight: 800;
   letter-spacing: -0.04em;
   line-height: 1;
-  text-shadow:
-    0 1px 0 rgb(255 231 168 / 0.7),
-    0 2px 2px rgb(82 9 23 / 0.28);
 }
 
 .launch-member-count__label {
   margin-top: 0.1rem;
   font-size: 0.58rem;
   font-weight: 800;
+  color: #f2ca6b;
   letter-spacing: 0.09em;
   line-height: 1.05;
   text-transform: uppercase;
@@ -721,7 +698,7 @@ th {
   margin-top: 0.2rem;
   font-size: 0.48rem;
   letter-spacing: 0.025em;
-  opacity: 0.9;
+  opacity: 0.82;
 }
 
 .launch-purpose h2,
