@@ -89,7 +89,8 @@ highest preview or Current release number:
 - npm and Go dependencies use current compatible stable releases recorded in their lock or
   checksum files. GitHub Actions use their latest supported major releases.
 
-Dependabot checks npm, Go modules, GitHub Actions and OpenTofu providers weekly. Update PRs
+Dependabot checks npm, Go modules, GitHub Actions and OpenTofu providers weekly, grouping
+compatible minor and patch updates by ecosystem to reduce PR noise. Update PRs
 must pass `make lint`, `make test`, `make build`, and
 `tofu -chdir=infra/opentofu/env validate`; major
 updates require release-note and migration-guide review before merging. Do not retain an old
@@ -103,6 +104,17 @@ make lint
 
 Checks JavaScript, CSS, Markdown, JSON/YAML, Nunjucks templates, Bash, Go, OpenTofu/HCL,
 and SVG/XML. Each check is also available through the corresponding `make lint-*` target.
+
+### Security audit
+
+```bash
+make audit
+```
+
+Runs `npm audit` with a high-severity failure threshold and pinned `govulncheck` analysis for
+reachable Go vulnerabilities. GitHub Actions additionally runs CodeQL and dependency review
+on pull requests and a weekly schedule. Firebase PR previews receive a blocking passive OWASP
+ZAP baseline scan after deployment smoke tests pass.
 
 ### Production build
 

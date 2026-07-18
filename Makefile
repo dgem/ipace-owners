@@ -6,9 +6,10 @@ GCP_REGION ?= europe-west2
 FUNCTION_ENTRYPOINTS ?= Api
 FIREBASE_PREVIEW_JSON ?= firebase-preview.json
 FIREBASE_PREVIEW_ERROR ?= firebase-preview-error.log
+GOVULNCHECK_VERSION ?= v1.6.0
 INFRA_ENV_SCRIPT := scripts/infra-env.sh
 
-.PHONY: help functions install ci-install dev build clean lint lint-js lint-css lint-markdown lint-data lint-templates lint-shell lint-go lint-tofu lint-svg test test-node test-go smoke write-functions-env authorize-preview-domain deploy-functions deploy-hosting-preview deploy-hosting-production infra-config infra-auth infra-init infra-workspace infra-dns-records infra-resend-dns-records infra-email-domain infra-plan infra-apply deploy-hosting-env
+.PHONY: help functions install ci-install dev build clean lint lint-js lint-css lint-markdown lint-data lint-templates lint-shell lint-go lint-tofu lint-svg audit audit-node audit-go test test-node test-go smoke write-functions-env authorize-preview-domain deploy-functions deploy-hosting-preview deploy-hosting-production infra-config infra-auth infra-init infra-workspace infra-dns-records infra-resend-dns-records infra-email-domain infra-plan infra-apply deploy-hosting-env
 
 help: ## Show available make targets.
 	@awk 'BEGIN {FS = ":.*##"; printf "Available targets:\n"} /^[a-zA-Z0-9_.-]+:.*##/ {printf "  %-28s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -60,6 +61,14 @@ lint-tofu: ## Check OpenTofu/HCL formatting recursively.
 
 lint-svg: ## Validate SVG/XML syntax.
 	node scripts/lint-svg.mjs
+
+audit: audit-node audit-go ## Check Node and Go dependencies for known vulnerabilities.
+
+audit-node: ## Fail on high or critical Node dependency vulnerabilities.
+	npm audit --audit-level=high
+
+audit-go: ## Check Go code for reachable known vulnerabilities.
+	cd functions/firebase-go && go run golang.org/x/vuln/cmd/govulncheck@$(GOVULNCHECK_VERSION) ./...
 
 test: test-node test-go ## Run all local test suites.
 

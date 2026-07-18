@@ -128,6 +128,17 @@ jobs:
           SMOKE_BASE_URL: ${{ steps.hosting.outputs.url }}
         run: make smoke
 
+      - name: OWASP ZAP baseline scan
+        uses: zaproxy/action-baseline@v0.15.0
+        with:
+          target: ${{ steps.hosting.outputs.url }}
+          docker_name: ghcr.io/zaproxy/zaproxy:2.17.0
+          rules_file_name: .zap/rules.tsv
+          cmd_options: -m 3
+          fail_action: true
+          allow_issue_writing: false
+          artifact_name: zap-baseline-report
+
       - name: Comment preview details
         if: always()
         uses: actions/github-script@v9

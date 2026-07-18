@@ -8,7 +8,7 @@
     <div class="auth-gate__icon" aria-hidden="true">🔒</div>
     <h2 class="auth-gate__title">{{ title }}</h2>
     <p class="auth-gate__body">{{ body }}</p>
-    <form class="magic-link-form" data-magic-link-form>
+    <form class="magic-link-form" method="POST" action="/api/send-magic-link" data-magic-link-form>
       <label for="{{ inputId }}">Email address</label>
       <input id="{{ inputId }}" name="email" type="email" autocomplete="email" required>
       <button class="btn btn--primary full-width" type="submit">Email me a sign-in link</button>

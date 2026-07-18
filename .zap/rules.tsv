@@ -1,0 +1,12 @@
+# rule_id	action	reason
+10015	IGNORE	Firebase Hosting cache directives are managed in firebase.json and reviewed separately.
+10017	IGNORE	Firebase Authentication SDK scripts are intentionally loaded from Google's CDN.
+10027	IGNORE	Reviewed source comments in static JavaScript do not disclose secrets or operational credentials.
+10035	IGNORE	TLS termination and HSTS for Hosting and rewritten Function responses are platform-managed.
+10049	IGNORE	Public static pages and aggregate responses are intentionally cacheable.
+10050	IGNORE	Firebase Hosting is expected to serve public static pages from cache.
+10055	IGNORE	The deployed CSP is explicit for this static site and permits the required Firebase services.
+10109	IGNORE	The site uses JavaScript progressively and is expected to be identified as a modern web application.
+10202	IGNORE	Forms use server-side origin, authentication, validation, and rate-limit controls instead of synchronizer tokens.
+90003	IGNORE	Versioned Firebase SDK modules are intentionally loaded from Google's CDN without fixed SRI hashes.
+90004	IGNORE	Cross-origin isolation is incompatible with the required Firebase Authentication SDK resources.
