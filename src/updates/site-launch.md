@@ -24,6 +24,11 @@ consistent outcomes.
 - **Review your information in My Data** whenever you sign in.
 - **Contribute to anonymised aggregate statistics** when you give permission for your data
   to be included.
+- **Post about the group on social media** to help more owners find us.
+- **Send [ipace-owners.org](https://ipace-owners.org/) to other I-PACE owners you know** and
+  invite them to join.
+
+Every owner who joins strengthens our shared voice. Please help spread the word.
 
 The site supports more than one vehicle per member. If you own or have owned multiple
 I-PACEs, add each one separately so its history remains accurate.

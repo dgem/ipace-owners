@@ -113,6 +113,9 @@ test('launch mode exposes the current site update while hiding historical full-m
   assert.match(launchUpdate, /Register each of your I-PACEs/);
   assert.match(launchUpdate, /State of Health readings/);
   assert.match(launchUpdate, /service and fault timeline/);
+  assert.match(launchUpdate, /Post about the group on social media/);
+  assert.match(launchUpdate, /Send \[ipace-owners\.org\].*to other I-PACE owners you know/);
+  assert.match(launchUpdate, /help spread the word/);
   assert.match(launchUpdate, /Check your junk, spam and promotions folders/);
   assert.match(launchUpdate, /Request another link from the sign-in form/);
 });

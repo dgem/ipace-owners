@@ -50,7 +50,9 @@ Create or maintain:
   multiple vehicle registration, vehicle basics, SoH readings, service/fault timelines,
   My Data, and consent-filtered aggregate reporting. Remind owners who do not receive their
   activation link to check junk/spam/promotions, verify the address, and request a fresh link
-  rather than submitting the Join form again.
+  rather than submitting the Join form again. Under "What you can do now", ask members to
+  spread the word by posting about the group on social media and sending the site link to
+  other I-PACE owners they know.
 - Contact: volunteer-run contact information and ways to help.
 - Privacy: placeholder until formal review before broader vehicle/evidence data collection.
 - Participation statement/terms: non-legal-action participation framing.
