@@ -9,11 +9,24 @@ import (
 	"os"
 	"sort"
 	"time"
+
+	"firebase.google.com/go/v4/auth"
+	"google.golang.org/api/iterator"
 )
 
-const publicStatsSchemaVersion = 3
+const publicStatsSchemaVersion = 4
 
-var publicRegistrationDate = time.Date(2026, time.July, 16, 0, 0, 0, 0, time.UTC)
+type firebaseAuthUserIterator interface {
+	Next() (*auth.ExportedUserRecord, error)
+}
+
+var firebaseAuthUsers = func(ctx context.Context) (firebaseAuthUserIterator, error) {
+	client, err := firebaseAuth(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return client.Users(ctx, ""), nil
+}
 
 func PublicStats(w http.ResponseWriter, r *http.Request) {
 	if cors(w, r) {
@@ -27,6 +40,7 @@ func PublicStats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	snapshot, err := readPublicStatsObject(r.Context())
+	builtSnapshot := false
 	if err == nil && snapshot.SchemaVersion < publicStatsSchemaVersion {
 		err = fmt.Errorf("public statistics snapshot schema is outdated")
 	}
@@ -36,7 +50,15 @@ func PublicStats(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Could not load public statistics"})
 			return
 		}
+		builtSnapshot = true
 		_ = writePublicStatsObject(r.Context(), snapshot)
+	}
+	if !builtSnapshot {
+		var updated bool
+		snapshot, updated = refreshRegisteredMemberCount(r.Context(), snapshot, time.Now().UTC())
+		if updated {
+			_ = writePublicStatsObject(r.Context(), snapshot)
+		}
 	}
 	w.Header().Set("Cache-Control", "public, max-age=300, stale-while-revalidate=3600")
 	writeJSON(w, http.StatusOK, snapshot)
@@ -73,19 +95,39 @@ func buildPublicStatsSnapshot(ctx context.Context) (publicStatsSnapshot, error) 
 			consented[record.UserEmailHash] = true
 		}
 	}
-	registeredMembers := registeredMembersSince(joins, publicRegistrationDate)
+	registeredMembers, err := registeredFirebaseAuthUsers(ctx)
+	if err != nil {
+		return publicStatsSnapshot{}, err
+	}
 	return aggregatePublicStats(vehicles, readings, consented, registeredMembers, time.Now().UTC()), nil
 }
 
-func registeredMembersSince(joins []joinRecord, launchDate time.Time) int {
-	members := map[string]bool{}
-	for _, record := range joins {
-		if record.UserEmailHash == "" || record.CreatedAt.Before(launchDate) || record.Review.Status == "excluded" {
-			continue
-		}
-		members[record.UserEmailHash] = true
+func registeredFirebaseAuthUsers(ctx context.Context) (int, error) {
+	users, err := firebaseAuthUsers(ctx)
+	if err != nil {
+		return 0, err
 	}
-	return len(members)
+	count := 0
+	for {
+		_, err := users.Next()
+		if err == iterator.Done {
+			return count, nil
+		}
+		if err != nil {
+			return 0, err
+		}
+		count++
+	}
+}
+
+func refreshRegisteredMemberCount(ctx context.Context, snapshot publicStatsSnapshot, generatedAt time.Time) (publicStatsSnapshot, bool) {
+	registeredMembers, err := registeredFirebaseAuthUsers(ctx)
+	if err != nil || registeredMembers == snapshot.RegisteredMembers {
+		return snapshot, false
+	}
+	snapshot.RegisteredMembers = registeredMembers
+	snapshot.GeneratedAt = generatedAt
+	return snapshot, true
 }
 
 func aggregatePublicStats(vehicles []vehicleRecord, readings []batteryReadingRecord, consented map[string]bool, registeredMembers int, generatedAt time.Time) publicStatsSnapshot {
