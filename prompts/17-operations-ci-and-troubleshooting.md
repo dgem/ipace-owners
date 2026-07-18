@@ -17,6 +17,17 @@ Firebase/GCP.
 - CI workflows should call Make targets rather than duplicating raw npm, Go, Firebase, or
   gcloud command bodies where a Make target exists.
 - Local verification for most changes is `make lint`, `make build`, and `make test`.
+- Run a separate `Security` workflow on pull requests, pushes to `main`, a weekly Monday
+  schedule, and manual dispatch. It must use job-scoped permissions and run CodeQL
+  `security-extended` analysis for GitHub Actions, JavaScript/TypeScript, and Go; dependency
+  review that rejects newly introduced moderate-or-higher vulnerabilities; `npm audit` with
+  a high-severity threshold; and pinned `govulncheck` analysis for reachable Go issues.
+- After a Firebase Hosting PR preview passes its smoke test, run a blocking passive OWASP ZAP
+  baseline scan against that preview. Use a versioned ZAP container, disable issue creation,
+  and retain the report as an Actions artifact. Do not run active attacks against production
+  or authenticated member data.
+- Dependabot must check npm, Go modules, GitHub Actions, and OpenTofu weekly. Group compatible
+  minor and patch updates by ecosystem to reduce PR noise; review major upgrades separately.
 - `make lint` is the aggregate source-quality gate. It checks JavaScript, CSS, Markdown,
   JSON/YAML, Nunjucks templates, Bash syntax, Go formatting and vetting, OpenTofu/HCL
   formatting, and SVG/XML syntax; keep focused `lint-*` targets available for iteration.

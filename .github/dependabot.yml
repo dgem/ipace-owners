@@ -5,21 +5,40 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    groups:
+      npm-minor-and-patch:
+        update-types:
+          - minor
+          - patch
 
   - package-ecosystem: gomod
     directory: /functions/firebase-go
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    groups:
+      go-minor-and-patch:
+        update-types:
+          - minor
+          - patch
 
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    groups:
+      github-actions:
+        patterns:
+          - "*"
 
   - package-ecosystem: terraform
     directory: /infra/opentofu/env
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    groups:
+      opentofu-minor-and-patch:
+        update-types:
+          - minor
+          - patch
