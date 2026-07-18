@@ -157,11 +157,11 @@ knowledge, and data may be used in anonymised aggregate reporting if consent is 
   beside the hero Join CTA on wide screens and below it on narrow screens. Keep it above the
   fold as supporting social proof, visually subordinate to the CTA, and do not give it button
   affordance. Model it on a clean gold motorsport decal: a broad oval winner's wreath with
-  fewer, larger leaves, generous central space, crossed bare stems, flat colour, and only a
-  hairline dark edge. Place a clearly visible pair of crossed chequered racing flags in the
-  open top of the wreath. Do not use a filled badge, wax-stamp treatment, leaf veins, heavy
-  outlines, or a decorative tie. Use an unoutlined gold count, compact white membership text,
-  and a notably smaller gold date abbreviated as `since 17 Jul ’26`.
+  fewer, larger leaves, generous central space, crossed bare stems, and flat gold colour. Do
+  not use flags, dark edging, a filled badge, wax-stamp treatment, leaf veins, heavy outlines,
+  or a decorative tie. Display only the large, unoutlined gold count inside the wreath. Place
+  compact white `Registered members` text and `Since 17 July 2026` as two quiet lines below
+  and outside the garland rather than squeezing supporting copy into the artwork.
 - Mark placeholder figures and illustrative examples clearly.
 - Do not use Jaguar/JLR logos, badges, readable plates, copyrighted press imagery, or other unlicensed manufacturer assets.
 - If using a vehicle image, make it original/licensed/generated, avoid visible brand marks, and provide meaningful alt text.

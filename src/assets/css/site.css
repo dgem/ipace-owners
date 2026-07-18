@@ -650,10 +650,18 @@ th {
   position: relative;
   display: grid;
   flex: 0 0 auto;
-  width: 9.5rem;
-  min-height: 7rem;
+  width: 9rem;
+  min-height: 6.75rem;
   color: #fff;
   place-items: center;
+}
+
+.launch-member-count-group {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: var(--space-1);
+  align-items: center;
 }
 
 .launch-member-count__laurels {
@@ -668,36 +676,12 @@ th {
 
 .launch-member-count__leaf {
   fill: #e9bd52;
-  stroke: #2a210c;
-  stroke-width: 0.55;
-}
-
-.launch-member-count__stem-outline {
-  fill: none;
-  stroke: #090909;
-  stroke-width: 3;
 }
 
 .launch-member-count__stem {
   fill: none;
   stroke: #e9bd52;
   stroke-width: 1.7;
-}
-
-.launch-member-count__flag {
-  fill: url("#member-count-chequer");
-  stroke: #090909;
-  stroke-width: 1.15;
-}
-
-.launch-member-count__flag-pole {
-  fill: none;
-  stroke: #090909;
-  stroke-width: 2;
-}
-
-.launch-member-count__tie {
-  stroke-width: 1.15;
 }
 
 .launch-member-count__content {
@@ -711,7 +695,7 @@ th {
 
 .launch-member-count__value {
   color: #f2ca6b;
-  font-size: 1.7rem;
+  font-size: 2.35rem;
   font-weight: 800;
   letter-spacing: -0.04em;
   line-height: 1;
@@ -719,22 +703,20 @@ th {
 }
 
 .launch-member-count__label {
-  margin-top: 0.1rem;
-  font-size: 0.6rem;
+  font-size: 0.64rem;
   font-weight: 800;
   color: #fff;
-  letter-spacing: 0.025em;
-  line-height: 1.08;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-transform: uppercase;
   text-shadow: 0 0.1rem 0.15rem rgb(0 0 0 / 0.7);
 }
 
 .launch-member-count__date {
-  margin-top: 0.2rem;
-  font-size: 0.48rem;
-  color: #f2ca6b;
-  letter-spacing: 0.01em;
-  opacity: 0.9;
-  text-shadow: 0 1px 0 #000;
+  color: rgb(255 255 255 / 0.78);
+  font-size: 0.58rem;
+  letter-spacing: 0.025em;
+  line-height: 1;
 }
 
 .launch-purpose h2,

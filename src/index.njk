@@ -19,19 +19,15 @@ description: "A UK-led independent group helping Jaguar I-PACE owners work toget
           </p>
           <div class="launch-hero__actions">
             <a href="/join/" class="btn btn--primary btn--lg">Join the Group</a>
-            <div class="launch-member-count" data-public-stats aria-label="Group membership">
-              <svg class="launch-member-count__laurels" viewBox="0 0 120 120" aria-hidden="true">
+            <div class="launch-member-count-group" data-public-stats aria-label="Group membership">
+              <div class="launch-member-count">
+                <svg class="launch-member-count__laurels" viewBox="-4 -4 128 128" aria-hidden="true">
                 <defs>
-                  <pattern id="member-count-chequer" width="6" height="6" patternUnits="userSpaceOnUse">
-                    <rect width="6" height="6" fill="#fff" />
-                    <path d="M0 0H3V3H0ZM3 3H6V6H3Z" fill="#090909" />
-                  </pattern>
                   <g id="member-count-garland-leaf">
                     <path class="launch-member-count__leaf" d="M0 0C5-10 16-13 24-6C18 1 8 4 0 0Z" />
                   </g>
                 </defs>
                 <g id="member-count-garland-half">
-                  <path class="launch-member-count__stem-outline" d="M68 114C47 103 27 91 19 70C10 47 18 25 42 9" />
                   <path class="launch-member-count__stem" d="M68 114C47 103 27 91 19 70C10 47 18 25 42 9" />
                   <use href="#member-count-garland-leaf" transform="translate(53 104) rotate(204)" />
                   <use href="#member-count-garland-leaf" transform="translate(40 96) rotate(220)" />
@@ -49,22 +45,13 @@ description: "A UK-led independent group helping Jaguar I-PACE owners work toget
                   <use href="#member-count-garland-leaf" transform="translate(29 27) rotate(242) scale(.78)" />
                 </g>
                 <use href="#member-count-garland-half" transform="translate(120 0) scale(-1 1)" />
-                <g class="launch-member-count__flags">
-                  <g transform="rotate(-27 60 47)">
-                    <path class="launch-member-count__flag-pole" d="M60 49V9" />
-                    <path class="launch-member-count__flag" d="M60 10C52 6 45 13 36 9V25C45 29 52 22 60 26Z" />
-                  </g>
-                  <g transform="rotate(27 60 47)">
-                    <path class="launch-member-count__flag-pole" d="M60 49V9" />
-                    <path class="launch-member-count__flag" d="M60 10C68 6 75 13 84 9V25C75 29 68 22 60 26Z" />
-                  </g>
-                </g>
-              </svg>
-              <span class="launch-member-count__content">
-                <strong class="launch-member-count__value" data-public-stat="registeredMembers" aria-live="polite">Loading</strong>
-                <span class="launch-member-count__label">Registered<br>members</span>
-                <span class="launch-member-count__date">since <time datetime="2026-07-17">17 Jul ’26</time></span>
-              </span>
+                </svg>
+                <span class="launch-member-count__content">
+                  <strong class="launch-member-count__value" data-public-stat="registeredMembers" aria-live="polite">Loading</strong>
+                </span>
+              </div>
+              <span class="launch-member-count__label">Registered members</span>
+              <span class="launch-member-count__date">Since <time datetime="2026-07-17">17 July 2026</time></span>
             </div>
           </div>
           <p class="launch-hero__note">Free to join. It takes less than a minute.</p>
