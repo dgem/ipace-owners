@@ -153,11 +153,12 @@ knowledge, and data may be used in anonymised aggregate reporting if consent is 
 - Do not include real owner data.
 - Do not include unverifiable statistics as real figures.
 - The launch homepage may show the live aggregate count of unique, non-excluded registered
-  members since the 17 July 2026 launch as a compact, non-interactive racing-laurel emblem
+  members since the 17 July 2026 launch as a compact, non-interactive racing winner's garland
   beside the hero Join CTA on wide screens and below it on narrow screens. Keep it above the
   fold as supporting social proof, visually subordinate to the CTA, and do not give it button
-  affordance. Use an open gold wreath without a filled badge or wax-stamp treatment, and keep
-  the launch date notably smaller than the count and membership label.
+  affordance. Use a full open gold laurel sweeping upward from crossed, tied stems without a
+  filled badge or wax-stamp treatment, and keep the launch date notably smaller than the count
+  and membership label.
 - Mark placeholder figures and illustrative examples clearly.
 - Do not use Jaguar/JLR logos, badges, readable plates, copyrighted press imagery, or other unlicensed manufacturer assets.
 - If using a vehicle image, make it original/licensed/generated, avoid visible brand marks, and provide meaningful alt text.

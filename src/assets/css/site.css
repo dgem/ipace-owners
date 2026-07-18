@@ -668,6 +668,15 @@ th {
   filter: drop-shadow(0 0.12rem 0.12rem rgb(0 0 0 / 0.35));
 }
 
+.launch-member-count__stem {
+  fill: none;
+  stroke-width: 2.2;
+}
+
+.launch-member-count__tie {
+  stroke-width: 0.8;
+}
+
 .launch-member-count__content {
   z-index: 1;
   display: flex;
