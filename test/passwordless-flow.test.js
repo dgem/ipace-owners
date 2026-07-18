@@ -26,10 +26,13 @@ test('site UI uses Firebase passwordless magic-link forms', function () {
     assert.doesNotMatch(source, /identity\.open\(/, file);
   });
 
-  assert.match(read('src/member/account.njk'), /data-magic-link-form/);
-  assert.match(read('src/member/dashboard.njk'), /data-magic-link-form/);
-  assert.match(read('src/member/submit-vehicle-data.njk'), /data-magic-link-form/);
-  assert.match(read('src/admin/review-queue.njk'), /data-magic-link-form/);
+  var loginGate = read('src/_includes/partials/auth-login-gate.njk');
+  assert.match(loginGate, /macro authLoginGate/);
+  assert.match(loginGate, /data-magic-link-form/);
+  assert.match(read('src/member/account.njk'), /authLoginGate\("account-magic-email"/);
+  assert.match(read('src/member/dashboard.njk'), /authLoginGate\("dashboard-magic-email"/);
+  assert.match(read('src/member/submit-vehicle-data.njk'), /authLoginGate\("vehicle-magic-email"/);
+  assert.match(read('src/admin/review-queue.njk'), /authLoginGate\("admin-magic-email"/);
   assert.match(read('src/assets/js/identity.js'), /\/api\/send-magic-link/);
   assert.match(read('src/assets/js/identity.js'), /If this email address is registered/);
   assert.doesNotMatch(read('src/assets/js/identity.js'), /Check your email for a secure sign-in link/);
@@ -98,6 +101,8 @@ test('account preferences render from saved member data', function () {
 });
 
 test('protected pages do not show login gates before auth verification completes', function () {
+  var loginGate = read('src/_includes/partials/auth-login-gate.njk');
+
   [
     'src/member/dashboard.njk',
     'src/member/account.njk',
@@ -105,9 +110,12 @@ test('protected pages do not show login gates before auth verification completes
     'src/admin/review-queue.njk',
   ].forEach(function (file) {
     var source = read(file);
-    assert.match(source, /data-auth-pending/, file);
-    assert.match(source, /data-auth-login-gate hidden/, file);
+    assert.match(source, /import authLoginGate/, file);
+    assert.match(source, /authLoginGate\(/, file);
   });
+
+  assert.match(loginGate, /data-auth-pending/);
+  assert.match(loginGate, /data-auth-login-gate hidden/);
 
   var memberAuth = read('src/assets/js/member-auth.js');
   var identity = read('src/assets/js/identity.js');

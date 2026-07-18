@@ -45,6 +45,9 @@ server-side by Go Cloud Functions that validate Firebase ID tokens.
   `/member/account/` and `/member/submit-vehicle-data/`. Permanently redirect their former
   top-level routes so bookmarks and previously issued links remain usable.
 - Support `[data-magic-link-form]` with `[data-magic-link-status]`.
+- Render the shared pending and passwordless sign-in states through the configurable
+  `partials/auth-login-gate.njk` macro; do not duplicate login-gate markup across member and
+  admin pages. Keep authenticated content and server-side authorisation page-specific.
 - Handle `multistep:submitted` + `data-database-submit`.
 - Do not reveal gated content directly. Gated content is revealed only by
   `member-auth.js` after an API returns 200.
