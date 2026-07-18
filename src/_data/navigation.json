@@ -2,7 +2,11 @@
   "public": [
     { "label": "Home", "url": "/" },
     { "label": "About", "url": "/about/" },
-    { "label": "Evidence", "url": "/evidence-dashboard/", "launchVisible": false },
+    {
+      "label": "Evidence",
+      "url": "/evidence-dashboard/",
+      "launchVisible": false
+    },
     { "label": "Methodology", "url": "/methodology/", "launchVisible": false },
     { "label": "FAQ", "url": "/faq/" },
     { "label": "Updates", "url": "/updates/", "launchVisible": false },

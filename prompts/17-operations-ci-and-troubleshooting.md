@@ -16,7 +16,15 @@ Firebase/GCP.
 - `make` and `make help` must list documented targets.
 - CI workflows should call Make targets rather than duplicating raw npm, Go, Firebase, or
   gcloud command bodies where a Make target exists.
-- Local verification for most changes is `make build` and `make test`.
+- Local verification for most changes is `make lint`, `make build`, and `make test`.
+- `make lint` is the aggregate source-quality gate. It checks JavaScript, CSS, Markdown,
+  JSON/YAML, Nunjucks templates, Bash syntax, Go formatting and vetting, OpenTofu/HCL
+  formatting, and SVG/XML syntax; keep focused `lint-*` targets available for iteration.
+- Both staging pull-request and production deployment workflows must install OpenTofu and
+  run `make lint` after dependency installation and before tests or deployment.
+- Keep lint targets self-contained in the declared project toolchains. In particular, SVG/XML
+  validation should use the pinned Node dependency rather than assuming runners provide
+  `xmllint` or another OS package.
 - Deployment smoke tests require `SMOKE_BASE_URL` and run through `make smoke`.
 - `make deploy-functions` should deploy the single Go `Api` Function entrypoint. Avoid
   deploying one Cloud Function per API route because each Gen2 Function deployment triggers
@@ -208,4 +216,5 @@ Firebase/GCP.
   deployment-status workflow.
 - Keep tests for preview URL extraction, preview authorized-domain updates, and Function
   environment generation.
-- Run `make build` and `make test` after CI, deployment, or operational prompt changes.
+- Run `make lint`, `make build`, and `make test` after CI, deployment, or operational prompt
+  changes.

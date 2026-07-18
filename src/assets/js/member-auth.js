@@ -126,17 +126,6 @@
     return valid;
   }
 
-  function formatSOHSource(value) {
-    var labels = {
-      'dealer-report': 'Dealer report',
-      'diagnostic-app': 'Diagnostic app / OBD',
-      'service-paperwork': 'Service paperwork',
-      'jlr-communication': 'JLR communication',
-      'estimate-unsure': 'Estimate / unsure',
-    };
-    return labels[value] || String(value || '').replace(/-/g, ' ');
-  }
-
   function populateVehicleRecords(container, records, readings) {
     var vehicleList = container.querySelector('[data-vehicle-list]');
     if (!vehicleList) return;

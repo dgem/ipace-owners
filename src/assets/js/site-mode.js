@@ -19,14 +19,14 @@
 
   try {
     requestedMode = new URLSearchParams(window.location.search).get('site-mode') || '';
-  } catch (error) {
+  } catch {
     requestedMode = '';
   }
 
   if (allowedModes.indexOf(requestedMode) !== -1) {
     try {
       window.sessionStorage.setItem(storageKey, requestedMode);
-    } catch (error) {
+    } catch {
       // Storage can be unavailable; the requested page still uses this mode.
     }
     root.setAttribute('data-site-mode', requestedMode);
@@ -35,7 +35,7 @@
 
   try {
     storedMode = window.sessionStorage.getItem(storageKey) || '';
-  } catch (error) {
+  } catch {
     storedMode = '';
   }
 

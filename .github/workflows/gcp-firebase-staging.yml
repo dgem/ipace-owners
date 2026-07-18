@@ -31,8 +31,15 @@ jobs:
           go-version-file: functions/firebase-go/go.mod
           cache-dependency-path: functions/firebase-go/go.sum
 
+      - uses: opentofu/setup-opentofu@v2
+        with:
+          tofu_wrapper: false
+
       - name: Install dependencies
         run: make ci-install
+
+      - name: Lint source
+        run: make lint
 
       - name: Test site
         run: make test-node

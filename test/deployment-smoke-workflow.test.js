@@ -22,6 +22,18 @@ test('deployment smoke tests run inside Firebase deploy workflows', function () 
   assert.match(productionWorkflow, /run: make smoke/);
 });
 
+test('Firebase deploy workflows lint all source languages before testing', function () {
+  const stagingWorkflow = readFileSync(stagingWorkflowPath, 'utf8');
+  const productionWorkflow = readFileSync(productionWorkflowPath, 'utf8');
+
+  for (const workflow of [stagingWorkflow, productionWorkflow]) {
+    assert.match(workflow, /uses: opentofu\/setup-opentofu@v2/);
+    assert.match(workflow, /tofu_wrapper: false/);
+    assert.match(workflow, /name: Lint source\n\s+run: make lint/);
+    assert.ok(workflow.indexOf('run: make lint') < workflow.indexOf('run: make test-node'));
+  }
+});
+
 test('Firebase deploy workflows skip Function deploys when backend is unchanged', function () {
   const stagingWorkflow = readFileSync(stagingWorkflowPath, 'utf8');
   const productionWorkflow = readFileSync(productionWorkflowPath, 'utf8');
