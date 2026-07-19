@@ -35,3 +35,12 @@ test('footer exposes social share links', function () {
   assert.match(footer, /linkedin\.com\/sharing\/share-offsite/);
   assert.match(footer, /wa\.me\/\?text=/);
 });
+
+test('footer links to the public source repository with a GitHub icon', function () {
+  var footer = fs.readFileSync(path.join(repoRoot, 'src/_includes/partials/footer.njk'), 'utf8');
+
+  assert.match(footer, /href="https:\/\/github\.com\/dgem\/ipace-owners"/);
+  assert.match(footer, /class="site-footer__github-link"/);
+  assert.match(footer, /<svg[^>]+aria-hidden="true"/);
+  assert.match(footer, /<span>GitHub<\/span>/);
+});

@@ -203,6 +203,10 @@ knowledge, and data may be used in anonymised aggregate reporting if consent is 
 - Include simple social share links for common channels such as X, Facebook, LinkedIn, and
   WhatsApp. Use accessible link text, open external share targets safely with
   `rel="noopener noreferrer"`, and keep the UI restrained.
+- Link the shared footer to `https://github.com/dgem/ipace-owners` using the familiar
+  monochrome GitHub mark with visible `GitHub` link text. Render the inline SVG with
+  `currentColor`, hide it from assistive technology as decorative, and open the repository
+  safely in a new tab.
 
 ## Validation
 
