@@ -173,7 +173,7 @@
       '<div class="form-group"><label for="event-mileage">Mileage</label><input id="event-mileage" name="mileage" type="number" min="0" max="500000"></div>' +
       '<div class="form-group"><label for="event-status">Status</label><select id="event-status" name="status" required><option value="open">Open</option><option value="monitoring">Monitoring</option><option value="resolved">Resolved</option><option value="completed">Completed</option></select></div>' +
       '<fieldset class="form-group member-form-grid__wide"><legend>Related campaigns or recalls</legend><div class="check-group check-group--inline">' +
-      '<label class="check-label"><input type="checkbox" name="campaigns" value="H447"> H447</label>' +
+      '<label class="check-label"><input type="checkbox" name="campaigns" value="H441"> H441</label>' +
       '<label class="check-label"><input type="checkbox" name="campaigns" value="H570"> H570</label>' +
       '<label class="check-label"><input type="checkbox" name="campaigns" value="H571"> H571</label>' +
       '<label class="check-label"><input type="checkbox" name="campaigns" value="H572"> H572</label>' +
