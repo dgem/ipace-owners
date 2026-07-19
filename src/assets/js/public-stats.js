@@ -47,7 +47,7 @@
       element.textContent = displayValue(value, element.getAttribute('data-public-stat-format'));
       if (element.classList.contains('launch-member-count__value') && Number.isFinite(Number(value))) {
         var count = Math.max(0, Math.round(Number(value)));
-        var countSize = count >= 100000 ? 'large' : count >= 10000 ? 'five' : count >= 1000 ? 'four' : 'standard';
+        var countSize = count >= 100000 ? 'large' : count >= 10000 ? 'five' : count >= 1000 ? 'four' : count >= 100 ? 'three' : 'standard';
         element.setAttribute('data-count-size', countSize);
       }
     });
@@ -61,7 +61,7 @@
     renderDistribution(root.querySelector('[data-public-distribution="model-year"]'), data.modelYearDistribution);
   }
 
-  fetch('/api/public-stats?v=3')
+  fetch('/api/public-stats?v=4')
     .then(function (response) {
       if (!response.ok) throw new Error('Public statistics returned ' + response.status);
       return response.json();

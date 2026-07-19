@@ -724,6 +724,11 @@ th {
   font-size: 1.8rem;
 }
 
+.launch-member-count__value[data-count-size="three"] {
+  font-size: 2rem;
+  letter-spacing: -0.055em;
+}
+
 .launch-member-count__value[data-count-size="five"] {
   font-size: 1.55rem;
 }
