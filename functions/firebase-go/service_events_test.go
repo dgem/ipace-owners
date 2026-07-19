@@ -16,7 +16,7 @@ func TestValidatedServiceEvent(t *testing.T) {
 		Title:                   "Traction battery warning",
 		Description:             "Warning shown while charging.",
 		Status:                  "open",
-		Campaigns:               stringArray{"H447", "H570"},
+		Campaigns:               stringArray{"H441", "H570"},
 		FinalFixAt:              "2026-06-23",
 		DaysToFinalFix:          "1",
 		CourtesyVehicleOffered:  "yes",
@@ -34,7 +34,7 @@ func TestValidatedServiceEvent(t *testing.T) {
 	if event.EventType != "fault" || event.Status != "open" {
 		t.Fatalf("event = %+v", event)
 	}
-	if len(event.Campaigns) != 2 || event.Campaigns[0] != "H447" || event.Campaigns[1] != "H570" {
+	if len(event.Campaigns) != 2 || event.Campaigns[0] != "H441" || event.Campaigns[1] != "H570" {
 		t.Fatalf("Campaigns = %+v", event.Campaigns)
 	}
 	if event.FinalFixAt != "2026-06-23" || event.DaysToFinalFix == nil || *event.DaysToFinalFix != 1 {

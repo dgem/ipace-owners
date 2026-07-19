@@ -87,7 +87,7 @@ mockups and do not add shadows, gradients, phone numbers, manufacturer badges, o
 Generate the front from the logo with this prompt:
 
 > Create the front of a landscape advocacy business card. At the top, set
-> `H447/H570 Battery issues?` on one line in a bold, friendly italic rounded sans-serif, leaving
+> `H441/H570 Battery issues?` on one line in a bold, friendly italic rounded sans-serif, leaving
 > enough space at the top right for a functional QR code on the same visual line.
 > Place the black side-view car logo across the centre. Preserve its white glass and wheel details,
 > and set the diagonal `iPace-Owners.org` decal in vivid bright teal (`#2DD4BF`). Across the bottom,
@@ -108,7 +108,7 @@ Generate the matching back with this prompt:
 > repeat the car. Use the headline `I-PACE owners working together for fair outcomes`, followed by
 > `An independent owners' group engaging constructively with JLR to pursue a fair and consistent
 > resolution.` Add a `Why now?` section in a tidy two-column grid with four items:
-> `Recall campaigns — H447, H570, H571 and H572`; `Traction battery faults — Power loss, warnings
+> `Recall campaigns — H441, H570, H571 and H572`; `Traction battery faults — Power loss, warnings
 > and reduced performance`; `Battery warranty pressure — 8 years / 100,000 miles`; and
 > `Inconsistent support — Delays, loan cars, goodwill and warranty outcomes`. Finish with a compact
 > dark-teal strip reading `Free to join • Less than a minute • iPace-Owners.org`. Use accessible
