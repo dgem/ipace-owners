@@ -33,7 +33,7 @@ test('launch homepage leads with recruitment and constructive resolution', funct
   assertText(launch, /I-PACE owners working together for fair outcomes/);
   assertText(launch, /Register (?:and|to) help shape a fair and consistent resolution/);
   assertText(launch, /Traction battery faults?/);
-  assertText(launch, /H441 \/ H570 \/ H571 \/ H572 campaigns?/);
+  assertText(launch, /H441 \/ H448 \/ H570 \/ H571 \/ H572 campaigns?/);
   assertText(launch, /Approaching the 8-year \/ 100,000-mile battery warranty/);
   assertText(launch, /Inconsistent experiences?/);
   assertText(launch, /Why now\?/);
@@ -75,7 +75,7 @@ test('homepage orders Why now, features, and participation actions', function ()
   assert.match(homepage.slice(whyNow, features), /class="two-column"/);
   assert.match(homepage.slice(participation), /This is not a legal action/);
   assert.match(homepage.slice(participation), /Get started/);
-  assert.match(homepage, /H441 \/ H570 \/ H571 \/ H572/);
+  assert.match(homepage, /H441 \/ H448 \/ H570 \/ H571 \/ H572/);
   assert.ok(
     homepage.indexOf('Get started', participation) <
       homepage.indexOf('This is not a legal action', participation)

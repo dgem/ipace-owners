@@ -49,7 +49,7 @@ Go handler.
 New records should default to `fault`. The form should also capture optional structured
 evidence fields:
 
-- related campaigns or recalls: `H441`, `H570`, `H571`, `H572`, other, unsure, none;
+- related campaigns or recalls: `H441`, `H448`, `H570`, `H571`, `H572`, other, unsure, none;
 - final fix date and days from fault to final fix;
 - whether a courtesy vehicle was offered and whether one was provided;
 - whether the repair was delayed due to parts;

@@ -11,7 +11,7 @@ We are preparing the vehicle data submission form for launch. The form covers:
 
 - Vehicle details and battery State of Health
 - HV battery work history (type, dates, duration)
-- Campaign or recall status (H441, H570, H571, H572)
+- Campaign or recall status (H441, H448, H570, H571, H572)
 - Loan car provision and experiences
 - Payments, goodwill, and expense records
 - Consent options for data use

@@ -78,6 +78,10 @@ Store the generated card artwork at:
 
 - `public/images/ipace-owners-card-front.png`
 - `public/images/ipace-owners-card-back.png`
+- `public/images/ipace-owners-card-front-hero.svg`
+- `public/images/ipace-owners-card-front-hero.png`
+- `public/images/ipace-owners-card-back-hero.svg`
+- `public/images/ipace-owners-card-back-hero.png`
 
 Both sides use a straight-on UK landscape business-card composition, approximately 85 × 55 mm,
 with a white background, a thin dark-teal (`#0f766e`) rounded border, generous print-safe margins,
@@ -87,7 +91,7 @@ mockups and do not add shadows, gradients, phone numbers, manufacturer badges, o
 Generate the front from the logo with this prompt:
 
 > Create the front of a landscape advocacy business card. At the top, set
-> `H441/H570 Battery issues?` on one line in a bold, friendly italic rounded sans-serif, leaving
+> `H570 Battery issues?` on one line in a bold, friendly italic rounded sans-serif, leaving
 > enough space at the top right for a functional QR code on the same visual line.
 > Place the black side-view car logo across the centre. Preserve its white glass and wheel details,
 > and set the diagonal `iPace-Owners.org` decal in vivid bright teal (`#2DD4BF`). Across the bottom,
@@ -101,6 +105,23 @@ and place it at the top right in line with the headline. Target at least 10 mm s
 size and test the printed proof with multiple phone cameras before distribution. Never distort,
 rotate, crop, recolour, or place artwork inside the QR modules.
 
+Keep an alternative photographic front using the website hero image. Compose it
+deterministically in SVG rather than asking an image model to redraw the vehicle or critical
+text. Crop the hero to the same 85 × 55 mm landscape proportion, use a restrained navy overlay
+for legibility, but keep the photograph square-cornered and full bleed rather than clipping it to
+a rounded card shape. Shift the crop left enough to preserve breathing room between the rear of
+the car and the right edge. Omit a separate `I-PACE OWNERS` label and stack all white copy at top left: the
+exact italic `H570 battery issues?` headline, `Join us to help get a fair deal for all.`,
+`Free to join, takes less than a min.`, and `iPace-Owners.org`. Do not use a pill, badge,
+separate lower background panel, or outer rounded white card frame. Remove the QR's white card,
+then align the QR at bottom left with the copy column, using white modules over the dark road. Keep
+it visually separate from the vehicle while preserving its full quiet-zone spacing and at least
+10 mm final printed size. Embed the hero PNG as a data URI. Embed a dedicated QR SVG data URI with
+its white background removed, its modules rendered white, and slight translucency applied to the
+whole QR; do not rely on a filter that can make the background reappear in some SVG renderers.
+The finished SVG must be one portable file with no sibling-asset dependency. Also commit a
+self-contained, print-proportioned PNG render.
+
 Generate the matching back with this prompt:
 
 > Create the back of the same landscape advocacy business card, matching the front's white
@@ -108,11 +129,27 @@ Generate the matching back with this prompt:
 > repeat the car. Use the headline `I-PACE owners working together for fair outcomes`, followed by
 > `An independent owners' group engaging constructively with JLR to pursue a fair and consistent
 > resolution.` Add a `Why now?` section in a tidy two-column grid with four items:
-> `Recall campaigns — H441, H570, H571 and H572`; `Traction battery faults — Power loss, warnings
-> and reduced performance`; `Battery warranty pressure — 8 years / 100,000 miles`; and
+> `Recall campaigns — H57x recall and customer-notice series`; `Traction battery faults — Power loss, warnings
+> reduced range and performance`; `Battery warranty pressure — 8 years / 100,000 miles`; and
 > `Inconsistent support — Delays, loan cars, goodwill and warranty outcomes`. Finish with a compact
 > dark-teal strip reading `Free to join • Less than a minute • iPace-Owners.org`. Use accessible
 > contrast and card-size-readable text; do not invent statistics or legal claims.
+
+Pair the photographic front with its own photographic back rather than the white infographic
+back. Reuse the square-cornered, full-bleed hero crop under a strong navy wash and embed the hero
+PNG as a data URI so the SVG remains portable as one file. Set
+`I-PACE owners working together for fair outcomes` as one compact white line, followed by
+`Engaging constructively with Jaguar.`
+Keep the content to three
+card-size-readable points: `H57x recall series — Owners facing related battery recall and
+customer-notice work`; `Traction battery faults — Power loss, warnings, reduced range and performance`;
+and `Fair, consistent support — Warranty, repairs, loan cars and goodwill`. Finish with
+`Independent • Evidence-led • Constructive`. Do not repeat the QR code or crowd the card with the
+complete notice list.
+
+Where a complete recall/customer-notice inventory is required in structured member data, use
+H441, H448, H570, H571 and H572. Public card copy may refer to the H57x series when the card's
+purpose is specifically H570 recruitment.
 
 Treat generated text as artwork that requires proofreading. Before publishing or printing, verify
 every campaign number, URL, apostrophe, slash, capital letter, and punctuation mark against the

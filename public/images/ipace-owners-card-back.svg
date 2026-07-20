@@ -18,15 +18,15 @@
       <circle cx="24" cy="24" r="24" fill="#0f766e"/>
       <text x="24" y="32" text-anchor="middle" fill="#ffffff" font-size="24" font-weight="700">1</text>
       <text x="65" y="17" fill="#050505" font-size="21" font-weight="700">Recall campaigns</text>
-      <text x="65" y="43" fill="#333333" font-size="17">H441, H570, H571 and H572</text>
+      <text x="65" y="43" fill="#333333" font-size="17">H57x recall and customer-notice series</text>
     </g>
 
     <g transform="translate(442 254)">
       <circle cx="24" cy="24" r="24" fill="#0f766e"/>
       <text x="24" y="32" text-anchor="middle" fill="#ffffff" font-size="24" font-weight="700">2</text>
       <text x="65" y="17" fill="#050505" font-size="21" font-weight="700">Traction battery faults</text>
-      <text x="65" y="43" fill="#333333" font-size="17">Power loss, warnings and</text>
-      <text x="65" y="64" fill="#333333" font-size="17">reduced performance</text>
+      <text x="65" y="43" fill="#333333" font-size="17">Power loss, warnings,</text>
+      <text x="65" y="64" fill="#333333" font-size="17">reduced range and performance</text>
     </g>
 
     <g transform="translate(62 352)">
