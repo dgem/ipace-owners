@@ -106,13 +106,15 @@ rotate, crop, recolour, or place artwork inside the QR modules.
 Keep an alternative photographic front using the website hero image. Compose it
 deterministically in SVG rather than asking an image model to redraw the vehicle or critical
 text. Crop the hero to the same 85 × 55 mm landscape proportion, use a restrained navy overlay
-for legibility, omit a separate `I-PACE OWNERS` label and stack all white copy at top left: the
+for legibility, but keep the photograph square-cornered and full bleed rather than clipping it to
+a rounded card shape. Shift the crop left enough to preserve breathing room between the rear of
+the car and the right edge. Omit a separate `I-PACE OWNERS` label and stack all white copy at top left: the
 exact italic `H570 battery issues?` headline, `Join us to help get a fair deal for all.`,
 `Free to join, takes less than a min.`, and `iPace-Owners.org`. Do not use a pill, badge,
 separate lower background panel, or outer rounded white card frame. Remove the QR's white card,
-then place the QR low at bottom right with white modules over the dark road and enough separation
-from the vehicle, while preserving its full quiet-zone spacing and at least 10 mm final printed
-size. The SVG may
+then align the QR at bottom left with the copy column, using white modules over the dark road. Keep
+it visually separate from the vehicle while preserving its full quiet-zone spacing and at least
+10 mm final printed size. The SVG may
 reference the sibling hero and QR assets; keep those files together when supplying the editable
 artwork. Also commit a self-contained, print-proportioned PNG render.
 

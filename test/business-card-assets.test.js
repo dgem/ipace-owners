@@ -14,6 +14,7 @@ test('hero business-card variant preserves approved imagery, QR and copy', funct
 
   assert.match(svg, /viewBox="0 0 850 550"/);
   assert.match(svg, /href="ipace-hero\.png"/);
+  assert.match(svg, /href="ipace-hero\.png" x="-145"/);
   assert.match(svg, /href="ipace-owners-qr\.svg"/);
   assert.match(svg, />H570 battery issues\?<\/text>/);
   assert.doesNotMatch(svg, />I-PACE OWNERS<\/text>/);
@@ -25,7 +26,8 @@ test('hero business-card variant preserves approved imagery, QR and copy', funct
   assert.match(svg, /text-rendering="geometricPrecision"/);
   assert.doesNotMatch(svg, /id="footer-shade"/);
   assert.doesNotMatch(svg, /width="140" height="140"[^>]+fill="#fff"/);
-  assert.match(svg, /href="ipace-owners-qr\.svg" x="711" y="417"/);
+  assert.match(svg, /href="ipace-owners-qr\.svg" x="36" y="394"/);
   assert.doesNotMatch(svg, /width="836" height="536"[^>]+stroke="#fff"/);
+  assert.doesNotMatch(svg, /clipPath|clip-path|rx="18"/);
   assert.ok(png.length > 100000, 'expected a rendered print-resolution PNG');
 });

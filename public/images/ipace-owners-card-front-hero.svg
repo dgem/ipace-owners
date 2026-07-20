@@ -10,23 +10,18 @@
     <filter id="white-qr" color-interpolation-filters="sRGB">
       <feColorMatrix type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  -1 0 0 0 1"/>
     </filter>
-    <clipPath id="card-clip">
-      <rect width="850" height="550" rx="18"/>
-    </clipPath>
   </defs>
 
-  <g clip-path="url(#card-clip)">
-    <rect width="850" height="550" fill="#16364d"/>
-    <image href="ipace-hero.png" x="-115" y="0" width="1056" height="550" preserveAspectRatio="none"/>
-    <rect width="850" height="550" fill="url(#hero-shade)"/>
+  <rect width="850" height="550" fill="#16364d"/>
+  <image href="ipace-hero.png" x="-145" y="0" width="1056" height="550" preserveAspectRatio="none"/>
+  <rect width="850" height="550" fill="url(#hero-shade)"/>
 
-    <g fill="#fff" stroke="#071a28" stroke-width=".7" paint-order="stroke" font-family="Arial, Helvetica, sans-serif" text-rendering="geometricPrecision">
-      <text x="36" y="66" font-size="34" font-weight="800" font-style="italic">H570 battery issues?</text>
-      <text x="36" y="111" font-size="27" font-weight="700">Join us to help get a fair deal for all.</text>
-      <text x="36" y="149" font-size="20" font-weight="600">Free to join, takes less than a min.</text>
-      <text x="36" y="184" font-size="22" font-weight="700">iPace-Owners.org</text>
-    </g>
-
-    <image href="ipace-owners-qr.svg" x="711" y="417" width="108" height="108" preserveAspectRatio="xMidYMid meet" filter="url(#white-qr)"/>
+  <g fill="#fff" stroke="#071a28" stroke-width=".7" paint-order="stroke" font-family="Arial, Helvetica, sans-serif" text-rendering="geometricPrecision">
+    <text x="36" y="66" font-size="34" font-weight="800" font-style="italic">H570 battery issues?</text>
+    <text x="36" y="111" font-size="27" font-weight="700">Join us to help get a fair deal for all.</text>
+    <text x="36" y="149" font-size="20" font-weight="600">Free to join, takes less than a min.</text>
+    <text x="36" y="184" font-size="22" font-weight="700">iPace-Owners.org</text>
   </g>
+
+  <image href="ipace-owners-qr.svg" x="36" y="394" width="112" height="112" preserveAspectRatio="xMidYMid meet" filter="url(#white-qr)"/>
 </svg>
