@@ -89,7 +89,7 @@ mockups and do not add shadows, gradients, phone numbers, manufacturer badges, o
 Generate the front from the logo with this prompt:
 
 > Create the front of a landscape advocacy business card. At the top, set
-> `H447/H570 Battery issues?` on one line in a bold, friendly italic rounded sans-serif, leaving
+> `H441/H570 Battery issues?` on one line in a bold, friendly italic rounded sans-serif, leaving
 > enough space at the top right for a functional QR code on the same visual line.
 > Place the black side-view car logo across the centre. Preserve its white glass and wheel details,
 > and set the diagonal `iPace-Owners.org` decal in vivid bright teal (`#2DD4BF`). Across the bottom,
@@ -106,11 +106,15 @@ rotate, crop, recolour, or place artwork inside the QR modules.
 Keep an alternative photographic front using the website hero image. Compose it
 deterministically in SVG rather than asking an image model to redraw the vehicle or critical
 text. Crop the hero to the same 85 × 55 mm landscape proportion, use a restrained navy overlay
-for legibility, retain the exact `H447/H570 Battery issues?` headline, use the existing QR SVG,
-and place `Join us to help get a fair deal for all.`,
-`Free to join. It takes less than a minute.`, and `iPace-Owners.org` in a dark lower panel. The
-SVG may reference the sibling hero and QR assets; keep those files together when supplying the
-editable artwork. Also commit a self-contained, print-proportioned PNG render.
+for legibility, put white `I-PACE OWNERS` and the exact italic `H570 Battery issues?` headline
+together on one top line without a pill or badge, use the existing QR SVG,
+and place `Join us to help get a fair deal for all.` directly over the image in white. Do not use
+a separate lower background panel. Put `Free to join. It takes less than a minute.` and
+`iPace-Owners.org` on separate white lines. Remove both the outer rounded white card frame and
+the QR's white card, then place the QR at bottom right with white modules over the dark road while
+preserving its full quiet-zone spacing and at least 10 mm final printed size. The SVG may
+reference the sibling hero and QR assets; keep those files together when supplying the editable
+artwork. Also commit a self-contained, print-proportioned PNG render.
 
 Generate the matching back with this prompt:
 
@@ -119,7 +123,7 @@ Generate the matching back with this prompt:
 > repeat the car. Use the headline `I-PACE owners working together for fair outcomes`, followed by
 > `An independent owners' group engaging constructively with JLR to pursue a fair and consistent
 > resolution.` Add a `Why now?` section in a tidy two-column grid with four items:
-> `Recall campaigns — H447, H570, H571 and H572`; `Traction battery faults — Power loss, warnings
+> `Recall campaigns — H441, H570, H571 and H572`; `Traction battery faults — Power loss, warnings
 > and reduced performance`; `Battery warranty pressure — 8 years / 100,000 miles`; and
 > `Inconsistent support — Delays, loan cars, goodwill and warranty outcomes`. Finish with a compact
 > dark-teal strip reading `Free to join • Less than a minute • iPace-Owners.org`. Use accessible
