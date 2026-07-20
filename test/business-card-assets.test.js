@@ -21,6 +21,8 @@ test('hero business-card variant preserves approved imagery, QR and copy', funct
   assert.match(svg, /Join us to help get a fair deal for all\./);
   assert.match(svg, /Free to join, takes less than a min\./);
   assert.match(svg, /iPace-Owners\.org/);
+  assert.doesNotMatch(svg, /feDropShadow|text-shadow/);
+  assert.match(svg, /text-rendering="geometricPrecision"/);
   assert.doesNotMatch(svg, /id="footer-shade"/);
   assert.doesNotMatch(svg, /width="140" height="140"[^>]+fill="#fff"/);
   assert.match(svg, /href="ipace-owners-qr\.svg" x="711" y="417"/);
