@@ -24,16 +24,12 @@
     <rect width="850" height="550" fill="url(#hero-shade)"/>
 
     <g fill="#fff" font-family="Arial, Helvetica, sans-serif" filter="url(#text-shadow)">
-      <text x="36" y="66" font-size="18" font-weight="700" letter-spacing="1.4">I-PACE OWNERS</text>
-      <text x="247" y="66" font-size="31" font-weight="800" font-style="italic">H570 Battery issues?</text>
+      <text x="36" y="66" font-size="34" font-weight="800" font-style="italic">H570 battery issues?</text>
+      <text x="36" y="111" font-size="27" font-weight="700">Join us to help get a fair deal for all.</text>
+      <text x="36" y="149" font-size="20" font-weight="600">Free to join, takes less than a min.</text>
+      <text x="36" y="184" font-size="22" font-weight="700">iPace-Owners.org</text>
     </g>
 
-    <image href="ipace-owners-qr.svg" x="700" y="392" width="116" height="116" preserveAspectRatio="xMidYMid meet" filter="url(#white-qr)"/>
-
-    <g fill="#fff" font-family="Arial, Helvetica, sans-serif" filter="url(#text-shadow)">
-      <text x="36" y="438" font-size="31" font-weight="700">Join us to help get a fair deal for all.</text>
-      <text x="36" y="482" font-size="22" font-weight="600">Free to join. It takes less than a minute.</text>
-      <text x="36" y="520" font-size="24" font-weight="700">iPace-Owners.org</text>
-    </g>
+    <image href="ipace-owners-qr.svg" x="711" y="417" width="108" height="108" preserveAspectRatio="xMidYMid meet" filter="url(#white-qr)"/>
   </g>
 </svg>
