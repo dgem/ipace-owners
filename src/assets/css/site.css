@@ -725,8 +725,8 @@ th {
 }
 
 .launch-member-count__value[data-count-size="three"] {
-  font-size: 2rem;
-  letter-spacing: -0.055em;
+  font-size: 1.75rem;
+  letter-spacing: -0.04em;
 }
 
 .launch-member-count__value[data-count-size="five"] {

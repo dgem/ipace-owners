@@ -35,7 +35,7 @@ test('homepage and evidence dashboard load real public aggregate statistics', fu
   assert.match(stats, /count >= 100000 \? 'large' : count >= 10000 \? 'five' : count >= 1000 \? 'four' : count >= 100 \? 'three'/);
 
   const css = read('src/assets/css/site.css');
-  assert.match(css, /data-count-size="three"/);
+  assert.match(css, /data-count-size="three"[^}]*font-size: 1\.75rem/s);
   assert.match(css, /data-count-size="four"/);
   assert.match(css, /data-count-size="five"/);
   assert.match(css, /data-count-size="large"/);
