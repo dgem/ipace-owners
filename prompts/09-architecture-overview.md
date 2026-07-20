@@ -244,3 +244,4 @@ Keep these related prompts aligned when the architecture changes:
 - `14-functions-future-evidence-and-stats.md`
 - `15-firestore-static-json-data-model.md`
 - `17-operations-ci-and-troubleshooting.md`
+- `20-clean-room-reconstruction-contract.md`

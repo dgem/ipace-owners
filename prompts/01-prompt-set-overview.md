@@ -26,6 +26,9 @@ Use these prompts as a maintainable product blueprint. They are ordered so a fre
 18. Use `18-stakeholder-feedback.md` as the current stakeholder-feedback intake log.
 19. Use `19-launch-readiness.md` for public launch preparation, launch-week checks,
     passwordless email delivery, DNS/auth readiness, data protection, and rollback planning.
+20. Use `20-clean-room-reconstruction-contract.md` as the final authority for a from-scratch
+    rebuild, exact route/API/data inventories, acceptance criteria, asset preservation, and
+    the boundary between source reconstruction and production disaster recovery.
 
 ## Global constraints for every prompt
 
@@ -44,6 +47,8 @@ Use these prompts as a maintainable product blueprint. They are ordered so a fre
 - Use semantic commit messages in `type(scope): description` format.
 - Treat `00-original-project-prompt.md` as immutable source history. Update the numbered
   prompts from `01-` onward when requirements evolve.
+- Treat `00-original-project-prompt.md` as non-authoritative whenever it conflicts with
+  prompts `01-20`; later specific prompts override earlier general prompts.
 - Keep prompts aligned with implementation and README so the project can be recreated from
   prompt files plus README alone.
 - Treat durable knowledge from user conversations as source material for these prompts.

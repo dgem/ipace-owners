@@ -156,6 +156,9 @@ Defined in `:root` in `site.css`. Key tokens:
 - Preserve historical prompts where useful, then add refined prompts for future work.
 - Treat `09-architecture-overview.md` as the canonical architecture reference and keep it
   aligned with README and the component prompts.
+- Treat `20-clean-room-reconstruction-contract.md` as the final clean-room acceptance
+  contract. Keep its route, API, schema, configuration, asset-preservation, and external
+  backup inventories aligned with implementation.
 - **Keep prompts in sync with the actual state of the project.** After implementing a
   feature, update the relevant prompt file to reflect what was built so that the project
   can be recreated from the prompts and README alone. If behaviour changes (e.g., a new
