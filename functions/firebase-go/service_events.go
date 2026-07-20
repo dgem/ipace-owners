@@ -9,7 +9,7 @@ import (
 
 var serviceEventTypeValues = []string{"service", "fault", "repair", "recall", "inspection", "other"}
 var serviceEventStatusValues = []string{"open", "monitoring", "resolved", "completed"}
-var serviceEventCampaignValues = []string{"H441", "H570", "H571", "H572", "other", "unsure", "none"}
+var serviceEventCampaignValues = []string{"H441", "H448", "H570", "H571", "H572", "other", "unsure", "none"}
 var serviceEventYesNoValues = []string{"yes", "no", "not-needed", "unsure"}
 var serviceEventPartsDelayValues = []string{"yes", "no", "partly", "unsure"}
 var serviceEventWarrantyCoverValues = []string{"manufacturer", "battery-warranty", "extended-manufacturer", "third-party", "none", "unsure"}
