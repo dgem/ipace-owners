@@ -17,6 +17,10 @@ test('runtime declarations use the supported Node and Go production lines', func
   assert.equal(read('.nvmrc').trim(), '24');
   assert.equal(packageJson.engines.node, '>=24 <25');
   assert.match(packageJson.devDependencies['firebase-tools'], /^\^15\./);
+  assert.match(makefile, /check-node:.*active Node\.js major matches \.nvmrc/);
+  for (const target of ['install', 'ci-install', 'dev', 'build', 'clean', 'audit-node', 'test-node', 'smoke']) {
+    assert.match(makefile, new RegExp(`^${target}: check-node`, 'm'));
+  }
   assert.doesNotMatch(makefile, /go123/);
   assert.match(makefile, /--runtime=go126/);
   assert.match(goMod, /^go 1\.26$/m);

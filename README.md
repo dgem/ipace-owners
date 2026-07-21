@@ -45,8 +45,13 @@ make
 ### Install
 
 ```bash
+nvm use
 make install
 ```
+
+Node-backed Make targets verify that the active Node major matches `.nvmrc` and stop with a
+clear error if another runtime is selected. GitHub Actions also reads `.nvmrc`, keeping local,
+CI and deployment work on Node 24 LTS.
 
 ### Development server
 
