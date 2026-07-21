@@ -4,6 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 
 const root = path.join(__dirname, '..');
+const promptFilenamePattern = /^\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*\.md$/;
 
 function read(relativePath) {
   return fs.readFileSync(path.join(root, relativePath), 'utf8');
@@ -16,17 +17,19 @@ function exists(relativePath) {
 test('clean-room contract tracks the complete maintained prompt set', function () {
   const prompts = fs
     .readdirSync(path.join(root, 'prompts'))
-    .filter((name) => /^\d{2}-.*\.md$/.test(name))
+    .filter((name) => name.endsWith('.md'))
     .sort();
+  const promptNumbers = prompts.map((name) => {
+    assert.match(name, promptFilenamePattern, `${name} must match xx-name.md`);
+    return Number(name.slice(0, 2));
+  });
 
-  assert.equal(prompts.length, 21);
   assert.equal(prompts[0], '00-original-project-prompt.md');
-  assert.equal(prompts[20], '20-clean-room-reconstruction-contract.md');
+  assert.ok(prompts.includes('20-clean-room-reconstruction-contract.md'));
   assert.deepEqual(
-    prompts.map((name) => Number(name.slice(0, 2))),
-    Array.from({ length: 21 }, (_, index) => index)
+    promptNumbers,
+    Array.from({ length: promptNumbers.at(-1) + 1 }, (_, index) => index)
   );
-  assert.match(read('prompts/00-original-project-prompt.md'), /`01-` through `20-`/);
 });
 
 test('clean-room route inventory maps to source pages and Hosting redirects', function () {

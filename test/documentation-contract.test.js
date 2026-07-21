@@ -4,6 +4,7 @@ const path = require('node:path');
 const test = require('node:test');
 
 const root = path.join(__dirname, '..');
+const promptFilenamePattern = /^\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*\.md$/;
 
 function read(relativePath) {
   return fs.readFileSync(path.join(root, relativePath), 'utf8');
@@ -13,9 +14,13 @@ test('maintained prompts form a contiguous 00-20 reconstruction set', function (
   const promptFiles = fs
     .readdirSync(path.join(root, 'prompts'))
     .filter(function (name) {
-      return /^\d{2}-.*\.md$/.test(name);
+      return name.endsWith('.md');
     })
     .sort();
+
+  promptFiles.forEach(function (name) {
+    assert.match(name, promptFilenamePattern, name + ' must match xx-name.md');
+  });
 
   assert.deepEqual(
     promptFiles.map(function (name) {

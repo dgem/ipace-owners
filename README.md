@@ -534,13 +534,15 @@ workflow or external AI provider API key is required.
 
 ### Prompt maintenance
 
-Product-generation prompts live in `prompts/`. They are sequenced with two-digit prefixes
-so the project can be rebuilt or extended in a controlled order:
+Product-generation prompts live in `prompts/`. Every prompt filename must match
+`^\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*\.md$` (`xx-name.md`) so the project can be rebuilt or
+extended in a controlled order:
 
 - `00-original-project-prompt.md` preserves the initial generation prompt.
-- `01-` through `19-` split the product into foundation, design, content, identity, forms,
-  evidence dashboard, backend security/storage, architecture, Function components, data
-  modelling, member tooling, operations, stakeholder feedback, and launch readiness.
+- The remaining numbered prompts split the product into foundation, design, content,
+  identity, forms, evidence dashboard, backend security/storage, architecture, Function
+  components, data modelling, member tooling, operations, stakeholder feedback, launch
+  readiness, and reconstruction requirements.
 - `20-clean-room-reconstruction-contract.md` is the final route/API/schema/configuration and
   acceptance contract for rebuilding the product from scratch.
 
@@ -562,9 +564,9 @@ checks catch structural drift; they do not prove that an agent can reproduce the
 from prose alone.
 
 For a genuine reproducibility test, follow the isolated clean-room procedure in
-`prompts/20-clean-room-reconstruction-contract.md`: provide only AGENTS.md, prompts `01-20`,
-approved public assets, and separately secured configuration in a new repository, then run
-the full acceptance checklist and record every manual intervention.
+`prompts/20-clean-room-reconstruction-contract.md`: provide only AGENTS.md, all numbered
+prompt files, approved public assets, and separately secured configuration in a new
+repository, then run the full acceptance checklist and record every manual intervention.
 
 ---
 

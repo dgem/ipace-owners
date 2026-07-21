@@ -152,8 +152,9 @@ Defined in `:root` in `site.css`. Key tokens:
 ## Prompt maintenance
 
 - Product-generation prompts live in `prompts/`.
-- Every prompt file must be prefixed with a two-digit sequence number, starting with
-  `00-original-project-prompt.md`.
+- Every prompt filename must match `^\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*\.md$`
+  (`xx-name.md`), starting with `00-original-project-prompt.md`. Do not use unnumbered
+  `*.md` files in `prompts/`.
 - Split prompts by product concern, feature, or implementation phase rather than keeping
   one large prompt.
 - Preserve historical prompts where useful, then add refined prompts for future work.

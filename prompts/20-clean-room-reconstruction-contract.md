@@ -8,7 +8,11 @@ information that must be preserved outside source control.
 
 - `00-original-project-prompt.md` is historical context only. Its Netlify architecture,
   placeholder data, and superseded product copy are not implementation requirements.
-- `01-20` plus `AGENTS.md` describe the current product. Later, more specific prompts
+- Every file in `prompts/` must match
+  `^\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*\.md$` (`xx-name.md`) and sequence numbers must remain
+  contiguous.
+- All numbered prompt files plus `AGENTS.md` describe the current product, except that
+  prompt `00` remains historical context as noted above. Later, more specific prompts
   override earlier general prompts when requirements conflict.
 - `09-architecture-overview.md` is authoritative for cross-layer architecture;
   feature-specific prompts are authoritative for their own request validation, copy, UX,
