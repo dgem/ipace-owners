@@ -43,12 +43,14 @@ duplicated per page.
 ## API contract inventory
 
 Firebase Hosting rewrites all `/api/**` traffic to one `Api` Function in `europe-west2`.
-Recreate the method, authentication, validation, generic-error, ownership, CORS, and
-rate-limiting behaviour described in prompts `08` and `10-14` for these routes:
+Recreate the method, authentication, validation, generic-error, ownership, and CORS
+behaviour described in prompts `08` and `10-14` for these routes. Application-level request
+rate limiting is not currently implemented; add it only as a deliberate, tested security
+change rather than assuming it exists.
 
 | Method and route | Authentication | Request/response contract |
 |---|---|---|
-| `POST /api/send-magic-link` | Public | JSON/form `email`, optional `name`; return enumeration-resistant `{ "ok": true }` for syntactically valid requests. |
+| `POST /api/send-magic-link` | Public | JSON `email`, optional `name`; return enumeration-resistant `{ "ok": true }` for syntactically valid requests. |
 | `POST /api/submit-join` | Optional Firebase token | `name`, `email`, `country`, `relationship`, `skills[]`, `consent-contact`, `consent-not-legal`, `consent-data`, and `bot-field`; save the Join record and initiate guest activation. |
 | `POST /api/submit-vehicle-basics` | Member | `vin`, `registration`, `country`, `modelYear`, `mileage`, `ownedSince`, `firstReg`, plus optional `soh`, `sohDate`, `sohMileage`, `sohSource`. |
 | `POST /api/submit-soh` | Member/vehicle owner | `vehicleId`, `soh`, `sohDate`, `sohMileage`, `sohSource`; append history and update the vehicle compatibility value. |
@@ -57,9 +59,12 @@ rate-limiting behaviour described in prompts `08` and `10-14` for these routes:
 | `GET /api/admin-data` | Admin claim | Return Join and vehicle review records. |
 | `GET /api/public-stats` | Public | Return the anonymised aggregate schema below with five-minute public caching and last-valid-snapshot fallback. |
 
-Accept JSON and browser form encoding where the UI uses either. Reject invalid methods,
-malformed input, failed authentication, unauthorized ownership, and honeypot submissions as
-specified in the feature prompts. Never depend on frontend gating for data protection.
+The implemented API decoder accepts strict JSON bodies and rejects unknown fields. Shared
+login forms still declare `method="POST"` so a JavaScript failure cannot leak email addresses
+into a GET URL; their no-JavaScript POST is a safe failure, not a form-encoded API contract.
+Reject invalid methods, malformed input, failed authentication, and unauthorized ownership;
+return generic success for Join honeypot submissions as specified in the feature prompts.
+Never depend on frontend gating for data protection.
 
 ## Canonical Firestore and snapshot schemas
 
@@ -84,7 +89,7 @@ keys where applicable, and `{ status, verificationLevel }` review metadata. Pres
   day counts, ownership keys, timestamps, and review metadata.
 - Member snapshots contain `identityUserId`, `email`, `generatedAt`, `joinRecords[]`,
   `vehicleRecords[]`, `batteryReadings[]`, and `serviceEvents[]`.
-- Public statistics contain `schemaVersion`, `generatedAt`, `registeredMembers`,
+- Public statistics currently use `schemaVersion: 4` and contain `generatedAt`, `registeredMembers`,
   `ownersContributed`, `vehiclesRegistered`, `vehiclesWithSoh`, `sohReadings`,
   `vehiclesWithRepeatSoh`, optional `averageReportedSoh`, optional `averageSohChange`, and
   `{ label, count }[]` arrays for `sohDistribution` and `modelYearDistribution`.
@@ -118,10 +123,25 @@ forms explicitly use POST even when JavaScript intercepts them.
 ## Visual and content fidelity
 
 Prompts define visual intent, not the exact control points or pixels of generated artwork.
-Therefore the following are preservation-critical source assets and must be backed up with
-the repository or an artifact archive: logo SVG/PNG, favicon, hero image, QR SVG, business
-card front/back SVG/PNG, and printable business-card PDF. Do not assume an image model can
-recreate them identically from prompt text.
+Therefore the following committed assets are preservation-critical and must be backed up with
+the repository or an artifact archive:
+
+- `public/favicon.png`;
+- `public/images/ipace-hero.png`;
+- `public/images/ipace-owners-logo.svg` and `public/images/ipace-owners-logo.png`;
+- `public/images/ipace-owners-qr.svg`;
+- `public/images/ipace-owners-card-front.svg` and
+  `public/images/ipace-owners-card-front.png`;
+- `public/images/ipace-owners-card-back.svg` and
+  `public/images/ipace-owners-card-back.png`;
+- `public/images/ipace-owners-card-front-hero.svg` and
+  `public/images/ipace-owners-card-front-hero.png`;
+- `public/images/ipace-owners-card-back-hero.svg` and
+  `public/images/ipace-owners-card-back-hero.png`.
+
+A printable PDF is not currently committed and must not be presented as a recoverable source
+artifact. Do not assume an image model can recreate the approved assets identically from
+prompt text.
 
 If those assets are genuinely unavailable, regenerate them from prompt `19`, label the
 result as a new visual revision, verify QR scanning and print dimensions, and obtain human
@@ -165,6 +185,27 @@ Before declaring reconstruction complete:
    render both business-card sides at print size.
 9. Obtain human review for logic, security, accessibility, legal/privacy copy, and tone before
    production deployment.
+
+## Reproducibility verification strategy
+
+Use layered verification rather than claiming that an in-place test proves a clean-room
+rebuild:
+
+- Run `test/reconstruction-contract.test.js` in every `make test`. It checks that the
+  maintained prompt range, required source routes, Hosting redirects/fallback, API router,
+  implemented Firestore collections, runtime configuration names, and preservation-critical
+  assets remain represented by this contract. It also verifies that documented `make`
+  commands still exist.
+- Treat this contract test as a drift detector, not proof that an empty machine can deploy
+  the product. It deliberately does not exercise cloud credentials, live data restoration,
+  DNS, email delivery, or visual equivalence.
+- Periodically perform a true isolated reconstruction in a new empty repository or ephemeral
+  environment using only `AGENTS.md`, prompts `01-20`, approved public assets, and separately
+  supplied secrets/configuration. Run the full acceptance checklist and compare the resulting
+  route/API/schema inventories with production before calling the reconstruction successful.
+- Record the source commit, toolchain versions, generated lockfiles, deviations, elapsed
+  time, and any undocumented operator knowledge discovered by that exercise; immediately
+  externalise the findings into the maintained prompts.
 
 ## External backup and disaster-recovery boundary
 

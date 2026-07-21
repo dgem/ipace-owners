@@ -11,8 +11,8 @@ public site built with Eleventy (11ty) and deployed to Firebase/GCP.
 .
 ├── src/
 │   ├── *.md / *.njk     # Top-level Markdown and Nunjucks page templates
-│   ├── member/          # Member-only placeholder pages
-│   ├── admin/           # Admin-only placeholder pages
+│   ├── member/          # Authenticated account, vehicle and evidence workspace pages
+│   ├── admin/           # Admin-only review tooling
 │   ├── updates/         # Update/news posts (.md)
 │   ├── _data/           # Global data files (site.json, navigation.json)
 │   ├── _includes/
@@ -24,8 +24,11 @@ public site built with Eleventy (11ty) and deployed to Firebase/GCP.
 │           ├── main.js            # Mobile menu, nav current-page detection
 │           ├── identity.js        # Firebase Auth email-link integration
 │           ├── member-auth.js     # Server-verified member/admin data loading
-│           └── multistep-form.js  # Generic multi-step form controller
-├── public/images/       # Static images (passed through to _site)
+│           ├── member-dashboard.js # Vehicle tabs, SoH and service/fault workspace
+│           ├── multistep-form.js  # Generic multi-step form controller
+│           ├── public-stats.js    # Public aggregate-statistics rendering
+│           └── site-mode.js       # Launch/full presentation selection
+├── public/              # Favicons, images and other root-level static assets
 ├── functions/firebase-go/ # Go Cloud Functions for Firebase/GCP
 ├── infra/opentofu/      # GCP/Firebase infrastructure
 ├── prompts/             # Sequenced prompts for rebuilding and evolving the product
@@ -131,10 +134,10 @@ Defined in `:root` in `site.css`. Key tokens:
 - Members may register multiple vehicles. Account/member pages should render vehicle lists,
   not a single vehicle assumption.
 - Member/account JSON snapshots are private data and must be served only after
-  `MemberData` verifies Firebase Auth server-side. Public static JSON is for anonymised
-  aggregate data only.
-- Member pages use `data-auth-gate` / `data-auth-content` attributes.
-- Admin pages use `data-admin-gate` / `data-admin-content` attributes.
+  `MemberData` verifies Firebase Auth server-side. Public aggregate responses must remain
+  anonymised and must never expose the private snapshot objects.
+- Member pages use `data-auth-container` / `data-auth-content` attributes.
+- Admin pages use `data-admin-container` / `data-admin-content` attributes.
 - **Frontend gating is not sufficient for real data access.** Go Functions must verify
   Firebase ID tokens server-side.
 
@@ -169,10 +172,13 @@ Defined in `:root` in `site.css`. Key tokens:
   prompt even if the code change is small or already complete. Examples include Firebase
   preview/auth quirks, CI smoke-test behaviour, data-publication rules, navigation/UX
   decisions, provider/runtime version policy, and manual DNS/deployment runbook steps.
-- Before finishing any non-trivial task, do a prompt-drift check: identify whether the
-  change affects architecture, auth, forms, data storage, CI/deploy, UX/content, or
-  operations. If yes, update the matching prompt file; if no prompt fits, add or split a
-  sequenced prompt rather than leaving the knowledge only in chat history.
+- **A prompt-drift check is mandatory whenever raising or updating a PR, including
+  documentation-only PRs.** Compare the complete PR diff with architecture, auth, forms,
+  data storage, CI/deploy, UX/content, assets, operations, and the clean-room contract.
+  Update every affected prompt before the PR is reported ready. If no prompt fits, add or
+  split a sequenced prompt rather than leaving durable knowledge only in code, the PR body,
+  or chat history. Record the result in the PR template even when the conclusion is that no
+  prompt change is required.
 
 ## Testing
 
@@ -200,6 +206,8 @@ Defined in `:root` in `site.css`. Key tokens:
   - Which files were added or modified.
   - How to verify the change locally (e.g., `make dev` and navigate to X).
   - Whether tests were added or updated.
+- Every PR must complete the prompt/documentation alignment checklist. A PR is not ready for
+  review while its implementation and maintained prompts disagree.
 - Whenever reporting that a PR was created, updated, pushed to, or is ready for review,
   include the full clickable GitHub PR URL, not only the PR number.
 - **Code review is required before merging.** Use GitHub's automatic Copilot code review

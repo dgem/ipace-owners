@@ -179,8 +179,8 @@ Firebase/GCP.
   - testing another mailbox provider;
   - Firebase Authentication sending quotas and billing plan limits;
   - checking Firebase email template/sender settings;
-  - future option to generate action links with Firebase Admin SDK and send through a
-    transactional email/SMTP provider if delivery tracking is needed.
+  - enabling and checking the implemented Firebase Admin SDK plus Resend path when custom
+    delivery control is needed.
 - Firebase Authentication email is part of the user experience, but Firebase's built-in
   passwordless `EMAIL_SIGNIN` body cannot be replaced through the Admin v2 account-management
   templates. Keep the future HTML designs in

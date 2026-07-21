@@ -48,9 +48,9 @@ Potential future Go Functions or handler extensions:
   - self-reported;
   - document supplied;
   - reviewed by organiser;
-  - duplicate checked;
-  - excluded from public statistics.
-- Aggregates must exclude records marked as excluded from public statistics.
+  - duplicate checked.
+- Treat exclusion from public statistics as review/publication status, not a verification
+  level. Aggregates must exclude records whose review status is `excluded`.
 - Public aggregate JSON can be stored in Cloud Storage or another generated snapshot
   location and served through `PublicStats`. Private member/account JSON must not be
   written to public static output.
