@@ -130,6 +130,32 @@ Firebase/GCP.
 - Run `make smoke` directly in the production workflow after Hosting deploy with
   `SMOKE_BASE_URL=https://ipace-owners.org`.
 
+## Human-controlled Facebook outreach
+
+- Provide an admin-only `/admin/outreach/` workspace for generating user-initiated Facebook
+  search links from editable phrases and group URLs, plus issue-specific editable reply drafts.
+- The browser helper must never fetch or scrape Facebook, operate a logged-in Facebook session,
+  open searches automatically, send direct messages, submit posts or retain Facebook content.
+- Accept only HTTPS `facebook.com/groups/<id-or-slug>` URLs, discard extra paths and parameters,
+  deduplicate inputs, URL-encode every query, and mark explicit outbound links `noopener` and
+  `noreferrer`.
+- Keep every response human-reviewed and manually posted. Replies should offer useful evidence-
+  gathering steps, disclose the volunteer connection when inviting participation, avoid diagnosis
+  or official-advice claims, follow group rules, and stop on objection.
+
+## Firebase administrator reconciliation
+
+- Treat OpenTofu's administrator email map as authoritative whenever management is enabled. The
+  shared module must always add `dan@kanzi.co.uk` to the desired set.
+- The Google provider has no Firebase Auth user data source. Use the tested reconciliation bridge
+  to page through Identity Platform accounts, resolve email addresses to environment-specific UIDs,
+  merge `admin: true` without discarding unrelated claims, and remove only admin access from users
+  no longer configured.
+- Refuse an empty desired set, duplicate/invalid emails and missing Firebase accounts. Never print
+  user email addresses, UIDs or claim contents during a successful reconciliation.
+- Reconcile staging and production independently. Users need a newly issued ID token after a claim
+  change. Disabling management leaves existing claims untouched, so revoke removed admins first.
+
 ## Smoke Tests
 
 - Smoke tests must run in the workflows that know the real deployed URL: the Firebase

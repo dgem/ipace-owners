@@ -81,6 +81,11 @@ the retired hosting or Function platform.
 7. Go Functions verify Firebase ID tokens server-side. Admin endpoints require an `admin`
    custom claim or a `roles` claim containing `admin`.
 
+OpenTofu reconciles the authoritative Firebase administrator emails through a tested Identity
+Platform API bridge. The shared module always includes `dan@kanzi.co.uk`, resolves email to the
+environment-specific UID, preserves unrelated custom claims, and revokes only admin access from
+users removed from the desired set. A configured user must already exist in Firebase Auth.
+
 ## Implemented API contracts
 
 | Route | Handler behind `Api` | Auth | Purpose |

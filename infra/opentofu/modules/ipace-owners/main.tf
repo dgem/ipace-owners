@@ -8,8 +8,12 @@ locals {
   email_continue_host               = regex("^https?://([^/]+)", var.site_url)[0]
   firebase_auth_email_action_domain = var.firebase_auth_email_action_domain != "" ? var.firebase_auth_email_action_domain : local.email_continue_host
   firebase_auth_email_script        = abspath("${path.module}/../../../../scripts/configure-firebase-auth-email.mjs")
-  production_data_protection        = var.environment == "production"
-  firestore_backup_retention        = "8467200s" # 14 weeks, the Firestore scheduled-backup maximum.
+  firebase_admins_script            = abspath("${path.module}/../../../../scripts/reconcile-firebase-admins.mjs")
+  firebase_admin_users = merge(var.firebase_admin_users, {
+    dan = "dan@kanzi.co.uk"
+  })
+  production_data_protection = var.environment == "production"
+  firestore_backup_retention = "8467200s" # 14 weeks, the Firestore scheduled-backup maximum.
   firebase_auth_authorized_domains = distinct(compact(concat([
     local.email_continue_host,
     "${var.project_id}.firebaseapp.com",
@@ -129,6 +133,27 @@ resource "terraform_data" "firebase_auth_email" {
       GCP_PROJECT_ID                = var.project_id
       FIREBASE_AUTH_EMAIL_DOMAIN    = var.firebase_auth_email_domain
       FIREBASE_PROJECT_DISPLAY_NAME = local.firebase_project_display_name
+    }
+  }
+
+  depends_on = [google_identity_platform_config.default]
+}
+
+resource "terraform_data" "firebase_admins" {
+  count = var.manage_firebase_admins ? 1 : 0
+
+  triggers_replace = [
+    var.project_id,
+    jsonencode(local.firebase_admin_users),
+    filesha256(local.firebase_admins_script),
+  ]
+
+  provisioner "local-exec" {
+    command = "node ${local.firebase_admins_script}"
+
+    environment = {
+      GCP_PROJECT_ID            = var.project_id
+      FIREBASE_ADMIN_USERS_JSON = jsonencode(local.firebase_admin_users)
     }
   }
 

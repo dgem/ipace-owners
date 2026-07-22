@@ -81,6 +81,12 @@ server-side by Go Cloud Functions that validate Firebase ID tokens.
 Admin access is granted through Firebase Auth custom claims: `admin: true` or
 `roles: ["admin"]`.
 
+OpenTofu owns the authoritative administrator set through its tested Identity Platform
+reconciliation bridge because the Google provider exposes no Firebase Auth user data source.
+Always include `dan@kanzi.co.uk` as a required administrator, resolve configured emails to the
+environment-specific Firebase UID during apply, preserve unrelated claims, and remove only
+admin access from users removed from configuration. Fail when a configured user does not exist.
+
 ## Page pattern
 
 Login gates are visible by default or via a pending state. Content must have `hidden` until

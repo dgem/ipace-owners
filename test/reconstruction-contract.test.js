@@ -50,6 +50,7 @@ test('clean-room route inventory maps to source pages and Hosting redirects', fu
     ['/member/account/', 'src/member/account.njk'],
     ['/member/submit-vehicle-data/', 'src/member/submit-vehicle-data.njk'],
     ['/admin/review-queue/', 'src/admin/review-queue.njk'],
+    ['/admin/outreach/', 'src/admin/outreach.njk'],
     ['/404.html', 'src/404.njk'],
   ];
 

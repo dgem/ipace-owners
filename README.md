@@ -160,7 +160,7 @@ Removes the `_site/` directory.
 src/
   *.md / *.njk     # Top-level page templates
   member/          # Authenticated account, vehicle and evidence workspace pages
-  admin/           # Admin-gated review queue
+  admin/           # Admin-gated review and human-controlled outreach tools
   updates/         # Update/news posts (.md)
   _data/           # Global data (site.json, navigation.json)
   _includes/
@@ -174,6 +174,7 @@ src/
       member-auth.js     # Server-verified member/admin data loading
       member-dashboard.js # Vehicle tabs, SoH graph and service/fault editing
       multistep-form.js  # Multi-step form controller
+      outreach-assistant.js # Facebook search-link and reply helper; no automation
       public-stats.js    # Public aggregate-statistics rendering
       site-mode.js       # Launch/full presentation selection
 public/            # Favicons, images and other root-level static assets
@@ -536,10 +537,27 @@ email hash.
 
 ### Admin role assignment
 
-To grant a member admin access:
+OpenTofu manages the authoritative Firebase administrator set. The shared module always
+includes `dan@kanzi.co.uk`; additional administrators are labels mapped to email addresses in
+the environment configuration:
 
-Set a Firebase Auth custom claim for the user, for example `admin: true` or
-`roles: ["admin"]`. Admin APIs verify this claim server-side.
+```hcl
+manage_firebase_admins = true
+firebase_admin_users = {
+  another_admin = "person@example.org"
+}
+```
+
+The Google provider has no Firebase Auth user data source. During apply, the tested
+`scripts/reconcile-firebase-admins.mjs` bridge lists Identity Platform accounts, resolves each
+configured email to its environment-specific UID, preserves unrelated custom claims, grants
+`admin: true` to the desired set, and removes only admin access from users no longer listed.
+The apply fails rather than silently continuing if a configured account has not completed
+Firebase sign-in. Staging and production are reconciled independently. After a claim change,
+sign out and request a new magic link so the next ID token contains the current claim.
+
+Disabling `manage_firebase_admins` stops reconciliation but does not revoke existing claims.
+Remove unwanted administrators from the map and apply before disabling management.
 
 ---
 
@@ -581,6 +599,7 @@ Plain vanilla JavaScript, no bundler. The current modules are:
 - `member-auth.js` — authenticated member/admin data loading and account rendering
 - `member-dashboard.js` — vehicle tabs, SoH history and service/fault editing
 - `multistep-form.js` — generic multi-step form (data-attribute driven)
+- `outreach-assistant.js` — admin-only Facebook search-link and editable reply helper; no retrieval or posting automation
 - `public-stats.js` — homepage and evidence-dashboard aggregate rendering
 - `site-mode.js` — launch/full presentation selection
 

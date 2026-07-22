@@ -32,7 +32,7 @@ The generated public route surface must include:
   `/methodology/`, `/evidence-dashboard/`, and `/updates/`;
 - dated or named update pages generated from `src/updates/`;
 - `/member/dashboard/`, `/member/account/`, and `/member/submit-vehicle-data/`;
-- `/admin/review-queue/`;
+- `/admin/review-queue/` and `/admin/outreach/`;
 - permanent redirects from `/account/**` and `/submit-vehicle-data/**` to their member
   equivalents;
 - a generated 404 page, clean URLs, trailing slashes, and a final Hosting fallback to
@@ -43,6 +43,17 @@ cards, callouts, authentication gate, and Join result partials. Private member/a
 must be `noindex, nofollow`. Canonical URLs, Open Graph metadata, Twitter metadata, and
 Organisation/WebSite structured data belong in the shared SEO partial rather than being
 duplicated per page.
+
+The admin outreach route loads `outreach-assistant.js` only on that page. It generates explicit,
+user-opened Facebook post-search URLs from editable search phrases and group URLs and drafts
+editable issue-specific replies. It performs no Facebook network request, scraping, logged-in
+session automation, automatic navigation, messaging, posting or Facebook-content persistence.
+
+OpenTofu must reconcile the authoritative Firebase administrator email set through the Identity
+Platform API because the Google provider has no Firebase Auth user data source. The shared module
+always includes `dan@kanzi.co.uk`; additional admins come from environment configuration. Resolve
+emails to per-environment UIDs, preserve unrelated claims, grant `admin: true`, remove only admin
+access from removed users, and fail closed for missing accounts or an empty desired set.
 
 ## API contract inventory
 
