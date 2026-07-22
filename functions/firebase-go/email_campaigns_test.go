@@ -93,4 +93,10 @@ func TestMemberReferralEmailExplainsGoalAndProvidesShares(t *testing.T) {
 			t.Fatalf("missing %s share action", expected)
 		}
 	}
+	instagramURL := strings.Join([]string{"https:", "", "www.instagram.com", "ipaceowners", ""}, "/")
+	for _, share := range preview.Shares {
+		if share.Label == "Instagram" && share.URL != instagramURL {
+			t.Fatalf("unexpected Instagram profile: %q", share.URL)
+		}
+	}
 }

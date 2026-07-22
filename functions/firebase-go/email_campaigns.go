@@ -610,13 +610,14 @@ func makeCampaignEmailPreview(memberCount, eligibleCount int) campaignEmailPrevi
 
 func memberReferralShareLinks(memberCount int) []campaignShareLink {
 	shareURL := "https://ipace-owners.org/"
+	instagramURL := "https://www.instagram.com/ipaceowners/"
 	message := fmt.Sprintf("I-PACE owners are working together for fair outcomes. %d owners have already joined — could you help another owner find the group?", memberCount)
 	return []campaignShareLink{
 		{Label: "Facebook", Mark: "f", URL: "https://www.facebook.com/sharer/sharer.php?u=" + url.QueryEscape(shareURL)},
 		{Label: "X", Mark: "𝕏", URL: "https://twitter.com/intent/tweet?text=" + url.QueryEscape(message) + "&url=" + url.QueryEscape(shareURL)},
 		{Label: "Bluesky", Mark: "B", URL: "https://bsky.app/intent/compose?text=" + url.QueryEscape(message+" "+shareURL)},
 		{Label: "LinkedIn", Mark: "in", URL: "https://www.linkedin.com/sharing/share-offsite/?url=" + url.QueryEscape(shareURL)},
-		{Label: "Instagram", Mark: "◎", URL: shareURL},
+		{Label: "Instagram", Mark: "◎", URL: instagramURL},
 		{Label: "WhatsApp", Mark: "W", URL: "https://wa.me/?text=" + url.QueryEscape(message+" "+shareURL)},
 		{Label: "Email", Mark: "@", URL: "mailto:?subject=" + url.QueryEscape("Will you join the I-PACE Owners group?") + "&body=" + url.QueryEscape(message+"\n\n"+shareURL)},
 	}
@@ -644,7 +645,7 @@ func memberReferralEmailBodies(person campaignRecipient, memberCount int) (strin
 	for _, share := range shares {
 		buttons += `<a href="` + html.EscapeString(share.URL) + `" style="display:inline-block;margin:0 8px 10px 0;padding:9px 12px;border:1px solid #111827;border-radius:6px;color:#111827;text-decoration:none;font-weight:700;"><span style="display:inline-block;min-width:18px;text-align:center;filter:grayscale(1);">` + html.EscapeString(share.Mark) + `</span> ` + html.EscapeString(share.Label) + `</a>`
 	}
-	htmlBody := `<p>Hello ` + html.EscapeString(first) + `,</p><h1>Could you help one more I-PACE owner find us?</h1><p><strong>` + fmt.Sprint(memberCount) + ` owners have joined</strong> the I-PACE Owners Advocacy Group. We are ` + fmt.Sprint(remaining) + ` members away from our 1,000-owner stretch goal.</p><p>` + html.EscapeString(projection) + `.</p><p>Please share the group with an I-PACE owner you know:</p><div style="margin:20px 0;">` + buttons + `</div><p>Instagram does not offer a web share button, so its link opens the group page ready for you to copy into a post or message.</p><p>Thank you for helping build a stronger, constructive voice for owners.</p><p style="color:#4b5563;font-size:13px;">You are receiving this because you registered with the group and agreed that we could contact you. Reply if you no longer wish to hear from us.</p>`
+	htmlBody := `<p>Hello ` + html.EscapeString(first) + `,</p><h1>Could you help one more I-PACE owner find us?</h1><p><strong>` + fmt.Sprint(memberCount) + ` owners have joined</strong> the I-PACE Owners Advocacy Group. We are ` + fmt.Sprint(remaining) + ` members away from our 1,000-owner stretch goal.</p><p>` + html.EscapeString(projection) + `.</p><p>Please share the group with an I-PACE owner you know:</p><div style="margin:20px 0;">` + buttons + `</div><p>Instagram does not offer a web share button, so its link opens our <strong>@ipaceowners</strong> profile ready for you to share in a post or message.</p><p>Thank you for helping build a stronger, constructive voice for owners.</p><p style="color:#4b5563;font-size:13px;">You are receiving this because you registered with the group and agreed that we could contact you. Reply if you no longer wish to hear from us.</p>`
 	return subject, htmlBody, text, shares
 }
 

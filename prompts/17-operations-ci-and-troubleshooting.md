@@ -20,8 +20,9 @@ batches and stop to investigate any provider or ledger error.
 The separate member-referral campaign targets only Firebase accounts with a matching
 contact-consenting Join record. Its live copy reports progress to 1,000 and the exact doubled
 total if every current owner finds one more. Include monochrome actions for Facebook, X,
-Bluesky, LinkedIn, Instagram, WhatsApp, and email; Instagram links to the canonical site because
-it has no reliable web share composer. Apply the same preview, confirmation, batch, registration
+Bluesky, LinkedIn, Instagram, WhatsApp, and email; Instagram links to the group's
+`@ipaceowners` profile because it has no reliable web share composer. Apply the same preview,
+confirmation, batch, registration
 recheck, and hashed-ledger controls as registration reminders.
 
 ## Command Surface

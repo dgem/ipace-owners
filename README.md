@@ -399,7 +399,8 @@ audience is the intersection of Firebase-registered accounts and contact-consent
 records. The friendly template shows the current owner total, distance from the 1,000-owner
 stretch goal, and the doubled total if every current owner finds one more. It includes
 monochrome share actions for Facebook, X, Bluesky, LinkedIn, Instagram, WhatsApp, and email;
-Instagram opens the canonical group page because it has no reliable web share composer.
+Instagram opens the group's `@ipaceowners` profile because it has no reliable web share
+composer.
 
 ```bash
 make join-reengagement \
