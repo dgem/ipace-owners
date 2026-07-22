@@ -11,6 +11,7 @@
 
 	var app = null;
 	var auth = null;
+	var adminUIRunId = 0;
 	var config = window.ipaceFirebaseConfig;
 	window.ipaceIdentityReady = !config;
 	window.ipaceIdentityUser = null;
@@ -71,9 +72,29 @@
 			if (mobileLoginBtn) mobileLoginBtn.style.display = '';
 			if (mobileLogoutBtn) mobileLogoutBtn.style.display = 'none';
 			setVisibility('[data-requires-auth]', false);
+			setVisibility('[data-requires-admin]', false);
 			setVisibility('[data-requires-guest]', true);
 			if (userDisplay) userDisplay.style.display = 'none';
 		}
+	}
+
+	function updateAdminUI(user) {
+		var runId = ++adminUIRunId;
+		setVisibility('[data-requires-admin]', false);
+		if (!user || !user.getIdTokenResult) return Promise.resolve(false);
+		return user.getIdTokenResult().then(function (result) {
+			if (runId !== adminUIRunId) return false;
+			var claims = result && result.claims ? result.claims : {};
+			var roles = Array.isArray(claims.roles) ? claims.roles : [];
+			var isAdmin = claims.admin === true || roles.indexOf('admin') !== -1;
+			setVisibility('[data-requires-admin]', isAdmin);
+			return isAdmin;
+		}).catch(function (err) {
+			if (runId !== adminUIRunId) return false;
+			console.warn('[identity.js] Could not read Firebase role claims.', err);
+			setVisibility('[data-requires-admin]', false);
+			return false;
+		});
 	}
 
 	function dispatchIdentityState(name, user) {
@@ -359,14 +380,16 @@
 		completeEmailLinkIfNeeded().finally(function () {
 			auth.onAuthStateChanged(function (user) {
 				updateHeaderUI(user);
-				dispatchIdentityState(window.ipaceIdentityReady ? (user ? 'identity:login' : 'identity:logout') : 'identity:ready', user);
+				updateAdminUI(user).finally(function () {
+					dispatchIdentityState(window.ipaceIdentityReady ? (user ? 'identity:login' : 'identity:logout') : 'identity:ready', user);
 
-				if (user) {
-					document.querySelectorAll('[data-registration-guest]').forEach(function (el) { el.hidden = true; });
-					document.querySelectorAll('[data-registration-signed-in]').forEach(function (el) { el.hidden = false; });
-					var redirect = document.body.dataset.authRedirectOnLogin;
-					if (redirect) window.location.href = redirect;
-				}
+					if (user) {
+						document.querySelectorAll('[data-registration-guest]').forEach(function (el) { el.hidden = true; });
+						document.querySelectorAll('[data-registration-signed-in]').forEach(function (el) { el.hidden = false; });
+						var redirect = document.body.dataset.authRedirectOnLogin;
+						if (redirect) window.location.href = redirect;
+					}
+				});
 			});
 		});
 	} else {

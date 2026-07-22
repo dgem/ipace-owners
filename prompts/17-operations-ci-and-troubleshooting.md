@@ -155,6 +155,8 @@ Firebase/GCP.
   user email addresses, UIDs or claim contents during a successful reconciliation.
 - Reconcile staging and production independently. Users need a newly issued ID token after a claim
   change. Disabling management leaves existing claims untouched, so revoke removed admins first.
+- Show desktop and mobile admin navigation only after the signed-in user's ID-token claims contain
+  `admin: true` or an `admin` role. Keep server-side `AdminData` verification authoritative.
 
 ## Smoke Tests
 

@@ -26,6 +26,19 @@ test('header exposes one My Data action and account via user email when signed i
   assert.match(identityJs, /setAttribute\('aria-label', 'My account'\)/);
 });
 
+test('admin tools are discoverable only when Firebase token claims permit them', function () {
+  var header = fs.readFileSync(path.join(repoRoot, 'src/_includes/partials/header.njk'), 'utf8');
+  var mobileNav = fs.readFileSync(path.join(repoRoot, 'src/_includes/partials/mobile-nav.njk'), 'utf8');
+  var identityJs = fs.readFileSync(path.join(repoRoot, 'src/assets/js/identity.js'), 'utf8');
+
+  assert.match(header, /href="\/admin\/outreach\/"[\s\S]*data-requires-admin[\s\S]*>Admin<\/a>/);
+  assert.match(mobileNav, /href="\/admin\/outreach\/"[\s\S]*data-requires-admin[\s\S]*>Admin tools<\/a>/);
+  assert.match(identityJs, /user\.getIdTokenResult\(\)/);
+  assert.match(identityJs, /claims\.admin === true \|\| roles\.indexOf\('admin'\) !== -1/);
+  assert.match(identityJs, /setVisibility\('\[data-requires-admin\]', false\)/);
+  assert.match(identityJs, /setVisibility\('\[data-requires-admin\]', isAdmin\)/);
+});
+
 test('footer exposes social share links', function () {
   var footer = fs.readFileSync(path.join(repoRoot, 'src/_includes/partials/footer.njk'), 'utf8');
 

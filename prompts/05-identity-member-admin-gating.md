@@ -86,6 +86,9 @@ reconciliation bridge because the Google provider exposes no Firebase Auth user 
 Always include `dan@kanzi.co.uk` as a required administrator, resolve configured emails to the
 environment-specific Firebase UID during apply, preserve unrelated claims, and remove only
 admin access from users removed from configuration. Fail when a configured user does not exist.
+After sign-in, inspect the Firebase ID-token result and expose desktop/mobile admin navigation
+only for `admin: true` or a `roles` entry containing `admin`. This is a discoverability aid only;
+the destination must continue to require server-side `AdminData` verification.
 
 ## Page pattern
 

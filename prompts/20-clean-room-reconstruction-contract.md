@@ -54,6 +54,9 @@ Platform API because the Google provider has no Firebase Auth user data source. 
 always includes `dan@kanzi.co.uk`; additional admins come from environment configuration. Resolve
 emails to per-environment UIDs, preserve unrelated claims, grant `admin: true`, remove only admin
 access from removed users, and fail closed for missing accounts or an empty desired set.
+Signed-in administrators receive desktop and mobile navigation to `/admin/outreach/` only after
+the browser reads an admin claim from the Firebase ID token. Treat that link as discoverability,
+not authorization; the route remains gated by the server-verified admin API.
 
 ## API contract inventory
 

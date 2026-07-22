@@ -52,7 +52,7 @@ test('drafts useful disclosed replies without claiming diagnosis', function () {
   assert.match(invited, /which module or cells/i);
   assert.match(invited, /I volunteer with/);
   assert.match(invited, /rather than a diagnosis or official Jaguar advice/);
-  assert.doesNotMatch(notInvited, /ipace-owners\.org/);
+  assert.equal(notInvited.includes('ipace-owners.org'), false);
 });
 
 test('admin outreach page is gated and documents the manual boundary', function () {
