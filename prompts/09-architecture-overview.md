@@ -86,6 +86,9 @@ Platform API bridge. The shared module always includes `dan@kanzi.co.uk`, resolv
 environment-specific UID, preserves unrelated custom claims, and revokes only admin access from
 users removed from the desired set. A configured user must already exist in Firebase Auth.
 
+After claims are verified, render the complete admin menu in a right-aligned secondary desktop
+header row and a labelled mobile-drawer section. Do not duplicate it below admin page titles.
+
 ## Implemented API contracts
 
 | Route | Handler behind `Api` | Auth | Purpose |

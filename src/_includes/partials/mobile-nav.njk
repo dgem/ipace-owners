@@ -20,10 +20,18 @@
     {% endfor %}
   </ul>
 
+  <div class="mobile-nav__admin" data-requires-admin style="display:none">
+    <p class="mobile-nav__section-label">Admin</p>
+    <ul class="mobile-nav__list" role="list">
+      {% for item in navigation.admin %}
+        <li><a href="{{ item.url }}" class="mobile-nav__link" data-nav-link>{{ item.label }}</a></li>
+      {% endfor %}
+    </ul>
+  </div>
+
   <div class="mobile-nav__identity">
     <a href="/member/dashboard/" class="btn btn--sm btn--primary full-width" data-requires-auth style="display:none">My Data</a>
     <a href="/member/account/" class="btn btn--sm btn--secondary full-width" data-requires-auth style="display:none">My account</a>
-    <a href="/admin/outreach/" class="btn btn--sm btn--secondary full-width" data-requires-admin style="display:none">Admin tools</a>
     <a id="identity-mobile-login-btn" class="btn btn--sm btn--secondary full-width" href="/member/account/">Sign in</a>
     <button id="identity-mobile-logout-btn" class="btn btn--sm btn--ghost full-width" type="button" style="display:none">Sign out</button>
   </div>

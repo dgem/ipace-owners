@@ -35,7 +35,6 @@
         <div class="identity-controls">
           <a id="identity-user-display" class="identity-controls__user btn btn--sm btn--ghost" href="/member/account/" data-requires-auth style="display:none"></a>
           <a id="identity-login-btn" class="btn btn--sm btn--ghost" href="/member/account/">Sign in</a>
-          <a href="/admin/outreach/" class="btn btn--sm btn--ghost" data-requires-admin style="display:none">Admin</a>
           <a href="/member/dashboard/" class="btn btn--sm btn--primary" data-requires-auth style="display:none">My Data</a>
           <button id="identity-logout-btn" class="btn btn--sm btn--ghost" type="button" style="display:none">Sign out</button>
         </div>
@@ -58,5 +57,12 @@
       </div>
 
     </div>
+
+    <nav class="site-admin-nav" aria-label="Admin navigation" data-requires-admin style="display:none">
+      <span class="site-admin-nav__label">Admin</span>
+      {% for item in navigation.admin %}
+        <a href="{{ item.url }}" class="site-admin-nav__link" data-nav-link>{{ item.label }}</a>
+      {% endfor %}
+    </nav>
   </div>
 </header>

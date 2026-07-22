@@ -29,15 +29,6 @@ outreachAssistant: true
 			</div>
 
 			<div class="auth-content" data-admin-content hidden>
-				<nav class="outreach-admin-nav" aria-label="Admin navigation">
-					<h2>Admin navigation</h2>
-					<div class="cluster">
-						{% for item in navigation.admin %}
-							<a href="{{ item.url }}" class="btn btn--secondary btn--sm">{{ item.label }}</a>
-						{% endfor %}
-					</div>
-				</nav>
-
 				<div class="callout callout--info outreach-boundary">
 					<span class="callout__icon" aria-hidden="true">ℹ️</span>
 					<div class="callout__content">

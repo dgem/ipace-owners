@@ -58,6 +58,9 @@ Signed-in administrators receive desktop and mobile navigation to `/admin/outrea
 the browser reads an admin claim from the Firebase ID token. Treat that link as discoverability,
 not authorization; the route remains gated by the server-verified admin API.
 
+The complete admin menu belongs in a claim-gated, right-aligned secondary desktop header row and
+a labelled mobile-drawer section, not inside individual admin page content.
+
 ## API contract inventory
 
 Firebase Hosting rewrites all `/api/**` traffic to one `Api` Function in `europe-west2`.

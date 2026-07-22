@@ -73,9 +73,11 @@ server-side by Go Cloud Functions that validate Firebase ID tokens.
 
 ## Server-side APIs
 
-The admin navigation includes `/admin/email-campaigns/`. Its controls remain hidden until
-Firebase claims indicate admin access, while both campaign APIs independently verify the ID
-token and admin role server-side.
+The complete admin navigation, including `/admin/email-campaigns/`, lives in a claim-gated
+secondary row of the desktop site header, aligned right, and in a labelled section of the mobile
+drawer. Do not repeat it inside individual admin page content. It remains hidden until Firebase
+claims indicate admin access, while campaign APIs independently verify the ID token and admin
+role server-side.
 
 | Function | Auth Required | Purpose |
 |---|---|---|

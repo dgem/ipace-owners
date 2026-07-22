@@ -31,8 +31,9 @@ test('admin tools are discoverable only when Firebase token claims permit them',
   var mobileNav = fs.readFileSync(path.join(repoRoot, 'src/_includes/partials/mobile-nav.njk'), 'utf8');
   var identityJs = fs.readFileSync(path.join(repoRoot, 'src/assets/js/identity.js'), 'utf8');
 
-  assert.match(header, /href="\/admin\/outreach\/"[\s\S]*data-requires-admin[\s\S]*>Admin<\/a>/);
-  assert.match(mobileNav, /href="\/admin\/outreach\/"[\s\S]*data-requires-admin[\s\S]*>Admin tools<\/a>/);
+  assert.match(header, /site-admin-nav[\s\S]*data-requires-admin[\s\S]*navigation\.admin/);
+  assert.match(mobileNav, /mobile-nav__admin[\s\S]*data-requires-admin[\s\S]*navigation\.admin/);
+  assert.doesNotMatch(header, /data-requires-admin[^>]*>Admin<\/a>/);
   assert.match(identityJs, /user\.getIdTokenResult\(\)/);
   assert.match(identityJs, /claims\.admin === true \|\| roles\.indexOf\('admin'\) !== -1/);
   assert.match(identityJs, /setVisibility\('\[data-requires-admin\]', false\)/);
