@@ -131,6 +131,10 @@ Update Node tests for browser wiring and Go tests for handlers. Required coverag
   idempotency keys, and refuse to overwrite results. Info logs expose only counts; debug logs may
   print candidate names and addresses, but action links must never be logged. Do not expose this
   workflow as a public endpoint.
+- Treat a canonical Firebase Auth email without a canonical Join email as a privacy-invariant
+  failure. Report it in dry-run output, return failure after writing the audit ledger, and always
+  block live sending. Name matching may suppress a reminder for safety but must not satisfy this
+  strict Auth-to-Join coverage check.
 - The re-engagement email should address the member by first name, state when they submitted Join,
   lead with a secure “Verify my account details” CTA, and use “Add my I-PACE data” as a quieter
   secondary action. Show the live unique joined-member count and describe completion by the current

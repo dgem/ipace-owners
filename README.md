@@ -371,6 +371,9 @@ The summary reports both raw Auth accounts and canonical Auth identities, exposi
 `+tag`/base-address accounts separately from canonical Auth identities without a corresponding
 Join submission. The eligible cohort is the Join set minus only the Join identities actually
 matched to Auth by exact email, `+tag` alias, or name.
+Auth coverage itself is stricter: names do not satisfy the privacy invariant. Any canonical Auth
+email without a canonical Join email makes the command fail after writing the dry-run ledger and
+always blocks a live send.
 
 ```bash
 export RESEND_API_KEY="set-from-your-secure-password-manager"

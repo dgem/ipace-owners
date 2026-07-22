@@ -61,8 +61,8 @@ func TestReconcileAuthCoverageSeparatesDuplicateAliasesAndMissingJoin(t *testing
 		{Email: "orphan@example.org", Name: "No Join"},
 	}
 	identities, withoutJoin := reconcileAuthCoverage(joins, accounts)
-	if identities != 3 || withoutJoin != 1 {
-		t.Fatalf("reconcileAuthCoverage() = (%d, %d), want (3, 1)", identities, withoutJoin)
+	if identities != 3 || withoutJoin != 2 {
+		t.Fatalf("reconcileAuthCoverage() = (%d, %d), want (3, 2)", identities, withoutJoin)
 	}
 }
 

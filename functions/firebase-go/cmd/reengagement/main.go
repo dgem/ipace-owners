@@ -126,7 +126,13 @@ func run(ctx context.Context, config campaignConfig) error {
 			return err
 		}
 		fmt.Fprintf(config.Output, "dry run complete: env=%s, %d unique Join submissions, %d total Auth accounts (%d canonical identities), %d Join identities matched to Auth, %d Auth identities without Join, %d eligible; no emails sent\n", config.Environment, memberCount, len(accounts), authIdentities, len(preflight)-len(eligible), authWithoutJoin, len(eligible))
+		if authWithoutJoin > 0 {
+			return fmt.Errorf("privacy invariant failed: %d canonical Auth identities have no Join submission", authWithoutJoin)
+		}
 		return nil
+	}
+	if authWithoutJoin > 0 {
+		return fmt.Errorf("refusing to send: %d canonical Auth identities have no Join submission", authWithoutJoin)
 	}
 	if config.Confirm != len(eligible) {
 		return fmt.Errorf("refusing to send: --confirm-count=%d, current eligible count=%d; rerun dry mode and confirm the current count", config.Confirm, len(eligible))
@@ -387,12 +393,9 @@ func classifyRecipients(joins []recipient, accounts []authAccount) ([]resultRow,
 }
 
 func reconcileAuthCoverage(joins []recipient, accounts []authAccount) (int, int) {
-	joinEmails, joinNames := make(map[string]bool), make(map[string]bool)
+	joinEmails := make(map[string]bool)
 	for _, person := range joins {
 		joinEmails[canonicalEmail(person.Email)] = true
-		if name := normalizedName(person.Name); name != "" {
-			joinNames[name] = true
-		}
 	}
 	authIdentities := make(map[string]bool)
 	matchedIdentities := make(map[string]bool)
@@ -402,7 +405,7 @@ func reconcileAuthCoverage(joins []recipient, accounts []authAccount) (int, int)
 			continue
 		}
 		authIdentities[identity] = true
-		if joinEmails[identity] || joinNames[normalizedName(account.Name)] {
+		if joinEmails[identity] {
 			matchedIdentities[identity] = true
 		}
 	}
