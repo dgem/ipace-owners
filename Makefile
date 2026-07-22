@@ -9,7 +9,7 @@ FIREBASE_PREVIEW_ERROR ?= firebase-preview-error.log
 GOVULNCHECK_VERSION ?= v1.6.0
 INFRA_ENV_SCRIPT := scripts/infra-env.sh
 
-.PHONY: help functions install ci-install dev build clean lint lint-js lint-css lint-markdown lint-data lint-templates lint-shell lint-go lint-tofu lint-svg audit audit-node audit-go test test-node test-go smoke join-reengagement write-functions-env authorize-preview-domain deploy-functions deploy-hosting-preview deploy-hosting-production infra-config infra-auth infra-init infra-workspace infra-dns-records infra-resend-dns-records infra-email-domain infra-plan infra-apply deploy-hosting-env
+.PHONY: help functions check-node install ci-install dev build clean lint lint-js lint-css lint-markdown lint-data lint-templates lint-shell lint-go lint-tofu lint-svg audit audit-node audit-go test test-node test-go smoke join-reengagement write-functions-env authorize-preview-domain deploy-functions deploy-hosting-preview deploy-hosting-production infra-config infra-auth infra-init infra-workspace infra-dns-records infra-resend-dns-records infra-email-domain infra-plan infra-apply deploy-hosting-env
 
 help: ## Show available make targets.
 	@awk 'BEGIN {FS = ":.*##"; printf "Available targets:\n"} /^[a-zA-Z0-9_.-]+:.*##/ {printf "  %-28s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -17,33 +17,41 @@ help: ## Show available make targets.
 functions: ## List Cloud Function entrypoints deployed by deploy-functions.
 	@printf '%s\n' $(FUNCTION_ENTRYPOINTS)
 
-install: ## Install npm dependencies for local development.
+check-node: ## Verify the active Node.js major matches .nvmrc.
+	@required="$$(tr -d '[:space:]' < .nvmrc)"; \
+	actual="$$(node -p 'process.versions.node.split(".")[0]' 2>/dev/null || true)"; \
+	if [ "$$actual" != "$$required" ]; then \
+		echo "Node.js $$required LTS is required (active: $${actual:-not found}). Run 'nvm use'." >&2; \
+		exit 1; \
+	fi
+
+install: check-node ## Install npm dependencies for local development.
 	npm install
 
-ci-install: ## Install npm dependencies reproducibly for CI.
+ci-install: check-node ## Install npm dependencies reproducibly for CI.
 	npm ci
 
-dev: ## Start the Eleventy local development server.
+dev: check-node ## Start the Eleventy local development server.
 	npm run dev
 
-build: ## Build the static site into _site/.
+build: check-node ## Build the static site into _site/.
 	npm run build
 
-clean: ## Remove generated static site output.
+clean: check-node ## Remove generated static site output.
 	npm run clean
 
 lint: lint-js lint-css lint-markdown lint-data lint-templates lint-shell lint-go lint-tofu lint-svg ## Lint all source languages.
 
-lint-js: ## Lint JavaScript with ESLint.
+lint-js: check-node ## Lint JavaScript with ESLint.
 	npm run lint:js
 
-lint-css: ## Lint CSS with Stylelint.
+lint-css: check-node ## Lint CSS with Stylelint.
 	npm run lint:css
 
-lint-markdown: ## Lint Markdown content and documentation.
+lint-markdown: check-node ## Lint Markdown content and documentation.
 	npm run lint:markdown
 
-lint-data: ## Check JSON and YAML formatting and syntax.
+lint-data: check-node ## Check JSON and YAML formatting and syntax.
 	npm run lint:data
 
 lint-templates: ## Compile Nunjucks and HTML templates with Eleventy.
@@ -59,12 +67,12 @@ lint-go: ## Check Go formatting and run go vet.
 lint-tofu: ## Check OpenTofu/HCL formatting recursively.
 	tofu fmt -check -recursive infra/opentofu
 
-lint-svg: ## Validate SVG/XML syntax.
+lint-svg: check-node ## Validate SVG/XML syntax.
 	node scripts/lint-svg.mjs
 
 audit: audit-node audit-go ## Check Node and Go dependencies for known vulnerabilities.
 
-audit-node: ## Fail on high or critical Node dependency vulnerabilities.
+audit-node: check-node ## Fail on high or critical Node dependency vulnerabilities.
 	npm audit --audit-level=high
 
 audit-go: ## Check Go code for reachable known vulnerabilities.
@@ -72,13 +80,13 @@ audit-go: ## Check Go code for reachable known vulnerabilities.
 
 test: test-node test-go ## Run all local test suites.
 
-test-node: ## Run the Node.js test suite.
+test-node: check-node ## Run the Node.js test suite.
 	npm test
 
 test-go: ## Run Go Cloud Function tests.
 	cd functions/firebase-go && go test ./...
 
-smoke: ## Run deployment smoke tests against SMOKE_BASE_URL.
+smoke: check-node ## Run deployment smoke tests against SMOKE_BASE_URL.
 	npm run smoke:deployment
 
 join-reengagement: ## Extract Join candidates for ENV; pass RESULTS and optional ARGS.

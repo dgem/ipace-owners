@@ -22,7 +22,7 @@ Create a small, maintainable Eleventy 3 site that can be deployed to Firebase Ho
   - Admin: Review Queue, Submissions, Evidence Files, Public Stats, Exports, Members, Settings.
 - Pass through `src/assets/`.
 - Pass through `public/` to the site root with `eleventyConfig.addPassthroughCopy({ public: "." })`, so `public/images/example.png` is served at `/images/example.png`.
-- Include a favicon in `public/favicon.svg` and link it from the base layout.
+- Include the approved PNG favicon at `public/favicon.png` and link it from the base layout.
 - Include a small cookie/privacy notice in the base layout. It should disclose essential services, Firebase Authentication storage for sign-in, and the fact that there are no analytics or advertising cookies unless those are later added.
 - The cookie/privacy notice should be progressively enhanced: JavaScript may store dismissal
   in browser storage, but users without JavaScript must still see the disclosure and a
@@ -62,7 +62,8 @@ Create a small, maintainable Eleventy 3 site that can be deployed to Firebase Ho
 - Page layout for standard content pages.
 - Form page layout for multi-step forms.
 - Update/news collection sorted newest first.
-- README describing setup, development, build, Firebase/GCP deployment, Identity setup, known limitations, and current repo structure.
+- README describing setup, development, build, Firebase/GCP deployment, Firebase
+  Authentication setup, known limitations, and current repo structure.
 - README should document Makefile targets as the preferred local development and CI
   command surface.
 - README should explain Firebase build-time config and local/static debugging.

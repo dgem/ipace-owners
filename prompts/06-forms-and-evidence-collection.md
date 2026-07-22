@@ -41,7 +41,7 @@ Provide accessible multi-step forms that collect membership interest now, help o
 - Show a clear placeholder or handoff result explaining what happened. For forms without a
   backend, explain that no data was sent or stored. For the Join form, explain that the
   membership answers are saved with `submit-join` and the name/email are used for the
-  Identity email flow.
+  Firebase passwordless email flow.
 - Configure backend-backed forms with `data-database-submit` pointing to the relevant
   `/api/*` Go Cloud Function. Use JSON `fetch` from `identity.js`, and send a Firebase ID
   token in the `Authorization` header when `data-database-requires-auth` is present.
@@ -61,7 +61,7 @@ Provide accessible multi-step forms that collect membership interest now, help o
   - `data-registration-email` — filled with the collected email address
   - `data-database-success` — shown once the Function stores the submission
   - `data-database-error` — shown if the Function cannot store the submission
-  - `data-database-auth-error` — shown if a signed-in submission lacks a valid Identity JWT
+  - `data-database-auth-error` — shown if a signed-in submission lacks a valid Firebase ID token
   - `data-database-submission-id` — filled with the stored submission reference when present
   - `data-registration-link-sent` — shown once the API call succeeds
   - `data-registration-error` — shown if the API call fails

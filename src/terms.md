@@ -50,4 +50,4 @@ payments, or any other matter. We organise and advocate; we do not control JLR's
 This statement may be updated as the group develops and its structure evolves. Members will
 be informed of material changes.
 
-*Last updated: 2025. This is a placeholder document.*
+*Last updated: 21 July 2026. This is a placeholder document.*

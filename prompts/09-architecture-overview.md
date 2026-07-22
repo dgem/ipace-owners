@@ -23,8 +23,9 @@ It is the current source of truth for the I-PACE Owners' Advocacy Group architec
   recovery enabled, has Firestore delete protection and OpenTofu destroy prevention, and is
   covered by a daily Firestore backup schedule retained for 14 weeks. Staging intentionally
   does not carry those production-only backup/delete-protection settings.
-- **Generated snapshots:** member/private and public aggregate JSON written to
-  Firestore and Cloud Storage so page loads avoid repeated canonical-store reads.
+- **Generated snapshots:** private member JSON written to Firestore and optionally Cloud
+  Storage; public aggregate JSON written to Cloud Storage. Both are served through verified
+  Functions rather than emitted into the static site.
 - **Hosting:** Firebase Hosting with one `/api/**` rewrite to the Go `Api` Function.
 - **Infrastructure:** OpenTofu/Terraform under `infra/opentofu/`.
 - **CI/CD:** GitHub Actions with GCP Workload Identity Federation. PRs deploy to staging
@@ -34,8 +35,9 @@ It is the current source of truth for the I-PACE Owners' Advocacy Group architec
   records and validation state, while the records are entered manually in Fasthosts.
 - **Authentication email delivery:** the shared OpenTofu module manages supported Identity
   Platform notification settings and custom sender-domain verification through a tested Admin
-  v2 API bridge. Firebase's passwordless email-link body is fixed; versioned HTML account-action
-  designs remain future assets until custom transactional delivery is implemented.
+  v2 API bridge. Firebase's passwordless email-link body is fixed; versioned HTML
+  account-action designs remain future assets. Branded passwordless delivery is implemented
+  separately through server-generated Firebase links and Resend when configured.
 
 ## Directory structure
 
@@ -59,9 +61,9 @@ the retired hosting or Function platform.
 2. `identity.js` initialises Firebase Auth and never opens a password modal.
 3. Magic-link login forms call `POST /api/send-magic-link`.
 4. The Go `Api` Function routes the request to `SendMagicLink`, which first checks for an
-   existing Join submission matching
-   the email fingerprint. It calls Firebase Identity Toolkit only for registered members
-   and suppresses email side effects for unregistered addresses or lookup failures while
+   existing Join submission matching the email fingerprint. It invokes the configured
+   Firebase-default or Admin-SDK/Resend delivery path only for registered members and
+   suppresses email side effects for unregistered addresses or lookup failures while
    returning account-enumeration-resistant `{ ok: true }` for valid email syntax. Set
    Identity Toolkit's `linkDomain` only for environments with a verified Firebase Hosting
    custom domain. If `FIREBASE_EMAIL_LINK_DOMAIN` is absent, derive it from the validated
@@ -130,7 +132,7 @@ route unless there is a measured need.
 
 - Verify every private request server-side with Firebase Admin SDK.
 - Do not trust client-side `hidden` attributes or auth UI state.
-- Do not log raw VINs, Identity tokens, full request bodies, or personal records.
+- Do not log raw VINs, Firebase ID tokens, full request bodies, or personal records.
 - Return generic magic-link responses so account existence cannot be enumerated.
 - Store secrets in GCP Secret Manager and GitHub environment secrets, never in git.
 - Restrict CORS to production, staging preview hosts, and local development origins.

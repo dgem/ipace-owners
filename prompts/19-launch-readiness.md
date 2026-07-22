@@ -76,17 +76,20 @@ proportionally onto a square white canvas. Do not substitute a separately drawn 
 
 Store the generated card artwork at:
 
+- `public/images/ipace-owners-card-front.svg`
 - `public/images/ipace-owners-card-front.png`
+- `public/images/ipace-owners-card-back.svg`
 - `public/images/ipace-owners-card-back.png`
 - `public/images/ipace-owners-card-front-hero.svg`
 - `public/images/ipace-owners-card-front-hero.png`
 - `public/images/ipace-owners-card-back-hero.svg`
 - `public/images/ipace-owners-card-back-hero.png`
 
-Both sides use a straight-on UK landscape business-card composition, approximately 85 × 55 mm,
-with a white background, a thin dark-teal (`#0f766e`) rounded border, generous print-safe margins,
-friendly rounded sans-serif typography, and flat colours only. Do not render the cards as physical
-mockups and do not add shadows, gradients, phone numbers, manufacturer badges, or watermarks.
+The original front/back pair uses a straight-on UK landscape business-card composition,
+approximately 85 × 55 mm, with a white background, a thin dark-teal (`#0f766e`) rounded
+border, generous print-safe margins, friendly rounded sans-serif typography, and flat colours
+only. The photographic pair is the documented full-bleed exception below. Do not render the
+cards as physical mockups and do not add phone numbers, manufacturer badges, or watermarks.
 
 Generate the front from the logo with this prompt:
 

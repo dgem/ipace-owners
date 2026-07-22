@@ -44,7 +44,8 @@ Document the key happy-path, error-path, and access-control checks you ran.
 
 - [ ] I updated prompts in prompts/ when behaviour or architecture changed.
 - [ ] I kept README.md and prompts aligned so the project can be recreated from prompts plus README.
-- [ ] I updated prompts/09-architecture-overview.md and docs/architecture.md when architecture changed.
+- [ ] I updated prompts/09-architecture-overview.md and
+      prompts/20-clean-room-reconstruction-contract.md when architecture changed.
 
 ## Review and release readiness
 

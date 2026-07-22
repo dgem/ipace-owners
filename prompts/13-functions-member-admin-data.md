@@ -19,7 +19,8 @@ Go Cloud Functions. Do not rely on client-side gating for private data access.
 - Content is hidden by default and is revealed only after the relevant Function returns 200.
 - Login/admin gates remain visible for 401 or 403 responses.
 - Firestore is canonical. Member/account pages should be served from a private generated
-  JSON snapshot regenerated during Join signup, vehicle add/update, SoH, and service-event flows.
+  JSON snapshot regenerated during signed-in Join, vehicle add/update, SoH, and service-event
+  flows. Logged-out Join cannot generate a UID-keyed member snapshot before activation.
 - `MemberData` should read the private generated snapshot first, then regenerate it from
   Firestore if missing.
 
@@ -49,7 +50,8 @@ Member responses may include:
 - Returns 401 for unauthenticated users.
 - Returns 403 for authenticated non-admin users.
 - Reads Firestore review records.
-- Returns Join, member, vehicle, and vehicle-basics records for review.
+- Returns Join and vehicle-basics records for review. The current admin response does not
+  return the `members`, battery-reading, or service-event collections.
 - Admin responses may include review state and `userEmailHash`.
 
 ## Browser rendering

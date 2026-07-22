@@ -28,7 +28,7 @@ current Join and vehicle-basics storage into fuller evidence collection.
 - If a VIN is provided and `VIN_PEPPER` is missing, do not store or derive any VIN
   identifier. If registration is present, save the registration-based record; if VIN is the
   only identifier, reject the write with a clear configuration message.
-- Never log raw VINs, uploaded evidence contents, full personal records, Identity tokens,
+- Never log raw VINs, uploaded evidence contents, full personal records, Firebase ID tokens,
   request bodies, or provider response bodies.
 - Function logs may include request IDs, methods, origins, response status codes,
   submission IDs, short one-way email/user fingerprints, masked email addresses, provider
@@ -42,11 +42,12 @@ current Join and vehicle-basics storage into fuller evidence collection.
 
 Use Firestore for structured data:
 
-- Members, Join submissions, vehicles, battery readings, review state, and audit events are
-  stored as documents.
+- Members, Join submissions, vehicles, battery readings, service events, and their review
+  state are stored as documents. Audit-event storage remains future work.
 - A member can have multiple vehicle records.
-- Member/account JSON snapshots are generated after signup, vehicle, and SoH changes, stored
-  privately, and served only after server-side Firebase verification.
+- Member/account JSON snapshots are generated after signed-in Join, vehicle, SoH, and
+  service-event changes, stored privately, and served only after server-side Firebase
+  verification. `MemberData` regenerates a missing snapshot from Firestore.
 - Public aggregate JSON snapshots are regenerated after relevant writes, filtered by
   anonymised-analysis consent and review exclusion state, and served through a cacheable
   public Function for dashboard rendering without exposing canonical records.
@@ -59,5 +60,5 @@ Use Firestore for structured data:
 - Run `make build`.
 - Add or update tests for server-side validation, authorization, storage shaping, and
   security boundaries.
-- Confirm no real owner data, raw VINs, Identity tokens, or private evidence files are
+- Confirm no real owner data, raw VINs, Firebase ID tokens, or private evidence files are
   committed or generated into static output.

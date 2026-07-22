@@ -1,9 +1,10 @@
 # I-PACE Owners' Advocacy Group
 
 An independent advocacy group for Jaguar I-PACE owners affected by traction battery faults,
-H570/H571/H572 recalls, battery degradation, and warranty uncertainty.
+H441/H448 and H57x recall or customer-notice work, battery degradation, and warranty
+uncertainty.
 
-**Website:** [ipace-owners.org](https://ipace-owners.org) (coming soon)
+**Website:** [ipace-owners.org](https://ipace-owners.org) (live since 17 July 2026)
 
 ---
 
@@ -44,8 +45,13 @@ make
 ### Install
 
 ```bash
+nvm use
 make install
 ```
+
+Node-backed Make targets verify that the active Node major matches `.nvmrc` and stop with a
+clear error if another runtime is selected. GitHub Actions also reads `.nvmrc`, keeping local,
+CI and deployment work on Node 24 LTS.
 
 ### Development server
 
@@ -153,27 +159,39 @@ Removes the `_site/` directory.
 ```
 src/
   *.md / *.njk     # Top-level page templates
-  member/          # Member-gated placeholder pages
-  admin/           # Admin-gated placeholder pages
+  member/          # Authenticated account, vehicle and evidence workspace pages
+  admin/           # Admin-gated review queue
   updates/         # Update/news posts (.md)
   _data/           # Global data (site.json, navigation.json)
   _includes/
     layouts/       # Page layouts (base, page, form-page)
-    partials/      # Shared partials (header, footer, nav, card, callout)
+    partials/      # Shared UI, SEO, auth-gate and Join-result partials
   assets/
     css/site.css   # Main stylesheet
     js/
       main.js            # Mobile menu, nav helpers
       identity.js        # Firebase Auth email-link integration
       member-auth.js     # Server-verified member/admin data loading
+      member-dashboard.js # Vehicle tabs, SoH graph and service/fault editing
       multistep-form.js  # Multi-step form controller
-public/images/     # Static images
+      public-stats.js    # Public aggregate-statistics rendering
+      site-mode.js       # Launch/full presentation selection
+public/            # Favicons, images and other root-level static assets
 functions/firebase-go/ # Go Cloud Functions for Firebase
 infra/opentofu/   # GCP/Firebase infrastructure
 prompts/           # Sequenced prompts and architecture blueprint
 .eleventy.js       # Eleventy configuration
 firebase.json      # Firebase Hosting rewrites and security headers
 ```
+
+### Preserved visual assets
+
+`public/` is copied unchanged to the site root. The approved favicon, hero, logo, QR code,
+and original/photographic business-card SVG and PNG pairs are committed under `public/` and
+`public/images/`. The SVG card variants are self-contained so embedded hero/QR artwork does
+not depend on neighbouring files. There is currently no committed print PDF; generate and
+proof one from the approved SVG/PNG sources before describing a PDF as downloadable or
+recoverable.
 
 ---
 
@@ -438,13 +456,15 @@ not required for Firebase Hosting and would require a careful migration of every
 
 Cloud Firestore is the intended canonical source for structured owner data.
 
-Join submissions, vehicle basics, SoH updates, and service history are handled by Go Cloud Functions:
+Join submissions, vehicle basics, SoH updates, and service history are handled by routes
+behind the single Go `Api` Cloud Function:
 
 - `submit-join` stores membership expressions of interest and consent choices, then sends
-  the Identity magic link for logged-out users.
+  the Firebase passwordless activation link for logged-out users.
 - `send-magic-link` is a login-only path for already registered members. It checks for a
-  matching Join submission before asking Firebase to send a sign-in email, and returns a
-  generic response so registration state is not exposed to the browser.
+  matching Join submission before invoking the configured Firebase-default or
+  Admin-SDK/Resend delivery path, and returns a generic response so registration state is
+  not exposed to the browser.
 - `submit-vehicle-basics` stores the first vehicle registration slice for signed-in users:
   VIN HMAC / final six characters, registration, country, model year, ownership dates,
   mileage, State of Health, measurement date, measurement mileage, and SoH source.
@@ -453,13 +473,19 @@ Join submissions, vehicle basics, SoH updates, and service history are handled b
   degradation analysis.
 - `upsert-service-event` adds or edits an owned vehicle's dated service, fault, repair,
   recall, or inspection record after server-side ownership verification.
-- `public-stats` serves a cacheable, consent-filtered aggregate snapshot containing current
-  vehicle counts, SoH totals and distributions, without exposing member records.
+- `member-data` returns only the authenticated member's generated private snapshot after
+  Firebase ID-token verification.
+- `admin-data` returns Join and vehicle review records only when the Firebase token carries
+  an accepted admin claim.
+- `public-stats` serves a cacheable aggregate snapshot. Its registered-member headline is
+  refreshed from the complete paginated Firebase Auth user list; vehicle and SoH aggregates
+  remain consent-filtered and exclude records marked out of public reporting.
 
-Member/account JSON snapshots are regenerated after signup, vehicle, SoH, and service-event changes, written to
-Firestore and optionally Cloud Storage, then served only through `member-data` after
-server-side Firebase ID-token verification. Vehicle and SoH writes also regenerate the
-anonymised public evidence snapshot in Cloud Storage.
+Member/account JSON snapshots are regenerated after signed-in Join, vehicle, SoH, and
+service-event changes, written to Firestore and optionally Cloud Storage, then served only
+through `member-data` after server-side Firebase ID-token verification. If a logged-out Join
+has no UID yet, `member-data` builds the snapshot after activation when first needed. Vehicle
+and SoH writes also regenerate the anonymised public evidence snapshot in Cloud Storage.
 
 Members may register more than one I-PACE. The member dashboard uses vehicle tabs and shows
 one selected car's SoH graph and service/fault timeline at a time.
@@ -483,8 +509,8 @@ If a link does not arrive:
    Firebase currently limits email-link sign-in delivery to 5 emails/day on Spark and
    25,000 emails/day on Blaze.
 3. Check the Firebase Authentication email template and sender settings.
-4. For delivery tracking and control, generate sign-in links with the Firebase Admin SDK
-   and send them through a configured transactional email/SMTP provider, as described in
+4. For delivery control, enable the implemented Firebase Admin SDK plus Resend path with the
+   documented `RESEND_*` runtime configuration. See
    [Firebase's custom email action link guidance](https://firebase.google.com/docs/auth/admin/email-action-links).
 
 Submitting Join more than once with the same email remains enumeration-safe. Each submission
@@ -531,10 +557,15 @@ Do not add Tailwind, Bootstrap, or other CSS frameworks.
 
 ### JavaScript
 
-Plain vanilla JS, no bundler. Three files:
+Plain vanilla JavaScript, no bundler. The current modules are:
+
 - `main.js` — mobile menu toggle, current-page nav highlighting
 - `identity.js` — Firebase Auth email-link and UI state
+- `member-auth.js` — authenticated member/admin data loading and account rendering
+- `member-dashboard.js` — vehicle tabs, SoH history and service/fault editing
 - `multistep-form.js` — generic multi-step form (data-attribute driven)
+- `public-stats.js` — homepage and evidence-dashboard aggregate rendering
+- `site-mode.js` — launch/full presentation selection
 
 ### Adding pages
 
@@ -563,20 +594,39 @@ workflow or external AI provider API key is required.
 
 ### Prompt maintenance
 
-Product-generation prompts live in `prompts/`. They are sequenced with two-digit prefixes
-so the project can be rebuilt or extended in a controlled order:
+Product-generation prompts live in `prompts/`. Every prompt filename must match
+`^\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*\.md$` (`xx-name.md`) so the project can be rebuilt or
+extended in a controlled order:
 
 - `00-original-project-prompt.md` preserves the initial generation prompt.
-- `01-` through `14-` split the product into foundation, design, content, identity, forms,
-  evidence dashboard, backend security/storage, architecture, Function components, and
-  future evidence/statistics concerns.
+- The remaining numbered prompts split the product into foundation, design, content,
+  identity, forms, evidence dashboard, backend security/storage, architecture, Function
+  components, data modelling, member tooling, operations, stakeholder feedback, launch
+  readiness, and reconstruction requirements.
+- `20-clean-room-reconstruction-contract.md` is the final route/API/schema/configuration and
+  acceptance contract for rebuilding the product from scratch.
 
-When adding or refining prompts, keep the numeric prefix, make the prompt independently
-usable, and avoid duplicating live implementation details that belong in README or
-`prompts/09-architecture-overview.md`.
+When adding or refining prompts, keep the numeric prefix and make the prompt independently
+usable. Keep cross-layer implementation details canonical in
+`prompts/09-architecture-overview.md` and exact reconstruction inventories canonical in
+`prompts/20-clean-room-reconstruction-contract.md`; feature prompts may repeat only the
+details needed to apply them safely.
 
 Keep prompts in sync with implemented behaviour so the project can be recreated from
 the prompt set and README alone.
+
+### Reconstruction and documentation checks
+
+The Node test suite includes reconstruction-contract checks that compare the maintained
+prompts and README with the route/API inventory, browser JavaScript modules, Firestore
+collection names, runtime configuration, and preservation-critical visual assets. These
+checks catch structural drift; they do not prove that an agent can reproduce the product
+from prose alone.
+
+For a genuine reproducibility test, follow the isolated clean-room procedure in
+`prompts/20-clean-room-reconstruction-contract.md`: provide only AGENTS.md, all numbered
+prompt files, approved public assets, and separately secured configuration in a new
+repository, then run the full acceptance checklist and record every manual intervention.
 
 ---
 
@@ -588,7 +638,7 @@ when joining the group.
 
 ### Quality and testing requirements
 
-- Tests are required for behavioural changes (Functions, Identity handoff, form submission wiring,
+- Tests are required for behavioural changes (Functions, Firebase Auth handoff, form submission wiring,
   shared utilities).
 - Run `make test` for behavioural changes and ensure all tests pass.
 - Run `make build` for every change and ensure the site builds cleanly.
@@ -625,5 +675,6 @@ Common types:
 
 ## Licence
 
-Content and code are copyright the I-PACE Owners' Advocacy Group contributors.
-No JLR / Jaguar trademarks, logos, or copyrighted imagery are used.
+Content and code are copyright the I-PACE Owners' Advocacy Group contributors. Manufacturer
+and vehicle names are used descriptively; the site does not use Jaguar/JLR logos or badges as
+group branding. Committed vehicle artwork is original or generated for this project.

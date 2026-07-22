@@ -106,4 +106,4 @@ contact us at [contact@ipace-owners.org](mailto:contact@ipace-owners.org).
 This policy will be updated before broader live evidence collection begins. We will notify
 members of material changes.
 
-*Last updated: 22 June 2026. This is a placeholder document.*
+*Last updated: 21 July 2026. This is a placeholder document.*
