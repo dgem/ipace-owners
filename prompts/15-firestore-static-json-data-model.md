@@ -65,8 +65,11 @@ Member/account snapshots are private data. Store them in Firestore under
 object such as `members/{uid}.json`. Serve them only through `MemberData` after server-side
 Firebase ID-token verification.
 
-Public aggregate snapshots may be written to static JSON files or Cloud Storage objects
-only after anonymisation, verification, and exclusion rules have been applied.
+The current public aggregate snapshot is written to
+`gs://<SNAPSHOT_BUCKET>/public/stats.json` and served only through `PublicStats`; it is not
+emitted into `_site/`.
+Any future snapshot location must preserve the same anonymisation, verification, exclusion,
+and cache-version rules.
 The public statistics snapshot includes only an aggregate registered-member count obtained
 from the complete, paginated Firebase Authentication user list. Do not derive this headline
 count from Join submissions, because Auth is the canonical registration record. Show
@@ -80,7 +83,9 @@ after the Join handler has finished, so each uncached `PublicStats` request must
 Auth total while the existing five-minute HTTP cache limits repeated list operations. If that
 refresh fails, serve the last valid aggregate snapshot rather than failing the public page.
 
-## Suggested Collections
+## Collection Inventory
+
+Implemented collections:
 
 - `members`
 - `joinSubmissions`
@@ -88,8 +93,11 @@ refresh fails, serve the last valid aggregate snapshot rather than failing the p
 - `batteryReadings` as the append-only SoH history; `vehicles.battery` may retain the latest
   reading for compatibility
 - `serviceEvents` as member-editable vehicle history with ownership and review metadata
-- `evidenceFiles`
 - `memberSnapshots`
+
+Future collections, to add only with the corresponding validated feature:
+
+- `evidenceFiles`
 - `publicStatsSnapshots`
 - `auditEvents`
 

@@ -32,13 +32,14 @@ magic-link request path for existing users.
   side effect. If the email has not registered, or if the registration lookup fails, return
   generic success without calling Firebase Identity Toolkit. Do not reveal whether the email
   address is registered.
-- For registered emails, `SendMagicLink` calls Firebase Identity Toolkit server-side and
-  returns generic success for syntactically valid requests.
+- For registered emails, `SendMagicLink` uses the configured server-side delivery path and
+  returns generic success for syntactically valid requests: branded Admin-SDK/Resend delivery
+  when configured, otherwise Firebase Identity Toolkit's default sender.
 - Reject disallowed origins before triggering email side effects.
 - Log email fingerprints, masked email addresses, origin/continue-host diagnostics, and
   provider status/error summaries. On success, log response size and whether the provider
   echoed the expected email without logging the raw response. Never log raw email addresses,
-  request bodies, Identity tokens, action links, or full provider response bodies.
+  request bodies, Firebase ID tokens, action links, or full provider response bodies.
 - Configure `FIREBASE_EMAIL_LINK_DOMAIN` from the environment's verified Firebase Hosting
   custom domain and pass it as Identity Toolkit's `linkDomain`. If the environment variable
   is absent, derive `linkDomain` from the custom-domain `continueUrl` so production links
@@ -75,13 +76,12 @@ magic-link request path for existing users.
   through the visible sign-in form. Do not use blocking browser prompts for this flow.
 - Keep Firebase email-link delivery troubleshooting aligned with
   `17-operations-ci-and-troubleshooting.md`, including sending quotas, spam/junk checks,
-  sender-template settings, and the option to generate action links with the Admin SDK and
-  send through a transactional email/SMTP provider when delivery tracking is required.
-- Firebase-managed account emails use the versioned HTML templates, sender identity,
-  reply-to address, callback domain, and verified sender domain configured by OpenTofu.
-  The built-in passwordless `EMAIL_SIGNIN` body is fixed by Firebase and is not one of those
-  configurable templates. Do not promise branded sign-in copy unless the implementation
-  changes to server-generated action links and an explicitly managed email provider.
+  sender-template settings, and the implemented Admin SDK plus Resend delivery option.
+- The versioned account-action HTML templates are retained as future assets but are not
+  applied while the product uses passwordless email-link sign-in. Firebase's built-in
+  `EMAIL_SIGNIN` body is fixed. Branded sign-in copy is provided only by the implemented
+  server-generated Admin SDK link plus Resend path; when Firebase performs default delivery,
+  do not claim its subject, body, reply-to address, or sender name are template-managed.
 
 ## Join record shape
 

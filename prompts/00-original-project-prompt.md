@@ -3,8 +3,9 @@
 This file stores the initial prompt used with GitHub Copilot during the repository creation
 phase. It is preserved as historical source material.
 
-The maintained, split prompt set lives in `01-` through `08-` in this directory. Prefer those
-files for future rebuilds and feature work.
+The maintained, split prompt set lives in `01-` through `20-` in this directory. Prefer those
+files for future rebuilds and feature work; the Netlify-era body below remains unchanged as
+historical source material.
 
 ---
 

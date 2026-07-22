@@ -174,8 +174,9 @@ knowledge, and data may be used in anonymised aggregate reporting if consent is 
 
 - Do not include real owner data.
 - Do not include unverifiable statistics as real figures.
-- The launch homepage may show the live aggregate count of unique, non-excluded registered
-  members since the 17 July 2026 launch as a compact, non-interactive racing winner's garland.
+- The launch homepage may show the complete, paginated Firebase Auth registered-user count as
+  a compact, non-interactive racing winner's garland. `Since 17th July 2026` is launch context,
+  not a date filter; do not derive the headline from consent-filtered Join submissions.
   Place it to the right of the hero Join CTA on desktop, tablets, and wide or landscape phones;
   stack it below the CTA only on narrow mobile screens. Keep the CTA and garland as one unit
   above the fold, with the social proof visually subordinate to the CTA and without button

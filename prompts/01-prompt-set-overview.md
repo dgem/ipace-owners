@@ -8,7 +8,7 @@ Use these prompts as a maintainable product blueprint. They are ordered so a fre
 2. Use `02-foundation-static-site.md` to scaffold or re-scaffold the Eleventy site.
 3. Use `03-design-system-and-accessibility.md` whenever layout, CSS, components, or accessibility behavior changes.
 4. Use `04-public-content-and-positioning.md` for public pages and copy.
-5. Use `05-identity-member-admin-gating.md` for Firebase Auth, member pages, and admin placeholders.
+5. Use `05-identity-member-admin-gating.md` for Firebase Auth and protected member/admin pages.
 6. Use `06-forms-and-evidence-collection.md` for join and vehicle data form UX.
 7. Use `07-evidence-dashboard-and-methodology.md` for public aggregate evidence views and methodology copy.
 8. Use `08-backend-security-and-storage.md` before changing persistence, stored record shapes, or backend security boundaries.
@@ -17,7 +17,8 @@ Use these prompts as a maintainable product blueprint. They are ordered so a fre
 11. Use `11-functions-identity-and-join.md` for magic-link and Join submission flows.
 12. Use `12-functions-vehicle-basics.md` for the signed-in vehicle-basics slice.
 13. Use `13-functions-member-admin-data.md` for member/admin data access Functions.
-14. Use `14-functions-future-evidence-and-stats.md` for future evidence, upload, review mutation, and public statistics work.
+14. Use `14-functions-future-evidence-and-stats.md` for future evidence, uploads, review
+    mutations, and extensions to the implemented public statistics path.
 15. Use `15-firestore-static-json-data-model.md` for the canonical Firestore model and JSON snapshot strategy.
 16. Use `16-member-vehicle-workspace-and-service-history.md` for the tabbed member vehicle
     dashboard, SoH graph, and editable service/fault timeline.
