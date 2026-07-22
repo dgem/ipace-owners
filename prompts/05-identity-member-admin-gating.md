@@ -73,6 +73,12 @@ server-side by Go Cloud Functions that validate Firebase ID tokens.
 
 ## Server-side APIs
 
+The complete admin navigation, including `/admin/email-campaigns/`, lives in a claim-gated
+secondary row of the desktop site header, aligned right, and in a labelled section of the mobile
+drawer. Do not repeat it inside individual admin page content. It remains hidden until Firebase
+claims indicate admin access, while campaign APIs independently verify the ID token and admin
+role server-side.
+
 | Function | Auth Required | Purpose |
 |---|---|---|
 | `MemberData` | Firebase user | Return the authenticated user's private snapshot. |
@@ -80,6 +86,15 @@ server-side by Go Cloud Functions that validate Firebase ID tokens.
 
 Admin access is granted through Firebase Auth custom claims: `admin: true` or
 `roles: ["admin"]`.
+
+OpenTofu owns the authoritative administrator set through its tested Identity Platform
+reconciliation bridge because the Google provider exposes no Firebase Auth user data source.
+Always include `dan@kanzi.co.uk` as a required administrator, resolve configured emails to the
+environment-specific Firebase UID during apply, preserve unrelated claims, and remove only
+admin access from users removed from configuration. Fail when a configured user does not exist.
+After sign-in, inspect the Firebase ID-token result and expose desktop/mobile admin navigation
+only for `admin: true` or a `roles` entry containing `admin`. This is a discoverability aid only;
+the destination must continue to require server-side `AdminData` verification.
 
 ## Page pattern
 

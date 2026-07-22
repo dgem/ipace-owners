@@ -73,6 +73,14 @@ func Api(w http.ResponseWriter, r *http.Request) {
 		MemberData(w, r)
 	case "/api/admin-data":
 		AdminData(w, r)
+	case "/api/admin/reengagement-preview":
+		AdminReengagementPreview(w, r)
+	case "/api/admin/reengagement-send":
+		AdminReengagementSend(w, r)
+	case "/api/admin/member-referral-preview":
+		AdminMemberReferralPreview(w, r)
+	case "/api/admin/member-referral-send":
+		AdminMemberReferralSend(w, r)
 	case "/api/public-stats":
 		PublicStats(w, r)
 	default:

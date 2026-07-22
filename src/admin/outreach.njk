@@ -1,0 +1,128 @@
+---
+layout: base.njk
+title: Facebook Outreach Assistant
+description: "Human-controlled outreach assistant for I-PACE owner groups."
+noindex: true
+permalink: /admin/outreach/
+outreachAssistant: true
+---
+
+{% from "partials/auth-login-gate.njk" import authLoginGate %}
+
+<div class="page-header">
+	<div class="container">
+		<p class="page-header__eyebrow">Admin</p>
+		<h1 class="page-header__title">Facebook outreach assistant</h1>
+	</div>
+</div>
+
+<div class="section">
+	<div class="container">
+		<div data-admin-container>
+			{{ authLoginGate("outreach-magic-email", "Sign in required", "Enter your admin email address and we will send a secure sign-in link.", "admin", false) }}
+
+			<div class="auth-gate" data-admin-only-gate hidden>
+				<div class="auth-gate__icon" aria-hidden="true">⛔</div>
+				<h2 class="auth-gate__title">Access restricted</h2>
+				<p class="auth-gate__body">This outreach workspace is for group administrators only.</p>
+				<a href="/contact/" class="btn btn--secondary">Contact us</a>
+			</div>
+
+			<div class="auth-content" data-admin-content hidden>
+				<div class="callout callout--info outreach-boundary">
+					<span class="callout__icon" aria-hidden="true">ℹ️</span>
+					<div class="callout__content">
+						<p class="callout__title">Human controlled by design</p>
+						<p>This page only builds links and drafts text in your browser. It never reads Facebook, opens searches automatically, stores Facebook content, sends messages or posts replies. You decide which link to open and what to publish.</p>
+					</div>
+				</div>
+
+				<div class="outreach-layout" data-outreach-assistant>
+					<section class="dashboard-panel" aria-labelledby="search-builder-title">
+						<div class="dashboard-panel__header">
+							<div>
+								<p class="dashboard-panel__eyebrow">Step 1</p>
+								<h2 class="dashboard-panel__title" id="search-builder-title">Build Facebook searches</h2>
+							</div>
+						</div>
+
+						<form class="stack" data-outreach-search-form>
+							<div class="form-group">
+								<label for="outreach-groups">Facebook group URLs</label>
+								<textarea id="outreach-groups" rows="5" data-outreach-groups placeholder="https://www.facebook.com/groups/example-group"></textarea>
+								<p class="form-hint">One group URL per line. Only facebook.com group URLs are accepted. Leave empty to generate Facebook-wide post searches only.</p>
+							</div>
+
+							<div class="form-group">
+								<label for="outreach-queries">Search criteria</label>
+								<textarea id="outreach-queries" rows="10" data-outreach-queries></textarea>
+								<p class="form-hint">One editable search phrase per line. Facebook applies its own matching and visibility rules.</p>
+							</div>
+
+							<label class="checkbox-row" for="outreach-global-search">
+								<input id="outreach-global-search" type="checkbox" data-outreach-global checked>
+								<span>Also generate Facebook-wide post searches</span>
+							</label>
+
+							<div class="cluster">
+								<button type="submit" class="btn btn--primary">Generate search links</button>
+								<button type="button" class="btn btn--secondary" data-outreach-reset>Restore suggested criteria</button>
+							</div>
+						</form>
+
+						<div class="outreach-results" data-outreach-results aria-live="polite"></div>
+					</section>
+
+					<section class="dashboard-panel" aria-labelledby="reply-drafter-title">
+						<div class="dashboard-panel__header">
+							<div>
+								<p class="dashboard-panel__eyebrow">Step 2</p>
+								<h2 class="dashboard-panel__title" id="reply-drafter-title">Draft a helpful reply</h2>
+							</div>
+						</div>
+
+						<div class="stack">
+							<div class="form-group">
+								<label for="outreach-issue">Issue described</label>
+								<select id="outreach-issue" data-outreach-issue>
+									<option value="traction-fault">Traction battery fault warning</option>
+									<option value="restricted-performance">Restricted performance or reduced range</option>
+									<option value="module-repair">Battery module diagnosis or repair</option>
+									<option value="state-of-health">Battery state of health</option>
+									<option value="recall">Recall or campaign question</option>
+									<option value="general">General battery concern</option>
+								</select>
+							</div>
+
+							<label class="checkbox-row" for="outreach-invitation">
+								<input id="outreach-invitation" type="checkbox" data-outreach-invitation checked>
+								<span>Include a transparent invitation to the evidence project</span>
+							</label>
+
+							<div class="form-group">
+								<label for="outreach-draft">Editable reply</label>
+								<textarea id="outreach-draft" rows="12" data-outreach-draft></textarea>
+								<p class="form-hint">Read the whole discussion, personalise this draft and correct anything that does not fit. Never present it as diagnosis or official Jaguar advice.</p>
+							</div>
+
+							<div class="cluster">
+								<button type="button" class="btn btn--secondary" data-outreach-refresh-draft>Regenerate draft</button>
+								<button type="button" class="btn btn--primary" data-outreach-copy-draft>Copy reply</button>
+								<span class="outreach-copy-status" data-outreach-copy-status role="status" aria-live="polite"></span>
+							</div>
+						</div>
+					</section>
+				</div>
+
+				<div class="callout callout--warning outreach-safety">
+					<span class="callout__icon" aria-hidden="true">⚠️</span>
+					<div class="callout__content">
+						<p class="callout__title">Before replying</p>
+						<p>Follow the group rules, disclose your connection to the project, respond only where useful, avoid collecting profile details, and stop if an author or administrator objects. Do not repeatedly contact the same person or use direct messages without their request.</p>
+					</div>
+				</div>
+
+			</div>
+		</div>
+	</div>
+</div>

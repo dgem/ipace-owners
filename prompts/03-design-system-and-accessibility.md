@@ -49,6 +49,13 @@ Use this palette unless there is a deliberate product reason to change it:
 
 ## Accessibility requirements
 
+For layout, navigation, visibility, responsive, or interaction changes, source-level tests are
+not sufficient. Render the affected pages in Chrome at representative desktop and mobile
+viewports, reveal deterministic authenticated/admin fixtures without production credentials,
+inspect the screenshots, and assert critical geometry, visibility, disabled states, and absence
+of horizontal overflow. Treat screenshots as review artifacts, not as a substitute for semantic
+and behavioural assertions.
+
 - Use semantic landmarks and heading order.
 - Include a skip link.
 - Ensure visible focus states on links, buttons, form controls, and nav items.

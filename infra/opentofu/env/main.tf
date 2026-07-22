@@ -18,6 +18,8 @@ module "ipace_owners" {
   allowed_origins                      = var.allowed_origins
   site_url                             = var.site_url
   firebase_auth_authorized_domains     = var.firebase_auth_authorized_domains
+  manage_firebase_admins               = var.manage_firebase_admins
+  firebase_admin_users                 = var.firebase_admin_users
   manage_firebase_auth_email_templates = var.manage_firebase_auth_email_templates
   firebase_auth_email_domain           = var.firebase_auth_email_domain
   firebase_auth_email_action_domain    = var.firebase_auth_email_action_domain

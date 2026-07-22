@@ -32,7 +32,7 @@ The generated public route surface must include:
   `/methodology/`, `/evidence-dashboard/`, and `/updates/`;
 - dated or named update pages generated from `src/updates/`;
 - `/member/dashboard/`, `/member/account/`, and `/member/submit-vehicle-data/`;
-- `/admin/review-queue/`;
+- `/admin/`, `/admin/review-queue/`, `/admin/outreach/`, and `/admin/email-campaigns/`;
 - permanent redirects from `/account/**` and `/submit-vehicle-data/**` to their member
   equivalents;
 - a generated 404 page, clean URLs, trailing slashes, and a final Hosting fallback to
@@ -43,6 +43,26 @@ cards, callouts, authentication gate, and Join result partials. Private member/a
 must be `noindex, nofollow`. Canonical URLs, Open Graph metadata, Twitter metadata, and
 Organisation/WebSite structured data belong in the shared SEO partial rather than being
 duplicated per page.
+
+The admin outreach route loads `outreach-assistant.js` only on that page. It generates explicit,
+user-opened Facebook post-search URLs from editable search phrases and group URLs and drafts
+editable issue-specific replies. It performs no Facebook network request, scraping, logged-in
+session automation, automatic navigation, messaging, posting or Facebook-content persistence.
+
+OpenTofu must reconcile the authoritative Firebase administrator email set through the Identity
+Platform API because the Google provider has no Firebase Auth user data source. The shared module
+always includes `dan@kanzi.co.uk`; additional admins come from environment configuration. Resolve
+emails to per-environment UIDs, preserve unrelated claims, grant `admin: true`, remove only admin
+access from removed users, and fail closed for missing accounts or an empty desired set.
+Signed-in administrators receive desktop and mobile navigation to `/admin/outreach/` only after
+the browser reads an admin claim from the Firebase ID token. Treat that link as discoverability,
+not authorization; the route remains gated by the server-verified admin API.
+
+The complete admin menu belongs in a claim-gated, right-aligned secondary desktop header row and
+a labelled mobile-drawer section, not inside individual admin page content.
+
+`/admin/` is the claim-gated landing dashboard. It links to every implemented admin tool and
+describes planned areas without linking to unimplemented routes.
 
 ## API contract inventory
 
@@ -61,6 +81,10 @@ change rather than assuming it exists.
 | `POST /api/upsert-service-event` | Member/vehicle and record owner | `id`, `vehicleId`, `eventType`, `occurredAt`, `mileage`, `title`, `description`, `status`, `campaigns[]`, `finalFixAt`, `daysToFinalFix`, `courtesyVehicleOffered`, `courtesyVehicleProvided`, `partsDelay`, `warrantyCover`, `disputeStatus`. |
 | `GET /api/member-data` | Member | Return only that UID's private member snapshot. |
 | `GET /api/admin-data` | Admin claim | Return Join and vehicle review records. |
+| `POST /api/admin/reengagement-preview` | Admin claim | Return aggregate counts for consented Join submitters who have not registered. |
+| `POST /api/admin/reengagement-send` | Admin claim | Require the campaign ID, exact eligible count and typed confirmation; recheck registrations and send the next batch of at most ten. |
+| `POST /api/admin/member-referral-preview` | Admin claim | Preview aggregate counts and exact copy for registered accounts with matching contact consent. |
+| `POST /api/admin/member-referral-send` | Admin claim | Confirm and send the next batch of at most ten referral emails with the same idempotent ledger safeguards. |
 | `GET /api/public-stats` | Public | Return the anonymised aggregate schema below with five-minute public caching and last-valid-snapshot fallback. |
 
 The implemented API decoder accepts strict JSON bodies and rejects unknown fields. Shared
@@ -73,7 +97,9 @@ Never depend on frontend gating for data protection.
 ## Canonical Firestore and snapshot schemas
 
 Use these exact collection names: `joinSubmissions`, `members`, `vehicles`,
-`batteryReadings`, `serviceEvents`, and `memberSnapshots`. Cloud Storage contains generated
+`batteryReadings`, `serviceEvents`, `memberSnapshots`, and `emailCampaigns`. The latter stores
+campaign delivery subdocuments keyed by a non-reversible email fingerprint, with no recipient
+address returned to the browser. Cloud Storage contains generated
 snapshots under purpose-specific private/public object names; future evidence blobs require
 their own validation and authorization design.
 
@@ -128,6 +154,14 @@ the security prompts, plus immutable one-year caching for `/assets/**`. Password
 forms explicitly use POST even when JavaScript intercepts them.
 
 ## Visual and content fidelity
+
+- Preserve `docs/homepage-copy.md` as a portable Markdown rendering of the canonical homepage
+  wording, with absolute production links and placeholders for live statistics.
+- Provide an admin-only registration-reminder campaign page. It previews aggregate counts and
+  the exact plain-text email with a safe link placeholder without exposing addresses. Keep the
+  clearly labelled send controls visible but disabled until preview succeeds, require exact
+  confirmation, recheck registration before sending, send bounded resumable batches, and
+  persist a hashed idempotent delivery ledger.
 
 Prompts define visual intent, not the exact control points or pixels of generated artwork.
 Therefore the following committed assets are preservation-critical and must be backed up with
@@ -197,6 +231,11 @@ Before declaring reconstruction complete:
    production deployment.
 
 ## Reproducibility verification strategy
+
+CI must render deterministic credential-free admin states in Chrome at desktop and mobile
+viewports, assert header expansion, menu placement, visible/disabled campaign controls and no
+horizontal overflow, and upload the screenshots for human inspection. Any PR changing layout,
+navigation, responsive behaviour, gating, or major page composition requires these checkpoints.
 
 Use layered verification rather than claiming that an in-place test proves a clean-room
 rebuild:

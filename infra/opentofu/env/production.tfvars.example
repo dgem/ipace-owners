@@ -19,6 +19,13 @@ firebase_project_display_name = "I-PACE Owners"
 github_owner = "dgem"
 github_repo  = "ipace-owners"
 
+# dan@kanzi.co.uk is always included by the shared module and resolved to this
+# environment's UID after sign-in. Add any further admins here; the set is authoritative.
+manage_firebase_admins = true
+firebase_admin_users = {
+  # another_admin = "person@example.org"
+}
+
 allowed_origins = "https://ipace-owners.org,https://www.ipace-owners.org"
 site_url        = "https://ipace-owners.org/member/account/"
 # firebase_auth_authorized_domains = ["www.ipace-owners.org"]

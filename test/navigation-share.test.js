@@ -26,6 +26,22 @@ test('header exposes one My Data action and account via user email when signed i
   assert.match(identityJs, /setAttribute\('aria-label', 'My account'\)/);
 });
 
+test('admin tools are discoverable only when Firebase token claims permit them', function () {
+  var header = fs.readFileSync(path.join(repoRoot, 'src/_includes/partials/header.njk'), 'utf8');
+  var mobileNav = fs.readFileSync(path.join(repoRoot, 'src/_includes/partials/mobile-nav.njk'), 'utf8');
+  var identityJs = fs.readFileSync(path.join(repoRoot, 'src/assets/js/identity.js'), 'utf8');
+  var css = fs.readFileSync(path.join(repoRoot, 'src/assets/css/site.css'), 'utf8');
+
+  assert.match(header, /site-admin-nav[\s\S]*data-requires-admin[\s\S]*navigation\.admin/);
+  assert.match(mobileNav, /mobile-nav__admin[\s\S]*data-requires-admin[\s\S]*navigation\.admin/);
+  assert.doesNotMatch(header, /data-requires-admin[^>]*>Admin<\/a>/);
+  assert.match(identityJs, /user\.getIdTokenResult\(\)/);
+  assert.match(identityJs, /claims\.admin === true \|\| roles\.indexOf\('admin'\) !== -1/);
+  assert.match(identityJs, /setVisibility\('\[data-requires-admin\]', false\)/);
+  assert.match(identityJs, /setVisibility\('\[data-requires-admin\]', isAdmin\)/);
+  assert.match(css, /@media \(min-width: 64em\)[\s\S]*\.site-admin-nav\s*\{[\s\S]*display: flex;/);
+});
+
 test('footer exposes social share links', function () {
   var footer = fs.readFileSync(path.join(repoRoot, 'src/_includes/partials/footer.njk'), 'utf8');
 

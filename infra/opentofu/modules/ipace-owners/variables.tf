@@ -84,6 +84,18 @@ variable "firebase_auth_authorized_domains" {
   default     = []
 }
 
+variable "manage_firebase_admins" {
+  description = "Whether OpenTofu reconciles the authoritative Firebase administrator set. The required project owner is always included."
+  type        = bool
+  default     = true
+}
+
+variable "firebase_admin_users" {
+  description = "Additional administrator labels mapped to Firebase Auth email addresses. The reconciler resolves environment-specific UIDs."
+  type        = map(string)
+  default     = {}
+}
+
 variable "manage_firebase_auth_email_templates" {
   description = "Whether OpenTofu manages supported Firebase Auth email settings and sender-domain verification."
   type        = bool

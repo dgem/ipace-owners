@@ -22,6 +22,14 @@ test('deployment smoke tests run inside Firebase deploy workflows', function () 
   assert.match(productionWorkflow, /run: make smoke/);
 });
 
+test('staging validation renders desktop and mobile visual checkpoints', function () {
+  const workflow = readFileSync(stagingWorkflowPath, 'utf8');
+  const makefile = readFileSync(resolve(__dirname, '../Makefile'), 'utf8');
+  assert.match(workflow, /Check rendered desktop and mobile states[\s\S]*make test-visual/);
+  assert.match(workflow, /Upload visual checkpoints[\s\S]*rendered-admin-checkpoints/);
+  assert.match(makefile, /test-visual:[\s\S]*npm run test:visual/);
+});
+
 test('Firebase deploy workflows lint all source languages before testing', function () {
   const stagingWorkflow = readFileSync(stagingWorkflowPath, 'utf8');
   const productionWorkflow = readFileSync(productionWorkflowPath, 'utf8');

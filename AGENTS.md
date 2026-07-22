@@ -187,6 +187,10 @@ Defined in `:root` in `site.css`. Key tokens:
   submission wiring, Firebase Auth handoff, or shared utilities must include or update
   tests.
 - Run `make test` before considering a change complete. All existing tests must pass.
+- For layout, navigation, responsive, visibility, or interaction changes, run `make dev` and
+  `make test-visual`, inspect every generated screenshot, and update the deterministic desktop
+  and mobile checkpoints when a new critical state is introduced. Do not report a visually
+  significant PR ready based only on source-level tests.
 - Tests should cover:
   - Server-side validation and authorization paths (unauthenticated, authenticated, admin).
   - Input sanitisation and edge cases (empty bodies, invalid JSON, honeypot fields).

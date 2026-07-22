@@ -1,0 +1,67 @@
+---
+layout: base.njk
+title: Email Campaigns
+description: "Admin-only, resumable member email campaigns."
+noindex: true
+permalink: /admin/email-campaigns/
+emailCampaigns: true
+---
+
+{% from "partials/auth-login-gate.njk" import authLoginGate %}
+
+<div class="page-header"><div class="container"><p class="page-header__eyebrow">Admin</p><h1 class="page-header__title">Email campaigns</h1></div></div>
+
+<div class="section"><div class="container"><div data-admin-container>
+  {{ authLoginGate("campaign-magic-email", "Sign in required", "Enter your admin email address and we will send a secure sign-in link.", "admin", false) }}
+  <div class="auth-gate" data-admin-only-gate hidden><div class="auth-gate__icon" aria-hidden="true">⛔</div><h2 class="auth-gate__title">Access restricted</h2><p class="auth-gate__body">This campaign workspace is for group administrators only.</p></div>
+  <div class="auth-content" data-admin-content hidden>
+    <div class="callout callout--warning"><span class="callout__icon" aria-hidden="true">⚠️</span><div class="callout__content"><p class="callout__title">Deliberately hard to send by accident</p><p>This campaign only contacts people who consented on the Join form but have not completed sign-in. Preview recalculates the audience without revealing addresses. Sending requires the exact current count and proceeds in resumable batches of 10.</p></div></div>
+    <section class="dashboard-panel" data-email-campaign data-preview-endpoint="/api/admin/reengagement-preview" data-send-endpoint="/api/admin/reengagement-send">
+      <div class="dashboard-panel__header"><div><p class="dashboard-panel__eyebrow">Email people who have not finished signing up</p><h2 class="dashboard-panel__title">Send registration reminder emails</h2></div></div>
+      <p>Each recipient gets a fresh Firebase sign-in link and the same consent-aware message used by the operator CLI. Registered accounts are suppressed immediately before every batch.</p>
+
+      <div class="email-campaign-step">
+        <p class="dashboard-panel__eyebrow">Step 1</p>
+        <h3>Check the recipients and preview the email</h3>
+        <p>No email is sent during this step.</p>
+        <div class="cluster"><button type="button" class="btn btn--primary" data-campaign-preview>Check recipients and load email preview</button></div>
+      </div>
+      <div data-campaign-summary class="stack" aria-live="polite"></div>
+
+      <section class="email-preview" data-campaign-email-preview hidden aria-labelledby="email-preview-title">
+        <p class="dashboard-panel__eyebrow">Email preview</p>
+        <h3 id="email-preview-title">What each recipient will receive</h3>
+        <p><strong>Subject:</strong> <span data-campaign-email-subject></span></p>
+        <pre data-campaign-email-text></pre>
+      </section>
+
+      <form data-campaign-send class="stack email-campaign-step">
+        <div><p class="dashboard-panel__eyebrow">Step 2</p><h3>Confirm and send the emails</h3><p>The controls unlock after Step 1 confirms the current audience.</p></div>
+        <div class="form-group"><label for="campaign-confirm">Type the exact confirmation shown below</label><input id="campaign-confirm" data-campaign-confirm autocomplete="off" disabled><p class="form-hint" data-campaign-confirm-hint>Check the recipients and email preview first.</p></div>
+        <button type="submit" class="btn btn--danger" data-campaign-send-button disabled>Send emails</button>
+      </form>
+      <p data-campaign-status role="status" aria-live="polite">No email has been sent.</p>
+    </section>
+
+    <section class="dashboard-panel email-campaign-panel" data-email-campaign data-preview-endpoint="/api/admin/member-referral-preview" data-send-endpoint="/api/admin/member-referral-send">
+      <div class="dashboard-panel__header"><div><p class="dashboard-panel__eyebrow">Email registered members</p><h2 class="dashboard-panel__title">Ask members to invite one more I-PACE owner</h2></div></div>
+      <p>This friendly referral email goes only to registered members whose Join record includes contact consent. It explains our progress towards 1,000 members and asks each person to help one more owner find the group.</p>
+      <div class="email-campaign-step">
+        <p class="dashboard-panel__eyebrow">Step 1</p><h3>Check the recipients and preview the email</h3><p>No email is sent during this step.</p>
+        <div class="cluster"><button type="button" class="btn btn--primary" data-campaign-preview>Check recipients and load email preview</button></div>
+      </div>
+      <div data-campaign-summary class="stack" aria-live="polite"></div>
+      <section class="email-preview" data-campaign-email-preview hidden aria-labelledby="referral-email-preview-title">
+        <p class="dashboard-panel__eyebrow">Email preview</p><h3 id="referral-email-preview-title">What each recipient will receive</h3>
+        <p><strong>Subject:</strong> <span data-campaign-email-subject></span></p><pre data-campaign-email-text></pre>
+        <div class="email-preview__shares" data-campaign-share-preview hidden aria-label="Monochrome social sharing buttons"></div>
+      </section>
+      <form data-campaign-send class="stack email-campaign-step">
+        <div><p class="dashboard-panel__eyebrow">Step 2</p><h3>Confirm and send the emails</h3><p>The controls unlock after Step 1 confirms the current audience.</p></div>
+        <div class="form-group"><label for="referral-campaign-confirm">Type the exact confirmation shown below</label><input id="referral-campaign-confirm" data-campaign-confirm autocomplete="off" disabled><p class="form-hint" data-campaign-confirm-hint>Check the recipients and email preview first.</p></div>
+        <button type="submit" class="btn btn--danger" data-campaign-send-button disabled>Send emails</button>
+      </form>
+      <p data-campaign-status role="status" aria-live="polite">No email has been sent.</p>
+    </section>
+  </div>
+</div></div></div>

@@ -136,6 +136,9 @@ Output is written to `_site/`.
 make test
 ```
 
+For layout, navigation, responsive, or visibility changes, keep `make dev` running in another
+terminal and run `make test-visual`. Inspect the screenshots written to `visual-artifacts/`.
+
 Runs the Node test suite for form wiring, auth UI behaviour, deployment configuration, and
 the Go Cloud Function tests. They can also be run separately:
 
@@ -160,7 +163,7 @@ Removes the `_site/` directory.
 src/
   *.md / *.njk     # Top-level page templates
   member/          # Authenticated account, vehicle and evidence workspace pages
-  admin/           # Admin-gated review queue
+  admin/           # Admin dashboard, review, outreach and email campaign tools
   updates/         # Update/news posts (.md)
   _data/           # Global data (site.json, navigation.json)
   _includes/
@@ -174,6 +177,8 @@ src/
       member-auth.js     # Server-verified member/admin data loading
       member-dashboard.js # Vehicle tabs, SoH graph and service/fault editing
       multistep-form.js  # Multi-step form controller
+      outreach-assistant.js # Facebook search-link and reply helper; no automation
+      email-campaigns.js  # Admin re-engagement preview and bounded send controls
       public-stats.js    # Public aggregate-statistics rendering
       site-mode.js       # Launch/full presentation selection
 public/            # Favicons, images and other root-level static assets
@@ -378,6 +383,28 @@ and excludes registrations matched by exact email, by email after removing a `+t
 case- and punctuation-insensitive display name. Dry run is the default and does not generate live
 links or contact Resend:
 
+Administrators can run this same narrowly scoped campaign from `/admin/email-campaigns/`, whose
+controls are implemented by `email-campaigns.js`.
+The page returns aggregate counts rather than addresses, renders the exact plain-text delivery
+template with a safe placeholder in place of the private sign-in link, and keeps its clearly
+labelled send controls visible but disabled until that preview completes. It then requires the
+exact current count as a typed confirmation, rechecks Firebase Auth before delivery, sends at
+most ten messages per request, and records hashed idempotent delivery state in Firestore so it
+can resume safely. The CLI remains available for offline preflight and audit.
+
+The browser calls `POST /api/admin/reengagement-preview` to recalculate the audience and
+`POST /api/admin/reengagement-send` to deliver one confirmed batch. Both routes require a
+server-verified Firebase admin claim.
+
+The same page provides a separate member-referral campaign through
+`POST /api/admin/member-referral-preview` and `POST /api/admin/member-referral-send`. Its
+audience is the intersection of Firebase-registered accounts and contact-consenting Join
+records. The friendly template shows the current owner total, distance from the 1,000-owner
+stretch goal, and the doubled total if every current owner finds one more. It includes
+monochrome share actions for Facebook, X, Bluesky, LinkedIn, Instagram, WhatsApp, and email;
+Instagram opens the group's `@ipaceowners` profile because it has no reliable web share
+composer.
+
 ```bash
 make join-reengagement \
   ENV=production \
@@ -536,10 +563,31 @@ email hash.
 
 ### Admin role assignment
 
-To grant a member admin access:
+OpenTofu manages the authoritative Firebase administrator set. The shared module always
+includes `dan@kanzi.co.uk`; additional administrators are labels mapped to email addresses in
+the environment configuration:
 
-Set a Firebase Auth custom claim for the user, for example `admin: true` or
-`roles: ["admin"]`. Admin APIs verify this claim server-side.
+```hcl
+manage_firebase_admins = true
+firebase_admin_users = {
+  another_admin = "person@example.org"
+}
+```
+
+The Google provider has no Firebase Auth user data source. During apply, the tested
+`scripts/reconcile-firebase-admins.mjs` bridge lists Identity Platform accounts, resolves each
+configured email to its environment-specific UID, preserves unrelated custom claims, grants
+`admin: true` to the desired set, and removes only admin access from users no longer listed.
+The apply fails rather than silently continuing if a configured account has not completed
+Firebase sign-in. Staging and production are reconciled independently. After a claim change,
+sign out and request a new magic link so the next ID token contains the current claim.
+Signed-in administrators receive the complete admin menu in a right-aligned secondary desktop
+header row and a labelled section of the mobile drawer. It is not repeated inside admin page
+content. These navigation hints use token claims, while every protected endpoint continues to
+enforce administrator access server-side.
+
+Disabling `manage_firebase_admins` stops reconciliation but does not revoke existing claims.
+Remove unwanted administrators from the map and apply before disabling management.
 
 ---
 
@@ -581,6 +629,7 @@ Plain vanilla JavaScript, no bundler. The current modules are:
 - `member-auth.js` — authenticated member/admin data loading and account rendering
 - `member-dashboard.js` — vehicle tabs, SoH history and service/fault editing
 - `multistep-form.js` — generic multi-step form (data-attribute driven)
+- `outreach-assistant.js` — admin-only Facebook search-link and editable reply helper; no retrieval or posting automation
 - `public-stats.js` — homepage and evidence-dashboard aggregate rendering
 - `site-mode.js` — launch/full presentation selection
 

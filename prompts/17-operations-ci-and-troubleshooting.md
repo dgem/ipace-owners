@@ -10,6 +10,21 @@ Keep local and CI operations reproducible through `make`, avoid skipped or misle
 checks, and preserve the operational lessons learned while moving the project to
 Firebase/GCP.
 
+The `/admin/email-campaigns/` Join re-engagement control uses the CLI's consent and registration
+suppression boundary. Preview exposes aggregate counts and the exact plain-text template with a
+safe link placeholder, but no recipient data. Send controls stay visible but disabled until the
+preview succeeds. Sending requires the current campaign ID, exact audience count, and `SEND <count>` confirmation; each request sends at most ten messages
+and records a hashed Firestore delivery ledger with Resend idempotency keys. Re-preview between
+batches and stop to investigate any provider or ledger error.
+
+The separate member-referral campaign targets only Firebase accounts with a matching
+contact-consenting Join record. Its live copy reports progress to 1,000 and the exact doubled
+total if every current owner finds one more. Include monochrome actions for Facebook, X,
+Bluesky, LinkedIn, Instagram, WhatsApp, and email; Instagram links to the group's
+`@ipaceowners` profile because it has no reliable web share composer. Apply the same preview,
+confirmation, batch, registration
+recheck, and hashed-ledger controls as registration reminders.
+
 ## Command Surface
 
 - The Makefile is the shared command surface for local development and CI.
@@ -17,6 +32,10 @@ Firebase/GCP.
 - CI workflows should call Make targets rather than duplicating raw npm, Go, Firebase, or
   gcloud command bodies where a Make target exists.
 - Local verification for most changes is `make lint`, `make build`, and `make test`.
+- Layout/navigation changes also require `make dev` plus `make test-visual`. The staging validate
+  job runs deterministic Chrome checks at desktop and mobile viewports and uploads screenshots
+  even on failure. Keep authenticated visual fixtures credential-free and assert geometry and
+  visibility rather than relying only on pixel snapshots.
 - Run a separate `Security` workflow on pull requests, pushes to `main`, a weekly Monday
   schedule, and manual dispatch. It must use job-scoped permissions and run CodeQL
   `security-extended` analysis for GitHub Actions, JavaScript/TypeScript, and Go; dependency
@@ -129,6 +148,34 @@ Firebase/GCP.
   Function runtime identity; do not grant the GitHub deployer direct member-data access.
 - Run `make smoke` directly in the production workflow after Hosting deploy with
   `SMOKE_BASE_URL=https://ipace-owners.org`.
+
+## Human-controlled Facebook outreach
+
+- Provide an admin-only `/admin/outreach/` workspace for generating user-initiated Facebook
+  search links from editable phrases and group URLs, plus issue-specific editable reply drafts.
+- The browser helper must never fetch or scrape Facebook, operate a logged-in Facebook session,
+  open searches automatically, send direct messages, submit posts or retain Facebook content.
+- Accept only HTTPS `facebook.com/groups/<id-or-slug>` URLs, discard extra paths and parameters,
+  deduplicate inputs, URL-encode every query, and mark explicit outbound links `noopener` and
+  `noreferrer`.
+- Keep every response human-reviewed and manually posted. Replies should offer useful evidence-
+  gathering steps, disclose the volunteer connection when inviting participation, avoid diagnosis
+  or official-advice claims, follow group rules, and stop on objection.
+
+## Firebase administrator reconciliation
+
+- Treat OpenTofu's administrator email map as authoritative whenever management is enabled. The
+  shared module must always add `dan@kanzi.co.uk` to the desired set.
+- The Google provider has no Firebase Auth user data source. Use the tested reconciliation bridge
+  to page through Identity Platform accounts, resolve email addresses to environment-specific UIDs,
+  merge `admin: true` without discarding unrelated claims, and remove only admin access from users
+  no longer configured.
+- Refuse an empty desired set, duplicate/invalid emails and missing Firebase accounts. Never print
+  user email addresses, UIDs or claim contents during a successful reconciliation.
+- Reconcile staging and production independently. Users need a newly issued ID token after a claim
+  change. Disabling management leaves existing claims untouched, so revoke removed admins first.
+- Show desktop and mobile admin navigation only after the signed-in user's ID-token claims contain
+  `admin: true` or an `admin` role. Keep server-side `AdminData` verification authoritative.
 
 ## Smoke Tests
 

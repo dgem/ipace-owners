@@ -81,6 +81,14 @@ the retired hosting or Function platform.
 7. Go Functions verify Firebase ID tokens server-side. Admin endpoints require an `admin`
    custom claim or a `roles` claim containing `admin`.
 
+OpenTofu reconciles the authoritative Firebase administrator emails through a tested Identity
+Platform API bridge. The shared module always includes `dan@kanzi.co.uk`, resolves email to the
+environment-specific UID, preserves unrelated custom claims, and revokes only admin access from
+users removed from the desired set. A configured user must already exist in Firebase Auth.
+
+After claims are verified, render the complete admin menu in a right-aligned secondary desktop
+header row and a labelled mobile-drawer section. Do not duplicate it below admin page titles.
+
 ## Implemented API contracts
 
 | Route | Handler behind `Api` | Auth | Purpose |
@@ -92,6 +100,10 @@ the retired hosting or Function platform.
 | `POST /api/upsert-service-event` | `UpsertServiceEvent` | Member | Add or edit an owned vehicle's service/fault timeline record. |
 | `GET /api/member-data` | `MemberData` | Member | Return the signed-in user's generated snapshot. |
 | `GET /api/admin-data` | `AdminData` | Admin | Return review data for administrators. |
+| `POST /api/admin/reengagement-preview` | `AdminReengagementPreview` | Admin | Return aggregate counts for the consented, unsigned-in Join audience. |
+| `POST /api/admin/reengagement-send` | `AdminReengagementSend` | Admin | Confirm and send the next resumable batch of at most ten reminders. |
+| `POST /api/admin/member-referral-preview` | `AdminMemberReferralPreview` | Admin | Preview the consented registered-member referral audience and exact campaign copy. |
+| `POST /api/admin/member-referral-send` | `AdminMemberReferralSend` | Admin | Confirm and send the next resumable batch of at most ten referral emails. |
 | `GET /api/public-stats` | `PublicStats` | No | Return the generated anonymised aggregate snapshot. |
 
 Templates and client JavaScript use `/api/*`; Firebase Hosting rewrites `/api/**` to the
