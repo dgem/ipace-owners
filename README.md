@@ -405,6 +405,13 @@ monochrome share actions for Facebook, X, Bluesky, LinkedIn, Instagram, WhatsApp
 Instagram opens the group's `@ipaceowners` profile because it has no reliable web share
 composer.
 
+Both browser-managed campaign emails use the same responsive, inline-styled HTML shell as the
+custom magic-link email, including the approved I-PACE Owners logo, hero image and prominent
+pill-shaped actions. Their editable prose lives in embedded Go templates under
+`functions/firebase-go/email-templates/*.md.tmpl`; the Function renders one Markdown source to
+both escaped HTML and a plain-text alternative. Keep consent/unsubscribe wording in the shared
+email composition code so it cannot be accidentally removed during routine copy edits.
+
 ```bash
 make join-reengagement \
   ENV=production \
