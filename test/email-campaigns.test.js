@@ -27,7 +27,7 @@ test('email campaign browser sends tokens and explicit confirmation data', funct
 
 test('portable homepage copy uses production links and live-value placeholders', function () {
   const copy = fs.readFileSync(path.join(root, 'docs/homepage-copy.md'), 'utf8');
-  assert.match(copy, /https:\/\/ipace-owners\.org\/join\//);
+  assert.ok(copy.includes('https://ipace-owners.org/join/'));
   assert.match(copy, /\[Current owners joined\]/);
   assert.match(copy, /I-PACE owners working together for fair outcomes/);
   assert.doesNotMatch(copy, /\{[%{]/);
