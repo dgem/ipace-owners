@@ -30,13 +30,23 @@ test('admin workspaces put navigation before their main content', function () {
 
 test('email campaign browser sends tokens and explicit confirmation data', function () {
   assert.match(script, /getIdToken\(\)/);
-  assert.match(script, /\/api\/admin\/reengagement-preview/);
-  assert.match(script, /\/api\/admin\/reengagement-send/);
+  assert.match(page, /\/api\/admin\/reengagement-preview/);
+  assert.match(page, /\/api\/admin\/reengagement-send/);
+  assert.match(page, /\/api\/admin\/member-referral-preview/);
+  assert.match(page, /\/api\/admin\/member-referral-send/);
   assert.match(script, /expectedEligible: current\.eligible/);
   assert.match(script, /confirmation: confirmInput\.value/);
   assert.match(script, /emailText\.textContent = data\.emailPreview\.text/);
   assert.match(script, /emailPreview\.hidden = false/);
   assert.doesNotMatch(script, /recipient|emailAddress|\.email\b/i);
+});
+
+test('member referral campaign is clear and previews monochrome sharing actions', function () {
+  const css = fs.readFileSync(path.join(root, 'src/assets/css/site.css'), 'utf8');
+  assert.match(page, /Ask members to invite one more I-PACE owner/);
+  assert.match(page, /registered members whose Join record includes contact consent/);
+  assert.match(script, /data\.emailPreview\.shares/);
+  assert.match(css, /\.email-preview__share-mark[\s\S]*grayscale\(1\)/);
 });
 
 test('portable homepage copy uses production links and live-value placeholders', function () {

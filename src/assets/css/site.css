@@ -2512,6 +2512,10 @@ details .details-body p:last-child {
   padding-top: var(--space-6);
 }
 
+.email-campaign-panel {
+  margin-top: var(--space-8);
+}
+
 .email-campaign-step h3,
 .email-preview h3 {
   margin-top: var(--space-1);
@@ -2535,6 +2539,30 @@ details .details-body p:last-child {
   overflow-wrap: anywhere;
   padding: var(--space-5);
   white-space: pre-wrap;
+}
+
+.email-preview__shares {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+}
+
+.email-preview__share {
+  align-items: center;
+  border: 1px solid var(--color-text);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  display: inline-flex;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  padding: var(--space-2) var(--space-3);
+}
+
+.email-preview__share-mark {
+  filter: grayscale(1);
+  min-width: 1.25rem;
+  text-align: center;
 }
 
 @media (min-width: 64em) {

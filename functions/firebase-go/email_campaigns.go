@@ -10,6 +10,7 @@ import (
 	"html"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"sort"
 	"strings"
@@ -40,8 +41,15 @@ type campaignSummary struct {
 }
 
 type campaignEmailPreview struct {
-	Subject string `json:"subject"`
-	Text    string `json:"text"`
+	Subject string              `json:"subject"`
+	Text    string              `json:"text"`
+	Shares  []campaignShareLink `json:"shares,omitempty"`
+}
+
+type campaignShareLink struct {
+	Label string `json:"label"`
+	Mark  string `json:"mark"`
+	URL   string `json:"url"`
 }
 
 type campaignSendRequest struct {
@@ -62,6 +70,8 @@ var campaignAuthorize = func(ctx context.Context, r *http.Request) error {
 }
 var campaignPreview = previewReengagementCampaign
 var campaignSend = sendReengagementCampaignBatch
+var memberReferralPreview = previewMemberReferralCampaign
+var memberReferralSend = sendMemberReferralCampaignBatch
 
 func AdminReengagementPreview(w http.ResponseWriter, r *http.Request) {
 	if cors(w, r) || rejectDisallowedOrigin(w, r) {
@@ -109,12 +119,74 @@ func AdminReengagementSend(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, summary)
 }
 
+func AdminMemberReferralPreview(w http.ResponseWriter, r *http.Request) {
+	adminCampaignPreviewHandler(w, r, "admin-member-referral-preview", memberReferralPreview)
+}
+
+func AdminMemberReferralSend(w http.ResponseWriter, r *http.Request) {
+	adminCampaignSendHandler(w, r, memberReferralSend)
+}
+
+func adminCampaignPreviewHandler(w http.ResponseWriter, r *http.Request, logName string, preview func(context.Context) (campaignSummary, error)) {
+	if cors(w, r) || rejectDisallowedOrigin(w, r) {
+		return
+	}
+	if r.Method != http.MethodPost {
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"error": "Method Not Allowed"})
+		return
+	}
+	if err := campaignAuthorize(r.Context(), r); err != nil {
+		writeJSON(w, http.StatusForbidden, map[string]any{"error": "Admin role required"})
+		return
+	}
+	summary, err := preview(r.Context())
+	if err != nil {
+		logEvent(logName, "error", "preview failed", map[string]any{"error": err.Error()})
+		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Could not calculate the campaign audience"})
+		return
+	}
+	writeJSON(w, http.StatusOK, summary)
+}
+
+func adminCampaignSendHandler(w http.ResponseWriter, r *http.Request, send func(context.Context, campaignSendRequest) (campaignSummary, error)) {
+	if cors(w, r) || rejectDisallowedOrigin(w, r) {
+		return
+	}
+	if r.Method != http.MethodPost {
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"error": "Method Not Allowed"})
+		return
+	}
+	if err := campaignAuthorize(r.Context(), r); err != nil {
+		writeJSON(w, http.StatusForbidden, map[string]any{"error": "Admin role required"})
+		return
+	}
+	var input campaignSendRequest
+	if err := decodeJSON(r, &input); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "Invalid request body"})
+		return
+	}
+	summary, err := send(r.Context(), input)
+	if err != nil {
+		writeJSON(w, http.StatusConflict, map[string]any{"error": err.Error()})
+		return
+	}
+	writeJSON(w, http.StatusOK, summary)
+}
+
 func campaignID() string {
 	environment := "production"
 	if strings.Contains(strings.ToLower(projectID()), "staging") {
 		environment = "staging"
 	}
 	return "join-account-verification-" + environment + "-" + time.Now().UTC().Format("2006-01-02")
+}
+
+func memberReferralCampaignID() string {
+	environment := "production"
+	if strings.Contains(strings.ToLower(projectID()), "staging") {
+		environment = "staging"
+	}
+	return "member-referral-" + environment + "-" + time.Now().UTC().Format("2006-01-02")
 }
 
 func previewReengagementCampaign(ctx context.Context) (campaignSummary, error) {
@@ -212,6 +284,101 @@ func sendReengagementCampaignBatch(ctx context.Context, input campaignSendReques
 	return summary, nil
 }
 
+func previewMemberReferralCampaign(ctx context.Context) (campaignSummary, error) {
+	db, err := firestoreClient(ctx)
+	if err != nil {
+		return campaignSummary{}, err
+	}
+	authClient, err := firebaseAuth(ctx)
+	if err != nil {
+		return campaignSummary{}, err
+	}
+	joins, err := loadCampaignJoins(ctx, db)
+	if err != nil {
+		return campaignSummary{}, err
+	}
+	accounts, err := loadRegisteredEmailMap(ctx, authClient)
+	if err != nil {
+		return campaignSummary{}, err
+	}
+	eligible := classifyMemberReferralRecipients(joins, accounts)
+	id := memberReferralCampaignID()
+	sent, err := loadSentFingerprints(ctx, db, id)
+	if err != nil {
+		return campaignSummary{}, err
+	}
+	summary := makeCampaignSummary(id, len(eligible), len(accounts)-len(eligible), countCampaignSent(eligible, sent), 0)
+	summary.EmailPreview = makeMemberReferralEmailPreview(len(joins))
+	return summary, nil
+}
+
+func sendMemberReferralCampaignBatch(ctx context.Context, input campaignSendRequest) (campaignSummary, error) {
+	if !resendEmailConfigured() {
+		return campaignSummary{}, fmt.Errorf("email delivery is not configured")
+	}
+	preview, err := previewMemberReferralCampaign(ctx)
+	if err != nil {
+		return campaignSummary{}, err
+	}
+	if input.CampaignID != preview.CampaignID {
+		return campaignSummary{}, fmt.Errorf("campaign changed; preview again")
+	}
+	if input.ExpectedEligible != preview.Eligible {
+		return campaignSummary{}, fmt.Errorf("eligible count changed; preview again")
+	}
+	if input.Confirmation != fmt.Sprintf("SEND %d", preview.Eligible) {
+		return campaignSummary{}, fmt.Errorf("confirmation did not match; no emails sent")
+	}
+
+	db, _ := firestoreClient(ctx)
+	authClient, _ := firebaseAuth(ctx)
+	joins, err := loadCampaignJoins(ctx, db)
+	if err != nil {
+		return campaignSummary{}, err
+	}
+	accounts, err := loadRegisteredEmailMap(ctx, authClient)
+	if err != nil {
+		return campaignSummary{}, err
+	}
+	eligible := classifyMemberReferralRecipients(joins, accounts)
+	if len(eligible) != input.ExpectedEligible {
+		return campaignSummary{}, fmt.Errorf("eligible count changed; preview again")
+	}
+	sent, err := loadSentFingerprints(ctx, db, preview.CampaignID)
+	if err != nil {
+		return campaignSummary{}, err
+	}
+	batchSent := 0
+	for _, person := range eligible {
+		fingerprint := campaignEmailFingerprint(person.Email)
+		if sent[fingerprint] || batchSent >= emailCampaignBatchSize {
+			continue
+		}
+		if _, err := authClient.GetUserByEmail(ctx, person.Email); err != nil {
+			if auth.IsUserNotFound(err) {
+				continue
+			}
+			return campaignSummary{}, err
+		}
+		resendID, err := sendMemberReferralEmail(ctx, person, len(joins), preview.CampaignID)
+		if err != nil {
+			return campaignSummary{}, fmt.Errorf("email provider rejected a message; retry the batch")
+		}
+		_, err = db.Collection("emailCampaigns").Doc(preview.CampaignID).Collection("deliveries").Doc(fingerprint).Set(ctx, map[string]any{"status": "sent", "resendId": resendID, "sentAt": firestore.ServerTimestamp})
+		if err != nil {
+			return campaignSummary{}, fmt.Errorf("email sent but campaign ledger update failed; retry safely")
+		}
+		sent[fingerprint] = true
+		batchSent++
+		if batchSent < emailCampaignBatchSize {
+			time.Sleep(250 * time.Millisecond)
+		}
+	}
+	summary := makeCampaignSummary(preview.CampaignID, len(eligible), len(accounts)-len(eligible), countCampaignSent(eligible, sent), batchSent)
+	summary.EmailPreview = makeMemberReferralEmailPreview(len(joins))
+	return summary, nil
+}
+
 func countCampaignSent(eligible []campaignRecipient, sent map[string]bool) int {
 	count := 0
 	for _, person := range eligible {
@@ -297,6 +464,24 @@ func loadRegisteredIdentities(ctx context.Context, client *auth.Client) (map[str
 	return identities, nil
 }
 
+func loadRegisteredEmailMap(ctx context.Context, client *auth.Client) (map[string]string, error) {
+	accounts := map[string]string{}
+	iter := client.Users(ctx, "")
+	for {
+		user, err := iter.Next()
+		if err == iterator.Done {
+			return accounts, nil
+		}
+		if err != nil {
+			return nil, err
+		}
+		email := strings.ToLower(strings.TrimSpace(user.Email))
+		if email != "" {
+			accounts[canonicalCampaignEmail(email)] = email
+		}
+	}
+}
+
 func classifyCampaignRecipients(joins []campaignRecipient, registered map[string]bool) []campaignRecipient {
 	result := []campaignRecipient{}
 	for _, person := range joins {
@@ -304,6 +489,17 @@ func classifyCampaignRecipients(joins []campaignRecipient, registered map[string
 			continue
 		}
 		result = append(result, person)
+	}
+	return result
+}
+
+func classifyMemberReferralRecipients(joins []campaignRecipient, registered map[string]string) []campaignRecipient {
+	result := []campaignRecipient{}
+	for _, person := range joins {
+		if email := registered[canonicalCampaignEmail(person.Email)]; email != "" {
+			person.Email = email
+			result = append(result, person)
+		}
 	}
 	return result
 }
@@ -358,7 +554,11 @@ func campaignLinkDomain() string {
 
 func sendCampaignEmail(ctx context.Context, person campaignRecipient, link string, memberCount, eligibleCount int, id string) (string, error) {
 	subject, htmlBody, text := campaignEmailBodies(person, link, memberCount, eligibleCount)
-	payload := map[string]any{"from": strings.TrimSpace(os.Getenv("RESEND_FROM")), "to": []string{person.Email}, "subject": subject, "html": htmlBody, "text": text, "tags": []map[string]string{{"name": "category", "value": "join-reengagement"}}}
+	return sendCampaignPayload(ctx, person.Email, subject, htmlBody, text, "join-reengagement", id)
+}
+
+func sendCampaignPayload(ctx context.Context, email, subject, htmlBody, text, category, id string) (string, error) {
+	payload := map[string]any{"from": strings.TrimSpace(os.Getenv("RESEND_FROM")), "to": []string{email}, "subject": subject, "html": htmlBody, "text": text, "tags": []map[string]string{{"name": "category", "value": category}}}
 	if reply := strings.TrimSpace(os.Getenv("RESEND_REPLY_TO")); reply != "" {
 		payload["reply_to"] = reply
 	}
@@ -369,7 +569,7 @@ func sendCampaignEmail(ctx context.Context, person campaignRecipient, link strin
 	}
 	req.Header.Set("Authorization", "Bearer "+strings.TrimSpace(os.Getenv("RESEND_API_KEY")))
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Idempotency-Key", id+"/"+campaignEmailFingerprint(person.Email))
+	req.Header.Set("Idempotency-Key", id+"/"+campaignEmailFingerprint(email))
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return "", err
@@ -406,4 +606,54 @@ func makeCampaignEmailPreview(memberCount, eligibleCount int) campaignEmailPrevi
 	person := campaignRecipient{Name: "I-PACE owner", CreatedAt: time.Now().UTC()}
 	subject, _, text := campaignEmailBodies(person, "[A fresh, private sign-in link is inserted for each recipient]", memberCount, eligibleCount)
 	return campaignEmailPreview{Subject: subject, Text: text}
+}
+
+func memberReferralShareLinks(memberCount int) []campaignShareLink {
+	shareURL := "https://ipace-owners.org/"
+	message := fmt.Sprintf("I-PACE owners are working together for fair outcomes. %d owners have already joined — could you help another owner find the group?", memberCount)
+	return []campaignShareLink{
+		{Label: "Facebook", Mark: "f", URL: "https://www.facebook.com/sharer/sharer.php?u=" + url.QueryEscape(shareURL)},
+		{Label: "X", Mark: "𝕏", URL: "https://twitter.com/intent/tweet?text=" + url.QueryEscape(message) + "&url=" + url.QueryEscape(shareURL)},
+		{Label: "Bluesky", Mark: "B", URL: "https://bsky.app/intent/compose?text=" + url.QueryEscape(message+" "+shareURL)},
+		{Label: "LinkedIn", Mark: "in", URL: "https://www.linkedin.com/sharing/share-offsite/?url=" + url.QueryEscape(shareURL)},
+		{Label: "Instagram", Mark: "◎", URL: shareURL},
+		{Label: "WhatsApp", Mark: "W", URL: "https://wa.me/?text=" + url.QueryEscape(message+" "+shareURL)},
+		{Label: "Email", Mark: "@", URL: "mailto:?subject=" + url.QueryEscape("Will you join the I-PACE Owners group?") + "&body=" + url.QueryEscape(message+"\n\n"+shareURL)},
+	}
+}
+
+func memberReferralEmailBodies(person campaignRecipient, memberCount int) (string, string, string, []campaignShareLink) {
+	first := "there"
+	if fields := strings.Fields(person.Name); len(fields) > 0 {
+		first = fields[0]
+	}
+	goal := 1000
+	remaining := goal - memberCount
+	if remaining < 0 {
+		remaining = 0
+	}
+	projected := memberCount * 2
+	projection := fmt.Sprintf("If every one of our %d owners found just one more I-PACE owner, we would grow to %d members", memberCount, projected)
+	if projected >= 700 && projected < 800 {
+		projection += " — putting us in the 700s"
+	}
+	subject := "Could you help one more I-PACE owner find us?"
+	text := fmt.Sprintf("Hello %s,\n\nCould you help one more I-PACE owner find us?\n\n%d owners have joined the I-PACE Owners Advocacy Group. We are %d members away from our 1,000-owner stretch goal.\n\n%s.\n\nPlease share the group with an I-PACE owner you know:\nhttps://ipace-owners.org/\n\nThank you for helping build a stronger, constructive voice for owners.\n\nYou are receiving this because you registered with the group and agreed that we could contact you. Reply if you no longer wish to hear from us.\n", first, memberCount, remaining, projection)
+	shares := memberReferralShareLinks(memberCount)
+	buttons := ""
+	for _, share := range shares {
+		buttons += `<a href="` + html.EscapeString(share.URL) + `" style="display:inline-block;margin:0 8px 10px 0;padding:9px 12px;border:1px solid #111827;border-radius:6px;color:#111827;text-decoration:none;font-weight:700;"><span style="display:inline-block;min-width:18px;text-align:center;filter:grayscale(1);">` + html.EscapeString(share.Mark) + `</span> ` + html.EscapeString(share.Label) + `</a>`
+	}
+	htmlBody := `<p>Hello ` + html.EscapeString(first) + `,</p><h1>Could you help one more I-PACE owner find us?</h1><p><strong>` + fmt.Sprint(memberCount) + ` owners have joined</strong> the I-PACE Owners Advocacy Group. We are ` + fmt.Sprint(remaining) + ` members away from our 1,000-owner stretch goal.</p><p>` + html.EscapeString(projection) + `.</p><p>Please share the group with an I-PACE owner you know:</p><div style="margin:20px 0;">` + buttons + `</div><p>Instagram does not offer a web share button, so its link opens the group page ready for you to copy into a post or message.</p><p>Thank you for helping build a stronger, constructive voice for owners.</p><p style="color:#4b5563;font-size:13px;">You are receiving this because you registered with the group and agreed that we could contact you. Reply if you no longer wish to hear from us.</p>`
+	return subject, htmlBody, text, shares
+}
+
+func makeMemberReferralEmailPreview(memberCount int) campaignEmailPreview {
+	subject, _, text, shares := memberReferralEmailBodies(campaignRecipient{Name: "I-PACE owner"}, memberCount)
+	return campaignEmailPreview{Subject: subject, Text: text, Shares: shares}
+}
+
+func sendMemberReferralEmail(ctx context.Context, person campaignRecipient, memberCount int, id string) (string, error) {
+	subject, htmlBody, text, _ := memberReferralEmailBodies(person, memberCount)
+	return sendCampaignPayload(ctx, person.Email, subject, htmlBody, text, "member-referral", id)
 }

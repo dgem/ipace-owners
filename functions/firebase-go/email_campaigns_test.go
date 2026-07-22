@@ -67,3 +67,30 @@ func TestCampaignEmailPreviewUsesTheDeliveryTemplate(t *testing.T) {
 		t.Fatalf("preview missing audience context: %q", preview.Text)
 	}
 }
+
+func TestMemberReferralAudienceRequiresRegistrationAndContactConsent(t *testing.T) {
+	joins := []campaignRecipient{{Name: "Jane Driver", Email: "jane+owners@example.com"}, {Name: "Not Registered", Email: "other@example.com"}}
+	registered := map[string]string{"jane@example.com": "jane@example.com"}
+	got := classifyMemberReferralRecipients(joins, registered)
+	if len(got) != 1 || got[0].Email != "jane@example.com" {
+		t.Fatalf("unexpected referral audience: %#v", got)
+	}
+}
+
+func TestMemberReferralEmailExplainsGoalAndProvidesShares(t *testing.T) {
+	preview := makeMemberReferralEmailPreview(371)
+	for _, expected := range []string{"371 owners have joined", "629 members away", "grow to 742 members", "in the 700s"} {
+		if !strings.Contains(preview.Text, expected) {
+			t.Fatalf("preview missing %q: %s", expected, preview.Text)
+		}
+	}
+	labels := map[string]bool{}
+	for _, share := range preview.Shares {
+		labels[share.Label] = true
+	}
+	for _, expected := range []string{"Facebook", "X", "Bluesky", "LinkedIn", "Instagram", "WhatsApp", "Email"} {
+		if !labels[expected] {
+			t.Fatalf("missing %s share action", expected)
+		}
+	}
+}

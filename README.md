@@ -393,6 +393,14 @@ The browser calls `POST /api/admin/reengagement-preview` to recalculate the audi
 `POST /api/admin/reengagement-send` to deliver one confirmed batch. Both routes require a
 server-verified Firebase admin claim.
 
+The same page provides a separate member-referral campaign through
+`POST /api/admin/member-referral-preview` and `POST /api/admin/member-referral-send`. Its
+audience is the intersection of Firebase-registered accounts and contact-consenting Join
+records. The friendly template shows the current owner total, distance from the 1,000-owner
+stretch goal, and the doubled total if every current owner finds one more. It includes
+monochrome share actions for Facebook, X, Bluesky, LinkedIn, Instagram, WhatsApp, and email;
+Instagram opens the canonical group page because it has no reliable web share composer.
+
 ```bash
 make join-reengagement \
   ENV=production \

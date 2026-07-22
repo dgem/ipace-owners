@@ -77,6 +77,8 @@ change rather than assuming it exists.
 | `GET /api/admin-data` | Admin claim | Return Join and vehicle review records. |
 | `POST /api/admin/reengagement-preview` | Admin claim | Return aggregate counts for consented Join submitters who have not registered. |
 | `POST /api/admin/reengagement-send` | Admin claim | Require the campaign ID, exact eligible count and typed confirmation; recheck registrations and send the next batch of at most ten. |
+| `POST /api/admin/member-referral-preview` | Admin claim | Preview aggregate counts and exact copy for registered accounts with matching contact consent. |
+| `POST /api/admin/member-referral-send` | Admin claim | Confirm and send the next batch of at most ten referral emails with the same idempotent ledger safeguards. |
 | `GET /api/public-stats` | Public | Return the anonymised aggregate schema below with five-minute public caching and last-valid-snapshot fallback. |
 
 The implemented API decoder accepts strict JSON bodies and rejects unknown fields. Shared

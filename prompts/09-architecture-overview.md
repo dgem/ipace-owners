@@ -99,6 +99,8 @@ users removed from the desired set. A configured user must already exist in Fire
 | `GET /api/admin-data` | `AdminData` | Admin | Return review data for administrators. |
 | `POST /api/admin/reengagement-preview` | `AdminReengagementPreview` | Admin | Return aggregate counts for the consented, unsigned-in Join audience. |
 | `POST /api/admin/reengagement-send` | `AdminReengagementSend` | Admin | Confirm and send the next resumable batch of at most ten reminders. |
+| `POST /api/admin/member-referral-preview` | `AdminMemberReferralPreview` | Admin | Preview the consented registered-member referral audience and exact campaign copy. |
+| `POST /api/admin/member-referral-send` | `AdminMemberReferralSend` | Admin | Confirm and send the next resumable batch of at most ten referral emails. |
 | `GET /api/public-stats` | `PublicStats` | No | Return the generated anonymised aggregate snapshot. |
 
 Templates and client JavaScript use `/api/*`; Firebase Hosting rewrites `/api/**` to the
