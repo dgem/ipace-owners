@@ -1,0 +1,64 @@
+---
+layout: base.njk
+title: Admin Dashboard
+description: "Administration tools for the I-PACE Owners Advocacy Group."
+noindex: true
+permalink: /admin/
+---
+
+{% from "partials/auth-login-gate.njk" import authLoginGate %}
+
+<div class="page-header">
+  <div class="container">
+    <p class="page-header__eyebrow">Admin</p>
+    <h1 class="page-header__title">Dashboard</h1>
+  </div>
+</div>
+
+<div class="section">
+  <div class="container" data-admin-container>
+    {{ authLoginGate("admin-dashboard-email", "Sign in required", "Enter your admin email address and we will send a secure sign-in link.", "admin", false) }}
+
+    <div class="auth-gate" data-admin-only-gate hidden>
+      <div class="auth-gate__icon" aria-hidden="true">⛔</div>
+      <h2 class="auth-gate__title">Access restricted</h2>
+      <p class="auth-gate__body">This dashboard is for group administrators only.</p>
+    </div>
+
+    <div class="auth-content" data-admin-content hidden>
+      <div class="stack">
+        <div>
+          <p class="dashboard-panel__eyebrow">Active tools</p>
+          <h2>Administration and member growth</h2>
+          <p>Review live submissions, help owners find the group, and run controlled email campaigns.</p>
+        </div>
+
+        <div class="grid grid--3 admin-dashboard-grid">
+          <article class="card">
+            <div class="card__icon" aria-hidden="true">✓</div>
+            <h3 class="card__title">Review queue</h3>
+            <div class="card__body"><p>Inspect Join submissions and vehicle records loaded through the server-verified admin API.</p></div>
+            <a class="btn btn--secondary" href="/admin/review-queue/">Open review queue</a>
+          </article>
+          <article class="card">
+            <div class="card__icon" aria-hidden="true">⌕</div>
+            <h3 class="card__title">Facebook outreach</h3>
+            <div class="card__body"><p>Build manual Facebook searches and draft helpful, transparent responses to owners.</p></div>
+            <a class="btn btn--secondary" href="/admin/outreach/">Open outreach assistant</a>
+          </article>
+          <article class="card card--accent">
+            <div class="card__icon" aria-hidden="true">✉</div>
+            <h3 class="card__title">Email campaigns</h3>
+            <div class="card__body"><p>Preview and send registration reminders or member-referral campaigns in resumable batches.</p></div>
+            <a class="btn btn--primary" href="/admin/email-campaigns/">Open email campaigns</a>
+          </article>
+        </div>
+
+        <section class="dashboard-panel" aria-labelledby="planned-admin-title">
+          <div class="dashboard-panel__header"><div><p class="dashboard-panel__eyebrow">Planned</p><h2 class="dashboard-panel__title" id="planned-admin-title">Future administration areas</h2></div></div>
+          <p>Submission triage, evidence files, public-stat controls, exports, member management, and settings will appear here when their server-side workflows are implemented. They are not linked prematurely.</p>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>

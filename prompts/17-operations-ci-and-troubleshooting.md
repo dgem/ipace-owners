@@ -32,6 +32,10 @@ recheck, and hashed-ledger controls as registration reminders.
 - CI workflows should call Make targets rather than duplicating raw npm, Go, Firebase, or
   gcloud command bodies where a Make target exists.
 - Local verification for most changes is `make lint`, `make build`, and `make test`.
+- Layout/navigation changes also require `make dev` plus `make test-visual`. The staging validate
+  job runs deterministic Chrome checks at desktop and mobile viewports and uploads screenshots
+  even on failure. Keep authenticated visual fixtures credential-free and assert geometry and
+  visibility rather than relying only on pixel snapshots.
 - Run a separate `Security` workflow on pull requests, pushes to `main`, a weekly Monday
   schedule, and manual dispatch. It must use job-scoped permissions and run CodeQL
   `security-extended` analysis for GitHub Actions, JavaScript/TypeScript, and Go; dependency

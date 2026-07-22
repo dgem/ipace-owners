@@ -21,7 +21,7 @@
   </ul>
 
   <div class="mobile-nav__admin" data-requires-admin style="display:none">
-    <p class="mobile-nav__section-label">Admin</p>
+    <p class="mobile-nav__section-label"><a href="/admin/" data-nav-link>Admin</a></p>
     <ul class="mobile-nav__list" role="list">
       {% for item in navigation.admin %}
         <li><a href="{{ item.url }}" class="mobile-nav__link" data-nav-link>{{ item.label }}</a></li>

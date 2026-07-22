@@ -1,5 +1,6 @@
 # Build output
 _site/
+visual-artifacts/
 
 # Dependencies
 node_modules/

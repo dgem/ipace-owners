@@ -30,6 +30,16 @@ test('admin navigation lives in the claim-gated site header, not page content', 
   assert.match(header, /site-admin-nav[\s\S]*navigation\.admin/);
 });
 
+test('admin index is a gated dashboard of implemented tools', function () {
+  const dashboard = fs.readFileSync(path.join(root, 'src/admin/index.njk'), 'utf8');
+  assert.match(dashboard, /data-admin-container/);
+  assert.match(dashboard, /data-admin-content hidden/);
+  assert.match(dashboard, /Open review queue/);
+  assert.match(dashboard, /Open outreach assistant/);
+  assert.match(dashboard, /Open email campaigns/);
+  assert.match(dashboard, /not linked prematurely/);
+});
+
 test('email campaign browser sends tokens and explicit confirmation data', function () {
   assert.match(script, /getIdToken\(\)/);
   assert.match(page, /\/api\/admin\/reengagement-preview/);

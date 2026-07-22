@@ -41,6 +41,21 @@ jobs:
       - name: Build site without deployment credentials
         run: make build
 
+      - name: Check rendered desktop and mobile states
+        env:
+          VISUAL_BASE_URL: http://127.0.0.1:8080
+        run: |
+          npm run dev -- --port=8080 > /tmp/ipace-visual-server.log 2>&1 &
+          make test-visual
+
+      - name: Upload visual checkpoints
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: rendered-admin-checkpoints
+          path: visual-artifacts/
+          if-no-files-found: error
+
   deploy-preview:
     needs: validate
     if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == github.repository_owner

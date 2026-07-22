@@ -32,7 +32,7 @@ The generated public route surface must include:
   `/methodology/`, `/evidence-dashboard/`, and `/updates/`;
 - dated or named update pages generated from `src/updates/`;
 - `/member/dashboard/`, `/member/account/`, and `/member/submit-vehicle-data/`;
-- `/admin/review-queue/`, `/admin/outreach/`, and `/admin/email-campaigns/`;
+- `/admin/`, `/admin/review-queue/`, `/admin/outreach/`, and `/admin/email-campaigns/`;
 - permanent redirects from `/account/**` and `/submit-vehicle-data/**` to their member
   equivalents;
 - a generated 404 page, clean URLs, trailing slashes, and a final Hosting fallback to
@@ -60,6 +60,9 @@ not authorization; the route remains gated by the server-verified admin API.
 
 The complete admin menu belongs in a claim-gated, right-aligned secondary desktop header row and
 a labelled mobile-drawer section, not inside individual admin page content.
+
+`/admin/` is the claim-gated landing dashboard. It links to every implemented admin tool and
+describes planned areas without linking to unimplemented routes.
 
 ## API contract inventory
 
@@ -228,6 +231,11 @@ Before declaring reconstruction complete:
    production deployment.
 
 ## Reproducibility verification strategy
+
+CI must render deterministic credential-free admin states in Chrome at desktop and mobile
+viewports, assert header expansion, menu placement, visible/disabled campaign controls and no
+horizontal overflow, and upload the screenshots for human inspection. Any PR changing layout,
+navigation, responsive behaviour, gating, or major page composition requires these checkpoints.
 
 Use layered verification rather than claiming that an in-place test proves a clean-room
 rebuild:

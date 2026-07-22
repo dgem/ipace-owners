@@ -136,6 +136,9 @@ Output is written to `_site/`.
 make test
 ```
 
+For layout, navigation, responsive, or visibility changes, keep `make dev` running in another
+terminal and run `make test-visual`. Inspect the screenshots written to `visual-artifacts/`.
+
 Runs the Node test suite for form wiring, auth UI behaviour, deployment configuration, and
 the Go Cloud Function tests. They can also be run separately:
 
@@ -160,7 +163,7 @@ Removes the `_site/` directory.
 src/
   *.md / *.njk     # Top-level page templates
   member/          # Authenticated account, vehicle and evidence workspace pages
-  admin/           # Admin-gated review and human-controlled outreach tools
+  admin/           # Admin dashboard, review, outreach and email campaign tools
   updates/         # Update/news posts (.md)
   _data/           # Global data (site.json, navigation.json)
   _includes/
