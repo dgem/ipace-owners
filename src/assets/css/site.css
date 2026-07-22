@@ -2499,6 +2499,10 @@ details .details-body p:last-child {
 
 .outreach-safety,
 .outreach-admin-nav {
+  margin-bottom: var(--space-8);
+}
+
+.outreach-safety {
   margin-top: var(--space-8);
 }
 

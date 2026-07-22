@@ -15,6 +15,7 @@ emailCampaigns: true
   {{ authLoginGate("campaign-magic-email", "Sign in required", "Enter your admin email address and we will send a secure sign-in link.", "admin", false) }}
   <div class="auth-gate" data-admin-only-gate hidden><div class="auth-gate__icon" aria-hidden="true">⛔</div><h2 class="auth-gate__title">Access restricted</h2><p class="auth-gate__body">This campaign workspace is for group administrators only.</p></div>
   <div class="auth-content" data-admin-content hidden>
+    <nav class="outreach-admin-nav" aria-label="Admin navigation"><h2>Admin navigation</h2><div class="cluster">{% for item in navigation.admin %}<a href="{{ item.url }}" class="btn btn--secondary btn--sm">{{ item.label }}</a>{% endfor %}</div></nav>
     <div class="callout callout--warning"><span class="callout__icon" aria-hidden="true">⚠️</span><div class="callout__content"><p class="callout__title">Deliberately hard to send by accident</p><p>This campaign only contacts people who consented on the Join form but have not completed sign-in. Preview recalculates the audience without revealing addresses. Sending requires the exact current count and proceeds in resumable batches of 10.</p></div></div>
     <section class="dashboard-panel" data-email-campaigns>
       <div class="dashboard-panel__header"><div><p class="dashboard-panel__eyebrow">Join re-engagement</p><h2 class="dashboard-panel__title">Complete your registration</h2></div></div>
@@ -27,6 +28,5 @@ emailCampaigns: true
       </form>
       <p data-campaign-status role="status" aria-live="polite"></p>
     </section>
-    <div class="outreach-admin-nav"><h2>Admin navigation</h2><div class="cluster">{% for item in navigation.admin %}<a href="{{ item.url }}" class="btn btn--secondary btn--sm">{{ item.label }}</a>{% endfor %}</div></div>
   </div>
 </div></div></div>

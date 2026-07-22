@@ -36,6 +36,14 @@ permalink: /admin/review-queue/
 
 					<!-- Admin content — revealed by member-auth.js after server confirms admin role -->
 					<div class="auth-content" data-admin-content hidden>
+						<nav class="outreach-admin-nav" aria-label="Admin navigation">
+							<h2>Admin navigation</h2>
+							<div class="cluster">
+								{% for item in navigation.admin %}
+									<a href="{{ item.url }}" class="btn btn--secondary btn--sm">{{ item.label }}</a>
+								{% endfor %}
+							</div>
+						</nav>
 
 						<div class="callout callout--warning" style="margin-bottom: var(--space-8);">
 							<span class="callout__icon" aria-hidden="true">⚠️</span>
@@ -75,14 +83,6 @@ permalink: /admin/review-queue/
 							</div>
 						</div>
 
-						<div style="margin-top: var(--space-6);">
-							<h2>Admin navigation</h2>
-							<div class="cluster">
-								{% for item in navigation.admin %}
-									<a href="{{ item.url }}" class="btn btn--secondary btn--sm">{{ item.label }}</a>
-								{% endfor %}
-							</div>
-						</div>
 					</div>
 				</div>
 
