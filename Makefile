@@ -146,6 +146,7 @@ deploy-functions: write-functions-env ## Deploy all Go Cloud Functions to GCP.
 			--entry-point="$$fn" \
 			--trigger-http \
 			--allow-unauthenticated \
+			--timeout=180s \
 			--service-account="$${FUNCTIONS_SERVICE_ACCOUNT}" \
 			--env-vars-file=functions-env.json $$secret_args; \
 	done

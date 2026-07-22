@@ -85,9 +85,17 @@ func Api(w http.ResponseWriter, r *http.Request) {
 		AdminInstagramPreview(w, r)
 	case "/api/admin/instagram-publish":
 		AdminInstagramPublish(w, r)
+	case "/api/admin/instagram-generate":
+		AdminInstagramGenerate(w, r)
+	case "/api/admin/instagram-generation-status":
+		AdminInstagramGenerationStatus(w, r)
 	case "/api/public-stats":
 		PublicStats(w, r)
 	default:
+		if strings.HasPrefix(strings.TrimRight(r.URL.Path, "/"), "/api/instagram-media/") {
+			InstagramGeneratedMedia(w, r)
+			return
+		}
 		if cors(w, r) {
 			return
 		}

@@ -27,6 +27,16 @@ output "veo_generation" {
   }
 }
 
+output "instagram_publishing" {
+  description = "Fail-closed Instagram publishing configuration. The token value is provisioned outside OpenTofu so it never enters state."
+  value = {
+    enabled             = var.instagram_publishing_enabled
+    access_token_secret = google_secret_manager_secret.instagram_access_token.secret_id
+    user_id             = var.instagram_user_id
+    graph_api_version   = var.instagram_graph_api_version
+  }
+}
+
 output "firestore_database_id" {
   value = google_firestore_database.default.name
 }

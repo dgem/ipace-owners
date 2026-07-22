@@ -68,6 +68,24 @@ variable "campaign_media_work_retention_days" {
   }
 }
 
+variable "instagram_publishing_enabled" {
+  description = "Whether deployment should mount the separately provisioned Instagram OAuth access-token secret."
+  type        = bool
+  default     = false
+}
+
+variable "instagram_user_id" {
+  description = "Instagram Professional account user ID. Required when publishing is enabled."
+  type        = string
+  default     = ""
+}
+
+variable "instagram_graph_api_version" {
+  description = "Explicit supported Instagram Graph API version, for example vNN.0. Required when publishing is enabled."
+  type        = string
+  default     = ""
+}
+
 variable "environment" {
   description = "Environment name, for example staging or production."
   type        = string

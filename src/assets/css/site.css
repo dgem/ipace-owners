@@ -2618,7 +2618,8 @@ details .details-body p:last-child {
   white-space: pre-wrap;
 }
 
-.instagram-preview video {
+.instagram-preview video,
+[data-veo-result] video {
   display: block;
   width: min(100%, 22rem);
   max-height: 70vh;

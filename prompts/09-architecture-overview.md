@@ -106,6 +106,9 @@ header row and a labelled mobile-drawer section. Do not duplicate it below admin
 | `POST /api/admin/member-referral-send` | `AdminMemberReferralSend` | Admin | Confirm and send the next resumable batch of at most ten referral emails. |
 | `POST /api/admin/instagram-preview` | `AdminInstagramPreview` | Admin | Validate and preview an administrator-reviewed, chat-prepared Reel path and caption without publishing. |
 | `POST /api/admin/instagram-publish` | `AdminInstagramPublish` | Admin | Revalidate the exact draft and confirmation, process the Reel through Meta, and publish it immediately. |
+| `POST /api/admin/instagram-generate` | `AdminInstagramGenerate` | Admin | Idempotently start the explicitly confirmed, billable eight-second Veo generation operation. |
+| `POST /api/admin/instagram-generation-status` | `AdminInstagramGenerationStatus` | Admin | Poll and advance the job into the seven-second continuation, promote the 15-second master, and issue a short-lived review path. |
+| `GET/HEAD /api/instagram-media/**` | `InstagramGeneratedMedia` | Expiring bearer path | Range-stream a private completed master after constant-time token and expiry validation. |
 | `GET /api/public-stats` | `PublicStats` | No | Return the generated anonymised aggregate snapshot. |
 
 Templates and client JavaScript use `/api/*`; Firebase Hosting rewrites `/api/**` to the
@@ -137,6 +140,11 @@ route unless there is a measured need.
   reviewed-draft ID. Reserve before contacting Meta; a published retry returns the existing
   media ID, while processing or failed records stop for operator verification instead of
   risking a duplicate post.
+- Store Veo generation state in `instagramGenerationJobs`, keyed by a hash of the browser request
+  ID. Keep generation and publication ledgers separate. A job progresses from initial generation
+  through a transactionally claimed seven-second Veo video extension to a private versioned
+  master. Concurrent status polls must not duplicate either billable provider operation, and
+  generation never publishes as a side effect.
 - Regenerate private member snapshots after vehicle, SoH, or service-event writes. Regenerate
   public aggregate snapshots after Join, vehicle, and SoH writes, using only fields with
   defined consent and publication rules. Service/fault events stay private until explicit

@@ -81,6 +81,24 @@ variable "campaign_media_work_retention_days" {
   default     = 30
 }
 
+variable "instagram_publishing_enabled" {
+  description = "Whether deployment should mount the separately provisioned Instagram OAuth access-token secret."
+  type        = bool
+  default     = false
+}
+
+variable "instagram_user_id" {
+  description = "Instagram Professional account user ID."
+  type        = string
+  default     = ""
+}
+
+variable "instagram_graph_api_version" {
+  description = "Explicit supported Instagram Graph API version."
+  type        = string
+  default     = ""
+}
+
 variable "github_owner" {
   description = "GitHub organisation or user that owns the repository."
   type        = string

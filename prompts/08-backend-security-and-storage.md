@@ -61,6 +61,11 @@ Use Firestore for structured data:
 - Store Veo source clips, continuation clips, extracted frames, and rejected candidates under
   the private campaign-media bucket's `work/` prefix with bounded retention. Store approved,
   auditable masters under `masters/`; retain and version them independently of working files.
+- Store idempotent asynchronous generation state in `instagramGenerationJobs`. Keep provider
+  operation names and GCS object names server-side. Claim each billable phase transactionally and
+  fail closed on indeterminate provider/ledger transitions. Expose completed private masters only through
+  short-lived, unguessable delivery paths whose token is stored as a hash and checked in constant
+  time; support HTTP byte ranges for browser and Meta video fetches.
 
 ## Validation
 

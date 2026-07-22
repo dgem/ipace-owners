@@ -19,6 +19,11 @@ output "veo_generation" {
   value       = module.ipace_owners.veo_generation
 }
 
+output "instagram_publishing" {
+  description = "Instagram publishing secret name and non-secret provider configuration."
+  value       = module.ipace_owners.instagram_publishing
+}
+
 output "firestore_database_id" {
   value = module.ipace_owners.firestore_database_id
 }

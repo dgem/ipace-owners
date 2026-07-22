@@ -35,3 +35,15 @@ test("Veo configuration flows from OpenTofu through both Function deployment env
     assert.match(production, new RegExp(`${name}: \\$\\{\\{ vars\\.${name}_PRODUCTION \\}\\}`));
   }
 });
+
+test("Meta OAuth token storage is declared without putting token bytes in OpenTofu state", () => {
+  const main = read("infra/opentofu/modules/ipace-owners/main.tf");
+  const githubActions = read("infra/opentofu/modules/ipace-owners/github-actions.tf");
+
+  assert.match(main, /resource "google_secret_manager_secret" "instagram_access_token"/);
+  assert.doesNotMatch(main, /resource "google_secret_manager_secret_version" "instagram_access_token"/);
+  assert.match(main, /resource "google_secret_manager_secret_iam_member" "runtime_instagram_access_token"/);
+  assert.match(githubActions, /var\.instagram_publishing_enabled \? \{/);
+  assert.match(githubActions, /INSTAGRAM_ACCESS_TOKEN_SECRET_/);
+  assert.doesNotMatch(githubActions, /INSTAGRAM_ACCESS_TOKEN_[^S]/);
+});

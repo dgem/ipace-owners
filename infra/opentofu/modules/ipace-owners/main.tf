@@ -264,6 +264,16 @@ resource "google_secret_manager_secret" "vin_pepper" {
   depends_on = [google_project_service.required]
 }
 
+resource "google_secret_manager_secret" "instagram_access_token" {
+  secret_id = "instagram-access-token"
+
+  replication {
+    auto {}
+  }
+
+  depends_on = [google_project_service.required]
+}
+
 resource "google_secret_manager_secret_version" "vin_pepper" {
   secret      = google_secret_manager_secret.vin_pepper.id
   secret_data = var.vin_pepper
@@ -316,6 +326,22 @@ resource "google_secret_manager_secret_iam_member" "runtime_vin_pepper" {
   secret_id = google_secret_manager_secret.vin_pepper.secret_id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${google_service_account.runtime.email}"
+}
+
+resource "google_secret_manager_secret_iam_member" "runtime_instagram_access_token" {
+  secret_id = google_secret_manager_secret.instagram_access_token.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.runtime.email}"
+}
+
+check "instagram_publishing_configuration" {
+  assert {
+    condition = !var.instagram_publishing_enabled || (
+      can(regex("^[0-9]+$", var.instagram_user_id)) &&
+      can(regex("^v[0-9]+\\.[0-9]+$", var.instagram_graph_api_version))
+    )
+    error_message = "instagram_user_id and instagram_graph_api_version must be valid when Instagram publishing is enabled."
+  }
 }
 
 resource "google_service_account" "github_deployer" {

@@ -92,10 +92,11 @@ Suggested message beats:
 - 9–12 seconds: `CONSTRUCTIVE. EVIDENCE-LED. / Focused on fair outcomes.`
 - 12–15 seconds: `ADD YOUR VOICE / ipace-owners.org / Free to join. Under a minute.`
 
-`public/ipace-owners-instagram-launch-reel.mp4` is the reserved delivery path. The recovered
-keyframe-composite draft is not approved for publication. Replace it with the native temporal
-video and synchronized soundtrack defined below, watch it in full, verify the stop cannot be read
-as a fault, and obtain human approval before publishing.
+`public/ipace-owners-instagram-launch-reel.mp4` is reserved for a future approved export. The
+recovered keyframe-composite draft is not approved, must not be selected by default, and must not
+be committed as preservation-critical media. Generate the native temporal video and synchronized
+soundtrack defined below into private campaign storage, watch it in full, verify the stop cannot
+be read as a fault, and obtain human approval before publishing or committing a public export.
 
 ## Copy-ready Veo 3.1 master prompt
 
@@ -139,9 +140,24 @@ unwanted camera cuts or identity drift.
 
 ## API and configuration contract
 
-Admin routes are `POST /api/admin/instagram-preview` and
-`POST /api/admin/instagram-publish`. Both require a server-verified Firebase admin claim and
-origin checks. Runtime configuration is optional and fail-closed:
+Generation routes are `POST /api/admin/instagram-generate` and
+`POST /api/admin/instagram-generation-status`. Both require a server-verified Firebase admin claim and
+origin checks. Starting generation requires a stable browser request ID and exact `GENERATE
+VIDEO` confirmation. Reserve the request before calling Vertex, generate an eight-second 9:16
+1080p native-audio opening, and use that MP4 as Veo 3.1 video-extension input for the supported
+seven-second continuation. Transactionally claim the extension phase before the second billable
+provider call so concurrent status polls cannot duplicate it; fail closed if a provider call or
+subsequent ledger write is indeterminate. Promote the completed 15-second result into `masters/`;
+never invoke publishing from generation. Store job state in `instagramGenerationJobs`.
+
+Return completed private media through a short-lived `/api/instagram-media/**` bearer path. Store
+only its token hash and expiry, compare in constant time, keep the GCS URI private, and support GET,
+HEAD and a single HTTP byte range. The delivery URL may be fetched by the review video player and
+Meta, but expiry must fail closed.
+
+Publishing routes are `POST /api/admin/instagram-preview` and
+`POST /api/admin/instagram-publish`. Both require a server-verified Firebase admin claim and origin
+checks. Runtime configuration is optional and fail-closed:
 
 - `INSTAGRAM_ACCESS_TOKEN` — secret; never commit or expose it;
 - `INSTAGRAM_USER_ID` — professional Instagram account ID;
@@ -149,9 +165,17 @@ origin checks. Runtime configuration is optional and fail-closed:
 - `INSTAGRAM_MEDIA_BASE_URL` — HTTPS public origin Meta can fetch, with
   `RESEND_ASSET_BASE_URL` as the existing compatible fallback.
 
+OpenTofu owns the `instagram-access-token` secret container and runtime accessor binding, but not
+the token version. Keep OAuth token bytes out of tfvars and OpenTofu state. Enable the conditional
+GitHub deployment variables only after an operator has added a valid secret version.
+
 Use Meta's official Instagram Login content-publishing permission. Keep token acquisition,
 rotation, account connection and Meta App Review as explicit operator setup. The media must meet
 Meta's current Reel format constraints and be publicly fetchable while the container processes.
+The required Instagram Login OAuth scopes are `instagram_business_basic` and
+`instagram_business_content_publish`. Treat the Meta app ID and app secret as OAuth connection
+credentials, not as a publishing API key; keep the app secret server-side if an automated account
+connection flow is added.
 
 OpenTofu must enable `aiplatform.googleapis.com`, create a private campaign-media bucket with
 public access prevention, grant the Function runtime `roles/aiplatform.user` and object access on

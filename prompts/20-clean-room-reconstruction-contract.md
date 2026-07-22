@@ -87,6 +87,9 @@ change rather than assuming it exists.
 | `POST /api/admin/member-referral-send` | Admin claim | Confirm and send the next batch of at most ten referral emails with the same idempotent ledger safeguards. |
 | `POST /api/admin/instagram-preview` | Admin claim | Validate a site-relative MP4/MOV path, caption and explicit full-media review; return the deterministic confirmation without a provider side effect. |
 | `POST /api/admin/instagram-publish` | Admin claim | Revalidate the unchanged preview and exact confirmation, then create, process and publish one organic Reel through Meta. |
+| `POST /api/admin/instagram-generate` | Admin claim | Reserve an idempotent job and start one billable eight-second 9:16 Veo operation after exact `GENERATE VIDEO` confirmation. |
+| `POST /api/admin/instagram-generation-status` | Admin claim | Poll the Vertex operation, start the supported seven-second video continuation, promote the resulting 15-second master, and return an expiring delivery path. |
+| `GET/HEAD /api/instagram-media/**` | Expiring bearer path | Validate a constant-time token hash and expiry, then range-stream the private master without exposing its GCS URI. |
 | `GET /api/public-stats` | Public | Return the anonymised aggregate schema below with five-minute public caching and last-valid-snapshot fallback. |
 
 The implemented API decoder accepts strict JSON bodies and rejects unknown fields. Shared
@@ -99,12 +102,14 @@ Never depend on frontend gating for data protection.
 ## Canonical Firestore and snapshot schemas
 
 Use these exact collection names: `joinSubmissions`, `members`, `vehicles`,
-`batteryReadings`, `serviceEvents`, `memberSnapshots`, `emailCampaigns`, and
-`instagramCampaigns`. The email collection stores
+`batteryReadings`, `serviceEvents`, `memberSnapshots`, `emailCampaigns`,
+`instagramCampaigns`, and `instagramGenerationJobs`. The email collection stores
 campaign delivery subdocuments keyed by a non-reversible email fingerprint, with no recipient
 address returned to the browser. `instagramCampaigns` reserves the deterministic reviewed-draft
 ID before contacting Meta and stores processing, failed, or published status plus the returned
-media ID so a retry cannot silently duplicate a post. Cloud Storage contains generated
+media ID so a retry cannot silently duplicate a post. `instagramGenerationJobs` stores prompt
+hashes, phase, status, Vertex operation name, private object names, failure code, and only a hash
+and expiry for each short-lived delivery token. Cloud Storage contains generated
 snapshots under purpose-specific private/public object names; future evidence blobs require
 their own validation and authorization design.
 
@@ -148,6 +153,10 @@ Build-time Firebase web configuration uses `FIREBASE_WEB_API_KEY`,
 Optional Instagram publishing additionally uses secret `INSTAGRAM_ACCESS_TOKEN` and non-secret
 `INSTAGRAM_USER_ID`, `INSTAGRAM_GRAPH_API_VERSION`, and `INSTAGRAM_MEDIA_BASE_URL`. Absence or
 invalidity must disable publishing while leaving local preview available.
+OpenTofu creates the `instagram-access-token` Secret Manager container and grants the Function
+runtime accessor permission, but must not create its secret version from a tfvars value. Only after
+an operator adds a version should `instagram_publishing_enabled` expose the secret name and
+non-secret account ID/version to the deployment workflow.
 Asynchronous campaign-video generation uses non-secret `CAMPAIGN_MEDIA_BUCKET`, `VEO_LOCATION`,
 and `VEO_MODEL_ID`. OpenTofu must enable `aiplatform.googleapis.com`, grant the Function runtime
 `roles/aiplatform.user` and object access only on its private campaign-media bucket, expire only
@@ -197,8 +206,11 @@ the repository or an artifact archive:
   `public/images/ipace-owners-card-front-hero.png`;
 - `public/images/ipace-owners-card-back-hero.svg` and
   `public/images/ipace-owners-card-back-hero.png`;
-- `public/ipace-owners-instagram-launch-reel.mp4`, the generated 15-second 9:16 launch Reel
-  master whose creative and human-review contract is defined by prompt `21`.
+
+Do not preserve or reconstruct the rejected key-frame-composite launch Reel as an approved
+asset. A native temporal Veo result becomes preservation-critical only after a human has watched
+the complete video, approved its synchronized sound and controlled-stop portrayal, and explicitly
+committed the approved export as `public/ipace-owners-instagram-launch-reel.mp4`.
 
 A printable PDF is not currently committed and must not be presented as a recoverable source
 artifact. Do not assume an image model can recreate the approved assets identically from

@@ -14,6 +14,9 @@ module "ipace_owners" {
   veo_location                       = var.veo_location
   veo_model_id                       = var.veo_model_id
   campaign_media_work_retention_days = var.campaign_media_work_retention_days
+  instagram_publishing_enabled       = var.instagram_publishing_enabled
+  instagram_user_id                  = var.instagram_user_id
+  instagram_graph_api_version        = var.instagram_graph_api_version
   github_owner                       = var.github_owner
   github_repo                        = var.github_repo
   vin_pepper                         = var.vin_pepper

@@ -16,6 +16,14 @@
   }
 
   function initialise(root) {
+    var generateForm = root.querySelector('[data-veo-generate]');
+    var generatePrompt = root.querySelector('[data-veo-prompt]');
+    var generateConfirm = root.querySelector('[data-veo-confirm]');
+    var generateButton = root.querySelector('[data-veo-generate-button]');
+    var generateStatus = root.querySelector('[data-veo-status]');
+    var generateResult = root.querySelector('[data-veo-result]');
+    var generateJobID = root.querySelector('[data-veo-job-id]');
+    var generateVideo = root.querySelector('[data-veo-video]');
     var draftForm = root.querySelector('[data-instagram-draft]');
     var publishForm = root.querySelector('[data-instagram-publish]');
     var mediaPath = root.querySelector('[data-instagram-media-path]');
@@ -32,6 +40,8 @@
     var publishButton = root.querySelector('[data-instagram-publish-button]');
     var status = root.querySelector('[data-instagram-status]');
     var current = null;
+    var generationTimer = null;
+    var generationStorageKey = 'ipace-instagram-veo-job';
 
     function draft() { return { mediaPath: mediaPath.value, caption: caption.value, mediaReviewed: mediaReviewed.checked }; }
     function invalidate() {
@@ -48,6 +58,80 @@
     mediaReviewed.addEventListener('change', invalidate);
     updateCount();
 
+    function requestID() {
+      if (window.crypto && typeof window.crypto.randomUUID === 'function') return window.crypto.randomUUID();
+      return String(Date.now()) + '-' + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+    }
+
+    function rememberJob(jobID) {
+      try { window.localStorage.setItem(generationStorageKey, jobID); } catch { /* storage is optional */ }
+    }
+
+    function forgetJob() {
+      try { window.localStorage.removeItem(generationStorageKey); } catch { /* storage is optional */ }
+    }
+
+    function renderGeneration(result) {
+      generateJobID.textContent = result.jobId;
+      generateResult.hidden = false;
+      generateStatus.textContent = result.message;
+      rememberJob(result.jobId);
+      if (result.status === 'completed' && result.mediaPath) {
+        if (generationTimer) window.clearTimeout(generationTimer);
+        generationTimer = null;
+        generateVideo.src = result.mediaPath;
+        generateVideo.hidden = false;
+        mediaPath.value = result.mediaPath;
+        mediaReviewed.checked = false;
+        invalidate();
+        generateButton.disabled = false;
+        forgetJob();
+        return;
+      }
+      if (result.status === 'failed') {
+        generateButton.disabled = false;
+        forgetJob();
+        return;
+      }
+      generationTimer = window.setTimeout(function () { pollGeneration(result.jobId); }, 15000);
+    }
+
+    async function pollGeneration(jobID) {
+      try {
+        renderGeneration(await request(root.getAttribute('data-generation-status-endpoint'), { jobId: jobID }));
+      } catch (error) {
+        generateStatus.textContent = error.message + ' Retrying shortly…';
+        generationTimer = window.setTimeout(function () { pollGeneration(jobID); }, 15000);
+      }
+    }
+
+    generateForm.addEventListener('submit', async function (event) {
+      event.preventDefault();
+      generateButton.disabled = true;
+      generateStatus.textContent = 'Submitting the billable Veo generation job…';
+      try {
+        var result = await request(root.getAttribute('data-generate-endpoint'), {
+          requestId: requestID(),
+          prompt: generatePrompt.value,
+          confirmation: generateConfirm.value
+        });
+        generateConfirm.value = '';
+        renderGeneration(result);
+      } catch (error) {
+        generateStatus.textContent = error.message;
+        generateButton.disabled = false;
+      }
+    });
+
+    try {
+      var rememberedJob = window.localStorage.getItem(generationStorageKey);
+      if (rememberedJob) {
+        generateButton.disabled = true;
+        generateStatus.textContent = 'Restoring the previous Veo generation job…';
+        pollGeneration(rememberedJob);
+      }
+    } catch { /* storage is optional */ }
+
     draftForm.addEventListener('submit', async function (event) {
       event.preventDefault();
       previewButton.disabled = true;
@@ -58,9 +142,9 @@
         previewCaption.textContent = current.caption;
         campaignID.textContent = current.campaignId;
         preview.hidden = false;
-        confirm.disabled = false;
-        publishButton.disabled = false;
-        confirmHint.textContent = 'Type “' + current.confirmation + '” exactly.';
+        confirm.disabled = !current.configured;
+        publishButton.disabled = !current.configured;
+        confirmHint.textContent = current.configured ? 'Type “' + current.confirmation + '” exactly.' : 'Instagram publishing credentials must be configured before this draft can be published.';
         status.textContent = current.configured ? 'Preview complete. Nothing has been published.' : 'Preview complete, but Instagram publishing is not configured on this environment.';
       } catch (error) {
         invalidate();
@@ -87,7 +171,7 @@
         status.textContent = 'Published successfully as Instagram media ' + result.mediaId + '.';
       } catch (error) {
         status.textContent = error.message;
-        publishButton.disabled = false;
+        publishButton.disabled = !current.configured;
       }
     });
   }
