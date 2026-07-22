@@ -34,15 +34,17 @@ test('Firebase deploy workflows lint all source languages before testing', funct
   }
 });
 
-test('deployments serialize production changes and regenerate public statistics', function () {
-  const stagingWorkflow = readFileSync(stagingWorkflowPath, 'utf8');
+test('production deployments are serialized without cancellation', function () {
   const productionWorkflow = readFileSync(productionWorkflowPath, 'utf8');
 
   assert.match(productionWorkflow, /concurrency:\n {6}group: firebase-production-deploy\n {6}cancel-in-progress: false/);
-  for (const workflow of [stagingWorkflow, productionWorkflow]) {
-    assert.match(workflow, /name: Regenerate public statistics snapshot/);
-    assert.match(workflow, /run: make regenerate-public-stats/);
-  }
+});
+
+test('deployment smoke requires the current regenerated public statistics schema', function () {
+  const smoke = readFileSync(resolve(__dirname, '../scripts/smoke-test-deployment.mjs'), 'utf8');
+
+  assert.match(smoke, /publicStatsData\.schemaVersion !== 5/);
+  assert.match(smoke, /Number\.isFinite\(publicStatsData\.joinedOwners\)/);
 });
 
 test('Firebase deploy workflows skip Function deploys when backend is unchanged', function () {

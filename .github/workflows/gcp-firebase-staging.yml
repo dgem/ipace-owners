@@ -143,13 +143,6 @@ jobs:
           RESEND_ASSET_BASE_URL: ${{ vars.RESEND_ASSET_BASE_URL_STAGING }}
         run: make deploy-functions
 
-      - name: Regenerate public statistics snapshot
-        env:
-          FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_STAGING_PROJECT_ID }}
-          FIRESTORE_DATABASE_ID: ${{ vars.FIRESTORE_DATABASE_ID_STAGING }}
-          SNAPSHOT_BUCKET: ${{ vars.SNAPSHOT_BUCKET_STAGING }}
-        run: make regenerate-public-stats
-
       - name: Refresh Firebase Hosting preview with current Function revisions
         if: steps.backend.outputs.deploy == 'true'
         env:

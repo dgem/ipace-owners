@@ -9,7 +9,7 @@ FIREBASE_PREVIEW_ERROR ?= firebase-preview-error.log
 GOVULNCHECK_VERSION ?= v1.6.0
 INFRA_ENV_SCRIPT := scripts/infra-env.sh
 
-.PHONY: help functions check-node install ci-install dev build clean lint lint-js lint-css lint-markdown lint-data lint-templates lint-shell lint-go lint-tofu lint-svg audit audit-node audit-go test test-node test-go smoke join-reengagement regenerate-public-stats write-functions-env authorize-preview-domain deploy-functions deploy-hosting-preview deploy-hosting-production infra-config infra-auth infra-init infra-workspace infra-dns-records infra-resend-dns-records infra-email-domain infra-plan infra-apply deploy-hosting-env
+.PHONY: help functions check-node install ci-install dev build clean lint lint-js lint-css lint-markdown lint-data lint-templates lint-shell lint-go lint-tofu lint-svg audit audit-node audit-go test test-node test-go smoke join-reengagement write-functions-env authorize-preview-domain deploy-functions deploy-hosting-preview deploy-hosting-production infra-config infra-auth infra-init infra-workspace infra-dns-records infra-resend-dns-records infra-email-domain infra-plan infra-apply deploy-hosting-env
 
 help: ## Show available make targets.
 	@awk 'BEGIN {FS = ":.*##"; printf "Available targets:\n"} /^[a-zA-Z0-9_.-]+:.*##/ {printf "  %-28s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -91,9 +91,6 @@ smoke: check-node ## Run deployment smoke tests against SMOKE_BASE_URL.
 
 join-reengagement: ## Extract Join candidates for ENV; pass RESULTS and optional ARGS.
 	cd functions/firebase-go && go run ./cmd/reengagement --env "$(ENV)" --results "$(RESULTS)" $(ARGS)
-
-regenerate-public-stats: ## Rebuild public/stats.json from Firebase Auth and Firestore.
-	cd functions/firebase-go && go run ./cmd/regenerate-public-stats
 
 infra-config: ## Show resolved infrastructure values for ENV=staging|production.
 	@ENV="$(ENV)" TFVARS="$(TFVARS)" $(INFRA_ENV_SCRIPT) config

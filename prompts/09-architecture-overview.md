@@ -200,9 +200,10 @@ route unless there is a measured need.
   Cloud Run functions, and current runtime-compatible action majors. Deploy Cloud Function runtime
   environment variables from an env vars file rather than comma-separated `--set-env-vars`,
   because values such as `ALLOWED_ORIGINS` contain commas.
-- Pin third-party Actions to immutable commit SHAs. Serialize both staging and production
-  deployment jobs without cancellation, and regenerate the public statistics snapshot from
-  Firebase Auth and Firestore during each authenticated deployment.
+- Pin third-party Actions to immutable commit SHAs and serialize both staging and production
+  deployment jobs without cancellation. Deployment smoke tests must require the current
+  public-statistics schema so outdated snapshots regenerate under the Function runtime
+  identity, without giving the GitHub deployer direct member-data access.
 - Keep runtime, provider, dependency and action versions current. Use the latest production
   Active LTS for Node, latest GCP-supported Go runtime, current stable OpenTofu, latest
   compatible provider major, and latest compatible stable package releases. Commit lockfiles,

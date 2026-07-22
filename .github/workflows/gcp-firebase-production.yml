@@ -107,13 +107,6 @@ jobs:
           RESEND_ASSET_BASE_URL: ${{ vars.RESEND_ASSET_BASE_URL_PRODUCTION }}
         run: make deploy-functions
 
-      - name: Regenerate public statistics snapshot
-        env:
-          FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PRODUCTION_PROJECT_ID }}
-          FIRESTORE_DATABASE_ID: ${{ vars.FIRESTORE_DATABASE_ID_PRODUCTION }}
-          SNAPSHOT_BUCKET: ${{ vars.SNAPSHOT_BUCKET_PRODUCTION }}
-        run: make regenerate-public-stats
-
       - name: Deploy Firebase Hosting production
         env:
           GCP_PROJECT_ID: ${{ vars.FIREBASE_PRODUCTION_PROJECT_ID }}

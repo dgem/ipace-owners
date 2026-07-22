@@ -257,10 +257,11 @@ handlers. The workflow deploys `Api` only when backend code, Firebase rewrites, 
 environment generation, Make deploy logic, or deployment workflow files changed. If `Api`
 is redeployed, the workflow refreshes the preview channel so Hosting rewrites use the newly
 deployed Function revision. Otherwise the existing staging `Api` revision is reused and the
-preview still runs smoke tests. Each authenticated deployment regenerates the public
-statistics snapshot from Firebase Auth and Firestore before smoke testing. Private member
-snapshots remain write-triggered and self-heal on authenticated first read. Staging
-deployments are serialized because they share one
+preview still runs smoke tests. Smoke testing requires the current public-statistics schema;
+the deployed Function regenerates an outdated snapshot using its runtime identity. The
+GitHub deployer is not granted direct member-data access. Private member snapshots remain
+write-triggered and self-heal on authenticated first read. Staging deployments are
+serialized because they share one
 Firebase Auth configuration and one Cloud Functions backend. The allowlist updater removes
 stale PR preview entries while retaining permanent authorized domains. OpenTofu grants the
 GitHub deployer a custom role containing only `firebaseauth.configs.get` and
