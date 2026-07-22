@@ -159,8 +159,10 @@ presentation.
 - Use the current production-supported versions mandated by `AGENTS.md`, then generate and
   commit npm, Go, and OpenTofu lock/checksum files. Exact historical dependency bytes are not
   part of a clean-room rebuild unless archived lockfiles are supplied.
-- Recreate staging and production workflows, job-scoped permissions, Workload Identity
-  Federation, serialized preview deployment, branch-run cancellation, direct smoke testing,
+- Recreate staging and production workflows, read-only PR validation, same-repository preview
+  deployment gating, approval for all external contributors, required staging review,
+  job-scoped permissions, Workload Identity Federation, serialized preview deployment,
+  branch-run cancellation, direct smoke testing,
   weekly Dependabot coverage, CodeQL `security-extended`, dependency review, npm audit,
   pinned `govulncheck`, and the passive ZAP baseline described in prompt `17`.
 - Recreate the shared OpenTofu module, environment workspaces, Firebase/Identity Platform,

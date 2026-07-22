@@ -50,6 +50,19 @@ test('preview deployment runs a blocking passive OWASP ZAP scan', function () {
   assert.match(rules, /^90004\tIGNORE\t/m);
 });
 
+test('external pull requests validate without receiving staging deployment permissions', function () {
+  var workflow = read('.github/workflows/gcp-firebase-staging.yml');
+  var validateIndex = workflow.indexOf('  validate:');
+  var deployIndex = workflow.indexOf('  deploy-preview:');
+
+  assert.ok(validateIndex >= 0 && deployIndex > validateIndex);
+  assert.match(workflow, /permissions:\n[ ]{2}contents: read\n\njobs:/);
+  assert.match(workflow, /deploy-preview:\n[ ]{4}needs: validate\n[ ]{4}if: github\.event\.pull_request\.head\.repo\.full_name == github\.repository/);
+  assert.match(workflow, /deploy-preview:[\s\S]*concurrency:\n[ ]{6}group: firebase-staging-deploy/);
+  assert.match(workflow, /deploy-preview:[\s\S]*permissions:\n[ ]{6}contents: read\n[ ]{6}id-token: write\n[ ]{6}pull-requests: write/);
+  assert.match(workflow, /validate:[\s\S]*name: Build site without deployment credentials\n[ ]{8}run: make build/);
+});
+
 test('passwordless login fallback never places email addresses in page URLs', function () {
   var gate = read('src/_includes/partials/auth-login-gate.njk');
 

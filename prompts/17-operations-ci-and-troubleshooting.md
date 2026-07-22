@@ -37,6 +37,14 @@ Firebase/GCP.
   formatting, and SVG/XML syntax; keep focused `lint-*` targets available for iteration.
 - Both staging pull-request and production deployment workflows must install OpenTofu and
   run `make lint` after dependency installation and before tests or deployment.
+- Keep pull-request validation separate from privileged staging deployment. Every PR may run
+  the read-only lint, test, and build job after any GitHub-required external-contributor
+  approval, but deploy a preview only when the PR head repository is this repository. A fork
+  must never receive OIDC, write-capable pull-request permissions, or staging secrets.
+- Configure GitHub Actions to require workflow approval for every external contributor, not
+  only first-time contributors. Protect the `staging` environment with a required reviewer;
+  environment approval is an additional deployment boundary, not a substitute for the
+  same-repository job condition.
 - Keep lint targets self-contained in the declared project toolchains. In particular, SVG/XML
   validation should use the pinned Node dependency rather than assuming runners provide
   `xmllint` or another OS package.
@@ -47,8 +55,8 @@ Firebase/GCP.
 
 ## PR Preview Deployment
 
-- Pull requests deploy to Firebase Hosting preview channels in the staging GCP/Firebase
-  project.
+- Trusted same-repository pull requests deploy to Firebase Hosting preview channels in the
+  staging GCP/Firebase project. External fork pull requests stop after validation.
 - Do not use `stage.ipace-owners.org` for PR testing. Use the generated Firebase Hosting
   preview URL, for example `https://ipace-owners-staging--pr-20-abcdef12.web.app`.
 - Deploy sequence matters:

@@ -5,21 +5,12 @@ on:
 
 permissions:
   contents: read
-  id-token: write
-  pull-requests: write
-
-concurrency:
-  group: firebase-staging-deploy
-  cancel-in-progress: false
 
 jobs:
-  deploy-preview:
+  validate:
     runs-on: ubuntu-latest
-    environment: staging
     steps:
       - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
 
       - uses: actions/setup-node@v6
         with:
@@ -46,6 +37,43 @@ jobs:
 
       - name: Test Go functions
         run: make test-go
+
+      - name: Build site without deployment credentials
+        run: make build
+
+  deploy-preview:
+    needs: validate
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    environment: staging
+    concurrency:
+      group: firebase-staging-deploy
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: functions/firebase-go/go.mod
+          cache-dependency-path: functions/firebase-go/go.sum
+
+      - uses: opentofu/setup-opentofu@v2
+        with:
+          tofu_wrapper: false
+
+      - name: Install dependencies
+        run: make ci-install
 
       - name: Build site
         env:

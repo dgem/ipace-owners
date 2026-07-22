@@ -244,6 +244,11 @@ that must be retained before directing production Functions to the named databas
 initial infrastructure rollout, the Function environment generator derives the database ID
 from `FIREBASE_PROJECT_ID` if the new GitHub environment variable has not been populated.
 
+Every pull request runs read-only lint, test, and build validation. GitHub requires a
+maintainer to approve workflows from every external contributor. Only pull requests whose
+head branch belongs to this repository proceed to the protected `staging` environment and
+request deployment credentials; fork pull requests stop after validation.
+
 PR deployments do not depend on `stage.ipace-owners.org`. The staging workflow first
 creates the PR's Firebase Hosting preview channel and adds the generated hostname to
 Firebase Auth's authorized domains. The Go backend is deployed as a single `Api` Function;
