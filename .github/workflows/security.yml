@@ -31,12 +31,12 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: npm
 
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@v7
         with:
           go-version-file: functions/firebase-go/go.mod
           cache-dependency-path: functions/firebase-go/go.sum
@@ -70,7 +70,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@v7
         if: matrix.language == 'go'
         with:
           go-version-file: functions/firebase-go/go.mod
