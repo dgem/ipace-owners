@@ -37,6 +37,16 @@ Firebase/GCP.
   formatting, and SVG/XML syntax; keep focused `lint-*` targets available for iteration.
 - Both staging pull-request and production deployment workflows must install OpenTofu and
   run `make lint` after dependency installation and before tests or deployment.
+- Pin third-party Actions to immutable commit SHAs while retaining the release tag in a
+  comment for Dependabot and human readability.
+- Keep pull-request validation separate from privileged staging deployment. Every PR may run
+  the read-only lint, test, and build job after any GitHub-required external-contributor
+  approval, but automatically deploy a preview only when the PR author is the repository
+  owner and the head repository is this repository. Other PRs stop after validation. A fork
+  must never receive OIDC, write-capable pull-request permissions, or staging secrets.
+- Configure GitHub Actions to require workflow approval for every external contributor, not
+  only first-time contributors. Keep automatic staging authorization in the workflow's
+  repository-owner and same-repository job condition; do not rely only on environment state.
 - Keep lint targets self-contained in the declared project toolchains. In particular, SVG/XML
   validation should use the pinned Node dependency rather than assuming runners provide
   `xmllint` or another OS package.
@@ -47,8 +57,8 @@ Firebase/GCP.
 
 ## PR Preview Deployment
 
-- Pull requests deploy to Firebase Hosting preview channels in the staging GCP/Firebase
-  project.
+- Repository-owner same-repository pull requests deploy automatically to Firebase Hosting
+  preview channels in the staging GCP/Firebase project. All other PRs stop after validation.
 - Do not use `stage.ipace-owners.org` for PR testing. Use the generated Firebase Hosting
   preview URL, for example `https://ipace-owners-staging--pr-20-abcdef12.web.app`.
 - Deploy sequence matters:
@@ -61,7 +71,9 @@ Firebase/GCP.
      generation, Make deploy logic, or deployment workflow files changed.
   6. If `Api` was deployed, refresh the Firebase Hosting preview channel so rewrites point
      at the current Function revision.
-  7. Run `make smoke` with `SMOKE_BASE_URL` set to the generated preview URL.
+  7. Run `make smoke` with `SMOKE_BASE_URL` set to the generated preview URL. The public-stats
+     request must require the current schema and headline aggregate, causing an outdated
+     stored snapshot to regenerate under the Function runtime identity.
 - Keep Firebase CLI deployment JSON available for URL extraction and PR diagnostics. If a
   preview deployment fails, CI must print both Firebase CLI stderr and any JSON error payload;
   do not hide the actionable error behind shell redirection.
@@ -101,6 +113,9 @@ Firebase/GCP.
 ## Production Deployment
 
 - Merges to `main` deploy production.
+- Serialize production deployment jobs without cancellation. Closely timed merges must wait
+  for the active deploy rather than racing Cloud Functions operations and failing with
+  `409 unable to queue the operation`.
 - Production Functions should use the verified custom domain for:
   - `ALLOWED_ORIGINS`;
   - `FIREBASE_EMAIL_CONTINUE_URL`;
@@ -109,6 +124,9 @@ Firebase/GCP.
   workflow dispatch should deploy `Api` so operators can force a backend rollout.
 - Backend change detection must match files beneath `functions/firebase-go/`, not only the
   directory name, so Go changes deploy the Function and refresh preview Hosting rewrites.
+- Require the production smoke test to receive the current public-statistics schema and
+  headline aggregate. `PublicStats` regenerates an outdated stored snapshot under the
+  Function runtime identity; do not grant the GitHub deployer direct member-data access.
 - Run `make smoke` directly in the production workflow after Hosting deploy with
   `SMOKE_BASE_URL=https://ipace-owners.org`.
 

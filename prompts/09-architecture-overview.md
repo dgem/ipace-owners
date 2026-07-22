@@ -200,13 +200,21 @@ route unless there is a measured need.
   Cloud Run functions, and current runtime-compatible action majors. Deploy Cloud Function runtime
   environment variables from an env vars file rather than comma-separated `--set-env-vars`,
   because values such as `ALLOWED_ORIGINS` contain commas.
+- Pin third-party Actions to immutable commit SHAs and serialize both staging and production
+  deployment jobs without cancellation. Deployment smoke tests must require the current
+  public-statistics schema so outdated snapshots regenerate under the Function runtime
+  identity, without giving the GitHub deployer direct member-data access.
 - Keep runtime, provider, dependency and action versions current. Use the latest production
   Active LTS for Node, latest GCP-supported Go runtime, current stable OpenTofu, latest
   compatible provider major, and latest compatible stable package releases. Commit lockfiles,
   run weekly Dependabot checks for npm, Go modules, Actions and OpenTofu, and require migration
   guide review plus full tests/build/provider validation for major updates.
-- PRs deploy to staging preview channels and run smoke tests directly in the staging
-  workflow against the published URL. Do not rely on GitHub `deployment_status` events
+- All PRs have a read-only validation job. Only PRs authored by the repository owner whose
+  head branch belongs to this repository may automatically request OIDC, staging secrets, or
+  a staging deployment. All other PRs stop after validation, and external workflows require
+  maintainer approval before that validation runs.
+- Repository-owner same-repository PRs deploy to staging preview channels and run smoke tests directly
+  in the staging workflow against the published URL. Do not rely on GitHub `deployment_status` events
   for smoke testing, because Firebase Hosting preview deployments do not consistently
   provide a usable site URL through those events.
   Production deploys should also run smoke tests directly after hosting deployment.

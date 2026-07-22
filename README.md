@@ -244,6 +244,12 @@ that must be retained before directing production Functions to the named databas
 initial infrastructure rollout, the Function environment generator derives the database ID
 from `FIREBASE_PROJECT_ID` if the new GitHub environment variable has not been populated.
 
+Every pull request runs read-only lint, test, and build validation. GitHub requires a
+maintainer to approve workflows from every external contributor. Only pull requests authored
+by the repository owner whose head branch belongs to this repository proceed automatically
+to the `staging` environment and request deployment credentials; all other pull requests stop
+after validation.
+
 PR deployments do not depend on `stage.ipace-owners.org`. The staging workflow first
 creates the PR's Firebase Hosting preview channel and adds the generated hostname to
 Firebase Auth's authorized domains. The Go backend is deployed as a single `Api` Function;
@@ -252,7 +258,11 @@ handlers. The workflow deploys `Api` only when backend code, Firebase rewrites, 
 environment generation, Make deploy logic, or deployment workflow files changed. If `Api`
 is redeployed, the workflow refreshes the preview channel so Hosting rewrites use the newly
 deployed Function revision. Otherwise the existing staging `Api` revision is reused and the
-preview still runs smoke tests. Staging deployments are serialized because they share one
+preview still runs smoke tests. Smoke testing requires the current public-statistics schema;
+the deployed Function regenerates an outdated snapshot using its runtime identity. The
+GitHub deployer is not granted direct member-data access. Private member snapshots remain
+write-triggered and self-heal on authenticated first read. Staging deployments are
+serialized because they share one
 Firebase Auth configuration and one Cloud Functions backend. The allowlist updater removes
 stale PR preview entries while retaining permanent authorized domains. OpenTofu grants the
 GitHub deployer a custom role containing only `firebaseauth.configs.get` and
@@ -419,8 +429,9 @@ records delivery status and the Resend message ID incrementally. Re-run dry mode
 before any campaign because the eligible count falls as members complete sign-in. Check the Resend
 plan's daily quota before sending; a free transactional plan cannot deliver 150 messages in one day.
 
-GitHub Actions deploys PRs to Firebase Hosting preview channels and deploys `main` to the
-production Firebase Hosting site.
+GitHub Actions automatically deploys repository-owner same-repository PRs to Firebase Hosting preview channels and
+deploys `main` to the production Firebase Hosting site. Production deployments are serialized
+without cancellation so closely timed merges cannot race Cloud Functions operations.
 
 ### SSL and DNS
 

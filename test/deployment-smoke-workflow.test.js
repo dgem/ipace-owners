@@ -27,11 +27,24 @@ test('Firebase deploy workflows lint all source languages before testing', funct
   const productionWorkflow = readFileSync(productionWorkflowPath, 'utf8');
 
   for (const workflow of [stagingWorkflow, productionWorkflow]) {
-    assert.match(workflow, /uses: opentofu\/setup-opentofu@v2/);
+    assert.match(workflow, /uses: opentofu\/setup-opentofu@a1320f892987e89d278cc92dc5adc984fb93aca4 # v2/);
     assert.match(workflow, /tofu_wrapper: false/);
     assert.match(workflow, /name: Lint source\n\s+run: make lint/);
     assert.ok(workflow.indexOf('run: make lint') < workflow.indexOf('run: make test-node'));
   }
+});
+
+test('production deployments are serialized without cancellation', function () {
+  const productionWorkflow = readFileSync(productionWorkflowPath, 'utf8');
+
+  assert.match(productionWorkflow, /concurrency:\n {6}group: firebase-production-deploy\n {6}cancel-in-progress: false/);
+});
+
+test('deployment smoke requires the current regenerated public statistics schema', function () {
+  const smoke = readFileSync(resolve(__dirname, '../scripts/smoke-test-deployment.mjs'), 'utf8');
+
+  assert.match(smoke, /publicStatsData\.schemaVersion !== 5/);
+  assert.match(smoke, /Number\.isFinite\(publicStatsData\.joinedOwners\)/);
 });
 
 test('Firebase deploy workflows skip Function deploys when backend is unchanged', function () {

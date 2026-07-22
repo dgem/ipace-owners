@@ -5,17 +5,54 @@ on:
 
 permissions:
   contents: read
-  id-token: write
-  pull-requests: write
-
-concurrency:
-  group: firebase-staging-deploy
-  cancel-in-progress: false
 
 jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: functions/firebase-go/go.mod
+          cache-dependency-path: functions/firebase-go/go.sum
+
+      - uses: opentofu/setup-opentofu@a1320f892987e89d278cc92dc5adc984fb93aca4 # v2
+        with:
+          tofu_wrapper: false
+
+      - name: Install dependencies
+        run: make ci-install
+
+      - name: Lint source
+        run: make lint
+
+      - name: Test site
+        run: make test-node
+
+      - name: Test Go functions
+        run: make test-go
+
+      - name: Build site without deployment credentials
+        run: make build
+
   deploy-preview:
+    needs: validate
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == github.repository_owner
     runs-on: ubuntu-latest
     environment: staging
+    concurrency:
+      group: firebase-staging-deploy
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v7
         with:
@@ -31,21 +68,12 @@ jobs:
           go-version-file: functions/firebase-go/go.mod
           cache-dependency-path: functions/firebase-go/go.sum
 
-      - uses: opentofu/setup-opentofu@v2
+      - uses: opentofu/setup-opentofu@a1320f892987e89d278cc92dc5adc984fb93aca4 # v2
         with:
           tofu_wrapper: false
 
       - name: Install dependencies
         run: make ci-install
-
-      - name: Lint source
-        run: make lint
-
-      - name: Test site
-        run: make test-node
-
-      - name: Test Go functions
-        run: make test-go
 
       - name: Build site
         env:
