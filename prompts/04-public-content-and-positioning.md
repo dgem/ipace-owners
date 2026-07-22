@@ -193,7 +193,7 @@ knowledge, and data may be used in anonymised aggregate reporting if consent is 
   not use flags, a filled badge, wax-stamp treatment, heavy
   outlines, or a decorative tie. Display only the large, unoutlined gold count inside the
   wreath and optically centre it slightly above the geometric midpoint. Place compact white
-  `Registered members` text and `Since 17th July 2026` as two quiet lines below and outside the
+  `Owners joined` text and `Since 17th July 2026` as two quiet lines below and outside the
   garland rather than squeezing supporting copy into the artwork. Format the count with UK
   thousands separators. Reduce its font size from three digits onward, keeping generous clear
   space between the number and inner leaves at values such as 111 or 126, with further

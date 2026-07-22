@@ -167,6 +167,18 @@ Firebase/GCP.
   image is deployed with the preview branch and the magic link is short-lived. For normal
   staging/production sends, prefer `RESEND_ASSET_BASE_URL_<ENV>` pointing at a stable custom
   domain; avoid localhost and generic Firebase default domains for long-lived email assets.
+- Keep Join re-engagement as an operator CLI, not an HTTP Function. The CLI must select staging or
+  production explicitly, extract Join and Firebase Auth data directly, and run a no-send comparison
+  by default. Suppress exact email, plus-address canonical email, and normalised display-name
+  matches. Generate a stable environment/date campaign identifier when omitted; require `--send`,
+  the exact current eligible count, and a typed interactive confirmation before delivery. Read
+  Resend credentials and sender settings from the same `RESEND_*` environment variables as the
+  app. Info logs contain counts; debug logs may show the
+  candidate names and addresses. Generate links only immediately before sending, use Resend
+  idempotency keys and at most four requests per second, persist a `0600` result ledger incrementally
+  plus a secret-free resolved-settings manifest, and never overwrite either file. Verify the
+  account's daily/monthly Resend quota first: the free transactional daily quota is below a
+  150-recipient campaign. Keep open/click tracking disabled for these authentication links.
 - OpenTofu can optionally create/read the Resend sending domain with
   `manage_resend_domain = true`, `resend_domain`, `resend_region`, and a Resend API key
   supplied through the sensitive `resend_api_key` variable or `TF_VAR_resend_api_key`.
