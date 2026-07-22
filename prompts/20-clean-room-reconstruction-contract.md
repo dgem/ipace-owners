@@ -162,8 +162,8 @@ presentation.
 - Use the current production-supported versions mandated by `AGENTS.md`, then generate and
   commit npm, Go, and OpenTofu lock/checksum files. Exact historical dependency bytes are not
   part of a clean-room rebuild unless archived lockfiles are supplied.
-- Recreate staging and production workflows, read-only PR validation, same-repository preview
-  deployment gating, approval for all external contributors, required staging review,
+- Recreate staging and production workflows, read-only PR validation, repository-owner plus
+  same-repository preview deployment gating, approval for all external contributors,
   job-scoped permissions, immutable third-party Action pins, Workload Identity Federation,
   serialized staging and production deployment, runtime-authorized public snapshot
   regeneration verified by smoke testing, branch-run cancellation, direct smoke testing,

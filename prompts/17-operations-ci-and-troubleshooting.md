@@ -41,12 +41,12 @@ Firebase/GCP.
   comment for Dependabot and human readability.
 - Keep pull-request validation separate from privileged staging deployment. Every PR may run
   the read-only lint, test, and build job after any GitHub-required external-contributor
-  approval, but deploy a preview only when the PR head repository is this repository. A fork
+  approval, but automatically deploy a preview only when the PR author is the repository
+  owner and the head repository is this repository. Other PRs stop after validation. A fork
   must never receive OIDC, write-capable pull-request permissions, or staging secrets.
 - Configure GitHub Actions to require workflow approval for every external contributor, not
-  only first-time contributors. Protect the `staging` environment with a required reviewer;
-  environment approval is an additional deployment boundary, not a substitute for the
-  same-repository job condition.
+  only first-time contributors. Keep automatic staging authorization in the workflow's
+  repository-owner and same-repository job condition; do not rely only on environment state.
 - Keep lint targets self-contained in the declared project toolchains. In particular, SVG/XML
   validation should use the pinned Node dependency rather than assuming runners provide
   `xmllint` or another OS package.
@@ -57,8 +57,8 @@ Firebase/GCP.
 
 ## PR Preview Deployment
 
-- Trusted same-repository pull requests deploy to Firebase Hosting preview channels in the
-  staging GCP/Firebase project. External fork pull requests stop after validation.
+- Repository-owner same-repository pull requests deploy automatically to Firebase Hosting
+  preview channels in the staging GCP/Firebase project. All other PRs stop after validation.
 - Do not use `stage.ipace-owners.org` for PR testing. Use the generated Firebase Hosting
   preview URL, for example `https://ipace-owners-staging--pr-20-abcdef12.web.app`.
 - Deploy sequence matters:

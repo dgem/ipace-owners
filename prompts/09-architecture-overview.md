@@ -209,11 +209,11 @@ route unless there is a measured need.
   compatible provider major, and latest compatible stable package releases. Commit lockfiles,
   run weekly Dependabot checks for npm, Go modules, Actions and OpenTofu, and require migration
   guide review plus full tests/build/provider validation for major updates.
-- All PRs have a read-only validation job. Only PRs whose head branch belongs to this
-  repository may request OIDC, staging secrets, or a staging deployment; external fork
-  workflows require maintainer approval and stop after validation. Protect the GitHub
-  `staging` environment with a required reviewer.
-- Trusted same-repository PRs deploy to staging preview channels and run smoke tests directly
+- All PRs have a read-only validation job. Only PRs authored by the repository owner whose
+  head branch belongs to this repository may automatically request OIDC, staging secrets, or
+  a staging deployment. All other PRs stop after validation, and external workflows require
+  maintainer approval before that validation runs.
+- Repository-owner same-repository PRs deploy to staging preview channels and run smoke tests directly
   in the staging workflow against the published URL. Do not rely on GitHub `deployment_status` events
   for smoke testing, because Firebase Hosting preview deployments do not consistently
   provide a usable site URL through those events.

@@ -245,9 +245,10 @@ initial infrastructure rollout, the Function environment generator derives the d
 from `FIREBASE_PROJECT_ID` if the new GitHub environment variable has not been populated.
 
 Every pull request runs read-only lint, test, and build validation. GitHub requires a
-maintainer to approve workflows from every external contributor. Only pull requests whose
-head branch belongs to this repository proceed to the protected `staging` environment and
-request deployment credentials; fork pull requests stop after validation.
+maintainer to approve workflows from every external contributor. Only pull requests authored
+by the repository owner whose head branch belongs to this repository proceed automatically
+to the `staging` environment and request deployment credentials; all other pull requests stop
+after validation.
 
 PR deployments do not depend on `stage.ipace-owners.org`. The staging workflow first
 creates the PR's Firebase Hosting preview channel and adds the generated hostname to
@@ -428,7 +429,7 @@ records delivery status and the Resend message ID incrementally. Re-run dry mode
 before any campaign because the eligible count falls as members complete sign-in. Check the Resend
 plan's daily quota before sending; a free transactional plan cannot deliver 150 messages in one day.
 
-GitHub Actions deploys trusted same-repository PRs to Firebase Hosting preview channels and
+GitHub Actions automatically deploys repository-owner same-repository PRs to Firebase Hosting preview channels and
 deploys `main` to the production Firebase Hosting site. Production deployments are serialized
 without cancellation so closely timed merges cannot race Cloud Functions operations.
 
