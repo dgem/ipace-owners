@@ -2506,6 +2506,37 @@ details .details-body p:last-child {
   margin-top: var(--space-8);
 }
 
+.email-campaign-step {
+  border-top: 1px solid var(--color-border);
+  margin-top: var(--space-6);
+  padding-top: var(--space-6);
+}
+
+.email-campaign-step h3,
+.email-preview h3 {
+  margin-top: var(--space-1);
+}
+
+.email-preview {
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  margin-top: var(--space-6);
+  padding: var(--space-6);
+}
+
+.email-preview pre {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  margin-bottom: 0;
+  overflow-wrap: anywhere;
+  padding: var(--space-5);
+  white-space: pre-wrap;
+}
+
 @media (min-width: 64em) {
   .outreach-layout {
     align-items: start;

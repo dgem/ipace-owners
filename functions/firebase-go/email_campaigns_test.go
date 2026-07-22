@@ -57,3 +57,13 @@ func TestCampaignSummaryNeverReportsNegativeRemaining(t *testing.T) {
 		t.Fatalf("remaining=%d", got.Remaining)
 	}
 }
+
+func TestCampaignEmailPreviewUsesTheDeliveryTemplate(t *testing.T) {
+	preview := makeCampaignEmailPreview(371, 12)
+	if preview.Subject != "Complete your I-PACE Owners registration" {
+		t.Fatalf("unexpected preview subject: %q", preview.Subject)
+	}
+	if !strings.Contains(preview.Text, "371 owners have joined") || !strings.Contains(preview.Text, "fresh, private sign-in link") {
+		t.Fatalf("preview missing audience context: %q", preview.Text)
+	}
+}

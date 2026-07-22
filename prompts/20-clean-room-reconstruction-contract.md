@@ -149,9 +149,11 @@ forms explicitly use POST even when JavaScript intercepts them.
 
 - Preserve `docs/homepage-copy.md` as a portable Markdown rendering of the canonical homepage
   wording, with absolute production links and placeholders for live statistics.
-- Provide an admin-only Join re-engagement campaign page. It previews aggregate counts without
-  exposing addresses, requires exact confirmation, rechecks registration before sending, sends
-  bounded resumable batches, and persists a hashed idempotent delivery ledger.
+- Provide an admin-only registration-reminder campaign page. It previews aggregate counts and
+  the exact plain-text email with a safe link placeholder without exposing addresses. Keep the
+  clearly labelled send controls visible but disabled until preview succeeds, require exact
+  confirmation, recheck registration before sending, send bounded resumable batches, and
+  persist a hashed idempotent delivery ledger.
 
 Prompts define visual intent, not the exact control points or pixels of generated artwork.
 Therefore the following committed assets are preservation-critical and must be backed up with

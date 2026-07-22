@@ -30,12 +30,18 @@ type campaignRecipient struct {
 }
 
 type campaignSummary struct {
-	CampaignID string `json:"campaignId"`
-	Eligible   int    `json:"eligible"`
-	Registered int    `json:"registered"`
-	Sent       int    `json:"sent"`
-	BatchSent  int    `json:"batchSent"`
-	Remaining  int    `json:"remaining"`
+	CampaignID   string               `json:"campaignId"`
+	Eligible     int                  `json:"eligible"`
+	Registered   int                  `json:"registered"`
+	Sent         int                  `json:"sent"`
+	BatchSent    int                  `json:"batchSent"`
+	Remaining    int                  `json:"remaining"`
+	EmailPreview campaignEmailPreview `json:"emailPreview"`
+}
+
+type campaignEmailPreview struct {
+	Subject string `json:"subject"`
+	Text    string `json:"text"`
 }
 
 type campaignSendRequest struct {
@@ -134,7 +140,9 @@ func previewReengagementCampaign(ctx context.Context) (campaignSummary, error) {
 	if err != nil {
 		return campaignSummary{}, err
 	}
-	return makeCampaignSummary(id, len(eligible), len(joins)-len(eligible), countCampaignSent(eligible, sent), 0), nil
+	summary := makeCampaignSummary(id, len(eligible), len(joins)-len(eligible), countCampaignSent(eligible, sent), 0)
+	summary.EmailPreview = makeCampaignEmailPreview(len(joins), len(eligible))
+	return summary, nil
 }
 
 func sendReengagementCampaignBatch(ctx context.Context, input campaignSendRequest) (campaignSummary, error) {
@@ -199,7 +207,9 @@ func sendReengagementCampaignBatch(ctx context.Context, input campaignSendReques
 			time.Sleep(250 * time.Millisecond)
 		}
 	}
-	return makeCampaignSummary(preview.CampaignID, len(eligible), len(joins)-len(eligible), countCampaignSent(eligible, sent), batchSent), nil
+	summary := makeCampaignSummary(preview.CampaignID, len(eligible), len(joins)-len(eligible), countCampaignSent(eligible, sent), batchSent)
+	summary.EmailPreview = makeCampaignEmailPreview(len(joins), len(eligible))
+	return summary, nil
 }
 
 func countCampaignSent(eligible []campaignRecipient, sent map[string]bool) int {
@@ -347,13 +357,8 @@ func campaignLinkDomain() string {
 }
 
 func sendCampaignEmail(ctx context.Context, person campaignRecipient, link string, memberCount, eligibleCount int, id string) (string, error) {
-	first := "there"
-	if fields := strings.Fields(person.Name); len(fields) > 0 {
-		first = fields[0]
-	}
-	text := fmt.Sprintf("Hello %s,\n\nPlease complete your I-PACE Owners registration\n\nYou asked to join on %s, but your secure sign-in was not completed. %d owners have joined.\n\nVerify your account details using this fresh, time-limited link:\n%s\n\nYou are receiving this because you submitted the Join form and agreed that we could contact you. Reply if you no longer wish to hear from us.\n", first, person.CreatedAt.Format("2 January 2006"), memberCount, link)
-	htmlBody := "<p>Hello " + html.EscapeString(first) + ",</p><h1>Please complete your I-PACE Owners registration</h1><p>You asked to join on " + html.EscapeString(person.CreatedAt.Format("2 January 2006")) + ", but your secure sign-in was not completed.</p><p><strong>" + fmt.Sprint(memberCount) + " owners have joined.</strong> If everyone receiving this reminder verifies, " + fmt.Sprint(eligibleCount) + " additional members will have registered accounts.</p><p><a href=\"" + html.EscapeString(link) + "\">Verify my account details</a></p><p>You are receiving this because you submitted the Join form and agreed that we could contact you. Reply if you no longer wish to hear from us.</p>"
-	payload := map[string]any{"from": strings.TrimSpace(os.Getenv("RESEND_FROM")), "to": []string{person.Email}, "subject": "Complete your I-PACE Owners registration", "html": htmlBody, "text": text, "tags": []map[string]string{{"name": "category", "value": "join-reengagement"}}}
+	subject, htmlBody, text := campaignEmailBodies(person, link, memberCount, eligibleCount)
+	payload := map[string]any{"from": strings.TrimSpace(os.Getenv("RESEND_FROM")), "to": []string{person.Email}, "subject": subject, "html": htmlBody, "text": text, "tags": []map[string]string{{"name": "category", "value": "join-reengagement"}}}
 	if reply := strings.TrimSpace(os.Getenv("RESEND_REPLY_TO")); reply != "" {
 		payload["reply_to"] = reply
 	}
@@ -384,4 +389,21 @@ func sendCampaignEmail(ctx context.Context, person campaignRecipient, link strin
 		return "", err
 	}
 	return output.ID, nil
+}
+
+func campaignEmailBodies(person campaignRecipient, link string, memberCount, eligibleCount int) (string, string, string) {
+	first := "there"
+	if fields := strings.Fields(person.Name); len(fields) > 0 {
+		first = fields[0]
+	}
+	subject := "Complete your I-PACE Owners registration"
+	text := fmt.Sprintf("Hello %s,\n\nPlease complete your I-PACE Owners registration\n\nYou asked to join on %s, but your secure sign-in was not completed. %d owners have joined.\n\nVerify your account details using this fresh, time-limited link:\n%s\n\nYou are receiving this because you submitted the Join form and agreed that we could contact you. Reply if you no longer wish to hear from us.\n", first, person.CreatedAt.Format("2 January 2006"), memberCount, link)
+	htmlBody := "<p>Hello " + html.EscapeString(first) + ",</p><h1>Please complete your I-PACE Owners registration</h1><p>You asked to join on " + html.EscapeString(person.CreatedAt.Format("2 January 2006")) + ", but your secure sign-in was not completed.</p><p><strong>" + fmt.Sprint(memberCount) + " owners have joined.</strong> If everyone receiving this reminder verifies, " + fmt.Sprint(eligibleCount) + " additional members will have registered accounts.</p><p><a href=\"" + html.EscapeString(link) + "\">Verify my account details</a></p><p>You are receiving this because you submitted the Join form and agreed that we could contact you. Reply if you no longer wish to hear from us.</p>"
+	return subject, htmlBody, text
+}
+
+func makeCampaignEmailPreview(memberCount, eligibleCount int) campaignEmailPreview {
+	person := campaignRecipient{Name: "I-PACE owner", CreatedAt: time.Now().UTC()}
+	subject, _, text := campaignEmailBodies(person, "[A fresh, private sign-in link is inserted for each recipient]", memberCount, eligibleCount)
+	return campaignEmailPreview{Subject: subject, Text: text}
 }

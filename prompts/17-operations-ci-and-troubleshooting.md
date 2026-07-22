@@ -11,8 +11,9 @@ checks, and preserve the operational lessons learned while moving the project to
 Firebase/GCP.
 
 The `/admin/email-campaigns/` Join re-engagement control uses the CLI's consent and registration
-suppression boundary. Preview exposes counts only. Sending requires the current campaign ID,
-exact audience count, and `SEND <count>` confirmation; each request sends at most ten messages
+suppression boundary. Preview exposes aggregate counts and the exact plain-text template with a
+safe link placeholder, but no recipient data. Send controls stay visible but disabled until the
+preview succeeds. Sending requires the current campaign ID, exact audience count, and `SEND <count>` confirmation; each request sends at most ten messages
 and records a hashed Firestore delivery ledger with Resend idempotency keys. Re-preview between
 batches and stop to investigate any provider or ledger error.
 

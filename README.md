@@ -382,10 +382,12 @@ links or contact Resend:
 
 Administrators can run this same narrowly scoped campaign from `/admin/email-campaigns/`, whose
 controls are implemented by `email-campaigns.js`.
-The page returns aggregate counts rather than addresses, requires the exact current count as a
-typed confirmation, rechecks Firebase Auth before delivery, sends at most ten messages per
-request, and records hashed idempotent delivery state in Firestore so it can resume safely. The
-CLI remains available for offline preflight and audit.
+The page returns aggregate counts rather than addresses, renders the exact plain-text delivery
+template with a safe placeholder in place of the private sign-in link, and keeps its clearly
+labelled send controls visible but disabled until that preview completes. It then requires the
+exact current count as a typed confirmation, rechecks Firebase Auth before delivery, sends at
+most ten messages per request, and records hashed idempotent delivery state in Firestore so it
+can resume safely. The CLI remains available for offline preflight and audit.
 
 The browser calls `POST /api/admin/reengagement-preview` to recalculate the audience and
 `POST /api/admin/reengagement-send` to deliver one confirmed batch. Both routes require a

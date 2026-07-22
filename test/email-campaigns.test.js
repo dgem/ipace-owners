@@ -13,6 +13,10 @@ test('admin email campaign page is gated and describes bounded sending', functio
   assert.match(page, /data-admin-content hidden/);
   assert.match(page, /without revealing addresses/i);
   assert.match(page, /batches of 10/i);
+  assert.match(page, /Send registration reminder emails/);
+  assert.match(page, /What each recipient will receive/);
+  assert.doesNotMatch(page, /data-campaign-send hidden/);
+  assert.match(page, /data-campaign-send-button disabled/);
   assert.match(layout, /emailCampaigns[\s\S]*email-campaigns\.js/);
   assert.ok(page.indexOf('Admin navigation') < page.indexOf('Deliberately hard to send'));
 });
@@ -30,6 +34,8 @@ test('email campaign browser sends tokens and explicit confirmation data', funct
   assert.match(script, /\/api\/admin\/reengagement-send/);
   assert.match(script, /expectedEligible: current\.eligible/);
   assert.match(script, /confirmation: confirmInput\.value/);
+  assert.match(script, /emailText\.textContent = data\.emailPreview\.text/);
+  assert.match(script, /emailPreview\.hidden = false/);
   assert.doesNotMatch(script, /recipient|emailAddress|\.email\b/i);
 });
 

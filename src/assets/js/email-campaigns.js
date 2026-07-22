@@ -9,6 +9,9 @@
   var confirmInput = root.querySelector('[data-campaign-confirm]');
   var confirmHint = root.querySelector('[data-campaign-confirm-hint]');
   var sendButton = root.querySelector('[data-campaign-send-button]');
+  var emailPreview = root.querySelector('[data-campaign-email-preview]');
+  var emailSubject = root.querySelector('[data-campaign-email-subject]');
+  var emailText = root.querySelector('[data-campaign-email-text]');
   var status = root.querySelector('[data-campaign-status]');
   var current = null;
 
@@ -29,9 +32,13 @@
     p.textContent = data.eligible + ' eligible; ' + data.registered + ' already registered; ' + data.sent + ' already sent in campaign ' + data.campaignId + '.';
     summary.appendChild(p);
     var remaining = data.eligible - data.sent;
-    form.hidden = remaining < 1;
-    confirmHint.textContent = remaining > 0 ? 'Type “SEND ' + data.eligible + '” exactly. ' + remaining + ' remain.' : '';
-    sendButton.textContent = remaining > 10 ? 'Send next batch of 10' : 'Send final ' + remaining;
+    emailSubject.textContent = data.emailPreview.subject;
+    emailText.textContent = data.emailPreview.text;
+    emailPreview.hidden = false;
+    confirmInput.disabled = remaining < 1;
+    sendButton.disabled = remaining < 1;
+    confirmHint.textContent = remaining > 0 ? 'Type “SEND ' + data.eligible + '” exactly. ' + remaining + ' remain.' : 'Everyone in this campaign has already been sent an email.';
+    sendButton.textContent = remaining > 10 ? 'Send next 10 reminder emails' : 'Send final ' + remaining + ' reminder email' + (remaining === 1 ? '' : 's');
   }
 
   async function preview() {
@@ -49,6 +56,6 @@
       var data = await request('/api/admin/reengagement-send', { campaignId: current.campaignId, expectedEligible: current.eligible, confirmation: confirmInput.value });
       confirmInput.value = ''; render(data); status.textContent = data.batchSent + ' accepted by the email provider in this batch; ' + data.remaining + ' remain.';
     } catch (error) { status.textContent = error.message; }
-    sendButton.disabled = false;
+    sendButton.disabled = !current || current.remaining < 1;
   });
 }());
