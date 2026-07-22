@@ -163,7 +163,7 @@ Removes the `_site/` directory.
 src/
   *.md / *.njk     # Top-level page templates
   member/          # Authenticated account, vehicle and evidence workspace pages
-  admin/           # Admin dashboard, review, outreach and email campaign tools
+  admin/           # Admin dashboard, review, outreach, email and Instagram campaign tools
   updates/         # Update/news posts (.md)
   _data/           # Global data (site.json, navigation.json)
   _includes/
@@ -178,6 +178,7 @@ src/
       member-dashboard.js # Vehicle tabs, SoH graph and service/fault editing
       multistep-form.js  # Multi-step form controller
       outreach-assistant.js # Facebook search-link and reply helper; no automation
+      instagram-campaigns.js # Reviewed Instagram Reel preview and publish controls
       email-campaigns.js  # Admin re-engagement preview and bounded send controls
       public-stats.js    # Public aggregate-statistics rendering
       site-mode.js       # Launch/full presentation selection
@@ -238,7 +239,7 @@ Do not commit real `*.tfvars` files. Use the checked-in `staging.tfvars.example`
 `production.tfvars.example` files as templates, or provide values with `TF_VAR_*`.
 
 The OpenTofu config can create the GCP project, then enables Firebase, Firestore, Cloud
-Functions, Cloud Storage, Secret Manager and GitHub Workload Identity Federation. It also
+Functions, Cloud Storage, Vertex AI, Secret Manager and GitHub Workload Identity Federation. It also
 creates the Firebase Web App, configures Firebase Authentication for passwordless email
 sign-in, creates service accounts for GitHub deployment and Functions runtime, and reads
 the generated Firebase web config needed by the site build. Each environment uses a named
@@ -294,6 +295,8 @@ workflows:
 - `FIRESTORE_DATABASE_ID_STAGING` / `FIRESTORE_DATABASE_ID_PRODUCTION`
 - `FIREBASE_AUTH_DOMAIN_*`, `FIREBASE_APP_ID_*`, `FIREBASE_STORAGE_BUCKET_*`
 - `SNAPSHOT_BUCKET_*`, `ALLOWED_ORIGINS_*`, `FIREBASE_EMAIL_CONTINUE_URL_*`
+- `CAMPAIGN_MEDIA_BUCKET_*`, `VEO_LOCATION_*`, and `VEO_MODEL_ID_*` for asynchronous
+  campaign-video generation through Vertex AI
 - `FIREBASE_EMAIL_LINK_DOMAIN_*`, which makes Firebase Auth action links use the
   environment's verified Firebase Hosting custom domain
 
@@ -404,6 +407,37 @@ stretch goal, and the doubled total if every current owner finds one more. It in
 monochrome share actions for Facebook, X, Bluesky, LinkedIn, Instagram, WhatsApp, and email;
 Instagram opens the group's `@ipaceowners` profile because it has no reliable web share
 composer.
+
+### Instagram campaign publishing
+
+`/admin/instagram-campaigns/` implements the deliberate handoff from chat-created campaign
+content to a human-controlled publishing tool. An administrator supplies the final public
+site-relative MP4/MOV path and caption, watches the complete video, confirms that its visual
+meaning is accurate, then requests a server-validated preview. Preview has no Meta side effect.
+Publishing requires the unchanged deterministic campaign ID and exact `PUBLISH <digest>` phrase.
+The browser uses `POST /api/admin/instagram-preview` for the side-effect-free validation step
+and `POST /api/admin/instagram-publish` for the separately confirmed provider call. Both routes
+require a server-verified Firebase administrator claim.
+The Function reserves that deterministic ID in the `instagramCampaigns` Firestore collection
+before contacting Meta. A completed retry returns the existing media ID; processing or failed
+records stop for operator verification rather than risking a duplicate post.
+
+The production Function needs `INSTAGRAM_USER_ID`, an explicitly selected supported
+`INSTAGRAM_GRAPH_API_VERSION`, and `INSTAGRAM_MEDIA_BASE_URL`. Store the provider token in GCP
+Secret Manager and set `INSTAGRAM_ACCESS_TOKEN_SECRET_<ENV>` to that secret's name; deployment
+mounts its latest version as `INSTAGRAM_ACCESS_TOKEN`. Never place the token in repository files,
+browser configuration, Firestore, GitHub variables or `functions-env.json`. The account must be
+an Instagram professional account with Meta's content-publishing permission. See prompt `21` for
+the creative-review boundary and the exact launch-Reel generation contract.
+
+OpenTofu enables `aiplatform.googleapis.com`, grants the dedicated Function runtime
+`roles/aiplatform.user`, and creates the private, public-access-prevented
+`${project_id}-campaign-media` bucket. Veo working objects belong under `work/` and expire after
+the configured 30-day working retention; approved masters belong under `masters/`, remain private,
+and are versioned without that expiry rule. `VEO_MODEL_ID` defaults to
+`veo-3.1-generate-001`, `VEO_LOCATION` defaults to `global`, and no API key is required because
+the Function uses its Google runtime identity. Generation remains a separate asynchronous,
+admin-reviewed action and must never publish to Instagram automatically.
 
 ```bash
 make join-reengagement \
@@ -630,6 +664,7 @@ Plain vanilla JavaScript, no bundler. The current modules are:
 - `member-dashboard.js` — vehicle tabs, SoH history and service/fault editing
 - `multistep-form.js` — generic multi-step form (data-attribute driven)
 - `outreach-assistant.js` — admin-only Facebook search-link and editable reply helper; no retrieval or posting automation
+- `instagram-campaigns.js` — admin-only reviewed Reel preview and exact-confirmation publishing
 - `public-stats.js` — homepage and evidence-dashboard aggregate rendering
 - `site-mode.js` — launch/full presentation selection
 

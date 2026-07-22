@@ -81,6 +81,10 @@ func Api(w http.ResponseWriter, r *http.Request) {
 		AdminMemberReferralPreview(w, r)
 	case "/api/admin/member-referral-send":
 		AdminMemberReferralSend(w, r)
+	case "/api/admin/instagram-preview":
+		AdminInstagramPreview(w, r)
+	case "/api/admin/instagram-publish":
+		AdminInstagramPublish(w, r)
 	case "/api/public-stats":
 		PublicStats(w, r)
 	default:

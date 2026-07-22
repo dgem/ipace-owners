@@ -3,6 +3,7 @@ locals {
   firebase_project_display_name     = var.firebase_project_display_name != "" ? var.firebase_project_display_name : (var.environment == "production" ? "I-PACE Owners" : "I-PACE Owners ${var.environment}")
   firebase_app_name                 = var.firebase_web_app_display_name != "" ? var.firebase_web_app_display_name : "ipace-owners-${var.environment}"
   snapshot_bucket_name              = "${var.project_id}-member-snapshots"
+  campaign_media_bucket_name        = "${var.project_id}-campaign-media"
   deployer_account_id               = "github-deployer"
   firebase_hosting_site_id          = var.firebase_hosting_site_id != "" ? var.firebase_hosting_site_id : var.project_id
   email_continue_host               = regex("^https?://([^/]+)", var.site_url)[0]
@@ -51,6 +52,7 @@ resource "google_project_service" "required" {
     "iam.googleapis.com",
     "iamcredentials.googleapis.com",
     "identitytoolkit.googleapis.com",
+    "aiplatform.googleapis.com",
     "run.googleapis.com",
     "secretmanager.googleapis.com",
     "serviceusage.googleapis.com",
@@ -213,6 +215,30 @@ resource "google_storage_bucket" "snapshots" {
   depends_on = [google_project_service.required]
 }
 
+resource "google_storage_bucket" "campaign_media" {
+  name                        = local.campaign_media_bucket_name
+  location                    = upper(var.region)
+  uniform_bucket_level_access = true
+  public_access_prevention    = "enforced"
+
+  versioning {
+    enabled = true
+  }
+
+  lifecycle_rule {
+    condition {
+      age            = var.campaign_media_work_retention_days
+      matches_prefix = ["work/"]
+    }
+
+    action {
+      type = "Delete"
+    }
+  }
+
+  depends_on = [google_project_service.required]
+}
+
 resource "google_secret_manager_secret" "firebase_web_api_key" {
   secret_id = "firebase-web-api-key"
 
@@ -262,8 +288,20 @@ resource "google_project_iam_member" "runtime_auth" {
   member  = "serviceAccount:${google_service_account.runtime.email}"
 }
 
+resource "google_project_iam_member" "runtime_vertex_ai" {
+  project = var.project_id
+  role    = "roles/aiplatform.user"
+  member  = "serviceAccount:${google_service_account.runtime.email}"
+}
+
 resource "google_storage_bucket_iam_member" "runtime_snapshots" {
   bucket = google_storage_bucket.snapshots.name
+  role   = "roles/storage.objectAdmin"
+  member = "serviceAccount:${google_service_account.runtime.email}"
+}
+
+resource "google_storage_bucket_iam_member" "runtime_campaign_media" {
+  bucket = google_storage_bucket.campaign_media.name
   role   = "roles/storage.objectAdmin"
   member = "serviceAccount:${google_service_account.runtime.email}"
 }

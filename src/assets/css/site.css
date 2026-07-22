@@ -1088,6 +1088,13 @@ th {
   color: #ffffff;
 }
 
+/* Keep admin dashboard action-button hover states visually consistent. */
+.admin-dashboard-grid .btn--primary:hover {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #ffffff;
+}
+
 .btn--ghost {
   background: transparent;
   color: #ffffff;
@@ -2609,6 +2616,15 @@ details .details-body p:last-child {
   overflow-wrap: anywhere;
   padding: var(--space-5);
   white-space: pre-wrap;
+}
+
+.instagram-preview video {
+  display: block;
+  width: min(100%, 22rem);
+  max-height: 70vh;
+  margin-block: var(--space-4);
+  border-radius: var(--radius-md);
+  background: #000;
 }
 
 .email-preview__shares {

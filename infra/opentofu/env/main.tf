@@ -10,10 +10,13 @@ module "ipace_owners" {
   gcp_folder_id                 = var.gcp_folder_id
   billing_account               = var.billing_account
 
-  region       = var.region
-  github_owner = var.github_owner
-  github_repo  = var.github_repo
-  vin_pepper   = var.vin_pepper
+  region                             = var.region
+  veo_location                       = var.veo_location
+  veo_model_id                       = var.veo_model_id
+  campaign_media_work_retention_days = var.campaign_media_work_retention_days
+  github_owner                       = var.github_owner
+  github_repo                        = var.github_repo
+  vin_pepper                         = var.vin_pepper
 
   allowed_origins                      = var.allowed_origins
   site_url                             = var.site_url

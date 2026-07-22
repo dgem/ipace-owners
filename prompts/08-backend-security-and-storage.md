@@ -35,6 +35,11 @@ current Join and vehicle-basics storage into fuller evidence collection.
   error summaries, continue URL hosts, and boolean diagnostics.
 - Reject disallowed browser origins before side effects such as sending emails or writing
   records.
+- Treat social publishing as an external side effect: require an admin claim, validate and
+  preview the exact media/caption first, reject arbitrary external media URLs, keep provider
+  tokens server-side, and require an exact server-derived confirmation before calling Meta.
+- Use the Function runtime identity, not an API key, for Vertex AI video generation. Grant it
+  `roles/aiplatform.user` plus object access only on the private campaign-media bucket.
 - Validate all input server-side, even when the browser form already validates it.
 - Validate uploaded evidence server-side by size, type, and content checks before storage.
 
@@ -53,6 +58,9 @@ Use Firestore for structured data:
   public Function for dashboard rendering without exposing canonical records.
 - Store evidence files as Cloud Storage objects with generated names; keep ownership,
   permissions, and review metadata in Firestore.
+- Store Veo source clips, continuation clips, extracted frames, and rejected candidates under
+  the private campaign-media bucket's `work/` prefix with bounded retention. Store approved,
+  auditable masters under `masters/`; retain and version them independently of working files.
 
 ## Validation
 

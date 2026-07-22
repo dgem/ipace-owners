@@ -1,5 +1,8 @@
 environment = "staging"
 region      = "europe-west2"
+veo_location = "global"
+veo_model_id = "veo-3.1-generate-001"
+campaign_media_work_retention_days = 30
 
 # Set an explicit GCP project ID when using an existing project or when the derived
 # default is unavailable. With create_gcp_project=true and project_id left empty,

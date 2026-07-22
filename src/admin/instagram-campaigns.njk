@@ -1,0 +1,56 @@
+---
+layout: base.njk
+title: Instagram Campaigns
+description: "Admin-only preview and publishing workspace for Instagram campaigns."
+noindex: true
+permalink: /admin/instagram-campaigns/
+instagramCampaigns: true
+---
+
+{% from "partials/auth-login-gate.njk" import authLoginGate %}
+
+<div class="page-header"><div class="container"><p class="page-header__eyebrow">Admin</p><h1 class="page-header__title">Instagram campaigns</h1></div></div>
+
+<div class="section"><div class="container"><div data-admin-container>
+  {{ authLoginGate("instagram-campaign-magic-email", "Sign in required", "Enter your admin email address and we will send a secure sign-in link.", "admin", false) }}
+  <div class="auth-gate" data-admin-only-gate hidden><div class="auth-gate__icon" aria-hidden="true">⛔</div><h2 class="auth-gate__title">Access restricted</h2><p class="auth-gate__body">This campaign workspace is for group administrators only.</p></div>
+  <div class="auth-content" data-admin-content hidden>
+    <div class="callout callout--warning"><span class="callout__icon" aria-hidden="true">⚠️</span><div class="callout__content"><p class="callout__title">Chat creates the draft; this tool publishes it</p><p>Paste or refine the caption and select the committed public media asset. Previewing never posts. Publishing requires the exact confirmation returned by the server.</p></div></div>
+
+    <section class="dashboard-panel" data-instagram-campaign data-preview-endpoint="/api/admin/instagram-preview" data-publish-endpoint="/api/admin/instagram-publish">
+      <div class="dashboard-panel__header"><div><p class="dashboard-panel__eyebrow">Organic Reel campaign</p><h2 class="dashboard-panel__title">Prepare the first Instagram post</h2></div></div>
+      <form class="stack" data-instagram-draft>
+        <div class="form-group"><label for="instagram-media-path">Public video path</label><input id="instagram-media-path" data-instagram-media-path value="/ipace-owners-instagram-launch-reel.mp4" required><p class="form-hint">Use a site-relative MP4 or MOV path. The server converts it to the configured public media URL; arbitrary external URLs are rejected.</p></div>
+        <div class="form-group"><label for="instagram-caption">Caption</label><textarea id="instagram-caption" data-instagram-caption rows="18" maxlength="2200" required>I-PACE owners are stronger when we speak together.
+
+Recalls, traction battery faults and inconsistent owner experiences need an organised response.
+
+We’re an independent, UK-led owners’ advocacy group building a credible collective voice. Our aim is constructive engagement with JLR and a fair, consistent outcome for owners.
+
+This isn’t another forum—and joining doesn’t commit you to legal action. Right now, we’re asking I-PACE owners to add their name and strengthen the group.
+
+Free to join. It takes less than a minute.
+
+Join through the link in our bio, then share this with another I-PACE owner.
+
+#JaguarIPACE #IPACE #ElectricVehicles #EVOwners #OwnersTogether</textarea><p class="form-hint"><span data-instagram-caption-count>0</span>/2200 characters. Instagram captions do not provide a clickable website link, so keep the call to use the bio link.</p></div>
+        <label class="checkbox-row" for="instagram-media-reviewed"><input id="instagram-media-reviewed" type="checkbox" data-instagram-media-reviewed><span>I watched the complete final video and confirm that the car drives purposefully and makes a normal, controlled stop. It contains no fault, breakdown, emergency, unsafe-driving or misleading cues.</span></label>
+        <button type="submit" class="btn btn--primary" data-instagram-preview-button>Validate and preview</button>
+      </form>
+
+      <section class="email-preview instagram-preview" data-instagram-preview hidden aria-labelledby="instagram-preview-title">
+        <p class="dashboard-panel__eyebrow">Server-validated preview</p><h3 id="instagram-preview-title">What will be published</h3>
+        <video data-instagram-video controls playsinline preload="metadata"></video>
+        <pre data-instagram-caption-preview></pre>
+        <p><strong>Campaign:</strong> <span data-instagram-campaign-id></span></p>
+      </section>
+
+      <form class="stack email-campaign-step" data-instagram-publish>
+        <div><p class="dashboard-panel__eyebrow">Final confirmation</p><h3>Publish the Reel</h3><p>Any change to the caption or media invalidates this preview. Publishing is immediate and cannot be undone from this site.</p></div>
+        <div class="form-group"><label for="instagram-confirm">Type the exact confirmation shown below</label><input id="instagram-confirm" data-instagram-confirm autocomplete="off" disabled><p class="form-hint" data-instagram-confirm-hint>Validate the draft first.</p></div>
+        <button type="submit" class="btn btn--danger" data-instagram-publish-button disabled>Publish to Instagram</button>
+      </form>
+      <p data-instagram-status role="status" aria-live="polite">Nothing has been published.</p>
+    </section>
+  </div>
+</div></div></div>
