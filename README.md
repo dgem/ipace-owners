@@ -257,7 +257,10 @@ handlers. The workflow deploys `Api` only when backend code, Firebase rewrites, 
 environment generation, Make deploy logic, or deployment workflow files changed. If `Api`
 is redeployed, the workflow refreshes the preview channel so Hosting rewrites use the newly
 deployed Function revision. Otherwise the existing staging `Api` revision is reused and the
-preview still runs smoke tests. Staging deployments are serialized because they share one
+preview still runs smoke tests. Each authenticated deployment regenerates the public
+statistics snapshot from Firebase Auth and Firestore before smoke testing. Private member
+snapshots remain write-triggered and self-heal on authenticated first read. Staging
+deployments are serialized because they share one
 Firebase Auth configuration and one Cloud Functions backend. The allowlist updater removes
 stale PR preview entries while retaining permanent authorized domains. OpenTofu grants the
 GitHub deployer a custom role containing only `firebaseauth.configs.get` and
@@ -424,8 +427,9 @@ records delivery status and the Resend message ID incrementally. Re-run dry mode
 before any campaign because the eligible count falls as members complete sign-in. Check the Resend
 plan's daily quota before sending; a free transactional plan cannot deliver 150 messages in one day.
 
-GitHub Actions deploys PRs to Firebase Hosting preview channels and deploys `main` to the
-production Firebase Hosting site.
+GitHub Actions deploys trusted same-repository PRs to Firebase Hosting preview channels and
+deploys `main` to the production Firebase Hosting site. Production deployments are serialized
+without cancellation so closely timed merges cannot race Cloud Functions operations.
 
 ### SSL and DNS
 

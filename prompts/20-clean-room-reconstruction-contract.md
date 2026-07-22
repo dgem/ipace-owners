@@ -164,7 +164,8 @@ presentation.
   part of a clean-room rebuild unless archived lockfiles are supplied.
 - Recreate staging and production workflows, read-only PR validation, same-repository preview
   deployment gating, approval for all external contributors, required staging review,
-  job-scoped permissions, Workload Identity Federation, serialized preview deployment,
+  job-scoped permissions, immutable third-party Action pins, Workload Identity Federation,
+  serialized staging and production deployment, deploy-time public snapshot regeneration,
   branch-run cancellation, direct smoke testing,
   weekly Dependabot coverage, CodeQL `security-extended`, dependency review, npm audit,
   pinned `govulncheck`, and the passive ZAP baseline described in prompt `17`.

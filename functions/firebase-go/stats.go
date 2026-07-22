@@ -73,6 +73,11 @@ func regeneratePublicStatsSnapshot(ctx context.Context) error {
 	return writePublicStatsObject(ctx, snapshot)
 }
 
+// RegeneratePublicStatsSnapshot rebuilds the deploy-time public aggregate snapshot.
+func RegeneratePublicStatsSnapshot(ctx context.Context) error {
+	return regeneratePublicStatsSnapshot(ctx)
+}
+
 func buildPublicStatsSnapshot(ctx context.Context) (publicStatsSnapshot, error) {
 	db, err := firestoreClient(ctx)
 	if err != nil {

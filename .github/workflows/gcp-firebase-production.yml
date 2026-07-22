@@ -14,6 +14,9 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: production
+    concurrency:
+      group: firebase-production-deploy
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v7
         with:
@@ -29,7 +32,7 @@ jobs:
           go-version-file: functions/firebase-go/go.mod
           cache-dependency-path: functions/firebase-go/go.sum
 
-      - uses: opentofu/setup-opentofu@v2
+      - uses: opentofu/setup-opentofu@a1320f892987e89d278cc92dc5adc984fb93aca4 # v2
         with:
           tofu_wrapper: false
 
@@ -103,6 +106,13 @@ jobs:
           RESEND_REPLY_TO: ${{ vars.RESEND_REPLY_TO_PRODUCTION }}
           RESEND_ASSET_BASE_URL: ${{ vars.RESEND_ASSET_BASE_URL_PRODUCTION }}
         run: make deploy-functions
+
+      - name: Regenerate public statistics snapshot
+        env:
+          FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PRODUCTION_PROJECT_ID }}
+          FIRESTORE_DATABASE_ID: ${{ vars.FIRESTORE_DATABASE_ID_PRODUCTION }}
+          SNAPSHOT_BUCKET: ${{ vars.SNAPSHOT_BUCKET_PRODUCTION }}
+        run: make regenerate-public-stats
 
       - name: Deploy Firebase Hosting production
         env:

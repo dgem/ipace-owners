@@ -59,6 +59,10 @@ Generate JSON snapshots after write operations:
   member/account snapshot. These records are not public aggregates until explicit review,
   consent, and publication rules are implemented.
 - Admin review or publish actions regenerate public aggregate statistics.
+- Staging and production deployments run `make regenerate-public-stats` with short-lived
+  workload-identity credentials to rebuild the public aggregate from canonical data. Do not
+  bulk-regenerate private member snapshots during deploy; they remain write-triggered and
+  self-heal on authenticated first read.
 
 Member/account snapshots are private data. Store them in Firestore under
 `memberSnapshots/{uid}` and, where useful for reduced read load, in a private Cloud Storage

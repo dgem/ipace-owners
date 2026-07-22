@@ -37,6 +37,8 @@ Firebase/GCP.
   formatting, and SVG/XML syntax; keep focused `lint-*` targets available for iteration.
 - Both staging pull-request and production deployment workflows must install OpenTofu and
   run `make lint` after dependency installation and before tests or deployment.
+- Pin third-party Actions to immutable commit SHAs while retaining the release tag in a
+  comment for Dependabot and human readability.
 - Keep pull-request validation separate from privileged staging deployment. Every PR may run
   the read-only lint, test, and build job after any GitHub-required external-contributor
   approval, but deploy a preview only when the PR head repository is this repository. A fork
@@ -67,9 +69,10 @@ Firebase/GCP.
   4. Detect whether backend-related files changed.
   5. Deploy the Go `Api` Function only when backend code, Firebase rewrites, Function env
      generation, Make deploy logic, or deployment workflow files changed.
-  6. If `Api` was deployed, refresh the Firebase Hosting preview channel so rewrites point
+  6. Regenerate `public/stats.json` from canonical Firebase Auth and Firestore data.
+  7. If `Api` was deployed, refresh the Firebase Hosting preview channel so rewrites point
      at the current Function revision.
-  7. Run `make smoke` with `SMOKE_BASE_URL` set to the generated preview URL.
+  8. Run `make smoke` with `SMOKE_BASE_URL` set to the generated preview URL.
 - Keep Firebase CLI deployment JSON available for URL extraction and PR diagnostics. If a
   preview deployment fails, CI must print both Firebase CLI stderr and any JSON error payload;
   do not hide the actionable error behind shell redirection.
@@ -109,6 +112,9 @@ Firebase/GCP.
 ## Production Deployment
 
 - Merges to `main` deploy production.
+- Serialize production deployment jobs without cancellation. Closely timed merges must wait
+  for the active deploy rather than racing Cloud Functions operations and failing with
+  `409 unable to queue the operation`.
 - Production Functions should use the verified custom domain for:
   - `ALLOWED_ORIGINS`;
   - `FIREBASE_EMAIL_CONTINUE_URL`;
@@ -117,6 +123,9 @@ Firebase/GCP.
   workflow dispatch should deploy `Api` so operators can force a backend rollout.
 - Backend change detection must match files beneath `functions/firebase-go/`, not only the
   directory name, so Go changes deploy the Function and refresh preview Hosting rewrites.
+- Run `make regenerate-public-stats` after authentication on every production deployment,
+  before Hosting and smoke tests, so the stored public aggregate is rebuilt even when no
+  member write occurs after a schema or aggregation change.
 - Run `make smoke` directly in the production workflow after Hosting deploy with
   `SMOKE_BASE_URL=https://ipace-owners.org`.
 

@@ -63,6 +63,16 @@ test('external pull requests validate without receiving staging deployment permi
   assert.match(workflow, /validate:[\s\S]*name: Build site without deployment credentials\n[ ]{8}run: make build/);
 });
 
+test('OpenTofu setup uses an immutable action revision', function () {
+  var staging = read('.github/workflows/gcp-firebase-staging.yml');
+  var production = read('.github/workflows/gcp-firebase-production.yml');
+  var pinned = /opentofu\/setup-opentofu@a1320f892987e89d278cc92dc5adc984fb93aca4 # v2/g;
+
+  assert.equal((staging.match(pinned) || []).length, 2);
+  assert.equal((production.match(pinned) || []).length, 1);
+  assert.doesNotMatch(staging + production, /opentofu\/setup-opentofu@v2/);
+});
+
 test('passwordless login fallback never places email addresses in page URLs', function () {
   var gate = read('src/_includes/partials/auth-login-gate.njk');
 

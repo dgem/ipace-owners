@@ -27,10 +27,21 @@ test('Firebase deploy workflows lint all source languages before testing', funct
   const productionWorkflow = readFileSync(productionWorkflowPath, 'utf8');
 
   for (const workflow of [stagingWorkflow, productionWorkflow]) {
-    assert.match(workflow, /uses: opentofu\/setup-opentofu@v2/);
+    assert.match(workflow, /uses: opentofu\/setup-opentofu@a1320f892987e89d278cc92dc5adc984fb93aca4 # v2/);
     assert.match(workflow, /tofu_wrapper: false/);
     assert.match(workflow, /name: Lint source\n\s+run: make lint/);
     assert.ok(workflow.indexOf('run: make lint') < workflow.indexOf('run: make test-node'));
+  }
+});
+
+test('deployments serialize production changes and regenerate public statistics', function () {
+  const stagingWorkflow = readFileSync(stagingWorkflowPath, 'utf8');
+  const productionWorkflow = readFileSync(productionWorkflowPath, 'utf8');
+
+  assert.match(productionWorkflow, /concurrency:\n {6}group: firebase-production-deploy\n {6}cancel-in-progress: false/);
+  for (const workflow of [stagingWorkflow, productionWorkflow]) {
+    assert.match(workflow, /name: Regenerate public statistics snapshot/);
+    assert.match(workflow, /run: make regenerate-public-stats/);
   }
 });
 

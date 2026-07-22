@@ -22,7 +22,7 @@ jobs:
           go-version-file: functions/firebase-go/go.mod
           cache-dependency-path: functions/firebase-go/go.sum
 
-      - uses: opentofu/setup-opentofu@v2
+      - uses: opentofu/setup-opentofu@a1320f892987e89d278cc92dc5adc984fb93aca4 # v2
         with:
           tofu_wrapper: false
 
@@ -68,7 +68,7 @@ jobs:
           go-version-file: functions/firebase-go/go.mod
           cache-dependency-path: functions/firebase-go/go.sum
 
-      - uses: opentofu/setup-opentofu@v2
+      - uses: opentofu/setup-opentofu@a1320f892987e89d278cc92dc5adc984fb93aca4 # v2
         with:
           tofu_wrapper: false
 
@@ -142,6 +142,13 @@ jobs:
           RESEND_REPLY_TO: ${{ vars.RESEND_REPLY_TO_STAGING }}
           RESEND_ASSET_BASE_URL: ${{ vars.RESEND_ASSET_BASE_URL_STAGING }}
         run: make deploy-functions
+
+      - name: Regenerate public statistics snapshot
+        env:
+          FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_STAGING_PROJECT_ID }}
+          FIRESTORE_DATABASE_ID: ${{ vars.FIRESTORE_DATABASE_ID_STAGING }}
+          SNAPSHOT_BUCKET: ${{ vars.SNAPSHOT_BUCKET_STAGING }}
+        run: make regenerate-public-stats
 
       - name: Refresh Firebase Hosting preview with current Function revisions
         if: steps.backend.outputs.deploy == 'true'
