@@ -367,9 +367,10 @@ Review the dry-run results and current eligible count. A live run additionally r
 Resend sending key in `RESEND_API_KEY`, the configured sender in `RESEND_FROM`, a stable campaign
 identifier, `--send`, an exact count confirmation, and an interactive typed confirmation:
 
-The total Auth-user count is contextual rather than a value to subtract directly: Auth may contain
-accounts without a corresponding canonical Join submission. The eligible cohort is the Join set
-minus only the Join identities actually matched to Auth by exact email, `+tag` alias, or name.
+The summary reports both raw Auth accounts and canonical Auth identities, exposing duplicate
+`+tag`/base-address accounts separately from canonical Auth identities without a corresponding
+Join submission. The eligible cohort is the Join set minus only the Join identities actually
+matched to Auth by exact email, `+tag` alias, or name.
 
 ```bash
 export RESEND_API_KEY="set-from-your-secure-password-manager"

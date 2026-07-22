@@ -49,6 +49,23 @@ func TestCanonicalEmailRemovesPlusTagFromEitherSide(t *testing.T) {
 	}
 }
 
+func TestReconcileAuthCoverageSeparatesDuplicateAliasesAndMissingJoin(t *testing.T) {
+	joins := []recipient{
+		{Name: "Dan Gem", Email: "dan@kanzi.co.uk"},
+		{Name: "Jane Driver", Email: "jane@example.com"},
+	}
+	accounts := []authAccount{
+		{Email: "dan@kanzi.co.uk"},
+		{Email: "dan+ipace@kanzi.co.uk"},
+		{Email: "different@example.net", Name: "Jane D'river"},
+		{Email: "orphan@example.org", Name: "No Join"},
+	}
+	identities, withoutJoin := reconcileAuthCoverage(joins, accounts)
+	if identities != 3 || withoutJoin != 1 {
+		t.Fatalf("reconcileAuthCoverage() = (%d, %d), want (3, 1)", identities, withoutJoin)
+	}
+}
+
 func TestValidateConfigRequiresExplicitLiveSendConfirmation(t *testing.T) {
 	config := campaignConfig{
 		Environment: "production", ResultsPath: filepath.Join(t.TempDir(), "results.csv"), ProjectID: "project",

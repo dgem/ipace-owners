@@ -118,13 +118,14 @@ func run(ctx context.Context, config campaignConfig) error {
 	}
 	preflight, eligible := classifyRecipients(joins, accounts)
 	memberCount := len(joins)
+	authIdentities, authWithoutJoin := reconcileAuthCoverage(joins, accounts)
 	logCandidates(config, eligible)
 
 	if !config.Send {
 		if err := writeResults(config.ResultsPath, preflight); err != nil {
 			return err
 		}
-		fmt.Fprintf(config.Output, "dry run complete: env=%s, %d unique Join submissions, %d total Auth accounts, %d Join identities matched to Auth, %d eligible; no emails sent\n", config.Environment, memberCount, len(accounts), len(preflight)-len(eligible), len(eligible))
+		fmt.Fprintf(config.Output, "dry run complete: env=%s, %d unique Join submissions, %d total Auth accounts (%d canonical identities), %d Join identities matched to Auth, %d Auth identities without Join, %d eligible; no emails sent\n", config.Environment, memberCount, len(accounts), authIdentities, len(preflight)-len(eligible), authWithoutJoin, len(eligible))
 		return nil
 	}
 	if config.Confirm != len(eligible) {
@@ -383,6 +384,29 @@ func classifyRecipients(joins []recipient, accounts []authAccount) ([]resultRow,
 		}
 	}
 	return rows, eligible
+}
+
+func reconcileAuthCoverage(joins []recipient, accounts []authAccount) (int, int) {
+	joinEmails, joinNames := make(map[string]bool), make(map[string]bool)
+	for _, person := range joins {
+		joinEmails[canonicalEmail(person.Email)] = true
+		if name := normalizedName(person.Name); name != "" {
+			joinNames[name] = true
+		}
+	}
+	authIdentities := make(map[string]bool)
+	matchedIdentities := make(map[string]bool)
+	for _, account := range accounts {
+		identity := canonicalEmail(account.Email)
+		if identity == "" {
+			continue
+		}
+		authIdentities[identity] = true
+		if joinEmails[identity] || joinNames[normalizedName(account.Name)] {
+			matchedIdentities[identity] = true
+		}
+	}
+	return len(authIdentities), len(authIdentities) - len(matchedIdentities)
 }
 
 func canonicalEmail(value string) string {
