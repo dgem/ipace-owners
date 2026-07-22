@@ -125,10 +125,12 @@ Update Node tests for browser wiring and Go tests for handlers. Required coverag
 - Provide an operator-only Join re-engagement command for staging and production. It must extract
   Join submissions and Firebase Auth users itself, then suppress accounts matched by exact email,
   email canonicalised without `+tag` addressing, or normalised display name. It must default to dry
-  run, write a permission-restricted audit CSV, require an explicit campaign ID, exact eligible
-  count and typed interactive confirmation for a live send, refresh the complete comparison before
-  confirmation, generate a fresh Firebase sign-in link per recipient, pace Resend calls, use
-  idempotency keys, and refuse to overwrite results. Info logs expose only counts; debug logs may
+  run, write a permission-restricted audit CSV and secret-free settings manifest, generate a stable
+  environment/date campaign ID when one is not supplied, require an exact eligible count and typed
+  interactive confirmation for a live send, refresh the complete comparison before confirmation,
+  generate a fresh Firebase sign-in link per recipient, pace Resend calls, use idempotency keys,
+  and refuse to overwrite results or manifests. Read the same `RESEND_*` environment names as the
+  deployed app. Info logs expose only counts; debug logs may
   print candidate names and addresses, but action links must never be logged. Do not expose this
   workflow as a public endpoint.
 - Treat a canonical Firebase Auth email without a canonical Join email as a privacy-invariant

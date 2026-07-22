@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -72,10 +73,6 @@ func TestValidateConfigRequiresExplicitLiveSendConfirmation(t *testing.T) {
 		DatabaseID: "database", ContinueURL: "https://example.com/account/", LinkDomain: "auth.example.com",
 		VehicleURL: "https://example.com/vehicle/", Delay: 250 * time.Millisecond, Send: true, LogLevel: "info",
 	}
-	if err := validateConfig(config); err == nil || !strings.Contains(err.Error(), "--campaign-id") {
-		t.Fatalf("error = %v", err)
-	}
-	config.CampaignID = "join-nudge-2026-07"
 	if err := validateConfig(config); err == nil || !strings.Contains(err.Error(), "--confirm-count") {
 		t.Fatalf("error = %v", err)
 	}
@@ -92,12 +89,42 @@ func TestResolveEnvironmentAndConfirmation(t *testing.T) {
 	if config.ProjectID != "ipace-owners-staging" || config.DatabaseID != "ipace-owners-staging" || config.LinkDomain != "stage.ipace-owners.org" {
 		t.Fatalf("config = %#v", config)
 	}
+	if !strings.HasPrefix(config.CampaignID, "join-account-verification-staging-") {
+		t.Fatalf("generated campaign ID = %q", config.CampaignID)
+	}
 	if err := confirmSend(config, 2); err != nil {
 		t.Fatal(err)
 	}
 	config.Input = strings.NewReader("yes\n")
 	if err := confirmSend(config, 2); err == nil {
 		t.Fatal("expected mismatched confirmation to fail")
+	}
+}
+
+func TestWriteCampaignManifestStoresResolvedSettingsWithoutSecrets(t *testing.T) {
+	config := resolveEnvironment(campaignConfig{
+		Environment: "production", ResultsPath: filepath.Join(t.TempDir(), "results.csv"), Delay: defaultDelay,
+	})
+	t.Setenv("RESEND_API_KEY", "must-not-be-written")
+	if err := writeCampaignManifest(config, 371, 222, 220, 220, 151); err != nil {
+		t.Fatal(err)
+	}
+	data, err := os.ReadFile(manifestPath(config.ResultsPath))
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := string(data)
+	for _, expected := range []string{config.CampaignID, `"environment": "production"`, `"eligible": 151`, `"mode": "dry-run"`} {
+		if !strings.Contains(text, expected) {
+			t.Fatalf("manifest missing %q: %s", expected, text)
+		}
+	}
+	if strings.Contains(text, "must-not-be-written") {
+		t.Fatal("manifest contains Resend API key")
+	}
+	info, err := os.Stat(manifestPath(config.ResultsPath))
+	if err != nil || info.Mode().Perm() != 0600 {
+		t.Fatalf("manifest permissions = %v, error = %v", info.Mode().Perm(), err)
 	}
 }
 

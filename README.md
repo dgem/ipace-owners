@@ -377,13 +377,18 @@ make join-reengagement \
 Use `ARGS='--log-level=debug'` to print each candidate's name, email and submission date. At the
 default `info` level, logs contain counts but not personal data. The `0600` results CSV always
 contains every extracted Join name, email and submission date, its eligibility status, and the
-match reason, making the extraction and comparison auditable. Use `ENV=staging` to run the same
+match reason. A sibling `.manifest.json` file stores the resolved non-secret campaign settings and
+counts with the same restricted permissions, making the run reproducible and auditable. Use
+`ENV=staging` to run the same
 workflow against staging; environment-specific project, database, continue-link and action-link
 defaults are selected together.
 
 Review the dry-run results and current eligible count. A live run additionally requires the
-Resend sending key in `RESEND_API_KEY`, the configured sender in `RESEND_FROM`, a stable campaign
-identifier, `--send`, an exact count confirmation, and an interactive typed confirmation:
+Resend sending key in `RESEND_API_KEY`, the configured sender in `RESEND_FROM`, `--send`, an exact
+count confirmation, and an interactive typed confirmation. These are the same environment names
+used by the deployed app; `RESEND_REPLY_TO` and `RESEND_ASSET_BASE_URL` are read the same way. The
+command generates a stable `join-account-verification-<environment>-<UTC date>` campaign ID when
+`--campaign-id` is omitted, or accepts an explicit ID for an operator-selected campaign boundary.
 
 The summary reports both raw Auth accounts and canonical Auth identities, exposing duplicate
 `+tag`/base-address accounts separately from canonical Auth identities without a corresponding
@@ -402,11 +407,12 @@ export RESEND_ASSET_BASE_URL="https://ipace-owners.org"
 make join-reengagement \
   ENV=production \
   RESULTS=/private/tmp/join-reengagement-production-2026-07.csv \
-  ARGS='--campaign-id=join-account-verification-2026-07 --send --confirm-count=150 --log-level=debug'
+  ARGS='--send --confirm-count=150 --log-level=debug'
 ```
 
-Never commit the result CSV because it contains personal data. The command refuses to overwrite
-an existing results file, refreshes the complete Auth comparison immediately before confirmation,
+Never commit the result CSV or manifest because they contain operational or personal data. The
+manifest never contains API keys or other secret values. The command refuses to overwrite either
+campaign file, refreshes the complete Auth comparison immediately before confirmation,
 rechecks each exact address immediately before sending, creates a fresh time-limited sign-in link
 per recipient, uses Resend idempotency keys, paces requests below the default rate limit, and
 records delivery status and the Resend message ID incrementally. Re-run dry mode shortly
