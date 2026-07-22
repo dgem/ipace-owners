@@ -164,8 +164,9 @@ forms explicitly use POST even when JavaScript intercepts them.
   persist a hashed idempotent delivery ledger.
 - Render re-engagement and member-referral delivery from embedded Markdown Go templates into
   matching plain-text and escaped HTML bodies. Wrap HTML delivery in the shared magic-link email
-  chrome with the approved PNG logo, hero image, responsive table layout and pill-shaped primary
-  and share actions. Keep the legally important contact-consent/unsubscribe footer outside the
+  chrome with its compact text masthead, hero image, responsive table layout and pill-shaped
+  primary and share actions; do not add a logo image. Keep the legally important
+  contact-consent/unsubscribe footer outside the
   routinely edited Markdown body.
 
 Prompts define visual intent, not the exact control points or pixels of generated artwork.

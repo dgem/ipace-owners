@@ -603,7 +603,7 @@ func campaignEmailBodies(person campaignRecipient, link string, memberCount, eli
 		MemberCount   int
 		EligibleCount int
 	}{first, person.CreatedAt.Format("2 January 2006"), memberCount, eligibleCount})
-	text += "\n\nVerify your account details: " + link + "\n"
+	text += "\nVerify your account details: " + link + "\n\nYou are receiving this because you submitted the Join form and agreed that we could contact you. Reply if you no longer wish to hear from us.\n"
 	htmlBody := brandedEmailHTML(brandedEmailMessage{
 		DocumentTitle:      subject,
 		Preheader:          "Complete your registration with a fresh, secure sign-in link.",

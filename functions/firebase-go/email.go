@@ -151,7 +151,6 @@ func brandedEmailHTML(message brandedEmailMessage) string {
 	preheader := html.EscapeString(strings.TrimSpace(message.Preheader))
 	heading := html.EscapeString(strings.TrimSpace(message.Heading))
 	imageURL := html.EscapeString(strings.TrimRight(strings.TrimSpace(message.AssetBaseURL), "/") + "/images/ipace-hero.png")
-	logoURL := html.EscapeString(strings.TrimRight(strings.TrimSpace(message.AssetBaseURL), "/") + "/images/ipace-owners-logo.png")
 	body := strings.TrimSpace(message.BodyHTML)
 	if body == "" {
 		body = `<p style="margin:0;font-size:16px;line-height:1.6;color:#374151;">Thank you for being part of I-PACE Owners.</p>`
@@ -197,7 +196,8 @@ func brandedEmailHTML(message brandedEmailMessage) string {
 					<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;background:#ffffff;border-radius:20px;overflow:hidden;border:1px solid #dbe3ea;">
 						<tr>
 							<td style="background:#12324a;padding:24px 28px;color:#ffffff;">
-								<img src="` + logoURL + `" width="210" alt="I-PACE Owners Advocacy Group" style="display:block;width:210px;max-width:100%;height:auto;border:0;">
+								<div style="font-size:22px;font-weight:700;line-height:1.2;">I-PACE Owners</div>
+								<div style="font-size:14px;color:#c9d7e3;margin-top:4px;">Advocacy Group</div>
 							</td>
 						</tr>
 						<tr>

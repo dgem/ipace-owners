@@ -76,7 +76,7 @@ func TestCampaignEmailUsesMarkdownContentAndSharedBranding(t *testing.T) {
 	}, "https://example.com/sign-in?a=1&b=2", 371, 12)
 	for _, expected := range []string{
 		"<!doctype html>",
-		"/images/ipace-owners-logo.png",
+		">I-PACE Owners</div>",
 		"/images/ipace-hero.png",
 		"Verify my account details",
 		"https://example.com/sign-in?a=1&amp;b=2",
@@ -88,6 +88,12 @@ func TestCampaignEmailUsesMarkdownContentAndSharedBranding(t *testing.T) {
 	}
 	if !strings.Contains(text, "You asked to join on 22 July 2026") {
 		t.Fatalf("plain-text email did not render Markdown template: %q", text)
+	}
+	if strings.Contains(htmlBody, "/images/ipace-owners-logo") || strings.Count(htmlBody, "agreed that we could contact you") != 1 {
+		t.Fatalf("HTML email contains a logo or duplicate consent footer: %q", htmlBody)
+	}
+	if strings.Index(text, "Verify your account details:") > strings.Index(text, "You are receiving this because") {
+		t.Fatalf("plain-text action must appear before the consent footer: %q", text)
 	}
 }
 
@@ -127,7 +133,7 @@ func TestMemberReferralEmailExplainsGoalAndProvidesShares(t *testing.T) {
 func TestMemberReferralEmailUsesSharedBrandingAndActionButtons(t *testing.T) {
 	_, htmlBody, text, _ := memberReferralEmailBodies(campaignRecipient{Name: "Jane"}, 371)
 	for _, expected := range []string{
-		"/images/ipace-owners-logo.png",
+		">I-PACE Owners</div>",
 		"/images/ipace-hero.png",
 		"Visit I-PACE Owners",
 		"www.facebook.com/sharer/sharer.php",
@@ -140,5 +146,8 @@ func TestMemberReferralEmailUsesSharedBrandingAndActionButtons(t *testing.T) {
 	}
 	if !strings.Contains(text, "Share the group: https://ipace-owners.org/") {
 		t.Fatalf("plain-text email missing share fallback: %q", text)
+	}
+	if strings.Contains(htmlBody, "/images/ipace-owners-logo") {
+		t.Fatalf("referral email must use the text masthead, not a logo image: %q", htmlBody)
 	}
 }
