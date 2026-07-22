@@ -84,7 +84,7 @@ keys where applicable, and `{ status, verificationLevel }` review metadata. Pres
   day counts, ownership keys, timestamps, and review metadata.
 - Member snapshots contain `identityUserId`, `email`, `generatedAt`, `joinRecords[]`,
   `vehicleRecords[]`, `batteryReadings[]`, and `serviceEvents[]`.
-- Public statistics contain `schemaVersion`, `generatedAt`, `registeredMembers`,
+- Public statistics contain `schemaVersion`, `generatedAt`, `joinedOwners`, `registeredMembers`,
   `ownersContributed`, `vehiclesRegistered`, `vehiclesWithSoh`, `sohReadings`,
   `vehiclesWithRepeatSoh`, optional `averageReportedSoh`, optional `averageSohChange`, and
   `{ label, count }[]` arrays for `sohDistribution` and `modelYearDistribution`.
@@ -92,7 +92,9 @@ keys where applicable, and `{ status, verificationLevel }` review metadata. Pres
 Use Firestore timestamps for canonical timestamps and RFC 3339 JSON serialization. Optional
 values must remain absent/null rather than becoming fabricated zero measurements. Full VINs
 are never stored; use HMAC-SHA-256 with `VIN_PEPPER` and retain only the last six characters.
-The public registered-member total comes from the complete paginated Firebase Auth user list.
+The public `joinedOwners` total comes from contact-consenting Join submissions deduplicated by
+lowercased email with `+tag` aliases removed. The separate `registeredMembers` total comes from the
+complete paginated Firebase Auth user list.
 
 ## Configuration contract
 
@@ -127,7 +129,7 @@ If those assets are genuinely unavailable, regenerate them from prompt `19`, lab
 result as a new visual revision, verify QR scanning and print dimensions, and obtain human
 design approval. Never silently claim pixel equivalence. Recreate page copy from prompts
 `04`, `18`, and `19`; preserve British English, constructive advocacy tone, official launch
-date of 17 July 2026, the Firebase Auth registered-member count, and its responsive garland
+date of 17 July 2026, the canonicalised Join-submission “Owners joined” count, and its responsive garland
 presentation.
 
 ## Dependency, infrastructure, and CI contract

@@ -67,12 +67,12 @@ Firebase ID-token verification.
 
 Public aggregate snapshots may be written to static JSON files or Cloud Storage objects
 only after anonymisation, verification, and exclusion rules have been applied.
-The public statistics snapshot includes only an aggregate registered-member count obtained
-from the complete, paginated Firebase Authentication user list. Do not derive this headline
-count from Join submissions, because Auth is the canonical registration record. Show
-"Since 17th July 2026" beneath the garland as launch context, while treating the number as
-the complete Auth total rather than a date-filtered count. The snapshot never exposes user
-records or identifiers, and
+The public statistics snapshot includes both `joinedOwners` and `registeredMembers` aggregates.
+Derive the headline `joinedOwners` count from contact-consenting Join submissions, deduplicating
+case-insensitively and treating `+tag` aliases as the same address. Obtain `registeredMembers`
+separately from the complete, paginated Firebase Authentication user list. Show "Since 17th July
+2026" beneath the garland as launch context. The snapshot never exposes user records or
+identifiers, and
 snapshot schema changes must force cached objects to regenerate. Version the browser's
 public-stats request when the response schema changes so previously cached API responses
 cannot hide newly introduced fields. Completing an email activation creates the Auth user

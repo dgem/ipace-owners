@@ -107,6 +107,9 @@ route unless there is a measured need.
 - Public dashboard pages read anonymised aggregate data through `PublicStats`. Aggregates
   must be generated from consent-filtered records and must not expose canonical member
   records, raw identifiers, registrations, VIN fragments, names, or emails.
+- The public “Owners joined” counter is the number of contact-consenting Join submissions after
+  lowercasing addresses and removing `+tag` aliases. `registeredMembers` remains the separate
+  Firebase Auth account total in the aggregate schema.
 - One member can have zero, one, or many vehicles; do not model the member account as a
   single-car profile.
 - Store SoH measurements as append-only `batteryReadings` records tied to a vehicle. The

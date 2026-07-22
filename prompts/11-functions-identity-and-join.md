@@ -122,6 +122,20 @@ Update Node tests for browser wiring and Go tests for handlers. Required coverag
 
 - Join saves a record and sends one server-side magic link for guests.
 - Signed-in Join saves a record and does not send a magic link.
+- Provide an operator-only Join re-engagement command for staging and production. It must extract
+  Join submissions and Firebase Auth users itself, then suppress accounts matched by exact email,
+  email canonicalised without `+tag` addressing, or normalised display name. It must default to dry
+  run, write a permission-restricted audit CSV, require an explicit campaign ID, exact eligible
+  count and typed interactive confirmation for a live send, refresh the complete comparison before
+  confirmation, generate a fresh Firebase sign-in link per recipient, pace Resend calls, use
+  idempotency keys, and refuse to overwrite results. Info logs expose only counts; debug logs may
+  print candidate names and addresses, but action links must never be logged. Do not expose this
+  workflow as a public endpoint.
+- The re-engagement email should address the member by first name, state when they submitted Join,
+  lead with a secure “Verify my account details” CTA, and use “Add my I-PACE data” as a quieter
+  secondary action. Show the live unique joined-member count and describe completion by the current
+  eligible cohort as progress toward an explicitly ambitious 1,000-owner goal; do not misstate the
+  cohort as bringing registered accounts close to halfway when the arithmetic does not support it.
 - Invalid Join data does not save or send email.
 - Standalone `SendMagicLink` is account-enumeration-resistant.
 - Standalone `SendMagicLink` suppresses email side effects for unregistered addresses.
