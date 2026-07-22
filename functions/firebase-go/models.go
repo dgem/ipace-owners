@@ -183,6 +183,7 @@ type publicDistributionBucket struct {
 type publicStatsSnapshot struct {
 	SchemaVersion         int                        `json:"schemaVersion"`
 	GeneratedAt           time.Time                  `json:"generatedAt"`
+	JoinedOwners          int                        `json:"joinedOwners"`
 	RegisteredMembers     int                        `json:"registeredMembers"`
 	OwnersContributed     int                        `json:"ownersContributed"`
 	VehiclesRegistered    int                        `json:"vehiclesRegistered"`

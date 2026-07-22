@@ -111,8 +111,8 @@ func TestAggregatePublicStatsUsesLatestConsentedReadings(t *testing.T) {
 		{ID: "r4", VehicleID: "v3", Battery: batteryDetails{StateOfHealth: soh(10), MeasuredAt: "2026-06-22"}, Review: reviewRecord{Status: "new"}},
 	}
 
-	got := aggregatePublicStats(vehicles, readings, map[string]bool{"consented": true}, 12, now)
-	if got.RegisteredMembers != 12 || got.SchemaVersion != publicStatsSchemaVersion {
+	got := aggregatePublicStats(vehicles, readings, map[string]bool{"consented": true}, 20, 12, now)
+	if got.JoinedOwners != 20 || got.RegisteredMembers != 12 || got.SchemaVersion != publicStatsSchemaVersion {
 		t.Fatalf("membership aggregate = %+v", got)
 	}
 	if got.OwnersContributed != 1 || got.VehiclesRegistered != 2 || got.SOHReadings != 3 || got.VehiclesWithRepeatSOH != 1 {
@@ -136,9 +136,22 @@ func TestAggregatePublicStatsUsesLegacyEmbeddedReading(t *testing.T) {
 		Battery: batteryDetails{StateOfHealth: &value, MeasuredAt: "2025-01-01"},
 		Review:  reviewRecord{Status: "new"},
 	}
-	got := aggregatePublicStats([]vehicleRecord{vehicle}, nil, map[string]bool{"consented": true}, 1, time.Now())
+	got := aggregatePublicStats([]vehicleRecord{vehicle}, nil, map[string]bool{"consented": true}, 2, 1, time.Now())
 	if got.SOHReadings != 1 || got.VehiclesWithSOH != 1 || got.AverageReportedSOH == nil || *got.AverageReportedSOH != 88 {
 		t.Fatalf("legacy aggregate = %+v", got)
+	}
+}
+
+func TestJoinedOwnerCountDeduplicatesCaseAndPlusAddressing(t *testing.T) {
+	joins := []joinRecord{
+		{Contact: contactRecord{Email: "dan@kanzi.co.uk"}, Consents: consentRecord{Contact: true}},
+		{Contact: contactRecord{Email: " DAN+IPACE@KANZI.CO.UK "}, Consents: consentRecord{Contact: true}},
+		{Contact: contactRecord{Email: "jane@example.com"}, Consents: consentRecord{Contact: true}},
+		{Contact: contactRecord{Email: "ignored@example.com"}, Consents: consentRecord{Contact: false}},
+		{Contact: contactRecord{Email: "invalid"}, Consents: consentRecord{Contact: true}},
+	}
+	if got := joinedOwnerCount(joins); got != 2 {
+		t.Fatalf("joinedOwnerCount() = %d, want 2", got)
 	}
 }
 

@@ -26,12 +26,13 @@ test('homepage and evidence dashboard load real public aggregate statistics', fu
   const stats = read('src/assets/js/public-stats.js');
 
   assert.match(home, /data-public-stat="vehiclesRegistered"/);
-  assert.match(home, /data-public-stat="registeredMembers"/);
+  assert.match(home, /data-public-stat="joinedOwners"/);
+  assert.match(home, /Owners Joined/);
   assert.match(home, /launch-member-count__date[^>]*>Since <time datetime="2026-07-17">17th July 2026/);
   assert.match(dashboard, /data-public-stat="averageReportedSoh"/);
   assert.match(dashboard, /data-public-distribution="soh"/);
   assert.doesNotMatch(dashboard, /Illustrative data|Sample data|Placeholder data/);
-  assert.match(stats, /fetch\('\/api\/public-stats\?v=4'\)/);
+  assert.match(stats, /fetch\('\/api\/public-stats\?v=5'\)/);
   assert.match(stats, /count >= 100000 \? 'large' : count >= 10000 \? 'five' : count >= 1000 \? 'four' : count >= 100 \? 'three'/);
 
   const css = read('src/assets/css/site.css');

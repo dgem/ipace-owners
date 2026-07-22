@@ -8,13 +8,14 @@ import (
 	"net/http"
 	"os"
 	"sort"
+	"strings"
 	"time"
 
 	"firebase.google.com/go/v4/auth"
 	"google.golang.org/api/iterator"
 )
 
-const publicStatsSchemaVersion = 4
+const publicStatsSchemaVersion = 5
 
 type firebaseAuthUserIterator interface {
 	Next() (*auth.ExportedUserRecord, error)
@@ -99,7 +100,35 @@ func buildPublicStatsSnapshot(ctx context.Context) (publicStatsSnapshot, error) 
 	if err != nil {
 		return publicStatsSnapshot{}, err
 	}
-	return aggregatePublicStats(vehicles, readings, consented, registeredMembers, time.Now().UTC()), nil
+	return aggregatePublicStats(vehicles, readings, consented, joinedOwnerCount(joins), registeredMembers, time.Now().UTC()), nil
+}
+
+func joinedOwnerCount(joins []joinRecord) int {
+	owners := make(map[string]bool)
+	for _, record := range joins {
+		if !record.Consents.Contact {
+			continue
+		}
+		if email := canonicalJoinEmail(record.Contact.Email); email != "" {
+			owners[email] = true
+		}
+	}
+	return len(owners)
+}
+
+func canonicalJoinEmail(value string) string {
+	email := strings.ToLower(strings.TrimSpace(value))
+	parts := strings.Split(email, "@")
+	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+		return ""
+	}
+	if plus := strings.IndexByte(parts[0], '+'); plus >= 0 {
+		parts[0] = parts[0][:plus]
+	}
+	if parts[0] == "" {
+		return ""
+	}
+	return parts[0] + "@" + parts[1]
 }
 
 func registeredFirebaseAuthUsers(ctx context.Context) (int, error) {
@@ -130,7 +159,7 @@ func refreshRegisteredMemberCount(ctx context.Context, snapshot publicStatsSnaps
 	return snapshot, true
 }
 
-func aggregatePublicStats(vehicles []vehicleRecord, readings []batteryReadingRecord, consented map[string]bool, registeredMembers int, generatedAt time.Time) publicStatsSnapshot {
+func aggregatePublicStats(vehicles []vehicleRecord, readings []batteryReadingRecord, consented map[string]bool, joinedOwners int, registeredMembers int, generatedAt time.Time) publicStatsSnapshot {
 	filteredVehicles := map[string]vehicleRecord{}
 	owners := map[string]bool{}
 	modelYears := map[string]int{}
@@ -192,6 +221,7 @@ func aggregatePublicStats(vehicles []vehicleRecord, readings []batteryReadingRec
 	snapshot := publicStatsSnapshot{
 		SchemaVersion:         publicStatsSchemaVersion,
 		GeneratedAt:           generatedAt,
+		JoinedOwners:          joinedOwners,
 		RegisteredMembers:     registeredMembers,
 		OwnersContributed:     len(owners),
 		VehiclesRegistered:    len(filteredVehicles),

@@ -23,6 +23,9 @@ illustrative figures as real data.
   - aggregation,
   - exclusions from public statistics where needed.
 - Include summary statistic cards.
+- Use the deduplicated Join-submission total for the public “Owners joined” counter. Treat email
+  case and `+tag` addressing as one identity. Keep this distinct from verified Firebase Auth
+  accounts and never expose either set of addresses.
 - Include chart-like panels for currently collected distributions:
   - latest State of Health per car;
   - registered cars by model year.
