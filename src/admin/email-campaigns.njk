@@ -1,0 +1,32 @@
+---
+layout: base.njk
+title: Email Campaigns
+description: "Admin-only, resumable member email campaigns."
+noindex: true
+permalink: /admin/email-campaigns/
+emailCampaigns: true
+---
+
+{% from "partials/auth-login-gate.njk" import authLoginGate %}
+
+<div class="page-header"><div class="container"><p class="page-header__eyebrow">Admin</p><h1 class="page-header__title">Email campaigns</h1></div></div>
+
+<div class="section"><div class="container"><div data-admin-container>
+  {{ authLoginGate("campaign-magic-email", "Sign in required", "Enter your admin email address and we will send a secure sign-in link.", "admin", false) }}
+  <div class="auth-gate" data-admin-only-gate hidden><div class="auth-gate__icon" aria-hidden="true">⛔</div><h2 class="auth-gate__title">Access restricted</h2><p class="auth-gate__body">This campaign workspace is for group administrators only.</p></div>
+  <div class="auth-content" data-admin-content hidden>
+    <div class="callout callout--warning"><span class="callout__icon" aria-hidden="true">⚠️</span><div class="callout__content"><p class="callout__title">Deliberately hard to send by accident</p><p>This campaign only contacts people who consented on the Join form but have not completed sign-in. Preview recalculates the audience without revealing addresses. Sending requires the exact current count and proceeds in resumable batches of 10.</p></div></div>
+    <section class="dashboard-panel" data-email-campaigns>
+      <div class="dashboard-panel__header"><div><p class="dashboard-panel__eyebrow">Join re-engagement</p><h2 class="dashboard-panel__title">Complete your registration</h2></div></div>
+      <p>Each recipient gets a fresh Firebase sign-in link and the same consent-aware message used by the operator CLI. Registered accounts are suppressed immediately before every batch.</p>
+      <div class="cluster"><button type="button" class="btn btn--primary" data-campaign-preview>Preview audience</button></div>
+      <div data-campaign-summary class="stack" aria-live="polite"></div>
+      <form data-campaign-send hidden class="stack">
+        <div class="form-group"><label for="campaign-confirm">Confirmation</label><input id="campaign-confirm" data-campaign-confirm autocomplete="off"><p class="form-hint" data-campaign-confirm-hint></p></div>
+        <button type="submit" class="btn btn--danger" data-campaign-send-button>Send next batch of 10</button>
+      </form>
+      <p data-campaign-status role="status" aria-live="polite"></p>
+    </section>
+    <div class="outreach-admin-nav"><h2>Admin navigation</h2><div class="cluster">{% for item in navigation.admin %}<a href="{{ item.url }}" class="btn btn--secondary btn--sm">{{ item.label }}</a>{% endfor %}</div></div>
+  </div>
+</div></div></div>

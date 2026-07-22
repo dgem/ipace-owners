@@ -175,6 +175,7 @@ src/
       member-dashboard.js # Vehicle tabs, SoH graph and service/fault editing
       multistep-form.js  # Multi-step form controller
       outreach-assistant.js # Facebook search-link and reply helper; no automation
+      email-campaigns.js  # Admin re-engagement preview and bounded send controls
       public-stats.js    # Public aggregate-statistics rendering
       site-mode.js       # Launch/full presentation selection
 public/            # Favicons, images and other root-level static assets
@@ -378,6 +379,17 @@ base address after removing any `+tag`,
 and excludes registrations matched by exact email, by email after removing a `+tag`, or by a
 case- and punctuation-insensitive display name. Dry run is the default and does not generate live
 links or contact Resend:
+
+Administrators can run this same narrowly scoped campaign from `/admin/email-campaigns/`, whose
+controls are implemented by `email-campaigns.js`.
+The page returns aggregate counts rather than addresses, requires the exact current count as a
+typed confirmation, rechecks Firebase Auth before delivery, sends at most ten messages per
+request, and records hashed idempotent delivery state in Firestore so it can resume safely. The
+CLI remains available for offline preflight and audit.
+
+The browser calls `POST /api/admin/reengagement-preview` to recalculate the audience and
+`POST /api/admin/reengagement-send` to deliver one confirmed batch. Both routes require a
+server-verified Firebase admin claim.
 
 ```bash
 make join-reengagement \

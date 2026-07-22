@@ -32,7 +32,7 @@ The generated public route surface must include:
   `/methodology/`, `/evidence-dashboard/`, and `/updates/`;
 - dated or named update pages generated from `src/updates/`;
 - `/member/dashboard/`, `/member/account/`, and `/member/submit-vehicle-data/`;
-- `/admin/review-queue/` and `/admin/outreach/`;
+- `/admin/review-queue/`, `/admin/outreach/`, and `/admin/email-campaigns/`;
 - permanent redirects from `/account/**` and `/submit-vehicle-data/**` to their member
   equivalents;
 - a generated 404 page, clean URLs, trailing slashes, and a final Hosting fallback to
@@ -75,6 +75,8 @@ change rather than assuming it exists.
 | `POST /api/upsert-service-event` | Member/vehicle and record owner | `id`, `vehicleId`, `eventType`, `occurredAt`, `mileage`, `title`, `description`, `status`, `campaigns[]`, `finalFixAt`, `daysToFinalFix`, `courtesyVehicleOffered`, `courtesyVehicleProvided`, `partsDelay`, `warrantyCover`, `disputeStatus`. |
 | `GET /api/member-data` | Member | Return only that UID's private member snapshot. |
 | `GET /api/admin-data` | Admin claim | Return Join and vehicle review records. |
+| `POST /api/admin/reengagement-preview` | Admin claim | Return aggregate counts for consented Join submitters who have not registered. |
+| `POST /api/admin/reengagement-send` | Admin claim | Require the campaign ID, exact eligible count and typed confirmation; recheck registrations and send the next batch of at most ten. |
 | `GET /api/public-stats` | Public | Return the anonymised aggregate schema below with five-minute public caching and last-valid-snapshot fallback. |
 
 The implemented API decoder accepts strict JSON bodies and rejects unknown fields. Shared
@@ -87,7 +89,9 @@ Never depend on frontend gating for data protection.
 ## Canonical Firestore and snapshot schemas
 
 Use these exact collection names: `joinSubmissions`, `members`, `vehicles`,
-`batteryReadings`, `serviceEvents`, and `memberSnapshots`. Cloud Storage contains generated
+`batteryReadings`, `serviceEvents`, `memberSnapshots`, and `emailCampaigns`. The latter stores
+campaign delivery subdocuments keyed by a non-reversible email fingerprint, with no recipient
+address returned to the browser. Cloud Storage contains generated
 snapshots under purpose-specific private/public object names; future evidence blobs require
 their own validation and authorization design.
 
@@ -142,6 +146,12 @@ the security prompts, plus immutable one-year caching for `/assets/**`. Password
 forms explicitly use POST even when JavaScript intercepts them.
 
 ## Visual and content fidelity
+
+- Preserve `docs/homepage-copy.md` as a portable Markdown rendering of the canonical homepage
+  wording, with absolute production links and placeholders for live statistics.
+- Provide an admin-only Join re-engagement campaign page. It previews aggregate counts without
+  exposing addresses, requires exact confirmation, rechecks registration before sending, sends
+  bounded resumable batches, and persists a hashed idempotent delivery ledger.
 
 Prompts define visual intent, not the exact control points or pixels of generated artwork.
 Therefore the following committed assets are preservation-critical and must be backed up with

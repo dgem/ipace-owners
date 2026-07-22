@@ -10,6 +10,12 @@ Keep local and CI operations reproducible through `make`, avoid skipped or misle
 checks, and preserve the operational lessons learned while moving the project to
 Firebase/GCP.
 
+The `/admin/email-campaigns/` Join re-engagement control uses the CLI's consent and registration
+suppression boundary. Preview exposes counts only. Sending requires the current campaign ID,
+exact audience count, and `SEND <count>` confirmation; each request sends at most ten messages
+and records a hashed Firestore delivery ledger with Resend idempotency keys. Re-preview between
+batches and stop to investigate any provider or ledger error.
+
 ## Command Surface
 
 - The Makefile is the shared command surface for local development and CI.

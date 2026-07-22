@@ -20,6 +20,7 @@
   "admin": [
     { "label": "Review Queue", "url": "/admin/review-queue/" },
     { "label": "Outreach", "url": "/admin/outreach/" },
+    { "label": "Email campaigns", "url": "/admin/email-campaigns/" },
     { "label": "Submissions", "url": "/admin/submissions/" },
     { "label": "Evidence Files", "url": "/admin/evidence-files/" },
     { "label": "Public Stats", "url": "/admin/public-stats/" },

@@ -97,6 +97,8 @@ users removed from the desired set. A configured user must already exist in Fire
 | `POST /api/upsert-service-event` | `UpsertServiceEvent` | Member | Add or edit an owned vehicle's service/fault timeline record. |
 | `GET /api/member-data` | `MemberData` | Member | Return the signed-in user's generated snapshot. |
 | `GET /api/admin-data` | `AdminData` | Admin | Return review data for administrators. |
+| `POST /api/admin/reengagement-preview` | `AdminReengagementPreview` | Admin | Return aggregate counts for the consented, unsigned-in Join audience. |
+| `POST /api/admin/reengagement-send` | `AdminReengagementSend` | Admin | Confirm and send the next resumable batch of at most ten reminders. |
 | `GET /api/public-stats` | `PublicStats` | No | Return the generated anonymised aggregate snapshot. |
 
 Templates and client JavaScript use `/api/*`; Firebase Hosting rewrites `/api/**` to the
