@@ -48,17 +48,21 @@ test('email campaign browser sends tokens and explicit confirmation data', funct
   assert.match(page, /\/api\/admin\/member-referral-send/);
   assert.match(script, /expectedEligible: current\.eligible/);
   assert.match(script, /confirmation: confirmInput\.value/);
+  assert.match(script, /emailHTML\.srcdoc = data\.emailPreview\.html/);
   assert.match(script, /emailText\.textContent = data\.emailPreview\.text/);
   assert.match(script, /emailPreview\.hidden = false/);
+  assert.match(page, /data-campaign-email-html[^>]+sandbox/);
+  assert.match(page, /View plain-text alternative/);
   assert.doesNotMatch(script, /recipient|emailAddress|\.email\b/i);
 });
 
-test('member referral campaign is clear and previews monochrome sharing actions', function () {
+test('member referral campaign previews the exact HTML email in a readable sandbox', function () {
   const css = fs.readFileSync(path.join(root, 'src/assets/css/site.css'), 'utf8');
   assert.match(page, /Ask members to invite one more I-PACE owner/);
   assert.match(page, /registered members whose Join record includes contact consent/);
-  assert.match(script, /data\.emailPreview\.shares/);
-  assert.match(css, /\.email-preview__share-mark[\s\S]*grayscale\(1\)/);
+  assert.match(css, /\.email-preview__viewport iframe[\s\S]*height: 52rem/);
+  assert.match(css, /\.email-preview pre[\s\S]*color: var\(--color-text\)/);
+  assert.doesNotMatch(page, /data-campaign-share-preview/);
 });
 
 test('portable homepage copy uses production links and live-value placeholders', function () {

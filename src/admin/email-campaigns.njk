@@ -32,7 +32,8 @@ emailCampaigns: true
         <p class="dashboard-panel__eyebrow">Email preview</p>
         <h3 id="email-preview-title">What each recipient will receive</h3>
         <p><strong>Subject:</strong> <span data-campaign-email-subject></span></p>
-        <pre data-campaign-email-text></pre>
+        <div class="email-preview__viewport"><iframe data-campaign-email-html title="Rendered HTML registration-reminder email preview" sandbox></iframe></div>
+        <details class="email-preview__plain"><summary>View plain-text alternative</summary><pre data-campaign-email-text></pre></details>
       </section>
 
       <form data-campaign-send class="stack email-campaign-step">
@@ -53,8 +54,9 @@ emailCampaigns: true
       <div data-campaign-summary class="stack" aria-live="polite"></div>
       <section class="email-preview" data-campaign-email-preview hidden aria-labelledby="referral-email-preview-title">
         <p class="dashboard-panel__eyebrow">Email preview</p><h3 id="referral-email-preview-title">What each recipient will receive</h3>
-        <p><strong>Subject:</strong> <span data-campaign-email-subject></span></p><pre data-campaign-email-text></pre>
-        <div class="email-preview__shares" data-campaign-share-preview hidden aria-label="Monochrome social sharing buttons"></div>
+        <p><strong>Subject:</strong> <span data-campaign-email-subject></span></p>
+        <div class="email-preview__viewport"><iframe data-campaign-email-html title="Rendered HTML member-referral email preview" sandbox></iframe></div>
+        <details class="email-preview__plain"><summary>View plain-text alternative</summary><pre data-campaign-email-text></pre></details>
       </section>
       <form data-campaign-send class="stack email-campaign-step">
         <div><p class="dashboard-panel__eyebrow">Step 2</p><h3>Confirm and send the emails</h3><p>The controls unlock after Step 1 confirms the current audience.</p></div>
