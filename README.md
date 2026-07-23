@@ -466,14 +466,19 @@ For Instagram Login, provision an OAuth user token for the Professional account 
 secret are needed only for an automated OAuth connection/exchange flow; they are not publishing
 API keys and must not be exposed to the browser.
 
-OpenTofu enables `aiplatform.googleapis.com`, grants the dedicated Function runtime
-`roles/aiplatform.user`, and creates the private, public-access-prevented
-`${project_id}-campaign-media` bucket. Veo working objects belong under `work/` and expire after
-the configured 30-day working retention; approved masters belong under `masters/`, remain private,
-and are versioned without that expiry rule. `VEO_MODEL_ID` defaults to
-`veo-3.1-generate-001`, `VEO_LOCATION` defaults to `global`, and no API key is required because
-the Function uses its Google runtime identity. Generation remains a separate asynchronous,
-admin-reviewed action and must never publish to Instagram automatically.
+OpenTofu enables `aiplatform.googleapis.com`, explicitly provisions the managed Vertex AI service
+identity, grants it its service-agent role and bucket-scoped object access, grants the dedicated
+Function runtime `roles/aiplatform.user`, and creates the private, public-access-prevented
+`${project_id}-campaign-media` bucket. This avoids relying on first-request service-agent
+provisioning. Veo working objects belong under `work/` and expire after the configured 30-day
+working retention; approved masters belong under `masters/`, remain private, and are versioned
+without that expiry rule. `VEO_MODEL_ID` defaults to `veo-3.1-generate-001` and `VEO_LOCATION`
+defaults to `us-central1`, the supported Veo 3.1 processing region. The Function and private media
+bucket remain in `europe-west2`, but generation is processed in the US; do not describe this flow
+as UK-resident processing. No API key is required because the Function uses its Google runtime
+identity. Generation remains a separate asynchronous, admin-reviewed action and must never publish
+to Instagram automatically. Failed provider operations retain a safe failure classification and
+provider code/status for administrators without returning arbitrary provider messages to browsers.
 
 ```bash
 make join-reengagement \

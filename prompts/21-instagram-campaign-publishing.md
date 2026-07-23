@@ -178,12 +178,17 @@ credentials, not as a publishing API key; keep the app secret server-side if an 
 connection flow is added.
 
 OpenTofu must enable `aiplatform.googleapis.com`, create a private campaign-media bucket with
-public access prevention, grant the Function runtime `roles/aiplatform.user` and object access on
-that bucket, and provide `CAMPAIGN_MEDIA_BUCKET`, `VEO_LOCATION` (default `global`), and
-`VEO_MODEL_ID` (default `veo-3.1-generate-001`) through environment-specific GitHub variables.
+public access prevention, explicitly provision the managed Vertex AI service identity, grant its
+service-agent role and bucket-scoped object access, grant the Function runtime
+`roles/aiplatform.user` and object access on that bucket, and provide `CAMPAIGN_MEDIA_BUCKET`,
+`VEO_LOCATION` (default `us-central1`), and `VEO_MODEL_ID` (default
+`veo-3.1-generate-001`) through environment-specific GitHub variables. The generation UI must state
+that Veo processing occurs in the US while the Function and private media bucket remain in London.
 Use `work/` for source clips, continuation clips, extracted frames, and rejected candidates with
 bounded retention. Use the versioned, non-expiring `masters/` prefix for approved final masters.
-Use runtime identity rather than an API key. Completing generation must not invoke publishing.
+Use runtime identity rather than an API key. Persist and return only safe, actionable provider
+failure classifications plus provider code/status for administrator diagnosis. Completing
+generation must not invoke publishing.
 
 ## Verification
 

@@ -19,9 +19,16 @@ test("OpenTofu enables Vertex AI and provisions least-privilege Veo media storag
   assert.match(main, /matches_prefix\s+=\s+\["work\/"\]/);
   assert.match(main, /versioning\s+\{\s+enabled\s+=\s+true/s);
   assert.match(main, /role\s+=\s+"roles\/aiplatform\.user"/);
+  assert.match(main, /resource "google_project_service_identity" "vertex_ai"/);
+  assert.match(main, /service\s+=\s+"aiplatform\.googleapis\.com"/);
+  assert.match(main, /resource "google_project_iam_member" "vertex_ai_service_agent"/);
+  assert.match(main, /role\s+=\s+"roles\/aiplatform\.serviceAgent"/);
   assert.match(main, /resource "google_storage_bucket_iam_member" "runtime_campaign_media"/);
+  assert.match(main, /resource "google_storage_bucket_iam_member" "vertex_ai_campaign_media"/);
+  assert.match(main, /google_project_service_identity\.vertex_ai\.email/);
   assert.match(variables, /default\s+=\s+"veo-3\.1-generate-001"/);
-  assert.match(variables, /default\s+=\s+"global"/);
+  assert.match(variables, /default\s+=\s+"us-central1"/);
+  assert.match(variables, /var\.veo_location == "us-central1"/);
 });
 
 test("Veo configuration flows from OpenTofu through both Function deployment environments", () => {

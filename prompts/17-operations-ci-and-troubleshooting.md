@@ -165,6 +165,23 @@ recheck, and hashed-ledger controls as registration reminders.
   gathering steps, disclose the volunteer connection when inviting participation, avoid diagnosis
   or official-advice claims, follow group rules, and stop on objection.
 
+## Veo generation operations
+
+- Keep the Function and private campaign-media bucket in `europe-west2`, but configure Veo 3.1
+  with the explicit `us-central1` endpoint. Reject the `global` routing alias so administrators
+  are not given a false impression of UK-resident generation.
+- Provision `aiplatform.googleapis.com` and its managed service identity through OpenTofu before
+  granting the intended service-agent role and bucket-scoped object access. Do not wait for the
+  first billable generation request to trigger service-agent creation.
+- A `Veo generation started` application log proves that Vertex accepted an asynchronous
+  operation, not that media rendering completed. Poll the stored operation to its terminal state.
+- If Vertex returns code `9` while service agents are being provisioned, apply the current
+  infrastructure, allow IAM propagation to complete, and start a new explicitly confirmed job.
+  Failed billable jobs are immutable and must not be silently retried.
+- Store and log only an allowlisted failure classification with provider numeric code/status.
+  Show administrators an actionable safe message, and do not expose arbitrary provider text to
+  the browser.
+
 ## Firebase administrator reconciliation
 
 - Treat OpenTofu's administrator email map as authoritative whenever management is enabled. The

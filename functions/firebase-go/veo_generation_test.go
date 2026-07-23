@@ -18,13 +18,23 @@ func setVeoTestConfig(t *testing.T) veoConfig {
 	t.Helper()
 	t.Setenv("FIREBASE_PROJECT_ID", "ipace-owners-staging")
 	t.Setenv("CAMPAIGN_MEDIA_BUCKET", "ipace-owners-staging-campaign-media")
-	t.Setenv("VEO_LOCATION", "global")
+	t.Setenv("VEO_LOCATION", "us-central1")
 	t.Setenv("VEO_MODEL_ID", "veo-3.1-generate-001")
 	config, err := currentVeoConfig()
 	if err != nil {
 		t.Fatal(err)
 	}
 	return config
+}
+
+func TestVeoConfigurationRejectsGlobalRoutingAlias(t *testing.T) {
+	t.Setenv("FIREBASE_PROJECT_ID", "ipace-owners-staging")
+	t.Setenv("CAMPAIGN_MEDIA_BUCKET", "ipace-owners-staging-campaign-media")
+	t.Setenv("VEO_LOCATION", "global")
+	t.Setenv("VEO_MODEL_ID", "veo-3.1-generate-001")
+	if _, err := currentVeoConfig(); err == nil || !strings.Contains(err.Error(), "unsupported Veo location") {
+		t.Fatalf("expected global routing alias to be rejected, got %v", err)
+	}
 }
 
 func TestVeoStartBuildsAuthenticatedTemporalVideoRequests(t *testing.T) {
@@ -42,7 +52,7 @@ func TestVeoStartBuildsAuthenticatedTemporalVideoRequests(t *testing.T) {
 			}
 			requests = append(requests, req)
 			bodies = append(bodies, body)
-			operationName := "projects/ipace-owners-staging/locations/global/publishers/google/models/veo-3.1-generate-001/operations/test-operation"
+			operationName := "projects/ipace-owners-staging/locations/us-central1/publishers/google/models/veo-3.1-generate-001/operations/test-operation"
 			return &http.Response{StatusCode: http.StatusOK, Body: io.NopCloser(strings.NewReader(`{"name":"` + operationName + `"}`)), Header: make(http.Header)}, nil
 		})}, nil
 	}
@@ -55,7 +65,7 @@ func TestVeoStartBuildsAuthenticatedTemporalVideoRequests(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(requests) != 2 || requests[0].URL.Host != "aiplatform.googleapis.com" || !strings.HasSuffix(requests[0].URL.Path, ":predictLongRunning") {
+	if len(requests) != 2 || requests[0].URL.Host != "us-central1-aiplatform.googleapis.com" || !strings.HasSuffix(requests[0].URL.Path, ":predictLongRunning") {
 		t.Fatalf("unexpected requests: %#v", requests)
 	}
 	initialParameters := bodies[0]["parameters"].(map[string]any)
@@ -110,7 +120,7 @@ func TestInstagramGenerateStartsOneIdempotentVertexOperation(t *testing.T) {
 	starts := 0
 	veoStartOperation = func(context.Context, veoConfig, string, string, string, string) (string, error) {
 		starts++
-		return "projects/ipace-owners-staging/locations/global/publishers/google/models/veo-3.1-generate-001/operations/initial", nil
+		return "projects/ipace-owners-staging/locations/us-central1/publishers/google/models/veo-3.1-generate-001/operations/initial", nil
 	}
 	veoUpdateJob = func(context.Context, veoGenerationJob) error { return nil }
 	req := httptest.NewRequest(http.MethodPost, "/api/admin/instagram-generate", strings.NewReader(`{"requestId":"1234567890abcdef","prompt":"car","confirmation":"GENERATE VIDEO"}`))
@@ -189,6 +199,63 @@ func TestProgressVeoGenerationDoesNotStartDuplicateExtension(t *testing.T) {
 	progressed, err := progressVeoGeneration(context.Background(), job)
 	if err != nil || starts != 0 || progressed.Status != "starting_extension" {
 		t.Fatalf("progressed=%#v starts=%d err=%v", progressed, starts, err)
+	}
+}
+
+func TestProgressVeoGenerationReportsServiceIdentityProvisioningFailure(t *testing.T) {
+	setVeoTestConfig(t)
+	originalFetch, originalUpdate := veoFetchOperation, veoUpdateJob
+	t.Cleanup(func() {
+		veoFetchOperation, veoUpdateJob = originalFetch, originalUpdate
+	})
+	veoFetchOperation = func(context.Context, veoConfig, string) (veoOperation, error) {
+		return veoOperation{
+			Done: true,
+			Error: &veoOperationError{
+				Code:    9,
+				Status:  "FAILED_PRECONDITION",
+				Message: "Service agents are being provisioned. Service agents are needed to read the Cloud Storage file provided.",
+			},
+		}, nil
+	}
+	var saved veoGenerationJob
+	veoUpdateJob = func(_ context.Context, job veoGenerationJob) error {
+		saved = job
+		return nil
+	}
+	job := veoGenerationJob{
+		ID: "veo-aaaaaaaaaaaaaaaaaaaaaaaa", Status: "processing", Phase: "initial",
+		OperationName: "initial-operation", ModelID: "veo-3.1-generate-001", Location: "us-central1",
+	}
+	progressed, err := progressVeoGeneration(context.Background(), job)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if progressed.FailureCode != "vertex_service_agent_provisioning" ||
+		progressed.ProviderCode != 9 || progressed.ProviderStatus != "FAILED_PRECONDITION" ||
+		!strings.Contains(progressed.FailureDetail, "service identity") {
+		t.Fatalf("unexpected classified failure: %#v", progressed)
+	}
+	if saved.FailureCode != progressed.FailureCode {
+		t.Fatalf("classified failure was not persisted: %#v", saved)
+	}
+	response, err := veoResponse(context.Background(), progressed)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if response.FailureCode != progressed.FailureCode || response.Location != "us-central1" ||
+		!strings.Contains(response.Message, "IAM propagation") ||
+		strings.Contains(response.Message, "Cloud Storage file provided") {
+		t.Fatalf("unexpected safe admin response: %#v", response)
+	}
+}
+
+func TestClassifyVeoOperationErrorDoesNotExposeUnknownProviderMessage(t *testing.T) {
+	code, detail := classifyVeoOperationError(&veoOperationError{
+		Code: 13, Status: "INTERNAL", Message: "internal detail that must not reach the browser",
+	})
+	if code != "vertex_operation_failed" || strings.Contains(detail, "internal detail") {
+		t.Fatalf("unsafe classification: code=%q detail=%q", code, detail)
 	}
 }
 

@@ -64,9 +64,14 @@ variable "region" {
 }
 
 variable "veo_location" {
-  description = "Vertex AI location used for Veo generation requests."
+  description = "Vertex AI location used for Veo generation requests. Veo 3.1 generation is processed in us-central1."
   type        = string
-  default     = "global"
+  default     = "us-central1"
+
+  validation {
+    condition     = var.veo_location == "us-central1"
+    error_message = "veo_location must be us-central1 for the configured Veo 3.1 model; the global routing alias is not allowed."
+  }
 }
 
 variable "veo_model_id" {

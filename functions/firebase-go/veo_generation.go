@@ -27,6 +27,7 @@ import (
 const (
 	veoPromptLimit      = 12000
 	veoDeliveryTokenTTL = 24 * time.Hour
+	veoLocation         = "us-central1"
 )
 
 var veoRequestIDPattern = regexp.MustCompile(`^[A-Za-z0-9_-]{16,100}$`)
@@ -54,18 +55,29 @@ type veoGenerationJob struct {
 	ModelID        string    `firestore:"modelId"`
 	Location       string    `firestore:"location"`
 	FailureCode    string    `firestore:"failureCode,omitempty"`
+	FailureDetail  string    `firestore:"failureDetail,omitempty"`
+	ProviderCode   int       `firestore:"providerCode,omitempty"`
+	ProviderStatus string    `firestore:"providerStatus,omitempty"`
 	DeliveryHash   string    `firestore:"deliveryTokenHash,omitempty"`
 	DeliveryExpiry time.Time `firestore:"deliveryExpiresAt,omitempty"`
 }
 
 type veoGenerationResponse struct {
-	JobID      string `json:"jobId"`
-	Status     string `json:"status"`
-	Phase      string `json:"phase"`
-	ModelID    string `json:"modelId"`
-	MediaPath  string `json:"mediaPath,omitempty"`
-	Message    string `json:"message"`
-	Configured bool   `json:"configured"`
+	JobID       string `json:"jobId"`
+	Status      string `json:"status"`
+	Phase       string `json:"phase"`
+	ModelID     string `json:"modelId"`
+	Location    string `json:"location"`
+	MediaPath   string `json:"mediaPath,omitempty"`
+	Message     string `json:"message"`
+	FailureCode string `json:"failureCode,omitempty"`
+	Configured  bool   `json:"configured"`
+}
+
+type veoOperationError struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+	Status  string `json:"status"`
 }
 
 type veoOperation struct {
@@ -79,11 +91,7 @@ type veoOperation struct {
 			MimeType string `json:"mimeType"`
 		} `json:"videos"`
 	} `json:"response"`
-	Error *struct {
-		Code    int    `json:"code"`
-		Message string `json:"message"`
-		Status  string `json:"status"`
-	} `json:"error"`
+	Error *veoOperationError `json:"error"`
 }
 
 type veoConfig struct {
@@ -221,10 +229,16 @@ func progressVeoGeneration(ctx context.Context, job veoGenerationJob) (veoGenera
 	}
 	if operation.Error != nil {
 		job.Status = "failed"
-		job.FailureCode = "vertex_operation_failed"
+		job.FailureCode, job.FailureDetail = classifyVeoOperationError(operation.Error)
+		job.ProviderCode = operation.Error.Code
+		job.ProviderStatus = strings.TrimSpace(operation.Error.Status)
 		if err := veoUpdateJob(ctx, job); err != nil {
 			return job, err
 		}
+		logEvent("admin-instagram-generation-status", "error", "Veo operation failed", map[string]any{
+			"jobId": job.ID, "phase": job.Phase, "failureCode": job.FailureCode,
+			"providerCode": job.ProviderCode, "providerStatus": job.ProviderStatus,
+		})
 		return job, nil
 	}
 	if operation.Response.FilteredCount > 0 || len(operation.Response.Videos) != 1 {
@@ -270,6 +284,9 @@ func progressVeoGeneration(ctx context.Context, job veoGenerationJob) (veoGenera
 	job.Status = "completed"
 	job.OperationName = ""
 	job.FailureCode = ""
+	job.FailureDetail = ""
+	job.ProviderCode = 0
+	job.ProviderStatus = ""
 	if err := veoUpdateJob(ctx, job); err != nil {
 		return job, err
 	}
@@ -287,6 +304,9 @@ func veoResponse(ctx context.Context, job veoGenerationJob) (veoGenerationRespon
 	}
 	if job.Status == "failed" {
 		message = "Generation stopped safely. No media was published. Start a new job after checking the configuration or prompt."
+		if job.FailureDetail != "" {
+			message = job.FailureDetail
+		}
 	}
 	response := generationResponse(job, message)
 	if job.Status == "completed" {
@@ -301,7 +321,25 @@ func veoResponse(ctx context.Context, job veoGenerationJob) (veoGenerationRespon
 }
 
 func generationResponse(job veoGenerationJob, message string) veoGenerationResponse {
-	return veoGenerationResponse{JobID: job.ID, Status: job.Status, Phase: job.Phase, ModelID: job.ModelID, Message: message, Configured: veoConfigurationValid()}
+	return veoGenerationResponse{
+		JobID: job.ID, Status: job.Status, Phase: job.Phase, ModelID: job.ModelID,
+		Location: job.Location, Message: message, FailureCode: job.FailureCode,
+		Configured: veoConfigurationValid(),
+	}
+}
+
+func classifyVeoOperationError(providerErr *veoOperationError) (string, string) {
+	if providerErr == nil {
+		return "vertex_operation_failed", "Vertex AI stopped the generation operation. No media was published. Check Cloud Logging before starting a new job."
+	}
+	message := strings.ToLower(providerErr.Message)
+	if providerErr.Code == 9 && strings.Contains(message, "service agents are being provisioned") {
+		return "vertex_service_agent_provisioning", "Vertex AI could not access the campaign-media bucket while its service identity was being provisioned. Apply the infrastructure configuration, allow IAM propagation to finish, then start a new job."
+	}
+	if strings.Contains(message, "permission") || strings.Contains(message, "access denied") {
+		return "vertex_storage_access_denied", "Vertex AI could not access the private campaign-media bucket. Check the managed Vertex service identity and bucket IAM grant before starting a new job."
+	}
+	return "vertex_operation_failed", "Vertex AI stopped the generation operation. No media was published. Check Cloud Logging before starting a new job."
 }
 
 func currentVeoConfig() (veoConfig, error) {
@@ -318,6 +356,9 @@ func currentVeoConfig() (veoConfig, error) {
 		!regexp.MustCompile(`^[a-z0-9-]+$`).MatchString(config.Location) ||
 		!regexp.MustCompile(`^veo-[a-z0-9.-]+$`).MatchString(config.ModelID) {
 		return veoConfig{}, fmt.Errorf("invalid Veo configuration")
+	}
+	if config.Location != veoLocation {
+		return veoConfig{}, fmt.Errorf("unsupported Veo location")
 	}
 	return config, nil
 }
@@ -391,7 +432,9 @@ func updateVeoGenerationJob(ctx context.Context, job veoGenerationJob) error {
 	_, err = db.Collection("instagramGenerationJobs").Doc(job.ID).Set(ctx, map[string]any{
 		"status": job.Status, "phase": job.Phase, "operationName": job.OperationName,
 		"initialGcsUri": job.InitialGCSURI, "masterObject": job.MasterObject,
-		"failureCode": job.FailureCode, "updatedAt": firestore.ServerTimestamp,
+		"failureCode": job.FailureCode, "failureDetail": job.FailureDetail,
+		"providerCode": job.ProviderCode, "providerStatus": job.ProviderStatus,
+		"updatedAt": firestore.ServerTimestamp,
 	}, firestore.MergeAll)
 	return err
 }
