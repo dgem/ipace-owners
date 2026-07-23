@@ -67,6 +67,11 @@ func TestCampaignEmailPreviewUsesTheDeliveryTemplate(t *testing.T) {
 	if !strings.Contains(preview.Text, "371 owners have joined") || !strings.Contains(preview.Text, "fresh, private sign-in link") {
 		t.Fatalf("preview missing audience context: %q", preview.Text)
 	}
+	for _, expected := range []string{"<!doctype html>", "Please complete your registration", "fresh, private sign-in link", "/images/ipace-hero.png"} {
+		if !strings.Contains(preview.HTML, expected) {
+			t.Fatalf("HTML preview missing %q: %q", expected, preview.HTML)
+		}
+	}
 }
 
 func TestCampaignEmailUsesMarkdownContentAndSharedBranding(t *testing.T) {
@@ -111,6 +116,11 @@ func TestMemberReferralEmailExplainsGoalAndProvidesShares(t *testing.T) {
 	for _, expected := range []string{"371 owners have joined", "629 members away", "grow to 742 members", "in the 700s"} {
 		if !strings.Contains(preview.Text, expected) {
 			t.Fatalf("preview missing %q: %s", expected, preview.Text)
+		}
+	}
+	for _, expected := range []string{"<!doctype html>", "/images/ipace-hero.png", "Visit I-PACE Owners", "Facebook", "WhatsApp"} {
+		if !strings.Contains(preview.HTML, expected) {
+			t.Fatalf("HTML preview missing %q: %s", expected, preview.HTML)
 		}
 	}
 	labels := map[string]bool{}

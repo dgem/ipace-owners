@@ -281,6 +281,9 @@ route unless there is a measured need.
   Campaign prose is maintained as embedded `email-templates/*.md.tmpl` Go templates and rendered
   into both escaped HTML and plain text; mandatory consent/unsubscribe footers remain structural
   composition data rather than editable campaign Markdown.
+- Admin campaign preview responses return that exact generated HTML with placeholder-only private
+  links. The browser renders it in a sandboxed `srcdoc` iframe and keeps the plain-text alternative
+  available in a disclosure, without exposing recipient data.
 - Merges to `main` deploy production.
 
 ## Prompt maintenance

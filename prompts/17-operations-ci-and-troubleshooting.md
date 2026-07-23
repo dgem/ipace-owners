@@ -11,9 +11,10 @@ checks, and preserve the operational lessons learned while moving the project to
 Firebase/GCP.
 
 The `/admin/email-campaigns/` Join re-engagement control uses the CLI's consent and registration
-suppression boundary. Preview exposes aggregate counts and the exact plain-text template with a
-safe link placeholder, but no recipient data. Send controls stay visible but disabled until the
-preview succeeds. Sending requires the current campaign ID, exact audience count, and `SEND <count>` confirmation; each request sends at most ten messages
+suppression boundary. Preview exposes aggregate counts and the exact HTML delivery in a sandboxed
+iframe, with the plain-text alternative available on demand and a safe link placeholder, but no
+recipient data. Send controls stay visible but disabled until the preview succeeds. Sending
+requires the current campaign ID, exact audience count, and `SEND <count>` confirmation; each request sends at most ten messages
 and records a hashed Firestore delivery ledger with Resend idempotency keys. Re-preview between
 batches and stop to investigate any provider or ledger error.
 
@@ -234,6 +235,8 @@ recheck, and hashed-ledger controls as registration reminders.
   image is deployed with the preview branch and the magic link is short-lived. For normal
   staging/production sends, prefer `RESEND_ASSET_BASE_URL_<ENV>` pointing at a stable custom
   domain; avoid localhost and generic Firebase default domains for long-lived email assets.
+  Staging uses `https://ipace-owners.org` because `stage.ipace-owners.org` is the Resend sender
+  domain and does not serve Firebase Hosting assets.
 - Keep Join re-engagement as an operator CLI, not an HTTP Function. The CLI must select staging or
   production explicitly, extract Join and Firebase Auth data directly, and run a no-send comparison
   by default. Suppress exact email, plus-address canonical email, and normalised display-name

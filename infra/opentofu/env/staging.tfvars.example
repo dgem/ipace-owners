@@ -47,7 +47,9 @@ firebase_auth_email_action_domain = "stage.ipace-owners.org"
 
 resend_from           = "I-PACE Owners Staging <members@stage.ipace-owners.org>"
 resend_reply_to       = "contact@ipace-owners.org"
-resend_asset_base_url = "https://stage.ipace-owners.org"
+# Email clients need a durable public asset host. The staging custom domain does not serve
+# Hosting assets, so staging delivery deliberately reuses the canonical public hero.
+resend_asset_base_url = "https://ipace-owners.org"
 
 # Set bootstrap_resend_api_key_secret=true and provide the real API key via
 # TF_VAR_resend_api_key or an uncommitted tfvars file if OpenTofu should bootstrap

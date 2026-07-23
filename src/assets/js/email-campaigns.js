@@ -24,26 +24,10 @@
     var sendButton = root.querySelector('[data-campaign-send-button]');
     var emailPreview = root.querySelector('[data-campaign-email-preview]');
     var emailSubject = root.querySelector('[data-campaign-email-subject]');
+    var emailHTML = root.querySelector('[data-campaign-email-html]');
     var emailText = root.querySelector('[data-campaign-email-text]');
-    var sharePreview = root.querySelector('[data-campaign-share-preview]');
     var status = root.querySelector('[data-campaign-status]');
     var current = null;
-
-    function renderShares(shares) {
-      if (!sharePreview) return;
-      sharePreview.textContent = '';
-      (shares || []).forEach(function (share) {
-        var item = document.createElement('span');
-        item.className = 'email-preview__share';
-        var mark = document.createElement('span');
-        mark.className = 'email-preview__share-mark';
-        mark.textContent = share.mark;
-        item.appendChild(mark);
-        item.appendChild(document.createTextNode(' ' + share.label));
-        sharePreview.appendChild(item);
-      });
-      sharePreview.hidden = !shares || shares.length === 0;
-    }
 
     function render(data) {
       current = data;
@@ -53,8 +37,8 @@
       summary.appendChild(p);
       var remaining = data.remaining;
       emailSubject.textContent = data.emailPreview.subject;
+      emailHTML.srcdoc = data.emailPreview.html;
       emailText.textContent = data.emailPreview.text;
-      renderShares(data.emailPreview.shares);
       emailPreview.hidden = false;
       confirmInput.disabled = remaining < 1;
       sendButton.disabled = remaining < 1;

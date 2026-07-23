@@ -181,7 +181,8 @@ Branded Resend path:
 - Use `/images/ipace-hero.png` in the HTML email through an absolute HTTPS asset URL. In PR
   previews, derive the asset URL from the PR preview origin so the email references the
   image deployed on the same preview branch. In normal staging/production, use the configured
-  stable asset base URL.
+  stable asset base URL. Use the canonical `https://ipace-owners.org` asset base for staging
+  delivery because the `stage.ipace-owners.org` sender domain does not serve Hosting assets.
 - Never log raw action links, API keys, raw provider responses, request bodies, Firebase ID
   tokens, or personal email addresses.
 - If Resend link generation or delivery fails, log a sanitized warning and fall back to
