@@ -253,6 +253,12 @@ route unless there is a measured need.
   sender/reply-to/asset-base values may be managed as GitHub environment variables by
   OpenTofu. OpenTofu may also manage the Resend sending-domain resource and output DNS
   verification records; DNS remains manual while Fasthosts is authoritative.
+- Custom magic-link, Join re-engagement and member-referral messages share one responsive
+  inline-styled HTML shell with the established text masthead, hero image and pill-shaped action
+  buttons. Do not insert the site logo image into transactional or campaign email templates.
+  Campaign prose is maintained as embedded `email-templates/*.md.tmpl` Go templates and rendered
+  into both escaped HTML and plain text; mandatory consent/unsubscribe footers remain structural
+  composition data rather than editable campaign Markdown.
 - Merges to `main` deploy production.
 
 ## Prompt maintenance

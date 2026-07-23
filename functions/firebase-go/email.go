@@ -111,54 +111,116 @@ func emailAssetBaseURL(continueURL string) string {
 }
 
 func magicLinkEmailHTML(actionLink string, assetBaseURL string) string {
-	link := html.EscapeString(actionLink)
-	imageURL := html.EscapeString(strings.TrimRight(assetBaseURL, "/") + "/images/ipace-hero.png")
+	body := strings.Join([]string{
+		`<p style="margin:0 0 18px;font-size:16px;line-height:1.6;color:#374151;">Use this link to complete registration or sign in to your I-PACE Owners member area.</p>`,
+		`<p style="margin:0 0 26px;font-size:16px;line-height:1.6;color:#374151;">The link is time-limited and should only be used by you.</p>`,
+	}, "")
+	return brandedEmailHTML(brandedEmailMessage{
+		DocumentTitle:      "Your secure sign-in link for I-PACE Owners",
+		Preheader:          "Use this secure link to sign in to I-PACE Owners.",
+		Heading:            "Your secure sign-in link",
+		BodyHTML:           body,
+		PrimaryActionLabel: "Sign in securely",
+		PrimaryActionURL:   actionLink,
+		FallbackURL:        actionLink,
+		FallbackLabel:      "If the button does not work, copy and paste this URL into your browser:",
+		FooterNote:         "If you did not request this email, you can safely ignore it.",
+		AssetBaseURL:       assetBaseURL,
+	})
+}
+
+type brandedEmailMessage struct {
+	DocumentTitle      string
+	Preheader          string
+	Heading            string
+	BodyHTML           string
+	PrimaryActionLabel string
+	PrimaryActionURL   string
+	FallbackURL        string
+	FallbackLabel      string
+	FooterNote         string
+	AssetBaseURL       string
+	SupplementHTML     string
+}
+
+func brandedEmailHTML(message brandedEmailMessage) string {
+	title := html.EscapeString(strings.TrimSpace(message.DocumentTitle))
+	if title == "" {
+		title = "I-PACE Owners"
+	}
+	preheader := html.EscapeString(strings.TrimSpace(message.Preheader))
+	heading := html.EscapeString(strings.TrimSpace(message.Heading))
+	imageURL := html.EscapeString(strings.TrimRight(strings.TrimSpace(message.AssetBaseURL), "/") + "/images/ipace-hero.png")
+	body := strings.TrimSpace(message.BodyHTML)
+	if body == "" {
+		body = `<p style="margin:0;font-size:16px;line-height:1.6;color:#374151;">Thank you for being part of I-PACE Owners.</p>`
+	}
+
+	primaryAction := ""
+	if strings.TrimSpace(message.PrimaryActionURL) != "" && strings.TrimSpace(message.PrimaryActionLabel) != "" {
+		primaryAction = `<p style="margin:0 0 28px;"><a href="` + html.EscapeString(strings.TrimSpace(message.PrimaryActionURL)) + `" style="display:inline-block;background:#0f766e;color:#ffffff;text-decoration:none;font-weight:700;border-radius:999px;padding:14px 22px;font-size:16px;">` + html.EscapeString(strings.TrimSpace(message.PrimaryActionLabel)) + `</a></p>`
+	}
+
+	fallback := ""
+	if strings.TrimSpace(message.FallbackURL) != "" {
+		label := strings.TrimSpace(message.FallbackLabel)
+		if label == "" {
+			label = "If the button does not work, copy and paste this URL into your browser:"
+		}
+		escapedURL := html.EscapeString(strings.TrimSpace(message.FallbackURL))
+		fallback = `<p style="margin:0 0 12px;font-size:13px;line-height:1.5;color:#4b5563;">` + html.EscapeString(label) + `</p><p style="margin:0;word-break:break-all;font-size:13px;line-height:1.5;color:#4b5563;"><a href="` + escapedURL + `" style="color:#0f766e;">` + escapedURL + `</a></p>`
+	}
+
+	supplement := strings.TrimSpace(message.SupplementHTML)
+	if supplement != "" {
+		supplement = `<div style="margin:22px 0 0;">` + supplement + `</div>`
+	}
+
+	footer := html.EscapeString(strings.TrimSpace(message.FooterNote))
+	if footer == "" {
+		footer = "If you did not request this email, you can safely ignore it."
+	}
+
 	return `<!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Your secure sign-in link for I-PACE Owners</title>
-  </head>
-  <body style="margin:0;background:#f7f8fb;color:#111827;font-family:Arial,Helvetica,sans-serif;">
-    <div style="display:none;max-height:0;overflow:hidden;">Use this secure link to sign in to I-PACE Owners.</div>
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f7f8fb;padding:24px 12px;">
-      <tr>
-        <td align="center">
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;background:#ffffff;border-radius:20px;overflow:hidden;border:1px solid #dbe3ea;">
-            <tr>
-              <td style="background:#12324a;padding:24px 28px;color:#ffffff;">
-                <div style="font-size:22px;font-weight:700;line-height:1.2;">I-PACE Owners</div>
-                <div style="font-size:14px;color:#c9d7e3;margin-top:4px;">Advocacy Group</div>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <img src="` + imageURL + `" width="640" alt="Jaguar I-PACE" style="display:block;width:100%;height:auto;border:0;">
-              </td>
-            </tr>
-            <tr>
-              <td style="padding:32px 28px;">
-                <h1 style="margin:0 0 14px;color:#12324a;font-size:28px;line-height:1.2;">Your secure sign-in link</h1>
-                <p style="margin:0 0 18px;font-size:16px;line-height:1.6;color:#374151;">Use this link to complete registration or sign in to your I-PACE Owners member area.</p>
-                <p style="margin:0 0 26px;font-size:16px;line-height:1.6;color:#374151;">The link is time-limited and should only be used by you.</p>
-                <p style="margin:0 0 28px;">
-                  <a href="` + link + `" style="display:inline-block;background:#0f766e;color:#ffffff;text-decoration:none;font-weight:700;border-radius:999px;padding:14px 22px;font-size:16px;">Sign in securely</a>
-                </p>
-                <p style="margin:0 0 12px;font-size:13px;line-height:1.5;color:#4b5563;">If the button does not work, copy and paste this URL into your browser:</p>
-                <p style="margin:0;word-break:break-all;font-size:13px;line-height:1.5;color:#4b5563;"><a href="` + link + `" style="color:#0f766e;">` + link + `</a></p>
-              </td>
-            </tr>
-            <tr>
-              <td style="background:#eef6f5;padding:20px 28px;color:#374151;font-size:14px;line-height:1.5;">
-                If you did not request this email, you can safely ignore it.
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
-  </body>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1">
+		<title>` + title + `</title>
+	</head>
+	<body style="margin:0;background:#f7f8fb;color:#111827;font-family:Arial,Helvetica,sans-serif;">
+		<div style="display:none;max-height:0;overflow:hidden;">` + preheader + `</div>
+		<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f7f8fb;padding:24px 12px;">
+			<tr>
+				<td align="center">
+					<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;background:#ffffff;border-radius:20px;overflow:hidden;border:1px solid #dbe3ea;">
+						<tr>
+							<td style="background:#12324a;padding:24px 28px;color:#ffffff;">
+								<div style="font-size:22px;font-weight:700;line-height:1.2;">I-PACE Owners</div>
+								<div style="font-size:14px;color:#c9d7e3;margin-top:4px;">Advocacy Group</div>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<img src="` + imageURL + `" width="640" alt="Jaguar I-PACE" style="display:block;width:100%;height:auto;border:0;">
+							</td>
+						</tr>
+						<tr>
+							<td style="padding:32px 28px;">
+								<h1 style="margin:0 0 14px;color:#12324a;font-size:28px;line-height:1.2;">` + heading + `</h1>
+								` + body + primaryAction + supplement + fallback + `
+							</td>
+						</tr>
+						<tr>
+							<td style="background:#eef6f5;padding:20px 28px;color:#374151;font-size:14px;line-height:1.5;">
+								` + footer + `
+							</td>
+						</tr>
+					</table>
+				</td>
+			</tr>
+		</table>
+	</body>
 </html>`
 }
 

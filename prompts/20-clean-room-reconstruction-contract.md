@@ -162,6 +162,12 @@ forms explicitly use POST even when JavaScript intercepts them.
   clearly labelled send controls visible but disabled until preview succeeds, require exact
   confirmation, recheck registration before sending, send bounded resumable batches, and
   persist a hashed idempotent delivery ledger.
+- Render re-engagement and member-referral delivery from embedded Markdown Go templates into
+  matching plain-text and escaped HTML bodies. Wrap HTML delivery in the shared magic-link email
+  chrome with its compact text masthead, hero image, responsive table layout and pill-shaped
+  primary and share actions; do not add a logo image. Keep the legally important
+  contact-consent/unsubscribe footer outside the
+  routinely edited Markdown body.
 
 Prompts define visual intent, not the exact control points or pixels of generated artwork.
 Therefore the following committed assets are preservation-critical and must be backed up with
