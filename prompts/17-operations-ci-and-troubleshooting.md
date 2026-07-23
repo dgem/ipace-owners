@@ -73,7 +73,9 @@ recheck, and hashed-ledger controls as registration reminders.
 - Deployment smoke tests require `SMOKE_BASE_URL` and run through `make smoke`.
 - `make deploy-functions` should deploy the single Go `Api` Function entrypoint. Avoid
   deploying one Cloud Function per API route because each Gen2 Function deployment triggers
-  a separate build and makes PR deployments slow.
+  a separate build and makes PR deployments slow. Keep the Function timeout at 180 seconds so
+  the explicitly confirmed Instagram publish route can wait for bounded Meta container
+  processing without relying on the platform default timeout.
 
 ## PR Preview Deployment
 

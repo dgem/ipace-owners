@@ -63,6 +63,42 @@ variable "region" {
   default     = "europe-west2"
 }
 
+variable "veo_location" {
+  description = "Vertex AI location used for Veo generation requests."
+  type        = string
+  default     = "global"
+}
+
+variable "veo_model_id" {
+  description = "Production Vertex AI Veo model ID used by asynchronous campaign-video generation."
+  type        = string
+  default     = "veo-3.1-generate-001"
+}
+
+variable "campaign_media_work_retention_days" {
+  description = "Days to retain private Veo working objects under work/. Approved masters are retained and versioned."
+  type        = number
+  default     = 30
+}
+
+variable "instagram_publishing_enabled" {
+  description = "Whether deployment should mount the separately provisioned Instagram OAuth access-token secret."
+  type        = bool
+  default     = false
+}
+
+variable "instagram_user_id" {
+  description = "Instagram Professional account user ID."
+  type        = string
+  default     = ""
+}
+
+variable "instagram_graph_api_version" {
+  description = "Explicit supported Instagram Graph API version."
+  type        = string
+  default     = ""
+}
+
 variable "github_owner" {
   description = "GitHub organisation or user that owns the repository."
   type        = string

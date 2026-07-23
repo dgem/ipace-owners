@@ -30,6 +30,17 @@ for (let attempt = 0; attempt < 30; attempt += 1) {
 }
 assert.equal(siteReady, true, `site did not become ready at ${baseURL}`);
 const browser = await chromium.launch({ executablePath, headless: true });
+const expectedAdminDestinations = [
+  '/admin/',
+  '/admin/review-queue/',
+  '/admin/outreach/',
+  '/admin/email-campaigns/',
+  '/admin/instagram-campaigns/'
+];
+
+async function assertAdminDestinations(locator) {
+  assert.deepEqual(await locator.evaluateAll((links) => links.map((link) => link.getAttribute('href'))), expectedAdminDestinations);
+}
 
 async function revealAdminState(page) {
   await page.evaluate(function () {
@@ -59,7 +70,7 @@ async function checkDesktopAdminHeader() {
   const title = page.locator('.page-header');
   await admin.waitFor({ state: 'visible' });
   assert.equal(await admin.evaluate((element) => getComputedStyle(element).display), 'flex');
-  assert.equal(await admin.locator('a').count(), 4);
+  await assertAdminDestinations(admin.locator('a'));
 
   const headerBox = await header.boundingBox();
   const primaryBox = await primary.boundingBox();
@@ -81,7 +92,7 @@ async function checkMobileAdminDrawer() {
   await page.locator('#mobile-menu-toggle').click();
   await page.locator('.mobile-nav__admin').waitFor({ state: 'visible' });
   assert.equal(await page.locator('.site-admin-nav').isVisible(), false);
-  assert.equal(await page.locator('.mobile-nav__admin a').count(), 4);
+  await assertAdminDestinations(page.locator('.mobile-nav__admin a'));
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, 'admin-outreach-mobile.png'), fullPage: true });
   await page.close();
@@ -111,8 +122,8 @@ async function checkAdminDashboard() {
   const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   await page.goto(baseURL + '/admin/', { waitUntil: 'networkidle' });
   await revealAdminState(page);
-  assert.equal(await page.locator('.admin-dashboard-grid .card').count(), 3);
-  assert.equal(await page.locator('.admin-dashboard-grid a').count(), 3);
+  assert.equal(await page.locator('.admin-dashboard-grid .card').count(), 4);
+  assert.deepEqual(await page.locator('.admin-dashboard-grid a').evaluateAll((links) => links.map((link) => link.getAttribute('href'))), expectedAdminDestinations.slice(1));
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, 'admin-dashboard-desktop.png'), fullPage: true });
   await page.close();

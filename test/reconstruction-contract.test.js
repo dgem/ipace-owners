@@ -84,6 +84,7 @@ test('clean-room API and Firestore inventories match implemented handlers', func
     'batteryReadings',
     'serviceEvents',
     'memberSnapshots',
+    'instagramGenerationJobs',
   ];
 
   for (const route of routes) {
@@ -122,6 +123,9 @@ test('clean-room configuration and preservation-critical asset inventories stay 
     'RESEND_FROM',
     'RESEND_REPLY_TO',
     'RESEND_ASSET_BASE_URL',
+    'CAMPAIGN_MEDIA_BUCKET',
+    'VEO_LOCATION',
+    'VEO_MODEL_ID',
   ];
   const assets = [
     'public/favicon.png',

@@ -104,6 +104,11 @@ header row and a labelled mobile-drawer section. Do not duplicate it below admin
 | `POST /api/admin/reengagement-send` | `AdminReengagementSend` | Admin | Confirm and send the next resumable batch of at most ten reminders. |
 | `POST /api/admin/member-referral-preview` | `AdminMemberReferralPreview` | Admin | Preview the consented registered-member referral audience and exact campaign copy. |
 | `POST /api/admin/member-referral-send` | `AdminMemberReferralSend` | Admin | Confirm and send the next resumable batch of at most ten referral emails. |
+| `POST /api/admin/instagram-preview` | `AdminInstagramPreview` | Admin | Validate and preview an administrator-reviewed, chat-prepared Reel path and caption without publishing. |
+| `POST /api/admin/instagram-publish` | `AdminInstagramPublish` | Admin | Revalidate the exact draft and confirmation, process the Reel through Meta, and publish it immediately. |
+| `POST /api/admin/instagram-generate` | `AdminInstagramGenerate` | Admin | Idempotently start the explicitly confirmed, billable eight-second Veo generation operation. |
+| `POST /api/admin/instagram-generation-status` | `AdminInstagramGenerationStatus` | Admin | Poll and advance the job into the seven-second continuation, promote the 15-second master, and issue a short-lived review path. |
+| `GET/HEAD /api/instagram-media/**` | `InstagramGeneratedMedia` | Expiring bearer path | Range-stream a private completed master after constant-time token and expiry validation. |
 | `GET /api/public-stats` | `PublicStats` | No | Return the generated anonymised aggregate snapshot. |
 
 Templates and client JavaScript use `/api/*`; Firebase Hosting rewrites `/api/**` to the
@@ -131,6 +136,15 @@ route unless there is a measured need.
   source of truth.
 - Store editable service and fault history in `serviceEvents`, tied to both the authenticated
   member UID and vehicle ID. Preserve creation timestamps and review metadata on edits.
+- Store Instagram publication reservations in `instagramCampaigns`, keyed by the deterministic
+  reviewed-draft ID. Reserve before contacting Meta; a published retry returns the existing
+  media ID, while processing or failed records stop for operator verification instead of
+  risking a duplicate post.
+- Store Veo generation state in `instagramGenerationJobs`, keyed by a hash of the browser request
+  ID. Keep generation and publication ledgers separate. A job progresses from initial generation
+  through a transactionally claimed seven-second Veo video extension to a private versioned
+  master. Concurrent status polls must not duplicate either billable provider operation, and
+  generation never publishes as a side effect.
 - Regenerate private member snapshots after vehicle, SoH, or service-event writes. Regenerate
   public aggregate snapshots after Join, vehicle, and SoH writes, using only fields with
   defined consent and publication rules. Service/fault events stay private until explicit
@@ -147,6 +161,9 @@ route unless there is a measured need.
 - Do not log raw VINs, Firebase ID tokens, full request bodies, or personal records.
 - Return generic magic-link responses so account existence cannot be enumerated.
 - Store secrets in GCP Secret Manager and GitHub environment secrets, never in git.
+- Keep Instagram access tokens server-side. Accept only site-relative MP4/MOV paths, construct
+  provider-fetchable URLs from the configured HTTPS media origin, and require an explicit
+  full-video review plus deterministic typed confirmation before publishing.
 - Restrict CORS to production, staging preview hosts, and local development origins.
 - Uploaded evidence must be validated server-side before storage.
 
@@ -160,7 +177,8 @@ route unless there is a measured need.
   deriving `${project_id_prefix}-${environment}` by default while still allowing an explicit
   project ID for existing projects or global ID collisions.
 - Required resources include Firebase project enablement, Firestore native mode, Cloud
-  Web App config, Firestore native mode, Cloud Storage snapshot bucket, Secret Manager
+  Web App config, Firestore native mode, Cloud Storage snapshot and private campaign-media
+  buckets, Vertex AI API enablement, Secret Manager
   secrets, Function runtime service account, and GitHub Workload Identity Federation.
 - OpenTofu must configure Firebase Authentication / Identity Platform for passwordless
   email sign-in, with email sign-in enabled, password-required disabled, and authorized
@@ -190,6 +208,10 @@ route unless there is a measured need.
   Firebase web API keys, app IDs, auth domains and storage bucket values should be derived
   from resources created by OpenTofu, not pasted manually. Keep real secret values out of
   git; provide the remaining secret `VIN_PEPPER` through uncommitted tfvars or `TF_VAR_*`.
+- Configure asynchronous Veo generation with non-secret `VEO_MODEL_ID` (default
+  `veo-3.1-generate-001`), `VEO_LOCATION` (default `global`), and `CAMPAIGN_MEDIA_BUCKET`.
+  Grant the Function runtime `roles/aiplatform.user` and bucket-scoped object access. Expire
+  only `work/` media after the configured interval; retain and version approved `masters/`.
 - The repository Makefile is the shared command surface for local development and CI.
   `make` and `make help` must print documented targets; `make functions` must list the
   Cloud Function entrypoints deployed by `make deploy-functions`. The expected production

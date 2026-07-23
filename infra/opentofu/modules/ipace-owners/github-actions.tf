@@ -1,8 +1,9 @@
 locals {
   github_actions_suffix = upper(var.environment)
 
-  github_actions_variables = {
+  github_actions_variables = merge({
     "ALLOWED_ORIGINS_${local.github_actions_suffix}"             = var.allowed_origins
+    "CAMPAIGN_MEDIA_BUCKET_${local.github_actions_suffix}"       = google_storage_bucket.campaign_media.name
     "FIREBASE_APP_ID_${local.github_actions_suffix}"             = google_firebase_web_app.default.app_id
     "FIREBASE_AUTH_DOMAIN_${local.github_actions_suffix}"        = data.google_firebase_web_app_config.default.auth_domain
     "FIREBASE_EMAIL_CONTINUE_URL_${local.github_actions_suffix}" = var.site_url
@@ -15,7 +16,13 @@ locals {
     "RESEND_FROM_${local.github_actions_suffix}"                 = var.resend_from
     "RESEND_REPLY_TO_${local.github_actions_suffix}"             = var.resend_reply_to
     "SNAPSHOT_BUCKET_${local.github_actions_suffix}"             = google_storage_bucket.snapshots.name
-  }
+    "VEO_LOCATION_${local.github_actions_suffix}"                = var.veo_location
+    "VEO_MODEL_ID_${local.github_actions_suffix}"                = var.veo_model_id
+    }, var.instagram_publishing_enabled ? {
+    "INSTAGRAM_ACCESS_TOKEN_SECRET_${local.github_actions_suffix}" = google_secret_manager_secret.instagram_access_token.secret_id
+    "INSTAGRAM_GRAPH_API_VERSION_${local.github_actions_suffix}"   = var.instagram_graph_api_version
+    "INSTAGRAM_USER_ID_${local.github_actions_suffix}"             = var.instagram_user_id
+  } : {})
 
   github_actions_secrets = merge({
     "FIREBASE_WEB_API_KEY_${local.github_actions_suffix}"           = data.google_firebase_web_app_config.default.api_key

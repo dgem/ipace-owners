@@ -10,6 +10,33 @@ output "snapshot_bucket" {
   value = google_storage_bucket.snapshots.name
 }
 
+output "campaign_media_bucket" {
+  value = google_storage_bucket.campaign_media.name
+}
+
+output "veo_generation" {
+  description = "Non-secret Vertex AI configuration for asynchronous campaign-video generation."
+  value = {
+    api                  = "aiplatform.googleapis.com"
+    location             = var.veo_location
+    model_id             = var.veo_model_id
+    media_bucket         = google_storage_bucket.campaign_media.name
+    work_retention_days  = var.campaign_media_work_retention_days
+    masters_versioned    = true
+    runtime_service_role = google_project_iam_member.runtime_vertex_ai.role
+  }
+}
+
+output "instagram_publishing" {
+  description = "Fail-closed Instagram publishing configuration. The token value is provisioned outside OpenTofu so it never enters state."
+  value = {
+    enabled             = var.instagram_publishing_enabled
+    access_token_secret = google_secret_manager_secret.instagram_access_token.secret_id
+    user_id             = var.instagram_user_id
+    graph_api_version   = var.instagram_graph_api_version
+  }
+}
+
 output "firestore_database_id" {
   value = google_firestore_database.default.name
 }

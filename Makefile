@@ -135,6 +135,8 @@ deploy-functions: write-functions-env ## Deploy all Go Cloud Functions to GCP.
 	@if [ -z "$${FUNCTIONS_SERVICE_ACCOUNT}" ]; then echo "FUNCTIONS_SERVICE_ACCOUNT is required"; exit 1; fi
 	@for fn in $(FUNCTION_ENTRYPOINTS); do \
 		echo "Deploying Cloud Function $$fn"; \
+		secret_args=""; \
+		if [ -n "$${INSTAGRAM_ACCESS_TOKEN_SECRET}" ]; then secret_args="--set-secrets=INSTAGRAM_ACCESS_TOKEN=$${INSTAGRAM_ACCESS_TOKEN_SECRET}:latest"; fi; \
 		gcloud functions deploy "$$fn" \
 			--gen2 \
 			--project="$${GCP_PROJECT_ID}" \
@@ -144,8 +146,9 @@ deploy-functions: write-functions-env ## Deploy all Go Cloud Functions to GCP.
 			--entry-point="$$fn" \
 			--trigger-http \
 			--allow-unauthenticated \
+			--timeout=180s \
 			--service-account="$${FUNCTIONS_SERVICE_ACCOUNT}" \
-			--env-vars-file=functions-env.json; \
+			--env-vars-file=functions-env.json $$secret_args; \
 	done
 
 deploy-hosting-preview: ## Deploy Firebase Hosting preview channel and extract its URL.

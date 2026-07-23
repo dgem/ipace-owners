@@ -10,7 +10,7 @@ function read(relativePath) {
   return fs.readFileSync(path.join(root, relativePath), 'utf8');
 }
 
-test('maintained prompts form a contiguous 00-20 reconstruction set', function () {
+test('maintained prompts form a contiguous 00-21 reconstruction set', function () {
   const promptFiles = fs
     .readdirSync(path.join(root, 'prompts'))
     .filter(function (name) {
@@ -26,7 +26,7 @@ test('maintained prompts form a contiguous 00-20 reconstruction set', function (
     promptFiles.map(function (name) {
       return Number(name.slice(0, 2));
     }),
-    Array.from({ length: 21 }, function (_, index) {
+    Array.from({ length: 22 }, function (_, index) {
       return index;
     })
   );

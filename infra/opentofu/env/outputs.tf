@@ -10,6 +10,20 @@ output "snapshot_bucket" {
   value = module.ipace_owners.snapshot_bucket
 }
 
+output "campaign_media_bucket" {
+  value = module.ipace_owners.campaign_media_bucket
+}
+
+output "veo_generation" {
+  description = "Vertex AI Veo model, location, private media bucket, and retention configuration."
+  value       = module.ipace_owners.veo_generation
+}
+
+output "instagram_publishing" {
+  description = "Instagram publishing secret name and non-secret provider configuration."
+  value       = module.ipace_owners.instagram_publishing
+}
+
 output "firestore_database_id" {
   value = module.ipace_owners.firestore_database_id
 }

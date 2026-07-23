@@ -1,5 +1,14 @@
 environment = "staging"
 region      = "europe-west2"
+veo_location = "global"
+veo_model_id = "veo-3.1-generate-001"
+campaign_media_work_retention_days = 30
+
+# Add an OAuth token version to the GCP Secret Manager secret `instagram-access-token`
+# before enabling. Keep the token itself out of tfvars and OpenTofu state.
+instagram_publishing_enabled = false
+# instagram_user_id          = "17841400000000000"
+# instagram_graph_api_version = "vNN.0"
 
 # Set an explicit GCP project ID when using an existing project or when the derived
 # default is unavailable. With create_gcp_project=true and project_id left empty,

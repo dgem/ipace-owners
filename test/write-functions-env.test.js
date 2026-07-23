@@ -26,6 +26,12 @@ test("writes function env vars as JSON without splitting comma-separated origins
       RESEND_FROM: "I-PACE Owners <members@stage.ipace-owners.org>",
       RESEND_REPLY_TO: "contact@ipace-owners.org",
       RESEND_ASSET_BASE_URL: "https://stage.ipace-owners.org",
+      INSTAGRAM_USER_ID: "123456789",
+      INSTAGRAM_GRAPH_API_VERSION: "v99.0",
+      INSTAGRAM_MEDIA_BASE_URL: "https://stage.ipace-owners.org",
+      CAMPAIGN_MEDIA_BUCKET: "ipace-owners-staging-campaign-media",
+      VEO_LOCATION: "global",
+      VEO_MODEL_ID: "veo-3.1-generate-001",
     },
   });
 
@@ -44,6 +50,12 @@ test("writes function env vars as JSON without splitting comma-separated origins
     RESEND_FROM: "I-PACE Owners <members@stage.ipace-owners.org>",
     RESEND_REPLY_TO: "contact@ipace-owners.org",
     RESEND_ASSET_BASE_URL: "https://stage.ipace-owners.org",
+    INSTAGRAM_USER_ID: "123456789",
+    INSTAGRAM_GRAPH_API_VERSION: "v99.0",
+    INSTAGRAM_MEDIA_BASE_URL: "https://stage.ipace-owners.org",
+    CAMPAIGN_MEDIA_BUCKET: "ipace-owners-staging-campaign-media",
+    VEO_LOCATION: "global",
+    VEO_MODEL_ID: "veo-3.1-generate-001",
     GOOGLE_CLOUD_PROJECT: "ipace-owners-staging",
     GCP_PROJECT: "ipace-owners-staging",
   });
@@ -87,4 +99,10 @@ test("derives the database ID while leaving the preview link domain unset", () =
   assert.equal(written.RESEND_FROM, "");
   assert.equal(written.RESEND_REPLY_TO, "");
   assert.equal(written.RESEND_ASSET_BASE_URL, "");
+  assert.equal(written.INSTAGRAM_USER_ID, "");
+  assert.equal(written.INSTAGRAM_GRAPH_API_VERSION, "");
+  assert.equal(written.INSTAGRAM_MEDIA_BASE_URL, "");
+  assert.equal(written.CAMPAIGN_MEDIA_BUCKET, "");
+  assert.equal(written.VEO_LOCATION, "");
+  assert.equal(written.VEO_MODEL_ID, "");
 });
