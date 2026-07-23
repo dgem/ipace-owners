@@ -66,6 +66,15 @@ resource "google_project_service" "required" {
   depends_on = [google_project.default]
 }
 
+resource "google_project_service_identity" "vertex_ai" {
+  provider = google-beta
+
+  project = var.project_id
+  service = "aiplatform.googleapis.com"
+
+  depends_on = [google_project_service.required]
+}
+
 resource "google_firebase_project" "default" {
   provider = google-beta
   project  = var.project_id
@@ -304,6 +313,12 @@ resource "google_project_iam_member" "runtime_vertex_ai" {
   member  = "serviceAccount:${google_service_account.runtime.email}"
 }
 
+resource "google_project_iam_member" "vertex_ai_service_agent" {
+  project = var.project_id
+  role    = "roles/aiplatform.serviceAgent"
+  member  = "serviceAccount:${google_project_service_identity.vertex_ai.email}"
+}
+
 resource "google_storage_bucket_iam_member" "runtime_snapshots" {
   bucket = google_storage_bucket.snapshots.name
   role   = "roles/storage.objectAdmin"
@@ -314,6 +329,12 @@ resource "google_storage_bucket_iam_member" "runtime_campaign_media" {
   bucket = google_storage_bucket.campaign_media.name
   role   = "roles/storage.objectAdmin"
   member = "serviceAccount:${google_service_account.runtime.email}"
+}
+
+resource "google_storage_bucket_iam_member" "vertex_ai_campaign_media" {
+  bucket = google_storage_bucket.campaign_media.name
+  role   = "roles/storage.objectAdmin"
+  member = "serviceAccount:${google_project_service_identity.vertex_ai.email}"
 }
 
 resource "google_secret_manager_secret_iam_member" "runtime_api_key" {

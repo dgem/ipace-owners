@@ -158,10 +158,15 @@ runtime accessor permission, but must not create its secret version from a tfvar
 an operator adds a version should `instagram_publishing_enabled` expose the secret name and
 non-secret account ID/version to the deployment workflow.
 Asynchronous campaign-video generation uses non-secret `CAMPAIGN_MEDIA_BUCKET`, `VEO_LOCATION`,
-and `VEO_MODEL_ID`. OpenTofu must enable `aiplatform.googleapis.com`, grant the Function runtime
-`roles/aiplatform.user` and object access only on its private campaign-media bucket, expire only
-objects under `work/`, and retain/version approved objects under `masters/`. Google runtime
-identity replaces API keys. Generation and Instagram publishing remain separate confirmed actions.
+and `VEO_MODEL_ID`, with `VEO_LOCATION` defaulting to the explicit Veo 3.1 processing region
+`us-central1`. OpenTofu must enable `aiplatform.googleapis.com`, explicitly provision the managed
+Vertex AI service identity, grant its intended service-agent role and bucket-scoped object access,
+grant the Function runtime `roles/aiplatform.user` and object access only on its private
+campaign-media bucket, expire only objects under `work/`, and retain/version approved objects under
+`masters/`. The Function and private bucket remain in `europe-west2`, but Veo generation is not
+UK-resident. Google runtime identity replaces API keys. Generation and Instagram publishing remain
+separate confirmed actions. Provider failures must be recorded and shown to administrators through
+safe classifications rather than arbitrary raw provider messages.
 
 Never commit real values. Provide `.tfvars.example` files for staging and production and
 derive non-secret GitHub environment variables from OpenTofu outputs. Production uses

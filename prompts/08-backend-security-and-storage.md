@@ -63,9 +63,11 @@ Use Firestore for structured data:
   auditable masters under `masters/`; retain and version them independently of working files.
 - Store idempotent asynchronous generation state in `instagramGenerationJobs`. Keep provider
   operation names and GCS object names server-side. Claim each billable phase transactionally and
-  fail closed on indeterminate provider/ledger transitions. Expose completed private masters only through
-  short-lived, unguessable delivery paths whose token is stored as a hash and checked in constant
-  time; support HTTP byte ranges for browser and Meta video fetches.
+  fail closed on indeterminate provider/ledger transitions. Persist a safe, allowlisted failure
+  classification plus provider numeric code/status for admin diagnosis; do not return arbitrary
+  raw provider messages to the browser. Expose completed private masters only through short-lived,
+  unguessable delivery paths whose token is stored as a hash and checked in constant time; support
+  HTTP byte ranges for browser and Meta video fetches.
 
 ## Validation
 

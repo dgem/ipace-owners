@@ -1,6 +1,6 @@
 environment = "staging"
 region      = "europe-west2"
-veo_location = "global"
+veo_location = "us-central1"
 veo_model_id = "veo-3.1-generate-001"
 campaign_media_work_retention_days = 30
 

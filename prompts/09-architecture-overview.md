@@ -209,9 +209,14 @@ route unless there is a measured need.
   from resources created by OpenTofu, not pasted manually. Keep real secret values out of
   git; provide the remaining secret `VIN_PEPPER` through uncommitted tfvars or `TF_VAR_*`.
 - Configure asynchronous Veo generation with non-secret `VEO_MODEL_ID` (default
-  `veo-3.1-generate-001`), `VEO_LOCATION` (default `global`), and `CAMPAIGN_MEDIA_BUCKET`.
-  Grant the Function runtime `roles/aiplatform.user` and bucket-scoped object access. Expire
-  only `work/` media after the configured interval; retain and version approved `masters/`.
+  `veo-3.1-generate-001`), `VEO_LOCATION` (default `us-central1`), and
+  `CAMPAIGN_MEDIA_BUCKET`. Veo 3.1 processing is US-based even though the Function and private
+  media bucket remain in `europe-west2`; expose that boundary to administrators and do not claim
+  UK-resident generation. Explicitly provision the managed Vertex AI service identity before
+  granting its service-agent role and bucket-scoped object access, rather than relying on lazy
+  first-request provisioning. Grant the Function runtime `roles/aiplatform.user` and its required
+  bucket-scoped object access. Expire only `work/` media after the configured interval; retain and
+  version approved `masters/`.
 - The repository Makefile is the shared command surface for local development and CI.
   `make` and `make help` must print documented targets; `make functions` must list the
   Cloud Function entrypoints deployed by `make deploy-functions`. The expected production
