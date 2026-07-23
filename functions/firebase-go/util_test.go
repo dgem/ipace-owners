@@ -422,7 +422,7 @@ func TestFirebaseEmailActionCodeSettings(t *testing.T) {
 	}
 }
 
-func TestResendMagicLinkPayloadUsesHeroImageAndReplyTo(t *testing.T) {
+func TestResendMagicLinkPayloadUsesTextMastheadHeroAndReplyTo(t *testing.T) {
 	t.Setenv("RESEND_FROM", "I-PACE Owners <members@ipace-owners.org>")
 	t.Setenv("RESEND_REPLY_TO", "contact@ipace-owners.org")
 	t.Setenv("RESEND_ASSET_BASE_URL", "https://ipace-owners.org")
@@ -445,6 +445,9 @@ func TestResendMagicLinkPayloadUsesHeroImageAndReplyTo(t *testing.T) {
 	}
 	if !strings.Contains(htmlBody, "https://ipace-owners.org/images/ipace-hero.png") {
 		t.Fatalf("html does not include hero image: %s", htmlBody)
+	}
+	if strings.Contains(htmlBody, "/images/ipace-owners-logo") || !strings.Contains(htmlBody, ">I-PACE Owners</div>") {
+		t.Fatalf("html must preserve the text masthead without a logo image: %s", htmlBody)
 	}
 	if !strings.Contains(htmlBody, "Sign in securely") {
 		t.Fatalf("html does not include CTA")

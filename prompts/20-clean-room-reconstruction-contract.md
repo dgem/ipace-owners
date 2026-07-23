@@ -184,6 +184,11 @@ forms explicitly use POST even when JavaScript intercepts them.
   clearly labelled send controls visible but disabled until preview succeeds, require exact
   confirmation, recheck registration before sending, send bounded resumable batches, and
   persist a hashed idempotent delivery ledger.
+- Render re-engagement and member-referral delivery from embedded Markdown Go templates into
+  matching plain-text and escaped HTML bodies. Wrap HTML delivery in the shared magic-link email
+  chrome with its compact text masthead, hero image, responsive table layout and pill-shaped
+  primary and share actions; do not add a logo image. Keep the legally important
+  contact-consent/unsubscribe footer outside the routinely edited Markdown body.
 - Provide an admin-only Instagram campaign page following the same preview-before-side-effect
   interaction. Chat prepares the post; a human reviews the complete final media; the server
   validates the exact site-relative media path and caption; and an exact typed confirmation

@@ -597,8 +597,24 @@ func campaignEmailBodies(person campaignRecipient, link string, memberCount, eli
 		first = fields[0]
 	}
 	subject := "Complete your I-PACE Owners registration"
-	text := fmt.Sprintf("Hello %s,\n\nPlease complete your I-PACE Owners registration\n\nYou asked to join on %s, but your secure sign-in was not completed. %d owners have joined.\n\nVerify your account details using this fresh, time-limited link:\n%s\n\nYou are receiving this because you submitted the Join form and agreed that we could contact you. Reply if you no longer wish to hear from us.\n", first, person.CreatedAt.Format("2 January 2006"), memberCount, link)
-	htmlBody := "<p>Hello " + html.EscapeString(first) + ",</p><h1>Please complete your I-PACE Owners registration</h1><p>You asked to join on " + html.EscapeString(person.CreatedAt.Format("2 January 2006")) + ", but your secure sign-in was not completed.</p><p><strong>" + fmt.Sprint(memberCount) + " owners have joined.</strong> If everyone receiving this reminder verifies, " + fmt.Sprint(eligibleCount) + " additional members will have registered accounts.</p><p><a href=\"" + html.EscapeString(link) + "\">Verify my account details</a></p><p>You are receiving this because you submitted the Join form and agreed that we could contact you. Reply if you no longer wish to hear from us.</p>"
+	text, bodyHTML := mustRenderCampaignTemplate("campaign-reengagement.md.tmpl", struct {
+		FirstName     string
+		JoinedDate    string
+		MemberCount   int
+		EligibleCount int
+	}{first, person.CreatedAt.Format("2 January 2006"), memberCount, eligibleCount})
+	text += "\nVerify your account details: " + link + "\n\nYou are receiving this because you submitted the Join form and agreed that we could contact you. Reply if you no longer wish to hear from us.\n"
+	htmlBody := brandedEmailHTML(brandedEmailMessage{
+		DocumentTitle:      subject,
+		Preheader:          "Complete your registration with a fresh, secure sign-in link.",
+		Heading:            "Please complete your registration",
+		BodyHTML:           bodyHTML,
+		PrimaryActionLabel: "Verify my account details",
+		PrimaryActionURL:   link,
+		FallbackURL:        link,
+		FooterNote:         "You are receiving this because you submitted the Join form and agreed that we could contact you. Reply if you no longer wish to hear from us.",
+		AssetBaseURL:       emailAssetBaseURL(campaignContinueURL()),
+	})
 	return subject, htmlBody, text
 }
 
@@ -639,13 +655,31 @@ func memberReferralEmailBodies(person campaignRecipient, memberCount int) (strin
 		projection += " — putting us in the 700s"
 	}
 	subject := "Could you help one more I-PACE owner find us?"
-	text := fmt.Sprintf("Hello %s,\n\nCould you help one more I-PACE owner find us?\n\n%d owners have joined the I-PACE Owners Advocacy Group. We are %d members away from our 1,000-owner stretch goal.\n\n%s.\n\nPlease share the group with an I-PACE owner you know:\nhttps://ipace-owners.org/\n\nThank you for helping build a stronger, constructive voice for owners.\n\nYou are receiving this because you registered with the group and agreed that we could contact you. Reply if you no longer wish to hear from us.\n", first, memberCount, remaining, projection)
 	shares := memberReferralShareLinks(memberCount)
+	instagramURL := "https://www.instagram.com/ipaceowners/"
+	text, bodyHTML := mustRenderCampaignTemplate("member-referral.md.tmpl", struct {
+		FirstName      string
+		MemberCount    int
+		RemainingCount int
+		Projection     string
+		InstagramURL   string
+	}{first, memberCount, remaining, projection, instagramURL})
+	text += "\nShare the group: https://ipace-owners.org/\n\nYou are receiving this because you registered with the group and agreed that we could contact you. Reply if you no longer wish to hear from us.\n"
 	buttons := ""
 	for _, share := range shares {
-		buttons += `<a href="` + html.EscapeString(share.URL) + `" style="display:inline-block;margin:0 8px 10px 0;padding:9px 12px;border:1px solid #111827;border-radius:6px;color:#111827;text-decoration:none;font-weight:700;"><span style="display:inline-block;min-width:18px;text-align:center;filter:grayscale(1);">` + html.EscapeString(share.Mark) + `</span> ` + html.EscapeString(share.Label) + `</a>`
+		buttons += `<a href="` + html.EscapeString(share.URL) + `" style="display:inline-block;margin:0 8px 10px 0;padding:10px 14px;border:1px solid #0f766e;border-radius:999px;color:#0f766e;text-decoration:none;font-weight:700;"><span style="display:inline-block;min-width:18px;text-align:center;">` + html.EscapeString(share.Mark) + `</span> ` + html.EscapeString(share.Label) + `</a>`
 	}
-	htmlBody := `<p>Hello ` + html.EscapeString(first) + `,</p><h1>Could you help one more I-PACE owner find us?</h1><p><strong>` + fmt.Sprint(memberCount) + ` owners have joined</strong> the I-PACE Owners Advocacy Group. We are ` + fmt.Sprint(remaining) + ` members away from our 1,000-owner stretch goal.</p><p>` + html.EscapeString(projection) + `.</p><p>Please share the group with an I-PACE owner you know:</p><div style="margin:20px 0;">` + buttons + `</div><p>Instagram does not offer a web share button, so its link opens our <strong>@ipaceowners</strong> profile ready for you to share in a post or message.</p><p>Thank you for helping build a stronger, constructive voice for owners.</p><p style="color:#4b5563;font-size:13px;">You are receiving this because you registered with the group and agreed that we could contact you. Reply if you no longer wish to hear from us.</p>`
+	htmlBody := brandedEmailHTML(brandedEmailMessage{
+		DocumentTitle:      subject,
+		Preheader:          fmt.Sprintf("%d owners have joined. Help one more I-PACE owner find the group.", memberCount),
+		Heading:            "Could you help one more owner find us?",
+		BodyHTML:           bodyHTML,
+		PrimaryActionLabel: "Visit I-PACE Owners",
+		PrimaryActionURL:   "https://ipace-owners.org/",
+		SupplementHTML:     buttons,
+		FooterNote:         "You are receiving this because you registered with the group and agreed that we could contact you. Reply if you no longer wish to hear from us.",
+		AssetBaseURL:       emailAssetBaseURL(campaignContinueURL()),
+	})
 	return subject, htmlBody, text, shares
 }
 
