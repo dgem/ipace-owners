@@ -385,9 +385,10 @@ links or contact Resend:
 
 Administrators can run this same narrowly scoped campaign from `/admin/email-campaigns/`, whose
 controls are implemented by `email-campaigns.js`.
-The page returns aggregate counts rather than addresses, renders the exact plain-text delivery
-template with a safe placeholder in place of the private sign-in link, and keeps its clearly
-labelled send controls visible but disabled until that preview completes. It then requires the
+The page returns aggregate counts rather than addresses and renders the exact HTML delivery
+inside a sandboxed preview, with a safe placeholder in place of the private sign-in link. Its
+plain-text alternative remains available in a disclosure below the visual preview. The page keeps
+its clearly labelled send controls visible but disabled until that preview completes, then requires the
 exact current count as a typed confirmation, rechecks Firebase Auth before delivery, sends at
 most ten messages per request, and records hashed idempotent delivery state in Firestore so it
 can resume safely. The CLI remains available for offline preflight and audit.
@@ -411,6 +412,8 @@ pill-shaped actions without inserting the site logo into transactional mail. The
 `functions/firebase-go/email-templates/*.md.tmpl`; the Function renders one Markdown source to
 both escaped HTML and a plain-text alternative. Keep consent/unsubscribe wording in the shared
 email composition code so it cannot be accidentally removed during routine copy edits.
+Staging delivery deliberately uses `https://ipace-owners.org` for durable public email imagery:
+`stage.ipace-owners.org` is an email-sending domain and does not serve Hosting assets.
 
 ```bash
 make join-reengagement \

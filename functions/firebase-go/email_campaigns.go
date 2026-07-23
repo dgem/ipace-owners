@@ -42,6 +42,7 @@ type campaignSummary struct {
 
 type campaignEmailPreview struct {
 	Subject string              `json:"subject"`
+	HTML    string              `json:"html"`
 	Text    string              `json:"text"`
 	Shares  []campaignShareLink `json:"shares,omitempty"`
 }
@@ -620,8 +621,8 @@ func campaignEmailBodies(person campaignRecipient, link string, memberCount, eli
 
 func makeCampaignEmailPreview(memberCount, eligibleCount int) campaignEmailPreview {
 	person := campaignRecipient{Name: "I-PACE owner", CreatedAt: time.Now().UTC()}
-	subject, _, text := campaignEmailBodies(person, "[A fresh, private sign-in link is inserted for each recipient]", memberCount, eligibleCount)
-	return campaignEmailPreview{Subject: subject, Text: text}
+	subject, htmlBody, text := campaignEmailBodies(person, "[A fresh, private sign-in link is inserted for each recipient]", memberCount, eligibleCount)
+	return campaignEmailPreview{Subject: subject, HTML: htmlBody, Text: text}
 }
 
 func memberReferralShareLinks(memberCount int) []campaignShareLink {
@@ -684,8 +685,8 @@ func memberReferralEmailBodies(person campaignRecipient, memberCount int) (strin
 }
 
 func makeMemberReferralEmailPreview(memberCount int) campaignEmailPreview {
-	subject, _, text, shares := memberReferralEmailBodies(campaignRecipient{Name: "I-PACE owner"}, memberCount)
-	return campaignEmailPreview{Subject: subject, Text: text, Shares: shares}
+	subject, htmlBody, text, shares := memberReferralEmailBodies(campaignRecipient{Name: "I-PACE owner"}, memberCount)
+	return campaignEmailPreview{Subject: subject, HTML: htmlBody, Text: text, Shares: shares}
 }
 
 func sendMemberReferralEmail(ctx context.Context, person campaignRecipient, memberCount int, id string) (string, error) {
