@@ -19,7 +19,10 @@ test('Join form submits only to submit-join from the browser', function () {
   assert.match(joinTemplate, /value="prospective-buyer"/);
   assert.match(joinTemplate, /data-enable-when-checked="consent-contact consent-not-legal"/);
   assert.match(joinTemplate, /data-enable-when-checked="consent-contact consent-not-legal"\s+disabled/);
-  assert.match(joinTemplate, /Once you confirm the link, you can\s+optionally add vehicle details/);
+  assert.match(
+    joinTemplate,
+    /Once you confirm your email, you can add vehicle details, battery readings,\s+and service or fault history/
+  );
   assert.doesNotMatch(joinTemplate, /Vehicle evidence storage is still separate and not yet active/);
   assert.ok(
     joinTemplate.indexOf('name="join"') < joinTemplate.indexOf('Membership details are saved'),
