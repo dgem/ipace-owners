@@ -55,7 +55,8 @@ magic-link request path for existing users.
   image deployed with that branch. Keep Firebase's default email delivery as the automatic
   fallback when Resend is not configured or fails.
   Render Markdown emphasis as semantic italic text in HTML emails, while removing the
-  Markdown delimiters from the matching plain-text alternative.
+  Markdown delimiters from the matching plain-text alternative. Keep raw HTML escaped and
+  author links, including `mailto:` contact actions, with Markdown link syntax.
   Never log the generated action link, API key, or raw provider response body.
 - For PR deployments, derive `FIREBASE_EMAIL_CONTINUE_URL` from that PR's generated Firebase
   Hosting preview request origin rather than a shared staging custom domain or a value baked
