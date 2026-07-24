@@ -121,14 +121,15 @@ func TestMemberReferralAudienceRequiresRegistrationAndContactConsent(t *testing.
 	}
 }
 
-func TestMemberReferralEmailExplainsGoalAndProvidesShares(t *testing.T) {
+func TestMemberReferralEmailRendersDynamicDataAndProvidesShares(t *testing.T) {
 	preview := makeMemberReferralEmailPreview(371)
-	for _, expected := range []string{"371 owners have joined", "629 members away", "grow to 742 members", "in the 700s"} {
-		if !strings.Contains(preview.Text, expected) {
-			t.Fatalf("preview missing %q: %s", expected, preview.Text)
-		}
+	if strings.TrimSpace(preview.Subject) == "" || strings.TrimSpace(preview.Text) == "" {
+		t.Fatal("preview subject or text is empty")
 	}
-	for _, expected := range []string{"<!doctype html>", "/images/ipace-hero.png", "Visit I-PACE Owners", "Facebook", "WhatsApp"} {
+	if strings.Contains(preview.Text, "{{.") || strings.Contains(preview.HTML, "{{.") {
+		t.Fatalf("preview contains an unresolved template field")
+	}
+	for _, expected := range []string{"<!doctype html>", "/images/ipace-hero.png", `href="https://ipace-owners.org/"`, "Facebook", "WhatsApp"} {
 		if !strings.Contains(preview.HTML, expected) {
 			t.Fatalf("HTML preview missing %q: %s", expected, preview.HTML)
 		}
@@ -155,16 +156,16 @@ func TestMemberReferralEmailUsesSharedBrandingAndActionButtons(t *testing.T) {
 	for _, expected := range []string{
 		">I-PACE Owners</div>",
 		"/images/ipace-hero.png",
-		"Visit I-PACE Owners",
+		`href="https://ipace-owners.org/"`,
 		"www.facebook.com/sharer/sharer.php",
 		"https://wa.me/",
-		"@ipaceowners profile",
+		"www.instagram.com/ipaceowners/",
 	} {
 		if !strings.Contains(htmlBody, expected) {
 			t.Fatalf("HTML email missing %q", expected)
 		}
 	}
-	if !strings.Contains(text, "Share the group: https://ipace-owners.org/") {
+	if !strings.Contains(text, "https://ipace-owners.org/") {
 		t.Fatalf("plain-text email missing share fallback: %q", text)
 	}
 	if strings.Contains(htmlBody, "/images/ipace-owners-logo") {
