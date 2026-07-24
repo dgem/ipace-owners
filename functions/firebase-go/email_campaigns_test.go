@@ -61,19 +61,18 @@ func TestCampaignSummaryNeverReportsNegativeRemaining(t *testing.T) {
 
 func TestCampaignEmailPreviewUsesTheDeliveryTemplate(t *testing.T) {
 	preview := makeCampaignEmailPreview(371, 12)
-	if preview.Subject != "Complete your I-PACE Owners registration" {
-		t.Fatalf("unexpected preview subject: %q", preview.Subject)
+	if strings.TrimSpace(preview.Subject) == "" {
+		t.Fatal("preview subject is empty")
 	}
-	for _, expected := range []string{
-		"You asked to join on",
-		"your email address has not yet been verified",
-		"fresh, private sign-in link",
-	} {
+	for _, expected := range []string{"[A fresh, private sign-in link is inserted for each recipient]"} {
 		if !strings.Contains(preview.Text, expected) {
 			t.Fatalf("text preview missing %q: %q", expected, preview.Text)
 		}
 	}
-	for _, expected := range []string{"<!doctype html>", "Please complete your registration", "fresh, private sign-in link", "/images/ipace-hero.png"} {
+	if strings.Contains(preview.Text, "{{.") {
+		t.Fatalf("text preview contains an unresolved template field: %q", preview.Text)
+	}
+	for _, expected := range []string{"<!doctype html>", "Verify my account details", "/images/ipace-hero.png"} {
 		if !strings.Contains(preview.HTML, expected) {
 			t.Fatalf("HTML preview missing %q: %q", expected, preview.HTML)
 		}
@@ -91,14 +90,19 @@ func TestCampaignEmailUsesMarkdownContentAndSharedBranding(t *testing.T) {
 		"/images/ipace-hero.png",
 		"Verify my account details",
 		"https://example.com/sign-in?a=1&amp;b=2",
-		"Hello &lt;Jane,",
+		"&lt;Jane",
 	} {
 		if !strings.Contains(htmlBody, expected) {
 			t.Fatalf("HTML email missing %q", expected)
 		}
 	}
-	if !strings.Contains(text, "You asked to join on 22 July 2026") {
-		t.Fatalf("plain-text email did not render Markdown template: %q", text)
+	for _, expected := range []string{"22 July 2026", "https://example.com/sign-in?a=1&b=2"} {
+		if !strings.Contains(text, expected) {
+			t.Fatalf("plain-text email missing rendered value %q: %q", expected, text)
+		}
+	}
+	if strings.Contains(text, "{{.") || strings.Contains(htmlBody, "{{.") || strings.Contains(htmlBody, "<Jane") {
+		t.Fatalf("rendered email contains an unresolved template field")
 	}
 	if strings.Contains(htmlBody, "/images/ipace-owners-logo") || strings.Count(htmlBody, "agreed that we could contact you") != 1 {
 		t.Fatalf("HTML email contains a logo or duplicate consent footer: %q", htmlBody)

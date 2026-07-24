@@ -137,11 +137,13 @@ Update Node tests for browser wiring and Go tests for handlers. Required coverag
   failure. Report it in dry-run output, return failure after writing the audit ledger, and always
   block live sending. Name matching may suppress a reminder for safety but must not satisfy this
   strict Auth-to-Join coverage check.
-- The re-engagement email should address the member by first name, state when they submitted Join,
-  lead with a secure “Verify my account details” CTA, and use “Add my I-PACE data” as a quieter
-  secondary action. Show the live unique joined-member count and describe completion by the current
-  eligible cohort as progress toward an explicitly ambitious 1,000-owner goal; do not misstate the
-  cohort as bringing registered accounts close to halfway when the arithmetic does not support it.
+- The browser-managed re-engagement email should address the member by first name, state when they
+  submitted Join, lead with a secure per-recipient “Verify my account details” CTA, explain the
+  member access available after verification, state the link lifetime, and provide the contact
+  address for recipients who did not ask to join or have changed their mind. Keep its Markdown
+  prose routinely editable. Regression tests should protect personalisation, date rendering,
+  escaping, the unique action link, shared HTML chrome/hero/CTA, the mandatory consent footer and
+  complete template-field substitution without pinning editorial sentences.
 - Invalid Join data does not save or send email.
 - Standalone `SendMagicLink` is account-enumeration-resistant.
 - Standalone `SendMagicLink` suppresses email side effects for unregistered addresses.
