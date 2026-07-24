@@ -14,8 +14,9 @@ import (
 var emailTemplateFiles embed.FS
 
 var (
-	emailTemplates     = texttemplate.Must(texttemplate.New("emails").ParseFS(emailTemplateFiles, "email-templates/*.md.tmpl"))
-	markdownLinkRegexp = regexp.MustCompile(`\[([^\]]+)\]\(([^)]+)\)`)
+	emailTemplates         = texttemplate.Must(texttemplate.New("emails").ParseFS(emailTemplateFiles, "email-templates/*.md.tmpl"))
+	markdownLinkRegexp     = regexp.MustCompile(`\[([^\]]+)\]\(([^)]+)\)`)
+	markdownEmphasisRegexp = regexp.MustCompile(`\*([^*\n]+)\*`)
 )
 
 func renderEmailMarkdownTemplate(name string, data any) (string, error) {
@@ -84,7 +85,13 @@ func markdownToPlainText(markdown string) string {
 		return ""
 	}
 	converted := markdownLinkRegexp.ReplaceAllString(trimmed, "$1: $2")
+	converted = markdownEmphasisRegexp.ReplaceAllString(converted, "$1")
 	return converted + "\n"
+}
+
+func renderInlineEmphasis(value string) string {
+	escaped := html.EscapeString(value)
+	return markdownEmphasisRegexp.ReplaceAllString(escaped, `<em style="font-style:italic;">$1</em>`)
 }
 
 func renderInlineMarkdown(value string) string {
@@ -94,7 +101,7 @@ func renderInlineMarkdown(value string) string {
 	}
 	matches := markdownLinkRegexp.FindAllStringSubmatchIndex(trimmed, -1)
 	if len(matches) == 0 {
-		return html.EscapeString(trimmed)
+		return renderInlineEmphasis(trimmed)
 	}
 
 	var builder strings.Builder
@@ -103,13 +110,13 @@ func renderInlineMarkdown(value string) string {
 		if len(match) < 6 {
 			continue
 		}
-		builder.WriteString(html.EscapeString(trimmed[cursor:match[0]]))
+		builder.WriteString(renderInlineEmphasis(trimmed[cursor:match[0]]))
 		label := strings.TrimSpace(trimmed[match[2]:match[3]])
 		url := strings.TrimSpace(trimmed[match[4]:match[5]])
-		builder.WriteString(`<a href="` + html.EscapeString(url) + `" style="color:#0f766e;">` + html.EscapeString(label) + `</a>`)
+		builder.WriteString(`<a href="` + html.EscapeString(url) + `" style="color:#0f766e;">` + renderInlineEmphasis(label) + `</a>`)
 		cursor = match[1]
 	}
-	builder.WriteString(html.EscapeString(trimmed[cursor:]))
+	builder.WriteString(renderInlineEmphasis(trimmed[cursor:]))
 	return builder.String()
 }
 

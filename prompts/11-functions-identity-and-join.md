@@ -54,6 +54,9 @@ magic-link request path for existing users.
   continue URLs, use the PR preview origin for email image assets so the email points at the
   image deployed with that branch. Keep Firebase's default email delivery as the automatic
   fallback when Resend is not configured or fails.
+  Render Markdown emphasis as semantic italic text in HTML emails, while removing the
+  Markdown delimiters from the matching plain-text alternative. Keep raw HTML escaped and
+  author links, including `mailto:` contact actions, with Markdown link syntax.
   Never log the generated action link, API key, or raw provider response body.
 - For PR deployments, derive `FIREBASE_EMAIL_CONTINUE_URL` from that PR's generated Firebase
   Hosting preview request origin rather than a shared staging custom domain or a value baked
@@ -137,11 +140,13 @@ Update Node tests for browser wiring and Go tests for handlers. Required coverag
   failure. Report it in dry-run output, return failure after writing the audit ledger, and always
   block live sending. Name matching may suppress a reminder for safety but must not satisfy this
   strict Auth-to-Join coverage check.
-- The re-engagement email should address the member by first name, state when they submitted Join,
-  lead with a secure “Verify my account details” CTA, and use “Add my I-PACE data” as a quieter
-  secondary action. Show the live unique joined-member count and describe completion by the current
-  eligible cohort as progress toward an explicitly ambitious 1,000-owner goal; do not misstate the
-  cohort as bringing registered accounts close to halfway when the arithmetic does not support it.
+- The browser-managed re-engagement email should address the member by first name, state when they
+  submitted Join, lead with a secure per-recipient “Verify my account details” CTA, explain the
+  member access available after verification, state the link lifetime, and provide the contact
+  address for recipients who did not ask to join or have changed their mind. Keep its Markdown
+  prose routinely editable. Regression tests should protect personalisation, date rendering,
+  escaping, the unique action link, shared HTML chrome/hero/CTA, the mandatory consent footer and
+  complete template-field substitution without pinning editorial sentences.
 - Invalid Join data does not save or send email.
 - Standalone `SendMagicLink` is account-enumeration-resistant.
 - Standalone `SendMagicLink` suppresses email side effects for unregistered addresses.
