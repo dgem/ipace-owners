@@ -64,8 +64,14 @@ func TestCampaignEmailPreviewUsesTheDeliveryTemplate(t *testing.T) {
 	if preview.Subject != "Complete your I-PACE Owners registration" {
 		t.Fatalf("unexpected preview subject: %q", preview.Subject)
 	}
-	if !strings.Contains(preview.Text, "371 owners have joined") || !strings.Contains(preview.Text, "fresh, private sign-in link") {
-		t.Fatalf("preview missing audience context: %q", preview.Text)
+	for _, expected := range []string{
+		"You asked to join on",
+		"your email address has not yet been verified",
+		"fresh, private sign-in link",
+	} {
+		if !strings.Contains(preview.Text, expected) {
+			t.Fatalf("text preview missing %q: %q", expected, preview.Text)
+		}
 	}
 	for _, expected := range []string{"<!doctype html>", "Please complete your registration", "fresh, private sign-in link", "/images/ipace-hero.png"} {
 		if !strings.Contains(preview.HTML, expected) {
