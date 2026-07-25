@@ -98,11 +98,77 @@ async function checkMobileAdminDrawer() {
   await page.close();
 }
 
-async function checkCampaignControls() {
-  const page = await browser.newPage({ viewport: { width: 1440, height: 1100 } });
+async function checkCampaignControls(viewport, screenshotName) {
+  const page = await browser.newPage({ viewport });
+  const placeholders = [
+    'membersJoined', 'membersVerified', 'memberFirstName', 'memberLastName', 'memberTittle',
+    'memberTitle', 'memberJoined', 'memberVerified', 'memberVehicles',
+    'vehiclesRegisteredCount', 'vehiclesSoHReadingsCount'
+  ];
+  await page.route('**/api/admin/email-campaign-history', (route) => route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({
+      placeholders,
+      campaigns: [{
+        campaignId: 'email-campaign_example',
+        kind: 'custom-member',
+        name: 'July member update',
+        subject: 'A member update for {{memberFirstName}}',
+        markdown: 'Hi {{memberFirstName}},\n\nWe now have {{membersJoined}} members.',
+        status: 'sending',
+        eligible: 389,
+        sent: 371,
+        failed: 1,
+        remaining: 18,
+        batchCount: 38,
+        updatedAt: '2026-07-24T12:00:00Z'
+      }]
+    })
+  }));
+  await page.route('**/api/admin/custom-campaign-preview', (route) => route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({
+      campaignId: 'email-campaign_preview',
+      sourceCampaignId: 'email-campaign_example',
+      name: 'July member update — rerun',
+      eligible: 389,
+      sent: 0,
+      failed: 0,
+      batchSent: 0,
+      remaining: 389,
+      emailPreview: {
+        subject: 'A member update for Alex',
+        html: '<!doctype html><html lang="en"><body style="font-family:Arial;background:#f7f8fb;padding:24px"><main style="max-width:600px;margin:auto;background:white;padding:32px"><h1 style="color:#12324a">A member update for Alex</h1><p>Hi Alex,</p><p>We now have 412 members.</p></main></body></html>',
+        text: 'Hi Alex,\n\nWe now have 412 members.'
+      }
+    })
+  }));
   await page.goto(baseURL + '/admin/email-campaigns/', { waitUntil: 'networkidle' });
   await revealAdminState(page);
+  await page.evaluate(() => {
+    window.firebase = { auth: () => ({ currentUser: { getIdToken: async () => 'visual-admin-token' } }) };
+  });
   assert.equal(await page.locator('[data-email-campaign]').count(), 2);
+  assert.equal(await page.locator('[data-custom-email-campaign]').count(), 1);
+  assert.equal(await page.locator('[data-custom-placeholder]').count(), 11);
+  assert.equal(await page.locator('[data-custom-campaign-markdown]').isVisible(), true);
+  assert.equal(await page.locator('[data-custom-campaign-send-button]').isDisabled(), true);
+  await page.locator('[data-campaign-history-refresh]').click();
+  await page.locator('.email-campaign-history__item').waitFor({ state: 'visible' });
+  assert.equal(await page.locator('.email-campaign-history__item').count(), 1);
+  assert.equal(await page.locator('.email-campaign-history__item button').count(), 2);
+  await page.locator('.email-campaign-history__item .btn--secondary').click();
+  assert.equal(await page.locator('[data-custom-campaign-name]').inputValue(), 'July member update — rerun');
+  await page.locator('[data-custom-campaign-preview]').click();
+  await page.locator('[data-custom-campaign-email-preview]').waitFor({ state: 'visible' });
+  await page.waitForFunction(() => !document.querySelector('[data-custom-campaign-send-button]').disabled);
+  assert.equal(await page.locator('[data-custom-campaign-send-button]').isDisabled(), false);
+  await page.locator('[data-custom-campaign-subject]').fill('A revised member update');
+  assert.equal(await page.locator('[data-custom-campaign-send-button]').isDisabled(), true, 'editing must invalidate the preview');
+  await page.locator('[data-custom-campaign-preview]').click();
+  await page.waitForFunction(() => !document.querySelector('[data-custom-campaign-send-button]').disabled);
+  await page.frameLocator('[data-custom-campaign-email-html]').locator('h1').waitFor({ state: 'visible' });
+  assert.equal(await page.locator('[data-custom-campaign-send-button]').isDisabled(), false);
   const buttons = page.locator('[data-campaign-send-button]');
   assert.equal(await buttons.count(), 2);
   for (let index = 0; index < await buttons.count(); index += 1) {
@@ -114,7 +180,7 @@ async function checkCampaignControls() {
   }
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.evaluate(() => window.scrollTo(0, 0));
-  await page.screenshot({ path: path.join(outputDir, 'admin-email-campaigns-desktop.png'), fullPage: true });
+  await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
   await page.close();
 }
 
@@ -133,7 +199,8 @@ try {
   await checkDesktopAdminHeader();
   await checkMobileAdminDrawer();
   await checkAdminDashboard();
-  await checkCampaignControls();
+  await checkCampaignControls({ width: 1440, height: 1100 }, 'admin-email-campaigns-desktop.png');
+  await checkCampaignControls({ width: 390, height: 844 }, 'admin-email-campaigns-mobile.png');
   console.log(`Visual checks passed; screenshots written to ${outputDir}`);
 } finally {
   await browser.close();

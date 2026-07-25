@@ -282,6 +282,11 @@ func sendReengagementCampaignBatch(ctx context.Context, input campaignSendReques
 	}
 	summary := makeCampaignSummary(preview.CampaignID, len(eligible), len(joins)-len(eligible), countCampaignSent(eligible, sent), batchSent)
 	summary.EmailPreview = makeCampaignEmailPreview(len(joins), len(eligible))
+	if err := recordSpecializedCampaign(ctx, db, summary, "join-reengagement", "Registration reminder",
+		"Complete your I-PACE Owners registration",
+		"Hi {{memberFirstName}},\n\nPlease complete your I-PACE Owners registration.\n\nYou joined on {{memberJoined}}, but your secure sign-in was not completed.\n\nhttps://ipace-owners.org/member/account/"); err != nil {
+		return campaignSummary{}, fmt.Errorf("campaign sent but summary update failed")
+	}
 	return summary, nil
 }
 
@@ -377,6 +382,11 @@ func sendMemberReferralCampaignBatch(ctx context.Context, input campaignSendRequ
 	}
 	summary := makeCampaignSummary(preview.CampaignID, len(eligible), len(accounts)-len(eligible), countCampaignSent(eligible, sent), batchSent)
 	summary.EmailPreview = makeMemberReferralEmailPreview(len(joins))
+	if err := recordSpecializedCampaign(ctx, db, summary, "member-referral", "Member referral",
+		"Could you help one more I-PACE owner find us?",
+		"Hi {{memberFirstName}},\n\nThank you for joining the I-PACE Owners group. We now have {{membersJoined}} registered members.\n\nCould you help another I-PACE owner find us?\n\nhttps://ipace-owners.org/"); err != nil {
+		return campaignSummary{}, fmt.Errorf("campaign sent but summary update failed")
+	}
 	return summary, nil
 }
 

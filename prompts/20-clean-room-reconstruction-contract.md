@@ -85,6 +85,9 @@ change rather than assuming it exists.
 | `POST /api/admin/reengagement-send` | Admin claim | Require the campaign ID, exact eligible count and typed confirmation; recheck registrations and send the next batch of at most ten. |
 | `POST /api/admin/member-referral-preview` | Admin claim | Preview aggregate counts and exact copy for registered accounts with matching contact consent. |
 | `POST /api/admin/member-referral-send` | Admin claim | Confirm and send the next batch of at most ten referral emails with the same idempotent ledger safeguards. |
+| `POST /api/admin/email-campaign-history` | Admin claim | Return parent campaign records and aggregate hashed-ledger delivery counts, including inferred legacy runs, without addresses. |
+| `POST /api/admin/custom-campaign-preview` | Admin claim | Validate/save a named subject and Markdown draft, calculate the verified consented audience, and return representative branded HTML/plain-text output. |
+| `POST /api/admin/custom-campaign-send` | Admin claim | Load immutable saved content, recheck the audience and exact `SEND <count>` confirmation, then send at most ten idempotent messages. |
 | `POST /api/admin/instagram-preview` | Admin claim | Validate a site-relative MP4/MOV path, caption and explicit full-media review; return the deterministic confirmation without a provider side effect. |
 | `POST /api/admin/instagram-publish` | Admin claim | Revalidate the unchanged preview and exact confirmation, then create, process and publish one organic Reel through Meta. |
 | `POST /api/admin/instagram-generate` | Admin claim | Reserve an idempotent job and start one billable eight-second 9:16 Veo operation after exact `GENERATE VIDEO` confirmation. |
@@ -105,7 +108,11 @@ Use these exact collection names: `joinSubmissions`, `members`, `vehicles`,
 `batteryReadings`, `serviceEvents`, `memberSnapshots`, `emailCampaigns`,
 `instagramCampaigns`, and `instagramGenerationJobs`. The email collection stores
 campaign delivery subdocuments keyed by a non-reversible email fingerprint, with no recipient
-address returned to the browser. `instagramCampaigns` reserves the deterministic reviewed-draft
+address returned to the browser. Its parent documents store custom/specialised campaign kind,
+name, subject, Markdown, optional source run, lifecycle status, eligible/sent/failed/remaining
+totals, batch count, and created/updated/last-sent timestamps. Private `members` documents may
+store `emailVerifiedAt` and `emailVerifiedAtInferred`; do not expose either through public data.
+`instagramCampaigns` reserves the deterministic reviewed-draft
 ID before contacting Meta and stores processing, failed, or published status plus the returned
 media ID so a retry cannot silently duplicate a post. `instagramGenerationJobs` stores prompt
 hashes, phase, status, Vertex operation name, private object names, failure code, and only a hash
@@ -196,6 +203,15 @@ forms explicitly use POST even when JavaScript intercepts them.
   primary and share actions; do not add a logo image. Keep the legally important
   contact-consent/unsubscribe footer outside the routinely edited Markdown body. Render supported
   Markdown emphasis as semantic italic text in HTML and omit its delimiters from plain text.
+- Provide custom verified-member campaigns with server-validated Markdown, sandboxed branded HTML
+  preview, plain-text preview, click-to-insert allowlisted substitutions, resumable confirmed
+  batches, aggregate history, and clone-to-rerun behaviour. Dedupe joined and verified member
+  totals by canonical email. Support `membersJoined`, `membersVerified`, `memberFirstName`,
+  `memberLastName`, the requested `memberTittle` spelling and `memberTitle` alias, `memberJoined`,
+  `memberVerified`, private-member `memberVehicles` JSON, `vehiclesRegisteredCount`, and
+  `vehiclesSoHReadingsCount`; reject arbitrary Go-template actions and unsafe link schemes.
+  Reopen drafts and continue partial custom runs only with unchanged saved content; an edit after
+  any delivery creates a new run linked to the original.
 - Provide an admin-only Instagram campaign page following the same preview-before-side-effect
   interaction. Chat prepares the post; a human reviews the complete final media; the server
   validates the exact site-relative media path and caption; and an exact typed confirmation

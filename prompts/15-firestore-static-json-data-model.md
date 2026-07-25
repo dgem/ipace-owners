@@ -21,6 +21,7 @@ Firestore is the source of truth for:
   parts-delay, warranty-cover, and dispute fields;
 - future payment, goodwill, expense, evidence-upload, responsibility-publication, and review data;
 - admin review state, verification levels, and audit events.
+- email campaign parent records and hashed per-recipient delivery ledgers.
 
 Use Go Cloud Functions with the Firebase Admin SDK and Firestore client. Do not make
 private Firestore collections directly readable from browser code.
@@ -99,6 +100,14 @@ Implemented collections:
   reading for compatibility
 - `serviceEvents` as member-editable vehicle history with ownership and review metadata
 - `memberSnapshots`
+- `emailCampaigns`; parent documents store campaign kind, name, subject, Markdown, optional
+  source campaign ID, status, eligible/sent/failed/remaining totals, batch count, and timestamps.
+  A `deliveries` subcollection uses only non-reversible email fingerprints as document IDs.
+
+Private `members/{uid}` documents may store the first observed `emailVerifiedAt`. When an existing
+verified Auth account has no stored value, backfill the best available Firebase creation/last-login
+timestamp and mark `emailVerifiedAtInferred: true`. This value supports personalised campaign
+substitution and must not enter public snapshots.
 
 Future collections, to add only with the corresponding validated feature:
 
@@ -123,6 +132,9 @@ The UX must assume a member can own, have owned, or help with more than one I-PA
 - Store `vinHash` using `VIN_PEPPER` and optionally `vinLast6` for member-facing reference.
 - Never place names, emails, registrations, VIN fragments, or per-member vehicle details
   in public static JSON.
+- Never store addresses in email campaign parent records or return delivery ledger identities to
+  the admin browser. `memberVehicles` JSON is rendered only into that member's outbound email and
+  must omit VIN hashes.
 - Member/account snapshots must be served only after `MemberData` verifies a Firebase ID
   token server-side.
 

@@ -419,6 +419,33 @@ removed during routine copy edits.
 Staging delivery deliberately uses `https://ipace-owners.org` for durable public email imagery:
 `stage.ipace-owners.org` is an email-sending domain and does not serve Hosting assets.
 
+The campaign workspace also records previous specialised and custom campaign runs. Each
+Firestore parent record contains the campaign name/copy, lifecycle status, eligible, sent,
+remaining and failed-attempt totals, batch count and timestamps; hashed delivery
+subdocuments remain the recipient-level idempotency ledger. Legacy runs that predate parent
+records are recovered from those delivery ledgers where possible. “Tweak and rerun” copies an
+old subject and Markdown into a new run rather than changing its audit history.
+Registration reminders remain on their specialised tool because they require an unverified
+audience and a fresh private sign-in link; the custom editor must not silently retarget them to
+verified members.
+Draft and partially sent custom runs can be reopened from history. A partial run can continue only
+after previewing its unchanged saved content; editing it creates a new run and preserves the
+original delivery ledger.
+
+Administrators can create custom campaigns for verified Firebase accounts with matching
+contact-consenting Join records. `POST /api/admin/custom-campaign-preview` validates and saves the
+draft, recalculates the canonical-email-deduped audience and renders sandboxed branded HTML plus
+plain text. `POST /api/admin/custom-campaign-send` reloads that immutable draft and uses the same
+exact-count confirmation, ten-message batches, Resend idempotency and hashed ledgers. History is
+returned by `POST /api/admin/email-campaign-history`; none of these responses contain addresses.
+
+Custom Markdown supports only these literal substitutions: `{{membersJoined}}`,
+`{{membersVerified}}`, `{{memberFirstName}}`, `{{memberLastName}}`, `{{memberTittle}}` (and the
+correctly spelled alias `{{memberTitle}}`), `{{memberJoined}}`, `{{memberVerified}}`,
+`{{memberVehicles}}`, `{{vehiclesRegisteredCount}}`, and `{{vehiclesSoHReadingsCount}}`.
+`memberVehicles` is private per-recipient JSON containing non-VIN car fields and SoH reading
+counts. Arbitrary Go-template actions and unsafe link schemes are rejected server-side.
+
 ### Instagram campaign publishing
 
 `/admin/instagram-campaigns/` implements the deliberate handoff from chat-created campaign

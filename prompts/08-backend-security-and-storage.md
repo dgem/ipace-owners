@@ -68,6 +68,14 @@ Use Firestore for structured data:
   raw provider messages to the browser. Expose completed private masters only through short-lived,
   unguessable delivery paths whose token is stored as a hash and checked in constant time; support
   HTTP byte ranges for browser and Meta video fetches.
+- Store every email campaign run as a parent `emailCampaigns` document plus a `deliveries`
+  subcollection keyed only by a short non-reversible email fingerprint. Parent records may contain
+  campaign copy and aggregate counts but never addresses or recipient-specific substitutions.
+  Treat sent content as immutable and make reruns new documents with `sourceCampaignId`.
+- Custom campaign Markdown accepts only documented literal `{{name}}` substitutions and
+  https/http/mailto links. Escape substituted member and vehicle values when producing HTML,
+  return only representative output to the admin browser, and target only verified accounts with
+  matching contact consent. `memberVehicles` must exclude VIN hashes.
 
 ## Validation
 

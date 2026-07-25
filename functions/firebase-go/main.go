@@ -81,6 +81,12 @@ func Api(w http.ResponseWriter, r *http.Request) {
 		AdminMemberReferralPreview(w, r)
 	case "/api/admin/member-referral-send":
 		AdminMemberReferralSend(w, r)
+	case "/api/admin/email-campaign-history":
+		AdminEmailCampaignHistory(w, r)
+	case "/api/admin/custom-campaign-preview":
+		AdminCustomCampaignPreview(w, r)
+	case "/api/admin/custom-campaign-send":
+		AdminCustomCampaignSend(w, r)
 	case "/api/admin/instagram-preview":
 		AdminInstagramPreview(w, r)
 	case "/api/admin/instagram-publish":

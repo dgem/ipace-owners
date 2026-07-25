@@ -5,6 +5,7 @@ import (
 	"embed"
 	"fmt"
 	"html"
+	"net/url"
 	"regexp"
 	"strings"
 	texttemplate "text/template"
@@ -16,6 +17,7 @@ var emailTemplateFiles embed.FS
 var (
 	emailTemplates         = texttemplate.Must(texttemplate.New("emails").ParseFS(emailTemplateFiles, "email-templates/*.md.tmpl"))
 	markdownLinkRegexp     = regexp.MustCompile(`\[([^\]]+)\]\(([^)]+)\)`)
+	markdownStrongRegexp   = regexp.MustCompile(`\*\*([^*\n]+)\*\*`)
 	markdownEmphasisRegexp = regexp.MustCompile(`\*([^*\n]+)\*`)
 )
 
@@ -71,6 +73,17 @@ func markdownToEmailHTML(markdown string) string {
 			continue
 		}
 		flushList()
+		if strings.HasPrefix(line, "### ") {
+			flushParagraph()
+			sections = append(sections, `<h3 style="margin:22px 0 10px;color:#12324a;font-size:19px;line-height:1.3;">`+renderInlineMarkdown(strings.TrimPrefix(line, "### "))+`</h3>`)
+			continue
+		}
+		if strings.HasPrefix(line, "## ") || strings.HasPrefix(line, "# ") {
+			flushParagraph()
+			text := strings.TrimPrefix(strings.TrimPrefix(line, "## "), "# ")
+			sections = append(sections, `<h2 style="margin:24px 0 12px;color:#12324a;font-size:22px;line-height:1.3;">`+renderInlineMarkdown(text)+`</h2>`)
+			continue
+		}
 		paragraph = append(paragraph, line)
 	}
 	flushParagraph()
@@ -85,12 +98,18 @@ func markdownToPlainText(markdown string) string {
 		return ""
 	}
 	converted := markdownLinkRegexp.ReplaceAllString(trimmed, "$1: $2")
+	converted = markdownStrongRegexp.ReplaceAllString(converted, "$1")
 	converted = markdownEmphasisRegexp.ReplaceAllString(converted, "$1")
+	converted = strings.ReplaceAll(converted, "\n### ", "\n")
+	converted = strings.ReplaceAll(converted, "\n## ", "\n")
+	converted = strings.ReplaceAll(converted, "\n# ", "\n")
+	converted = strings.TrimPrefix(strings.TrimPrefix(strings.TrimPrefix(converted, "### "), "## "), "# ")
 	return converted + "\n"
 }
 
 func renderInlineEmphasis(value string) string {
 	escaped := html.EscapeString(value)
+	escaped = markdownStrongRegexp.ReplaceAllString(escaped, `<strong style="font-weight:700;">$1</strong>`)
 	return markdownEmphasisRegexp.ReplaceAllString(escaped, `<em style="font-style:italic;">$1</em>`)
 }
 
@@ -118,6 +137,17 @@ func renderInlineMarkdown(value string) string {
 	}
 	builder.WriteString(renderInlineEmphasis(trimmed[cursor:]))
 	return builder.String()
+}
+
+func validateEmailMarkdownLinks(markdown string) error {
+	for _, match := range markdownLinkRegexp.FindAllStringSubmatch(markdown, -1) {
+		target := strings.TrimSpace(match[2])
+		parsed, err := url.Parse(target)
+		if err != nil || (parsed.Scheme != "https" && parsed.Scheme != "http" && parsed.Scheme != "mailto") {
+			return fmt.Errorf("email links must use https, http or mailto URLs")
+		}
+	}
+	return nil
 }
 
 func renderCampaignTemplate(name string, data any) (text string, htmlBody string, err error) {

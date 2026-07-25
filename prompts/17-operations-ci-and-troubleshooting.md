@@ -28,6 +28,22 @@ recheck, and hashed-ledger controls as registration reminders. Keep the embedded
 editable: regression tests protect complete template-field substitution, shared email chrome,
 destinations and delivery safeguards without pinning editorial sentences or chosen numeric fields.
 
+The same page provides custom verified-member campaigns. Preview validates an allowlisted
+`{{name}}` substitution language rather than executing arbitrary Go templates, saves a Firestore
+draft, calculates the canonical-email-deduped intersection of verified Auth accounts and
+contact-consenting Join records, and renders branded HTML in a sandbox plus plain text. Sending
+loads the saved immutable content, rechecks the audience and `SEND <count>` confirmation, and
+uses the same ten-message hashed/idempotent batches. Parent campaign documents retain aggregate
+eligible, sent, failed-attempt, remaining, batch and timestamp history. “Tweak and rerun” clones
+content into a new run; never edit a run after delivery starts. History may infer old specialised
+runs from legacy delivery-only subcollections, where only the sent count is recoverable.
+Registration reminders remain rerunnable only through their specialised tool because they require
+an unverified-member audience and a fresh private sign-in link; do not clone them into the
+verified-member custom editor.
+Allow drafts to reopen and partially sent custom runs to continue after re-previewing the exact
+unchanged saved content. If the administrator edits a run that has sent anything, clear its active
+campaign ID and create a new run linked through `sourceCampaignId`.
+
 ## Command Surface
 
 - The Makefile is the shared command surface for local development and CI.
