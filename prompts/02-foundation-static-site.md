@@ -46,7 +46,10 @@ Create a small, maintainable Eleventy 3 site that can be deployed to Firebase Ho
 - Include `firebase-tools` as a development dependency so deployments and preview channels are repeatable.
 - Use the current Node.js Active LTS and latest compatible stable npm dependencies. Commit
   `package-lock.json`, configure weekly Dependabot updates, and do not select a non-LTS Node
-  release merely because its version number is newer.
+  release merely because its version number is newer. When a maintained direct dependency
+  has not yet widened its dependency range after a security release, use the smallest
+  explicit transitive override needed to keep `npm audit` clear, exercise the affected
+  build/CLI path, and remove the override after upstream catches up.
 - Configure Firebase Hosting in `firebase.json` with publish directory `_site`, security
   headers, and `/api/*` rewrites to Go Cloud Functions.
 - Add security headers suitable for a static site using Firebase Authentication.

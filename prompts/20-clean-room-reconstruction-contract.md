@@ -255,7 +255,10 @@ presentation.
 
 - Use the current production-supported versions mandated by `AGENTS.md`, then generate and
   commit npm, Go, and OpenTofu lock/checksum files. Exact historical dependency bytes are not
-  part of a clean-room rebuild unless archived lockfiles are supplied.
+  part of a clean-room rebuild unless archived lockfiles are supplied. Preserve narrow,
+  pinned npm transitive-security overrides while current direct tools still require affected
+  ranges; verify them with a zero-result npm audit and the affected CLI/build paths, then
+  remove them once upstream dependency ranges include the patched releases.
 - Recreate staging and production workflows, read-only PR validation, repository-owner plus
   same-repository preview deployment gating, approval for all external contributors,
   job-scoped permissions, immutable third-party Action pins, Workload Identity Federation,

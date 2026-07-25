@@ -60,6 +60,10 @@ campaign ID and create a new run linked through `sourceCampaignId`.
   `security-extended` analysis for GitHub Actions, JavaScript/TypeScript, and Go; dependency
   review that rejects newly introduced moderate-or-higher vulnerabilities; `npm audit` with
   a high-severity threshold; and pinned `govulncheck` analysis for reachable Go issues.
+- If a newly disclosed npm advisory affects transitive packages while the maintained direct
+  tool is already current, prefer narrow pinned `overrides` for patched transitive releases
+  over downgrading the direct tool. Regenerate `package-lock.json`, require a zero-result
+  full npm audit, and exercise the affected build or deployment CLI before pushing.
 - After a Firebase Hosting PR preview passes its smoke test, run a blocking passive OWASP ZAP
   baseline scan against that preview. Use a versioned ZAP container, disable issue creation,
   retain the report as an Actions artifact, and keep reviewed platform/CDN findings in the

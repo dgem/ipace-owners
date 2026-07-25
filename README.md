@@ -120,7 +120,10 @@ make audit
 Runs `npm audit` with a high-severity failure threshold and pinned `govulncheck` analysis for
 reachable Go vulnerabilities. GitHub Actions additionally runs CodeQL and dependency review
 on pull requests and a weekly schedule. Firebase PR previews receive a blocking passive OWASP
-ZAP baseline scan after deployment smoke tests pass.
+ZAP baseline scan after deployment smoke tests pass. `package.json` may pin narrow transitive
+security overrides when a maintained direct dependency has not yet widened its range to a
+patched release; keep those overrides locked, test the affected CLI/build paths, and remove
+them when an upstream release makes them unnecessary.
 
 ### Production build
 
