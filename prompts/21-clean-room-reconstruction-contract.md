@@ -63,7 +63,9 @@ the browser reads an admin claim from the Firebase ID token. Treat that link as 
 not authorization; the route remains gated by the server-verified admin API.
 
 The complete admin menu belongs in a claim-gated, right-aligned secondary desktop header row and
-a labelled mobile-drawer section, not inside individual admin page content.
+a labelled mobile-drawer section, not inside individual admin page content. The signed-out mobile
+header exposes Sign in beside the menu toggle and repeats it in the drawer for discoverability;
+both signed-out actions disappear after authentication.
 
 `/admin/` is the claim-gated landing dashboard. It links to every implemented admin tool and
 describes planned areas without linking to unimplemented routes.
@@ -283,8 +285,9 @@ Before declaring reconstruction complete:
 
 1. Run `make install`, `make lint`, `make test`, `make build`, `make audit`, and OpenTofu
    formatting/validation for the environment root.
-2. Confirm every route and redirect above, mobile navigation, launch/full site modes,
-   canonical metadata, keyboard flows, and WCAG AA colour/focus behaviour.
+2. Confirm every route and redirect above, mobile navigation in signed-out/signed-in/admin
+   states, launch/full site modes, canonical metadata, keyboard flows, and WCAG AA
+   colour/focus behaviour.
 3. Test Join and magic-link flows for new, existing, unknown, malformed, and honeypot users;
    confirm generic responses and that email addresses never enter fallback page URLs.
 4. Test unauthenticated, member, wrong-owner, and admin authorization for every private API.

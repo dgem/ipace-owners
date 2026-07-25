@@ -694,7 +694,9 @@ sign out and request a new magic link so the next ID token contains the current 
 Signed-in administrators receive the complete admin menu in a right-aligned secondary desktop
 header row and a labelled section of the mobile drawer. It is not repeated inside admin page
 content. These navigation hints use token claims, while every protected endpoint continues to
-enforce administrator access server-side.
+enforce administrator access server-side. Signed-out mobile headers keep a compact Sign in
+action beside the menu toggle as well as the full-width action inside the drawer; both disappear
+when authentication succeeds.
 
 Disabling `manage_firebase_admins` stops reconciliation but does not revoke existing claims.
 Remove unwanted administrators from the map and apply before disabling management.

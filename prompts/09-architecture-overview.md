@@ -88,6 +88,8 @@ users removed from the desired set. A configured user must already exist in Fire
 
 After claims are verified, render the complete admin menu in a right-aligned secondary desktop
 header row and a labelled mobile-drawer section. Do not duplicate it below admin page titles.
+For signed-out mobile visitors, keep Sign in visible beside the menu toggle as well as inside
+the drawer, then hide both signed-out actions when authentication succeeds.
 
 ## Implemented API contracts
 

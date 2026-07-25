@@ -38,6 +38,8 @@ server-side by Go Cloud Functions that validate Firebase ID tokens.
 - Expose `window.ipaceGetIdentityToken()` so form/API code can attach
   `Authorization: Bearer <Firebase ID token>`.
 - Update header and mobile controls based on current user state.
+- Keep the mobile drawer's labelled Account section visible and colour-contrast compliant:
+  guests see Sign in; authenticated members see My Data, My account and Sign out.
 - Show public `Join` CTA only to guests. Signed-in users must have exactly one obvious
   `My Data` route to `/member/dashboard/` in desktop and mobile navigation. The signed-in
   email address should link to `/member/account/` as the account-management route.

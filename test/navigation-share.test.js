@@ -11,18 +11,28 @@ test('header exposes one My Data action and account via user email when signed i
   var header = fs.readFileSync(path.join(repoRoot, 'src/_includes/partials/header.njk'), 'utf8');
   var mobileNav = fs.readFileSync(path.join(repoRoot, 'src/_includes/partials/mobile-nav.njk'), 'utf8');
   var identityJs = fs.readFileSync(path.join(repoRoot, 'src/assets/js/identity.js'), 'utf8');
+  var css = fs.readFileSync(path.join(repoRoot, 'src/assets/css/site.css'), 'utf8');
 
   assert.match(header, /data-requires-guest[\s\S]*>\{\{ item\.label \}\}<\/a>/);
   assert.equal((header.match(/>My Data<\/a>/g) || []).length, 1);
   assert.equal((header.match(/>Dashboard<\/a>/g) || []).length, 0);
   assert.match(header, /id="identity-user-display" class="identity-controls__user btn btn--sm btn--ghost" href="\/member\/account\/"/);
+  assert.match(header, /id="identity-mobile-header-login-btn"[^>]+href="\/member\/account\/"[^>]*>Sign in<\/a>/);
   assert.doesNotMatch(header, />Account<\/a>/);
   assert.match(mobileNav, /data-requires-guest[\s\S]*>\{\{ item\.label \}\}<\/a>/);
   assert.equal((mobileNav.match(/>My Data<\/a>/g) || []).length, 1);
   assert.equal((mobileNav.match(/>Dashboard<\/a>/g) || []).length, 0);
   assert.match(mobileNav, /href="\/member\/account\/"[\s\S]*data-requires-auth[\s\S]*>My account<\/a>/);
+  assert.match(mobileNav, /mobile-nav__identity-label">Account/);
+  assert.match(mobileNav, /id="identity-mobile-login-btn"[\s\S]*>Sign in<\/a>/);
+  assert.match(identityJs, /mobileLoginBtn\.style\.display = 'none'/);
+  assert.match(identityJs, /mobileLoginBtn\.style\.display = ''/);
   assert.match(identityJs, /setVisibility\('\[data-requires-auth\]', true\)/);
   assert.match(identityJs, /setVisibility\('\[data-requires-guest\]', false\)/);
+  assert.match(identityJs, /mobileHeaderLoginBtn\.style\.display = 'none'/);
+  assert.match(identityJs, /mobileHeaderLoginBtn\.style\.display = ''/);
+  assert.match(css, /\.mobile-header-login\s*\{\s*display: none;/);
+  assert.match(css, /@media \(max-width: 39\.99em\)[\s\S]*\.mobile-header-login\s*\{[\s\S]*display: inline-flex;/);
   assert.match(identityJs, /setAttribute\('aria-label', 'My account'\)/);
 });
 

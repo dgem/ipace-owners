@@ -89,12 +89,32 @@ async function checkMobileAdminDrawer() {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
   await page.goto(baseURL + '/admin/outreach/', { waitUntil: 'networkidle' });
   await revealAdminState(page);
+  assert.equal(await page.locator('#identity-mobile-header-login-btn').isVisible(), true);
   await page.locator('#mobile-menu-toggle').click();
   await page.locator('.mobile-nav__admin').waitFor({ state: 'visible' });
+  assert.equal(await page.locator('#identity-mobile-login-btn').isVisible(), true);
   assert.equal(await page.locator('.site-admin-nav').isVisible(), false);
   await assertAdminDestinations(page.locator('.mobile-nav__admin a'));
+  const mobileLogin = page.locator('#identity-mobile-login-btn');
+  assert.equal(await mobileLogin.isVisible(), true, 'signed-out mobile navigation must show Sign in');
+  assert.equal(await mobileLogin.evaluate((element) => getComputedStyle(element).color), 'rgb(255, 255, 255)');
+  assert.equal(await page.locator('.mobile-nav__identity-label').textContent(), 'Account');
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, 'admin-outreach-mobile.png'), fullPage: true });
+  await page.evaluate(() => {
+    document.querySelector('#identity-mobile-header-login-btn').style.display = 'none';
+    document.querySelector('#identity-mobile-login-btn').style.display = 'none';
+    document.querySelector('#identity-mobile-logout-btn').style.display = '';
+    document.querySelectorAll('.mobile-nav__identity [data-requires-auth]').forEach((element) => {
+      element.style.display = '';
+    });
+  });
+  assert.equal(await page.locator('.mobile-nav__identity a[href="/member/dashboard/"]').isVisible(), true);
+  assert.equal(await page.locator('.mobile-nav__identity a[href="/member/account/"][data-requires-auth]').isVisible(), true);
+  assert.equal(await page.locator('#identity-mobile-logout-btn').isVisible(), true);
+  assert.equal(await page.locator('#identity-mobile-header-login-btn').isVisible(), false);
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
+  await page.screenshot({ path: path.join(outputDir, 'admin-outreach-mobile-signed-in.png'), fullPage: true });
   await page.close();
 }
 
