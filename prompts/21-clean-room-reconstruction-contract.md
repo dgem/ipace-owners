@@ -1,6 +1,6 @@
 # Clean-room Reconstruction Contract
 
-Use this prompt as the final acceptance contract when recreating the repository from the
+Use this terminal prompt as the final acceptance contract when recreating the repository from the
 numbered prompts and `AGENTS.md`. It defines precedence, the minimum product surface, and the
 information that must be preserved outside source control.
 
@@ -11,6 +11,9 @@ information that must be preserved outside source control.
 - Every file in `prompts/` must match
   `^\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*\.md$` (`xx-name.md`) and sequence numbers must remain
   contiguous.
+- This contract must be the highest-numbered prompt. Add or renumber feature prompts before
+  it, then renumber this file so reconstruction acceptance always runs after every feature
+  contract.
 - All numbered prompt files plus `AGENTS.md` describe the current product, except that
   prompt `00` remains historical context as noted above. Later, more specific prompts
   override earlier general prompts when requirements conflict.
@@ -32,7 +35,8 @@ The generated public route surface must include:
   `/methodology/`, `/evidence-dashboard/`, and `/updates/`;
 - dated or named update pages generated from `src/updates/`;
 - `/member/dashboard/`, `/member/account/`, and `/member/submit-vehicle-data/`;
-- `/admin/`, `/admin/review-queue/`, `/admin/outreach/`, and `/admin/email-campaigns/`;
+- `/admin/`, `/admin/review-queue/`, `/admin/outreach/`, `/admin/email-campaigns/`, and
+  `/admin/instagram-campaigns/`;
 - permanent redirects from `/account/**` and `/submit-vehicle-data/**` to their member
   equivalents;
 - a generated 404 page, clean URLs, trailing slashes, and a final Hosting fallback to
@@ -216,7 +220,7 @@ forms explicitly use POST even when JavaScript intercepts them.
   interaction. Chat prepares the post; a human reviews the complete final media; the server
   validates the exact site-relative media path and caption; and an exact typed confirmation
   gates immediate organic Reel publishing. Reconstruct its creative and safety contract from
-  prompt `21`. Do not claim that paid ads, scheduling or automated engagement are implemented.
+  prompt `20`. Do not claim that paid ads, scheduling or automated engagement are implemented.
 
 Prompts define visual intent, not the exact control points or pixels of generated artwork.
 Therefore the following committed assets are preservation-critical and must be backed up with
@@ -284,13 +288,20 @@ Before declaring reconstruction complete:
 4. Test unauthenticated, member, wrong-owner, and admin authorization for every private API.
 5. Test multiple vehicles, SoH history, service-event create/edit, snapshot regeneration,
    Firebase Auth pagination, five-minute public caching, and snapshot fallback.
-6. Confirm no raw VIN, token, email, name, private snapshot, or evidence record appears in
+6. Test registration-reminder, member-referral, and custom email campaign preview/send
+   boundaries, immutable delivery ledgers, aggregate history, partial-run continuation,
+   draft editing, clone-to-rerun behaviour, substitutions, and exact confirmation gates.
+7. Test Instagram generation and publishing independently: admin/origin authorization,
+   idempotent asynchronous Veo phases, private expiring media delivery, complete human review,
+   preview invalidation, fail-closed optional configuration, and exact publish confirmation.
+   Confirm generation completion can never trigger publication.
+8. Confirm no raw VIN, token, email, name, private snapshot, or evidence record appears in
    public files, logs, aggregate responses, or static Hosting objects.
-7. Plan staging infrastructure, deploy a PR preview, authorize only its scoped Firebase host,
+9. Plan staging infrastructure, deploy a PR preview, authorize only its scoped Firebase host,
    run smoke and passive ZAP checks, and retain reports as CI artifacts.
-8. Visually compare desktop and mobile pages with approved references; scan the QR code and
+10. Visually compare desktop and mobile pages with approved references; scan the QR code and
    render both business-card sides at print size.
-9. Obtain human review for logic, security, accessibility, legal/privacy copy, and tone before
+11. Obtain human review for logic, security, accessibility, legal/privacy copy, and tone before
    production deployment.
 
 ## Reproducibility verification strategy
@@ -312,7 +323,7 @@ rebuild:
   the product. It deliberately does not exercise cloud credentials, live data restoration,
   DNS, email delivery, or visual equivalence.
 - Periodically perform a true isolated reconstruction in a new empty repository or ephemeral
-  environment using only `AGENTS.md`, prompts `01-20`, approved public assets, and separately
+  environment using only `AGENTS.md`, prompts `01-21`, approved public assets, and separately
   supplied secrets/configuration. Run the full acceptance checklist and compare the resulting
   route/API/schema inventories with production before calling the reconstruction successful.
 - Record the source commit, toolchain versions, generated lockfiles, deviations, elapsed

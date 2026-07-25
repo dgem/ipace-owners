@@ -484,7 +484,7 @@ The production Function needs `INSTAGRAM_USER_ID`, an explicitly selected suppor
 Secret Manager and set `INSTAGRAM_ACCESS_TOKEN_SECRET_<ENV>` to that secret's name; deployment
 mounts its latest version as `INSTAGRAM_ACCESS_TOKEN`. Never place the token in repository files,
 browser configuration, Firestore, GitHub variables or `functions-env.json`. The account must be
-an Instagram professional account with Meta's content-publishing permission. See prompt `21` for
+an Instagram professional account with Meta's content-publishing permission. See prompt `20` for
 the creative-review boundary and the exact launch-Reel generation contract.
 OpenTofu creates the `instagram-access-token` secret container and grants only the Function runtime
 access, but deliberately does not create a secret version: token bytes must never enter tfvars or
@@ -775,14 +775,17 @@ extended in a controlled order:
 - The remaining numbered prompts split the product into foundation, design, content,
   identity, forms, evidence dashboard, backend security/storage, architecture, Function
   components, data modelling, member tooling, operations, stakeholder feedback, launch
-  readiness, and reconstruction requirements.
-- `20-clean-room-reconstruction-contract.md` is the final route/API/schema/configuration and
-  acceptance contract for rebuilding the product from scratch.
+  readiness, Instagram generation/publishing, and reconstruction requirements.
+- `20-instagram-campaign-publishing.md` defines the creative, generation, review, and
+  controlled-publishing boundary.
+- `21-clean-room-reconstruction-contract.md` is the final
+  route/API/schema/configuration and acceptance contract for rebuilding the product from
+  scratch. It must remain the highest-numbered prompt as more feature prompts are added.
 
 When adding or refining prompts, keep the numeric prefix and make the prompt independently
 usable. Keep cross-layer implementation details canonical in
 `prompts/09-architecture-overview.md` and exact reconstruction inventories canonical in
-`prompts/20-clean-room-reconstruction-contract.md`; feature prompts may repeat only the
+`prompts/21-clean-room-reconstruction-contract.md`; feature prompts may repeat only the
 details needed to apply them safely.
 
 Keep prompts in sync with implemented behaviour so the project can be recreated from
@@ -797,7 +800,7 @@ checks catch structural drift; they do not prove that an agent can reproduce the
 from prose alone.
 
 For a genuine reproducibility test, follow the isolated clean-room procedure in
-`prompts/20-clean-room-reconstruction-contract.md`: provide only AGENTS.md, all numbered
+`prompts/21-clean-room-reconstruction-contract.md`: provide only AGENTS.md, all numbered
 prompt files, approved public assets, and separately secured configuration in a new
 repository, then run the full acceptance checklist and record every manual intervention.
 

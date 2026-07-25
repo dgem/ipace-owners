@@ -2,6 +2,7 @@
 
 Use this prompt when creating or publishing organic Instagram content for the owners' group.
 It records the product boundary between creative chat work and the deliberate admin send tool.
+Apply it before the terminal clean-room reconstruction contract.
 
 ## Workflow
 

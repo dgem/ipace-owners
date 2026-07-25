@@ -5,6 +5,7 @@ const assert = require('node:assert/strict');
 
 const root = path.join(__dirname, '..');
 const promptFilenamePattern = /^\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*\.md$/;
+const reconstructionPrompt = 'prompts/21-clean-room-reconstruction-contract.md';
 
 function read(relativePath) {
   return fs.readFileSync(path.join(root, relativePath), 'utf8');
@@ -25,7 +26,7 @@ test('clean-room contract tracks the complete maintained prompt set', function (
   });
 
   assert.equal(prompts[0], '00-original-project-prompt.md');
-  assert.ok(prompts.includes('20-clean-room-reconstruction-contract.md'));
+  assert.equal(prompts.at(-1), path.basename(reconstructionPrompt));
   assert.deepEqual(
     promptNumbers,
     Array.from({ length: promptNumbers.at(-1) + 1 }, (_, index) => index)
@@ -33,7 +34,7 @@ test('clean-room contract tracks the complete maintained prompt set', function (
 });
 
 test('clean-room route inventory maps to source pages and Hosting redirects', function () {
-  const contract = read('prompts/20-clean-room-reconstruction-contract.md');
+  const contract = read(reconstructionPrompt);
   const firebase = read('firebase.json');
   const routes = [
     ['/', 'src/index.njk'],
@@ -51,6 +52,8 @@ test('clean-room route inventory maps to source pages and Hosting redirects', fu
     ['/member/submit-vehicle-data/', 'src/member/submit-vehicle-data.njk'],
     ['/admin/review-queue/', 'src/admin/review-queue.njk'],
     ['/admin/outreach/', 'src/admin/outreach.njk'],
+    ['/admin/email-campaigns/', 'src/admin/email-campaigns.njk'],
+    ['/admin/instagram-campaigns/', 'src/admin/instagram-campaigns.njk'],
     ['/404.html', 'src/404.njk'],
   ];
 
@@ -67,7 +70,7 @@ test('clean-room route inventory maps to source pages and Hosting redirects', fu
 });
 
 test('clean-room API and Firestore inventories match implemented handlers', function () {
-  const contract = read('prompts/20-clean-room-reconstruction-contract.md');
+  const contract = read(reconstructionPrompt);
   const architecture = read('prompts/09-architecture-overview.md');
   const readme = read('README.md');
   const main = read('functions/firebase-go/main.go');
@@ -84,6 +87,8 @@ test('clean-room API and Firestore inventories match implemented handlers', func
     'batteryReadings',
     'serviceEvents',
     'memberSnapshots',
+    'emailCampaigns',
+    'instagramCampaigns',
     'instagramGenerationJobs',
   ];
 
@@ -105,7 +110,7 @@ test('clean-room API and Firestore inventories match implemented handlers', func
 });
 
 test('clean-room configuration and preservation-critical asset inventories stay reproducible', function () {
-  const contract = read('prompts/20-clean-room-reconstruction-contract.md');
+  const contract = read(reconstructionPrompt);
   const launch = read('prompts/19-launch-readiness.md');
   const requiredConfig = [
     'FIREBASE_WEB_API_KEY',
@@ -126,6 +131,10 @@ test('clean-room configuration and preservation-critical asset inventories stay 
     'CAMPAIGN_MEDIA_BUCKET',
     'VEO_LOCATION',
     'VEO_MODEL_ID',
+    'INSTAGRAM_ACCESS_TOKEN',
+    'INSTAGRAM_USER_ID',
+    'INSTAGRAM_GRAPH_API_VERSION',
+    'INSTAGRAM_MEDIA_BASE_URL',
   ];
   const assets = [
     'public/favicon.png',
@@ -186,7 +195,7 @@ test('documented Make commands remain available', function () {
     read('prompts/02-foundation-static-site.md'),
     read('prompts/17-operations-ci-and-troubleshooting.md'),
     read('prompts/19-launch-readiness.md'),
-    read('prompts/20-clean-room-reconstruction-contract.md'),
+    read(reconstructionPrompt),
   ].join('\n');
   const targets = new Set(Array.from(makefile.matchAll(/^([a-zA-Z0-9_.-]+):/gm), (match) => match[1]));
   const mentioned = new Set(
