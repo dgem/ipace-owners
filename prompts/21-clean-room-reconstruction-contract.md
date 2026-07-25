@@ -209,8 +209,10 @@ forms explicitly use POST even when JavaScript intercepts them.
   Markdown emphasis as semantic italic text in HTML and omit its delimiters from plain text.
 - Provide custom verified-member campaigns with server-validated Markdown, sandboxed branded HTML
   preview, plain-text preview, click-to-insert allowlisted substitutions, resumable confirmed
-  batches, aggregate history, and clone-to-rerun behaviour. Dedupe joined and verified member
-  totals by canonical email. Support `membersJoined`, `membersVerified`, `memberFirstName`,
+  batches, aggregate history, and clone-to-rerun behaviour. Present history before the
+  new-campaign composer, include a direct create-new shortcut, and place safety guidance beside
+  confirmation controls rather than in a persistent warning banner. Dedupe joined and verified
+  member totals by canonical email. Support `membersJoined`, `membersVerified`, `memberFirstName`,
   `memberLastName`, the requested `memberTittle` spelling and `memberTitle` alias, `memberJoined`,
   `memberVerified`, private-member `memberVehicles` JSON, `vehiclesRegisteredCount`, and
   `vehiclesSoHReadingsCount`; reject arbitrary Go-template actions and unsafe link schemes.

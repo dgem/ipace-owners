@@ -15,11 +15,22 @@ emailCampaigns: true
   {{ authLoginGate("campaign-magic-email", "Sign in required", "Enter your admin email address and we will send a secure sign-in link.", "admin", false) }}
   <div class="auth-gate" data-admin-only-gate hidden><div class="auth-gate__icon" aria-hidden="true">⛔</div><h2 class="auth-gate__title">Access restricted</h2><p class="auth-gate__body">This campaign workspace is for group administrators only.</p></div>
   <div class="auth-content" data-admin-content hidden>
-    <div class="callout callout--warning"><span class="callout__icon" aria-hidden="true">⚠️</span><div class="callout__content"><p class="callout__title">Deliberately hard to send by accident</p><p>Campaigns contact only the audience described for each tool. Preview recalculates the audience without revealing addresses. Sending requires the exact current count and proceeds in resumable batches of 10.</p></div></div>
+    <section class="dashboard-panel email-campaign-panel" data-email-campaign-history>
+      <div class="dashboard-panel__header">
+        <div><p class="dashboard-panel__eyebrow">Campaign history</p><h2 class="dashboard-panel__title">Previous campaigns</h2></div>
+        <div class="cluster">
+          <a class="btn btn--primary btn--sm" href="#create-member-campaign">Create new campaign</a>
+          <button type="button" class="btn btn--secondary btn--sm" data-campaign-history-refresh>Refresh history</button>
+        </div>
+      </div>
+      <p>Review delivery totals or continue an unfinished run. “Tweak and rerun” starts a separate campaign so the original remains auditable.</p>
+      <div data-campaign-history-list class="email-campaign-history" aria-live="polite"><p>Loading campaign history…</p></div>
+      <p data-campaign-history-status role="status" aria-live="polite"></p>
+    </section>
 
-    <section class="dashboard-panel" data-custom-email-campaign>
-      <div class="dashboard-panel__header"><div><p class="dashboard-panel__eyebrow">Reusable campaigns</p><h2 class="dashboard-panel__title">Create a member email campaign</h2></div></div>
-      <p>Write Markdown for verified members who have consented to contact. Preview saves a draft and renders the exact branded HTML and plain-text alternatives. A sent campaign is immutable; “Tweak and rerun” creates a new run with its own delivery ledger.</p>
+    <section class="dashboard-panel email-campaign-composer" id="create-member-campaign" data-custom-email-campaign>
+      <div class="dashboard-panel__header"><div><p class="dashboard-panel__eyebrow">New campaign</p><h2 class="dashboard-panel__title">Create a member email campaign</h2></div></div>
+      <p>Write Markdown for verified members who have consented to contact. Preview saves the draft and renders the exact branded HTML and plain-text alternatives. Sent campaigns remain immutable.</p>
 
       <div class="email-campaign-editor">
         <form class="stack" data-custom-campaign-form>
@@ -55,18 +66,11 @@ emailCampaigns: true
 
       <div data-custom-campaign-summary class="stack" aria-live="polite"></div>
       <form data-custom-campaign-send class="stack email-campaign-step">
-        <div><p class="dashboard-panel__eyebrow">Confirmed delivery</p><h3>Send this saved campaign</h3><p>Editing after preview disables delivery until the updated draft is previewed again.</p></div>
+        <div><p class="dashboard-panel__eyebrow">Confirmed delivery</p><h3>Send this saved campaign</h3><p>Preview recalculates the audience without revealing addresses. Sending requires the exact current count and proceeds in resumable batches of 10. Editing after preview disables delivery until the updated draft is previewed again.</p></div>
         <div class="form-group"><label for="custom-campaign-confirm">Type the exact confirmation shown below</label><input id="custom-campaign-confirm" data-custom-campaign-confirm autocomplete="off" disabled><p class="form-hint" data-custom-campaign-confirm-hint>Save and preview the campaign first.</p></div>
         <button type="submit" class="btn btn--danger" data-custom-campaign-send-button disabled>Send emails</button>
       </form>
       <p data-custom-campaign-status role="status" aria-live="polite">No email has been sent.</p>
-    </section>
-
-    <section class="dashboard-panel email-campaign-panel" data-email-campaign-history>
-      <div class="dashboard-panel__header"><div><p class="dashboard-panel__eyebrow">Campaign ledger</p><h2 class="dashboard-panel__title">Previous campaigns</h2></div><button type="button" class="btn btn--secondary btn--sm" data-campaign-history-refresh>Refresh history</button></div>
-      <p>Each run keeps its own draft, audience snapshot, delivery totals and timestamps. Reusing an old campaign always starts a separate run, so the original record remains auditable.</p>
-      <div data-campaign-history-list class="email-campaign-history" aria-live="polite"><p>Loading campaign history…</p></div>
-      <p data-campaign-history-status role="status" aria-live="polite"></p>
     </section>
 
     <section class="dashboard-panel" data-email-campaign data-preview-endpoint="/api/admin/reengagement-preview" data-send-endpoint="/api/admin/reengagement-send">

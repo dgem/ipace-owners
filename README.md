@@ -427,7 +427,10 @@ Firestore parent record contains the campaign name/copy, lifecycle status, eligi
 remaining and failed-attempt totals, batch count and timestamps; hashed delivery
 subdocuments remain the recipient-level idempotency ledger. Legacy runs that predate parent
 records are recovered from those delivery ledgers where possible. “Tweak and rerun” copies an
-old subject and Markdown into a new run rather than changing its audit history.
+old subject and Markdown into a new run rather than changing its audit history. Campaign
+history is presented before the new-campaign composer, with a direct create-new shortcut.
+Safety guidance appears beside the relevant confirmation controls instead of as a persistent
+page-level warning.
 Registration reminders remain on their specialised tool because they require an unverified
 audience and a fresh private sign-in link; the custom editor must not silently retarget them to
 verified members.

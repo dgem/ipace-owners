@@ -82,10 +82,16 @@ test('custom campaign editor provides history, Markdown preview, reruns and safe
     assert.match(campaignBackend, new RegExp('"' + field + '"'));
   }
   assert.match(page, /Create a member email campaign/);
+  assert.match(page, /href="#create-member-campaign"/);
   assert.match(page, /data-custom-campaign-markdown/);
   assert.match(page, /data-custom-campaign-email-html[^>]+sandbox/);
   assert.match(page, /Previous campaigns/);
   assert.match(page, /Tweak and rerun/);
+  assert.ok(
+    page.indexOf('data-email-campaign-history') < page.indexOf('data-custom-email-campaign'),
+    'campaign history should appear before the new-campaign composer'
+  );
+  assert.doesNotMatch(page, /callout--warning/);
   assert.match(script, /\/api\/admin\/email-campaign-history/);
   assert.match(script, /\/api\/admin\/custom-campaign-preview/);
   assert.match(script, /\/api\/admin\/custom-campaign-send/);

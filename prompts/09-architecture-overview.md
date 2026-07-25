@@ -297,7 +297,9 @@ route unless there is a measured need.
   source campaign ID, status, eligible/sent/failed/remaining totals, batch count and timestamps;
   keep hashed per-address delivery documents in its `deliveries` subcollection. History must
   recover older delivery-only campaign paths, return no addresses, and clone rather than mutate a
-  campaign that has started sending.
+  campaign that has started sending. Present history before the new-campaign composer and provide
+  a direct create-new shortcut. Keep safety guidance next to the preview/send confirmation it
+  explains rather than using a visually dominant page-level warning.
   Drafts may be reopened, and partial custom runs may continue only after re-previewing the exact
   unchanged saved content; editing a run with deliveries must create a new sourced run.
 - Custom campaigns target the canonical-email intersection of contact-consenting Join records
