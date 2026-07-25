@@ -9,17 +9,25 @@ emailCampaigns: true
 
 {% from "partials/auth-login-gate.njk" import authLoginGate %}
 
-<div class="page-header"><div class="container"><p class="page-header__eyebrow">Admin</p><h1 class="page-header__title">Email campaigns</h1></div></div>
+<div class="page-header page-header--compact email-campaign-page-header"><div class="container">
+  <div class="email-campaign-page-header__inner">
+    <div><p class="page-header__eyebrow">Admin</p><h1 class="page-header__title">Email campaigns</h1></div>
+    <nav class="email-campaign-page-nav" aria-label="Email campaign sections">
+      <a href="#campaign-history">Previous campaigns</a>
+      <a href="#campaign-tools">Campaign tools</a>
+    </nav>
+  </div>
+</div></div>
 
-<div class="section"><div class="container"><div data-admin-container>
+<div class="section section--sm"><div class="container"><div data-admin-container>
   {{ authLoginGate("campaign-magic-email", "Sign in required", "Enter your admin email address and we will send a secure sign-in link.", "admin", false) }}
   <div class="auth-gate" data-admin-only-gate hidden><div class="auth-gate__icon" aria-hidden="true">⛔</div><h2 class="auth-gate__title">Access restricted</h2><p class="auth-gate__body">This campaign workspace is for group administrators only.</p></div>
-  <div class="auth-content" data-admin-content hidden>
-    <section class="dashboard-panel email-campaign-panel" data-email-campaign-history>
+  <div class="auth-content email-campaign-page" data-admin-content hidden>
+    <section class="dashboard-panel" id="campaign-history" data-email-campaign-history>
       <div class="dashboard-panel__header">
         <div><p class="dashboard-panel__eyebrow">Campaign history</p><h2 class="dashboard-panel__title">Previous campaigns</h2></div>
         <div class="cluster">
-          <a class="btn btn--primary btn--sm" href="#create-member-campaign">Create new campaign</a>
+          <a class="btn btn--primary btn--sm" href="#campaign-tools" data-campaign-open-tab="freeform">Create new campaign</a>
           <button type="button" class="btn btn--secondary btn--sm" data-campaign-history-refresh>Refresh history</button>
         </div>
       </div>
@@ -28,14 +36,25 @@ emailCampaigns: true
       <p data-campaign-history-status role="status" aria-live="polite"></p>
     </section>
 
-    <section class="dashboard-panel email-campaign-composer" id="create-member-campaign" data-custom-email-campaign>
+    <section class="dashboard-panel email-campaign-workspace" id="campaign-tools" aria-labelledby="campaign-tools-title">
+      <div class="dashboard-panel__header">
+        <div><p class="dashboard-panel__eyebrow">Campaign tools</p><h2 class="dashboard-panel__title" id="campaign-tools-title">Choose a campaign</h2></div>
+      </div>
+      <p class="dashboard-panel__lede">Preview the exact audience and message before any email can be sent.</p>
+      <div class="email-campaign-tabs" role="tablist" aria-label="Campaign type" data-campaign-tabs>
+        <button type="button" role="tab" id="campaign-tab-registration" aria-controls="campaign-panel-registration" aria-selected="true" tabindex="0" data-campaign-tab="registration">Reminders</button>
+        <button type="button" role="tab" id="campaign-tab-referral" aria-controls="campaign-panel-referral" aria-selected="false" tabindex="-1" data-campaign-tab="referral">Find members</button>
+        <button type="button" role="tab" id="campaign-tab-freeform" aria-controls="create-member-campaign" aria-selected="false" tabindex="-1" data-campaign-tab="freeform">Freeform</button>
+      </div>
+
+    <section class="email-campaign-tabpanel email-campaign-composer" id="create-member-campaign" role="tabpanel" aria-labelledby="campaign-tab-freeform" tabindex="0" data-campaign-panel="freeform" data-custom-email-campaign hidden>
       <div class="dashboard-panel__header"><div><p class="dashboard-panel__eyebrow">New campaign</p><h2 class="dashboard-panel__title">Create a member email campaign</h2></div></div>
       <p>Write Markdown for verified members who have consented to contact. Preview saves the draft and renders the exact branded HTML and plain-text alternatives. Sent campaigns remain immutable.</p>
 
       <div class="email-campaign-editor">
         <form class="stack" data-custom-campaign-form>
-          <div class="form-group"><label for="custom-campaign-name">Campaign name</label><input id="custom-campaign-name" data-custom-campaign-name maxlength="100" required placeholder="August member update"></div>
-          <div class="form-group"><label for="custom-campaign-subject">Email subject</label><input id="custom-campaign-subject" data-custom-campaign-subject maxlength="200" required placeholder="A quick update for I-PACE owners"></div>
+          <div class="form-group"><label for="custom-campaign-name">Campaign name</label><input id="custom-campaign-name" type="text" data-custom-campaign-name maxlength="100" required placeholder="August member update"></div>
+          <div class="form-group"><label for="custom-campaign-subject">Email subject</label><input id="custom-campaign-subject" type="text" data-custom-campaign-subject maxlength="200" required placeholder="A quick update for I-PACE owners"></div>
           <div class="form-group">
             <label for="custom-campaign-markdown">Email content (Markdown)</label>
             <textarea id="custom-campaign-markdown" data-custom-campaign-markdown rows="18" maxlength="20000" required placeholder="Hi &#123;&#123;memberFirstName&#125;&#125;,&#10;&#10;We now have &#123;&#123;membersJoined&#125;&#125; members."></textarea>
@@ -67,13 +86,13 @@ emailCampaigns: true
       <div data-custom-campaign-summary class="stack" aria-live="polite"></div>
       <form data-custom-campaign-send class="stack email-campaign-step">
         <div><p class="dashboard-panel__eyebrow">Confirmed delivery</p><h3>Send this saved campaign</h3><p>Preview recalculates the audience without revealing addresses. Sending requires the exact current count and proceeds in resumable batches of 10. Editing after preview disables delivery until the updated draft is previewed again.</p></div>
-        <div class="form-group"><label for="custom-campaign-confirm">Type the exact confirmation shown below</label><input id="custom-campaign-confirm" data-custom-campaign-confirm autocomplete="off" disabled><p class="form-hint" data-custom-campaign-confirm-hint>Save and preview the campaign first.</p></div>
+        <div class="form-group email-campaign-confirmation"><label for="custom-campaign-confirm">Type the exact confirmation shown below</label><input id="custom-campaign-confirm" type="text" data-custom-campaign-confirm autocomplete="off" disabled><p class="form-hint" data-custom-campaign-confirm-hint>Save and preview the campaign first.</p></div>
         <button type="submit" class="btn btn--danger" data-custom-campaign-send-button disabled>Send emails</button>
       </form>
       <p data-custom-campaign-status role="status" aria-live="polite">No email has been sent.</p>
     </section>
 
-    <section class="dashboard-panel" data-email-campaign data-preview-endpoint="/api/admin/reengagement-preview" data-send-endpoint="/api/admin/reengagement-send">
+    <section class="email-campaign-tabpanel" id="campaign-panel-registration" role="tabpanel" aria-labelledby="campaign-tab-registration" tabindex="0" data-campaign-panel="registration" data-email-campaign data-preview-endpoint="/api/admin/reengagement-preview" data-send-endpoint="/api/admin/reengagement-send">
       <div class="dashboard-panel__header"><div><p class="dashboard-panel__eyebrow">Email people who have not finished signing up</p><h2 class="dashboard-panel__title">Send registration reminder emails</h2></div></div>
       <p>Each recipient gets a fresh Firebase sign-in link and the same consent-aware message used by the operator CLI. Registered accounts are suppressed immediately before every batch.</p>
 
@@ -95,13 +114,13 @@ emailCampaigns: true
 
       <form data-campaign-send class="stack email-campaign-step">
         <div><p class="dashboard-panel__eyebrow">Step 2</p><h3>Confirm and send the emails</h3><p>The controls unlock after Step 1 confirms the current audience.</p></div>
-        <div class="form-group"><label for="campaign-confirm">Type the exact confirmation shown below</label><input id="campaign-confirm" data-campaign-confirm autocomplete="off" disabled><p class="form-hint" data-campaign-confirm-hint>Check the recipients and email preview first.</p></div>
+        <div class="form-group email-campaign-confirmation"><label for="campaign-confirm">Type the exact confirmation shown below</label><input id="campaign-confirm" type="text" data-campaign-confirm autocomplete="off" disabled><p class="form-hint" data-campaign-confirm-hint>Check the recipients and email preview first.</p></div>
         <button type="submit" class="btn btn--danger" data-campaign-send-button disabled>Send emails</button>
       </form>
       <p data-campaign-status role="status" aria-live="polite">No email has been sent.</p>
     </section>
 
-    <section class="dashboard-panel email-campaign-panel" data-email-campaign data-preview-endpoint="/api/admin/member-referral-preview" data-send-endpoint="/api/admin/member-referral-send">
+    <section class="email-campaign-tabpanel" id="campaign-panel-referral" role="tabpanel" aria-labelledby="campaign-tab-referral" tabindex="0" data-campaign-panel="referral" data-email-campaign data-preview-endpoint="/api/admin/member-referral-preview" data-send-endpoint="/api/admin/member-referral-send" hidden>
       <div class="dashboard-panel__header"><div><p class="dashboard-panel__eyebrow">Email registered members</p><h2 class="dashboard-panel__title">Ask members to invite one more I-PACE owner</h2></div></div>
       <p>This friendly referral email goes only to registered members whose Join record includes contact consent. It explains our progress towards 1,000 members and asks each person to help one more owner find the group.</p>
       <div class="email-campaign-step">
@@ -117,10 +136,11 @@ emailCampaigns: true
       </section>
       <form data-campaign-send class="stack email-campaign-step">
         <div><p class="dashboard-panel__eyebrow">Step 2</p><h3>Confirm and send the emails</h3><p>The controls unlock after Step 1 confirms the current audience.</p></div>
-        <div class="form-group"><label for="referral-campaign-confirm">Type the exact confirmation shown below</label><input id="referral-campaign-confirm" data-campaign-confirm autocomplete="off" disabled><p class="form-hint" data-campaign-confirm-hint>Check the recipients and email preview first.</p></div>
+        <div class="form-group email-campaign-confirmation"><label for="referral-campaign-confirm">Type the exact confirmation shown below</label><input id="referral-campaign-confirm" type="text" data-campaign-confirm autocomplete="off" disabled><p class="form-hint" data-campaign-confirm-hint>Check the recipients and email preview first.</p></div>
         <button type="submit" class="btn btn--danger" data-campaign-send-button disabled>Send emails</button>
       </form>
       <p data-campaign-status role="status" aria-live="polite">No email has been sent.</p>
+    </section>
     </section>
   </div>
 </div></div></div>

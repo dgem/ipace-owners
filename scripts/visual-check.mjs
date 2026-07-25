@@ -151,6 +151,11 @@ async function checkCampaignControls(viewport, screenshotName) {
   assert.equal(await page.locator('[data-email-campaign]').count(), 2);
   assert.equal(await page.locator('[data-custom-email-campaign]').count(), 1);
   assert.equal(await page.locator('[data-custom-placeholder]').count(), 11);
+  assert.equal(await page.locator('[data-campaign-tab="registration"]').getAttribute('aria-selected'), 'true');
+  assert.equal(await page.locator('[data-campaign-panel="registration"]').isVisible(), true);
+  assert.equal(await page.locator('[data-campaign-panel="freeform"]').isVisible(), false);
+  await page.locator('[data-campaign-open-tab="freeform"]').click();
+  assert.equal(await page.locator('[data-campaign-tab="freeform"]').getAttribute('aria-selected'), 'true');
   assert.equal(await page.locator('[data-custom-campaign-markdown]').isVisible(), true);
   assert.equal(await page.locator('[data-custom-campaign-send-button]').isDisabled(), true);
   await page.locator('[data-campaign-history-refresh]').click();
@@ -173,14 +178,29 @@ async function checkCampaignControls(viewport, screenshotName) {
   assert.equal(await buttons.count(), 2);
   for (let index = 0; index < await buttons.count(); index += 1) {
     const button = buttons.nth(index);
+    const panelName = await button.locator('xpath=ancestor::*[@data-campaign-panel]').getAttribute('data-campaign-panel');
+    await page.locator(`[data-campaign-tab="${panelName}"]`).focus();
+    await page.keyboard.press('Enter');
     await button.scrollIntoViewIfNeeded();
     assert.equal(await button.isVisible(), true, 'send controls must be visible before preview');
     assert.equal(await button.isDisabled(), true, 'send controls must remain disabled before preview');
     assert.ok(Number(await button.evaluate((element) => getComputedStyle(element).opacity)) < 0.8, 'disabled send controls must look disabled');
   }
+  await page.locator('[data-campaign-tab="registration"]').focus();
+  await page.keyboard.press('ArrowRight');
+  assert.equal(await page.locator('[data-campaign-tab="referral"]').getAttribute('aria-selected'), 'true');
+  assert.equal(await page.locator('[data-campaign-panel="referral"]').isVisible(), true);
+  await page.keyboard.press('End');
+  assert.equal(await page.locator('[data-campaign-tab="freeform"]').getAttribute('aria-selected'), 'true');
+  await page.locator('[data-campaign-tab="registration"]').focus();
+  await page.keyboard.press('Enter');
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
+  await page.locator('[data-campaign-tab="freeform"]').focus();
+  await page.keyboard.press('Enter');
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.screenshot({ path: path.join(outputDir, screenshotName.replace('.png', '-freeform.png')), fullPage: true });
   await page.close();
 }
 

@@ -21,6 +21,54 @@
     return Number.isNaN(date.getTime()) ? '—' : date.toLocaleString();
   }
 
+  var selectCampaignTab = function () {};
+
+  function initialiseCampaignTabs() {
+    var tablist = document.querySelector('[data-campaign-tabs]');
+    if (!tablist) return;
+    var tabs = Array.prototype.slice.call(tablist.querySelectorAll('[data-campaign-tab]'));
+    var panels = Array.prototype.slice.call(document.querySelectorAll('[data-campaign-panel]'));
+
+    function activate(name, moveFocus) {
+      var selectedTab = null;
+      tabs.forEach(function (tab) {
+        var selected = tab.getAttribute('data-campaign-tab') === name;
+        tab.setAttribute('aria-selected', selected ? 'true' : 'false');
+        tab.tabIndex = selected ? 0 : -1;
+        if (selected) selectedTab = tab;
+      });
+      panels.forEach(function (panel) {
+        panel.hidden = panel.getAttribute('data-campaign-panel') !== name;
+      });
+      if (moveFocus && selectedTab) selectedTab.focus();
+    }
+
+    selectCampaignTab = activate;
+    tablist.addEventListener('click', function (event) {
+      var tab = event.target.closest('[data-campaign-tab]');
+      if (tab) activate(tab.getAttribute('data-campaign-tab'));
+    });
+    tablist.addEventListener('keydown', function (event) {
+      var currentIndex = tabs.indexOf(event.target.closest('[data-campaign-tab]'));
+      if (currentIndex < 0) return;
+      var nextIndex = currentIndex;
+      if (event.key === 'ArrowRight') nextIndex = (currentIndex + 1) % tabs.length;
+      if (event.key === 'ArrowLeft') nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+      if (event.key === 'Home') nextIndex = 0;
+      if (event.key === 'End') nextIndex = tabs.length - 1;
+      if (nextIndex === currentIndex && event.key !== 'Home' && event.key !== 'End') return;
+      event.preventDefault();
+      activate(tabs[nextIndex].getAttribute('data-campaign-tab'), true);
+    });
+    document.querySelectorAll('[data-campaign-open-tab]').forEach(function (control) {
+      control.addEventListener('click', function () {
+        activate(control.getAttribute('data-campaign-open-tab'));
+      });
+    });
+    var selected = tabs.find(function (tab) { return tab.getAttribute('aria-selected') === 'true'; });
+    activate(selected ? selected.getAttribute('data-campaign-tab') : tabs[0].getAttribute('data-campaign-tab'));
+  }
+
   function initialiseCustomCampaign() {
     var root = document.querySelector('[data-custom-email-campaign]');
     var historyRoot = document.querySelector('[data-email-campaign-history]');
@@ -130,6 +178,7 @@
     }
 
     function loadForRerun(campaign) {
+      selectCampaignTab('freeform');
       draftId = '';
       sourceId = campaign.campaignId;
       current = null;
@@ -146,6 +195,7 @@
     }
 
     function loadExistingRun(campaign) {
+      selectCampaignTab('freeform');
       draftId = campaign.campaignId;
       sourceId = campaign.sourceCampaignId || '';
       current = { sent: campaign.sent || 0 };
@@ -198,9 +248,16 @@
         rerunButton.type = 'button';
         rerunButton.className = 'btn btn--secondary btn--sm';
         rerunButton.textContent = canRerun ? 'Tweak and rerun' : 'Use registration reminder tool';
-        rerunButton.disabled = !canRerun || !campaign.subject || !campaign.markdown;
+        rerunButton.disabled = canRerun && (!campaign.subject || !campaign.markdown);
         if (!canRerun) rerunButton.title = 'Registration reminders require a fresh private sign-in link and their original unverified-member audience.';
-        rerunButton.addEventListener('click', function () { loadForRerun(campaign); });
+        rerunButton.addEventListener('click', function () {
+          if (canRerun) {
+            loadForRerun(campaign);
+            return;
+          }
+          selectCampaignTab('registration');
+          document.querySelector('#campaign-tools').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
         actions.appendChild(rerunButton);
         article.appendChild(heading);
         article.appendChild(meta);
@@ -339,6 +396,7 @@
     });
   }
 
+  initialiseCampaignTabs();
   document.querySelectorAll('[data-email-campaign]').forEach(initialise);
   initialiseCustomCampaign();
 }());

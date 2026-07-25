@@ -292,7 +292,8 @@ Before declaring reconstruction complete:
    Firebase Auth pagination, five-minute public caching, and snapshot fallback.
 6. Test registration-reminder, member-referral, and custom email campaign preview/send
    boundaries, immutable delivery ledgers, aggregate history, partial-run continuation,
-   draft editing, clone-to-rerun behaviour, substitutions, and exact confirmation gates.
+   draft editing, clone-to-rerun behaviour, substitutions, exact confirmation gates, and the
+   compact history/tools navigation plus keyboard-operable campaign tabs.
 7. Test Instagram generation and publishing independently: admin/origin authorization,
    idempotent asynchronous Veo phases, private expiring media delivery, complete human review,
    preview invalidation, fail-closed optional configuration, and exact publish confirmation.

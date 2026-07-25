@@ -82,7 +82,7 @@ test('custom campaign editor provides history, Markdown preview, reruns and safe
     assert.match(campaignBackend, new RegExp('"' + field + '"'));
   }
   assert.match(page, /Create a member email campaign/);
-  assert.match(page, /href="#create-member-campaign"/);
+  assert.match(page, /href="#campaign-tools" data-campaign-open-tab="freeform"/);
   assert.match(page, /data-custom-campaign-markdown/);
   assert.match(page, /data-custom-campaign-email-html[^>]+sandbox/);
   assert.match(page, /Previous campaigns/);
@@ -92,12 +92,22 @@ test('custom campaign editor provides history, Markdown preview, reruns and safe
     'campaign history should appear before the new-campaign composer'
   );
   assert.doesNotMatch(page, /callout--warning/);
+  assert.match(page, /role="tablist" aria-label="Campaign type"/);
+  assert.match(page, /data-campaign-tab="registration"/);
+  assert.match(page, /data-campaign-tab="referral"/);
+  assert.match(page, /data-campaign-tab="freeform"/);
+  assert.match(page, /role="tabpanel"[^>]+data-campaign-panel="registration"/);
+  assert.match(page, /role="tabpanel"[^>]+data-campaign-panel="referral"/);
+  assert.match(page, /role="tabpanel"[^>]+data-campaign-panel="freeform"/);
   assert.match(script, /\/api\/admin\/email-campaign-history/);
   assert.match(script, /\/api\/admin\/custom-campaign-preview/);
   assert.match(script, /\/api\/admin\/custom-campaign-send/);
   assert.match(script, /sourceCampaignId: sourceId/);
   assert.match(script, /Continue sending/);
   assert.match(script, /Edit draft/);
+  assert.match(script, /event\.key === 'ArrowRight'/);
+  assert.match(script, /event\.key === 'ArrowLeft'/);
+  assert.match(script, /selectCampaignTab\('freeform'\)/);
   assert.match(script, /textContent = campaign\.campaignId/);
   assert.doesNotMatch(script, /innerHTML\s*=/);
 });
