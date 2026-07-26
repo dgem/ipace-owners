@@ -7,6 +7,7 @@ const root = path.join(__dirname, '..');
 const page = fs.readFileSync(path.join(root, 'src/admin/email-campaigns.njk'), 'utf8');
 const script = fs.readFileSync(path.join(root, 'src/assets/js/email-campaigns.js'), 'utf8');
 const layout = fs.readFileSync(path.join(root, 'src/_includes/layouts/base.njk'), 'utf8');
+const campaignBackend = fs.readFileSync(path.join(root, 'functions/firebase-go/custom_email_campaigns.go'), 'utf8');
 
 test('admin email campaign page is gated and describes bounded sending', function () {
   assert.match(page, /data-admin-container/);
@@ -63,6 +64,52 @@ test('member referral campaign previews the exact HTML email in a readable sandb
   assert.match(css, /\.email-preview__viewport iframe[\s\S]*height: 52rem/);
   assert.match(css, /\.email-preview pre[\s\S]*color: var\(--color-text\)/);
   assert.doesNotMatch(page, /data-campaign-share-preview/);
+});
+
+test('custom campaign editor provides history, Markdown preview, reruns and safe substitutions', function () {
+  for (const field of [
+    'membersJoined',
+    'membersVerified',
+    'memberFirstName',
+    'memberLastName',
+    'memberTittle',
+    'memberJoined',
+    'memberVerified',
+    'memberVehicles',
+    'vehiclesRegisteredCount',
+    'vehiclesSoHReadingsCount'
+  ]) {
+    assert.match(campaignBackend, new RegExp('"' + field + '"'));
+  }
+  assert.match(page, /Create a member email campaign/);
+  assert.match(page, /href="#campaign-tools" data-campaign-open-tab="freeform"/);
+  assert.match(page, /data-custom-campaign-markdown/);
+  assert.match(page, /data-custom-campaign-email-html[^>]+sandbox/);
+  assert.match(page, /Previous campaigns/);
+  assert.match(page, /Tweak and rerun/);
+  assert.ok(
+    page.indexOf('data-email-campaign-history') < page.indexOf('data-custom-email-campaign'),
+    'campaign history should appear before the new-campaign composer'
+  );
+  assert.doesNotMatch(page, /callout--warning/);
+  assert.match(page, /role="tablist" aria-label="Campaign type"/);
+  assert.match(page, /data-campaign-tab="registration"/);
+  assert.match(page, /data-campaign-tab="referral"/);
+  assert.match(page, /data-campaign-tab="freeform"/);
+  assert.match(page, /role="tabpanel"[^>]+data-campaign-panel="registration"/);
+  assert.match(page, /role="tabpanel"[^>]+data-campaign-panel="referral"/);
+  assert.match(page, /role="tabpanel"[^>]+data-campaign-panel="freeform"/);
+  assert.match(script, /\/api\/admin\/email-campaign-history/);
+  assert.match(script, /\/api\/admin\/custom-campaign-preview/);
+  assert.match(script, /\/api\/admin\/custom-campaign-send/);
+  assert.match(script, /sourceCampaignId: sourceId/);
+  assert.match(script, /Continue sending/);
+  assert.match(script, /Edit draft/);
+  assert.match(script, /event\.key === 'ArrowRight'/);
+  assert.match(script, /event\.key === 'ArrowLeft'/);
+  assert.match(script, /selectCampaignTab\('freeform'\)/);
+  assert.match(script, /textContent = campaign\.campaignId/);
+  assert.doesNotMatch(script, /innerHTML\s*=/);
 });
 
 test('portable homepage copy uses production links and live-value placeholders', function () {

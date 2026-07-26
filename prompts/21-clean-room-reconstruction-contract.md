@@ -1,6 +1,6 @@
 # Clean-room Reconstruction Contract
 
-Use this prompt as the final acceptance contract when recreating the repository from the
+Use this terminal prompt as the final acceptance contract when recreating the repository from the
 numbered prompts and `AGENTS.md`. It defines precedence, the minimum product surface, and the
 information that must be preserved outside source control.
 
@@ -11,6 +11,9 @@ information that must be preserved outside source control.
 - Every file in `prompts/` must match
   `^\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*\.md$` (`xx-name.md`) and sequence numbers must remain
   contiguous.
+- This contract must be the highest-numbered prompt. Add or renumber feature prompts before
+  it, then renumber this file so reconstruction acceptance always runs after every feature
+  contract.
 - All numbered prompt files plus `AGENTS.md` describe the current product, except that
   prompt `00` remains historical context as noted above. Later, more specific prompts
   override earlier general prompts when requirements conflict.
@@ -32,7 +35,8 @@ The generated public route surface must include:
   `/methodology/`, `/evidence-dashboard/`, and `/updates/`;
 - dated or named update pages generated from `src/updates/`;
 - `/member/dashboard/`, `/member/account/`, and `/member/submit-vehicle-data/`;
-- `/admin/`, `/admin/review-queue/`, `/admin/outreach/`, and `/admin/email-campaigns/`;
+- `/admin/`, `/admin/review-queue/`, `/admin/outreach/`, `/admin/email-campaigns/`, and
+  `/admin/instagram-campaigns/`;
 - permanent redirects from `/account/**` and `/submit-vehicle-data/**` to their member
   equivalents;
 - a generated 404 page, clean URLs, trailing slashes, and a final Hosting fallback to
@@ -59,7 +63,9 @@ the browser reads an admin claim from the Firebase ID token. Treat that link as 
 not authorization; the route remains gated by the server-verified admin API.
 
 The complete admin menu belongs in a claim-gated, right-aligned secondary desktop header row and
-a labelled mobile-drawer section, not inside individual admin page content.
+a labelled mobile-drawer section, not inside individual admin page content. The signed-out mobile
+header exposes Sign in beside the menu toggle and repeats it in the drawer for discoverability;
+both signed-out actions disappear after authentication.
 
 `/admin/` is the claim-gated landing dashboard. It links to every implemented admin tool and
 describes planned areas without linking to unimplemented routes.
@@ -85,6 +91,9 @@ change rather than assuming it exists.
 | `POST /api/admin/reengagement-send` | Admin claim | Require the campaign ID, exact eligible count and typed confirmation; recheck registrations and send the next batch of at most ten. |
 | `POST /api/admin/member-referral-preview` | Admin claim | Preview aggregate counts and exact copy for registered accounts with matching contact consent. |
 | `POST /api/admin/member-referral-send` | Admin claim | Confirm and send the next batch of at most ten referral emails with the same idempotent ledger safeguards. |
+| `POST /api/admin/email-campaign-history` | Admin claim | Return parent campaign records and aggregate hashed-ledger delivery counts, including inferred legacy runs, without addresses. |
+| `POST /api/admin/custom-campaign-preview` | Admin claim | Validate/save a named subject and Markdown draft, calculate the verified consented audience, and return representative branded HTML/plain-text output. |
+| `POST /api/admin/custom-campaign-send` | Admin claim | Load immutable saved content, recheck the audience and exact `SEND <count>` confirmation, then send at most ten idempotent messages. |
 | `POST /api/admin/instagram-preview` | Admin claim | Validate a site-relative MP4/MOV path, caption and explicit full-media review; return the deterministic confirmation without a provider side effect. |
 | `POST /api/admin/instagram-publish` | Admin claim | Revalidate the unchanged preview and exact confirmation, then create, process and publish one organic Reel through Meta. |
 | `POST /api/admin/instagram-generate` | Admin claim | Reserve an idempotent job and start one billable eight-second 9:16 Veo operation after exact `GENERATE VIDEO` confirmation. |
@@ -105,7 +114,11 @@ Use these exact collection names: `joinSubmissions`, `members`, `vehicles`,
 `batteryReadings`, `serviceEvents`, `memberSnapshots`, `emailCampaigns`,
 `instagramCampaigns`, and `instagramGenerationJobs`. The email collection stores
 campaign delivery subdocuments keyed by a non-reversible email fingerprint, with no recipient
-address returned to the browser. `instagramCampaigns` reserves the deterministic reviewed-draft
+address returned to the browser. Its parent documents store custom/specialised campaign kind,
+name, subject, Markdown, optional source run, lifecycle status, eligible/sent/failed/remaining
+totals, batch count, and created/updated/last-sent timestamps. Private `members` documents may
+store `emailVerifiedAt` and `emailVerifiedAtInferred`; do not expose either through public data.
+`instagramCampaigns` reserves the deterministic reviewed-draft
 ID before contacting Meta and stores processing, failed, or published status plus the returned
 media ID so a retry cannot silently duplicate a post. `instagramGenerationJobs` stores prompt
 hashes, phase, status, Vertex operation name, private object names, failure code, and only a hash
@@ -196,11 +209,22 @@ forms explicitly use POST even when JavaScript intercepts them.
   primary and share actions; do not add a logo image. Keep the legally important
   contact-consent/unsubscribe footer outside the routinely edited Markdown body. Render supported
   Markdown emphasis as semantic italic text in HTML and omit its delimiters from plain text.
+- Provide custom verified-member campaigns with server-validated Markdown, sandboxed branded HTML
+  preview, plain-text preview, click-to-insert allowlisted substitutions, resumable confirmed
+  batches, aggregate history, and clone-to-rerun behaviour. Present history before the
+  new-campaign composer, include a direct create-new shortcut, and place safety guidance beside
+  confirmation controls rather than in a persistent warning banner. Dedupe joined and verified
+  member totals by canonical email. Support `membersJoined`, `membersVerified`, `memberFirstName`,
+  `memberLastName`, the requested `memberTittle` spelling and `memberTitle` alias, `memberJoined`,
+  `memberVerified`, private-member `memberVehicles` JSON, `vehiclesRegisteredCount`, and
+  `vehiclesSoHReadingsCount`; reject arbitrary Go-template actions and unsafe link schemes.
+  Reopen drafts and continue partial custom runs only with unchanged saved content; an edit after
+  any delivery creates a new run linked to the original.
 - Provide an admin-only Instagram campaign page following the same preview-before-side-effect
   interaction. Chat prepares the post; a human reviews the complete final media; the server
   validates the exact site-relative media path and caption; and an exact typed confirmation
   gates immediate organic Reel publishing. Reconstruct its creative and safety contract from
-  prompt `21`. Do not claim that paid ads, scheduling or automated engagement are implemented.
+  prompt `20`. Do not claim that paid ads, scheduling or automated engagement are implemented.
 
 Prompts define visual intent, not the exact control points or pixels of generated artwork.
 Therefore the following committed assets are preservation-critical and must be backed up with
@@ -239,7 +263,10 @@ presentation.
 
 - Use the current production-supported versions mandated by `AGENTS.md`, then generate and
   commit npm, Go, and OpenTofu lock/checksum files. Exact historical dependency bytes are not
-  part of a clean-room rebuild unless archived lockfiles are supplied.
+  part of a clean-room rebuild unless archived lockfiles are supplied. Preserve narrow,
+  pinned npm transitive-security overrides while current direct tools still require affected
+  ranges; verify them with a zero-result npm audit and the affected CLI/build paths, then
+  remove them once upstream dependency ranges include the patched releases.
 - Recreate staging and production workflows, read-only PR validation, repository-owner plus
   same-repository preview deployment gating, approval for all external contributors,
   job-scoped permissions, immutable third-party Action pins, Workload Identity Federation,
@@ -258,20 +285,29 @@ Before declaring reconstruction complete:
 
 1. Run `make install`, `make lint`, `make test`, `make build`, `make audit`, and OpenTofu
    formatting/validation for the environment root.
-2. Confirm every route and redirect above, mobile navigation, launch/full site modes,
-   canonical metadata, keyboard flows, and WCAG AA colour/focus behaviour.
+2. Confirm every route and redirect above, mobile navigation in signed-out/signed-in/admin
+   states, launch/full site modes, canonical metadata, keyboard flows, and WCAG AA
+   colour/focus behaviour.
 3. Test Join and magic-link flows for new, existing, unknown, malformed, and honeypot users;
    confirm generic responses and that email addresses never enter fallback page URLs.
 4. Test unauthenticated, member, wrong-owner, and admin authorization for every private API.
 5. Test multiple vehicles, SoH history, service-event create/edit, snapshot regeneration,
    Firebase Auth pagination, five-minute public caching, and snapshot fallback.
-6. Confirm no raw VIN, token, email, name, private snapshot, or evidence record appears in
+6. Test registration-reminder, member-referral, and custom email campaign preview/send
+   boundaries, immutable delivery ledgers, aggregate history, partial-run continuation,
+   draft editing, clone-to-rerun behaviour, substitutions, exact confirmation gates, and the
+   compact history/tools navigation plus keyboard-operable campaign tabs.
+7. Test Instagram generation and publishing independently: admin/origin authorization,
+   idempotent asynchronous Veo phases, private expiring media delivery, complete human review,
+   preview invalidation, fail-closed optional configuration, and exact publish confirmation.
+   Confirm generation completion can never trigger publication.
+8. Confirm no raw VIN, token, email, name, private snapshot, or evidence record appears in
    public files, logs, aggregate responses, or static Hosting objects.
-7. Plan staging infrastructure, deploy a PR preview, authorize only its scoped Firebase host,
+9. Plan staging infrastructure, deploy a PR preview, authorize only its scoped Firebase host,
    run smoke and passive ZAP checks, and retain reports as CI artifacts.
-8. Visually compare desktop and mobile pages with approved references; scan the QR code and
+10. Visually compare desktop and mobile pages with approved references; scan the QR code and
    render both business-card sides at print size.
-9. Obtain human review for logic, security, accessibility, legal/privacy copy, and tone before
+11. Obtain human review for logic, security, accessibility, legal/privacy copy, and tone before
    production deployment.
 
 ## Reproducibility verification strategy
@@ -293,7 +329,7 @@ rebuild:
   the product. It deliberately does not exercise cloud credentials, live data restoration,
   DNS, email delivery, or visual equivalence.
 - Periodically perform a true isolated reconstruction in a new empty repository or ephemeral
-  environment using only `AGENTS.md`, prompts `01-20`, approved public assets, and separately
+  environment using only `AGENTS.md`, prompts `01-21`, approved public assets, and separately
   supplied secrets/configuration. Run the full acceptance checklist and compare the resulting
   route/API/schema inventories with production before calling the reconstruction successful.
 - Record the source commit, toolchain versions, generated lockfiles, deviations, elapsed

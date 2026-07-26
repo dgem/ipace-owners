@@ -28,6 +28,22 @@ recheck, and hashed-ledger controls as registration reminders. Keep the embedded
 editable: regression tests protect complete template-field substitution, shared email chrome,
 destinations and delivery safeguards without pinning editorial sentences or chosen numeric fields.
 
+The same page provides custom verified-member campaigns. Preview validates an allowlisted
+`{{name}}` substitution language rather than executing arbitrary Go templates, saves a Firestore
+draft, calculates the canonical-email-deduped intersection of verified Auth accounts and
+contact-consenting Join records, and renders branded HTML in a sandbox plus plain text. Sending
+loads the saved immutable content, rechecks the audience and `SEND <count>` confirmation, and
+uses the same ten-message hashed/idempotent batches. Parent campaign documents retain aggregate
+eligible, sent, failed-attempt, remaining, batch and timestamp history. “Tweak and rerun” clones
+content into a new run; never edit a run after delivery starts. History may infer old specialised
+runs from legacy delivery-only subcollections, where only the sent count is recoverable.
+Registration reminders remain rerunnable only through their specialised tool because they require
+an unverified-member audience and a fresh private sign-in link; do not clone them into the
+verified-member custom editor.
+Allow drafts to reopen and partially sent custom runs to continue after re-previewing the exact
+unchanged saved content. If the administrator edits a run that has sent anything, clear its active
+campaign ID and create a new run linked through `sourceCampaignId`.
+
 ## Command Surface
 
 - The Makefile is the shared command surface for local development and CI.
@@ -44,6 +60,10 @@ destinations and delivery safeguards without pinning editorial sentences or chos
   `security-extended` analysis for GitHub Actions, JavaScript/TypeScript, and Go; dependency
   review that rejects newly introduced moderate-or-higher vulnerabilities; `npm audit` with
   a high-severity threshold; and pinned `govulncheck` analysis for reachable Go issues.
+- If a newly disclosed npm advisory affects transitive packages while the maintained direct
+  tool is already current, prefer narrow pinned `overrides` for patched transitive releases
+  over downgrading the direct tool. Regenerate `package-lock.json`, require a zero-result
+  full npm audit, and exercise the affected build or deployment CLI before pushing.
 - After a Firebase Hosting PR preview passes its smoke test, run a blocking passive OWASP ZAP
   baseline scan against that preview. Use a versioned ZAP container, disable issue creation,
   retain the report as an Actions artifact, and keep reviewed platform/CDN findings in the

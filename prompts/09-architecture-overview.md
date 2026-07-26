@@ -88,6 +88,8 @@ users removed from the desired set. A configured user must already exist in Fire
 
 After claims are verified, render the complete admin menu in a right-aligned secondary desktop
 header row and a labelled mobile-drawer section. Do not duplicate it below admin page titles.
+For signed-out mobile visitors, keep Sign in visible beside the menu toggle as well as inside
+the drawer, then hide both signed-out actions when authentication succeeds.
 
 ## Implemented API contracts
 
@@ -104,6 +106,9 @@ header row and a labelled mobile-drawer section. Do not duplicate it below admin
 | `POST /api/admin/reengagement-send` | `AdminReengagementSend` | Admin | Confirm and send the next resumable batch of at most ten reminders. |
 | `POST /api/admin/member-referral-preview` | `AdminMemberReferralPreview` | Admin | Preview the consented registered-member referral audience and exact campaign copy. |
 | `POST /api/admin/member-referral-send` | `AdminMemberReferralSend` | Admin | Confirm and send the next resumable batch of at most ten referral emails. |
+| `POST /api/admin/email-campaign-history` | `AdminEmailCampaignHistory` | Admin | Return campaign metadata and aggregate delivery history without recipient addresses. |
+| `POST /api/admin/custom-campaign-preview` | `AdminCustomCampaignPreview` | Admin | Validate and persist a custom Markdown draft, calculate the verified consented audience, and return personalised HTML/plain-text previews. |
+| `POST /api/admin/custom-campaign-send` | `AdminCustomCampaignSend` | Admin | Recheck the saved draft and audience, require exact confirmation, and send the next idempotent batch of at most ten. |
 | `POST /api/admin/instagram-preview` | `AdminInstagramPreview` | Admin | Validate and preview an administrator-reviewed, chat-prepared Reel path and caption without publishing. |
 | `POST /api/admin/instagram-publish` | `AdminInstagramPublish` | Admin | Revalidate the exact draft and confirmation, process the Reel through Meta, and publish it immediately. |
 | `POST /api/admin/instagram-generate` | `AdminInstagramGenerate` | Admin | Idempotently start the explicitly confirmed, billable eight-second Veo generation operation. |
@@ -289,6 +294,26 @@ route unless there is a measured need.
 - Admin campaign preview responses return that exact generated HTML with placeholder-only private
   links. The browser renders it in a sandboxed `srcdoc` iframe and keeps the plain-text alternative
   available in a disclosure, without exposing recipient data.
+- The admin campaign workspace also supports reusable custom member campaigns. Store each
+  immutable run as an `emailCampaigns` parent document with its name, subject, Markdown,
+  source campaign ID, status, eligible/sent/failed/remaining totals, batch count and timestamps;
+  keep hashed per-address delivery documents in its `deliveries` subcollection. History must
+  recover older delivery-only campaign paths, return no addresses, and clone rather than mutate a
+  campaign that has started sending. Present history before a single campaign-tools panel and
+  provide a direct create-new shortcut. Use a compact page-header navigator and accessible tabs
+  for registration reminders, member referrals and freeform campaigns; keyboard arrow/Home/End
+  navigation and history actions must select the relevant panel. Keep safety guidance next to the
+  preview/send confirmation it explains rather than using a visually dominant page-level warning.
+  Drafts may be reopened, and partial custom runs may continue only after re-previewing the exact
+  unchanged saved content; editing a run with deliveries must create a new sourced run.
+- Custom campaigns target the canonical-email intersection of contact-consenting Join records
+  and verified Firebase accounts. Available literal `{{name}}` substitutions are
+  `membersJoined`, `membersVerified`, `memberFirstName`, `memberLastName`, `memberTittle`
+  (plus corrected alias `memberTitle`), `memberJoined`, `memberVerified`, `memberVehicles`,
+  `vehiclesRegisteredCount`, and `vehiclesSoHReadingsCount`. Reject other template actions.
+  `memberVehicles` is JSON containing only the member's non-VIN vehicle fields and per-vehicle
+  SoH reading count. Persist the first observed verified timestamp on the private member record;
+  legacy values backfilled from Firebase Auth metadata are marked inferred.
 - Merges to `main` deploy production.
 
 ## Prompt maintenance
@@ -305,4 +330,5 @@ Keep these related prompts aligned when the architecture changes:
 - `14-functions-future-evidence-and-stats.md`
 - `15-firestore-static-json-data-model.md`
 - `17-operations-ci-and-troubleshooting.md`
-- `20-clean-room-reconstruction-contract.md`
+- `20-instagram-campaign-publishing.md`
+- `21-clean-room-reconstruction-contract.md`

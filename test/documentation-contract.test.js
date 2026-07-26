@@ -5,6 +5,7 @@ const test = require('node:test');
 
 const root = path.join(__dirname, '..');
 const promptFilenamePattern = /^\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*\.md$/;
+const reconstructionPrompt = 'prompts/21-clean-room-reconstruction-contract.md';
 
 function read(relativePath) {
   return fs.readFileSync(path.join(root, relativePath), 'utf8');
@@ -35,7 +36,7 @@ test('maintained prompts form a contiguous 00-21 reconstruction set', function (
 test('architecture documents enumerate every routed API endpoint', function () {
   const apiSource = read('functions/firebase-go/main.go');
   const architecture = read('prompts/09-architecture-overview.md');
-  const reconstruction = read('prompts/20-clean-room-reconstruction-contract.md');
+  const reconstruction = read(reconstructionPrompt);
   const readme = read('README.md');
   const routes = Array.from(apiSource.matchAll(/case "(\/api\/[^"]+)"/g), function (match) {
     return match[1];
@@ -63,7 +64,7 @@ test('README inventories every browser JavaScript module', function () {
 });
 
 test('preservation-critical visual assets exist and are named in the reconstruction contract', function () {
-  const reconstruction = read('prompts/20-clean-room-reconstruction-contract.md');
+  const reconstruction = read(reconstructionPrompt);
   const assets = [
     'public/favicon.png',
     'public/images/ipace-hero.png',

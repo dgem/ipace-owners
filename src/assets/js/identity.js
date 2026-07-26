@@ -31,6 +31,7 @@
 	var loginBtn = document.getElementById('identity-login-btn');
 	var logoutBtn = document.getElementById('identity-logout-btn');
 	var userDisplay = document.getElementById('identity-user-display');
+	var mobileHeaderLoginBtn = document.getElementById('identity-mobile-header-login-btn');
 	var mobileLoginBtn = document.getElementById('identity-mobile-login-btn');
 	var mobileLogoutBtn = document.getElementById('identity-mobile-logout-btn');
 	var pendingEmailLinkUrl = auth && auth.isSignInWithEmailLink(window.location.href)
@@ -57,6 +58,7 @@
 		if (user) {
 			if (loginBtn) loginBtn.style.display = 'none';
 			if (logoutBtn) logoutBtn.style.display = '';
+			if (mobileHeaderLoginBtn) mobileHeaderLoginBtn.style.display = 'none';
 			if (mobileLoginBtn) mobileLoginBtn.style.display = 'none';
 			if (mobileLogoutBtn) mobileLogoutBtn.style.display = '';
 			setVisibility('[data-requires-auth]', true);
@@ -69,6 +71,7 @@
 		} else {
 			if (loginBtn) loginBtn.style.display = '';
 			if (logoutBtn) logoutBtn.style.display = 'none';
+			if (mobileHeaderLoginBtn) mobileHeaderLoginBtn.style.display = '';
 			if (mobileLoginBtn) mobileLoginBtn.style.display = '';
 			if (mobileLogoutBtn) mobileLogoutBtn.style.display = 'none';
 			setVisibility('[data-requires-auth]', false);

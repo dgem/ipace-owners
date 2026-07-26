@@ -120,7 +120,10 @@ make audit
 Runs `npm audit` with a high-severity failure threshold and pinned `govulncheck` analysis for
 reachable Go vulnerabilities. GitHub Actions additionally runs CodeQL and dependency review
 on pull requests and a weekly schedule. Firebase PR previews receive a blocking passive OWASP
-ZAP baseline scan after deployment smoke tests pass.
+ZAP baseline scan after deployment smoke tests pass. `package.json` may pin narrow transitive
+security overrides when a maintained direct dependency has not yet widened its range to a
+patched release; keep those overrides locked, test the affected CLI/build paths, and remove
+them when an upstream release makes them unnecessary.
 
 ### Production build
 
@@ -419,6 +422,38 @@ removed during routine copy edits.
 Staging delivery deliberately uses `https://ipace-owners.org` for durable public email imagery:
 `stage.ipace-owners.org` is an email-sending domain and does not serve Hosting assets.
 
+The campaign workspace also records previous specialised and custom campaign runs. Each
+Firestore parent record contains the campaign name/copy, lifecycle status, eligible, sent,
+remaining and failed-attempt totals, batch count and timestamps; hashed delivery
+subdocuments remain the recipient-level idempotency ledger. Legacy runs that predate parent
+records are recovered from those delivery ledgers where possible. “Tweak and rerun” copies an
+old subject and Markdown into a new run rather than changing its audit history. Campaign
+history is presented before the campaign tools, with a direct create-new shortcut. A compact
+page header links to history and the tools, while registration reminders, member referrals
+and freeform campaigns share one keyboard-operable tabbed panel. Create, continue and rerun
+actions select the relevant tab automatically. Safety guidance appears beside the relevant
+confirmation controls instead of as a persistent page-level warning.
+Registration reminders remain on their specialised tool because they require an unverified
+audience and a fresh private sign-in link; the custom editor must not silently retarget them to
+verified members.
+Draft and partially sent custom runs can be reopened from history. A partial run can continue only
+after previewing its unchanged saved content; editing it creates a new run and preserves the
+original delivery ledger.
+
+Administrators can create custom campaigns for verified Firebase accounts with matching
+contact-consenting Join records. `POST /api/admin/custom-campaign-preview` validates and saves the
+draft, recalculates the canonical-email-deduped audience and renders sandboxed branded HTML plus
+plain text. `POST /api/admin/custom-campaign-send` reloads that immutable draft and uses the same
+exact-count confirmation, ten-message batches, Resend idempotency and hashed ledgers. History is
+returned by `POST /api/admin/email-campaign-history`; none of these responses contain addresses.
+
+Custom Markdown supports only these literal substitutions: `{{membersJoined}}`,
+`{{membersVerified}}`, `{{memberFirstName}}`, `{{memberLastName}}`, `{{memberTittle}}` (and the
+correctly spelled alias `{{memberTitle}}`), `{{memberJoined}}`, `{{memberVerified}}`,
+`{{memberVehicles}}`, `{{vehiclesRegisteredCount}}`, and `{{vehiclesSoHReadingsCount}}`.
+`memberVehicles` is private per-recipient JSON containing non-VIN car fields and SoH reading
+counts. Arbitrary Go-template actions and unsafe link schemes are rejected server-side.
+
 ### Instagram campaign publishing
 
 `/admin/instagram-campaigns/` implements the deliberate handoff from chat-created campaign
@@ -454,7 +489,7 @@ The production Function needs `INSTAGRAM_USER_ID`, an explicitly selected suppor
 Secret Manager and set `INSTAGRAM_ACCESS_TOKEN_SECRET_<ENV>` to that secret's name; deployment
 mounts its latest version as `INSTAGRAM_ACCESS_TOKEN`. Never place the token in repository files,
 browser configuration, Firestore, GitHub variables or `functions-env.json`. The account must be
-an Instagram professional account with Meta's content-publishing permission. See prompt `21` for
+an Instagram professional account with Meta's content-publishing permission. See prompt `20` for
 the creative-review boundary and the exact launch-Reel generation contract.
 OpenTofu creates the `instagram-access-token` secret container and grants only the Function runtime
 access, but deliberately does not create a secret version: token bytes must never enter tfvars or
@@ -659,7 +694,9 @@ sign out and request a new magic link so the next ID token contains the current 
 Signed-in administrators receive the complete admin menu in a right-aligned secondary desktop
 header row and a labelled section of the mobile drawer. It is not repeated inside admin page
 content. These navigation hints use token claims, while every protected endpoint continues to
-enforce administrator access server-side.
+enforce administrator access server-side. Signed-out mobile headers keep a compact Sign in
+action beside the menu toggle as well as the full-width action inside the drawer; both disappear
+when authentication succeeds.
 
 Disabling `manage_firebase_admins` stops reconciliation but does not revoke existing claims.
 Remove unwanted administrators from the map and apply before disabling management.
@@ -745,14 +782,17 @@ extended in a controlled order:
 - The remaining numbered prompts split the product into foundation, design, content,
   identity, forms, evidence dashboard, backend security/storage, architecture, Function
   components, data modelling, member tooling, operations, stakeholder feedback, launch
-  readiness, and reconstruction requirements.
-- `20-clean-room-reconstruction-contract.md` is the final route/API/schema/configuration and
-  acceptance contract for rebuilding the product from scratch.
+  readiness, Instagram generation/publishing, and reconstruction requirements.
+- `20-instagram-campaign-publishing.md` defines the creative, generation, review, and
+  controlled-publishing boundary.
+- `21-clean-room-reconstruction-contract.md` is the final
+  route/API/schema/configuration and acceptance contract for rebuilding the product from
+  scratch. It must remain the highest-numbered prompt as more feature prompts are added.
 
 When adding or refining prompts, keep the numeric prefix and make the prompt independently
 usable. Keep cross-layer implementation details canonical in
 `prompts/09-architecture-overview.md` and exact reconstruction inventories canonical in
-`prompts/20-clean-room-reconstruction-contract.md`; feature prompts may repeat only the
+`prompts/21-clean-room-reconstruction-contract.md`; feature prompts may repeat only the
 details needed to apply them safely.
 
 Keep prompts in sync with implemented behaviour so the project can be recreated from
@@ -767,7 +807,7 @@ checks catch structural drift; they do not prove that an agent can reproduce the
 from prose alone.
 
 For a genuine reproducibility test, follow the isolated clean-room procedure in
-`prompts/20-clean-room-reconstruction-contract.md`: provide only AGENTS.md, all numbered
+`prompts/21-clean-room-reconstruction-contract.md`: provide only AGENTS.md, all numbered
 prompt files, approved public assets, and separately secured configuration in a new
 repository, then run the full acceptance checklist and record every manual intervention.
 
