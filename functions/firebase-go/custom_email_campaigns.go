@@ -64,6 +64,10 @@ type customCampaignRecord struct {
 	LastSentAt       time.Time `json:"lastSentAt,omitempty" firestore:"lastSentAt,omitempty"`
 }
 
+type customCampaignDocumentWriter interface {
+	Set(context.Context, any, ...firestore.SetOption) (*firestore.WriteResult, error)
+}
+
 type customCampaignHistory struct {
 	Campaigns    []customCampaignRecord `json:"campaigns"`
 	Placeholders []string               `json:"placeholders"`
@@ -255,7 +259,7 @@ func previewCustomCampaign(ctx context.Context, input customCampaignDraftRequest
 		UpdatedAt:        now,
 		LastSentAt:       lastSentAt,
 	}
-	if _, err := db.Collection("emailCampaigns").Doc(id).Set(ctx, record); err != nil {
+	if err := saveCustomCampaignRecord(ctx, db.Collection("emailCampaigns").Doc(id), record); err != nil {
 		return customCampaignPreviewResponse{}, err
 	}
 	return makeCustomCampaignPreview(record, audience), nil
@@ -349,7 +353,7 @@ func sendCustomCampaignBatch(ctx context.Context, input customCampaignSendReques
 	if batchSent > 0 {
 		record.LastSentAt = now
 	}
-	if _, err := db.Collection("emailCampaigns").Doc(record.CampaignID).Set(ctx, record, firestore.MergeAll); err != nil {
+	if err := saveCustomCampaignRecord(ctx, db.Collection("emailCampaigns").Doc(record.CampaignID), record); err != nil {
 		return customCampaignPreviewResponse{}, fmt.Errorf("campaign sent but summary update failed")
 	}
 	response := makeCustomCampaignPreview(record, audience)
@@ -725,7 +729,13 @@ func recordSpecializedCampaign(ctx context.Context, db *firestore.Client, summar
 		UpdatedAt:  now,
 		LastSentAt: now,
 	}
-	_, err := db.Collection("emailCampaigns").Doc(summary.CampaignID).Set(ctx, record, firestore.MergeAll)
+	return saveCustomCampaignRecord(ctx, db.Collection("emailCampaigns").Doc(summary.CampaignID), record)
+}
+
+func saveCustomCampaignRecord(ctx context.Context, document customCampaignDocumentWriter, record customCampaignRecord) error {
+	// Firestore MergeAll accepts map data only. The record is the authoritative parent
+	// document, and replacing it does not remove its deliveries subcollection.
+	_, err := document.Set(ctx, record)
 	return err
 }
 

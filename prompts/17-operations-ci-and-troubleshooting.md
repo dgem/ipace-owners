@@ -46,7 +46,10 @@ draft, calculates the canonical-email-deduped intersection of verified Auth acco
 contact-consenting Join records, and renders branded HTML in a sandbox plus plain text. Sending
 loads the saved immutable content, rechecks the audience and `SEND <count>` confirmation, and
 uses the same ten-message hashed/idempotent batches. Parent campaign documents retain aggregate
-eligible, sent, failed-attempt, remaining, batch and timestamp history. “Tweak and rerun” clones
+eligible, sent, failed-attempt, remaining, batch and timestamp history. Write them as complete
+struct replacements; never pass a Go struct with Firestore `MergeAll`, which accepts map data
+only. Replacing the parent document must leave its hashed delivery subcollection intact so a
+post-delivery summary retry cannot resend recipients. “Tweak and rerun” clones
 content into a new run; never edit a run after delivery starts. History may infer old specialised
 runs from legacy delivery-only subcollections, where only the sent count is recoverable.
 Registration reminders remain rerunnable only through their specialised tool because they require

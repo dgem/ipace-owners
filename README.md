@@ -437,10 +437,13 @@ Staging delivery deliberately uses `https://ipace-owners.org` for durable public
 The campaign workspace also records previous specialised and custom campaign runs. Each
 Firestore parent record contains the campaign name/copy, lifecycle status, eligible, sent,
 remaining and failed-attempt totals, batch count and timestamps; hashed delivery
-subdocuments remain the recipient-level idempotency ledger. Legacy runs that predate parent
-records are recovered from those delivery ledgers where possible. “Tweak and rerun” copies an
-old subject and Markdown into a new run rather than changing its audit history. Campaign
-history is presented before the campaign tools, with a direct create-new shortcut. A compact
+subdocuments remain the recipient-level idempotency ledger. Campaign parent records are
+complete struct replacements because Firestore `MergeAll` accepts map data only; replacing a
+parent does not remove its delivery subcollection, so summary-write retries remain safe.
+Legacy runs that predate parent records are recovered from those delivery ledgers where
+possible. “Tweak and rerun” copies an old subject and Markdown into a new run rather than
+changing its audit history. Campaign history is presented before the campaign tools, with a
+direct create-new shortcut. A compact
 page header links to history and the tools, while registration reminders, member referrals
 and freeform campaigns share one keyboard-operable tabbed panel. Create, continue and rerun
 actions select the relevant tab automatically. Safety guidance appears beside the relevant
