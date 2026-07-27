@@ -1728,6 +1728,58 @@ legend {
   margin: 0;
 }
 
+.member-export-options {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.member-export-option {
+  align-items: center;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  display: flex;
+  gap: var(--space-5);
+  justify-content: space-between;
+  padding: var(--space-5);
+}
+
+.member-export-option h3 {
+  font-size: var(--text-base);
+  margin: 0 0 var(--space-1);
+}
+
+.member-export-option p {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  margin: 0;
+  max-width: 44rem;
+}
+
+.member-export-option .btn {
+  flex: 0 0 auto;
+}
+
+.member-export-status {
+  color: var(--color-accent);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  margin: var(--space-3) 0 0;
+  min-height: 1.4em;
+}
+
+@media (max-width: 42rem) {
+  .member-export-option {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .member-export-option .btn {
+    justify-content: center;
+    width: 100%;
+  }
+}
+
 .preference-list__row {
   align-items: center;
   border-bottom: 1px solid var(--color-border);

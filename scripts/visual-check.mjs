@@ -331,6 +331,22 @@ async function checkInstagramCampaigns(viewport, screenshotName) {
   await page.close();
 }
 
+async function checkMemberExport(viewport, screenshotName) {
+  const page = await browser.newPage({ viewport });
+  await page.goto(baseURL + '/member/account/', { waitUntil: 'networkidle' });
+  await page.evaluate(() => {
+    document.querySelectorAll('[data-auth-content]').forEach((element) => { element.hidden = false; });
+    document.querySelectorAll('[data-auth-pending], [data-auth-login-gate]').forEach((element) => { element.hidden = true; });
+    document.querySelectorAll('.cookie-notice').forEach((element) => { element.hidden = true; });
+  });
+  assert.equal(await page.locator('[data-member-export]').count(), 2);
+  assert.equal(await page.getByRole('heading', { name: 'Export your data' }).isVisible(), true);
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
+  await page.locator('[data-member-export]').first().scrollIntoViewIfNeeded();
+  await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
+  await page.close();
+}
+
 try {
   await checkDesktopAdminHeader();
   await checkMobileAdminDrawer();
@@ -339,6 +355,8 @@ try {
   await checkCampaignControls({ width: 390, height: 844 }, 'admin-email-campaigns-mobile.png');
   await checkInstagramCampaigns({ width: 1440, height: 1100 }, 'admin-instagram-campaigns-desktop.png');
   await checkInstagramCampaigns({ width: 390, height: 844 }, 'admin-instagram-campaigns-mobile.png');
+  await checkMemberExport({ width: 1440, height: 1000 }, 'member-export-desktop.png');
+  await checkMemberExport({ width: 390, height: 844 }, 'member-export-mobile.png');
   console.log(`Visual checks passed; screenshots written to ${outputDir}`);
 } finally {
   await browser.close();

@@ -179,6 +179,7 @@ src/
       identity.js        # Firebase Auth email-link integration
       member-auth.js     # Server-verified member/admin data loading
       member-dashboard.js # Vehicle tabs, SoH graph and service/fault editing
+      member-export.js    # Authenticated CSV/Excel account downloads
       multistep-form.js  # Multi-step form controller
       outreach-assistant.js # Facebook search-link and reply helper; no automation
       instagram-campaigns.js # Instagram draft/history, insight, preview and publish controls
@@ -659,6 +660,9 @@ behind the single Go `Api` Cloud Function:
   recall, or inspection record after server-side ownership verification.
 - `member-data` returns only the authenticated member's generated private snapshot after
   Firebase ID-token verification.
+- `member-export` returns that same member's data as either a ZIP of separate CSV datasets
+  or a formatted Excel workbook with summary charts. Exports omit internal identity and
+  hash fields, neutralise spreadsheet formulas, and are served with private no-store headers.
 - `admin-data` returns Join and vehicle review records only when the Firebase token carries
   an accepted admin claim.
 - `public-stats` serves a cacheable aggregate snapshot. Its registered-member headline is
@@ -770,6 +774,7 @@ Plain vanilla JavaScript, no bundler. The current modules are:
 - `identity.js` — Firebase Auth email-link and UI state
 - `member-auth.js` — authenticated member/admin data loading and account rendering
 - `member-dashboard.js` — vehicle tabs, SoH history and service/fault editing
+- `member-export.js` — authenticated CSV-bundle and Excel-report downloads
 - `multistep-form.js` — generic multi-step form (data-attribute driven)
 - `outreach-assistant.js` — admin-only Facebook search-link and editable reply helper; no retrieval or posting automation
 - `instagram-campaigns.js` — admin-only asynchronous Veo generation, full-media review, and

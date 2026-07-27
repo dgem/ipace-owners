@@ -53,6 +53,7 @@ func init() {
 	functions.HTTP("SubmitSOH", SubmitSOH)
 	functions.HTTP("UpsertServiceEvent", UpsertServiceEvent)
 	functions.HTTP("MemberData", MemberData)
+	functions.HTTP("MemberExport", MemberExport)
 	functions.HTTP("AdminData", AdminData)
 	functions.HTTP("PublicStats", PublicStats)
 }
@@ -71,6 +72,8 @@ func Api(w http.ResponseWriter, r *http.Request) {
 		UpsertServiceEvent(w, r)
 	case "/api/member-data":
 		MemberData(w, r)
+	case "/api/member-export":
+		MemberExport(w, r)
 	case "/api/admin-data":
 		AdminData(w, r)
 	case "/api/admin/reengagement-preview":

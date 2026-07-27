@@ -101,9 +101,15 @@ VINs will not be stored in public static files.
 You have the right to access, correct, or delete your personal data. To exercise these rights,
 contact us at [contact@ipace-owners.org](mailto:contact@ipace-owners.org).
 
+Signed-in members can also use **Export your data** on the Account page. The simple download
+contains separate CSV files for membership, vehicles, SoH readings, and service/fault history.
+The Excel download presents the same information as a formatted workbook with summary charts
+where there is enough data. These files contain personal information and should be stored and
+shared carefully.
+
 ## Changes to this policy
 
 This policy will be updated before broader live evidence collection begins. We will notify
 members of material changes.
 
-*Last updated: 21 July 2026. This is a placeholder document.*
+*Last updated: 27 July 2026. This is a placeholder document.*

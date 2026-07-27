@@ -3,6 +3,7 @@ layout: base.njk
 title: Account
 description: "Your account — I-PACE Owners' Advocacy Group."
 noindex: true
+memberExport: true
 ---
 
 {% from "partials/auth-login-gate.njk" import authLoginGate %}
@@ -66,6 +67,33 @@ noindex: true
 									<p style="color:var(--color-text-muted); font-size:var(--text-sm);">Loading...</p>
 								</div>
 							</div>
+						</div>
+
+						<div class="dashboard-panel account-layout__wide">
+							<div class="dashboard-panel__header">
+								<div>
+									<h2 class="dashboard-panel__title">Export your data</h2>
+									<p class="dashboard-panel__lede">Download a portable copy of the membership, vehicle, battery and service information currently saved in your account.</p>
+								</div>
+							</div>
+							<div class="member-export-options">
+								<div class="member-export-option">
+									<div>
+										<h3>Separate CSV files</h3>
+										<p>Four straightforward CSV files in one ZIP: membership, vehicles, SoH readings, and service and fault history.</p>
+									</div>
+									<button class="btn btn--secondary" type="button" data-member-export="csv">Download CSV bundle</button>
+								</div>
+								<div class="member-export-option">
+									<div>
+										<h3>Excel report</h3>
+										<p>A formatted workbook with separate sheets, a summary and charts for SoH history and service or fault events where data is available.</p>
+									</div>
+									<button class="btn btn--primary" type="button" data-member-export="xlsx">Download Excel report</button>
+								</div>
+							</div>
+							<p class="form-hint">Exports are generated securely for the signed-in account and are not cached. They may contain personal information, so store and share them carefully.</p>
+							<p class="member-export-status" data-member-export-status role="status" aria-live="polite"></p>
 						</div>
 
 					</div>

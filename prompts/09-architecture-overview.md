@@ -101,6 +101,7 @@ the drawer, then hide both signed-out actions when authentication succeeds.
 | `POST /api/submit-soh` | `SubmitSOH` | Member | Append an SoH reading after verifying vehicle ownership. |
 | `POST /api/upsert-service-event` | `UpsertServiceEvent` | Member | Add or edit an owned vehicle's service/fault timeline record. |
 | `GET /api/member-data` | `MemberData` | Member | Return the signed-in user's generated snapshot. |
+| `GET /api/member-export?format=csv\|xlsx` | `MemberExport` | Member | Download that snapshot as separate CSV datasets in a ZIP or a formatted Excel workbook. |
 | `GET /api/admin-data` | `AdminData` | Admin | Return review data for administrators. |
 | `POST /api/admin/reengagement-preview` | `AdminReengagementPreview` | Admin | Return aggregate counts for the consented, unsigned-in Join audience. |
 | `POST /api/admin/reengagement-send` | `AdminReengagementSend` | Admin | Confirm and send the next resumable batch of at most ten reminders. |
@@ -132,6 +133,9 @@ route unless there is a measured need.
 - Cloud Storage is for generated JSON snapshots and future uploaded evidence blobs.
 - Member pages read a generated member snapshot through `MemberData`; the Function verifies
   auth before returning it.
+- Member exports are generated in memory from the same authenticated snapshot, exclude
+  internal UID and hash fields, neutralise spreadsheet formula injection, and use private
+  no-store attachment responses.
 - Public dashboard pages read anonymised aggregate data through `PublicStats`. Aggregates
   must be generated from consent-filtered records and must not expose canonical member
   records, raw identifiers, registrations, VIN fragments, names, or emails.
