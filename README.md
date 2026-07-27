@@ -411,7 +411,9 @@ records. The friendly template shows the current owner total, distance from the 
 stretch goal, and the doubled total if every current owner finds one more. It includes
 monochrome share actions for Facebook, X, Bluesky, LinkedIn, Instagram, WhatsApp, and email;
 Instagram opens the group's `@ipaceowners` profile because it has no reliable web share
-composer.
+composer. The email displays a ready-to-copy “I-PACE owners are stronger together” post with a
+clear owner Join CTA. Share destinations receive that text where their web composers support it;
+the visible copy remains available for LinkedIn and Instagram.
 
 The `Reach 1,000` campaign uses `POST /api/admin/all-members-drive-preview` and
 `POST /api/admin/all-members-drive-send`. It targets every canonical-email-deduplicated Join

@@ -724,18 +724,22 @@ func makeCampaignEmailPreview(memberCount, eligibleCount int) campaignEmailPrevi
 	return campaignEmailPreview{Subject: subject, HTML: htmlBody, Text: text}
 }
 
+func memberReferralShareMessage(memberCount int) string {
+	return fmt.Sprintf("I-PACE owners are stronger together. %d owners have already joined our independent group. Own an I-PACE? Add your voice and help us reach 1,000 members. Free to join: https://ipace-owners.org/", memberCount)
+}
+
 func memberReferralShareLinks(memberCount int) []campaignShareLink {
 	shareURL := "https://ipace-owners.org/"
 	instagramURL := "https://www.instagram.com/ipaceowners/"
-	message := fmt.Sprintf("I-PACE owners are working together for fair outcomes. %d owners have already joined — could you help another owner find the group?", memberCount)
+	message := memberReferralShareMessage(memberCount)
 	return []campaignShareLink{
-		{Label: "Facebook", Mark: "f", URL: "https://www.facebook.com/sharer/sharer.php?u=" + url.QueryEscape(shareURL)},
-		{Label: "X", Mark: "𝕏", URL: "https://twitter.com/intent/tweet?text=" + url.QueryEscape(message) + "&url=" + url.QueryEscape(shareURL)},
-		{Label: "Bluesky", Mark: "B", URL: "https://bsky.app/intent/compose?text=" + url.QueryEscape(message+" "+shareURL)},
+		{Label: "Facebook", Mark: "f", URL: "https://www.facebook.com/sharer/sharer.php?u=" + url.QueryEscape(shareURL) + "&quote=" + url.QueryEscape(message)},
+		{Label: "X", Mark: "𝕏", URL: "https://twitter.com/intent/tweet?text=" + url.QueryEscape(message)},
+		{Label: "Bluesky", Mark: "B", URL: "https://bsky.app/intent/compose?text=" + url.QueryEscape(message)},
 		{Label: "LinkedIn", Mark: "in", URL: "https://www.linkedin.com/sharing/share-offsite/?url=" + url.QueryEscape(shareURL)},
 		{Label: "Instagram", Mark: "◎", URL: instagramURL},
-		{Label: "WhatsApp", Mark: "W", URL: "https://wa.me/?text=" + url.QueryEscape(message+" "+shareURL)},
-		{Label: "Email", Mark: "@", URL: "mailto:?subject=" + url.QueryEscape("Will you join the I-PACE Owners group?") + "&body=" + url.QueryEscape(message+"\n\n"+shareURL)},
+		{Label: "WhatsApp", Mark: "W", URL: "https://wa.me/?text=" + url.QueryEscape(message)},
+		{Label: "Email", Mark: "@", URL: "mailto:?subject=" + url.QueryEscape("I-PACE owners are stronger together") + "&body=" + url.QueryEscape(message)},
 	}
 }
 
@@ -756,14 +760,16 @@ func memberReferralEmailBodies(person campaignRecipient, memberCount int) (strin
 	}
 	subject := "Could you help one more I-PACE owner find us?"
 	shares := memberReferralShareLinks(memberCount)
+	suggestedShareText := memberReferralShareMessage(memberCount)
 	instagramURL := "https://www.instagram.com/ipaceowners/"
 	text, bodyHTML := mustRenderCampaignTemplate("member-referral.md.tmpl", struct {
-		FirstName      string
-		MemberCount    int
-		RemainingCount int
-		Projection     string
-		InstagramURL   string
-	}{first, memberCount, remaining, projection, instagramURL})
+		FirstName          string
+		MemberCount        int
+		RemainingCount     int
+		Projection         string
+		InstagramURL       string
+		SuggestedShareText string
+	}{first, memberCount, remaining, projection, instagramURL, suggestedShareText})
 	text += "\nShare the group: https://ipace-owners.org/\n\nYou are receiving this because you registered with the group and agreed that we could contact you. Reply if you no longer wish to hear from us.\n"
 	buttons := ""
 	for _, share := range shares {
@@ -800,10 +806,12 @@ func allMembersDriveEmailBodies(person campaignRecipient, memberCount int) (stri
 	}
 	subject := "Help us reach 1,000 I-PACE owners"
 	shares := memberReferralShareLinks(memberCount)
+	suggestedShareText := memberReferralShareMessage(memberCount)
 	text, bodyHTML := mustRenderCampaignTemplate("all-members-drive.md.tmpl", struct {
-		FirstName   string
-		MemberCount int
-	}{first, memberCount})
+		FirstName          string
+		MemberCount        int
+		SuggestedShareText string
+	}{first, memberCount, suggestedShareText})
 	text += "\nShare the group: https://ipace-owners.org/\n\nYou are receiving this because you joined the group and agreed that we could contact you. Reply if you no longer wish to hear from us.\n"
 	buttons := ""
 	for _, share := range shares {

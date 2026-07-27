@@ -163,6 +163,22 @@ async function checkCampaignControls(viewport, screenshotName) {
       }
     })
   }));
+  await page.route('**/api/admin/all-members-drive-preview', (route) => route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({
+      campaignId: 'all-members-drive-staging-2026-07-27',
+      eligible: 412,
+      registered: 0,
+      sent: 0,
+      batchSent: 0,
+      remaining: 412,
+      emailPreview: {
+        subject: 'Help us reach 1,000 I-PACE owners',
+        html: '<!doctype html><html lang="en"><body style="font-family:Arial;background:#f7f8fb;padding:24px"><main style="max-width:600px;margin:auto;background:white;padding:32px"><h1 style="color:#12324a">Help us reach 1,000 I-PACE owners</h1><p>I-PACE owners are stronger together.</p><h2>Suggested text to share</h2><p>Own an I-PACE? Add your voice and help us reach 1,000 members. Free to join: https://ipace-owners.org/</p><p><a href="https://www.facebook.com/">Facebook</a> <a href="https://wa.me/">WhatsApp</a></p></main></body></html>',
+        text: 'I-PACE owners are stronger together.\\n\\nSuggested text to share\\n\\nOwn an I-PACE? Add your voice and help us reach 1,000 members. Free to join: https://ipace-owners.org/'
+      }
+    })
+  }));
   await page.goto(baseURL + '/admin/email-campaigns/', { waitUntil: 'networkidle' });
   await revealAdminState(page);
   await page.evaluate(() => {
@@ -223,6 +239,8 @@ async function checkCampaignControls(viewport, screenshotName) {
   await page.screenshot({ path: path.join(outputDir, screenshotName.replace('.png', '-freeform.png')), fullPage: true });
   await page.locator('[data-campaign-tab="member-drive"]').focus();
   await page.keyboard.press('Enter');
+  await page.locator('[data-campaign-panel="member-drive"] [data-campaign-preview]').click();
+  await page.frameLocator('[data-campaign-panel="member-drive"] [data-campaign-email-html]').getByText('Suggested text to share').waitFor({ state: 'visible' });
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({ path: path.join(outputDir, screenshotName.replace('.png', '-member-drive.png')), fullPage: true });
   await page.close();

@@ -214,6 +214,10 @@ forms explicitly use POST even when JavaScript intercepts them.
   primary and share actions; do not add a logo image. Keep the legally important
   contact-consent/unsubscribe footer outside the routinely edited Markdown body. Render supported
   Markdown emphasis as semantic italic text in HTML and omit its delimiters from plain text.
+  Referral-style campaigns display a ready-to-copy “I-PACE owners are stronger together” post
+  with an owner Join CTA and prefill the same text in platform composers where supported;
+  LinkedIn and Instagram retain the visible copy because their web share flows cannot reliably
+  prefill it.
 - Provide a specialised all-joined-member recruitment tool that includes verified and unverified
   contact-consenting Join records deduped by canonical email. Preview the exact thanks/progress,
   formal-Jaguar-approach, cited vehicle-population and sharing message before enabling the same

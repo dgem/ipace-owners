@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 	"time"
@@ -151,6 +152,33 @@ func TestMemberReferralEmailRendersDynamicDataAndProvidesShares(t *testing.T) {
 	}
 }
 
+func TestMemberReferralShareButtonsCarrySuggestedCTAWhereSupported(t *testing.T) {
+	expected := memberReferralShareMessage(412)
+	if !strings.Contains(expected, "stronger together") || !strings.Contains(expected, "Own an I-PACE?") || !strings.Contains(expected, "help us reach 1,000") {
+		t.Fatalf("suggested share CTA is incomplete: %q", expected)
+	}
+	for _, share := range memberReferralShareLinks(412) {
+		parsed, err := url.Parse(share.URL)
+		if err != nil {
+			t.Fatalf("%s URL: %v", share.Label, err)
+		}
+		var actual string
+		switch share.Label {
+		case "Facebook":
+			actual = parsed.Query().Get("quote")
+		case "X", "Bluesky", "WhatsApp":
+			actual = parsed.Query().Get("text")
+		case "Email":
+			actual = parsed.Query().Get("body")
+		default:
+			continue
+		}
+		if actual != expected {
+			t.Fatalf("%s suggested text=%q", share.Label, actual)
+		}
+	}
+}
+
 func TestMemberReferralEmailUsesSharedBrandingAndActionButtons(t *testing.T) {
 	_, htmlBody, text, _ := memberReferralEmailBodies(campaignRecipient{Name: "Jane"}, 371)
 	for _, expected := range []string{
@@ -177,6 +205,8 @@ func TestAllMembersDriveEmailUsesRequestedRecruitmentMessage(t *testing.T) {
 	preview := makeAllMembersDriveEmailPreview(412)
 	for _, expected := range []string{
 		"412 members",
+		"I-PACE owners are stronger together",
+		"Own an I-PACE? Add your voice",
 		"formally approaching Jaguar",
 		"1,000 members in less than a month",
 		"approximately 30,000 I-PACEs",

@@ -22,7 +22,9 @@ The separate member-referral campaign targets only Firebase accounts with a matc
 contact-consenting Join record. Its live copy reports progress to 1,000 and the exact doubled
 total if every current owner finds one more. Include monochrome actions for Facebook, X,
 Bluesky, LinkedIn, Instagram, WhatsApp, and email; Instagram links to the group's
-`@ipaceowners` profile because it has no reliable web share composer. Apply the same preview,
+`@ipaceowners` profile because it has no reliable web share composer. Display a ready-to-copy
+“I-PACE owners are stronger together” suggested post with a direct Join CTA, and prefill it in
+share URLs where the platform supports composer text. Apply the same preview,
 confirmation, batch, registration
 recheck, and hashed-ledger controls as registration reminders. Keep the embedded Markdown prose
 editable: regression tests protect complete template-field substitution, shared email chrome,
