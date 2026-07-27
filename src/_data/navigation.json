@@ -2,6 +2,7 @@
   "public": [
     { "label": "Home", "url": "/" },
     { "label": "About", "url": "/about/" },
+    { "label": "Known issues", "url": "/known-issues/" },
     {
       "label": "Evidence",
       "url": "/evidence-dashboard/",

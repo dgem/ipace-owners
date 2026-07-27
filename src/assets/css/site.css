@@ -1722,6 +1722,128 @@ legend {
   min-width: 0;
 }
 
+/* Known issues */
+.page-header--compact {
+  padding-block: var(--space-7);
+}
+
+.page-header__lede {
+  color: var(--color-text-muted);
+  margin: var(--space-3) 0 0;
+  max-width: 48rem;
+}
+
+.page-anchor-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+}
+
+.page-anchor-nav a {
+  background: var(--color-accent-soft);
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
+  color: var(--color-accent);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  padding: 0.4rem 0.8rem;
+  text-decoration: none;
+}
+
+.page-anchor-nav a:hover,
+.page-anchor-nav a:focus-visible {
+  border-color: currentColor;
+  text-decoration: none;
+}
+
+.section--compact {
+  padding-block: var(--space-7);
+}
+
+.known-issues__notice {
+  margin-bottom: var(--space-8);
+}
+
+.known-issue-group {
+  scroll-margin-top: var(--space-8);
+}
+
+.known-issue-group + .known-issue-group {
+  margin-top: var(--space-9);
+}
+
+.known-issue-group__heading {
+  margin-bottom: var(--space-5);
+}
+
+.known-issue-group__heading h2 {
+  margin-bottom: 0;
+}
+
+.known-issue-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  padding: clamp(var(--space-5), 4vw, var(--space-7));
+}
+
+.known-issue-card + .known-issue-card {
+  margin-top: var(--space-5);
+}
+
+.known-issue-card > :last-child {
+  margin-bottom: 0;
+}
+
+.known-issue-card__meta,
+.known-issue-card__links {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.known-issue-card__meta {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  margin-bottom: var(--space-4);
+}
+
+.known-issue-card__action {
+  background: var(--color-bg);
+  border-left: 4px solid var(--color-accent);
+  margin: var(--space-5) 0;
+  padding: var(--space-4) var(--space-5);
+}
+
+.known-issue-card__action > :last-child {
+  margin-bottom: 0;
+}
+
+.known-issue-card__links {
+  border-top: 1px solid var(--color-border);
+  margin-top: var(--space-5);
+  padding-top: var(--space-5);
+}
+
+.known-issue-card--accent {
+  border-top: 4px solid var(--color-accent);
+}
+
+@media (max-width: 39rem) {
+  .page-header--compact,
+  .section--compact {
+    padding-block: var(--space-6);
+  }
+
+  .known-issue-card__links .btn {
+    justify-content: center;
+    width: 100%;
+  }
+}
+
 .preference-list {
   display: grid;
   gap: var(--space-3);

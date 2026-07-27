@@ -1,0 +1,155 @@
+---
+layout: base.njk
+title: Known issues and technical bulletins
+description: "Plain-English summaries of selected Jaguar I-PACE service messages and technical bulletins, with practical steps for owners."
+---
+
+<div class="page-header page-header--compact">
+  <div class="container">
+    <p class="page-header__eyebrow">Owner guidance</p>
+    <h1 class="page-header__title">Known issues and technical bulletins</h1>
+    <p class="page-header__lede">Use these independent summaries to describe a symptom clearly, ask informed questions and keep a useful written record with your retailer.</p>
+    <nav class="page-anchor-nav" aria-label="Known issue sections">
+      <a href="#traction-battery">Traction battery</a>
+      <a href="#air-conditioning">Air conditioning</a>
+      <a href="#air-deflectors">Air deflectors</a>
+      <a href="#using-bulletins">Using a bulletin</a>
+    </nav>
+  </div>
+</div>
+
+<div class="section section--compact">
+  <div class="container container--narrow">
+    <div class="callout callout--info known-issues__notice">
+      <span class="callout__icon" aria-hidden="true">ℹ️</span>
+      <div class="callout__content">
+        <p class="callout__title">A bulletin is a useful reference, not a diagnosis</p>
+        <p>Technical bulletins and service messages guide trained technicians. They are not recalls, do not prove that a particular VIN is affected and do not by themselves create warranty cover. Ask a Jaguar retailer to check the current TOPIx version and diagnose your vehicle.</p>
+      </div>
+    </div>
+
+    <section id="traction-battery" class="known-issue-group" aria-labelledby="traction-battery-title">
+      <div class="known-issue-group__heading">
+        <p class="eyebrow">High-voltage battery</p>
+        <h2 id="traction-battery-title">“Traction Battery Fault Detected” and a 75% charge limit</h2>
+      </div>
+
+      <article class="known-issue-card">
+        <div class="known-issue-card__meta">
+          <span class="badge">SSM76024</span>
+          <span class="badge">SSM76062</span>
+          <span>Published 2023</span>
+        </div>
+        <h3>What the service messages describe</h3>
+        <p>Jaguar service messages describe an amber traction-battery warning accompanied by diagnostic code <strong>P1B48-00</strong> and an inability to charge beyond roughly 75%. The stated cause is a voltage deviation associated with one or more internal high-voltage battery cells.</p>
+        <p>SSM76024 tells the retailer what battery-control data to capture and attach to a TOPIx Technical Assistance request. The later SSM76062 describes a guided diagnostic flow for post-H441 vehicles: it identifies modules for renewal, with a complete battery pack indicated when more than seven modules are identified.</p>
+
+        <div class="known-issue-card__action">
+          <h3>What to ask for</h3>
+          <ol>
+            <li>Photograph the warning and charge limit, and note the date, mileage and charging conditions.</li>
+            <li>Ask the retailer to record the DTC before clearing it and to run the current TOPIx guided diagnostic for P1B48-00.</li>
+            <li>Ask for the 40D2 module overview, battery information and 0x4A0B voltage-deviation logger output to be retained with the case where applicable.</li>
+            <li>Request the TOPIx Technical Assistance reference and the written module-or-pack determination on the job card.</li>
+            <li>Separately ask the retailer to check your VIN for every open recall or campaign; the service messages do not replace a VIN check.</li>
+          </ol>
+        </div>
+
+        <div class="known-issue-card__links">
+          <a class="btn btn--secondary btn--sm" href="https://topix.jaguar.jlrext.com/topix/content/document/view?id=1695831" rel="noopener noreferrer">UK TOPIx: SSM76024</a>
+          <a class="btn btn--secondary btn--sm" href="https://topix.jaguar.jlrext.com/topix/content/document/view?id=1702477" rel="noopener noreferrer">UK TOPIx: SSM76062</a>
+          <a class="btn btn--ghost btn--sm" href="https://static.nhtsa.gov/odi/rcl/2023/RMISC-23V369-9972.pdf" rel="noopener noreferrer">US copy: SSM76024</a>
+          <a class="btn btn--ghost btn--sm" href="https://static.nhtsa.gov/odi/rcl/2023/RMISC-23V369-0154.pdf" rel="noopener noreferrer">US copy: SSM76062</a>
+        </div>
+      </article>
+    </section>
+
+    <section id="air-conditioning" class="known-issue-group" aria-labelledby="air-conditioning-title">
+      <div class="known-issue-group__heading">
+        <p class="eyebrow">Climate system</p>
+        <h2 id="air-conditioning-title">Air conditioning does not produce cold air</h2>
+      </div>
+
+      <article class="known-issue-card">
+        <div class="known-issue-card__meta">
+          <span class="badge">JLRTB02087</span>
+          <span>15 July 2021</span>
+        </div>
+        <h3>Compressor pipe retaining bolts</h3>
+        <p>This bulletin covers low or missing refrigerant where bolts retaining the high- and low-pressure pipes to the compressor are too long. The retailer procedure replaces the two seals and bolts, then evacuates and recharges the system. It includes a high-voltage power-down and must be carried out by an appropriately trained technician.</p>
+        <div class="known-issue-card__action">
+          <h3>How to use it</h3>
+          <p>If the system runs but does not cool, ask whether the refrigerant loss is at the compressor connections and whether JLRTB02087 applies to your VIN. Ask the retailer to document the leak test, recovered refrigerant quantity and parts renewed.</p>
+        </div>
+        <div class="known-issue-card__links">
+          <a class="btn btn--secondary btn--sm" href="https://topix.landrover.jlrext.com/topix/service/document/1242250" rel="noopener noreferrer">UK TOPIx</a>
+          <a class="btn btn--ghost btn--sm" href="https://static.nhtsa.gov/odi/tsbs/2021/MC-10199792-0001.pdf" rel="noopener noreferrer">US NHTSA copy</a>
+        </div>
+      </article>
+
+      <article class="known-issue-card">
+        <div class="known-issue-card__meta">
+          <span class="badge">JLRTB02109</span>
+          <span>Latest US revision: 22 December 2022</span>
+        </div>
+        <h3>Compressor inlet or outlet pipe leak</h3>
+        <p>This later bulletin addresses refrigerant leaks caused by poor weld quality in the compressor inlet or outlet pipes. Its repair direction is to renew both pipes when either one leaks. Access involves removal of the front electric drive unit, and the bulletin notes that wheel alignment may be affected.</p>
+        <div class="known-issue-card__action">
+          <h3>How to use it</h3>
+          <p>Ask the retailer to identify the precise leak location and check the current pipe part levels. If this bulletin applies, ask the job card to record that both pipes were renewed and whether alignment was checked after reassembly.</p>
+        </div>
+        <div class="known-issue-card__links">
+          <a class="btn btn--secondary btn--sm" href="https://topix.landrover.jlrext.com/topix/service/document/1675112" rel="noopener noreferrer">UK TOPIx</a>
+          <a class="btn btn--ghost btn--sm" href="https://static.nhtsa.gov/odi/tsbs/2022/MC-10229583-0001.pdf" rel="noopener noreferrer">US NHTSA copy</a>
+        </div>
+      </article>
+    </section>
+
+    <section id="air-deflectors" class="known-issue-group" aria-labelledby="air-deflectors-title">
+      <div class="known-issue-group__heading">
+        <p class="eyebrow">Body and undertray</p>
+        <h2 id="air-deflectors-title">Loose air deflector and rear-tyre rubbing noise</h2>
+      </div>
+
+      <article class="known-issue-card">
+        <div class="known-issue-card__meta">
+          <span class="badge">JLRTB02043V3 / NAS3</span>
+          <span>30 January 2023</span>
+        </div>
+        <h3>What the bulletin describes</h3>
+        <p>One or both air deflectors on the rocker-panel mouldings can become loose, rotate around a retaining fastener and contact a rear tyre, producing a rubbing noise. The bulletin attributes this to lower-than-expected retention and adds another fastener; replacement is called for only when a deflector is damaged or missing.</p>
+        <div class="known-issue-card__action">
+          <h3>How to use it</h3>
+          <p>If you hear rubbing near a rear wheel, stop somewhere safe and arrange an inspection rather than reaching underneath the vehicle. Ask the retailer to inspect both sides, record any tyre contact or damage and check whether the latest JLRTB02043 procedure applies.</p>
+        </div>
+        <div class="known-issue-card__links">
+          <a class="btn btn--secondary btn--sm" href="https://topix.landrover.jlrext.com/topix/service/document/1679043" rel="noopener noreferrer">UK TOPIx</a>
+          <a class="btn btn--ghost btn--sm" href="https://static.nhtsa.gov/odi/tsbs/2023/MC-10231473-0001.pdf" rel="noopener noreferrer">US NHTSA copy</a>
+        </div>
+      </article>
+    </section>
+
+    <section id="using-bulletins" class="known-issue-group" aria-labelledby="using-bulletins-title">
+      <div class="known-issue-card known-issue-card--accent">
+        <p class="eyebrow">Build a useful record</p>
+        <h2 id="using-bulletins-title">How to leverage a technical bulletin</h2>
+        <ol>
+          <li><strong>Lead with the symptom.</strong> Give dates, mileage, warning text, photos or video and the conditions in which it occurs.</li>
+          <li><strong>Offer the reference.</strong> Ask whether the named bulletin is relevant; do not insist that it is the diagnosis.</li>
+          <li><strong>Ask for evidence.</strong> Request the diagnostic codes, test results, TOPIx version, parts fitted and outcome on the job card.</li>
+          <li><strong>Keep the chronology.</strong> Save bookings, job cards, invoices and messages. Record repeat failures and time off the road.</li>
+          <li><strong>Escalate with specifics.</strong> If unresolved, write to the retailer and JLR with the chronology, reference numbers and the remedy you are seeking.</li>
+        </ol>
+        <p class="form-hint">This page is general owner information, not technical, legal or safety advice. Bulletin revisions and applicability can change. Reviewed 27 July 2026.</p>
+      </div>
+    </section>
+
+    <div class="callout callout--warning">
+      <span class="callout__icon" aria-hidden="true">⚠️</span>
+      <div class="callout__content">
+        <p class="callout__title">Act on immediate safety warnings</p>
+        <p>Follow the vehicle display and any recall instructions. Do not attempt high-voltage, refrigerant or underbody repairs yourself. For a red warning, smoke, unusual heat or a vehicle that appears unsafe, stop using it when safe to do so and contact emergency or roadside assistance.</p>
+      </div>
+    </div>
+  </div>
+</div>

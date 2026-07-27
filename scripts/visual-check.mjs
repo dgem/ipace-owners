@@ -331,6 +331,16 @@ async function checkInstagramCampaigns(viewport, screenshotName) {
   await page.close();
 }
 
+async function checkKnownIssues(viewport, screenshotName) {
+  const page = await browser.newPage({ viewport });
+  await page.goto(baseURL + '/known-issues/', { waitUntil: 'networkidle' });
+  assert.equal(await page.locator('.known-issue-card').count(), 5);
+  assert.equal(await page.locator('.page-anchor-nav a').count(), 4);
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
+  await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
+  await page.close();
+}
+
 try {
   await checkDesktopAdminHeader();
   await checkMobileAdminDrawer();
@@ -339,6 +349,8 @@ try {
   await checkCampaignControls({ width: 390, height: 844 }, 'admin-email-campaigns-mobile.png');
   await checkInstagramCampaigns({ width: 1440, height: 1100 }, 'admin-instagram-campaigns-desktop.png');
   await checkInstagramCampaigns({ width: 390, height: 844 }, 'admin-instagram-campaigns-mobile.png');
+  await checkKnownIssues({ width: 1440, height: 1000 }, 'known-issues-desktop.png');
+  await checkKnownIssues({ width: 390, height: 844 }, 'known-issues-mobile.png');
   console.log(`Visual checks passed; screenshots written to ${outputDir}`);
 } finally {
   await browser.close();

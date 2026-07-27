@@ -40,6 +40,11 @@ Create or maintain:
 - Home: clear proposition, why now, calls to join and submit vehicle data, and an integrated I-PACE-style vehicle image or equivalent original visual asset.
 - About: purpose, approach, independence, constructive posture.
 - FAQ: common owner questions, data use, membership, legal status, privacy, evidence process.
+- Known issues: original, plain-English summaries of selected I-PACE technical bulletins and
+  service messages, practical questions owners can take to a retailer, and links to official
+  UK TOPIx and US NHTSA sources where available. Do not publish or reproduce supplied bulletin,
+  warranty-manual, or subscription documents. State clearly that a bulletin is technician
+  guidance, not a recall, proof that a VIN is affected, or automatic warranty entitlement.
 - Methodology: how evidence is collected, verified, anonymised, aggregated, and caveated.
 - Updates index: list update posts from `src/updates/`.
 - Individual update posts: Markdown with front matter.
@@ -164,6 +169,12 @@ Firestore, that Cloud Storage is reserved for uploaded evidence files, that full
 not stored, that uploads are not implemented in the MVP, that Firebase Authentication is
 used for authentication, and that a more formal privacy policy is needed before broader live
 evidence data collection.
+
+The implemented `/known-issues/` page covers SSM76024 and SSM76062 for P1B48-00/75% traction
+battery charging symptoms, JLRTB02087 and JLRTB02109 for air-conditioning refrigerant leaks,
+and JLRTB02043V3/NAS3 for loose rocker-panel air deflectors. Summarise symptoms, the retailer
+diagnostic or repair direction, what evidence to retain, and how to escalate constructively.
+Do not provide DIY high-voltage, refrigerant, lifting, drilling, or underbody procedures.
 
 Terms / Participation Statement should say the group is informal unless a formal organisation
 is created, the site does not provide legal advice, submitting data does not create a client

@@ -31,7 +31,7 @@ OpenTofu infrastructure, GitHub Actions, tests, scripts, prompts, and public ass
 
 The generated public route surface must include:
 
-- `/`, `/about/`, `/faq/`, `/join/`, `/contact/`, `/privacy/`, `/terms/`,
+- `/`, `/about/`, `/known-issues/`, `/faq/`, `/join/`, `/contact/`, `/privacy/`, `/terms/`,
   `/methodology/`, `/evidence-dashboard/`, and `/updates/`;
 - dated or named update pages generated from `src/updates/`;
 - `/member/dashboard/`, `/member/account/`, and `/member/submit-vehicle-data/`;
