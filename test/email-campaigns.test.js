@@ -8,6 +8,7 @@ const page = fs.readFileSync(path.join(root, 'src/admin/email-campaigns.njk'), '
 const script = fs.readFileSync(path.join(root, 'src/assets/js/email-campaigns.js'), 'utf8');
 const layout = fs.readFileSync(path.join(root, 'src/_includes/layouts/base.njk'), 'utf8');
 const campaignBackend = fs.readFileSync(path.join(root, 'functions/firebase-go/custom_email_campaigns.go'), 'utf8');
+const specialisedCampaignBackend = fs.readFileSync(path.join(root, 'functions/firebase-go/email_campaigns.go'), 'utf8');
 
 test('admin email campaign page is gated and describes bounded sending', function () {
   assert.match(page, /data-admin-container/);
@@ -47,6 +48,9 @@ test('email campaign browser sends tokens and explicit confirmation data', funct
   assert.match(page, /\/api\/admin\/reengagement-send/);
   assert.match(page, /\/api\/admin\/member-referral-preview/);
   assert.match(page, /\/api\/admin\/member-referral-send/);
+  assert.match(page, /\/api\/admin\/all-members-drive-preview/);
+  assert.match(page, /\/api\/admin\/all-members-drive-send/);
+  assert.match(page, /verified and unverified Join records/);
   assert.match(script, /expectedEligible: current\.eligible/);
   assert.match(script, /confirmation: confirmInput\.value/);
   assert.match(script, /emailHTML\.srcdoc = data\.emailPreview\.html/);
@@ -64,6 +68,14 @@ test('member referral campaign previews the exact HTML email in a readable sandb
   assert.match(css, /\.email-preview__viewport iframe[\s\S]*height: 52rem/);
   assert.match(css, /\.email-preview pre[\s\S]*color: var\(--color-text\)/);
   assert.doesNotMatch(page, /data-campaign-share-preview/);
+});
+
+test('referral campaigns include a suggested stronger-together sharing CTA', function () {
+  assert.match(specialisedCampaignBackend, /I-PACE owners are stronger together/);
+  assert.match(specialisedCampaignBackend, /Own an I-PACE\\?/);
+  assert.match(specialisedCampaignBackend, /help us reach 1,000 members/);
+  assert.match(specialisedCampaignBackend, /quote=/);
+  assert.ok(specialisedCampaignBackend.includes('https://wa.me/?text='));
 });
 
 test('custom campaign editor provides history, Markdown preview, reruns and safe substitutions', function () {

@@ -81,6 +81,10 @@ func Api(w http.ResponseWriter, r *http.Request) {
 		AdminMemberReferralPreview(w, r)
 	case "/api/admin/member-referral-send":
 		AdminMemberReferralSend(w, r)
+	case "/api/admin/all-members-drive-preview":
+		AdminAllMembersDrivePreview(w, r)
+	case "/api/admin/all-members-drive-send":
+		AdminAllMembersDriveSend(w, r)
 	case "/api/admin/email-campaign-history":
 		AdminEmailCampaignHistory(w, r)
 	case "/api/admin/custom-campaign-preview":
@@ -95,6 +99,10 @@ func Api(w http.ResponseWriter, r *http.Request) {
 		AdminInstagramGenerate(w, r)
 	case "/api/admin/instagram-generation-status":
 		AdminInstagramGenerationStatus(w, r)
+	case "/api/admin/instagram-campaign-history":
+		AdminInstagramCampaignHistory(w, r)
+	case "/api/admin/campaign-summary":
+		AdminCampaignSummary(w, r)
 	case "/api/public-stats":
 		PublicStats(w, r)
 	default:

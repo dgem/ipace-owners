@@ -73,6 +73,8 @@ var campaignPreview = previewReengagementCampaign
 var campaignSend = sendReengagementCampaignBatch
 var memberReferralPreview = previewMemberReferralCampaign
 var memberReferralSend = sendMemberReferralCampaignBatch
+var allMembersDrivePreview = previewAllMembersDriveCampaign
+var allMembersDriveSend = sendAllMembersDriveCampaignBatch
 
 func AdminReengagementPreview(w http.ResponseWriter, r *http.Request) {
 	if cors(w, r) || rejectDisallowedOrigin(w, r) {
@@ -126,6 +128,14 @@ func AdminMemberReferralPreview(w http.ResponseWriter, r *http.Request) {
 
 func AdminMemberReferralSend(w http.ResponseWriter, r *http.Request) {
 	adminCampaignSendHandler(w, r, memberReferralSend)
+}
+
+func AdminAllMembersDrivePreview(w http.ResponseWriter, r *http.Request) {
+	adminCampaignPreviewHandler(w, r, "admin-all-members-drive-preview", allMembersDrivePreview)
+}
+
+func AdminAllMembersDriveSend(w http.ResponseWriter, r *http.Request) {
+	adminCampaignSendHandler(w, r, allMembersDriveSend)
 }
 
 func adminCampaignPreviewHandler(w http.ResponseWriter, r *http.Request, logName string, preview func(context.Context) (campaignSummary, error)) {
@@ -188,6 +198,14 @@ func memberReferralCampaignID() string {
 		environment = "staging"
 	}
 	return "member-referral-" + environment + "-" + time.Now().UTC().Format("2006-01-02")
+}
+
+func allMembersDriveCampaignID() string {
+	environment := "production"
+	if strings.Contains(strings.ToLower(projectID()), "staging") {
+		environment = "staging"
+	}
+	return "all-members-drive-" + environment + "-" + time.Now().UTC().Format("2006-01-02")
 }
 
 func previewReengagementCampaign(ctx context.Context) (campaignSummary, error) {
@@ -385,6 +403,77 @@ func sendMemberReferralCampaignBatch(ctx context.Context, input campaignSendRequ
 	if err := recordSpecializedCampaign(ctx, db, summary, "member-referral", "Member referral",
 		"Could you help one more I-PACE owner find us?",
 		"Hi {{memberFirstName}},\n\nThank you for joining the I-PACE Owners group. We now have {{membersJoined}} registered members.\n\nCould you help another I-PACE owner find us?\n\nhttps://ipace-owners.org/"); err != nil {
+		return campaignSummary{}, fmt.Errorf("campaign sent but summary update failed")
+	}
+	return summary, nil
+}
+
+func previewAllMembersDriveCampaign(ctx context.Context) (campaignSummary, error) {
+	db, err := firestoreClient(ctx)
+	if err != nil {
+		return campaignSummary{}, err
+	}
+	eligible, err := loadCampaignJoins(ctx, db)
+	if err != nil {
+		return campaignSummary{}, err
+	}
+	id := allMembersDriveCampaignID()
+	sent, err := loadSentFingerprints(ctx, db, id)
+	if err != nil {
+		return campaignSummary{}, err
+	}
+	summary := makeCampaignSummary(id, len(eligible), 0, countCampaignSent(eligible, sent), 0)
+	summary.EmailPreview = makeAllMembersDriveEmailPreview(len(eligible))
+	return summary, nil
+}
+
+func sendAllMembersDriveCampaignBatch(ctx context.Context, input campaignSendRequest) (campaignSummary, error) {
+	if !resendEmailConfigured() {
+		return campaignSummary{}, fmt.Errorf("email delivery is not configured")
+	}
+	preview, err := previewAllMembersDriveCampaign(ctx)
+	if err != nil {
+		return campaignSummary{}, err
+	}
+	if input.CampaignID != preview.CampaignID || input.ExpectedEligible != preview.Eligible {
+		return campaignSummary{}, fmt.Errorf("campaign audience changed; preview again")
+	}
+	if input.Confirmation != fmt.Sprintf("SEND %d", preview.Eligible) {
+		return campaignSummary{}, fmt.Errorf("confirmation did not match; no emails sent")
+	}
+	db, _ := firestoreClient(ctx)
+	eligible, err := loadCampaignJoins(ctx, db)
+	if err != nil || len(eligible) != input.ExpectedEligible {
+		return campaignSummary{}, fmt.Errorf("campaign audience changed; preview again")
+	}
+	sent, err := loadSentFingerprints(ctx, db, preview.CampaignID)
+	if err != nil {
+		return campaignSummary{}, err
+	}
+	batchSent := 0
+	for _, person := range eligible {
+		fingerprint := campaignEmailFingerprint(person.Email)
+		if sent[fingerprint] || batchSent >= emailCampaignBatchSize {
+			continue
+		}
+		resendID, err := sendAllMembersDriveEmail(ctx, person, len(eligible), preview.CampaignID)
+		if err != nil {
+			return campaignSummary{}, fmt.Errorf("email provider rejected a message; retry the batch")
+		}
+		if _, err = db.Collection("emailCampaigns").Doc(preview.CampaignID).Collection("deliveries").Doc(fingerprint).Set(ctx, map[string]any{"status": "sent", "resendId": resendID, "sentAt": firestore.ServerTimestamp}); err != nil {
+			return campaignSummary{}, fmt.Errorf("email sent but campaign ledger update failed; retry safely")
+		}
+		sent[fingerprint] = true
+		batchSent++
+		if batchSent < emailCampaignBatchSize {
+			time.Sleep(250 * time.Millisecond)
+		}
+	}
+	summary := makeCampaignSummary(preview.CampaignID, len(eligible), 0, countCampaignSent(eligible, sent), batchSent)
+	summary.EmailPreview = makeAllMembersDriveEmailPreview(len(eligible))
+	if err := recordSpecializedCampaign(ctx, db, summary, "all-members-drive", "Help us reach 1,000 members",
+		"Thanks for joining — help us reach 1,000 I-PACE owners",
+		"Hi {{memberFirstName}},\n\nThank you for joining and for your support. We now have {{membersJoined}} members since launching on 17 July—less than two weeks ago.\n\nThis week we are formally approaching Jaguar with our shared concerns and asking them to engage with us constructively on options for us all. Please help us recruit and reach 1,000 members by sharing the group.\n\nhttps://ipace-owners.org/"); err != nil {
 		return campaignSummary{}, fmt.Errorf("campaign sent but summary update failed")
 	}
 	return summary, nil
@@ -635,18 +724,22 @@ func makeCampaignEmailPreview(memberCount, eligibleCount int) campaignEmailPrevi
 	return campaignEmailPreview{Subject: subject, HTML: htmlBody, Text: text}
 }
 
+func memberReferralShareMessage(memberCount int) string {
+	return fmt.Sprintf("I-PACE owners are stronger together. %d owners have already joined our independent group. Own an I-PACE? Add your voice and help us reach 1,000 members. Free to join: https://ipace-owners.org/", memberCount)
+}
+
 func memberReferralShareLinks(memberCount int) []campaignShareLink {
 	shareURL := "https://ipace-owners.org/"
 	instagramURL := "https://www.instagram.com/ipaceowners/"
-	message := fmt.Sprintf("I-PACE owners are working together for fair outcomes. %d owners have already joined — could you help another owner find the group?", memberCount)
+	message := memberReferralShareMessage(memberCount)
 	return []campaignShareLink{
-		{Label: "Facebook", Mark: "f", URL: "https://www.facebook.com/sharer/sharer.php?u=" + url.QueryEscape(shareURL)},
-		{Label: "X", Mark: "𝕏", URL: "https://twitter.com/intent/tweet?text=" + url.QueryEscape(message) + "&url=" + url.QueryEscape(shareURL)},
-		{Label: "Bluesky", Mark: "B", URL: "https://bsky.app/intent/compose?text=" + url.QueryEscape(message+" "+shareURL)},
+		{Label: "Facebook", Mark: "f", URL: "https://www.facebook.com/sharer/sharer.php?u=" + url.QueryEscape(shareURL) + "&quote=" + url.QueryEscape(message)},
+		{Label: "X", Mark: "𝕏", URL: "https://twitter.com/intent/tweet?text=" + url.QueryEscape(message)},
+		{Label: "Bluesky", Mark: "B", URL: "https://bsky.app/intent/compose?text=" + url.QueryEscape(message)},
 		{Label: "LinkedIn", Mark: "in", URL: "https://www.linkedin.com/sharing/share-offsite/?url=" + url.QueryEscape(shareURL)},
 		{Label: "Instagram", Mark: "◎", URL: instagramURL},
-		{Label: "WhatsApp", Mark: "W", URL: "https://wa.me/?text=" + url.QueryEscape(message+" "+shareURL)},
-		{Label: "Email", Mark: "@", URL: "mailto:?subject=" + url.QueryEscape("Will you join the I-PACE Owners group?") + "&body=" + url.QueryEscape(message+"\n\n"+shareURL)},
+		{Label: "WhatsApp", Mark: "W", URL: "https://wa.me/?text=" + url.QueryEscape(message)},
+		{Label: "Email", Mark: "@", URL: "mailto:?subject=" + url.QueryEscape("I-PACE owners are stronger together") + "&body=" + url.QueryEscape(message)},
 	}
 }
 
@@ -667,14 +760,16 @@ func memberReferralEmailBodies(person campaignRecipient, memberCount int) (strin
 	}
 	subject := "Could you help one more I-PACE owner find us?"
 	shares := memberReferralShareLinks(memberCount)
+	suggestedShareText := memberReferralShareMessage(memberCount)
 	instagramURL := "https://www.instagram.com/ipaceowners/"
 	text, bodyHTML := mustRenderCampaignTemplate("member-referral.md.tmpl", struct {
-		FirstName      string
-		MemberCount    int
-		RemainingCount int
-		Projection     string
-		InstagramURL   string
-	}{first, memberCount, remaining, projection, instagramURL})
+		FirstName          string
+		MemberCount        int
+		RemainingCount     int
+		Projection         string
+		InstagramURL       string
+		SuggestedShareText string
+	}{first, memberCount, remaining, projection, instagramURL, suggestedShareText})
 	text += "\nShare the group: https://ipace-owners.org/\n\nYou are receiving this because you registered with the group and agreed that we could contact you. Reply if you no longer wish to hear from us.\n"
 	buttons := ""
 	for _, share := range shares {
@@ -702,4 +797,43 @@ func makeMemberReferralEmailPreview(memberCount int) campaignEmailPreview {
 func sendMemberReferralEmail(ctx context.Context, person campaignRecipient, memberCount int, id string) (string, error) {
 	subject, htmlBody, text, _ := memberReferralEmailBodies(person, memberCount)
 	return sendCampaignPayload(ctx, person.Email, subject, htmlBody, text, "member-referral", id)
+}
+
+func allMembersDriveEmailBodies(person campaignRecipient, memberCount int) (string, string, string, []campaignShareLink) {
+	first := "there"
+	if fields := strings.Fields(person.Name); len(fields) > 0 {
+		first = fields[0]
+	}
+	subject := "Thanks for joining — help us reach 1,000 I-PACE owners"
+	shares := memberReferralShareLinks(memberCount)
+	suggestedShareText := memberReferralShareMessage(memberCount)
+	text, bodyHTML := mustRenderCampaignTemplate("all-members-drive.md.tmpl", struct {
+		FirstName          string
+		MemberCount        int
+		SuggestedShareText string
+	}{first, memberCount, suggestedShareText})
+	text += "\nShare the group: https://ipace-owners.org/\n\nYou are receiving this because you joined the group and agreed that we could contact you. Reply if you no longer wish to hear from us.\n"
+	buttons := ""
+	for _, share := range shares {
+		buttons += `<a href="` + html.EscapeString(share.URL) + `" style="display:inline-block;margin:0 8px 10px 0;padding:10px 14px;border:1px solid #0f766e;border-radius:999px;color:#0f766e;text-decoration:none;font-weight:700;"><span style="display:inline-block;min-width:18px;text-align:center;">` + html.EscapeString(share.Mark) + `</span> ` + html.EscapeString(share.Label) + `</a>`
+	}
+	htmlBody := brandedEmailHTML(brandedEmailMessage{
+		DocumentTitle: subject, Preheader: fmt.Sprintf("Thank you for your support. %d owners have joined since 17 July.", memberCount),
+		Heading: "Thank you for joining and adding your voice", BodyHTML: bodyHTML,
+		PrimaryActionLabel: "Share I-PACE Owners", PrimaryActionURL: "https://ipace-owners.org/",
+		SupplementHTML: buttons,
+		FooterNote:     "You are receiving this because you joined the group and agreed that we could contact you. Reply if you no longer wish to hear from us.",
+		AssetBaseURL:   emailAssetBaseURL(campaignContinueURL()),
+	})
+	return subject, htmlBody, text, shares
+}
+
+func makeAllMembersDriveEmailPreview(memberCount int) campaignEmailPreview {
+	subject, htmlBody, text, shares := allMembersDriveEmailBodies(campaignRecipient{Name: "I-PACE owner"}, memberCount)
+	return campaignEmailPreview{Subject: subject, HTML: htmlBody, Text: text, Shares: shares}
+}
+
+func sendAllMembersDriveEmail(ctx context.Context, person campaignRecipient, memberCount int, id string) (string, error) {
+	subject, htmlBody, text, _ := allMembersDriveEmailBodies(person, memberCount)
+	return sendCampaignPayload(ctx, person.Email, subject, htmlBody, text, "all-members-drive", id)
 }

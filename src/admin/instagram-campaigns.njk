@@ -9,16 +9,21 @@ instagramCampaigns: true
 
 {% from "partials/auth-login-gate.njk" import authLoginGate %}
 
-<div class="page-header"><div class="container"><p class="page-header__eyebrow">Admin</p><h1 class="page-header__title">Instagram campaigns</h1></div></div>
+<div class="page-header page-header--compact email-campaign-page-header"><div class="container"><div class="email-campaign-page-header__inner"><div><p class="page-header__eyebrow">Admin</p><h1 class="page-header__title">Instagram campaigns</h1></div><nav class="email-campaign-page-nav" aria-label="Instagram campaign sections"><a href="#instagram-history">Previous campaigns</a><a href="#instagram-workspace">Campaign workspace</a></nav></div></div></div>
 
-<div class="section"><div class="container"><div data-admin-container>
+<div class="section section--sm"><div class="container"><div data-admin-container>
   {{ authLoginGate("instagram-campaign-magic-email", "Sign in required", "Enter your admin email address and we will send a secure sign-in link.", "admin", false) }}
   <div class="auth-gate" data-admin-only-gate hidden><div class="auth-gate__icon" aria-hidden="true">⛔</div><h2 class="auth-gate__title">Access restricted</h2><p class="auth-gate__body">This campaign workspace is for group administrators only.</p></div>
   <div class="auth-content" data-admin-content hidden>
-    <div class="callout callout--warning"><span class="callout__icon" aria-hidden="true">⚠️</span><div class="callout__content"><p class="callout__title">Chat creates the draft; this tool publishes it</p><p>Paste or refine the caption and select the committed public media asset. Previewing never posts. Publishing requires the exact confirmation returned by the server.</p></div></div>
+    <div class="stack instagram-campaigns" data-instagram-campaign data-preview-endpoint="/api/admin/instagram-preview" data-publish-endpoint="/api/admin/instagram-publish" data-history-endpoint="/api/admin/instagram-campaign-history" data-generate-endpoint="/api/admin/instagram-generate" data-generation-status-endpoint="/api/admin/instagram-generation-status">
+    <section class="dashboard-panel" id="instagram-history" aria-labelledby="instagram-history-title">
+      <div class="dashboard-panel__header"><div><p class="dashboard-panel__eyebrow">Campaign history</p><h2 class="dashboard-panel__title" id="instagram-history-title">Previous Instagram campaigns</h2><p>Reopen a draft or create an editable repost without changing the original published record.</p></div><div class="cluster"><button type="button" class="btn btn--primary" data-instagram-new>Create new campaign</button><button type="button" class="btn btn--secondary" data-instagram-history-refresh>Refresh history</button></div></div>
+      <p data-instagram-history-status role="status" aria-live="polite">Loading Instagram campaign history…</p>
+      <div class="email-campaign-history" data-instagram-history-list></div>
+    </section>
 
-    <section class="dashboard-panel" data-instagram-campaign data-preview-endpoint="/api/admin/instagram-preview" data-publish-endpoint="/api/admin/instagram-publish" data-generate-endpoint="/api/admin/instagram-generate" data-generation-status-endpoint="/api/admin/instagram-generation-status">
-      <div class="dashboard-panel__header"><div><p class="dashboard-panel__eyebrow">Organic Reel campaign</p><h2 class="dashboard-panel__title">Prepare the first Instagram post</h2></div></div>
+    <section class="dashboard-panel" id="instagram-workspace">
+      <div class="dashboard-panel__header"><div><p class="dashboard-panel__eyebrow">Campaign workspace</p><h2 class="dashboard-panel__title" data-instagram-workspace-title>Create an Instagram campaign</h2><p>Previewing never posts: it saves the draft and returns the exact server confirmation required to publish.</p></div></div>
       <form class="stack email-campaign-step" data-veo-generate>
         <div><p class="dashboard-panel__eyebrow">Step 1 · Generate</p><h3>Create the 15-second master with Veo 3.1</h3><p>This starts one billable eight-second generation followed by Veo's seven-second continuation. It never publishes to Instagram. The site and private media bucket remain in London; Google currently processes Veo 3.1 generation in <code>us-central1</code>.</p></div>
         <div class="form-group"><label for="veo-master-prompt">Video and sound prompt</label><textarea id="veo-master-prompt" data-veo-prompt rows="24" maxlength="12000" required>Create a single continuous 15-second cinematic vertical video for an Instagram Reel, 9:16, 1080p, photorealistic premium automotive-advertising quality, with synchronized native audio. This must be true temporal video with continuous physical motion, not animated still images, keyframe dissolves, a slideshow, a Ken Burns effect or a morph between poses.
@@ -41,6 +46,7 @@ Visual mood: deep navy and restrained teal, wet asphalt reflections, credible Br
 
       <div><p class="dashboard-panel__eyebrow">Step 2 · Review and publish</p><h3>Review the generated master and prepare the post</h3></div>
       <form class="stack" data-instagram-draft>
+        <div class="form-group"><label for="instagram-campaign-name">Campaign name</label><input id="instagram-campaign-name" data-instagram-name maxlength="100" placeholder="August owner update" required><p class="form-hint">Used in campaign history; it is not published to Instagram.</p></div>
         <div class="form-group"><label for="instagram-media-path">Public video path</label><input id="instagram-media-path" data-instagram-media-path placeholder="Generate a Veo master or enter an approved site-relative MP4/MOV path" required><p class="form-hint">A completed Veo job fills this with an expiring, unguessable delivery path backed by the private master. Site-relative committed MP4/MOV paths remain supported, but the superseded key-frame draft is deliberately not selected.</p></div>
         <div class="form-group"><label for="instagram-caption">Caption</label><textarea id="instagram-caption" data-instagram-caption rows="18" maxlength="2200" required>I-PACE owners are stronger when we speak together.
 
@@ -73,5 +79,6 @@ Join through the link in our bio, then share this with another I-PACE owner.
       </form>
       <p data-instagram-status role="status" aria-live="polite">Nothing has been published.</p>
     </section>
+    </div>
   </div>
 </div></div></div>

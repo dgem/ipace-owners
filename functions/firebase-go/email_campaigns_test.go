@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 	"time"
@@ -151,6 +152,33 @@ func TestMemberReferralEmailRendersDynamicDataAndProvidesShares(t *testing.T) {
 	}
 }
 
+func TestMemberReferralShareButtonsCarrySuggestedCTAWhereSupported(t *testing.T) {
+	expected := memberReferralShareMessage(412)
+	if !strings.Contains(expected, "stronger together") || !strings.Contains(expected, "Own an I-PACE?") || !strings.Contains(expected, "help us reach 1,000") {
+		t.Fatalf("suggested share CTA is incomplete: %q", expected)
+	}
+	for _, share := range memberReferralShareLinks(412) {
+		parsed, err := url.Parse(share.URL)
+		if err != nil {
+			t.Fatalf("%s URL: %v", share.Label, err)
+		}
+		var actual string
+		switch share.Label {
+		case "Facebook":
+			actual = parsed.Query().Get("quote")
+		case "X", "Bluesky", "WhatsApp":
+			actual = parsed.Query().Get("text")
+		case "Email":
+			actual = parsed.Query().Get("body")
+		default:
+			continue
+		}
+		if actual != expected {
+			t.Fatalf("%s suggested text=%q", share.Label, actual)
+		}
+	}
+}
+
 func TestMemberReferralEmailUsesSharedBrandingAndActionButtons(t *testing.T) {
 	_, htmlBody, text, _ := memberReferralEmailBodies(campaignRecipient{Name: "Jane"}, 371)
 	for _, expected := range []string{
@@ -170,5 +198,45 @@ func TestMemberReferralEmailUsesSharedBrandingAndActionButtons(t *testing.T) {
 	}
 	if strings.Contains(htmlBody, "/images/ipace-owners-logo") {
 		t.Fatalf("referral email must use the text masthead, not a logo image: %q", htmlBody)
+	}
+}
+
+func TestAllMembersDriveEmailUsesRequestedRecruitmentMessage(t *testing.T) {
+	preview := makeAllMembersDriveEmailPreview(412)
+	for _, expected := range []string{
+		"412 members",
+		"Thank you for joining and adding your voice",
+		"Thank you for your support",
+		"17 July—less than two weeks ago",
+		"I-PACE owners are stronger together",
+		"Own an I-PACE? Add your voice",
+		"shared concerns",
+		"engage with us constructively on options for us all",
+		"1,000 members in less than a month",
+		"approximately 30,000 I-PACEs",
+		"https://stillontheroad.co.uk/cars/jaguar/i-pace",
+		"traction-battery faults",
+		"Technical Service Bulletins",
+		"Facebook",
+		"WhatsApp",
+	} {
+		if !strings.Contains(preview.HTML, expected) && !strings.Contains(preview.Text, expected) {
+			t.Fatalf("campaign preview missing %q", expected)
+		}
+	}
+	if strings.Contains(preview.HTML, "{{.") || strings.Contains(preview.Text, "{{.") {
+		t.Fatal("campaign preview contains unresolved template values")
+	}
+}
+
+func TestAllMembersDrivePreviewRequiresAdmin(t *testing.T) {
+	original := campaignAuthorize
+	t.Cleanup(func() { campaignAuthorize = original })
+	campaignAuthorize = func(context.Context, *http.Request) error { return context.Canceled }
+	req := httptest.NewRequest(http.MethodPost, "/api/admin/all-members-drive-preview", strings.NewReader(`{}`))
+	res := httptest.NewRecorder()
+	AdminAllMembersDrivePreview(res, req)
+	if res.Code != http.StatusForbidden {
+		t.Fatalf("status=%d body=%s", res.Code, res.Body.String())
 	}
 }

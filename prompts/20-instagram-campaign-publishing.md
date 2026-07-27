@@ -14,8 +14,8 @@ Apply it before the terminal clean-room reconstruction contract.
    external URL in the admin form.
 4. An administrator watches the complete file, confirms the media-review statement, and asks
    the server to validate and preview the exact path and caption.
-5. Previewing has no Instagram side effect. The server returns a deterministic campaign ID
-   and exact `PUBLISH <digest>` confirmation derived from the normalized path and caption.
+5. Previewing has no Instagram side effect. It creates or updates a named local draft and
+   returns its campaign ID and exact `PUBLISH <digest>` confirmation.
 6. Publishing requires the same authenticated admin, campaign ID, path, caption, media-review
    confirmation and exact server-generated phrase. Any edit requires a new preview.
 7. The Go Function creates a Meta Reel container, polls until processing finishes, publishes
@@ -27,6 +27,13 @@ commenting or direct messaging. Scheduling and paid promotion are future work an
 implied by the initial publish-now interface. Reserve the deterministic campaign ID in the
 `instagramCampaigns` Firestore ledger before contacting Meta; completed IDs return the existing
 media ID, while processing or failed IDs require operator verification rather than a blind retry.
+List drafts and previous publications newest-first. Reopen drafts in place. “Edit and repost”
+must create a new record with `sourceCampaignId`, never mutate a published record. For published
+media, retrieve supported Reel insights (`views`, `reach`, `likes`, `comments`, `saved`, `shares`,
+and `total_interactions`) server-side and cache them for 15 minutes. Insight failure must not hide
+local history or permit publishing. The Admin home aggregates local email delivery totals and
+Instagram publication/insight totals; Facebook is shown as manual/unconnected until a separate
+Page OAuth and Insights implementation exists.
 
 ## Launch Reel creative contract
 
@@ -156,8 +163,9 @@ only its token hash and expiry, compare in constant time, keep the GCS URI priva
 HEAD and a single HTTP byte range. The delivery URL may be fetched by the review video player and
 Meta, but expiry must fail closed.
 
-Publishing routes are `POST /api/admin/instagram-preview` and
-`POST /api/admin/instagram-publish`. Both require a server-verified Firebase admin claim and origin
+Publishing routes are `POST /api/admin/instagram-preview`,
+`POST /api/admin/instagram-campaign-history`, `POST /api/admin/campaign-summary`, and
+`POST /api/admin/instagram-publish`. All require a server-verified Firebase admin claim and origin
 checks. Runtime configuration is optional and fail-closed:
 
 - `INSTAGRAM_ACCESS_TOKEN` — secret; never commit or expose it;
@@ -173,8 +181,8 @@ GitHub deployment variables only after an operator has added a valid secret vers
 Use Meta's official Instagram Login content-publishing permission. Keep token acquisition,
 rotation, account connection and Meta App Review as explicit operator setup. The media must meet
 Meta's current Reel format constraints and be publicly fetchable while the container processes.
-The required Instagram Login OAuth scopes are `instagram_business_basic` and
-`instagram_business_content_publish`. Treat the Meta app ID and app secret as OAuth connection
+The required Instagram Login OAuth scopes are `instagram_business_basic`,
+`instagram_business_content_publish`, and `instagram_business_manage_insights`. Treat the Meta app ID and app secret as OAuth connection
 credentials, not as a publishing API key; keep the app secret server-side if an automated account
 connection flow is added.
 

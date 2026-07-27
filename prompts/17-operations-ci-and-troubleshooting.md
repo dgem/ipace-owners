@@ -22,11 +22,23 @@ The separate member-referral campaign targets only Firebase accounts with a matc
 contact-consenting Join record. Its live copy reports progress to 1,000 and the exact doubled
 total if every current owner finds one more. Include monochrome actions for Facebook, X,
 Bluesky, LinkedIn, Instagram, WhatsApp, and email; Instagram links to the group's
-`@ipaceowners` profile because it has no reliable web share composer. Apply the same preview,
+`@ipaceowners` profile because it has no reliable web share composer. Display a ready-to-copy
+“I-PACE owners are stronger together” suggested post with a direct Join CTA, and prefill it in
+share URLs where the platform supports composer text. Apply the same preview,
 confirmation, batch, registration
 recheck, and hashed-ledger controls as registration reminders. Keep the embedded Markdown prose
 editable: regression tests protect complete template-field substitution, shared email chrome,
 destinations and delivery safeguards without pinning editorial sentences or chosen numeric fields.
+
+The `Reach 1,000` campaign targets all contact-consenting Join records, whether their Firebase
+email sign-in was completed or not, deduped by canonical email. Its embedded Markdown thanks
+members for joining and supporting the group, says it launched on 17 July less than two weeks
+earlier, reports the live joined total, explains the formal approach to Jaguar about members'
+shared concerns and asks Jaguar to engage constructively on options for everyone, links the cited
+I-PACE population source, and asks recipients to recruit by sharing. Its subject must lead with
+thanks for joining before the 1,000-member CTA. Do not require Auth
+registration for this audience. Apply the same preview, exact count confirmation, ten-message
+batch, hashed delivery ledger and provider-idempotency controls.
 
 The same page provides custom verified-member campaigns. Preview validates an allowlisted
 `{{name}}` substitution language rather than executing arbitrary Go templates, saves a Firestore

@@ -91,10 +91,14 @@ change rather than assuming it exists.
 | `POST /api/admin/reengagement-send` | Admin claim | Require the campaign ID, exact eligible count and typed confirmation; recheck registrations and send the next batch of at most ten. |
 | `POST /api/admin/member-referral-preview` | Admin claim | Preview aggregate counts and exact copy for registered accounts with matching contact consent. |
 | `POST /api/admin/member-referral-send` | Admin claim | Confirm and send the next batch of at most ten referral emails with the same idempotent ledger safeguards. |
+| `POST /api/admin/all-members-drive-preview` | Admin claim | Preview the deduplicated, contact-consenting audience across verified and unverified Join records and the exact recruitment email. |
+| `POST /api/admin/all-members-drive-send` | Admin claim | Confirm and send the next batch of at most ten all-member recruitment emails with hashed idempotent delivery records. |
 | `POST /api/admin/email-campaign-history` | Admin claim | Return parent campaign records and aggregate hashed-ledger delivery counts, including inferred legacy runs, without addresses. |
 | `POST /api/admin/custom-campaign-preview` | Admin claim | Validate/save a named subject and Markdown draft, calculate the verified consented audience, and return representative branded HTML/plain-text output. |
 | `POST /api/admin/custom-campaign-send` | Admin claim | Load immutable saved content, recheck the audience and exact `SEND <count>` confirmation, then send at most ten idempotent messages. |
 | `POST /api/admin/instagram-preview` | Admin claim | Validate a site-relative MP4/MOV path, caption and explicit full-media review; return the deterministic confirmation without a provider side effect. |
+| `POST /api/admin/instagram-campaign-history` | Admin claim | List named drafts and immutable publication records, refreshing cached provider insights when available. |
+| `POST /api/admin/campaign-summary` | Admin claim | Aggregate local email delivery and Instagram publication/insight totals; report Facebook as manual unless Page Insights is connected. |
 | `POST /api/admin/instagram-publish` | Admin claim | Revalidate the unchanged preview and exact confirmation, then create, process and publish one organic Reel through Meta. |
 | `POST /api/admin/instagram-generate` | Admin claim | Reserve an idempotent job and start one billable eight-second 9:16 Veo operation after exact `GENERATE VIDEO` confirmation. |
 | `POST /api/admin/instagram-generation-status` | Admin claim | Poll the Vertex operation, start the supported seven-second video continuation, promote the resulting 15-second master, and return an expiring delivery path. |
@@ -118,9 +122,10 @@ address returned to the browser. Its parent documents store custom/specialised c
 name, subject, Markdown, optional source run, lifecycle status, eligible/sent/failed/remaining
 totals, batch count, and created/updated/last-sent timestamps. Private `members` documents may
 store `emailVerifiedAt` and `emailVerifiedAtInferred`; do not expose either through public data.
-`instagramCampaigns` reserves the deterministic reviewed-draft
-ID before contacting Meta and stores processing, failed, or published status plus the returned
-media ID so a retry cannot silently duplicate a post. `instagramGenerationJobs` stores prompt
+`instagramCampaigns` stores named editable drafts and immutable processing, failed, or published
+runs, optional source-run links, returned media IDs, and cached insight totals. It reserves the
+saved ID before contacting Meta so a retry cannot silently duplicate a post.
+`instagramGenerationJobs` stores prompt
 hashes, phase, status, Vertex operation name, private object names, failure code, and only a hash
 and expiry for each short-lived delivery token. Cloud Storage contains generated
 snapshots under purpose-specific private/public object names; future evidence blobs require
@@ -203,12 +208,22 @@ forms explicitly use POST even when JavaScript intercepts them.
   clearly labelled send controls visible but disabled until preview succeeds, require exact
   confirmation, recheck registration before sending, send bounded resumable batches, and
   persist a hashed idempotent delivery ledger.
-- Render re-engagement and member-referral delivery from embedded Markdown Go templates into
+- Render re-engagement, member-referral and all-member recruitment delivery from embedded Markdown Go templates into
   matching plain-text and escaped HTML bodies. Wrap HTML delivery in the shared magic-link email
   chrome with its compact text masthead, hero image, responsive table layout and pill-shaped
   primary and share actions; do not add a logo image. Keep the legally important
   contact-consent/unsubscribe footer outside the routinely edited Markdown body. Render supported
   Markdown emphasis as semantic italic text in HTML and omit its delimiters from plain text.
+  Referral-style campaigns display a ready-to-copy “I-PACE owners are stronger together” post
+  with an owner Join CTA and prefill the same text in platform composers where supported;
+  LinkedIn and Instagram retain the visible copy because their web share flows cannot reliably
+  prefill it.
+- Provide a specialised all-joined-member recruitment tool that includes verified and unverified
+  contact-consenting Join records deduped by canonical email. Preview the exact thanks/progress,
+  formal-Jaguar-approach about members' shared concerns, a request for Jaguar to engage
+  constructively on options for everyone, and the cited vehicle-population and sharing message before enabling the same
+  confirmed, resumable ten-message delivery controls. Lead the subject with thanks for joining;
+  thank recipients for their support and describe the 17 July launch as less than two weeks ago.
 - Provide custom verified-member campaigns with server-validated Markdown, sandboxed branded HTML
   preview, plain-text preview, click-to-insert allowlisted substitutions, resumable confirmed
   batches, aggregate history, and clone-to-rerun behaviour. Present history before the
@@ -223,8 +238,12 @@ forms explicitly use POST even when JavaScript intercepts them.
 - Provide an admin-only Instagram campaign page following the same preview-before-side-effect
   interaction. Chat prepares the post; a human reviews the complete final media; the server
   validates the exact site-relative media path and caption; and an exact typed confirmation
-  gates immediate organic Reel publishing. Reconstruct its creative and safety contract from
-  prompt `20`. Do not claim that paid ads, scheduling or automated engagement are implemented.
+  gates immediate organic Reel publishing. Show history before the workspace, reopen drafts,
+  and clone published records for editing/reposting without mutating the original. Display cached
+  provider insights when available. Put local email totals and Instagram publication/insight
+  totals on the Admin home, while explicitly labelling Facebook as manual when Page Insights are
+  not connected. Reconstruct its creative and safety contract from prompt `20`. Do not claim that
+  paid ads, scheduling or automated engagement are implemented.
 
 Prompts define visual intent, not the exact control points or pixels of generated artwork.
 Therefore the following committed assets are preservation-critical and must be backed up with

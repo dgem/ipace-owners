@@ -4,6 +4,7 @@ title: Admin Dashboard
 description: "Administration tools for the I-PACE Owners Advocacy Group."
 noindex: true
 permalink: /admin/
+adminDashboard: true
 ---
 
 {% from "partials/auth-login-gate.njk" import authLoginGate %}
@@ -27,6 +28,12 @@ permalink: /admin/
 
     <div class="auth-content" data-admin-content hidden>
       <div class="stack">
+        <section class="dashboard-panel" data-campaign-summary data-summary-endpoint="/api/admin/campaign-summary" aria-labelledby="campaign-summary-title">
+          <div class="dashboard-panel__header"><div><p class="dashboard-panel__eyebrow">Campaign performance</p><h2 class="dashboard-panel__title" id="campaign-summary-title">Email and social overview</h2><p>Delivery totals come from the local campaign ledgers. Instagram engagement comes from Meta when Insights access is configured.</p></div><button type="button" class="btn btn--secondary" data-campaign-summary-refresh>Refresh stats</button></div>
+          <p data-campaign-summary-status role="status" aria-live="polite">Loading campaign totals…</p>
+          <div class="grid grid--3 campaign-summary-grid" data-campaign-summary-cards></div>
+        </section>
+
         <div>
           <p class="dashboard-panel__eyebrow">Active tools</p>
           <h2>Administration and member growth</h2>
