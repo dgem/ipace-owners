@@ -472,8 +472,8 @@ func sendAllMembersDriveCampaignBatch(ctx context.Context, input campaignSendReq
 	summary := makeCampaignSummary(preview.CampaignID, len(eligible), 0, countCampaignSent(eligible, sent), batchSent)
 	summary.EmailPreview = makeAllMembersDriveEmailPreview(len(eligible))
 	if err := recordSpecializedCampaign(ctx, db, summary, "all-members-drive", "Help us reach 1,000 members",
-		"Thank you for joining — help us reach 1,000 I-PACE owners",
-		"Hi {{memberFirstName}},\n\nThank you for joining and for your support. We now have {{membersJoined}} members since launching on 17 July—less than two weeks ago.\n\nThis week we are formally approaching Jaguar with our concerns. Please help us recruit and reach 1,000 members by sharing the group.\n\nhttps://ipace-owners.org/"); err != nil {
+		"Thanks for joining — help us reach 1,000 I-PACE owners",
+		"Hi {{memberFirstName}},\n\nThank you for joining and for your support. We now have {{membersJoined}} members since launching on 17 July—less than two weeks ago.\n\nThis week we are formally approaching Jaguar with our shared concerns and asking them to engage with us constructively on options for us all. Please help us recruit and reach 1,000 members by sharing the group.\n\nhttps://ipace-owners.org/"); err != nil {
 		return campaignSummary{}, fmt.Errorf("campaign sent but summary update failed")
 	}
 	return summary, nil
@@ -804,7 +804,7 @@ func allMembersDriveEmailBodies(person campaignRecipient, memberCount int) (stri
 	if fields := strings.Fields(person.Name); len(fields) > 0 {
 		first = fields[0]
 	}
-	subject := "Thank you for joining — help us reach 1,000 I-PACE owners"
+	subject := "Thanks for joining — help us reach 1,000 I-PACE owners"
 	shares := memberReferralShareLinks(memberCount)
 	suggestedShareText := memberReferralShareMessage(memberCount)
 	text, bodyHTML := mustRenderCampaignTemplate("all-members-drive.md.tmpl", struct {

@@ -419,7 +419,8 @@ The `Reach 1,000` campaign uses `POST /api/admin/all-members-drive-preview` and
 `POST /api/admin/all-members-drive-send`. It targets every canonical-email-deduplicated Join
 record with contact consent, regardless of whether the Firebase sign-in link was completed.
 Its editable Markdown thanks members, reports the current joined total, explains the formal
-approach to Jaguar, cites the approximate I-PACE population, and asks recipients to share the
+approach to Jaguar about members' shared concerns, asks Jaguar to engage constructively on
+options for everyone, cites the approximate I-PACE population, and asks recipients to share the
 group. It retains the same exact confirmation, batches of ten, hashed delivery ledger, and
 provider idempotency safeguards.
 

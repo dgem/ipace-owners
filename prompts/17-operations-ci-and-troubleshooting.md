@@ -33,7 +33,8 @@ destinations and delivery safeguards without pinning editorial sentences or chos
 The `Reach 1,000` campaign targets all contact-consenting Join records, whether their Firebase
 email sign-in was completed or not, deduped by canonical email. Its embedded Markdown thanks
 members for joining and supporting the group, says it launched on 17 July less than two weeks
-earlier, reports the live joined total, explains the formal approach to Jaguar, links the cited
+earlier, reports the live joined total, explains the formal approach to Jaguar about members'
+shared concerns and asks Jaguar to engage constructively on options for everyone, links the cited
 I-PACE population source, and asks recipients to recruit by sharing. Its subject must lead with
 thanks for joining before the 1,000-member CTA. Do not require Auth
 registration for this audience. Apply the same preview, exact count confirmation, ten-message

@@ -220,7 +220,8 @@ forms explicitly use POST even when JavaScript intercepts them.
   prefill it.
 - Provide a specialised all-joined-member recruitment tool that includes verified and unverified
   contact-consenting Join records deduped by canonical email. Preview the exact thanks/progress,
-  formal-Jaguar-approach, cited vehicle-population and sharing message before enabling the same
+  formal-Jaguar-approach about members' shared concerns, a request for Jaguar to engage
+  constructively on options for everyone, and the cited vehicle-population and sharing message before enabling the same
   confirmed, resumable ten-message delivery controls. Lead the subject with thanks for joining;
   thank recipients for their support and describe the 17 July launch as less than two weeks ago.
 - Provide custom verified-member campaigns with server-validated Markdown, sandboxed branded HTML
