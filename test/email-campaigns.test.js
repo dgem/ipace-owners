@@ -47,6 +47,9 @@ test('email campaign browser sends tokens and explicit confirmation data', funct
   assert.match(page, /\/api\/admin\/reengagement-send/);
   assert.match(page, /\/api\/admin\/member-referral-preview/);
   assert.match(page, /\/api\/admin\/member-referral-send/);
+  assert.match(page, /\/api\/admin\/all-members-drive-preview/);
+  assert.match(page, /\/api\/admin\/all-members-drive-send/);
+  assert.match(page, /verified and unverified Join records/);
   assert.match(script, /expectedEligible: current\.eligible/);
   assert.match(script, /confirmation: confirmInput\.value/);
   assert.match(script, /emailHTML\.srcdoc = data\.emailPreview\.html/);

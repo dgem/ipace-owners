@@ -91,6 +91,8 @@ change rather than assuming it exists.
 | `POST /api/admin/reengagement-send` | Admin claim | Require the campaign ID, exact eligible count and typed confirmation; recheck registrations and send the next batch of at most ten. |
 | `POST /api/admin/member-referral-preview` | Admin claim | Preview aggregate counts and exact copy for registered accounts with matching contact consent. |
 | `POST /api/admin/member-referral-send` | Admin claim | Confirm and send the next batch of at most ten referral emails with the same idempotent ledger safeguards. |
+| `POST /api/admin/all-members-drive-preview` | Admin claim | Preview the deduplicated, contact-consenting audience across verified and unverified Join records and the exact recruitment email. |
+| `POST /api/admin/all-members-drive-send` | Admin claim | Confirm and send the next batch of at most ten all-member recruitment emails with hashed idempotent delivery records. |
 | `POST /api/admin/email-campaign-history` | Admin claim | Return parent campaign records and aggregate hashed-ledger delivery counts, including inferred legacy runs, without addresses. |
 | `POST /api/admin/custom-campaign-preview` | Admin claim | Validate/save a named subject and Markdown draft, calculate the verified consented audience, and return representative branded HTML/plain-text output. |
 | `POST /api/admin/custom-campaign-send` | Admin claim | Load immutable saved content, recheck the audience and exact `SEND <count>` confirmation, then send at most ten idempotent messages. |
@@ -206,12 +208,16 @@ forms explicitly use POST even when JavaScript intercepts them.
   clearly labelled send controls visible but disabled until preview succeeds, require exact
   confirmation, recheck registration before sending, send bounded resumable batches, and
   persist a hashed idempotent delivery ledger.
-- Render re-engagement and member-referral delivery from embedded Markdown Go templates into
+- Render re-engagement, member-referral and all-member recruitment delivery from embedded Markdown Go templates into
   matching plain-text and escaped HTML bodies. Wrap HTML delivery in the shared magic-link email
   chrome with its compact text masthead, hero image, responsive table layout and pill-shaped
   primary and share actions; do not add a logo image. Keep the legally important
   contact-consent/unsubscribe footer outside the routinely edited Markdown body. Render supported
   Markdown emphasis as semantic italic text in HTML and omit its delimiters from plain text.
+- Provide a specialised all-joined-member recruitment tool that includes verified and unverified
+  contact-consenting Join records deduped by canonical email. Preview the exact thanks/progress,
+  formal-Jaguar-approach, cited vehicle-population and sharing message before enabling the same
+  confirmed, resumable ten-message delivery controls.
 - Provide custom verified-member campaigns with server-validated Markdown, sandboxed branded HTML
   preview, plain-text preview, click-to-insert allowlisted substitutions, resumable confirmed
   batches, aggregate history, and clone-to-rerun behaviour. Present history before the

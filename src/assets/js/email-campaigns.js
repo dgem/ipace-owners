@@ -247,15 +247,16 @@
         var rerunButton = document.createElement('button');
         rerunButton.type = 'button';
         rerunButton.className = 'btn btn--secondary btn--sm';
-        rerunButton.textContent = canRerun ? 'Tweak and rerun' : 'Use registration reminder tool';
+        var specialisedTab = campaign.kind === 'all-members-drive' ? 'member-drive' : 'registration';
+        rerunButton.textContent = canRerun ? 'Tweak and rerun' : (specialisedTab === 'member-drive' ? 'Use Reach 1,000 tool' : 'Use registration reminder tool');
         rerunButton.disabled = canRerun && (!campaign.subject || !campaign.markdown);
-        if (!canRerun) rerunButton.title = 'Registration reminders require a fresh private sign-in link and their original unverified-member audience.';
+        if (!canRerun) rerunButton.title = specialisedTab === 'member-drive' ? 'This campaign retains its all-joined, contact-consenting audience.' : 'Registration reminders require a fresh private sign-in link and their original unverified-member audience.';
         rerunButton.addEventListener('click', function () {
           if (canRerun) {
             loadForRerun(campaign);
             return;
           }
-          selectCampaignTab('registration');
+          selectCampaignTab(specialisedTab);
           document.querySelector('#campaign-tools').scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
         actions.appendChild(rerunButton);

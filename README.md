@@ -413,7 +413,15 @@ monochrome share actions for Facebook, X, Bluesky, LinkedIn, Instagram, WhatsApp
 Instagram opens the group's `@ipaceowners` profile because it has no reliable web share
 composer.
 
-Both browser-managed campaign emails use the same responsive, inline-styled HTML shell as the
+The `Reach 1,000` campaign uses `POST /api/admin/all-members-drive-preview` and
+`POST /api/admin/all-members-drive-send`. It targets every canonical-email-deduplicated Join
+record with contact consent, regardless of whether the Firebase sign-in link was completed.
+Its editable Markdown thanks members, reports the current joined total, explains the formal
+approach to Jaguar, cites the approximate I-PACE population, and asks recipients to share the
+group. It retains the same exact confirmation, batches of ten, hashed delivery ledger, and
+provider idempotency safeguards.
+
+All browser-managed campaign emails use the same responsive, inline-styled HTML shell as the
 custom magic-link email, retaining its compact text masthead, hero image and prominent
 pill-shaped actions without inserting the site logo into transactional mail. Their editable prose
 lives in embedded Go templates under `functions/firebase-go/email-templates/*.md.tmpl`; the

@@ -168,7 +168,7 @@ async function checkCampaignControls(viewport, screenshotName) {
   await page.evaluate(() => {
     window.firebase = { auth: () => ({ currentUser: { getIdToken: async () => 'visual-admin-token' } }) };
   });
-  assert.equal(await page.locator('[data-email-campaign]').count(), 2);
+  assert.equal(await page.locator('[data-email-campaign]').count(), 3);
   assert.equal(await page.locator('[data-custom-email-campaign]').count(), 1);
   assert.equal(await page.locator('[data-custom-placeholder]').count(), 11);
   assert.equal(await page.locator('[data-campaign-tab="registration"]').getAttribute('aria-selected'), 'true');
@@ -195,7 +195,7 @@ async function checkCampaignControls(viewport, screenshotName) {
   await page.frameLocator('[data-custom-campaign-email-html]').locator('h1').waitFor({ state: 'visible' });
   assert.equal(await page.locator('[data-custom-campaign-send-button]').isDisabled(), false);
   const buttons = page.locator('[data-campaign-send-button]');
-  assert.equal(await buttons.count(), 2);
+  assert.equal(await buttons.count(), 3);
   for (let index = 0; index < await buttons.count(); index += 1) {
     const button = buttons.nth(index);
     const panelName = await button.locator('xpath=ancestor::*[@data-campaign-panel]').getAttribute('data-campaign-panel');
@@ -221,6 +221,10 @@ async function checkCampaignControls(viewport, screenshotName) {
   await page.keyboard.press('Enter');
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({ path: path.join(outputDir, screenshotName.replace('.png', '-freeform.png')), fullPage: true });
+  await page.locator('[data-campaign-tab="member-drive"]').focus();
+  await page.keyboard.press('Enter');
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.screenshot({ path: path.join(outputDir, screenshotName.replace('.png', '-member-drive.png')), fullPage: true });
   await page.close();
 }
 

@@ -28,6 +28,13 @@ recheck, and hashed-ledger controls as registration reminders. Keep the embedded
 editable: regression tests protect complete template-field substitution, shared email chrome,
 destinations and delivery safeguards without pinning editorial sentences or chosen numeric fields.
 
+The `Reach 1,000` campaign targets all contact-consenting Join records, whether their Firebase
+email sign-in was completed or not, deduped by canonical email. Its embedded Markdown thanks
+members, reports the live joined total, explains the formal approach to Jaguar, links the cited
+I-PACE population source, and asks recipients to recruit by sharing. Do not require Auth
+registration for this audience. Apply the same preview, exact count confirmation, ten-message
+batch, hashed delivery ledger and provider-idempotency controls.
+
 The same page provides custom verified-member campaigns. Preview validates an allowlisted
 `{{name}}` substitution language rather than executing arbitrary Go templates, saves a Firestore
 draft, calculates the canonical-email-deduped intersection of verified Auth accounts and

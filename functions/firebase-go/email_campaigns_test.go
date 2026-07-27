@@ -172,3 +172,37 @@ func TestMemberReferralEmailUsesSharedBrandingAndActionButtons(t *testing.T) {
 		t.Fatalf("referral email must use the text masthead, not a logo image: %q", htmlBody)
 	}
 }
+
+func TestAllMembersDriveEmailUsesRequestedRecruitmentMessage(t *testing.T) {
+	preview := makeAllMembersDriveEmailPreview(412)
+	for _, expected := range []string{
+		"412 members",
+		"formally approaching Jaguar",
+		"1,000 members in less than a month",
+		"approximately 30,000 I-PACEs",
+		"https://stillontheroad.co.uk/cars/jaguar/i-pace",
+		"traction-battery faults",
+		"Technical Service Bulletins",
+		"Facebook",
+		"WhatsApp",
+	} {
+		if !strings.Contains(preview.HTML, expected) && !strings.Contains(preview.Text, expected) {
+			t.Fatalf("campaign preview missing %q", expected)
+		}
+	}
+	if strings.Contains(preview.HTML, "{{.") || strings.Contains(preview.Text, "{{.") {
+		t.Fatal("campaign preview contains unresolved template values")
+	}
+}
+
+func TestAllMembersDrivePreviewRequiresAdmin(t *testing.T) {
+	original := campaignAuthorize
+	t.Cleanup(func() { campaignAuthorize = original })
+	campaignAuthorize = func(context.Context, *http.Request) error { return context.Canceled }
+	req := httptest.NewRequest(http.MethodPost, "/api/admin/all-members-drive-preview", strings.NewReader(`{}`))
+	res := httptest.NewRecorder()
+	AdminAllMembersDrivePreview(res, req)
+	if res.Code != http.StatusForbidden {
+		t.Fatalf("status=%d body=%s", res.Code, res.Body.String())
+	}
+}
