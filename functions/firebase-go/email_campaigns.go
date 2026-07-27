@@ -472,8 +472,8 @@ func sendAllMembersDriveCampaignBatch(ctx context.Context, input campaignSendReq
 	summary := makeCampaignSummary(preview.CampaignID, len(eligible), 0, countCampaignSent(eligible, sent), batchSent)
 	summary.EmailPreview = makeAllMembersDriveEmailPreview(len(eligible))
 	if err := recordSpecializedCampaign(ctx, db, summary, "all-members-drive", "Help us reach 1,000 members",
-		"Help us reach 1,000 I-PACE owners",
-		"Hi {{memberFirstName}},\n\nThank you for joining. We now have {{membersJoined}} members since launch.\n\nThis week we are formally approaching Jaguar with our concerns. Please help us recruit and reach 1,000 members by sharing the group.\n\nhttps://ipace-owners.org/"); err != nil {
+		"Thank you for joining — help us reach 1,000 I-PACE owners",
+		"Hi {{memberFirstName}},\n\nThank you for joining and for your support. We now have {{membersJoined}} members since launching on 17 July—less than two weeks ago.\n\nThis week we are formally approaching Jaguar with our concerns. Please help us recruit and reach 1,000 members by sharing the group.\n\nhttps://ipace-owners.org/"); err != nil {
 		return campaignSummary{}, fmt.Errorf("campaign sent but summary update failed")
 	}
 	return summary, nil
@@ -804,7 +804,7 @@ func allMembersDriveEmailBodies(person campaignRecipient, memberCount int) (stri
 	if fields := strings.Fields(person.Name); len(fields) > 0 {
 		first = fields[0]
 	}
-	subject := "Help us reach 1,000 I-PACE owners"
+	subject := "Thank you for joining — help us reach 1,000 I-PACE owners"
 	shares := memberReferralShareLinks(memberCount)
 	suggestedShareText := memberReferralShareMessage(memberCount)
 	text, bodyHTML := mustRenderCampaignTemplate("all-members-drive.md.tmpl", struct {
@@ -818,8 +818,8 @@ func allMembersDriveEmailBodies(person campaignRecipient, memberCount int) (stri
 		buttons += `<a href="` + html.EscapeString(share.URL) + `" style="display:inline-block;margin:0 8px 10px 0;padding:10px 14px;border:1px solid #0f766e;border-radius:999px;color:#0f766e;text-decoration:none;font-weight:700;"><span style="display:inline-block;min-width:18px;text-align:center;">` + html.EscapeString(share.Mark) + `</span> ` + html.EscapeString(share.Label) + `</a>`
 	}
 	htmlBody := brandedEmailHTML(brandedEmailMessage{
-		DocumentTitle: subject, Preheader: fmt.Sprintf("%d owners have joined. Help us reach 1,000.", memberCount),
-		Heading: "Help us reach 1,000 I-PACE owners", BodyHTML: bodyHTML,
+		DocumentTitle: subject, Preheader: fmt.Sprintf("Thank you for your support. %d owners have joined since 17 July.", memberCount),
+		Heading: "Thank you for joining and supporting us", BodyHTML: bodyHTML,
 		PrimaryActionLabel: "Share I-PACE Owners", PrimaryActionURL: "https://ipace-owners.org/",
 		SupplementHTML: buttons,
 		FooterNote:     "You are receiving this because you joined the group and agreed that we could contact you. Reply if you no longer wish to hear from us.",

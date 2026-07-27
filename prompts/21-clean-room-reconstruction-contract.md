@@ -221,7 +221,8 @@ forms explicitly use POST even when JavaScript intercepts them.
 - Provide a specialised all-joined-member recruitment tool that includes verified and unverified
   contact-consenting Join records deduped by canonical email. Preview the exact thanks/progress,
   formal-Jaguar-approach, cited vehicle-population and sharing message before enabling the same
-  confirmed, resumable ten-message delivery controls.
+  confirmed, resumable ten-message delivery controls. Lead the subject with thanks for joining;
+  thank recipients for their support and describe the 17 July launch as less than two weeks ago.
 - Provide custom verified-member campaigns with server-validated Markdown, sandboxed branded HTML
   preview, plain-text preview, click-to-insert allowlisted substitutions, resumable confirmed
   batches, aggregate history, and clone-to-rerun behaviour. Present history before the
