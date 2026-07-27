@@ -226,12 +226,69 @@ async function checkCampaignControls(viewport, screenshotName) {
 
 async function checkAdminDashboard() {
   const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+  await page.route('**/api/admin/campaign-summary', (route) => route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({
+      email: { available: true, runs: 4, sent: 412, failed: 1, remaining: 8 },
+      instagram: { available: true, runs: 3, published: 2, drafts: 1, views: 3200, reach: 2400, totalInteractions: 186 },
+      facebook: { available: false, message: 'Manual outreach only. Facebook Page Insights are not connected.' }
+    })
+  }));
   await page.goto(baseURL + '/admin/', { waitUntil: 'networkidle' });
+  await page.evaluate(() => {
+    window.firebase = { auth: () => ({ currentUser: { getIdToken: async () => 'visual-admin-token' } }) };
+  });
   await revealAdminState(page);
+  await page.locator('[data-campaign-summary-refresh]').click();
+  await page.locator('.campaign-summary-card').first().waitFor({ state: 'visible' });
+  assert.equal(await page.locator('.campaign-summary-card').count(), 3);
   assert.equal(await page.locator('.admin-dashboard-grid .card').count(), 4);
   assert.deepEqual(await page.locator('.admin-dashboard-grid a').evaluateAll((links) => links.map((link) => link.getAttribute('href'))), expectedAdminDestinations.slice(1));
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, 'admin-dashboard-desktop.png'), fullPage: true });
+  await page.close();
+}
+
+async function checkInstagramCampaigns(viewport, screenshotName) {
+  const page = await browser.newPage({ viewport });
+  await page.route('**/api/admin/instagram-campaign-history', (route) => route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({
+      insightsConfigured: true,
+      campaigns: [
+        {
+          campaignId: 'instagram-published-example',
+          name: 'Owners together launch',
+          status: 'published',
+          mediaPath: '/ipace-owners-instagram-launch-reel.mp4',
+          caption: 'I-PACE owners are stronger when we speak together.',
+          updatedAt: '2026-07-26T12:00:00Z',
+          insights: { available: true, views: 3200, reach: 2400, totalInteractions: 186 }
+        },
+        {
+          campaignId: 'instagram-draft-example',
+          name: 'August owner update',
+          status: 'draft',
+          mediaPath: '/ipace-owners-instagram-launch-reel.mp4',
+          caption: 'An editable Instagram draft.',
+          updatedAt: '2026-07-27T08:00:00Z',
+          insights: { available: false }
+        }
+      ]
+    })
+  }));
+  await page.goto(baseURL + '/admin/instagram-campaigns/', { waitUntil: 'networkidle' });
+  await page.evaluate(() => {
+    window.firebase = { auth: () => ({ currentUser: { getIdToken: async () => 'visual-admin-token' } }) };
+  });
+  await revealAdminState(page);
+  await page.locator('[data-instagram-history-refresh]').click();
+  await page.locator('.email-campaign-history__item').first().waitFor({ state: 'visible' });
+  assert.equal(await page.locator('.email-campaign-history__item').count(), 2);
+  assert.equal(await page.getByRole('button', { name: 'Edit and repost' }).count(), 1);
+  assert.equal(await page.getByRole('button', { name: 'Edit draft' }).count(), 1);
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
+  await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
   await page.close();
 }
 
@@ -241,6 +298,8 @@ try {
   await checkAdminDashboard();
   await checkCampaignControls({ width: 1440, height: 1100 }, 'admin-email-campaigns-desktop.png');
   await checkCampaignControls({ width: 390, height: 844 }, 'admin-email-campaigns-mobile.png');
+  await checkInstagramCampaigns({ width: 1440, height: 1100 }, 'admin-instagram-campaigns-desktop.png');
+  await checkInstagramCampaigns({ width: 390, height: 844 }, 'admin-instagram-campaigns-mobile.png');
   console.log(`Visual checks passed; screenshots written to ${outputDir}`);
 } finally {
   await browser.close();

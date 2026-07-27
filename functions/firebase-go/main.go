@@ -95,6 +95,10 @@ func Api(w http.ResponseWriter, r *http.Request) {
 		AdminInstagramGenerate(w, r)
 	case "/api/admin/instagram-generation-status":
 		AdminInstagramGenerationStatus(w, r)
+	case "/api/admin/instagram-campaign-history":
+		AdminInstagramCampaignHistory(w, r)
+	case "/api/admin/campaign-summary":
+		AdminCampaignSummary(w, r)
 	case "/api/public-stats":
 		PublicStats(w, r)
 	default:

@@ -18,6 +18,9 @@ test('Instagram campaign follows the gated preview and exact-confirmation patter
   assert.match(page, /\/api\/admin\/instagram-publish/);
   assert.match(page, /\/api\/admin\/instagram-generate/);
   assert.match(page, /\/api\/admin\/instagram-generation-status/);
+  assert.match(page, /\/api\/admin\/instagram-campaign-history/);
+  assert.match(page, /Previous Instagram campaigns/);
+  assert.match(page, /data-instagram-name/);
   assert.match(page, /GENERATE VIDEO/);
   assert.match(page, /exactly two crisp vehicle-lock confirmation chirps/i);
   assert.match(layout, /instagramCampaigns[\s\S]*instagram-campaigns\.js/);
@@ -32,6 +35,9 @@ test('browser sends only an admin token and the reviewed draft', function () {
   assert.match(script, /requestId: requestID\(\)/);
   assert.match(script, /mediaPath\.value = result\.mediaPath/);
   assert.match(script, /publishButton\.disabled = !current\.configured/);
+  assert.match(script, /sourceCampaignId: sourceCampaignID/);
+  assert.match(script, /Edit and repost/);
+  assert.match(script, /loadHistory/);
   assert.doesNotMatch(script, /INSTAGRAM_ACCESS_TOKEN/);
 });
 

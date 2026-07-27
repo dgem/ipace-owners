@@ -181,7 +181,8 @@ src/
       member-dashboard.js # Vehicle tabs, SoH graph and service/fault editing
       multistep-form.js  # Multi-step form controller
       outreach-assistant.js # Facebook search-link and reply helper; no automation
-      instagram-campaigns.js # Reviewed Instagram Reel preview and publish controls
+      instagram-campaigns.js # Instagram draft/history, insight, preview and publish controls
+      admin-campaign-summary.js # Admin email/social campaign totals
       email-campaigns.js  # Admin re-engagement preview and bounded send controls
       public-stats.js    # Public aggregate-statistics rendering
       site-mode.js       # Launch/full presentation selection
@@ -469,7 +470,9 @@ Function validates its hashed token and expiry before range-streaming the privat
 browser review and Meta ingestion; the underlying GCS object remains private. An administrator
 supplies the resulting site-relative MP4 path and caption, watches the complete video, confirms
 that its visual
-meaning is accurate, then requests a server-validated preview. Preview has no Meta side effect.
+meaning is accurate, then requests a server-validated preview. Preview saves a named local draft
+and has no Meta side effect. Drafts can be reopened. Editing a published campaign creates a
+separate record linked to its source, preserving the original for audit.
 The rejected key-frame-composite draft is not preselected and is not an approved public asset.
 Only a fully reviewed native temporal result may later be exported and committed as
 `public/ipace-owners-instagram-launch-reel.mp4`.
@@ -477,9 +480,15 @@ Publishing requires the unchanged deterministic campaign ID and exact `PUBLISH <
 The browser uses `POST /api/admin/instagram-preview` for the side-effect-free validation step
 and `POST /api/admin/instagram-publish` for the separately confirmed provider call. Both routes
 require a server-verified Firebase administrator claim.
-The Function reserves that deterministic ID in the `instagramCampaigns` Firestore collection
-before contacting Meta. A completed retry returns the existing media ID; processing or failed
-records stop for operator verification rather than risking a duplicate post.
+`POST /api/admin/instagram-campaign-history` returns the saved Instagram ledger and cached
+insights. `POST /api/admin/campaign-summary` supplies the cross-channel Admin-home totals.
+The Function reserves the saved ID in the `instagramCampaigns` Firestore collection before
+contacting Meta. A completed retry returns the existing media ID; processing or failed records
+stop for operator verification rather than risking a duplicate post. Campaign history refreshes
+supported Reel views, reach and interaction totals from Meta and caches them for 15 minutes.
+The Admin home combines those figures with locally recorded email delivery totals. Facebook
+remains labelled as manual outreach with no Page Insights until a separate authenticated Page
+integration is deliberately configured.
 Veo job state lives separately in `instagramGenerationJobs`, keyed by a hash-derived idempotency
 ID. Provider operation names and private GCS object names are server-side records; access tokens,
 request credentials and raw delivery tokens are not logged.
@@ -497,7 +506,8 @@ OpenTofu state. Add a version from secure operator input, then set
 `instagram_publishing_enabled`, `instagram_user_id`, and `instagram_graph_api_version` and reapply
 the environment so GitHub receives only the secret name and non-secret account configuration.
 For Instagram Login, provision an OAuth user token for the Professional account with
-`instagram_business_basic` and `instagram_business_content_publish`. The Meta app ID and app
+`instagram_business_basic`, `instagram_business_content_publish`, and
+`instagram_business_manage_insights`. The Meta app ID and app
 secret are needed only for an automated OAuth connection/exchange flow; they are not publishing
 API keys and must not be exposed to the browser.
 
@@ -743,7 +753,8 @@ Plain vanilla JavaScript, no bundler. The current modules are:
 - `multistep-form.js` — generic multi-step form (data-attribute driven)
 - `outreach-assistant.js` — admin-only Facebook search-link and editable reply helper; no retrieval or posting automation
 - `instagram-campaigns.js` — admin-only asynchronous Veo generation, full-media review, and
-  exact-confirmation Instagram publishing
+  durable draft/history, insight display, and exact-confirmation Instagram publishing
+- `admin-campaign-summary.js` — admin-only email, Instagram, and Facebook capability summary
 - `public-stats.js` — homepage and evidence-dashboard aggregate rendering
 - `site-mode.js` — launch/full presentation selection
 

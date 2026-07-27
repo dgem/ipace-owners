@@ -110,6 +110,8 @@ the drawer, then hide both signed-out actions when authentication succeeds.
 | `POST /api/admin/custom-campaign-preview` | `AdminCustomCampaignPreview` | Admin | Validate and persist a custom Markdown draft, calculate the verified consented audience, and return personalised HTML/plain-text previews. |
 | `POST /api/admin/custom-campaign-send` | `AdminCustomCampaignSend` | Admin | Recheck the saved draft and audience, require exact confirmation, and send the next idempotent batch of at most ten. |
 | `POST /api/admin/instagram-preview` | `AdminInstagramPreview` | Admin | Validate and preview an administrator-reviewed, chat-prepared Reel path and caption without publishing. |
+| `POST /api/admin/instagram-campaign-history` | `AdminInstagramCampaignHistory` | Admin | List saved drafts and publication records and refresh cached provider insights when available. |
+| `POST /api/admin/campaign-summary` | `AdminCampaignSummary` | Admin | Aggregate email delivery, Instagram publication/insight, and Facebook integration-availability totals for the Admin home. |
 | `POST /api/admin/instagram-publish` | `AdminInstagramPublish` | Admin | Revalidate the exact draft and confirmation, process the Reel through Meta, and publish it immediately. |
 | `POST /api/admin/instagram-generate` | `AdminInstagramGenerate` | Admin | Idempotently start the explicitly confirmed, billable eight-second Veo generation operation. |
 | `POST /api/admin/instagram-generation-status` | `AdminInstagramGenerationStatus` | Admin | Poll and advance the job into the seven-second continuation, promote the 15-second master, and issue a short-lived review path. |
@@ -141,10 +143,10 @@ route unless there is a measured need.
   source of truth.
 - Store editable service and fault history in `serviceEvents`, tied to both the authenticated
   member UID and vehicle ID. Preserve creation timestamps and review metadata on edits.
-- Store Instagram publication reservations in `instagramCampaigns`, keyed by the deterministic
-  reviewed-draft ID. Reserve before contacting Meta; a published retry returns the existing
-  media ID, while processing or failed records stop for operator verification instead of
-  risking a duplicate post.
+- Store named Instagram drafts and publication records in `instagramCampaigns`. Drafts can be
+  updated, but published records are immutable; an edited repost receives a new ID and
+  `sourceCampaignId`. Reserve before contacting Meta; a published retry returns the existing
+  media ID. Cache supported provider insights without making history depend on their availability.
 - Store Veo generation state in `instagramGenerationJobs`, keyed by a hash of the browser request
   ID. Keep generation and publication ledgers separate. A job progresses from initial generation
   through a transactionally claimed seven-second Veo video extension to a private versioned
