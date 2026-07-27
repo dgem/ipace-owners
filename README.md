@@ -440,11 +440,17 @@ remaining and failed-attempt totals, batch count and timestamps; hashed delivery
 subdocuments remain the recipient-level idempotency ledger. Campaign parent records are
 complete struct replacements because Firestore `MergeAll` accepts map data only; replacing a
 parent does not remove its delivery subcollection, so summary-write retries remain safe.
+When an administrator refreshes campaign history, the Function reconciles stored Resend IDs
+against the provider's paginated sent-email feed and caches the check for five minutes.
+History and the Admin overview show delivered, awaiting-delivery, opened, clicked, delayed,
+bounced, suppressed, complained, provider-failed and combined-undeliverable totals. Only the
+provider ID, normalised status and update time are retained on hashed delivery documents;
+provider recipient addresses are ignored and never returned to the browser.
 Legacy runs that predate parent records are recovered from those delivery ledgers where
 possible. “Tweak and rerun” copies an old subject and Markdown into a new run rather than
 changing its audit history. Campaign history is presented before the campaign tools, with a
-direct create-new shortcut. A compact
-page header links to history and the tools, while registration reminders, member referrals
+direct create-new shortcut. A compact page header links to history and the tools, while
+registration reminders, member referrals
 and freeform campaigns share one keyboard-operable tabbed panel. Create, continue and rerun
 actions select the relevant tab automatically. Safety guidance appears beside the relevant
 confirmation controls instead of as a persistent page-level warning.

@@ -52,6 +52,11 @@ only. Replacing the parent document must leave its hashed delivery subcollection
 post-delivery summary retry cannot resend recipients. “Tweak and rerun” clones
 content into a new run; never edit a run after delivery starts. History may infer old specialised
 runs from legacy delivery-only subcollections, where only the sent count is recoverable.
+Refreshing history must reconcile stored Resend IDs with the paginated sent-email API, cache
+provider checks for five minutes, and aggregate delivered, awaiting-delivery, opened, clicked,
+delayed, bounced, suppressed, complained, provider-failed and combined-undeliverable outcomes
+into history and the Admin home. Ignore provider recipient fields: persist only normalised status
+and update time on hashed delivery documents and never return addresses to the browser.
 Registration reminders remain rerunnable only through their specialised tool because they require
 an unverified-member audience and a fresh private sign-in link; do not clone them into the
 verified-member custom editor.

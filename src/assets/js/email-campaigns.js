@@ -230,8 +230,18 @@
         stats.className = 'email-campaign-history__stats';
         addStat(stats, 'Eligible', campaign.eligible || 0);
         addStat(stats, 'Sent', campaign.sent || 0);
+        addStat(stats, 'Delivered', campaign.delivered || 0);
+        addStat(stats, 'Awaiting delivery', campaign.awaitingDelivery || 0);
+        addStat(stats, 'Undeliverable', campaign.undeliverable || 0);
+        addStat(stats, 'Bounced', campaign.bounced || 0);
+        addStat(stats, 'Suppressed', campaign.suppressed || 0);
+        addStat(stats, 'Provider failed', campaign.providerFailed || 0);
+        addStat(stats, 'Delayed', campaign.delayed || 0);
+        addStat(stats, 'Opened', campaign.opened || 0);
+        addStat(stats, 'Clicked', campaign.clicked || 0);
+        addStat(stats, 'Complaints', campaign.complained || 0);
         addStat(stats, 'Remaining', campaign.remaining || 0);
-        addStat(stats, 'Failed attempts', campaign.failed || 0);
+        addStat(stats, 'Send failures', campaign.failed || 0);
         addStat(stats, 'Batches', campaign.batchCount || 0);
         var actions = document.createElement('div');
         actions.className = 'cluster';
@@ -272,8 +282,9 @@
       historyRefresh.disabled = true;
       historyStatus.textContent = 'Loading campaign history…';
       try {
-        renderHistory(await request('/api/admin/email-campaign-history'));
-        historyStatus.textContent = '';
+        var data = await request('/api/admin/email-campaign-history');
+        renderHistory(data);
+        historyStatus.textContent = data.feedbackMessage || (data.feedbackRefreshedAt ? 'Delivery feedback checked ' + formatDate(data.feedbackRefreshedAt) + '.' : '');
         historyLoaded = true;
       } catch (error) {
         historyStatus.textContent = error.message;

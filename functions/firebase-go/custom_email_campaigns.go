@@ -62,6 +62,16 @@ type customCampaignRecord struct {
 	CreatedAt        time.Time `json:"createdAt" firestore:"createdAt"`
 	UpdatedAt        time.Time `json:"updatedAt" firestore:"updatedAt"`
 	LastSentAt       time.Time `json:"lastSentAt,omitempty" firestore:"lastSentAt,omitempty"`
+	Delivered        int       `json:"delivered,omitempty" firestore:"-"`
+	Opened           int       `json:"opened,omitempty" firestore:"-"`
+	Clicked          int       `json:"clicked,omitempty" firestore:"-"`
+	Bounced          int       `json:"bounced,omitempty" firestore:"-"`
+	Delayed          int       `json:"delayed,omitempty" firestore:"-"`
+	Suppressed       int       `json:"suppressed,omitempty" firestore:"-"`
+	Complained       int       `json:"complained,omitempty" firestore:"-"`
+	ProviderFailed   int       `json:"providerFailed,omitempty" firestore:"-"`
+	Undeliverable    int       `json:"undeliverable,omitempty" firestore:"-"`
+	AwaitingDelivery int       `json:"awaitingDelivery,omitempty" firestore:"-"`
 }
 
 type customCampaignDocumentWriter interface {
@@ -69,8 +79,11 @@ type customCampaignDocumentWriter interface {
 }
 
 type customCampaignHistory struct {
-	Campaigns    []customCampaignRecord `json:"campaigns"`
-	Placeholders []string               `json:"placeholders"`
+	Campaigns           []customCampaignRecord `json:"campaigns"`
+	Placeholders        []string               `json:"placeholders"`
+	FeedbackAvailable   bool                   `json:"feedbackAvailable"`
+	FeedbackRefreshedAt time.Time              `json:"feedbackRefreshedAt,omitempty"`
+	FeedbackMessage     string                 `json:"feedbackMessage,omitempty"`
 }
 
 type customCampaignPreviewResponse struct {
@@ -630,6 +643,7 @@ func loadCustomCampaignHistory(ctx context.Context) (customCampaignHistory, erro
 
 	deliveryCounts := map[string]int{}
 	deliveryLastSent := map[string]time.Time{}
+	deliveryFeedback := make([]campaignDeliveryFeedback, 0)
 	deliveries := db.CollectionGroup("deliveries").Documents(ctx)
 	for {
 		doc, err := deliveries.Next()
@@ -644,8 +658,10 @@ func loadCustomCampaignHistory(ctx context.Context) (customCampaignHistory, erro
 			continue
 		}
 		var delivery struct {
-			Status string    `firestore:"status"`
-			SentAt time.Time `firestore:"sentAt"`
+			Status         string    `firestore:"status"`
+			ResendID       string    `firestore:"resendId"`
+			ProviderStatus string    `firestore:"providerStatus"`
+			SentAt         time.Time `firestore:"sentAt"`
 		}
 		if doc.DataTo(&delivery) != nil || delivery.Status != "sent" {
 			continue
@@ -657,8 +673,20 @@ func loadCustomCampaignHistory(ctx context.Context) (customCampaignHistory, erro
 		if delivery.SentAt.After(deliveryLastSent[campaignRef.ID]) {
 			deliveryLastSent[campaignRef.ID] = delivery.SentAt
 		}
+		deliveryFeedback = append(deliveryFeedback, campaignDeliveryFeedback{
+			CampaignID: campaignRef.ID, ResendID: delivery.ResendID,
+			ProviderStatus: delivery.ProviderStatus, Ref: doc.Ref,
+		})
 	}
 	deliveries.Stop()
+
+	feedbackRefreshedAt, feedbackAvailable, feedbackMessage := refreshCampaignDeliveryFeedback(ctx, db, deliveryFeedback)
+	feedbackTotals := map[string]customCampaignRecord{}
+	for _, delivery := range deliveryFeedback {
+		total := feedbackTotals[delivery.CampaignID]
+		addDeliveryFeedback(&total, delivery.ProviderStatus)
+		feedbackTotals[delivery.CampaignID] = total
+	}
 
 	result := make([]customCampaignRecord, 0, len(campaigns))
 	for id, record := range campaigns {
@@ -673,12 +701,27 @@ func loadCustomCampaignHistory(ctx context.Context) (customCampaignHistory, erro
 			record.Remaining = max(0, record.Eligible-record.Sent)
 		}
 		record.Status = customCampaignStatus(record.Eligible, record.Sent)
+		feedback := feedbackTotals[id]
+		record.Delivered = feedback.Delivered
+		record.Opened = feedback.Opened
+		record.Clicked = feedback.Clicked
+		record.Bounced = feedback.Bounced
+		record.Delayed = feedback.Delayed
+		record.Suppressed = feedback.Suppressed
+		record.Complained = feedback.Complained
+		record.ProviderFailed = feedback.ProviderFailed
+		record.Undeliverable = feedback.Undeliverable
+		record.AwaitingDelivery = feedback.AwaitingDelivery
 		result = append(result, record)
 	}
 	sort.Slice(result, func(i, j int) bool {
 		return result[i].UpdatedAt.After(result[j].UpdatedAt)
 	})
-	return customCampaignHistory{Campaigns: result, Placeholders: append([]string(nil), customCampaignPlaceholders...)}, nil
+	return customCampaignHistory{
+		Campaigns: result, Placeholders: append([]string(nil), customCampaignPlaceholders...),
+		FeedbackAvailable: feedbackAvailable, FeedbackRefreshedAt: feedbackRefreshedAt,
+		FeedbackMessage: feedbackMessage,
+	}, nil
 }
 
 func inferredLegacyCampaign(id string) customCampaignRecord {

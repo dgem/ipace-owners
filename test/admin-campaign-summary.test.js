@@ -12,6 +12,7 @@ test('Admin home exposes a claim-gated cross-channel campaign summary', function
   assert.match(page, /data-admin-container/);
   assert.match(page, /data-campaign-summary/);
   assert.match(page, /\/api\/admin\/campaign-summary/);
+  assert.match(page, /Email delivery feedback is reconciled with Resend/);
   assert.match(page, /Instagram engagement comes from Meta/);
   assert.match(layout, /adminDashboard[\s\S]*admin-campaign-summary\.js/);
 });
@@ -21,5 +22,8 @@ test('campaign summary uses the Firebase token and renders provider values as te
   assert.match(script, /Authorization.*Bearer/);
   assert.match(script, /replaceChildren/);
   assert.match(script, /textContent/);
+  assert.match(script, /undeliverable/);
+  assert.match(script, /bounced/);
+  assert.match(script, /delayed/);
   assert.doesNotMatch(script, /innerHTML/);
 });
