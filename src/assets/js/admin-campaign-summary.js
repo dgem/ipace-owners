@@ -23,8 +23,8 @@
       var data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Campaign totals could not be loaded.');
       cards.replaceChildren(
-        card('Email', data.email.available ? number(data.email.sent) + ' sent' : 'Unavailable',
-          data.email.available ? number(data.email.runs) + ' runs · ' + number(data.email.remaining) + ' remaining · ' + number(data.email.failed) + ' failed' : data.email.message),
+        card('Email', data.email.available ? number(data.email.delivered) + ' delivered of ' + number(data.email.sent) + ' sent' : 'Unavailable',
+          data.email.available ? number(data.email.awaitingDelivery) + ' awaiting delivery · ' + number(data.email.undeliverable) + ' undeliverable (' + number(data.email.bounced) + ' bounced, ' + number(data.email.suppressed) + ' suppressed, ' + number(data.email.providerFailed) + ' failed) · ' + number(data.email.delayed) + ' delayed · ' + number(data.email.opened) + ' opened · ' + number(data.email.clicked) + ' clicked' + (data.email.message ? '. ' + data.email.message : '') : data.email.message),
         card('Instagram', data.instagram.available ? number(data.instagram.published) + ' published' : 'Unavailable',
           data.instagram.available ? number(data.instagram.views) + ' views · ' + number(data.instagram.reach) + ' reach · ' + number(data.instagram.totalInteractions) + ' interactions' + (data.instagram.message ? '. ' + data.instagram.message : '') : data.instagram.message),
         card('Facebook', 'Manual outreach', data.facebook.message)

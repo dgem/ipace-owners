@@ -2635,6 +2635,11 @@ details .details-body p:last-child {
 .email-campaign-page {
   display: grid;
   gap: var(--space-6);
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.email-campaign-page > * {
+  min-width: 0;
 }
 
 .email-campaign-page-header {
@@ -2771,17 +2776,23 @@ details .details-body p:last-child {
 .email-campaign-history {
   display: grid;
   gap: var(--space-4);
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .email-campaign-history__item {
   background: var(--color-surface-muted);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
+  min-width: 0;
   padding: var(--space-5);
 }
 
 .email-campaign-history__item h3 {
   margin: 0;
+}
+
+.email-campaign-history__item > p {
+  overflow-wrap: anywhere;
 }
 
 .email-campaign-history__stats {

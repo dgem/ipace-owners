@@ -12,6 +12,16 @@ type campaignChannelSummary struct {
 	Drafts            int       `json:"drafts,omitempty"`
 	Published         int       `json:"published,omitempty"`
 	Sent              int       `json:"sent,omitempty"`
+	Delivered         int       `json:"delivered,omitempty"`
+	Opened            int       `json:"opened,omitempty"`
+	Clicked           int       `json:"clicked,omitempty"`
+	Bounced           int       `json:"bounced,omitempty"`
+	Delayed           int       `json:"delayed,omitempty"`
+	Complained        int       `json:"complained,omitempty"`
+	Undeliverable     int       `json:"undeliverable,omitempty"`
+	Suppressed        int       `json:"suppressed,omitempty"`
+	ProviderFailed    int       `json:"providerFailed,omitempty"`
+	AwaitingDelivery  int       `json:"awaitingDelivery,omitempty"`
 	Failed            int       `json:"failed,omitempty"`
 	Remaining         int       `json:"remaining,omitempty"`
 	Views             int64     `json:"views,omitempty"`
@@ -53,12 +63,23 @@ func buildCampaignSummary(ctx context.Context) campaignSummaryResponse {
 		result.Email.Runs = len(emailHistory.Campaigns)
 		for _, campaign := range emailHistory.Campaigns {
 			result.Email.Sent += campaign.Sent
+			result.Email.Delivered += campaign.Delivered
+			result.Email.Opened += campaign.Opened
+			result.Email.Clicked += campaign.Clicked
+			result.Email.Bounced += campaign.Bounced
+			result.Email.Delayed += campaign.Delayed
+			result.Email.Complained += campaign.Complained
+			result.Email.Undeliverable += campaign.Undeliverable
+			result.Email.Suppressed += campaign.Suppressed
+			result.Email.ProviderFailed += campaign.ProviderFailed
+			result.Email.AwaitingDelivery += campaign.AwaitingDelivery
 			result.Email.Failed += campaign.Failed
 			result.Email.Remaining += campaign.Remaining
 			if campaign.UpdatedAt.After(result.Email.LatestAt) {
 				result.Email.LatestAt = campaign.UpdatedAt
 			}
 		}
+		result.Email.Message = emailHistory.FeedbackMessage
 	}
 
 	instagramHistory, err := campaignSummaryInstagramHistory(ctx)

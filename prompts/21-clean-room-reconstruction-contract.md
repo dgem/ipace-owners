@@ -93,12 +93,12 @@ change rather than assuming it exists.
 | `POST /api/admin/member-referral-send` | Admin claim | Confirm and send the next batch of at most ten referral emails with the same idempotent ledger safeguards. |
 | `POST /api/admin/all-members-drive-preview` | Admin claim | Preview the deduplicated, contact-consenting audience across verified and unverified Join records and the exact recruitment email. |
 | `POST /api/admin/all-members-drive-send` | Admin claim | Confirm and send the next batch of at most ten all-member recruitment emails with hashed idempotent delivery records. |
-| `POST /api/admin/email-campaign-history` | Admin claim | Return parent campaign records and aggregate hashed-ledger delivery counts, including inferred legacy runs, without addresses. |
+| `POST /api/admin/email-campaign-history` | Admin claim | Return parent campaign records and aggregate hashed-ledger delivery counts, including inferred legacy runs and cached Resend delivery outcomes, without addresses. |
 | `POST /api/admin/custom-campaign-preview` | Admin claim | Validate/save a named subject and Markdown draft, calculate the verified consented audience, and return representative branded HTML/plain-text output. |
 | `POST /api/admin/custom-campaign-send` | Admin claim | Load immutable saved content, recheck the audience and exact `SEND <count>` confirmation, then send at most ten idempotent messages. |
 | `POST /api/admin/instagram-preview` | Admin claim | Validate a site-relative MP4/MOV path, caption and explicit full-media review; return the deterministic confirmation without a provider side effect. |
 | `POST /api/admin/instagram-campaign-history` | Admin claim | List named drafts and immutable publication records, refreshing cached provider insights when available. |
-| `POST /api/admin/campaign-summary` | Admin claim | Aggregate local email delivery and Instagram publication/insight totals; report Facebook as manual unless Page Insights is connected. |
+| `POST /api/admin/campaign-summary` | Admin claim | Aggregate reconciled Resend email outcomes and Instagram publication/insight totals; report Facebook as manual unless Page Insights is connected. |
 | `POST /api/admin/instagram-publish` | Admin claim | Revalidate the unchanged preview and exact confirmation, then create, process and publish one organic Reel through Meta. |
 | `POST /api/admin/instagram-generate` | Admin claim | Reserve an idempotent job and start one billable eight-second 9:16 Veo operation after exact `GENERATE VIDEO` confirmation. |
 | `POST /api/admin/instagram-generation-status` | Admin claim | Poll the Vertex operation, start the supported seven-second video continuation, promote the resulting 15-second master, and return an expiring delivery path. |
@@ -115,10 +115,13 @@ Never depend on frontend gating for data protection.
 ## Canonical Firestore and snapshot schemas
 
 Use these exact collection names: `joinSubmissions`, `members`, `vehicles`,
-`batteryReadings`, `serviceEvents`, `memberSnapshots`, `emailCampaigns`,
+`batteryReadings`, `serviceEvents`, `memberSnapshots`, `emailCampaigns`, `campaignMetadata`,
 `instagramCampaigns`, and `instagramGenerationJobs`. The email collection stores
 campaign delivery subdocuments keyed by a non-reversible email fingerprint, with no recipient
-address returned to the browser. Its parent documents store custom/specialised campaign kind,
+address returned to the browser. Delivery documents may store a Resend provider ID, normalised
+delivery status and provider update time; ignore provider recipient fields. `campaignMetadata`
+caches the last Resend feedback reconciliation time and coverage state for five minutes.
+Email campaign parent documents store custom/specialised campaign kind,
 name, subject, Markdown, optional source run, lifecycle status, eligible/sent/failed/remaining
 totals, batch count, and created/updated/last-sent timestamps. Private `members` documents may
 store `emailVerifiedAt` and `emailVerifiedAtInferred`; do not expose either through public data.
@@ -233,6 +236,11 @@ forms explicitly use POST even when JavaScript intercepts them.
   `memberLastName`, the requested `memberTittle` spelling and `memberTitle` alias, `memberJoined`,
   `memberVerified`, private-member `memberVehicles` JSON, `vehiclesRegisteredCount`, and
   `vehiclesSoHReadingsCount`; reject arbitrary Go-template actions and unsafe link schemes.
+- Reconcile hashed email delivery records against Resend's paginated sent-email API when an
+  administrator refreshes campaign data. Cache checks for five minutes and surface delivered,
+  awaiting-delivery, opened, clicked, delayed, bounced, suppressed, complained, provider-failed
+  and combined undeliverable totals in campaign history and the Admin overview. Store no provider
+  recipient addresses and degrade to cached feedback when Resend is temporarily unavailable.
   Reopen drafts and continue partial custom runs only with unchanged saved content; an edit after
   any delivery creates a new run linked to the original.
 - Provide an admin-only Instagram campaign page following the same preview-before-side-effect

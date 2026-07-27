@@ -124,6 +124,15 @@ test('custom campaign editor provides history, Markdown preview, reruns and safe
   assert.doesNotMatch(script, /innerHTML\s*=/);
 });
 
+test('campaign history renders provider delivery feedback without recipient data', function () {
+  assert.match(script, /Delivered/);
+  assert.match(script, /Undeliverable/);
+  assert.match(script, /Bounced/);
+  assert.match(script, /Delayed/);
+  assert.match(script, /Complaints/);
+  assert.match(script, /feedbackRefreshedAt/);
+});
+
 test('portable homepage copy uses production links and live-value placeholders', function () {
   const copy = fs.readFileSync(path.join(root, 'docs/homepage-copy.md'), 'utf8');
   const joinUrl = ['https:', '', 'ipace-owners.org', 'join', ''].join('/');

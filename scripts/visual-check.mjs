@@ -129,6 +129,8 @@ async function checkCampaignControls(viewport, screenshotName) {
     contentType: 'application/json',
     body: JSON.stringify({
       placeholders,
+      feedbackAvailable: true,
+      feedbackRefreshedAt: '2026-07-27T12:05:00Z',
       campaigns: [{
         campaignId: 'email-campaign_example',
         kind: 'custom-member',
@@ -138,6 +140,16 @@ async function checkCampaignControls(viewport, screenshotName) {
         status: 'sending',
         eligible: 389,
         sent: 371,
+        delivered: 360,
+        opened: 244,
+        clicked: 91,
+        awaitingDelivery: 3,
+        bounced: 4,
+        suppressed: 1,
+        providerFailed: 0,
+        delayed: 3,
+        complained: 1,
+        undeliverable: 5,
         failed: 1,
         remaining: 18,
         batchCount: 38,
@@ -233,6 +245,11 @@ async function checkCampaignControls(viewport, screenshotName) {
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
+  assert.equal(
+    await page.locator('.email-campaign-history__item').evaluate((element) => element.getBoundingClientRect().right <= document.documentElement.clientWidth),
+    true,
+    'campaign history must fit within the viewport'
+  );
   await page.locator('[data-campaign-tab="freeform"]').focus();
   await page.keyboard.press('Enter');
   await page.evaluate(() => window.scrollTo(0, 0));
@@ -251,7 +268,7 @@ async function checkAdminDashboard() {
   await page.route('**/api/admin/campaign-summary', (route) => route.fulfill({
     contentType: 'application/json',
     body: JSON.stringify({
-      email: { available: true, runs: 4, sent: 412, failed: 1, remaining: 8 },
+      email: { available: true, runs: 4, sent: 412, delivered: 401, opened: 278, clicked: 103, awaitingDelivery: 3, bounced: 4, suppressed: 1, providerFailed: 0, delayed: 3, undeliverable: 5, failed: 1, remaining: 8 },
       instagram: { available: true, runs: 3, published: 2, drafts: 1, views: 3200, reach: 2400, totalInteractions: 186 },
       facebook: { available: false, message: 'Manual outreach only. Facebook Page Insights are not connected.' }
     })

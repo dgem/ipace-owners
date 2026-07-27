@@ -16,8 +16,8 @@ func TestBuildCampaignSummaryAggregatesRecordedChannels(t *testing.T) {
 	now := time.Now().UTC()
 	campaignSummaryEmailHistory = func(context.Context) (customCampaignHistory, error) {
 		return customCampaignHistory{Campaigns: []customCampaignRecord{
-			{Sent: 12, Failed: 1, Remaining: 2, UpdatedAt: now},
-			{Sent: 3, Remaining: 4, UpdatedAt: now.Add(-time.Hour)},
+			{Sent: 12, Delivered: 10, Opened: 4, Clicked: 2, Bounced: 1, Suppressed: 1, Undeliverable: 2, Failed: 1, Remaining: 2, UpdatedAt: now},
+			{Sent: 3, Delivered: 2, Delayed: 1, Remaining: 4, UpdatedAt: now.Add(-time.Hour)},
 		}}, nil
 	}
 	campaignSummaryInstagramHistory = func(context.Context) (instagramCampaignHistory, error) {
@@ -27,7 +27,10 @@ func TestBuildCampaignSummaryAggregatesRecordedChannels(t *testing.T) {
 		}}, nil
 	}
 	result := buildCampaignSummary(context.Background())
-	if !result.Email.Available || result.Email.Runs != 2 || result.Email.Sent != 15 || result.Email.Failed != 1 || result.Email.Remaining != 6 {
+	if !result.Email.Available || result.Email.Runs != 2 || result.Email.Sent != 15 ||
+		result.Email.Delivered != 12 || result.Email.Opened != 4 || result.Email.Clicked != 2 ||
+		result.Email.Bounced != 1 || result.Email.Suppressed != 1 || result.Email.Delayed != 1 || result.Email.Undeliverable != 2 ||
+		result.Email.Failed != 1 || result.Email.Remaining != 6 {
 		t.Fatalf("email=%#v", result.Email)
 	}
 	if !result.Instagram.Available || result.Instagram.Runs != 2 || result.Instagram.Published != 1 || result.Instagram.Drafts != 1 || result.Instagram.Views != 100 || result.Instagram.Reach != 80 || result.Instagram.TotalInteractions != 7 {
