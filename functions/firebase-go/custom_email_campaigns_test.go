@@ -8,8 +8,41 @@ import (
 	"testing"
 	"time"
 
+	"cloud.google.com/go/firestore"
 	"firebase.google.com/go/v4/auth"
 )
+
+type recordingCampaignDocumentWriter struct {
+	data        any
+	optionCount int
+}
+
+func (writer *recordingCampaignDocumentWriter) Set(_ context.Context, data any, options ...firestore.SetOption) (*firestore.WriteResult, error) {
+	writer.data = data
+	writer.optionCount = len(options)
+	return nil, nil
+}
+
+func TestSaveCustomCampaignRecordReplacesStructWithoutMergeAll(t *testing.T) {
+	record := customCampaignRecord{
+		CampaignID: "campaign-1",
+		Kind:       "all-members-drive",
+		Name:       "Help us reach 1,000 members",
+		Sent:       10,
+		Remaining:  419,
+	}
+	writer := &recordingCampaignDocumentWriter{}
+	if err := saveCustomCampaignRecord(context.Background(), writer, record); err != nil {
+		t.Fatal(err)
+	}
+	saved, ok := writer.data.(customCampaignRecord)
+	if !ok || saved != record {
+		t.Fatalf("saved record = %#v", writer.data)
+	}
+	if writer.optionCount != 0 {
+		t.Fatalf("Set received %d options; Firestore MergeAll cannot be used with struct data", writer.optionCount)
+	}
+}
 
 func TestCustomCampaignSubstitutionsRenderEveryDocumentedValue(t *testing.T) {
 	audience := customCampaignAudience{
