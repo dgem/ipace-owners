@@ -174,8 +174,8 @@ async function checkCampaignControls(viewport, screenshotName) {
       remaining: 412,
       emailPreview: {
         subject: 'Thanks for joining — help us reach 1,000 I-PACE owners',
-        html: '<!doctype html><html lang="en"><body style="font-family:Arial;background:#f7f8fb;padding:24px"><main style="max-width:600px;margin:auto;background:white;padding:32px"><h1 style="color:#12324a">Thank you for joining and supporting us</h1><p>We launched on 17 July—less than two weeks ago.</p><p>I-PACE owners are stronger together.</p><h2>Suggested text to share</h2><p>Own an I-PACE? Add your voice and help us reach 1,000 members. Free to join: https://ipace-owners.org/</p><p><a href="https://www.facebook.com/">Facebook</a> <a href="https://wa.me/">WhatsApp</a></p></main></body></html>',
-        text: 'Thank you for joining and supporting us. We launched on 17 July—less than two weeks ago.\\n\\nI-PACE owners are stronger together.\\n\\nSuggested text to share\\n\\nOwn an I-PACE? Add your voice and help us reach 1,000 members. Free to join: https://ipace-owners.org/'
+        html: '<!doctype html><html lang="en"><body style="font-family:Arial;background:#f7f8fb;padding:24px"><main style="max-width:600px;margin:auto;background:white;padding:32px"><h1 style="color:#12324a">Thank you for joining and adding your voice</h1><p>We launched on 17 July—less than two weeks ago.</p><p>I-PACE owners are stronger together.</p><h2>Suggested text to share</h2><p>Own an I-PACE? Add your voice and help us reach 1,000 members. Free to join: https://ipace-owners.org/</p><p><a href="https://www.facebook.com/">Facebook</a> <a href="https://wa.me/">WhatsApp</a></p></main></body></html>',
+        text: 'Thank you for joining and adding your voice. We launched on 17 July—less than two weeks ago.\\n\\nI-PACE owners are stronger together.\\n\\nSuggested text to share\\n\\nOwn an I-PACE? Add your voice and help us reach 1,000 members. Free to join: https://ipace-owners.org/'
       }
     })
   }));

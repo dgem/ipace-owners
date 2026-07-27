@@ -819,7 +819,7 @@ func allMembersDriveEmailBodies(person campaignRecipient, memberCount int) (stri
 	}
 	htmlBody := brandedEmailHTML(brandedEmailMessage{
 		DocumentTitle: subject, Preheader: fmt.Sprintf("Thank you for your support. %d owners have joined since 17 July.", memberCount),
-		Heading: "Thank you for joining and supporting us", BodyHTML: bodyHTML,
+		Heading: "Thank you for joining and adding your voice", BodyHTML: bodyHTML,
 		PrimaryActionLabel: "Share I-PACE Owners", PrimaryActionURL: "https://ipace-owners.org/",
 		SupplementHTML: buttons,
 		FooterNote:     "You are receiving this because you joined the group and agreed that we could contact you. Reply if you no longer wish to hear from us.",

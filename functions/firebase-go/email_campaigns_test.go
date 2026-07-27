@@ -205,7 +205,7 @@ func TestAllMembersDriveEmailUsesRequestedRecruitmentMessage(t *testing.T) {
 	preview := makeAllMembersDriveEmailPreview(412)
 	for _, expected := range []string{
 		"412 members",
-		"Thank you for joining",
+		"Thank you for joining and adding your voice",
 		"Thank you for your support",
 		"17 July—less than two weeks ago",
 		"I-PACE owners are stronger together",
