@@ -16,10 +16,10 @@ Create a small, maintainable Eleventy 3 site that can be deployed to Firebase Ho
 - Store global data in `src/_data/site.json` and `src/_data/navigation.json`.
 - Navigation data should include:
   - Public: Home, About, Evidence, Methodology, FAQ, Updates, Join.
-  - Member: My Data, My Vehicle, Account. Signed-in users should see `My Data` as the
-    main member workspace link; the signed-in email address or Account link should route
-    to account management.
-  - Admin: Review Queue, Submissions, Evidence Files, Public Stats, Exports, Members, Settings.
+  - Member: My Data and Add Vehicle. `My Data` routes to the member account homepage;
+    do not expose the signed-in email as a separate navigation action.
+  - Admin: one claim-gated Admin action routes to `/admin/`; the dashboard links to the
+    implemented tools rather than repeating them in shared navigation.
 - Pass through `src/assets/`.
 - Pass through `public/` to the site root with `eleventyConfig.addPassthroughCopy({ public: "." })`, so `public/images/example.png` is served at `/images/example.png`.
 - Include the approved PNG favicon at `public/favicon.png` and link it from the base layout.

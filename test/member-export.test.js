@@ -11,6 +11,7 @@ test('member account offers authenticated CSV and Excel exports', () => {
   const main = fs.readFileSync(path.join(root, 'functions/firebase-go/main.go'), 'utf8');
   assert.match(account, /data-member-export="csv"/);
   assert.match(account, /data-member-export="xlsx"/);
+  assert.match(account, /href="\/member\/dashboard\/"[^>]*>Vehicle Data<\/a>/);
   assert.match(script, /ipaceGetIdentityToken/);
   assert.match(script, /Authorization: 'Bearer '/);
   assert.match(script, /\/api\/member-export\?format=/);

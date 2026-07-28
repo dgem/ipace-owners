@@ -726,10 +726,11 @@ configured email to its environment-specific UID, preserves unrelated custom cla
 The apply fails rather than silently continuing if a configured account has not completed
 Firebase sign-in. Staging and production are reconciled independently. After a claim change,
 sign out and request a new magic link so the next ID token contains the current claim.
-Signed-in administrators receive the complete admin menu in a right-aligned secondary desktop
-header row and a labelled section of the mobile drawer. It is not repeated inside admin page
-content. These navigation hints use token claims, while every protected endpoint continues to
-enforce administrator access server-side. Signed-out mobile headers keep a compact Sign in
+Signed-in administrators receive one Admin action in the primary desktop controls and one in the
+mobile Member section, both linking to the admin dashboard. The dashboard is the directory for
+individual admin tools, which are not repeated in shared navigation. These navigation hints use
+token claims, while every protected endpoint continues to enforce administrator access
+server-side. Signed-out mobile headers keep a compact Sign in
 action beside the menu toggle as well as the full-width action inside the drawer; both disappear
 when authentication succeeds.
 

@@ -87,13 +87,16 @@ Platform API bridge. The shared module always includes `dan@kanzi.co.uk`, resolv
 environment-specific UID, preserves unrelated custom claims, and revokes only admin access from
 users removed from the desired set. A configured user must already exist in Firebase Auth.
 
-After claims are verified, render the complete admin menu in a right-aligned secondary desktop
-header row and a labelled mobile-drawer section. Do not duplicate it below admin page titles.
+After claims are verified, render one Admin action in the primary desktop controls and one in the
+mobile Member section, both linking to `/admin/`. The admin dashboard is the sole shared directory
+of admin tools; do not duplicate its tool links in header navigation.
 For signed-out mobile visitors, keep Sign in visible beside the menu toggle as well as inside
 the drawer, then hide both signed-out actions when authentication succeeds. The mobile header
 action must stay hidden at desktop widths even after the shared `.btn` display rule is applied.
 On member routes, use a compact one-line `Member › current page` secondary breadcrumb row with
-the current crumb visibly emphasised; the mobile drawer exposes My data, Add vehicle and Account.
+the current crumb visibly emphasised; the mobile drawer exposes My Data and Add Vehicle. The
+primary `My Data` action links to `/member/account/`, and the member email is not shown in the
+header.
 
 ## Implemented API contracts
 

@@ -58,14 +58,16 @@ Platform API because the Google provider has no Firebase Auth user data source. 
 always includes `dan@kanzi.co.uk`; additional admins come from environment configuration. Resolve
 emails to per-environment UIDs, preserve unrelated claims, grant `admin: true`, remove only admin
 access from removed users, and fail closed for missing accounts or an empty desired set.
-Signed-in administrators receive desktop and mobile navigation to `/admin/outreach/` only after
+Signed-in administrators receive desktop and mobile navigation to `/admin/` only after
 the browser reads an admin claim from the Firebase ID token. Treat that link as discoverability,
 not authorization; the route remains gated by the server-verified admin API.
 
-The complete admin menu belongs in a claim-gated, right-aligned secondary desktop header row and
-a labelled mobile-drawer section, not inside individual admin page content. Member routes render
-a compact, single-line `Member › current page` secondary breadcrumb with the active crumb visibly
-emphasised, while the drawer provides My data, Add vehicle and Account. The signed-out mobile
+Expose exactly one claim-gated Admin action in the primary desktop controls and one in the mobile
+Member section. `/admin/` is the directory for individual tools; do not duplicate those tool links
+in shared navigation. Member routes render a compact, single-line `Member › current page`
+secondary breadcrumb with the active crumb visibly emphasised, while the drawer provides My Data
+and Add Vehicle. `My Data` links to `/member/account/`, and the member email is not displayed as a
+header action. The signed-out mobile
 header exposes Sign in beside the menu toggle and repeats it in the drawer for discoverability;
 both signed-out actions disappear after authentication, and the mobile header action remains
 hidden at desktop widths.

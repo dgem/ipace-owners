@@ -30,7 +30,6 @@
 
 	var loginBtn = document.getElementById('identity-login-btn');
 	var logoutBtn = document.getElementById('identity-logout-btn');
-	var userDisplay = document.getElementById('identity-user-display');
 	var mobileHeaderLoginBtn = document.getElementById('identity-mobile-header-login-btn');
 	var mobileLoginBtn = document.getElementById('identity-mobile-login-btn');
 	var mobileLogoutBtn = document.getElementById('identity-mobile-logout-btn');
@@ -63,11 +62,6 @@
 			if (mobileLogoutBtn) mobileLogoutBtn.style.display = '';
 			setVisibility('[data-requires-auth]', true);
 			setVisibility('[data-requires-guest]', false);
-			if (userDisplay) {
-				userDisplay.style.display = '';
-				userDisplay.textContent = user.email || 'Member';
-				userDisplay.setAttribute('aria-label', 'My account');
-			}
 		} else {
 			if (loginBtn) loginBtn.style.display = '';
 			if (logoutBtn) logoutBtn.style.display = 'none';
@@ -77,7 +71,6 @@
 			setVisibility('[data-requires-auth]', false);
 			setVisibility('[data-requires-admin]', false);
 			setVisibility('[data-requires-guest]', true);
-			if (userDisplay) userDisplay.style.display = 'none';
 		}
 	}
 

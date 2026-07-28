@@ -38,13 +38,21 @@ const expectedAdminDestinations = [
   '/admin/instagram-campaigns/'
 ];
 
-async function assertAdminDestinations(locator) {
-  assert.deepEqual(await locator.evaluateAll((links) => links.map((link) => link.getAttribute('href'))), expectedAdminDestinations);
-}
-
 async function revealAdminState(page) {
   await page.evaluate(function () {
+    document.querySelectorAll('[data-requires-auth]').forEach(function (element) {
+      element.style.display = '';
+    });
     document.querySelectorAll('[data-requires-admin]').forEach(function (element) {
+      element.style.display = '';
+    });
+    document.querySelectorAll('[data-requires-guest]').forEach(function (element) {
+      element.style.display = 'none';
+    });
+    document.querySelectorAll('#identity-login-btn, #identity-mobile-header-login-btn, #identity-mobile-login-btn').forEach(function (element) {
+      element.style.display = 'none';
+    });
+    document.querySelectorAll('#identity-logout-btn, #identity-mobile-logout-btn').forEach(function (element) {
       element.style.display = '';
     });
     document.querySelectorAll('[data-admin-content]').forEach(function (element) {
@@ -66,20 +74,20 @@ async function checkDesktopAdminHeader() {
 
   const header = page.locator('.site-header');
   const primary = page.locator('.site-header__inner');
-  const admin = page.locator('.site-admin-nav');
   const title = page.locator('.page-header');
+  const admin = page.locator('.site-header__actions a[href="/admin/"][data-requires-admin]');
   await admin.waitFor({ state: 'visible' });
-  assert.equal(await admin.evaluate((element) => getComputedStyle(element).display), 'flex');
-  await assertAdminDestinations(admin.locator('a'));
+  assert.equal(await admin.textContent(), 'Admin');
+  assert.equal(await page.locator('.site-admin-nav').count(), 0);
+  assert.equal(await page.locator('#identity-user-display').count(), 0);
+  assert.equal(await page.locator('.site-header__actions a[href="/member/account/"][data-requires-auth]').textContent(), 'My Data');
 
   const headerBox = await header.boundingBox();
   const primaryBox = await primary.boundingBox();
-  const adminBox = await admin.boundingBox();
   const titleBox = await title.boundingBox();
-  assert.ok(headerBox && primaryBox && adminBox && titleBox);
-  assert.ok(adminBox.y >= primaryBox.y + primaryBox.height, 'admin row must sit below the primary header row');
-  assert.ok(adminBox.y + adminBox.height <= headerBox.y + headerBox.height, 'header must expand around the admin row');
-  assert.ok(titleBox.y >= headerBox.y + headerBox.height, 'page title must start below the expanded header');
+  assert.ok(headerBox && primaryBox && titleBox);
+  assert.ok(headerBox.height <= 90, 'admin access must not create a second header row');
+  assert.ok(titleBox.y >= headerBox.y + headerBox.height, 'page title must start below the header');
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, 'admin-outreach-desktop.png'), fullPage: true });
   await page.close();
@@ -88,29 +96,21 @@ async function checkDesktopAdminHeader() {
 async function checkMobileAdminDrawer() {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
   await page.goto(baseURL + '/admin/outreach/', { waitUntil: 'networkidle' });
-  await revealAdminState(page);
   assert.equal(await page.locator('#identity-mobile-header-login-btn').isVisible(), true);
   await page.locator('#mobile-menu-toggle').click();
-  await page.locator('.mobile-nav__admin').waitFor({ state: 'visible' });
   assert.equal(await page.locator('#identity-mobile-login-btn').isVisible(), true);
-  assert.equal(await page.locator('.site-admin-nav').isVisible(), false);
-  await assertAdminDestinations(page.locator('.mobile-nav__admin a'));
+  assert.equal(await page.locator('.mobile-nav__admin').count(), 0);
+  assert.equal(await page.locator('.mobile-nav__identity a[href="/admin/"]').isVisible(), false);
   const mobileLogin = page.locator('#identity-mobile-login-btn');
   assert.equal(await mobileLogin.isVisible(), true, 'signed-out mobile navigation must show Sign in');
   assert.equal(await mobileLogin.evaluate((element) => getComputedStyle(element).color), 'rgb(255, 255, 255)');
   assert.equal(await page.locator('.mobile-nav__identity-label').textContent(), 'Member');
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, 'admin-outreach-mobile.png'), fullPage: true });
-  await page.evaluate(() => {
-    document.querySelector('#identity-mobile-header-login-btn').style.display = 'none';
-    document.querySelector('#identity-mobile-login-btn').style.display = 'none';
-    document.querySelector('#identity-mobile-logout-btn').style.display = '';
-    document.querySelectorAll('.mobile-nav__identity [data-requires-auth]').forEach((element) => {
-      element.style.display = '';
-    });
-  });
-  assert.equal(await page.locator('.mobile-nav__identity a[href="/member/dashboard/"]').isVisible(), true);
-  assert.equal(await page.locator('.mobile-nav__identity a[href="/member/account/"][data-requires-auth]').isVisible(), true);
+  await revealAdminState(page);
+  assert.equal(await page.locator('.mobile-nav__identity a[href="/member/account/"][data-requires-auth]').textContent(), 'My Data');
+  assert.equal(await page.locator('.mobile-nav__identity a[href="/member/dashboard/"]').count(), 0);
+  assert.equal(await page.locator('.mobile-nav__identity a[href="/admin/"]').isVisible(), true);
   assert.equal(await page.locator('#identity-mobile-logout-btn').isVisible(), true);
   assert.equal(await page.locator('#identity-mobile-header-login-btn').isVisible(), false);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
@@ -288,6 +288,11 @@ async function checkAdminDashboard() {
   await page.locator('.campaign-summary-card').first().waitFor({ state: 'visible' });
   assert.equal(await page.locator('.campaign-summary-card').count(), 3);
   assert.equal(await page.locator('.admin-dashboard-grid .card').count(), 4);
+  assert.equal(await page.locator('.admin-dashboard-grid .admin-tool-logo svg').count(), 4);
+  assert.equal(await page.locator('.admin-dashboard-grid .btn--primary').count(), 4);
+  assert.deepEqual(await page.locator('.admin-dashboard-grid .btn').allTextContents(), [
+    'Review Queue', 'Facebook Assistant', 'Email Campaigns', 'Instagram Campaigns'
+  ]);
   assert.deepEqual(await page.locator('.admin-dashboard-grid a').evaluateAll((links) => links.map((link) => link.getAttribute('href'))), expectedAdminDestinations.slice(1));
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, 'admin-dashboard-desktop.png'), fullPage: true });
@@ -354,6 +359,9 @@ async function checkMemberExport(viewport, screenshotName) {
   await page.evaluate(() => {
     document.querySelectorAll('[data-auth-content]').forEach((element) => { element.hidden = false; });
     document.querySelectorAll('[data-auth-pending], [data-auth-login-gate]').forEach((element) => { element.hidden = true; });
+    document.querySelectorAll('[data-requires-auth]').forEach((element) => { element.style.display = ''; });
+    document.querySelectorAll('[data-requires-guest], #identity-login-btn, #identity-mobile-header-login-btn, #identity-mobile-login-btn').forEach((element) => { element.style.display = 'none'; });
+    document.querySelectorAll('#identity-logout-btn, #identity-mobile-logout-btn').forEach((element) => { element.style.display = ''; });
     document.querySelectorAll('.cookie-notice').forEach((element) => { element.hidden = true; });
   });
   assert.equal(await page.locator('[data-member-export]').count(), 2);

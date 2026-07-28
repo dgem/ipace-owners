@@ -43,14 +43,15 @@ server-side by Go Cloud Functions that validate Firebase ID tokens.
   header (`Member › current page`). Emphasise the current crumb with `aria-current="page"`
   and a visible active style. Keep the member page title compact and do not repeat a
   redundant `Member` eyebrow immediately below the breadcrumb.
-- Keep the mobile drawer's labelled Account section visible and colour-contrast compliant:
-  guests see Sign in; authenticated members see My data, Add vehicle, Account and Sign out.
+- Keep the mobile drawer's labelled Member section visible and colour-contrast compliant:
+  guests see Sign in; authenticated members see My Data, Add Vehicle and Sign out. Administrators
+  additionally see one claim-gated Admin action.
 - The signed-out mobile header Sign in control must be visible only below the mobile
   breakpoint. Its hiding rule must outrank the shared button display rule so desktop never
   renders both the desktop and mobile Sign in actions.
 - Show public `Join` CTA only to guests. Signed-in users must have exactly one obvious
-  `My Data` route to `/member/dashboard/` in desktop and mobile navigation. The signed-in
-  email address should link to `/member/account/` as the account-management route.
+  `My Data` route to the `/member/account/` homepage in desktop and mobile navigation.
+  Do not expose the signed-in email address as a separate header action.
 - Keep authenticated account and vehicle-registration templates within `src/member/`, at
   `/member/account/` and `/member/submit-vehicle-data/`. Permanently redirect their former
   top-level routes so bookmarks and previously issued links remain usable.
@@ -83,11 +84,11 @@ server-side by Go Cloud Functions that validate Firebase ID tokens.
 
 ## Server-side APIs
 
-The complete admin navigation, including `/admin/email-campaigns/`, lives in a claim-gated
-secondary row of the desktop site header, aligned right, and in a labelled section of the mobile
-drawer. Do not repeat it inside individual admin page content. It remains hidden until Firebase
-claims indicate admin access, while campaign APIs independently verify the ID token and admin
-role server-side.
+The shared desktop and mobile navigation exposes exactly one `Admin` action, linking to
+`/admin/`, after Firebase claims indicate admin access. The admin dashboard is the directory for
+Review Queue, Facebook Assistant, Email Campaigns and Instagram Campaigns; do not duplicate those
+tool links in the shared header or mobile drawer. Campaign APIs independently verify the ID token
+and admin role server-side.
 
 | Function | Auth Required | Purpose |
 |---|---|---|
@@ -102,7 +103,7 @@ reconciliation bridge because the Google provider exposes no Firebase Auth user 
 Always include `dan@kanzi.co.uk` as a required administrator, resolve configured emails to the
 environment-specific Firebase UID during apply, preserve unrelated claims, and remove only
 admin access from users removed from configuration. Fail when a configured user does not exist.
-After sign-in, inspect the Firebase ID-token result and expose desktop/mobile admin navigation
+After sign-in, inspect the Firebase ID-token result and expose the desktop/mobile Admin action
 only for `admin: true` or a `roles` entry containing `admin`. This is a discoverability aid only;
 the destination must continue to require server-side `AdminData` verification.
 

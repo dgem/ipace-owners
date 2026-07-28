@@ -23,22 +23,26 @@ test('admin email campaign page is gated and describes bounded sending', functio
   assert.doesNotMatch(page, /Admin navigation/);
 });
 
-test('admin navigation lives in the claim-gated site header, not page content', function () {
+test('the claim-gated header links once to the admin dashboard', function () {
   const outreach = fs.readFileSync(path.join(root, 'src/admin/outreach.njk'), 'utf8');
   const review = fs.readFileSync(path.join(root, 'src/admin/review-queue.njk'), 'utf8');
   const header = fs.readFileSync(path.join(root, 'src/_includes/partials/header.njk'), 'utf8');
   assert.doesNotMatch(outreach, /Admin navigation/);
   assert.doesNotMatch(review, /Admin navigation/);
-  assert.match(header, /site-admin-nav[\s\S]*navigation\.admin/);
+  assert.match(header, /href="\/admin\/" class="btn btn--sm btn--ghost" data-requires-admin[^>]*>Admin<\/a>/);
+  assert.doesNotMatch(header, /site-admin-nav|navigation\.admin/);
 });
 
 test('admin index is a gated dashboard of implemented tools', function () {
   const dashboard = fs.readFileSync(path.join(root, 'src/admin/index.njk'), 'utf8');
   assert.match(dashboard, /data-admin-container/);
   assert.match(dashboard, /data-admin-content hidden/);
-  assert.match(dashboard, /Open review queue/);
-  assert.match(dashboard, /Open outreach assistant/);
-  assert.match(dashboard, /Open email campaigns/);
+  assert.match(dashboard, />Review Queue<\/a>/);
+  assert.match(dashboard, />Facebook Assistant<\/a>/);
+  assert.match(dashboard, />Email Campaigns<\/a>/);
+  assert.match(dashboard, />Instagram Campaigns<\/a>/);
+  assert.equal((dashboard.match(/class="admin-tool-logo"/g) || []).length, 4);
+  assert.equal((dashboard.match(/class="btn btn--primary" href="\/admin\//g) || []).length, 4);
   assert.match(dashboard, /not linked prematurely/);
 });
 

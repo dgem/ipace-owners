@@ -42,28 +42,49 @@ adminDashboard: true
 
         <div class="grid grid--3 admin-dashboard-grid">
           <article class="card">
-            <div class="card__icon" aria-hidden="true">✓</div>
+            <div class="admin-tool-logo" aria-hidden="true">
+              <svg viewBox="0 0 32 32" fill="none">
+                <path d="M11 7H8a2 2 0 0 0-2 2v17h20V9a2 2 0 0 0-2-2h-3" stroke="currentColor" stroke-width="2"/>
+                <path d="M12 4h8a2 2 0 0 1 2 2v4H10V6a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="2"/>
+                <path d="m11 18 3 3 7-7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
             <h3 class="card__title">Review queue</h3>
             <div class="card__body"><p>Inspect Join submissions and vehicle records loaded through the server-verified admin API.</p></div>
-            <a class="btn btn--secondary" href="/admin/review-queue/">Open review queue</a>
+            <a class="btn btn--primary" href="/admin/review-queue/">Review Queue</a>
           </article>
           <article class="card">
-            <div class="card__icon" aria-hidden="true">⌕</div>
+            <div class="admin-tool-logo" aria-hidden="true">
+              <svg viewBox="0 0 32 32" fill="currentColor">
+                <path d="M18.2 28V17.1h3.7l.5-4.2h-4.2v-2.7c0-1.2.4-2.1 2.1-2.1h2.3V4.3c-.4-.1-1.8-.2-3.3-.2-3.3 0-5.5 2-5.5 5.7v3.1H10v4.2h3.8V28h4.4Z"/>
+              </svg>
+            </div>
             <h3 class="card__title">Facebook outreach</h3>
             <div class="card__body"><p>Build manual Facebook searches and draft helpful, transparent responses to owners.</p></div>
-            <a class="btn btn--primary" href="/admin/outreach/">Open outreach assistant</a>
+            <a class="btn btn--primary" href="/admin/outreach/">Facebook Assistant</a>
           </article>
           <article class="card card--accent">
-            <div class="card__icon" aria-hidden="true">✉</div>
+            <div class="admin-tool-logo" aria-hidden="true">
+              <svg viewBox="0 0 32 32" fill="none">
+                <rect x="4" y="7" width="24" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
+                <path d="m5 9 11 9 11-9" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+              </svg>
+            </div>
             <h3 class="card__title">Email campaigns</h3>
             <div class="card__body"><p>Preview and send registration reminders or member-referral campaigns in resumable batches.</p></div>
-            <a class="btn btn--primary" href="/admin/email-campaigns/">Open email campaigns</a>
+            <a class="btn btn--primary" href="/admin/email-campaigns/">Email Campaigns</a>
           </article>
           <article class="card">
-            <div class="card__icon" aria-hidden="true">◎</div>
+            <div class="admin-tool-logo" aria-hidden="true">
+              <svg viewBox="0 0 32 32" fill="none">
+                <rect x="4" y="4" width="24" height="24" rx="7" stroke="currentColor" stroke-width="2"/>
+                <circle cx="16" cy="16" r="5.5" stroke="currentColor" stroke-width="2"/>
+                <circle cx="23.5" cy="8.5" r="1.5" fill="currentColor"/>
+              </svg>
+            </div>
             <h3 class="card__title">Instagram campaigns</h3>
             <div class="card__body"><p>Review a chat-prepared Reel and caption, then publish only after an exact confirmation.</p></div>
-            <a class="btn btn--secondary" href="/admin/instagram-campaigns/">Open Instagram campaigns</a>
+            <a class="btn btn--primary" href="/admin/instagram-campaigns/">Instagram Campaigns</a>
           </article>
         </div>
 
