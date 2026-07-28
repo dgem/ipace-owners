@@ -60,9 +60,10 @@ the retired hosting or Function platform.
 1. Build-time Firebase web config is emitted by `.eleventy.js` from environment variables.
 2. `identity.js` initialises Firebase Auth and never opens a password modal.
 3. Magic-link login forms call `POST /api/send-magic-link`.
-4. The Go `Api` Function routes the request to `SendMagicLink`, which first checks for an
-   existing Join submission matching the email fingerprint. It invokes the configured
-   Firebase-default or Admin-SDK/Resend delivery path only for registered members and
+4. The Go `Api` Function routes the request to `SendMagicLink`, which checks for an existing
+   Join submission matching the email fingerprint and falls back to an exact Firebase
+   Authentication email lookup. It invokes the configured Firebase-default or
+   Admin-SDK/Resend delivery path only for registered members or existing Auth accounts and
    suppresses email side effects for unregistered addresses or lookup failures while
    returning account-enumeration-resistant `{ ok: true }` for valid email syntax. Set
    Identity Toolkit's `linkDomain` only for environments with a verified Firebase Hosting
@@ -89,7 +90,10 @@ users removed from the desired set. A configured user must already exist in Fire
 After claims are verified, render the complete admin menu in a right-aligned secondary desktop
 header row and a labelled mobile-drawer section. Do not duplicate it below admin page titles.
 For signed-out mobile visitors, keep Sign in visible beside the menu toggle as well as inside
-the drawer, then hide both signed-out actions when authentication succeeds.
+the drawer, then hide both signed-out actions when authentication succeeds. The mobile header
+action must stay hidden at desktop widths even after the shared `.btn` display rule is applied.
+On member routes, use a compact one-line `Member › current page` secondary breadcrumb row with
+the current crumb visibly emphasised; the mobile drawer exposes My data, Add vehicle and Account.
 
 ## Implemented API contracts
 

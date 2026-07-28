@@ -15,8 +15,9 @@ server-side by Go Cloud Functions that validate Firebase ID tokens.
 - Do not add a password form or hosted password modal.
 - Visible sign-in UI must use custom `[data-magic-link-form]` forms that call
   `POST /api/send-magic-link`. These forms are login-only: the server must send a Firebase
-  email link only when the email fingerprint already has a Join submission, and the UI copy
-  must use non-enumerating language such as "if this email address is registered".
+  email link only when the email fingerprint has a Join submission or the exact email belongs
+  to an existing Firebase Authentication account. The UI copy must use non-enumerating
+  language such as "if this email address is registered".
 - `src/assets/js/identity.js` owns email-link completion, header UI, logout, magic-link
   form submission, protected form token injection, and Join result state.
 - `src/assets/js/member-auth.js` owns server-side auth verification and data population on
@@ -38,8 +39,15 @@ server-side by Go Cloud Functions that validate Firebase ID tokens.
 - Expose `window.ipaceGetIdentityToken()` so form/API code can attach
   `Authorization: Bearer <Firebase ID token>`.
 - Update header and mobile controls based on current user state.
+- On member routes, render a compact, single-line secondary breadcrumb row in the shared
+  header (`Member › current page`). Emphasise the current crumb with `aria-current="page"`
+  and a visible active style. Keep the member page title compact and do not repeat a
+  redundant `Member` eyebrow immediately below the breadcrumb.
 - Keep the mobile drawer's labelled Account section visible and colour-contrast compliant:
-  guests see Sign in; authenticated members see My Data, My account and Sign out.
+  guests see Sign in; authenticated members see My data, Add vehicle, Account and Sign out.
+- The signed-out mobile header Sign in control must be visible only below the mobile
+  breakpoint. Its hiding rule must outrank the shared button display rule so desktop never
+  renders both the desktop and mobile Sign in actions.
 - Show public `Join` CTA only to guests. Signed-in users must have exactly one obvious
   `My Data` route to `/member/dashboard/` in desktop and mobile navigation. The signed-in
   email address should link to `/member/account/` as the account-management route.
@@ -115,7 +123,10 @@ the API confirms auth.
 
 - Join completion makes exactly one browser request: `POST /api/submit-join`.
 - `SubmitJoin` stores the Join answers and sends a Firebase email link for guests.
-- `SendMagicLink` remains available for existing users who need another link.
+- `SendMagicLink` remains available for existing users who need another link. Treat either
+  a matching Join submission or an existing Firebase Authentication account as registered;
+  this supports claim-managed staging administrators whose preview data does not include a
+  copied Join record.
 - Both endpoints must avoid account enumeration.
 - Do not call Firebase Identity Toolkit directly from browser code except through the
   Firebase Auth SDK's email-link completion.

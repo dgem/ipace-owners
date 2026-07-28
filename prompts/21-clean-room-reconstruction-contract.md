@@ -63,9 +63,12 @@ the browser reads an admin claim from the Firebase ID token. Treat that link as 
 not authorization; the route remains gated by the server-verified admin API.
 
 The complete admin menu belongs in a claim-gated, right-aligned secondary desktop header row and
-a labelled mobile-drawer section, not inside individual admin page content. The signed-out mobile
+a labelled mobile-drawer section, not inside individual admin page content. Member routes render
+a compact, single-line `Member › current page` secondary breadcrumb with the active crumb visibly
+emphasised, while the drawer provides My data, Add vehicle and Account. The signed-out mobile
 header exposes Sign in beside the menu toggle and repeats it in the drawer for discoverability;
-both signed-out actions disappear after authentication.
+both signed-out actions disappear after authentication, and the mobile header action remains
+hidden at desktop widths.
 
 `/admin/` is the claim-gated landing dashboard. It links to every implemented admin tool and
 describes planned areas without linking to unimplemented routes.
@@ -80,7 +83,7 @@ change rather than assuming it exists.
 
 | Method and route | Authentication | Request/response contract |
 |---|---|---|
-| `POST /api/send-magic-link` | Public | JSON `email`, optional `name`; return enumeration-resistant `{ "ok": true }` for syntactically valid requests. |
+| `POST /api/send-magic-link` | Public | JSON `email`, optional `name`; send only for a matching Join submission or existing Firebase Auth account and return enumeration-resistant `{ "ok": true }` for syntactically valid requests. |
 | `POST /api/submit-join` | Optional Firebase token | `name`, `email`, `country`, `relationship`, `skills[]`, `consent-contact`, `consent-not-legal`, `consent-data`, and `bot-field`; save the Join record and initiate guest activation. |
 | `POST /api/submit-vehicle-basics` | Member | `vin`, `registration`, `country`, `modelYear`, `mileage`, `ownedSince`, `firstReg`, plus optional `soh`, `sohDate`, `sohMileage`, `sohSource`. |
 | `POST /api/submit-soh` | Member/vehicle owner | `vehicleId`, `soh`, `sohDate`, `sohMileage`, `sohSource`; append history and update the vehicle compatibility value. |
@@ -324,7 +327,9 @@ Before declaring reconstruction complete:
 6. Test registration-reminder, member-referral, and custom email campaign preview/send
    boundaries, immutable delivery ledgers, aggregate history, partial-run continuation,
    draft editing, clone-to-rerun behaviour, substitutions, exact confirmation gates, and the
-   compact history/tools navigation plus keyboard-operable campaign tabs.
+   compact history/tools navigation plus keyboard-operable campaign tabs. At narrow
+   breakpoints, show the four campaign tabs in a fully visible two-column grid rather than
+   clipping later options behind an unlabelled horizontal overflow edge.
 7. Test Instagram generation and publishing independently: admin/origin authorization,
    idempotent asynchronous Veo phases, private expiring media delivery, complete human review,
    preview invalidation, fail-closed optional configuration, and exact publish confirmation.

@@ -98,7 +98,7 @@ async function checkMobileAdminDrawer() {
   const mobileLogin = page.locator('#identity-mobile-login-btn');
   assert.equal(await mobileLogin.isVisible(), true, 'signed-out mobile navigation must show Sign in');
   assert.equal(await mobileLogin.evaluate((element) => getComputedStyle(element).color), 'rgb(255, 255, 255)');
-  assert.equal(await page.locator('.mobile-nav__identity-label').textContent(), 'Account');
+  assert.equal(await page.locator('.mobile-nav__identity-label').textContent(), 'Member');
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, 'admin-outreach-mobile.png'), fullPage: true });
   await page.evaluate(() => {
@@ -199,6 +199,12 @@ async function checkCampaignControls(viewport, screenshotName) {
   assert.equal(await page.locator('[data-email-campaign]').count(), 3);
   assert.equal(await page.locator('[data-custom-email-campaign]').count(), 1);
   assert.equal(await page.locator('[data-custom-placeholder]').count(), 11);
+  if (viewport.width < 640) {
+    assert.equal(await page.locator('[data-campaign-tab]').evaluateAll((tabs) => tabs.every((tab) => {
+      const rect = tab.getBoundingClientRect();
+      return rect.left >= 0 && rect.right <= document.documentElement.clientWidth;
+    })), true, 'all campaign tabs must be fully visible on mobile');
+  }
   assert.equal(await page.locator('[data-campaign-tab="registration"]').getAttribute('aria-selected'), 'true');
   assert.equal(await page.locator('[data-campaign-panel="registration"]').isVisible(), true);
   assert.equal(await page.locator('[data-campaign-panel="freeform"]').isVisible(), false);
@@ -334,6 +340,17 @@ async function checkInstagramCampaigns(viewport, screenshotName) {
 async function checkMemberExport(viewport, screenshotName) {
   const page = await browser.newPage({ viewport });
   await page.goto(baseURL + '/member/account/', { waitUntil: 'networkidle' });
+  const isMobile = viewport.width < 640;
+  assert.equal(await page.locator('.site-context-nav').isVisible(), true);
+  assert.equal(await page.locator('.site-context-nav__current').textContent(), 'Account');
+  assert.equal(await page.locator('.site-context-nav__current').getAttribute('aria-current'), 'page');
+  assert.equal(await page.locator('.site-context-nav__list').evaluate((element) => {
+    const items = Array.from(element.children).map((item) => item.getBoundingClientRect());
+    const firstCentre = items[0].top + (items[0].height / 2);
+    return items.every((item) => Math.abs((item.top + (item.height / 2)) - firstCentre) < 1);
+  }), true, 'member breadcrumbs must remain on one line');
+  assert.equal(await page.locator('#identity-login-btn').isVisible(), !isMobile);
+  assert.equal(await page.locator('#identity-mobile-header-login-btn').isVisible(), isMobile);
   await page.evaluate(() => {
     document.querySelectorAll('[data-auth-content]').forEach((element) => { element.hidden = false; });
     document.querySelectorAll('[data-auth-pending], [data-auth-login-gate]').forEach((element) => { element.hidden = true; });
@@ -343,6 +360,7 @@ async function checkMemberExport(viewport, screenshotName) {
   assert.equal(await page.getByRole('heading', { name: 'Export your data' }).isVisible(), true);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.locator('[data-member-export]').first().scrollIntoViewIfNeeded();
+  await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
   await page.close();
 }

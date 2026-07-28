@@ -646,10 +646,11 @@ behind the single Go `Api` Cloud Function:
 
 - `submit-join` stores membership expressions of interest and consent choices, then sends
   the Firebase passwordless activation link for logged-out users.
-- `send-magic-link` is a login-only path for already registered members. It checks for a
-  matching Join submission before invoking the configured Firebase-default or
-  Admin-SDK/Resend delivery path, and returns a generic response so registration state is
-  not exposed to the browser.
+- `send-magic-link` is a login-only path for already registered members. It accepts either
+  a matching Join submission or an existing Firebase Authentication account before invoking
+  the configured Firebase-default or Admin-SDK/Resend delivery path. This lets claim-managed
+  staging administrators sign in even when preview data has no copied Join record, while the
+  generic browser response continues to conceal registration state.
 - `submit-vehicle-basics` stores the first vehicle registration slice for signed-in users:
   VIN HMAC / final six characters, registration, country, model year, ownership dates,
   mileage, State of Health, measurement date, measurement mileage, and SoH source.

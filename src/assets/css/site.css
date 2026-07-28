@@ -412,12 +412,12 @@ th {
   white-space: nowrap;
 }
 
-.mobile-header-login {
+.site-header .mobile-header-login {
   display: none;
 }
 
 @media (max-width: 39.99em) {
-  .mobile-header-login {
+  .site-header .mobile-header-login {
     display: inline-flex;
   }
 }
@@ -516,6 +516,49 @@ th {
 .site-admin-nav__link[aria-current="page"] {
   background: rgba(255,255,255,0.12);
   color: #ffffff;
+}
+
+.site-context-nav {
+  border-top: 1px solid rgba(255,255,255,0.14);
+  margin-top: var(--space-2);
+  padding-block: var(--space-2);
+}
+
+.site-context-nav__list {
+  align-items: center;
+  display: flex;
+  gap: var(--space-2);
+  list-style: none;
+  margin: 0;
+  min-height: 1.75rem;
+  padding: 0;
+  white-space: nowrap;
+}
+
+.site-context-nav__section,
+.site-context-nav__current {
+  border-radius: var(--radius-md);
+  color: rgba(255,255,255,0.76);
+  font-size: var(--text-sm);
+  line-height: 1;
+  padding: var(--space-1) var(--space-2);
+  text-decoration: none;
+}
+
+a.site-context-nav__section:hover,
+a.site-context-nav__section:focus-visible {
+  color: #ffffff;
+}
+
+.site-context-nav__separator {
+  color: rgba(255,255,255,0.42);
+  font-size: var(--text-sm);
+}
+
+.site-context-nav__current[aria-current="page"] {
+  background: rgba(255,255,255,0.14);
+  color: #ffffff;
+  font-weight: 800;
 }
 
 /* Mobile menu button */
@@ -2222,6 +2265,10 @@ legend {
   padding-block: var(--space-5);
 }
 
+.page-header--compact .page-header__title:last-child {
+  margin-bottom: 0;
+}
+
 .page-header__eyebrow {
   font-size: var(--text-sm);
   font-weight: 600;
@@ -2426,9 +2473,17 @@ legend {
     text-align: center;
   }
 
-  .email-campaign-tabs {
-    margin-inline: calc(var(--space-4) * -1);
-    padding-inline: var(--space-4);
+  .email-campaign-workspace .email-campaign-tabs {
+    display: grid;
+    gap: var(--space-1);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow-x: visible;
+  }
+
+  .email-campaign-workspace .email-campaign-tabs [role="tab"] {
+    min-width: 0;
+    padding-inline: var(--space-2);
+    text-align: center;
   }
 
   .site-header__inner {

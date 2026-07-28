@@ -30,9 +30,10 @@
   </div>
 
   <div class="mobile-nav__identity">
-    <p class="mobile-nav__identity-label">Account</p>
-    <a href="/member/dashboard/" class="btn btn--sm btn--primary full-width" data-requires-auth style="display:none">My Data</a>
-    <a href="/member/account/" class="btn btn--sm btn--secondary full-width" data-requires-auth style="display:none">My account</a>
+    <p class="mobile-nav__identity-label">Member</p>
+    {% for item in navigation.member %}
+    <a href="{{ item.url }}" class="btn btn--sm {% if item.url == '/member/dashboard/' %}btn--primary{% else %}btn--secondary{% endif %} full-width" data-nav-link data-requires-auth style="display:none">{{ item.label }}</a>
+    {% endfor %}
     <a id="identity-mobile-login-btn" class="btn btn--sm btn--secondary full-width" href="/member/account/">Sign in</a>
     <button id="identity-mobile-logout-btn" class="btn btn--sm btn--ghost full-width" type="button" style="display:none">Sign out</button>
   </div>

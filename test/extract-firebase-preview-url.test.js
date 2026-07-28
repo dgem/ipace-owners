@@ -86,7 +86,7 @@ test('staging Functions use the current PR preview URL', function () {
   assert.match(workflow, /ALLOWED_ORIGINS: \$\{\{ steps\.hosting\.outputs\.url \}\}/);
   assert.match(
     workflow,
-    /FIREBASE_EMAIL_CONTINUE_URL: \$\{\{ format\('\{0\}\/account\/', steps\.hosting\.outputs\.url\) \}\}/,
+    /FIREBASE_EMAIL_CONTINUE_URL: \$\{\{ format\('\{0\}\/member\/account\/', steps\.hosting\.outputs\.url\) \}\}/,
   );
   assert.doesNotMatch(workflow, /FIREBASE_EMAIL_(?:CONTINUE_URL|LINK_DOMAIN)_STAGING/);
 });

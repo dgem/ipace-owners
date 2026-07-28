@@ -13,8 +13,8 @@
     { "label": "Join", "url": "/join/", "highlight": true }
   ],
   "member": [
-    { "label": "My Data", "url": "/member/dashboard/" },
-    { "label": "My Vehicle", "url": "/member/submit-vehicle-data/" },
+    { "label": "My data", "url": "/member/dashboard/" },
+    { "label": "Add vehicle", "url": "/member/submit-vehicle-data/" },
     { "label": "Account", "url": "/member/account/" }
   ],
   "admin": [
