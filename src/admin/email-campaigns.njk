@@ -5,13 +5,15 @@ description: "Admin-only, resumable member email campaigns."
 noindex: true
 permalink: /admin/email-campaigns/
 emailCampaigns: true
+adminNavigation: true
+adminBreadcrumb: Email campaigns
 ---
 
 {% from "partials/auth-login-gate.njk" import authLoginGate %}
 
 <div class="page-header page-header--compact email-campaign-page-header"><div class="container">
   <div class="email-campaign-page-header__inner">
-    <div><p class="page-header__eyebrow">Admin</p><h1 class="page-header__title">Email campaigns</h1></div>
+    <div><h1 class="page-header__title">Email campaigns</h1></div>
     <nav class="email-campaign-page-nav" aria-label="Email campaign sections">
       <a href="#campaign-history">Previous campaigns</a>
       <a href="#campaign-tools">Campaign tools</a>

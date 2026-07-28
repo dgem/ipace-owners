@@ -38,13 +38,21 @@ const expectedAdminDestinations = [
   '/admin/instagram-campaigns/'
 ];
 
-async function assertAdminDestinations(locator) {
-  assert.deepEqual(await locator.evaluateAll((links) => links.map((link) => link.getAttribute('href'))), expectedAdminDestinations);
-}
-
 async function revealAdminState(page) {
   await page.evaluate(function () {
+    document.querySelectorAll('[data-requires-auth]').forEach(function (element) {
+      element.style.display = '';
+    });
     document.querySelectorAll('[data-requires-admin]').forEach(function (element) {
+      element.style.display = '';
+    });
+    document.querySelectorAll('[data-requires-guest]').forEach(function (element) {
+      element.style.display = 'none';
+    });
+    document.querySelectorAll('#identity-login-btn, #identity-mobile-header-login-btn, #identity-mobile-login-btn').forEach(function (element) {
+      element.style.display = 'none';
+    });
+    document.querySelectorAll('#identity-logout-btn, #identity-mobile-logout-btn').forEach(function (element) {
       element.style.display = '';
     });
     document.querySelectorAll('[data-admin-content]').forEach(function (element) {
@@ -59,27 +67,41 @@ async function revealAdminState(page) {
   });
 }
 
+async function assertAdminBreadcrumb(page, currentLabel) {
+  const breadcrumb = page.locator('.site-context-nav');
+  assert.equal(await breadcrumb.isVisible(), true);
+  assert.equal(await breadcrumb.getAttribute('aria-label'), 'Admin breadcrumb');
+  assert.equal(await breadcrumb.locator('.site-context-nav__current').textContent(), currentLabel);
+  assert.equal(await breadcrumb.locator('.site-context-nav__current').getAttribute('aria-current'), 'page');
+  assert.equal(await breadcrumb.locator('.site-context-nav__list').evaluate((element) => {
+    const items = Array.from(element.children).map((item) => item.getBoundingClientRect());
+    const firstCentre = items[0].top + (items[0].height / 2);
+    return items.every((item) => Math.abs((item.top + (item.height / 2)) - firstCentre) < 1);
+  }), true, 'admin breadcrumbs must remain on one line');
+}
+
 async function checkDesktopAdminHeader() {
   const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   await page.goto(baseURL + '/admin/outreach/', { waitUntil: 'networkidle' });
   await revealAdminState(page);
+  await assertAdminBreadcrumb(page, 'Facebook outreach');
 
   const header = page.locator('.site-header');
   const primary = page.locator('.site-header__inner');
-  const admin = page.locator('.site-admin-nav');
   const title = page.locator('.page-header');
+  const admin = page.locator('.site-header__actions a[href="/admin/"][data-requires-admin]');
   await admin.waitFor({ state: 'visible' });
-  assert.equal(await admin.evaluate((element) => getComputedStyle(element).display), 'flex');
-  await assertAdminDestinations(admin.locator('a'));
+  assert.equal(await admin.textContent(), 'Admin');
+  assert.equal(await page.locator('.site-admin-nav').count(), 0);
+  assert.equal(await page.locator('#identity-user-display').count(), 0);
+  assert.equal(await page.locator('.site-header__actions a[href="/member/account/"][data-requires-auth]').textContent(), 'My Data');
 
   const headerBox = await header.boundingBox();
   const primaryBox = await primary.boundingBox();
-  const adminBox = await admin.boundingBox();
   const titleBox = await title.boundingBox();
-  assert.ok(headerBox && primaryBox && adminBox && titleBox);
-  assert.ok(adminBox.y >= primaryBox.y + primaryBox.height, 'admin row must sit below the primary header row');
-  assert.ok(adminBox.y + adminBox.height <= headerBox.y + headerBox.height, 'header must expand around the admin row');
-  assert.ok(titleBox.y >= headerBox.y + headerBox.height, 'page title must start below the expanded header');
+  assert.ok(headerBox && primaryBox && titleBox);
+  assert.ok(headerBox.height <= 125, 'admin breadcrumb must keep the shared header compact');
+  assert.ok(titleBox.y >= headerBox.y + headerBox.height, 'page title must start below the header');
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, 'admin-outreach-desktop.png'), fullPage: true });
   await page.close();
@@ -88,29 +110,22 @@ async function checkDesktopAdminHeader() {
 async function checkMobileAdminDrawer() {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
   await page.goto(baseURL + '/admin/outreach/', { waitUntil: 'networkidle' });
-  await revealAdminState(page);
+  await assertAdminBreadcrumb(page, 'Facebook outreach');
   assert.equal(await page.locator('#identity-mobile-header-login-btn').isVisible(), true);
   await page.locator('#mobile-menu-toggle').click();
-  await page.locator('.mobile-nav__admin').waitFor({ state: 'visible' });
   assert.equal(await page.locator('#identity-mobile-login-btn').isVisible(), true);
-  assert.equal(await page.locator('.site-admin-nav').isVisible(), false);
-  await assertAdminDestinations(page.locator('.mobile-nav__admin a'));
+  assert.equal(await page.locator('.mobile-nav__admin').count(), 0);
+  assert.equal(await page.locator('.mobile-nav__identity a[href="/admin/"]').isVisible(), false);
   const mobileLogin = page.locator('#identity-mobile-login-btn');
   assert.equal(await mobileLogin.isVisible(), true, 'signed-out mobile navigation must show Sign in');
   assert.equal(await mobileLogin.evaluate((element) => getComputedStyle(element).color), 'rgb(255, 255, 255)');
-  assert.equal(await page.locator('.mobile-nav__identity-label').textContent(), 'Account');
+  assert.equal(await page.locator('.mobile-nav__identity-label').textContent(), 'Member');
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, 'admin-outreach-mobile.png'), fullPage: true });
-  await page.evaluate(() => {
-    document.querySelector('#identity-mobile-header-login-btn').style.display = 'none';
-    document.querySelector('#identity-mobile-login-btn').style.display = 'none';
-    document.querySelector('#identity-mobile-logout-btn').style.display = '';
-    document.querySelectorAll('.mobile-nav__identity [data-requires-auth]').forEach((element) => {
-      element.style.display = '';
-    });
-  });
-  assert.equal(await page.locator('.mobile-nav__identity a[href="/member/dashboard/"]').isVisible(), true);
-  assert.equal(await page.locator('.mobile-nav__identity a[href="/member/account/"][data-requires-auth]').isVisible(), true);
+  await revealAdminState(page);
+  assert.equal(await page.locator('.mobile-nav__identity a[href="/member/account/"][data-requires-auth]').textContent(), 'My Data');
+  assert.equal(await page.locator('.mobile-nav__identity a[href="/member/dashboard/"]').count(), 0);
+  assert.equal(await page.locator('.mobile-nav__identity a[href="/admin/"]').isVisible(), true);
   assert.equal(await page.locator('#identity-mobile-logout-btn').isVisible(), true);
   assert.equal(await page.locator('#identity-mobile-header-login-btn').isVisible(), false);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
@@ -193,12 +208,19 @@ async function checkCampaignControls(viewport, screenshotName) {
   }));
   await page.goto(baseURL + '/admin/email-campaigns/', { waitUntil: 'networkidle' });
   await revealAdminState(page);
+  await assertAdminBreadcrumb(page, 'Email campaigns');
   await page.evaluate(() => {
     window.firebase = { auth: () => ({ currentUser: { getIdToken: async () => 'visual-admin-token' } }) };
   });
   assert.equal(await page.locator('[data-email-campaign]').count(), 3);
   assert.equal(await page.locator('[data-custom-email-campaign]').count(), 1);
   assert.equal(await page.locator('[data-custom-placeholder]').count(), 11);
+  if (viewport.width < 640) {
+    assert.equal(await page.locator('[data-campaign-tab]').evaluateAll((tabs) => tabs.every((tab) => {
+      const rect = tab.getBoundingClientRect();
+      return rect.left >= 0 && rect.right <= document.documentElement.clientWidth;
+    })), true, 'all campaign tabs must be fully visible on mobile');
+  }
   assert.equal(await page.locator('[data-campaign-tab="registration"]').getAttribute('aria-selected'), 'true');
   assert.equal(await page.locator('[data-campaign-panel="registration"]').isVisible(), true);
   assert.equal(await page.locator('[data-campaign-panel="freeform"]').isVisible(), false);
@@ -278,10 +300,16 @@ async function checkAdminDashboard() {
     window.firebase = { auth: () => ({ currentUser: { getIdToken: async () => 'visual-admin-token' } }) };
   });
   await revealAdminState(page);
+  await assertAdminBreadcrumb(page, 'Dashboard');
   await page.locator('[data-campaign-summary-refresh]').click();
   await page.locator('.campaign-summary-card').first().waitFor({ state: 'visible' });
   assert.equal(await page.locator('.campaign-summary-card').count(), 3);
   assert.equal(await page.locator('.admin-dashboard-grid .card').count(), 4);
+  assert.equal(await page.locator('.admin-dashboard-grid .admin-tool-logo svg').count(), 4);
+  assert.equal(await page.locator('.admin-dashboard-grid .btn--primary').count(), 4);
+  assert.deepEqual(await page.locator('.admin-dashboard-grid .btn').allTextContents(), [
+    'Review Queue', 'Facebook Assistant', 'Email Campaigns', 'Instagram Campaigns'
+  ]);
   assert.deepEqual(await page.locator('.admin-dashboard-grid a').evaluateAll((links) => links.map((link) => link.getAttribute('href'))), expectedAdminDestinations.slice(1));
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, 'admin-dashboard-desktop.png'), fullPage: true });
@@ -321,11 +349,55 @@ async function checkInstagramCampaigns(viewport, screenshotName) {
     window.firebase = { auth: () => ({ currentUser: { getIdToken: async () => 'visual-admin-token' } }) };
   });
   await revealAdminState(page);
+  await assertAdminBreadcrumb(page, 'Instagram campaigns');
   await page.locator('[data-instagram-history-refresh]').click();
   await page.locator('.email-campaign-history__item').first().waitFor({ state: 'visible' });
   assert.equal(await page.locator('.email-campaign-history__item').count(), 2);
   assert.equal(await page.getByRole('button', { name: 'Edit and repost' }).count(), 1);
   assert.equal(await page.getByRole('button', { name: 'Edit draft' }).count(), 1);
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
+  await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
+  await page.close();
+}
+
+async function checkMemberExport(viewport, screenshotName) {
+  const page = await browser.newPage({ viewport });
+  await page.goto(baseURL + '/member/account/', { waitUntil: 'networkidle' });
+  const isMobile = viewport.width < 640;
+  assert.equal(await page.locator('.site-context-nav').isVisible(), true);
+  assert.equal(await page.locator('.site-context-nav__current').textContent(), 'Account');
+  assert.equal(await page.locator('.site-context-nav__current').getAttribute('aria-current'), 'page');
+  assert.equal(await page.locator('.site-context-nav__list').evaluate((element) => {
+    const items = Array.from(element.children).map((item) => item.getBoundingClientRect());
+    const firstCentre = items[0].top + (items[0].height / 2);
+    return items.every((item) => Math.abs((item.top + (item.height / 2)) - firstCentre) < 1);
+  }), true, 'member breadcrumbs must remain on one line');
+  assert.equal(await page.locator('#identity-login-btn').isVisible(), !isMobile);
+  assert.equal(await page.locator('#identity-mobile-header-login-btn').isVisible(), isMobile);
+  await page.evaluate(() => {
+    document.querySelectorAll('[data-auth-content]').forEach((element) => { element.hidden = false; });
+    document.querySelectorAll('[data-auth-pending], [data-auth-login-gate]').forEach((element) => { element.hidden = true; });
+    document.querySelectorAll('[data-requires-auth]').forEach((element) => { element.style.display = ''; });
+    document.querySelectorAll('[data-requires-guest], #identity-login-btn, #identity-mobile-header-login-btn, #identity-mobile-login-btn').forEach((element) => { element.style.display = 'none'; });
+    document.querySelectorAll('#identity-logout-btn, #identity-mobile-logout-btn').forEach((element) => { element.style.display = ''; });
+    document.querySelectorAll('.cookie-notice').forEach((element) => { element.hidden = true; });
+  });
+  assert.equal(await page.locator('[data-member-export]').count(), 2);
+  assert.equal(await page.getByRole('heading', { name: 'Export your data' }).isVisible(), true);
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
+  await page.locator('[data-member-export]').first().scrollIntoViewIfNeeded();
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
+  await page.close();
+}
+
+async function checkPublicContentPage(url, heading, viewport, screenshotName) {
+  const page = await browser.newPage({ viewport });
+  await page.goto(baseURL + url, { waitUntil: 'networkidle' });
+  await page.evaluate(() => {
+    document.querySelectorAll('.cookie-notice').forEach((element) => { element.hidden = true; });
+  });
+  assert.equal(await page.getByRole('heading', { level: 1, name: heading }).isVisible(), true);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
   await page.close();
@@ -339,6 +411,12 @@ try {
   await checkCampaignControls({ width: 390, height: 844 }, 'admin-email-campaigns-mobile.png');
   await checkInstagramCampaigns({ width: 1440, height: 1100 }, 'admin-instagram-campaigns-desktop.png');
   await checkInstagramCampaigns({ width: 390, height: 844 }, 'admin-instagram-campaigns-mobile.png');
+  await checkMemberExport({ width: 1440, height: 1000 }, 'member-export-desktop.png');
+  await checkMemberExport({ width: 390, height: 844 }, 'member-export-mobile.png');
+  await checkPublicContentPage('/updates/member-data-export/', 'Export your member and vehicle data', { width: 1440, height: 1000 }, 'member-export-update-desktop.png');
+  await checkPublicContentPage('/updates/member-data-export/', 'Export your member and vehicle data', { width: 390, height: 844 }, 'member-export-update-mobile.png');
+  await checkPublicContentPage('/privacy/', 'Privacy Policy', { width: 1440, height: 1000 }, 'privacy-desktop.png');
+  await checkPublicContentPage('/privacy/', 'Privacy Policy', { width: 390, height: 844 }, 'privacy-mobile.png');
   console.log(`Visual checks passed; screenshots written to ${outputDir}`);
 } finally {
   await browser.close();

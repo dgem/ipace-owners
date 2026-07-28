@@ -6,104 +6,144 @@ subtitle: "How we handle your data. Plain English, no jargon."
 description: "Privacy policy for the I-PACE Owners' Advocacy Group website."
 ---
 
-*This is a placeholder privacy policy. A more formal policy will be needed before broader
-evidence collection begins. We recommend reviewing this with a data protection professional.*
+This notice explains how the I-PACE Owners' Advocacy Group handles personal data on this
+website. We will update it when our services or data use materially change.
 
-## What data we may collect
+## Who is responsible for your data
 
-When you join the group or submit vehicle data, we may collect:
+The I-PACE Owners' Advocacy Group is an informal, UK-led owners' initiative and is the
+controller for personal data submitted through this website.
 
-- Your name and email address
-- Your country or region
-- Information about your vehicle (VIN, model year, mileage, battery health data)
-- Information about any battery work, recalls, or warranty interactions you have experienced
-- Preferences for how your data may be used
+For privacy questions or requests, email
+[contact@ipace-owners.org](mailto:contact@ipace-owners.org).
 
-When you visit this website, our hosting provider may collect standard server logs
-including IP addresses and browser information. We do not use third-party analytics tracking.
+## Data we collect
 
-## Stored submissions
+Depending on what you choose to provide, we may collect:
 
-Join submissions are saved by a server-side Function in the structured data store. A Join submission may
-include your name, email address, country or region, relationship to an I-PACE, ownership
-status, volunteering interests, and consent choices.
+- Your name, email address, country or region, relationship to an I-PACE, volunteering
+  interests, and consent choices.
+- Vehicle registration, country, model year, mileage, ownership dates, and the final six
+  characters of a VIN.
+- Battery State of Health readings, measurement dates, mileage, and source.
+- Service, fault, repair, recall, and inspection records, including notes, campaigns,
+  status, fix duration, courtesy vehicle information, parts delays, warranty cover, and
+  dispute status.
+- Authentication, security, and technical information needed to operate the service,
+  including Firebase account identifiers and standard hosting logs such as IP address,
+  browser information, request time, and error details.
 
-The Join form also asks Firebase Authentication to send a sign-in email link.
+Full VINs are not stored. If you provide a VIN, the server converts it to a keyed hash for
+deduplication and retains only the final six characters for your reference. We do not
+currently accept evidence-document uploads.
 
-Signed-in members can also register one or more vehicles. A vehicle-basics submission may include
-registration, country, model year, ownership dates, mileage, battery State of Health,
-measurement date, measurement mileage, and SoH source.
-Members can add later SoH measurements to a registered vehicle. We retain the dated reading
-history so changes over time can be analysed. With aggregate-analysis consent, anonymised
-counts, averages, changes, and distributions may appear on the public evidence dashboard.
+## Why we use it and our lawful bases
 
-Members can also keep dated service, fault, repair, recall, and inspection records for each
-vehicle, including optional mileage, status, notes, related campaigns, fix duration,
-courtesy vehicle information, parts-delay information, warranty cover, and dispute status.
-These records remain private member data and are not currently included in public statistics.
+We use personal data only for the purposes described below:
 
-Full VINs are not stored. If you provide a VIN, it is converted server-side to an HMAC for
-deduplication and the final six characters are kept for member-facing reference.
+| Purpose | Lawful basis |
+|---|---|
+| Create and secure your member account; show you your private records; prevent duplicate or abusive submissions; and operate, troubleshoot, and protect the service. | Our legitimate interests in running a safe, reliable owners' group and maintaining an accurate evidence base. |
+| Send group updates or campaign messages. | Your consent. You can withdraw it at any time by contacting us. |
+| Include eligible records in anonymised aggregate analysis, reports, and public statistics. | Your consent. |
+| Respond to privacy requests and meet applicable legal or regulatory duties. | Legal obligation where one applies; otherwise our legitimate interests in administering the group responsibly. |
+
+Joining and providing vehicle or evidence data is voluntary. The Join form needs your name,
+email address, contact choice, and participation acknowledgement to create and administer
+membership. Optional information can be left blank, although some member features may then
+contain less detail.
+
+## How records are stored and used
+
+Join, vehicle, battery, and service/fault records are stored by server-side Cloud Functions
+in private Google Cloud/Firebase data stores. Member snapshots are private and are returned
+only after server-side Firebase Authentication checks.
+
+If you consent to anonymised analysis, counts, averages, changes, and distributions may be
+published on the evidence dashboard or used in reports and constructive engagement with JLR,
+consumer bodies, or the media. We do not publish your name, email address, registration,
+retained VIN characters, free-text notes, or documents without specific permission.
+
+We do not use your information for solely automated decisions or profiling that produces
+legal or similarly significant effects.
+
+## Who processes or receives data
+
+We use service providers to operate the site:
+
+- **Google Cloud and Firebase** provide hosting, authentication, Cloud Functions, structured
+  storage, logs, and security services.
+- **Resend** processes email addresses and delivery information when it sends sign-in links
+  or consented group emails.
+
+These providers process data under their own data-protection and security terms. Their
+services may involve processing outside the UK. Where UK data-protection law restricts a
+transfer, we rely on the provider's applicable transfer safeguards.
+
+We may disclose information if required by law or when necessary to establish, exercise, or
+defend legal rights. We do not sell personal data.
 
 ## Cookies and browser storage
 
-We do not use analytics or advertising cookies.
+We do not use analytics or advertising cookies. Essential services may use cookies or browser
+storage:
 
-The site may use cookies, browser storage, and hosting logs for essential services:
+- Firebase Authentication stores information needed to complete and remember sign-in.
+- The cookie/privacy notice stores whether you dismissed it.
+- Hosting infrastructure keeps technical logs needed to provide and protect the site.
 
-- Firebase Authentication may use cookies or browser storage when you sign in or register.
-- The cookie/privacy notice stores whether you have dismissed it, so it does not appear on
-  every page view.
-- Hosting infrastructure may use technical logs to provide and protect the site.
+If non-essential cookies are added later, we will update the site and request consent before
+setting them.
 
-If analytics, advertising, or other non-essential cookies are added later, the site must be
-updated to request consent before those cookies are set.
+## How long we keep data
 
-## Why we collect it
+We keep membership and submitted vehicle records while the group operates and the records
+remain needed for membership administration or the evidence purposes you selected. We delete
+or anonymise them when they are no longer needed, when a valid deletion request applies, or
+when consent is withdrawn and no other lawful basis requires retention.
 
-- To allow you to participate in the owners' group
-- To build a structured, anonymised evidence base about I-PACE battery and recall issues
-- To contact you about group developments, if you have consented to this
-- To identify duplicate submissions and verify data quality
+Security and hosting logs are kept for the operational periods set by our service providers.
+Deleted data may remain temporarily in restricted backups until those backups expire through
+their normal retention cycle.
 
-## Authentication
+## Exporting your data
 
-We use **Firebase Authentication** for sign-in. This means your account credentials are
-managed by Google Firebase. We do not store passwords ourselves. Google's Firebase privacy
-and data-processing terms apply to account data.
+Signed-in members can use **Export your data** on the [My Data account page](/member/account/):
 
-## How your data may be used
+- The CSV option creates a ZIP with separate membership, vehicle, SoH-reading, and
+  service/fault-history files.
+- The Excel option creates a formatted workbook containing the same categories plus summary
+  charts where enough data exists.
 
-With your consent, anonymised aggregate statistics drawn from your submission may be:
+Exports are generated on demand from your authenticated member snapshot, sent with private
+no-store headers, and not retained as public files. Internal account identifiers, email/VIN
+hashes, and full VINs are excluded. Your downloaded copy may still contain personal and
+vehicle information, so store it securely and take care before sharing it.
 
-- Published on this website's evidence dashboard
-- Included in reports shared with JLR
-- Used in media or consumer rights communications
-
-**Personal data — your name, email, full VIN, registration, or uploaded documents — will not
-be published publicly without your explicit permission.**
-
-## Document uploads
-
-Document upload functionality is not implemented in this version of the site. When it is
-implemented, uploaded documents (dealer reports, battery reports, invoices, etc.) will be
-stored securely and not shared without consent. Owners will be asked to redact personal
-information before uploading.
-
-## Data security
-
-We use Google Cloud/Firebase infrastructure for hosting, authentication, server-side data
-access, structured submissions, and generated JSON snapshots. Raw personal data and full
-VINs will not be stored in public static files.
+The [sample Excel report](/downloads/sample-ipace-owner-data.xlsx) contains fictional data
+only.
 
 ## Your rights
 
-You have the right to access, correct, or delete your personal data. To exercise these rights,
-contact us at [contact@ipace-owners.org](mailto:contact@ipace-owners.org).
+Depending on the circumstances and lawful basis, you may have rights to:
+
+- Ask for a copy of your personal data.
+- Correct inaccurate or incomplete data.
+- Ask us to erase or restrict processing of data.
+- Object to processing based on legitimate interests.
+- Withdraw consent at any time, without affecting earlier lawful use.
+- Receive eligible data you provided in a structured, commonly used, machine-readable format.
+
+These rights are not absolute in every situation. Contact us at
+[contact@ipace-owners.org](mailto:contact@ipace-owners.org) and we will respond in line with
+applicable data-protection law. We may need to verify your identity before acting.
+
+If you are unhappy with our response, you can complain to the
+[Information Commissioner's Office](https://ico.org.uk/make-a-complaint/).
 
 ## Changes to this policy
 
-This policy will be updated before broader live evidence collection begins. We will notify
-members of material changes.
+We will post material changes on this website and, where appropriate, notify members who have
+consented to contact.
 
-*Last updated: 21 July 2026. This is a placeholder document.*
+*Last updated: 28 July 2026.*

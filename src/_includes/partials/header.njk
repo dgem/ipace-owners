@@ -33,9 +33,9 @@
       <!-- Header actions -->
       <div class="site-header__actions">
         <div class="identity-controls">
-          <a id="identity-user-display" class="identity-controls__user btn btn--sm btn--ghost" href="/member/account/" data-requires-auth style="display:none"></a>
           <a id="identity-login-btn" class="btn btn--sm btn--ghost" href="/member/account/">Sign in</a>
-          <a href="/member/dashboard/" class="btn btn--sm btn--primary" data-requires-auth style="display:none">My Data</a>
+          <a href="/member/account/" class="btn btn--sm btn--primary" data-requires-auth style="display:none">My Data</a>
+          <a href="/admin/" class="btn btn--sm btn--ghost" data-requires-admin style="display:none">Admin</a>
           <button id="identity-logout-btn" class="btn btn--sm btn--ghost" type="button" style="display:none">Sign out</button>
         </div>
 
@@ -60,11 +60,37 @@
 
     </div>
 
-    <nav class="site-admin-nav" aria-label="Admin navigation" data-requires-admin style="display:none">
-      <a class="site-admin-nav__label" href="/admin/" data-nav-link>Admin</a>
-      {% for item in navigation.admin %}
-        <a href="{{ item.url }}" class="site-admin-nav__link" data-nav-link>{{ item.label }}</a>
-      {% endfor %}
+    {% if memberNavigation %}
+    <nav class="site-context-nav" aria-label="Member breadcrumb">
+      <ol class="site-context-nav__list">
+        <li>
+          {% if memberBreadcrumb == "Account" %}
+          <span class="site-context-nav__section">Member</span>
+          {% else %}
+          <a class="site-context-nav__section" href="/member/account/">Member</a>
+          {% endif %}
+        </li>
+        <li class="site-context-nav__separator" aria-hidden="true">›</li>
+        <li><span class="site-context-nav__current" aria-current="page">{{ memberBreadcrumb }}</span></li>
+      </ol>
     </nav>
+    {% endif %}
+
+    {% if adminNavigation %}
+    <nav class="site-context-nav" aria-label="Admin breadcrumb">
+      <ol class="site-context-nav__list">
+        <li>
+          {% if adminBreadcrumb == "Dashboard" %}
+          <span class="site-context-nav__section">Admin</span>
+          {% else %}
+          <a class="site-context-nav__section" href="/admin/">Admin</a>
+          {% endif %}
+        </li>
+        <li class="site-context-nav__separator" aria-hidden="true">›</li>
+        <li><span class="site-context-nav__current" aria-current="page">{{ adminBreadcrumb }}</span></li>
+      </ol>
+    </nav>
+    {% endif %}
+
   </div>
 </header>

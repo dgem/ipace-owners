@@ -61,10 +61,37 @@ Store canonical records in Firestore `serviceEvents`, preserve creation/review m
 edits, and regenerate the private member snapshot after every successful write. Do not add
 these records to public statistics until consent, moderation, and publication rules exist.
 
+## Member data export
+
+The Account page provides two authenticated downloads through
+`GET /api/member-export?format=csv|xlsx`:
+
+- `csv` is a ZIP containing separate `membership.csv`, `vehicles.csv`,
+  `soh-readings.csv`, and `service-and-fault-history.csv` files.
+- `xlsx` is a professionally formatted workbook with Summary, Membership, Vehicles,
+  SoH History, and Service & Faults sheets. Add native SoH and event-type charts only when
+  source rows exist.
+
+Build both formats server-side from the authenticated member snapshot. Send the Firebase ID
+token only in the Authorization header, return private no-store attachment responses, omit
+internal identity IDs and email/VIN hashes, expose only the retained VIN final six characters,
+and neutralise text that spreadsheet software could interpret as a formula. Empty datasets
+remain valid exports. The browser should announce preparation, success, and failure states.
+
+Commit a public sample workbook at
+`public/downloads/sample-ipace-owner-data.xlsx`. Generate it through the production workbook
+builder using fictional records only, including `.test` email addresses. Link it from the
+member account export controls and the launch Updates post. The sample must retain the
+production workbook structure: Summary, Membership, Vehicles, SoH History, and Service &
+Faults sheets, plus native summary charts. Automated tests must verify its fictional
+identity, sheet structure, representative totals, and chart parts.
+
 ## Tests
 
 - Test unauthenticated rejection and input validation.
 - Test ownership predicates for both user and vehicle IDs.
 - Test Firebase Hosting route and browser bearer-token wiring.
 - Test tab semantics, full-width workspace markup, graph accessibility, and add/edit controls.
+- Test export authentication, method/format validation, ZIP datasets, formula-injection
+  neutralisation, workbook sheets/charts, response headers, and browser bearer-token wiring.
 - Run `make test` and `make build`.

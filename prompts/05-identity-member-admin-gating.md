@@ -15,8 +15,9 @@ server-side by Go Cloud Functions that validate Firebase ID tokens.
 - Do not add a password form or hosted password modal.
 - Visible sign-in UI must use custom `[data-magic-link-form]` forms that call
   `POST /api/send-magic-link`. These forms are login-only: the server must send a Firebase
-  email link only when the email fingerprint already has a Join submission, and the UI copy
-  must use non-enumerating language such as "if this email address is registered".
+  email link only when the email fingerprint has a Join submission or the exact email belongs
+  to an existing Firebase Authentication account. The UI copy must use non-enumerating
+  language such as "if this email address is registered".
 - `src/assets/js/identity.js` owns email-link completion, header UI, logout, magic-link
   form submission, protected form token injection, and Join result state.
 - `src/assets/js/member-auth.js` owns server-side auth verification and data population on
@@ -38,11 +39,22 @@ server-side by Go Cloud Functions that validate Firebase ID tokens.
 - Expose `window.ipaceGetIdentityToken()` so form/API code can attach
   `Authorization: Bearer <Firebase ID token>`.
 - Update header and mobile controls based on current user state.
-- Keep the mobile drawer's labelled Account section visible and colour-contrast compliant:
-  guests see Sign in; authenticated members see My Data, My account and Sign out.
+- On member routes, render a compact, single-line secondary breadcrumb row in the shared
+  header (`Member › current page`). Emphasise the current crumb with `aria-current="page"`
+  and a visible active style. Keep the member page title compact and do not repeat a
+  redundant `Member` eyebrow immediately below the breadcrumb.
+- Apply the same pattern to every admin route (`Admin › current page`). Link the `Admin`
+  section crumb back to `/admin/` from tool pages, render it as text on the dashboard,
+  emphasise the current crumb, and remove the redundant `Admin` page eyebrow.
+- Keep the mobile drawer's labelled Member section visible and colour-contrast compliant:
+  guests see Sign in; authenticated members see My Data, Add Vehicle and Sign out. Administrators
+  additionally see one claim-gated Admin action.
+- The signed-out mobile header Sign in control must be visible only below the mobile
+  breakpoint. Its hiding rule must outrank the shared button display rule so desktop never
+  renders both the desktop and mobile Sign in actions.
 - Show public `Join` CTA only to guests. Signed-in users must have exactly one obvious
-  `My Data` route to `/member/dashboard/` in desktop and mobile navigation. The signed-in
-  email address should link to `/member/account/` as the account-management route.
+  `My Data` route to the `/member/account/` homepage in desktop and mobile navigation.
+  Do not expose the signed-in email address as a separate header action.
 - Keep authenticated account and vehicle-registration templates within `src/member/`, at
   `/member/account/` and `/member/submit-vehicle-data/`. Permanently redirect their former
   top-level routes so bookmarks and previously issued links remain usable.
@@ -75,11 +87,12 @@ server-side by Go Cloud Functions that validate Firebase ID tokens.
 
 ## Server-side APIs
 
-The complete admin navigation, including `/admin/email-campaigns/`, lives in a claim-gated
-secondary row of the desktop site header, aligned right, and in a labelled section of the mobile
-drawer. Do not repeat it inside individual admin page content. It remains hidden until Firebase
-claims indicate admin access, while campaign APIs independently verify the ID token and admin
-role server-side.
+The shared desktop and mobile navigation exposes exactly one `Admin` action, linking to
+`/admin/`, after Firebase claims indicate admin access. The admin dashboard is the directory for
+Review Queue, Facebook Assistant, Email Campaigns and Instagram Campaigns; do not duplicate those
+tool links in the shared header or mobile drawer. Each admin page keeps the dashboard reachable
+through its compact breadcrumb. Campaign APIs independently verify the ID token
+and admin role server-side.
 
 | Function | Auth Required | Purpose |
 |---|---|---|
@@ -94,7 +107,7 @@ reconciliation bridge because the Google provider exposes no Firebase Auth user 
 Always include `dan@kanzi.co.uk` as a required administrator, resolve configured emails to the
 environment-specific Firebase UID during apply, preserve unrelated claims, and remove only
 admin access from users removed from configuration. Fail when a configured user does not exist.
-After sign-in, inspect the Firebase ID-token result and expose desktop/mobile admin navigation
+After sign-in, inspect the Firebase ID-token result and expose the desktop/mobile Admin action
 only for `admin: true` or a `roles` entry containing `admin`. This is a discoverability aid only;
 the destination must continue to require server-side `AdminData` verification.
 
@@ -115,7 +128,10 @@ the API confirms auth.
 
 - Join completion makes exactly one browser request: `POST /api/submit-join`.
 - `SubmitJoin` stores the Join answers and sends a Firebase email link for guests.
-- `SendMagicLink` remains available for existing users who need another link.
+- `SendMagicLink` remains available for existing users who need another link. Treat either
+  a matching Join submission or an existing Firebase Authentication account as registered;
+  this supports claim-managed staging administrators whose preview data does not include a
+  copied Join record.
 - Both endpoints must avoid account enumeration.
 - Do not call Firebase Identity Toolkit directly from browser code except through the
   Firebase Auth SDK's email-link completion.

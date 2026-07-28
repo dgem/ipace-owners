@@ -179,6 +179,7 @@ src/
       identity.js        # Firebase Auth email-link integration
       member-auth.js     # Server-verified member/admin data loading
       member-dashboard.js # Vehicle tabs, SoH graph and service/fault editing
+      member-export.js    # Authenticated CSV/Excel account downloads
       multistep-form.js  # Multi-step form controller
       outreach-assistant.js # Facebook search-link and reply helper; no automation
       instagram-campaigns.js # Instagram draft/history, insight, preview and publish controls
@@ -645,10 +646,11 @@ behind the single Go `Api` Cloud Function:
 
 - `submit-join` stores membership expressions of interest and consent choices, then sends
   the Firebase passwordless activation link for logged-out users.
-- `send-magic-link` is a login-only path for already registered members. It checks for a
-  matching Join submission before invoking the configured Firebase-default or
-  Admin-SDK/Resend delivery path, and returns a generic response so registration state is
-  not exposed to the browser.
+- `send-magic-link` is a login-only path for already registered members. It accepts either
+  a matching Join submission or an existing Firebase Authentication account before invoking
+  the configured Firebase-default or Admin-SDK/Resend delivery path. This lets claim-managed
+  staging administrators sign in even when preview data has no copied Join record, while the
+  generic browser response continues to conceal registration state.
 - `submit-vehicle-basics` stores the first vehicle registration slice for signed-in users:
   VIN HMAC / final six characters, registration, country, model year, ownership dates,
   mileage, State of Health, measurement date, measurement mileage, and SoH source.
@@ -659,6 +661,12 @@ behind the single Go `Api` Cloud Function:
   recall, or inspection record after server-side ownership verification.
 - `member-data` returns only the authenticated member's generated private snapshot after
   Firebase ID-token verification.
+- `member-export` returns that same member's data as either a ZIP of separate CSV datasets
+  or a formatted Excel workbook with summary charts. Exports omit internal identity and
+  hash fields, neutralise spreadsheet formulas, and are served with private no-store headers.
+  A committed fictional workbook demonstrates the production export format without exposing
+  member data. Regenerate it after workbook-layout changes with
+  `cd functions/firebase-go && GENERATE_MEMBER_EXPORT_SAMPLE=1 go test ./... -run '^TestGeneratePublicSampleWorkbook$' -count=1`.
 - `admin-data` returns Join and vehicle review records only when the Firebase token carries
   an accepted admin claim.
 - `public-stats` serves a cacheable aggregate snapshot. Its registered-member headline is
@@ -721,10 +729,13 @@ configured email to its environment-specific UID, preserves unrelated custom cla
 The apply fails rather than silently continuing if a configured account has not completed
 Firebase sign-in. Staging and production are reconciled independently. After a claim change,
 sign out and request a new magic link so the next ID token contains the current claim.
-Signed-in administrators receive the complete admin menu in a right-aligned secondary desktop
-header row and a labelled section of the mobile drawer. It is not repeated inside admin page
-content. These navigation hints use token claims, while every protected endpoint continues to
-enforce administrator access server-side. Signed-out mobile headers keep a compact Sign in
+Signed-in administrators receive one Admin action in the primary desktop controls and one in the
+mobile Member section, both linking to the admin dashboard. The dashboard is the directory for
+individual admin tools, which are not repeated in shared navigation. These navigation hints use
+token claims, while every protected endpoint continues to enforce administrator access
+server-side. Every admin route includes a compact, one-line `Admin › current page` breadcrumb;
+tool pages link the Admin crumb back to the dashboard and visibly emphasise the current page.
+Signed-out mobile headers keep a compact Sign in
 action beside the menu toggle as well as the full-width action inside the drawer; both disappear
 when authentication succeeds.
 
@@ -745,8 +756,9 @@ The following features are **not yet implemented** in this version:
   Requires Cloud Storage for files plus Firestore metadata and Functions integration.
 - **Admin review workflow** — The review queue can read server-side data for admins, but
   review status updates, exports, and moderation actions are not yet implemented.
-- **Privacy policy** — The current policy is a placeholder. A formal policy is required
-  before broader live evidence collection.
+- **Legal/privacy review** — The plain-English pages reflect the live service, but still
+  require human legal/privacy review before broader collection or a change in organisational
+  structure.
 - **Later evidence dashboard metrics** — Registered-car and SoH figures are live aggregates.
   Recall, repair, loan-car, warranty, and payment metrics remain unavailable until their
   corresponding form slices are implemented.
@@ -770,6 +782,7 @@ Plain vanilla JavaScript, no bundler. The current modules are:
 - `identity.js` — Firebase Auth email-link and UI state
 - `member-auth.js` — authenticated member/admin data loading and account rendering
 - `member-dashboard.js` — vehicle tabs, SoH history and service/fault editing
+- `member-export.js` — authenticated CSV-bundle and Excel-report downloads
 - `multistep-form.js` — generic multi-step form (data-attribute driven)
 - `outreach-assistant.js` — admin-only Facebook search-link and editable reply helper; no retrieval or posting automation
 - `instagram-campaigns.js` — admin-only asynchronous Veo generation, full-media review, and

@@ -28,10 +28,13 @@ magic-link request path for existing users.
 - Custom passwordless sign-in forms outside Join may call `SendMagicLink`, but this is a
   login path only, not registration.
 - Do not add a password login UI.
-- `SendMagicLink` must check the Join submissions collection before triggering any email
-  side effect. If the email has not registered, or if the registration lookup fails, return
-  generic success without calling Firebase Identity Toolkit. Do not reveal whether the email
-  address is registered.
+- `SendMagicLink` must check the Join submissions collection and, when there is no matching
+  Join record or the lookup is unavailable, check for an exact existing Firebase
+  Authentication account before triggering any email side effect. This Auth fallback is
+  required for claim-managed staging administrators whose preview database does not contain
+  a copied Join record. If neither source confirms registration, or both available lookups
+  fail, return generic success without sending. Do not reveal which source matched or whether
+  the email address is registered.
 - For registered emails, `SendMagicLink` uses the configured server-side delivery path and
   returns generic success for syntactically valid requests: branded Admin-SDK/Resend delivery
   when configured, otherwise Firebase Identity Toolkit's default sender.
@@ -60,7 +63,8 @@ magic-link request path for existing users.
   Never log the generated action link, API key, or raw provider response body.
 - For PR deployments, derive `FIREBASE_EMAIL_CONTINUE_URL` from that PR's generated Firebase
   Hosting preview request origin rather than a shared staging custom domain or a value baked
-  into Function environment variables. Omit `linkDomain` because Firebase rejects
+  into Function environment variables. Use `/member/account/`, not the permanently redirected
+  legacy `/account/`, for the preview fallback path. Omit `linkDomain` because Firebase rejects
   preview/default `web.app` domains for that field. Before exercising Auth, append the
   validated project-owned preview hostname to Firebase Auth's `authorizedDomains` without
   removing permanent entries; replace stale PR preview hostnames to keep the list bounded.

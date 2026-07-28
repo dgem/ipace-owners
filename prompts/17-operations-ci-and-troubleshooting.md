@@ -92,6 +92,11 @@ campaign ID and create a new run linked through `sourceCampaignId`.
 - Shared passwordless login forms must declare `method="POST"` and
   `action="/api/send-magic-link"` even though JavaScript normally handles submission, so a
   script failure cannot fall back to a GET request that places a member email in the page URL.
+- Preview administrators may be provisioned directly in Firebase Authentication without a
+  copied Join submission. `SendMagicLink` therefore accepts either registration source while
+  keeping its public response generic. When troubleshooting a generic success with no email,
+  inspect the structured `registrationSource`, Join/Auth lookup warnings and provider handoff
+  events; never expose those distinctions in the browser response.
 - Dependabot must check npm, Go modules, GitHub Actions, and OpenTofu weekly. Group compatible
   minor and patch updates by ecosystem to reduce PR noise; review major upgrades separately.
 - `make lint` is the aggregate source-quality gate. It checks JavaScript, CSS, Markdown,

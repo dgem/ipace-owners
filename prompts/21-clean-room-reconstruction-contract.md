@@ -58,14 +58,21 @@ Platform API because the Google provider has no Firebase Auth user data source. 
 always includes `dan@kanzi.co.uk`; additional admins come from environment configuration. Resolve
 emails to per-environment UIDs, preserve unrelated claims, grant `admin: true`, remove only admin
 access from removed users, and fail closed for missing accounts or an empty desired set.
-Signed-in administrators receive desktop and mobile navigation to `/admin/outreach/` only after
+Signed-in administrators receive desktop and mobile navigation to `/admin/` only after
 the browser reads an admin claim from the Firebase ID token. Treat that link as discoverability,
 not authorization; the route remains gated by the server-verified admin API.
 
-The complete admin menu belongs in a claim-gated, right-aligned secondary desktop header row and
-a labelled mobile-drawer section, not inside individual admin page content. The signed-out mobile
+Expose exactly one claim-gated Admin action in the primary desktop controls and one in the mobile
+Member section. `/admin/` is the directory for individual tools; do not duplicate those tool links
+in shared navigation. Member and admin routes render compact, single-line
+`Member › current page` and `Admin › current page` secondary breadcrumbs with the active
+crumb visibly emphasised. Admin tool section crumbs link back to `/admin/`, and page headings
+do not repeat a redundant Admin eyebrow. The drawer provides My Data and Add Vehicle.
+`My Data` links to `/member/account/`, and the member email is not displayed as a header
+action. The signed-out mobile
 header exposes Sign in beside the menu toggle and repeats it in the drawer for discoverability;
-both signed-out actions disappear after authentication.
+both signed-out actions disappear after authentication, and the mobile header action remains
+hidden at desktop widths.
 
 `/admin/` is the claim-gated landing dashboard. It links to every implemented admin tool and
 describes planned areas without linking to unimplemented routes.
@@ -80,12 +87,13 @@ change rather than assuming it exists.
 
 | Method and route | Authentication | Request/response contract |
 |---|---|---|
-| `POST /api/send-magic-link` | Public | JSON `email`, optional `name`; return enumeration-resistant `{ "ok": true }` for syntactically valid requests. |
+| `POST /api/send-magic-link` | Public | JSON `email`, optional `name`; send only for a matching Join submission or existing Firebase Auth account and return enumeration-resistant `{ "ok": true }` for syntactically valid requests. |
 | `POST /api/submit-join` | Optional Firebase token | `name`, `email`, `country`, `relationship`, `skills[]`, `consent-contact`, `consent-not-legal`, `consent-data`, and `bot-field`; save the Join record and initiate guest activation. |
 | `POST /api/submit-vehicle-basics` | Member | `vin`, `registration`, `country`, `modelYear`, `mileage`, `ownedSince`, `firstReg`, plus optional `soh`, `sohDate`, `sohMileage`, `sohSource`. |
 | `POST /api/submit-soh` | Member/vehicle owner | `vehicleId`, `soh`, `sohDate`, `sohMileage`, `sohSource`; append history and update the vehicle compatibility value. |
 | `POST /api/upsert-service-event` | Member/vehicle and record owner | `id`, `vehicleId`, `eventType`, `occurredAt`, `mileage`, `title`, `description`, `status`, `campaigns[]`, `finalFixAt`, `daysToFinalFix`, `courtesyVehicleOffered`, `courtesyVehicleProvided`, `partsDelay`, `warrantyCover`, `disputeStatus`. |
 | `GET /api/member-data` | Member | Return only that UID's private member snapshot. |
+| `GET /api/member-export?format=csv\|xlsx` | Member | Return a private no-store ZIP of four CSV datasets or a formatted five-sheet Excel workbook built from only that UID's snapshot; omit internal IDs/hashes and neutralise spreadsheet formulas. |
 | `GET /api/admin-data` | Admin claim | Return Join and vehicle review records. |
 | `POST /api/admin/reengagement-preview` | Admin claim | Return aggregate counts for consented Join submitters who have not registered. |
 | `POST /api/admin/reengagement-send` | Admin claim | Require the campaign ID, exact eligible count and typed confirmation; recheck registrations and send the next batch of at most ten. |
@@ -275,6 +283,17 @@ asset. A native temporal Veo result becomes preservation-critical only after a h
 the complete video, approved its synchronized sound and controlled-stop portrayal, and explicitly
 committed the approved export as `public/ipace-owners-instagram-launch-reel.mp4`.
 
+Preserve `public/downloads/sample-ipace-owner-data.xlsx` as the public, fictional
+demonstration of the member Excel export. Produce it with the production workbook builder,
+include no real member data, retain all five export sheets and native charts, and keep it
+linked from both the member account and its launch Updates post.
+
+The live privacy notice is not a placeholder. Keep it aligned with collected data, purposes
+and lawful bases, authentication, processors and transfers, retention, cookies,
+authenticated exports, data-subject rights, consent withdrawal, and the ICO complaint
+route. Material expansion of collection or a change in organisational status still
+requires human legal/privacy review.
+
 A printable PDF is not currently committed and must not be presented as a recoverable source
 artifact. Do not assume an image model can recreate the approved assets identically from
 prompt text.
@@ -323,7 +342,9 @@ Before declaring reconstruction complete:
 6. Test registration-reminder, member-referral, and custom email campaign preview/send
    boundaries, immutable delivery ledgers, aggregate history, partial-run continuation,
    draft editing, clone-to-rerun behaviour, substitutions, exact confirmation gates, and the
-   compact history/tools navigation plus keyboard-operable campaign tabs.
+   compact history/tools navigation plus keyboard-operable campaign tabs. At narrow
+   breakpoints, show the four campaign tabs in a fully visible two-column grid rather than
+   clipping later options behind an unlabelled horizontal overflow edge.
 7. Test Instagram generation and publishing independently: admin/origin authorization,
    idempotent asynchronous Veo phases, private expiring media delivery, complete human review,
    preview invalidation, fail-closed optional configuration, and exact publish confirmation.

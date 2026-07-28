@@ -60,9 +60,10 @@ the retired hosting or Function platform.
 1. Build-time Firebase web config is emitted by `.eleventy.js` from environment variables.
 2. `identity.js` initialises Firebase Auth and never opens a password modal.
 3. Magic-link login forms call `POST /api/send-magic-link`.
-4. The Go `Api` Function routes the request to `SendMagicLink`, which first checks for an
-   existing Join submission matching the email fingerprint. It invokes the configured
-   Firebase-default or Admin-SDK/Resend delivery path only for registered members and
+4. The Go `Api` Function routes the request to `SendMagicLink`, which checks for an existing
+   Join submission matching the email fingerprint and falls back to an exact Firebase
+   Authentication email lookup. It invokes the configured Firebase-default or
+   Admin-SDK/Resend delivery path only for registered members or existing Auth accounts and
    suppresses email side effects for unregistered addresses or lookup failures while
    returning account-enumeration-resistant `{ ok: true }` for valid email syntax. Set
    Identity Toolkit's `linkDomain` only for environments with a verified Firebase Hosting
@@ -86,10 +87,18 @@ Platform API bridge. The shared module always includes `dan@kanzi.co.uk`, resolv
 environment-specific UID, preserves unrelated custom claims, and revokes only admin access from
 users removed from the desired set. A configured user must already exist in Firebase Auth.
 
-After claims are verified, render the complete admin menu in a right-aligned secondary desktop
-header row and a labelled mobile-drawer section. Do not duplicate it below admin page titles.
+After claims are verified, render one Admin action in the primary desktop controls and one in the
+mobile Member section, both linking to `/admin/`. The admin dashboard is the sole shared directory
+of admin tools; do not duplicate its tool links in header navigation.
 For signed-out mobile visitors, keep Sign in visible beside the menu toggle as well as inside
-the drawer, then hide both signed-out actions when authentication succeeds.
+the drawer, then hide both signed-out actions when authentication succeeds. The mobile header
+action must stay hidden at desktop widths even after the shared `.btn` display rule is applied.
+On member and admin routes, use compact one-line `Member › current page` and
+`Admin › current page` secondary breadcrumb rows with the current crumb visibly emphasised.
+Admin tool breadcrumbs link their section crumb to `/admin/`; dashboard and page headings do
+not repeat a redundant Admin eyebrow. The mobile drawer exposes My Data and Add Vehicle. The
+primary `My Data` action links to `/member/account/`, and the member email is not shown in the
+header.
 
 ## Implemented API contracts
 
@@ -101,6 +110,7 @@ the drawer, then hide both signed-out actions when authentication succeeds.
 | `POST /api/submit-soh` | `SubmitSOH` | Member | Append an SoH reading after verifying vehicle ownership. |
 | `POST /api/upsert-service-event` | `UpsertServiceEvent` | Member | Add or edit an owned vehicle's service/fault timeline record. |
 | `GET /api/member-data` | `MemberData` | Member | Return the signed-in user's generated snapshot. |
+| `GET /api/member-export?format=csv\|xlsx` | `MemberExport` | Member | Download that snapshot as separate CSV datasets in a ZIP or a formatted Excel workbook. |
 | `GET /api/admin-data` | `AdminData` | Admin | Return review data for administrators. |
 | `POST /api/admin/reengagement-preview` | `AdminReengagementPreview` | Admin | Return aggregate counts for the consented, unsigned-in Join audience. |
 | `POST /api/admin/reengagement-send` | `AdminReengagementSend` | Admin | Confirm and send the next resumable batch of at most ten reminders. |
@@ -125,6 +135,12 @@ single Go `Api` Function, which dispatches to handler functions in process. `mak
 deploy-functions` deploys only `Api`; do not re-expand deployment to one Cloud Function per
 route unless there is a measured need.
 
+Member exports are assembled in memory from the authenticated private snapshot and returned
+with private, no-store response headers. The separately committed
+`public/downloads/sample-ipace-owner-data.xlsx` is deliberately public, contains fictional
+records only, and is generated through the same workbook builder to demonstrate the real
+sheet and chart format without exposing member data.
+
 ## Data model principles
 
 - Firestore is canonical for structured owner, membership, vehicle, evidence, and review
@@ -132,6 +148,9 @@ route unless there is a measured need.
 - Cloud Storage is for generated JSON snapshots and future uploaded evidence blobs.
 - Member pages read a generated member snapshot through `MemberData`; the Function verifies
   auth before returning it.
+- Member exports are generated in memory from the same authenticated snapshot, exclude
+  internal UID and hash fields, neutralise spreadsheet formula injection, and use private
+  no-store attachment responses.
 - Public dashboard pages read anonymised aggregate data through `PublicStats`. Aggregates
   must be generated from consent-filtered records and must not expose canonical member
   records, raw identifiers, registrations, VIN fragments, names, or emails.

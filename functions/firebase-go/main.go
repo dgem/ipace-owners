@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
+	firebaseauth "firebase.google.com/go/v4/auth"
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"google.golang.org/api/iterator"
 )
@@ -53,6 +54,7 @@ func init() {
 	functions.HTTP("SubmitSOH", SubmitSOH)
 	functions.HTTP("UpsertServiceEvent", UpsertServiceEvent)
 	functions.HTTP("MemberData", MemberData)
+	functions.HTTP("MemberExport", MemberExport)
 	functions.HTTP("AdminData", AdminData)
 	functions.HTTP("PublicStats", PublicStats)
 }
@@ -71,6 +73,8 @@ func Api(w http.ResponseWriter, r *http.Request) {
 		UpsertServiceEvent(w, r)
 	case "/api/member-data":
 		MemberData(w, r)
+	case "/api/member-export":
+		MemberExport(w, r)
 	case "/api/admin-data":
 		AdminData(w, r)
 	case "/api/admin/reengagement-preview":
@@ -159,20 +163,33 @@ func SendMagicLink(w http.ResponseWriter, r *http.Request) {
 	fields := emailLogFields(email)
 	fields["origin"] = r.Header.Get("Origin")
 
-	joinCount, err := joinSubmissionCount(r.Context(), emailFingerprint(email))
-	if err != nil {
-		fields["error"] = err.Error()
-		logEvent("send-magic-link", "warn", "registration check failed; email link suppressed", fields)
-		writeJSON(w, http.StatusOK, map[string]any{"ok": true})
-		return
+	joinCount, joinErr := joinSubmissionCount(r.Context(), emailFingerprint(email))
+	registered := joinErr == nil && joinCount > 0
+	registrationSource := "join-submission"
+	if !registered {
+		authRegistered, authErr := firebaseEmailRegistered(r.Context(), email)
+		if authErr != nil {
+			if joinErr != nil {
+				fields["joinLookupError"] = joinErr.Error()
+			}
+			fields["authLookupError"] = authErr.Error()
+			logEvent("send-magic-link", "warn", "registration checks failed; email link suppressed", fields)
+			writeJSON(w, http.StatusOK, map[string]any{"ok": true})
+			return
+		}
+		registered = authRegistered
+		registrationSource = "firebase-auth"
 	}
-	if joinCount == 0 {
+	if !registered {
 		logEvent("send-magic-link", "info", "email link suppressed for unregistered address", fields)
 		writeJSON(w, http.StatusOK, map[string]any{"ok": true})
 		return
 	}
 
-	fields["joinSubmissionCount"] = joinCount
+	if joinCount > 0 {
+		fields["joinSubmissionCount"] = joinCount
+	}
+	fields["registrationSource"] = registrationSource
 	logEvent("send-magic-link", "info", "firebase email link handoff starting", fields)
 
 	if err := sendFirebaseEmailLink(r.Context(), email, r.Header.Get("Origin")); err != nil {
@@ -666,6 +683,21 @@ func saveJoin(ctx context.Context, record joinRecord) error {
 }
 
 var joinSubmissionCount = countJoinSubmissions
+var firebaseEmailRegistered = firebaseEmailRegisteredRequest
+
+func firebaseEmailRegisteredRequest(ctx context.Context, email string) (bool, error) {
+	client, err := firebaseAuth(ctx)
+	if err != nil {
+		return false, err
+	}
+	if _, err = client.GetUserByEmail(ctx, email); err != nil {
+		if firebaseauth.IsUserNotFound(err) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
+}
 
 func countJoinSubmissions(ctx context.Context, emailHash string) (int, error) {
 	if emailHash == "" {

@@ -6,7 +6,8 @@ subtitle: "What participation in the I-PACE Owners' Advocacy Group means."
 description: "Participation statement and terms for the I-PACE Owners' Advocacy Group."
 ---
 
-*This is a placeholder participation statement. It does not constitute legal advice.*
+This statement explains the basis on which owners participate in the group. It does not
+constitute legal advice.
 
 ## Nature of the group
 
@@ -40,6 +41,11 @@ consent options you select during the submission process. Data may be shared wit
 the context of evidence-based engagement, in anonymised and aggregated form only, where
 members have consented to this use.
 
+Members can download a copy of their saved records from the Account page. Personal exports
+may contain an email address, vehicle registration, retained VIN characters, and detailed
+vehicle history. Members are responsible for storing their downloaded copy securely and
+checking it before sharing it. The public sample workbook contains fictional data only.
+
 ## No guarantees
 
 The group makes no guarantees about outcomes — warranty resolutions, recall outcomes, goodwill
@@ -50,4 +56,4 @@ payments, or any other matter. We organise and advocate; we do not control JLR's
 This statement may be updated as the group develops and its structure evolves. Members will
 be informed of material changes.
 
-*Last updated: 21 July 2026. This is a placeholder document.*
+*Last updated: 28 July 2026.*
