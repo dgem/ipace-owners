@@ -5,11 +5,13 @@ description: "Admin-only preview and publishing workspace for Instagram campaign
 noindex: true
 permalink: /admin/instagram-campaigns/
 instagramCampaigns: true
+adminNavigation: true
+adminBreadcrumb: Instagram campaigns
 ---
 
 {% from "partials/auth-login-gate.njk" import authLoginGate %}
 
-<div class="page-header page-header--compact email-campaign-page-header"><div class="container"><div class="email-campaign-page-header__inner"><div><p class="page-header__eyebrow">Admin</p><h1 class="page-header__title">Instagram campaigns</h1></div><nav class="email-campaign-page-nav" aria-label="Instagram campaign sections"><a href="#instagram-history">Previous campaigns</a><a href="#instagram-workspace">Campaign workspace</a></nav></div></div></div>
+<div class="page-header page-header--compact email-campaign-page-header"><div class="container"><div class="email-campaign-page-header__inner"><div><h1 class="page-header__title">Instagram campaigns</h1></div><nav class="email-campaign-page-nav" aria-label="Instagram campaign sections"><a href="#instagram-history">Previous campaigns</a><a href="#instagram-workspace">Campaign workspace</a></nav></div></div></div>
 
 <div class="section section--sm"><div class="container"><div data-admin-container>
   {{ authLoginGate("instagram-campaign-magic-email", "Sign in required", "Enter your admin email address and we will send a secure sign-in link.", "admin", false) }}

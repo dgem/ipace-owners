@@ -19,7 +19,8 @@ Create a small, maintainable Eleventy 3 site that can be deployed to Firebase Ho
   - Member: My Data and Add Vehicle. `My Data` routes to the member account homepage;
     do not expose the signed-in email as a separate navigation action.
   - Admin: one claim-gated Admin action routes to `/admin/`; the dashboard links to the
-    implemented tools rather than repeating them in shared navigation.
+    implemented tools rather than repeating them in shared navigation. Admin routes use a
+    compact `Admin › current page` breadcrumb beneath the primary header.
 - Pass through `src/assets/`.
 - Pass through `public/` to the site root with `eleventyConfig.addPassthroughCopy({ public: "." })`, so `public/images/example.png` is served at `/images/example.png`.
 - Include the approved PNG favicon at `public/favicon.png` and link it from the base layout.

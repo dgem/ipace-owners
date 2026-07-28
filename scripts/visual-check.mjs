@@ -67,10 +67,24 @@ async function revealAdminState(page) {
   });
 }
 
+async function assertAdminBreadcrumb(page, currentLabel) {
+  const breadcrumb = page.locator('.site-context-nav');
+  assert.equal(await breadcrumb.isVisible(), true);
+  assert.equal(await breadcrumb.getAttribute('aria-label'), 'Admin breadcrumb');
+  assert.equal(await breadcrumb.locator('.site-context-nav__current').textContent(), currentLabel);
+  assert.equal(await breadcrumb.locator('.site-context-nav__current').getAttribute('aria-current'), 'page');
+  assert.equal(await breadcrumb.locator('.site-context-nav__list').evaluate((element) => {
+    const items = Array.from(element.children).map((item) => item.getBoundingClientRect());
+    const firstCentre = items[0].top + (items[0].height / 2);
+    return items.every((item) => Math.abs((item.top + (item.height / 2)) - firstCentre) < 1);
+  }), true, 'admin breadcrumbs must remain on one line');
+}
+
 async function checkDesktopAdminHeader() {
   const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   await page.goto(baseURL + '/admin/outreach/', { waitUntil: 'networkidle' });
   await revealAdminState(page);
+  await assertAdminBreadcrumb(page, 'Facebook outreach');
 
   const header = page.locator('.site-header');
   const primary = page.locator('.site-header__inner');
@@ -86,7 +100,7 @@ async function checkDesktopAdminHeader() {
   const primaryBox = await primary.boundingBox();
   const titleBox = await title.boundingBox();
   assert.ok(headerBox && primaryBox && titleBox);
-  assert.ok(headerBox.height <= 90, 'admin access must not create a second header row');
+  assert.ok(headerBox.height <= 125, 'admin breadcrumb must keep the shared header compact');
   assert.ok(titleBox.y >= headerBox.y + headerBox.height, 'page title must start below the header');
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, 'admin-outreach-desktop.png'), fullPage: true });
@@ -96,6 +110,7 @@ async function checkDesktopAdminHeader() {
 async function checkMobileAdminDrawer() {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
   await page.goto(baseURL + '/admin/outreach/', { waitUntil: 'networkidle' });
+  await assertAdminBreadcrumb(page, 'Facebook outreach');
   assert.equal(await page.locator('#identity-mobile-header-login-btn').isVisible(), true);
   await page.locator('#mobile-menu-toggle').click();
   assert.equal(await page.locator('#identity-mobile-login-btn').isVisible(), true);
@@ -193,6 +208,7 @@ async function checkCampaignControls(viewport, screenshotName) {
   }));
   await page.goto(baseURL + '/admin/email-campaigns/', { waitUntil: 'networkidle' });
   await revealAdminState(page);
+  await assertAdminBreadcrumb(page, 'Email campaigns');
   await page.evaluate(() => {
     window.firebase = { auth: () => ({ currentUser: { getIdToken: async () => 'visual-admin-token' } }) };
   });
@@ -284,6 +300,7 @@ async function checkAdminDashboard() {
     window.firebase = { auth: () => ({ currentUser: { getIdToken: async () => 'visual-admin-token' } }) };
   });
   await revealAdminState(page);
+  await assertAdminBreadcrumb(page, 'Dashboard');
   await page.locator('[data-campaign-summary-refresh]').click();
   await page.locator('.campaign-summary-card').first().waitFor({ state: 'visible' });
   assert.equal(await page.locator('.campaign-summary-card').count(), 3);
@@ -332,6 +349,7 @@ async function checkInstagramCampaigns(viewport, screenshotName) {
     window.firebase = { auth: () => ({ currentUser: { getIdToken: async () => 'visual-admin-token' } }) };
   });
   await revealAdminState(page);
+  await assertAdminBreadcrumb(page, 'Instagram campaigns');
   await page.locator('[data-instagram-history-refresh]').click();
   await page.locator('.email-campaign-history__item').first().waitFor({ state: 'visible' });
   assert.equal(await page.locator('.email-campaign-history__item').count(), 2);

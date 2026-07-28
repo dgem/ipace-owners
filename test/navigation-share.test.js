@@ -21,6 +21,8 @@ test('header exposes one My Data account action without exposing the member emai
   assert.match(header, /id="identity-mobile-header-login-btn"[^>]+href="\/member\/account\/"[^>]*>Sign in<\/a>/);
   assert.match(header, /aria-label="Member breadcrumb"/);
   assert.match(header, /site-context-nav__current" aria-current="page">\{\{ memberBreadcrumb \}\}/);
+  assert.match(header, /aria-label="Admin breadcrumb"/);
+  assert.match(header, /site-context-nav__current" aria-current="page">\{\{ adminBreadcrumb \}\}/);
   assert.match(mobileNav, /data-requires-guest[\s\S]*>\{\{ item\.label \}\}<\/a>/);
   assert.match(mobileNav, /\{% for item in navigation\.member %\}/);
   assert.equal((mobileNav.match(/>Dashboard<\/a>/g) || []).length, 0);
@@ -36,6 +38,24 @@ test('header exposes one My Data account action without exposing the member emai
   assert.match(css, /@media \(max-width: 39\.99em\)[\s\S]*\.site-header \.mobile-header-login\s*\{[\s\S]*display: inline-flex;/);
   assert.match(css, /\.site-context-nav__current\[aria-current="page"\][\s\S]*font-weight: 800;/);
   assert.doesNotMatch(identityJs, /identity-user-display|userDisplay/);
+});
+
+test('every admin page uses the compact Admin breadcrumb pattern', function () {
+  var pages = {
+    'index.njk': 'Dashboard',
+    'review-queue.njk': 'Review queue',
+    'outreach.njk': 'Facebook outreach',
+    'email-campaigns.njk': 'Email campaigns',
+    'instagram-campaigns.njk': 'Instagram campaigns'
+  };
+
+  Object.entries(pages).forEach(function (entry) {
+    var page = fs.readFileSync(path.join(repoRoot, 'src/admin', entry[0]), 'utf8');
+    assert.match(page, /adminNavigation: true/);
+    assert.match(page, new RegExp('adminBreadcrumb: ' + entry[1]));
+    assert.match(page, /page-header page-header--compact/);
+    assert.doesNotMatch(page, /page-header__eyebrow">Admin/);
+  });
 });
 
 test('one Admin destination is discoverable only when Firebase token claims permit it', function () {

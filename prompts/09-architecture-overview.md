@@ -93,8 +93,10 @@ of admin tools; do not duplicate its tool links in header navigation.
 For signed-out mobile visitors, keep Sign in visible beside the menu toggle as well as inside
 the drawer, then hide both signed-out actions when authentication succeeds. The mobile header
 action must stay hidden at desktop widths even after the shared `.btn` display rule is applied.
-On member routes, use a compact one-line `Member › current page` secondary breadcrumb row with
-the current crumb visibly emphasised; the mobile drawer exposes My Data and Add Vehicle. The
+On member and admin routes, use compact one-line `Member › current page` and
+`Admin › current page` secondary breadcrumb rows with the current crumb visibly emphasised.
+Admin tool breadcrumbs link their section crumb to `/admin/`; dashboard and page headings do
+not repeat a redundant Admin eyebrow. The mobile drawer exposes My Data and Add Vehicle. The
 primary `My Data` action links to `/member/account/`, and the member email is not shown in the
 header.
 

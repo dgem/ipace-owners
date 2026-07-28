@@ -43,6 +43,9 @@ server-side by Go Cloud Functions that validate Firebase ID tokens.
   header (`Member › current page`). Emphasise the current crumb with `aria-current="page"`
   and a visible active style. Keep the member page title compact and do not repeat a
   redundant `Member` eyebrow immediately below the breadcrumb.
+- Apply the same pattern to every admin route (`Admin › current page`). Link the `Admin`
+  section crumb back to `/admin/` from tool pages, render it as text on the dashboard,
+  emphasise the current crumb, and remove the redundant `Admin` page eyebrow.
 - Keep the mobile drawer's labelled Member section visible and colour-contrast compliant:
   guests see Sign in; authenticated members see My Data, Add Vehicle and Sign out. Administrators
   additionally see one claim-gated Admin action.
@@ -87,7 +90,8 @@ server-side by Go Cloud Functions that validate Firebase ID tokens.
 The shared desktop and mobile navigation exposes exactly one `Admin` action, linking to
 `/admin/`, after Firebase claims indicate admin access. The admin dashboard is the directory for
 Review Queue, Facebook Assistant, Email Campaigns and Instagram Campaigns; do not duplicate those
-tool links in the shared header or mobile drawer. Campaign APIs independently verify the ID token
+tool links in the shared header or mobile drawer. Each admin page keeps the dashboard reachable
+through its compact breadcrumb. Campaign APIs independently verify the ID token
 and admin role server-side.
 
 | Function | Auth Required | Purpose |

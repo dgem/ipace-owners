@@ -733,7 +733,9 @@ Signed-in administrators receive one Admin action in the primary desktop control
 mobile Member section, both linking to the admin dashboard. The dashboard is the directory for
 individual admin tools, which are not repeated in shared navigation. These navigation hints use
 token claims, while every protected endpoint continues to enforce administrator access
-server-side. Signed-out mobile headers keep a compact Sign in
+server-side. Every admin route includes a compact, one-line `Admin › current page` breadcrumb;
+tool pages link the Admin crumb back to the dashboard and visibly emphasise the current page.
+Signed-out mobile headers keep a compact Sign in
 action beside the menu toggle as well as the full-width action inside the drawer; both disappear
 when authentication succeeds.
 

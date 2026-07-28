@@ -64,10 +64,12 @@ not authorization; the route remains gated by the server-verified admin API.
 
 Expose exactly one claim-gated Admin action in the primary desktop controls and one in the mobile
 Member section. `/admin/` is the directory for individual tools; do not duplicate those tool links
-in shared navigation. Member routes render a compact, single-line `Member › current page`
-secondary breadcrumb with the active crumb visibly emphasised, while the drawer provides My Data
-and Add Vehicle. `My Data` links to `/member/account/`, and the member email is not displayed as a
-header action. The signed-out mobile
+in shared navigation. Member and admin routes render compact, single-line
+`Member › current page` and `Admin › current page` secondary breadcrumbs with the active
+crumb visibly emphasised. Admin tool section crumbs link back to `/admin/`, and page headings
+do not repeat a redundant Admin eyebrow. The drawer provides My Data and Add Vehicle.
+`My Data` links to `/member/account/`, and the member email is not displayed as a header
+action. The signed-out mobile
 header exposes Sign in beside the menu toggle and repeats it in the drawer for discoverability;
 both signed-out actions disappear after authentication, and the mobile header action remains
 hidden at desktop widths.

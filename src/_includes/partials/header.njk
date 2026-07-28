@@ -76,5 +76,21 @@
     </nav>
     {% endif %}
 
+    {% if adminNavigation %}
+    <nav class="site-context-nav" aria-label="Admin breadcrumb">
+      <ol class="site-context-nav__list">
+        <li>
+          {% if adminBreadcrumb == "Dashboard" %}
+          <span class="site-context-nav__section">Admin</span>
+          {% else %}
+          <a class="site-context-nav__section" href="/admin/">Admin</a>
+          {% endif %}
+        </li>
+        <li class="site-context-nav__separator" aria-hidden="true">›</li>
+        <li><span class="site-context-nav__current" aria-current="page">{{ adminBreadcrumb }}</span></li>
+      </ol>
+    </nav>
+    {% endif %}
+
   </div>
 </header>
