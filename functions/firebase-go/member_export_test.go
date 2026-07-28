@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"sort"
 	"strings"
 	"testing"
@@ -196,6 +197,46 @@ func TestMemberWorkbookContainsSheetsAndNativeCharts(t *testing.T) {
 				t.Fatalf("workbook exposed internal value %q in %s", forbidden, file.Name)
 			}
 		}
+	}
+}
+
+func TestPublicSampleWorkbookUsesFictionalDataAndProductionLayout(t *testing.T) {
+	body, err := os.ReadFile("../../public/downloads/sample-ipace-owner-data.xlsx")
+	if err != nil {
+		t.Fatal(err)
+	}
+	book, err := excelize.OpenReader(bytes.NewReader(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer book.Close()
+
+	wantSheets := []string{"Summary", "Membership", "Vehicles", "SoH History", "Service & Faults"}
+	if strings.Join(book.GetSheetList(), ",") != strings.Join(wantSheets, ",") {
+		t.Fatalf("sample sheets = %v, want %v", book.GetSheetList(), wantSheets)
+	}
+	for cell, want := range map[string]string{"B3": "28 July 2026 09:00 UTC", "B7": "2", "B8": "5", "B9": "4"} {
+		got, err := book.GetCellValue("Summary", cell)
+		if err != nil || got != want {
+			t.Fatalf("Summary!%s = %q, %v; want %q", cell, got, err, want)
+		}
+	}
+	email, _ := book.GetCellValue("Membership", "A2")
+	if email != "alex.owner@example.test" {
+		t.Fatalf("sample email = %q", email)
+	}
+	archive, err := zip.NewReader(bytes.NewReader(body), int64(len(body)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	chartParts := 0
+	for _, file := range archive.File {
+		if strings.HasPrefix(file.Name, "xl/charts/chart") {
+			chartParts++
+		}
+	}
+	if chartParts != 2 {
+		t.Fatalf("sample chart parts = %d, want 2", chartParts)
 	}
 }
 

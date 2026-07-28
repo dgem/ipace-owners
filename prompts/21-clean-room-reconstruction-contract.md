@@ -281,6 +281,17 @@ asset. A native temporal Veo result becomes preservation-critical only after a h
 the complete video, approved its synchronized sound and controlled-stop portrayal, and explicitly
 committed the approved export as `public/ipace-owners-instagram-launch-reel.mp4`.
 
+Preserve `public/downloads/sample-ipace-owner-data.xlsx` as the public, fictional
+demonstration of the member Excel export. Produce it with the production workbook builder,
+include no real member data, retain all five export sheets and native charts, and keep it
+linked from both the member account and its launch Updates post.
+
+The live privacy notice is not a placeholder. Keep it aligned with collected data, purposes
+and lawful bases, authentication, processors and transfers, retention, cookies,
+authenticated exports, data-subject rights, consent withdrawal, and the ICO complaint
+route. Material expansion of collection or a change in organisational status still
+requires human legal/privacy review.
+
 A printable PDF is not currently committed and must not be presented as a recoverable source
 artifact. Do not assume an image model can recreate the approved assets identically from
 prompt text.

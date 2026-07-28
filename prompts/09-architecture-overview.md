@@ -133,6 +133,12 @@ single Go `Api` Function, which dispatches to handler functions in process. `mak
 deploy-functions` deploys only `Api`; do not re-expand deployment to one Cloud Function per
 route unless there is a measured need.
 
+Member exports are assembled in memory from the authenticated private snapshot and returned
+with private, no-store response headers. The separately committed
+`public/downloads/sample-ipace-owner-data.xlsx` is deliberately public, contains fictional
+records only, and is generated through the same workbook builder to demonstrate the real
+sheet and chart format without exposing member data.
+
 ## Data model principles
 
 - Firestore is canonical for structured owner, membership, vehicle, evidence, and review

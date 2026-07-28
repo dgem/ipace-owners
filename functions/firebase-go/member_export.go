@@ -299,6 +299,7 @@ type memberWorkbookStyleSet struct {
 	title  int
 	header int
 	label  int
+	note   int
 }
 
 func memberWorkbookStyles(book *excelize.File) (memberWorkbookStyleSet, error) {
@@ -325,11 +326,23 @@ func memberWorkbookStyles(book *excelize.File) (memberWorkbookStyleSet, error) {
 	if err != nil {
 		return memberWorkbookStyleSet{}, err
 	}
-	return memberWorkbookStyleSet{title: title, header: header, label: label}, nil
+	note, err := book.NewStyle(&excelize.Style{
+		Font:      &excelize.Font{Color: "12324A", Size: 10},
+		Fill:      excelize.Fill{Type: "pattern", Color: []string{"E8F3F1"}, Pattern: 1},
+		Alignment: &excelize.Alignment{Vertical: "top", WrapText: true},
+	})
+	if err != nil {
+		return memberWorkbookStyleSet{}, err
+	}
+	return memberWorkbookStyleSet{title: title, header: header, label: label, note: note}, nil
 }
 
 func writeSummarySheet(book *excelize.File, snapshot memberSnapshot, styles memberWorkbookStyleSet) error {
 	sheet := "Summary"
+	generatedAt := snapshot.GeneratedAt
+	if generatedAt.IsZero() {
+		generatedAt = time.Now()
+	}
 	falseValue := false
 	_ = book.SetSheetView(sheet, 0, &excelize.ViewOptions{ShowGridLines: &falseValue})
 	_ = book.MergeCell(sheet, "A1", "F1")
@@ -337,7 +350,7 @@ func writeSummarySheet(book *excelize.File, snapshot memberSnapshot, styles memb
 	_ = book.SetCellStyle(sheet, "A1", "F1", styles.title)
 	_ = book.SetRowHeight(sheet, 1, 32)
 	_ = book.SetCellValue(sheet, "A3", "Generated")
-	_ = book.SetCellValue(sheet, "B3", time.Now().UTC().Format("2 January 2006 15:04 UTC"))
+	_ = book.SetCellValue(sheet, "B3", generatedAt.UTC().Format("2 January 2006 15:04 UTC"))
 	_ = book.SetCellValue(sheet, "A4", "Member email")
 	_ = book.SetCellValue(sheet, "B4", safeSpreadsheetText(snapshot.Email))
 	_ = book.SetCellValue(sheet, "A6", "Membership records")
@@ -353,8 +366,11 @@ func writeSummarySheet(book *excelize.File, snapshot memberSnapshot, styles memb
 	_ = book.SetColWidth(sheet, "B", "B", 34)
 	_ = book.SetColWidth(sheet, "D", "K", 15)
 	_ = book.SetCellValue(sheet, "A12", "This workbook is a portable copy of the data currently saved in your member account. It excludes internal identity and security hashes.")
-	_ = book.MergeCell(sheet, "A12", "F13")
-	_ = book.SetCellStyle(sheet, "A12", "F13", styles.label)
+	_ = book.MergeCell(sheet, "A12", "B14")
+	_ = book.SetCellStyle(sheet, "A12", "B14", styles.note)
+	_ = book.SetRowHeight(sheet, 12, 24)
+	_ = book.SetRowHeight(sheet, 13, 24)
+	_ = book.SetRowHeight(sheet, 14, 24)
 
 	eventCounts := map[string]int{}
 	for _, event := range snapshot.ServiceEvents {

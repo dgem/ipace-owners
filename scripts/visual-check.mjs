@@ -373,6 +373,18 @@ async function checkMemberExport(viewport, screenshotName) {
   await page.close();
 }
 
+async function checkPublicContentPage(url, heading, viewport, screenshotName) {
+  const page = await browser.newPage({ viewport });
+  await page.goto(baseURL + url, { waitUntil: 'networkidle' });
+  await page.evaluate(() => {
+    document.querySelectorAll('.cookie-notice').forEach((element) => { element.hidden = true; });
+  });
+  assert.equal(await page.getByRole('heading', { level: 1, name: heading }).isVisible(), true);
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
+  await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
+  await page.close();
+}
+
 try {
   await checkDesktopAdminHeader();
   await checkMobileAdminDrawer();
@@ -383,6 +395,10 @@ try {
   await checkInstagramCampaigns({ width: 390, height: 844 }, 'admin-instagram-campaigns-mobile.png');
   await checkMemberExport({ width: 1440, height: 1000 }, 'member-export-desktop.png');
   await checkMemberExport({ width: 390, height: 844 }, 'member-export-mobile.png');
+  await checkPublicContentPage('/updates/member-data-export/', 'Export your member and vehicle data', { width: 1440, height: 1000 }, 'member-export-update-desktop.png');
+  await checkPublicContentPage('/updates/member-data-export/', 'Export your member and vehicle data', { width: 390, height: 844 }, 'member-export-update-mobile.png');
+  await checkPublicContentPage('/privacy/', 'Privacy Policy', { width: 1440, height: 1000 }, 'privacy-desktop.png');
+  await checkPublicContentPage('/privacy/', 'Privacy Policy', { width: 390, height: 844 }, 'privacy-mobile.png');
   console.log(`Visual checks passed; screenshots written to ${outputDir}`);
 } finally {
   await browser.close();

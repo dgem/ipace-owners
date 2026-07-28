@@ -54,7 +54,9 @@ Create or maintain:
   spread the word by posting about the group on social media and sending the site link to
   other I-PACE owners they know.
 - Contact: volunteer-run contact information and ways to help.
-- Privacy: placeholder until formal review before broader vehicle/evidence data collection.
+- Privacy: a live, plain-English notice aligned with the service as implemented; keep it
+  current as collection, processors, exports, or rights workflows change, and obtain human
+  legal/privacy review before materially broader data collection.
 - Participation statement/terms: non-legal-action participation framing.
 
 ## Search and social metadata
@@ -157,18 +159,26 @@ Include at least:
 
 ## Privacy and Terms Detail
 
-Privacy should explain what data may be collected, why it is collected, how anonymised
-statistics may be used, that personal data should not be published publicly, that Join
-membership submissions and signed-in vehicle basics are stored with Go Cloud Functions and
-Firestore, that Cloud Storage is reserved for uploaded evidence files, that full VINs are
-not stored, that uploads are not implemented in the MVP, that Firebase Authentication is
-used for authentication, and that a more formal privacy policy is needed before broader live
-evidence data collection.
+Privacy should name the group as controller and provide a working contact route. Explain the
+data collected, purposes and lawful bases, processors and possible international transfers,
+retention criteria, Firebase passwordless sign-in, VIN pseudonymisation, cookies, security
+logging, and the absence of evidence uploads while that remains true. Explain authenticated
+CSV and Excel exports, warn members to protect downloaded copies, cover consent withdrawal
+and applicable data-subject rights, and provide the UK ICO complaint route. Do not present
+the live notice as a draft or placeholder; update it when implementation changes and retain
+a recommendation for human legal/privacy review before materially expanding collection or
+changing the group's legal structure.
 
 Terms / Participation Statement should say the group is informal unless a formal organisation
 is created, the site does not provide legal advice, submitting data does not create a client
 relationship with any lawyer, owners should submit accurate information to the best of their
-knowledge, and data may be used in anonymised aggregate reporting if consent is given.
+knowledge, and data may be used in anonymised aggregate reporting if consent is given. It
+should also explain that authenticated personal exports contain private information and that
+any public sample workbook is entirely fictional.
+
+Publish an Updates post when member data export launches. Attribute the feature to member
+feedback, describe the CSV ZIP and Excel workbook options, link to the account page, and
+offer a downloadable sample Excel workbook generated with fictional data only.
 
 ## Content constraints
 

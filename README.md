@@ -664,6 +664,9 @@ behind the single Go `Api` Cloud Function:
 - `member-export` returns that same member's data as either a ZIP of separate CSV datasets
   or a formatted Excel workbook with summary charts. Exports omit internal identity and
   hash fields, neutralise spreadsheet formulas, and are served with private no-store headers.
+  A committed fictional workbook demonstrates the production export format without exposing
+  member data. Regenerate it after workbook-layout changes with
+  `cd functions/firebase-go && GENERATE_MEMBER_EXPORT_SAMPLE=1 go test ./... -run '^TestGeneratePublicSampleWorkbook$' -count=1`.
 - `admin-data` returns Join and vehicle review records only when the Firebase token carries
   an accepted admin claim.
 - `public-stats` serves a cacheable aggregate snapshot. Its registered-member headline is
@@ -751,8 +754,9 @@ The following features are **not yet implemented** in this version:
   Requires Cloud Storage for files plus Firestore metadata and Functions integration.
 - **Admin review workflow** — The review queue can read server-side data for admins, but
   review status updates, exports, and moderation actions are not yet implemented.
-- **Privacy policy** — The current policy is a placeholder. A formal policy is required
-  before broader live evidence collection.
+- **Legal/privacy review** — The plain-English pages reflect the live service, but still
+  require human legal/privacy review before broader collection or a change in organisational
+  structure.
 - **Later evidence dashboard metrics** — Registered-car and SoH figures are live aggregates.
   Recall, repair, loan-car, warranty, and payment metrics remain unavailable until their
   corresponding form slices are implemented.

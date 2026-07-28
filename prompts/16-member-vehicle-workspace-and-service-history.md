@@ -78,6 +78,14 @@ internal identity IDs and email/VIN hashes, expose only the retained VIN final s
 and neutralise text that spreadsheet software could interpret as a formula. Empty datasets
 remain valid exports. The browser should announce preparation, success, and failure states.
 
+Commit a public sample workbook at
+`public/downloads/sample-ipace-owner-data.xlsx`. Generate it through the production workbook
+builder using fictional records only, including `.test` email addresses. Link it from the
+member account export controls and the launch Updates post. The sample must retain the
+production workbook structure: Summary, Membership, Vehicles, SoH History, and Service &
+Faults sheets, plus native summary charts. Automated tests must verify its fictional
+identity, sheet structure, representative totals, and chart parts.
+
 ## Tests
 
 - Test unauthenticated rejection and input validation.
