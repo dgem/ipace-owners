@@ -9,7 +9,7 @@ require (
 	github.com/GoogleCloudPlatform/functions-framework-go v1.9.2
 	github.com/xuri/excelize/v2 v2.11.0
 	golang.org/x/oauth2 v0.36.0
-	google.golang.org/api v0.289.0
+	google.golang.org/api v0.290.0
 	google.golang.org/grpc v1.82.1
 )
 
