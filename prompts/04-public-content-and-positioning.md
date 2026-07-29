@@ -216,11 +216,12 @@ offer a downloadable sample Excel workbook generated with fictional data only.
   desktop, keep this subsection in the image column so it uses the available space and allows
   the `Why now?` section to remain visible without unnecessary scrolling. Use restrained spacing,
   without a horizontal rule between the main hero and evidence subsection, to preserve
-  hierarchy without creating a disconnected band. Keep them on one row at desktop and mobile
-  widths. Make each evidence wreath clearly smaller than the headline Owners joined wreath so
+  hierarchy without creating a disconnected band. Keep the complete evidence subsection
+  hidden from signed-out visitors and reveal it only to authenticated members. Keep the
+  counters on one row at desktop and mobile widths. Make each evidence wreath clearly smaller
+  than the headline Owners joined wreath so
   the supporting figures cannot compete with the primary membership count, and shorten labels
-  as needed without hiding what each aggregate represents. For authenticated members, follow
-  the counters with a visually
+  as needed without hiding what each aggregate represents. Follow the counters with a visually
   subordinate CTA that gently explains how each added vehicle, SoH reading, or service/fault
   record strengthens the shared evidence and links to the member data workspace. Separate that
   CTA with spacing rather than a horizontal rule.

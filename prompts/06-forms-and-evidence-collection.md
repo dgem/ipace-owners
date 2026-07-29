@@ -168,11 +168,13 @@ Below the SoH history, show an editable service/fault timeline. Members can add 
 fault, repair, recall, inspection, or other records with date, optional mileage, summary,
 details, and status. New records should default to `fault`, because fault reporting is the
 main evidence workflow. Service/fault records should optionally capture related campaigns
-(`H441`, `H448`, `H570`, `H571`, `H572`, other/unsure/none), final fix date, days from fault to
-final fix, whether a courtesy vehicle was offered/provided, whether there was delay due to
-parts, warranty cover in place, and responsibility/warranty dispute status. Post additions
-and edits to `POST /api/upsert-service-event`; the server must verify the signed-in member
-owns both the vehicle and any existing record being edited.
+(`H441`, `H448`, `H570`, `H571`, `H572`, other/unsure/none) in a horizontal selector; service
+provider via a name/postcode lookup; authorised-JLR status; final fix date; courtesy vehicle
+offered/provided; a bounded parts-delay range; goodwill payment received; miles driven whilst
+faulty; warranty cover; and responsibility/warranty dispute status. Calculate days from fault
+to final fix on the server from the two dates. Post additions and edits to
+`POST /api/upsert-service-event`; the server must verify the signed-in member owns both the
+vehicle and any existing record being edited.
 
 Full VINs must not be stored. The Function should create an HMAC using `VIN_PEPPER` and
 store only the HMAC plus final six characters for reference.

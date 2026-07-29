@@ -27,8 +27,9 @@ Depending on what you choose to provide, we may collect:
   characters of a VIN.
 - Battery State of Health readings, measurement dates, mileage, and source.
 - Service, fault, repair, recall, and inspection records, including notes, campaigns,
-  status, fix duration, courtesy vehicle information, parts delays, warranty cover, and
-  dispute status.
+  status, service-provider name and postcode, fix duration, courtesy vehicle information,
+  parts delays, miles driven whilst faulty, goodwill support, warranty cover, and dispute
+  status.
 - Authentication, security, and technical information needed to operate the service,
   including Firebase account identifiers and standard hosting logs such as IP address,
   browser information, request time, and error details.

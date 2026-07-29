@@ -391,6 +391,47 @@ async function checkMemberExport(viewport, screenshotName) {
   await page.close();
 }
 
+async function checkServiceRecordForm(viewport, screenshotName) {
+  const page = await browser.newPage({ viewport });
+  await page.goto(baseURL + '/member/dashboard/', { waitUntil: 'networkidle' });
+  await page.evaluate(() => {
+    document.querySelectorAll('[data-auth-content]').forEach((element) => { element.hidden = false; });
+    document.querySelectorAll('[data-auth-pending], [data-auth-login-gate]').forEach((element) => { element.hidden = true; });
+    document.querySelectorAll('[data-requires-auth]').forEach((element) => { element.style.display = ''; });
+    document.querySelectorAll('[data-requires-guest], .cookie-notice').forEach((element) => {
+      if (element.classList.contains('cookie-notice')) element.hidden = true;
+      else element.style.display = 'none';
+    });
+    const container = document.querySelector('[data-auth-container]');
+    document.dispatchEvent(new CustomEvent('member:data', {
+      detail: {
+        container,
+        data: {
+          vehicleRecords: [{
+            id: 'vehicle-example',
+            vehicle: { registration: 'EXAMPLE', modelYear: '2021', country: 'United Kingdom', mileage: 42000 }
+          }],
+          batteryReadings: [],
+          serviceEvents: []
+        }
+      }
+    }));
+  });
+  await page.getByRole('button', { name: 'Add record' }).click();
+  assert.equal(await page.locator('#jaguar-service-providers option').count() >= 50, true);
+  assert.equal(await page.locator('.campaign-selector').evaluate((element) => {
+    const first = element.firstElementChild.getBoundingClientRect();
+    return getComputedStyle(element).display === 'flex'
+      && Array.from(element.children).every((child) => Math.abs(child.getBoundingClientRect().top - first.top) < 2);
+  }), true, 'campaign choices must remain in one horizontal selector');
+  assert.equal(await page.getByText('Calculated automatically when both dates are entered').isVisible(), true);
+  assert.equal(await page.getByText('Goodwill payment received').isVisible(), true);
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
+  await page.locator('[data-event-panel]').scrollIntoViewIfNeeded();
+  await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
+  await page.close();
+}
+
 async function checkPublicContentPage(url, heading, viewport, screenshotName) {
   const page = await browser.newPage({ viewport });
   await page.goto(baseURL + url, { waitUntil: 'networkidle' });
@@ -438,7 +479,7 @@ async function checkPublicEvidenceCounters(url, viewport, screenshotName, showMe
     document.querySelectorAll('.cookie-notice').forEach((element) => { element.hidden = true; });
   });
   if (showMemberCta) {
-    await page.locator('.launch-hero__evidence-cta').evaluate((element) => {
+    await page.locator('.launch-hero__evidence').evaluate((element) => {
       element.style.display = '';
     });
     assert.equal(await page.getByRole('link', { name: 'Add Your Vehicle Data' }).isVisible(), true);
@@ -469,6 +510,15 @@ async function checkPublicEvidenceCounters(url, viewport, screenshotName, showMe
       assert.equal(mobileCtaComposition.compactButton, true,
         'the signed-in evidence CTA button must not dominate the mobile subsection');
     }
+  }
+  if (url === '/' && !showMemberCta) {
+    assert.equal(await page.locator('.launch-hero__evidence').isVisible(), false,
+      'the homepage evidence module must stay hidden for signed-out visitors');
+    assert.equal(await page.getByRole('link', { name: 'Add Your Vehicle Data' }).isVisible(), false);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
+    await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
+    await page.close();
+    return;
   }
   await page.locator('[data-public-stat="serviceEventsLogged"]').first().waitFor({ state: 'visible' });
   assert.equal(await page.locator('[data-public-stat="vehiclesRegistered"]').first().textContent(), '312');
@@ -527,6 +577,8 @@ try {
   await checkInstagramCampaigns({ width: 390, height: 844 }, 'admin-instagram-campaigns-mobile.png');
   await checkMemberExport({ width: 1440, height: 1000 }, 'member-export-desktop.png');
   await checkMemberExport({ width: 390, height: 844 }, 'member-export-mobile.png');
+  await checkServiceRecordForm({ width: 1440, height: 1100 }, 'member-service-record-desktop.png');
+  await checkServiceRecordForm({ width: 390, height: 844 }, 'member-service-record-mobile.png');
   await checkPublicContentPage('/updates/member-data-export/', 'Export your member and vehicle data', { width: 1440, height: 1000 }, 'member-export-update-desktop.png');
   await checkPublicContentPage('/updates/member-data-export/', 'Export your member and vehicle data', { width: 390, height: 844 }, 'member-export-update-mobile.png');
   await checkPublicContentPage('/privacy/', 'Privacy Policy', { width: 1440, height: 1000 }, 'privacy-desktop.png');

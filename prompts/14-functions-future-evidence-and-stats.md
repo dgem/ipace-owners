@@ -16,9 +16,11 @@ than introducing a parallel browser query or static sample-data model.
 Potential future Go Functions or handler extensions:
 
 - `SubmitVehicleEvidence`: authenticated full vehicle evidence submission for evidence
-  uploads, payment, goodwill, expense, richer responsibility narratives, consent-review,
-  and publication metadata. Basic campaign, repair-duration, courtesy-vehicle, parts-delay,
-  warranty-cover, and dispute-status fields already live on private service/fault records.
+  uploads, goodwill-payment amounts, expense, richer responsibility narratives,
+  consent-review, and publication metadata. Campaign, structured service provider,
+  server-derived repair duration, courtesy vehicle, parts-delay range, goodwill-payment
+  received, miles-driven-while-faulty, warranty-cover, and dispute-status fields already live
+  on private service/fault records.
 - `AdminUpdateSubmission`: admin-only review status, verification level, exclusion,
   and moderation updates.
 - `PublishPublicStats` or an admin-only `PublicStats` publish mode: explicit regeneration
