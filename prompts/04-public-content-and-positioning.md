@@ -212,10 +212,11 @@ offer a downloadable sample Excel workbook generated with fictional data only.
 - Present the launch-page cars-registered, SoH-readings, and service/fault-record totals with
   the same reusable gold racing-wreath component as the Owners joined count. Treat the three
   evidence wreaths as a compact subsection of the hero, with no separate filled background,
-  so they sit directly on and visually continue the hero gradient. Use restrained spacing or
-  a subtle divider to preserve hierarchy without creating a disconnected band. Keep them on
-  one row at desktop and mobile widths, and shorten labels as needed without hiding what each
-  aggregate represents. For authenticated members, follow the counters with a visually
+  so they sit directly on and visually continue the hero gradient. Use restrained spacing,
+  without a horizontal rule between the main hero and evidence subsection, to preserve
+  hierarchy without creating a disconnected band. Keep them on one row at desktop and mobile
+  widths, and shorten labels as needed without hiding what each aggregate represents. For
+  authenticated members, follow the counters with a visually
   subordinate CTA that gently explains how each added vehicle, SoH reading, or service/fault
   record strengthens the shared evidence and links to the member data workspace.
 - Mark placeholder figures and illustrative examples clearly.

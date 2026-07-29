@@ -466,6 +466,7 @@ async function checkPublicEvidenceCounters(url, viewport, screenshotName, showMe
       const wreathBounds = wreaths.map((wreath) => wreath.getBoundingClientRect());
       return {
         background: getComputedStyle(evidence).backgroundColor,
+        borderTopWidth: getComputedStyle(evidence).borderTopWidth,
         followsHeroContent: evidenceBounds.top >= contentBounds.bottom,
         containedByHero: evidenceBounds.bottom <= heroBounds.bottom,
         oneRow: Math.max(...wreathBounds.map((bounds) => bounds.top))
@@ -473,6 +474,7 @@ async function checkPublicEvidenceCounters(url, viewport, screenshotName, showMe
       };
     });
     assert.equal(evidenceComposition.background, 'rgba(0, 0, 0, 0)');
+    assert.equal(evidenceComposition.borderTopWidth, '0px');
     assert.equal(evidenceComposition.followsHeroContent, true);
     assert.equal(evidenceComposition.containedByHero, true);
     assert.equal(evidenceComposition.oneRow, true);
