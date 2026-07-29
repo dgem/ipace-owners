@@ -403,6 +403,49 @@ async function checkPublicContentPage(url, heading, viewport, screenshotName) {
   await page.close();
 }
 
+async function checkPublicEvidenceCounters(url, viewport, screenshotName) {
+  const page = await browser.newPage({ viewport });
+  await page.route('**/api/public-stats?v=6', (route) => route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({
+      schemaVersion: 6,
+      generatedAt: '2026-07-29T09:30:00Z',
+      joinedOwners: 429,
+      registeredMembers: 401,
+      ownersContributed: 287,
+      vehiclesRegistered: 312,
+      vehiclesWithSoh: 196,
+      sohReadings: 634,
+      serviceEventsLogged: 148,
+      vehiclesWithRepeatSoh: 83,
+      averageReportedSoh: 87.4,
+      averageSohChange: -2.7,
+      sohDistribution: [
+        { label: '90-100%', count: 61 },
+        { label: '80-89.9%', count: 102 },
+        { label: '70-79.9%', count: 28 },
+        { label: 'Below 70%', count: 5 }
+      ],
+      modelYearDistribution: [
+        { label: '2019', count: 92 },
+        { label: '2020', count: 118 },
+        { label: '2021', count: 102 }
+      ]
+    })
+  }));
+  await page.goto(baseURL + url, { waitUntil: 'networkidle' });
+  await page.evaluate(() => {
+    document.querySelectorAll('.cookie-notice').forEach((element) => { element.hidden = true; });
+  });
+  await page.locator('[data-public-stat="serviceEventsLogged"]').first().waitFor({ state: 'visible' });
+  assert.equal(await page.locator('[data-public-stat="vehiclesRegistered"]').first().textContent(), '312');
+  assert.equal(await page.locator('[data-public-stat="sohReadings"]').first().textContent(), '634');
+  assert.equal(await page.locator('[data-public-stat="serviceEventsLogged"]').first().textContent(), '148');
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
+  await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
+  await page.close();
+}
+
 try {
   await checkDesktopAdminHeader();
   await checkMobileAdminDrawer();
@@ -417,6 +460,10 @@ try {
   await checkPublicContentPage('/updates/member-data-export/', 'Export your member and vehicle data', { width: 390, height: 844 }, 'member-export-update-mobile.png');
   await checkPublicContentPage('/privacy/', 'Privacy Policy', { width: 1440, height: 1000 }, 'privacy-desktop.png');
   await checkPublicContentPage('/privacy/', 'Privacy Policy', { width: 390, height: 844 }, 'privacy-mobile.png');
+  await checkPublicEvidenceCounters('/', { width: 1440, height: 1000 }, 'public-evidence-counters-desktop.png');
+  await checkPublicEvidenceCounters('/', { width: 390, height: 844 }, 'public-evidence-counters-mobile.png');
+  await checkPublicEvidenceCounters('/evidence-dashboard/?site-mode=full', { width: 1440, height: 1000 }, 'evidence-dashboard-desktop.png');
+  await checkPublicEvidenceCounters('/evidence-dashboard/?site-mode=full', { width: 390, height: 844 }, 'evidence-dashboard-mobile.png');
   console.log(`Visual checks passed; screenshots written to ${outputDir}`);
 } finally {
   await browser.close();

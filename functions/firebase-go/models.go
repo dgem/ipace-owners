@@ -189,6 +189,7 @@ type publicStatsSnapshot struct {
 	VehiclesRegistered    int                        `json:"vehiclesRegistered"`
 	VehiclesWithSOH       int                        `json:"vehiclesWithSoh"`
 	SOHReadings           int                        `json:"sohReadings"`
+	ServiceEventsLogged   int                        `json:"serviceEventsLogged"`
 	VehiclesWithRepeatSOH int                        `json:"vehiclesWithRepeatSoh"`
 	AverageReportedSOH    *float64                   `json:"averageReportedSoh,omitempty"`
 	AverageSOHChange      *float64                   `json:"averageSohChange,omitempty"`

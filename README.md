@@ -670,14 +670,16 @@ behind the single Go `Api` Cloud Function:
 - `admin-data` returns Join and vehicle review records only when the Firebase token carries
   an accepted admin claim.
 - `public-stats` serves a cacheable aggregate snapshot. Its registered-member headline is
-  refreshed from the complete paginated Firebase Auth user list; vehicle and SoH aggregates
-  remain consent-filtered and exclude records marked out of public reporting.
+  refreshed from the complete paginated Firebase Auth user list; vehicle, SoH, and
+  service/fault record counts remain consent-filtered and exclude records marked out of
+  public reporting.
 
 Member/account JSON snapshots are regenerated after signed-in Join, vehicle, SoH, and
 service-event changes, written to Firestore and optionally Cloud Storage, then served only
 through `member-data` after server-side Firebase ID-token verification. If a logged-out Join
-has no UID yet, `member-data` builds the snapshot after activation when first needed. Vehicle
-and SoH writes also regenerate the anonymised public evidence snapshot in Cloud Storage.
+has no UID yet, `member-data` builds the snapshot after activation when first needed. Vehicle,
+SoH, and service/fault writes also regenerate the anonymised public evidence snapshot in
+Cloud Storage.
 
 Members may register more than one I-PACE. The member dashboard uses vehicle tabs and shows
 one selected car's SoH graph and service/fault timeline at a time.

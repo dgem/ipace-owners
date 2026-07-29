@@ -122,8 +122,8 @@ async function main() {
     throw new Error(`public-stats returned ${publicStats.status}, expected 200`);
   }
   const publicStatsData = await publicStats.json();
-  if (publicStatsData.schemaVersion !== 5) {
-    throw new Error(`public-stats returned schema ${publicStatsData.schemaVersion}, expected 5`);
+  if (publicStatsData.schemaVersion !== 6) {
+    throw new Error(`public-stats returned schema ${publicStatsData.schemaVersion}, expected 6`);
   }
   if (!Number.isFinite(publicStatsData.joinedOwners)) {
     throw new Error('public-stats did not return a numeric joinedOwners aggregate');

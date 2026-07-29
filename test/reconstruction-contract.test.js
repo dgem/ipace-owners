@@ -103,9 +103,9 @@ test('clean-room API and Firestore inventories match implemented handlers', func
     assert.ok(contract.includes(`\`${collection}\``), `clean-room contract omits ${collection}`);
   }
 
-  assert.match(goSource, /const publicStatsSchemaVersion = 5/);
-  assert.match(contract, /`schemaVersion: 5`/);
-  assert.match(read('src/assets/js/public-stats.js'), /\/api\/public-stats\?v=5/);
+  assert.match(goSource, /const publicStatsSchemaVersion = 6/);
+  assert.match(contract, /`schemaVersion: 6`/);
+  assert.match(read('src/assets/js/public-stats.js'), /\/api\/public-stats\?v=6/);
   assert.doesNotMatch(contract, /JSON\/form|rate-limiting behaviour described/);
 });
 

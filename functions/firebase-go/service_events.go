@@ -90,6 +90,9 @@ func UpsertServiceEvent(w http.ResponseWriter, r *http.Request) {
 	if err := regenerateMemberSnapshot(r.Context(), user.UID, user.Email); err != nil {
 		logEvent("upsert-service-event", "warn", "member snapshot regeneration failed", map[string]any{"uid": user.UID, "error": err.Error()})
 	}
+	if err := regeneratePublicStatsSnapshot(r.Context()); err != nil {
+		logEvent("upsert-service-event", "warn", "public snapshot regeneration failed", map[string]any{"error": err.Error()})
+	}
 	writeJSON(w, http.StatusOK, map[string]any{"ok": true, "id": record.ID})
 }
 

@@ -15,7 +15,8 @@ illustrative figures as real data.
 - Show only metrics supported by fields currently collected. Use a clear "Not collected"
   state where a value has no eligible observations, and do not render sample percentages.
 - Include owners contributing data, cars registered, latest average reported SoH, total SoH
-  readings, cars with repeat readings, and average first-to-latest SoH change.
+  readings, service/fault records logged, cars with repeat readings, and average
+  first-to-latest SoH change.
 - Include a visible disclaimer explaining:
   - voluntary submission bias,
   - verification levels,

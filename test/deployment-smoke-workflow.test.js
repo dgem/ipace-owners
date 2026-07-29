@@ -51,7 +51,7 @@ test('production deployments are serialized without cancellation', function () {
 test('deployment smoke requires the current regenerated public statistics schema', function () {
   const smoke = readFileSync(resolve(__dirname, '../scripts/smoke-test-deployment.mjs'), 'utf8');
 
-  assert.match(smoke, /publicStatsData\.schemaVersion !== 5/);
+  assert.match(smoke, /publicStatsData\.schemaVersion !== 6/);
   assert.match(smoke, /Number\.isFinite\(publicStatsData\.joinedOwners\)/);
 });
 

@@ -158,9 +158,10 @@ keys where applicable, and `{ status, verificationLevel }` review metadata. Pres
   day counts, ownership keys, timestamps, and review metadata.
 - Member snapshots contain `identityUserId`, `email`, `generatedAt`, `joinRecords[]`,
   `vehicleRecords[]`, `batteryReadings[]`, and `serviceEvents[]`.
-- Public statistics currently use `schemaVersion: 5` and contain `generatedAt`, `joinedOwners`,
+- Public statistics currently use `schemaVersion: 6` and contain `generatedAt`, `joinedOwners`,
   `registeredMembers`,
   `ownersContributed`, `vehiclesRegistered`, `vehiclesWithSoh`, `sohReadings`,
+  `serviceEventsLogged`,
   `vehiclesWithRepeatSoh`, optional `averageReportedSoh`, optional `averageSohChange`, and
   `{ label, count }[]` arrays for `sohDistribution` and `modelYearDistribution`.
 
