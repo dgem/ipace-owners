@@ -23,6 +23,7 @@ func memberExportFixture() memberSnapshot {
 	sohMileage := 53500
 	soh := 89.5
 	days := 12
+	yes := true
 	now := time.Date(2026, 7, 27, 10, 30, 0, 0, time.UTC)
 	return memberSnapshot{
 		IdentityUserID: "internal-uid-must-not-export",
@@ -58,6 +59,8 @@ func memberExportFixture() memberSnapshot {
 			ID: "event-one", VehicleID: "vehicle-one", EventType: "fault",
 			OccurredAt: "2026-07-01", Mileage: &mileage, Title: "Traction warning",
 			Description: "+not a formula", Status: "resolved", DaysToFinalFix: &days,
+			ServiceProviderName: "Example Jaguar Service Centre", ServiceProviderPostcode: "AB1 2CD",
+			ServiceProviderAuthorised: &yes, GoodwillPayment: &yes, MilesDrivenWhilstFaulty: &mileage,
 			CreatedAt: now, UpdatedAt: now,
 		}},
 	}

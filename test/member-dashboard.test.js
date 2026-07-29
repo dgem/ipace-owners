@@ -22,10 +22,16 @@ test('member dashboard uses a full-width tabbed vehicle workspace', function () 
   assert.match(script, /value="H570"/);
   assert.match(script, /value="H571"/);
   assert.match(script, /value="H572"/);
-  assert.match(script, /Days from fault to final fix/);
+  assert.match(script, /campaign-selector/);
+  assert.match(script, /Search by provider name or postcode/);
+  assert.match(script, /Authorised Jaguar Land Rover service provider/);
+  assert.match(script, /Calculated automatically when both dates are entered/);
+  assert.doesNotMatch(script, /name="daysToFinalFix"/);
   assert.match(script, /Courtesy vehicle offered/);
   assert.match(script, /Courtesy vehicle provided/);
-  assert.match(script, /Delay due to parts/);
+  assert.match(script, /4 months or more/);
+  assert.match(script, /Miles driven whilst faulty/);
+  assert.match(script, /Goodwill payment received/);
   assert.match(script, /Warranty cover in place/);
   assert.match(script, /Responsibility or warranty dispute/);
   assert.match(script, /payload\[key\]\.push\(value\)/);
@@ -33,6 +39,7 @@ test('member dashboard uses a full-width tabbed vehicle workspace', function () 
   assert.match(script, /Measurement date cannot be in the future/);
   assert.match(script, /Event date cannot be in the future/);
   assert.match(script, /function validateNotFutureDates/);
+  assert.match(script, /jaguar-uk-service-providers\.json/);
 });
 
 test('service event editing is wired through the protected API', function () {

@@ -8,22 +8,28 @@ import (
 )
 
 func TestValidatedServiceEvent(t *testing.T) {
+	yes := true
 	event, err := validatedServiceEvent(serviceEventRequest{
-		VehicleID:               "vehicle_123",
-		EventType:               "fault",
-		OccurredAt:              "2026-06-22",
-		Mileage:                 "42000",
-		Title:                   "Traction battery warning",
-		Description:             "Warning shown while charging.",
-		Status:                  "open",
-		Campaigns:               stringArray{"H441", "H448", "H570"},
-		FinalFixAt:              "2026-06-23",
-		DaysToFinalFix:          "1",
-		CourtesyVehicleOffered:  "yes",
-		CourtesyVehicleProvided: "no",
-		PartsDelay:              "partly",
-		WarrantyCover:           "battery-warranty",
-		DisputeStatus:           "initially-refused",
+		VehicleID:                 "vehicle_123",
+		EventType:                 "fault",
+		OccurredAt:                "2026-06-22",
+		Mileage:                   "42000",
+		Title:                     "Traction battery warning",
+		Description:               "Warning shown while charging.",
+		Status:                    "open",
+		Campaigns:                 stringArray{"H441", "H448", "H570"},
+		ServiceProviderID:         "J1714",
+		ServiceProviderName:       "Barretts Jaguar Service Centre, Ashford",
+		ServiceProviderPostcode:   "tn24 0fl",
+		ServiceProviderAuthorised: &yes,
+		FinalFixAt:                "2026-06-24",
+		CourtesyVehicleOffered:    "yes",
+		CourtesyVehicleProvided:   "no",
+		PartsDelay:                "up-to-1-month",
+		GoodwillPayment:           &yes,
+		MilesDrivenWhilstFaulty:   "1200",
+		WarrantyCover:             "battery-warranty",
+		DisputeStatus:             "initially-refused",
 	})
 	if err != nil {
 		t.Fatalf("validatedServiceEvent() error = %v", err)
@@ -37,10 +43,13 @@ func TestValidatedServiceEvent(t *testing.T) {
 	if len(event.Campaigns) != 3 || event.Campaigns[0] != "H441" || event.Campaigns[1] != "H448" || event.Campaigns[2] != "H570" {
 		t.Fatalf("Campaigns = %+v", event.Campaigns)
 	}
-	if event.FinalFixAt != "2026-06-23" || event.DaysToFinalFix == nil || *event.DaysToFinalFix != 1 {
+	if event.FinalFixAt != "2026-06-24" || event.DaysToFinalFix == nil || *event.DaysToFinalFix != 2 {
 		t.Fatalf("fix duration fields = %+v", event)
 	}
-	if event.CourtesyVehicleOffered != "yes" || event.CourtesyVehicleProvided != "no" || event.PartsDelay != "partly" || event.WarrantyCover != "battery-warranty" || event.DisputeStatus != "initially-refused" {
+	if event.ServiceProviderID != "J1714" || event.ServiceProviderName != "Barretts Jaguar Service Centre, Ashford" || event.ServiceProviderPostcode != "TN24 0FL" || event.ServiceProviderAuthorised == nil || !*event.ServiceProviderAuthorised {
+		t.Fatalf("service provider fields = %+v", event)
+	}
+	if event.CourtesyVehicleOffered != "yes" || event.CourtesyVehicleProvided != "no" || event.PartsDelay != "up-to-1-month" || event.GoodwillPayment == nil || !*event.GoodwillPayment || event.MilesDrivenWhilstFaulty == nil || *event.MilesDrivenWhilstFaulty != 1200 || event.WarrantyCover != "battery-warranty" || event.DisputeStatus != "initially-refused" {
 		t.Fatalf("support fields = %+v", event)
 	}
 }
@@ -58,7 +67,7 @@ func TestValidatedServiceEventRejectsInvalidInput(t *testing.T) {
 		{VehicleID: valid.VehicleID, EventType: valid.EventType, OccurredAt: valid.OccurredAt, FinalFixAt: "not-a-date", Title: valid.Title, Status: valid.Status},
 		{VehicleID: valid.VehicleID, EventType: valid.EventType, OccurredAt: valid.OccurredAt, FinalFixAt: "2099-06-22", Title: valid.Title, Status: valid.Status},
 		{VehicleID: valid.VehicleID, EventType: valid.EventType, OccurredAt: valid.OccurredAt, FinalFixAt: "2026-06-21", Title: valid.Title, Status: valid.Status},
-		{VehicleID: valid.VehicleID, EventType: valid.EventType, OccurredAt: valid.OccurredAt, DaysToFinalFix: "many", Title: valid.Title, Status: valid.Status},
+		{VehicleID: valid.VehicleID, EventType: valid.EventType, OccurredAt: valid.OccurredAt, MilesDrivenWhilstFaulty: "many", Title: valid.Title, Status: valid.Status},
 		{VehicleID: valid.VehicleID, EventType: valid.EventType, OccurredAt: valid.OccurredAt, Status: valid.Status},
 		{VehicleID: valid.VehicleID, EventType: valid.EventType, OccurredAt: valid.OccurredAt, Title: valid.Title, Status: "unknown"},
 		{VehicleID: valid.VehicleID, EventType: valid.EventType, OccurredAt: valid.OccurredAt, Mileage: "many", Title: valid.Title, Status: valid.Status},
@@ -67,6 +76,15 @@ func TestValidatedServiceEventRejectsInvalidInput(t *testing.T) {
 		if _, err := validatedServiceEvent(request); err == nil {
 			t.Fatalf("validatedServiceEvent(%+v) unexpectedly succeeded", request)
 		}
+	}
+}
+
+func TestServiceEventResolutionDays(t *testing.T) {
+	if days := serviceEventResolutionDays("2026-01-31", "2026-03-02"); days == nil || *days != 30 {
+		t.Fatalf("serviceEventResolutionDays() = %v, want 30", days)
+	}
+	if days := serviceEventResolutionDays("2026-03-02", ""); days != nil {
+		t.Fatalf("serviceEventResolutionDays() without final date = %v, want nil", days)
 	}
 }
 

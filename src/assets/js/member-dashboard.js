@@ -9,6 +9,7 @@
 
   var activeVehicleId = '';
   var memberData = null;
+  var serviceProviders = [];
 
   function escapeHtml(value) {
     return String(value == null ? '' : value)
@@ -73,7 +74,60 @@
       'partially-accepted': 'Partially accepted',
       'still-disputed': 'Still disputed',
       'resolved-after-escalation': 'Resolved after escalation',
+      'up-to-1-week': 'Up to 1 week',
+      'up-to-1-month': 'Up to 1 month',
+      'up-to-2-months': 'Up to 2 months',
+      'up-to-3-months': 'Up to 3 months',
+      '4-plus-months': '4 months or more',
     })[value] || value;
+  }
+
+  function serviceProviderValue(provider) {
+    return provider.name + ' — ' + provider.postcode;
+  }
+
+  function serviceProviderOptionsMarkup() {
+    return serviceProviders.map(function (provider) {
+      var details = [provider.town];
+      if (provider.authorisedRepairer) details.push('Authorised Jaguar repairer');
+      if (provider.electricVehicleBatteryRepair) details.push('EV battery repair');
+      return '<option value="' + escapeHtml(serviceProviderValue(provider)) + '" label="' + escapeHtml(details.filter(Boolean).join(' · ')) + '"></option>';
+    }).join('');
+  }
+
+  function findServiceProvider(value) {
+    var normalized = String(value || '').trim().toLowerCase();
+    return serviceProviders.find(function (provider) {
+      return serviceProviderValue(provider).toLowerCase() === normalized;
+    });
+  }
+
+  function syncServiceProviderFields(form, updateAuthorised) {
+    var lookup = form.querySelector('[data-service-provider-lookup]');
+    var provider = findServiceProvider(lookup ? lookup.value : '');
+    form.elements.serviceProviderId.value = provider ? provider.id : '';
+    form.elements.serviceProviderName.value = provider ? provider.name : String(lookup ? lookup.value : '').trim();
+    form.elements.serviceProviderPostcode.value = provider ? provider.postcode : '';
+    if (provider && updateAuthorised) {
+      form.elements.serviceProviderAuthorised.checked = provider.authorisedRepairer === true;
+    }
+  }
+
+  function updateResolutionDays(form) {
+    var output = form.querySelector('[data-resolution-days]');
+    if (!output) return;
+    var occurredAt = form.elements.occurredAt.value;
+    var finalFixAt = form.elements.finalFixAt.value;
+    if (!occurredAt || !finalFixAt || finalFixAt < occurredAt) {
+      output.value = 'Calculated automatically when both dates are entered';
+      output.textContent = output.value;
+      return;
+    }
+    var start = Date.parse(occurredAt + 'T00:00:00Z');
+    var end = Date.parse(finalFixAt + 'T00:00:00Z');
+    var days = Math.round((end - start) / 86400000);
+    output.value = days + (days === 1 ? ' day' : ' days');
+    output.textContent = output.value;
   }
 
   function readingsFor(vehicleId) {
@@ -172,7 +226,10 @@
       '<div class="form-group"><label for="event-date">Date</label><input id="event-date" name="occurredAt" type="date" required' + notFutureDateAttributes('event-date-error') + '><span class="form-error" id="event-date-error" role="alert" hidden>Event date cannot be in the future.</span></div>' +
       '<div class="form-group"><label for="event-mileage">Mileage</label><input id="event-mileage" name="mileage" type="number" min="0" max="500000"></div>' +
       '<div class="form-group"><label for="event-status">Status</label><select id="event-status" name="status" required><option value="open">Open</option><option value="monitoring">Monitoring</option><option value="resolved">Resolved</option><option value="completed">Completed</option></select></div>' +
-      '<fieldset class="form-group member-form-grid__wide"><legend>Related campaigns or recalls</legend><div class="check-group check-group--inline">' +
+      '<div class="form-group member-form-grid__wide"><label for="event-service-provider">Service provider</label><input id="event-service-provider" type="text" list="jaguar-service-providers" autocomplete="off" data-service-provider-lookup placeholder="Search by provider name or postcode"><datalist id="jaguar-service-providers">' + serviceProviderOptionsMarkup() + '</datalist>' +
+      '<input type="hidden" name="serviceProviderId"><input type="hidden" name="serviceProviderName"><input type="hidden" name="serviceProviderPostcode"><p class="form-hint">Jaguar UK EV service locations are suggested. You can also enter another provider.</p>' +
+      '<label class="check-label"><input type="checkbox" name="serviceProviderAuthorised" value="true"> Authorised Jaguar Land Rover service provider</label></div>' +
+      '<fieldset class="form-group member-form-grid__wide"><legend>Related campaigns or recalls</legend><div class="campaign-selector" aria-label="Select related campaigns or recalls">' +
       '<label class="check-label"><input type="checkbox" name="campaigns" value="H441"> H441</label>' +
       '<label class="check-label"><input type="checkbox" name="campaigns" value="H448"> H448</label>' +
       '<label class="check-label"><input type="checkbox" name="campaigns" value="H570"> H570</label>' +
@@ -182,10 +239,12 @@
       '<label class="check-label"><input type="checkbox" name="campaigns" value="unsure"> Unsure</label>' +
       '<label class="check-label"><input type="checkbox" name="campaigns" value="none"> None</label></div></fieldset>' +
       '<div class="form-group"><label for="event-final-fix">Final fix date</label><input id="event-final-fix" name="finalFixAt" type="date"' + notFutureDateAttributes('event-final-fix-error') + '><span class="form-error" id="event-final-fix-error" role="alert" hidden>Final fix date cannot be in the future.</span></div>' +
-      '<div class="form-group"><label for="event-days-to-fix">Days from fault to final fix</label><input id="event-days-to-fix" name="daysToFinalFix" type="number" min="0" max="5000"></div>' +
+      '<div class="form-group"><span class="form-label">Days from fault to final fix</span><output class="calculated-field" data-resolution-days>Calculated automatically when both dates are entered</output></div>' +
       '<div class="form-group"><label for="event-courtesy-offered">Courtesy vehicle offered?</label><select id="event-courtesy-offered" name="courtesyVehicleOffered"><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option><option value="not-needed">Not needed</option><option value="unsure">Unsure</option></select></div>' +
       '<div class="form-group"><label for="event-courtesy-provided">Courtesy vehicle provided?</label><select id="event-courtesy-provided" name="courtesyVehicleProvided"><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option><option value="not-needed">Not needed</option><option value="unsure">Unsure</option></select></div>' +
-      '<div class="form-group"><label for="event-parts-delay">Delay due to parts?</label><select id="event-parts-delay" name="partsDelay"><option value="">Select</option><option value="yes">Yes</option><option value="partly">Partly</option><option value="no">No</option><option value="unsure">Unsure</option></select></div>' +
+      '<div class="form-group"><label for="event-parts-delay">Parts delay</label><select id="event-parts-delay" name="partsDelay"><option value="">Select delay</option><option value="none">No parts delay</option><option value="up-to-1-week">Up to 1 week</option><option value="up-to-1-month">Up to 1 month</option><option value="up-to-2-months">Up to 2 months</option><option value="up-to-3-months">Up to 3 months</option><option value="4-plus-months">4 months or more</option></select></div>' +
+      '<div class="form-group"><label for="event-faulty-miles">Miles driven whilst faulty</label><input id="event-faulty-miles" name="milesDrivenWhilstFaulty" type="number" min="0" max="500000"></div>' +
+      '<div class="form-group member-form-grid__wide"><label class="toggle-control"><input type="checkbox" name="goodwillPayment" value="true"><span class="toggle-control__track" aria-hidden="true"></span><span>Goodwill payment received</span></label></div>' +
       '<div class="form-group"><label for="event-warranty-cover">Warranty cover in place</label><select id="event-warranty-cover" name="warrantyCover"><option value="">Select</option><option value="manufacturer">Manufacturer warranty</option><option value="battery-warranty">8-year battery warranty</option><option value="extended-manufacturer">Extended manufacturer warranty</option><option value="third-party">Third-party warranty</option><option value="none">No warranty cover</option><option value="unsure">Unsure</option></select></div>' +
       '<div class="form-group"><label for="event-dispute-status">Responsibility or warranty dispute?</label><select id="event-dispute-status" name="disputeStatus"><option value="">Select</option><option value="none">No dispute</option><option value="initially-refused">Initially refused</option><option value="partially-accepted">Partially accepted only</option><option value="still-disputed">Still disputed</option><option value="resolved-after-escalation">Resolved after escalation</option><option value="unsure">Unsure</option></select></div>' +
       '<div class="form-group member-form-grid__wide"><label for="event-title">Summary</label><input id="event-title" name="title" type="text" maxlength="160" required></div>' +
@@ -201,11 +260,14 @@
       if (item.mileage != null) meta.push(Number(item.mileage).toLocaleString() + ' miles');
       if (item.campaigns && item.campaigns.length) meta.push('Campaigns: ' + item.campaigns.join(', '));
       var support = [];
+      if (item.serviceProviderName) support.push('Provider: ' + item.serviceProviderName + (item.serviceProviderPostcode ? ' (' + item.serviceProviderPostcode + ')' : '') + (item.serviceProviderAuthorised ? ' · authorised JLR' : ''));
       if (item.finalFixAt) support.push('Final fix: ' + formatDate(item.finalFixAt));
       if (item.daysToFinalFix != null) support.push('Days to final fix: ' + Number(item.daysToFinalFix).toLocaleString());
       if (item.courtesyVehicleOffered) support.push('Courtesy offered: ' + supportLabel(item.courtesyVehicleOffered));
       if (item.courtesyVehicleProvided) support.push('Courtesy provided: ' + supportLabel(item.courtesyVehicleProvided));
       if (item.partsDelay) support.push('Parts delay: ' + supportLabel(item.partsDelay));
+      if (item.milesDrivenWhilstFaulty != null) support.push('Miles driven whilst faulty: ' + Number(item.milesDrivenWhilstFaulty).toLocaleString());
+      if (item.goodwillPayment) support.push('Goodwill payment received');
       if (item.warrantyCover) support.push('Warranty: ' + supportLabel(item.warrantyCover));
       if (item.disputeStatus) support.push('Dispute: ' + supportLabel(item.disputeStatus));
       return '<article class="service-event"><div class="service-event__main"><div class="cluster cluster--sm"><span class="badge">' + escapeHtml(eventTypeLabel(item.eventType)) + '</span><span class="badge badge--muted">' + escapeHtml(statusLabel(item.status)) + '</span></div>' +
@@ -275,11 +337,18 @@
     form.querySelectorAll('input[name="campaigns"]').forEach(function (input) {
       input.checked = (item.campaigns || []).indexOf(input.value) !== -1;
     });
+    form.elements.serviceProviderId.value = item.serviceProviderId || '';
+    form.elements.serviceProviderName.value = item.serviceProviderName || '';
+    form.elements.serviceProviderPostcode.value = item.serviceProviderPostcode || '';
+    form.elements.serviceProviderAuthorised.checked = item.serviceProviderAuthorised === true;
+    form.querySelector('[data-service-provider-lookup]').value = item.serviceProviderName ? item.serviceProviderName + (item.serviceProviderPostcode ? ' — ' + item.serviceProviderPostcode : '') : '';
     form.elements.finalFixAt.value = item.finalFixAt || '';
-    form.elements.daysToFinalFix.value = item.daysToFinalFix == null ? '' : item.daysToFinalFix;
+    updateResolutionDays(form);
     form.elements.courtesyVehicleOffered.value = item.courtesyVehicleOffered || '';
     form.elements.courtesyVehicleProvided.value = item.courtesyVehicleProvided || '';
     form.elements.partsDelay.value = item.partsDelay || '';
+    form.elements.goodwillPayment.checked = item.goodwillPayment === true;
+    form.elements.milesDrivenWhilstFaulty.value = item.milesDrivenWhilstFaulty == null ? '' : item.milesDrivenWhilstFaulty;
     form.elements.warrantyCover.value = item.warrantyCover || '';
     form.elements.disputeStatus.value = item.disputeStatus || '';
     form.elements.title.value = item.title;
@@ -324,6 +393,7 @@
         var form = workspace.querySelector('[data-service-event-form]');
         form.reset();
         form.elements.vehicleId.value = activeVehicleId;
+        updateResolutionDays(form);
         form.querySelector('[data-event-form-title]').textContent = 'Add service event or fault';
       }
       openPanel(open.dataset.openPanel);
@@ -345,6 +415,17 @@
     next.click();
   });
 
+  workspace.addEventListener('change', function (event) {
+    var form = event.target.closest('[data-service-event-form]');
+    if (!form) return;
+    if (event.target.matches('[data-service-provider-lookup]')) {
+      syncServiceProviderFields(form, true);
+    }
+    if (event.target.name === 'occurredAt' || event.target.name === 'finalFixAt') {
+      updateResolutionDays(form);
+    }
+  });
+
   workspace.addEventListener('submit', function (event) {
     var form = event.target.closest('[data-service-event-form]');
     if (!form) return;
@@ -352,6 +433,7 @@
     var status = form.querySelector('[data-service-event-status]');
     var button = form.querySelector('button[type="submit"]');
     var payload = {};
+    syncServiceProviderFields(form, false);
     new FormData(form).forEach(function (value, key) {
       if (key === 'campaigns') {
         if (!payload[key]) payload[key] = [];
@@ -360,6 +442,8 @@
         payload[key] = value;
       }
     });
+    payload.serviceProviderAuthorised = form.elements.serviceProviderAuthorised.checked;
+    payload.goodwillPayment = form.elements.goodwillPayment.checked;
     if (!validateNotFutureDates(form)) {
       if (status) status.textContent = 'Check the highlighted date before saving.';
       return;
@@ -391,4 +475,17 @@
     memberData = event.detail.data;
     render();
   });
+
+  fetch('/assets/data/jaguar-uk-service-providers.json', { headers: { Accept: 'application/json' } })
+    .then(function (response) {
+      if (!response.ok) throw new Error('Could not load service providers');
+      return response.json();
+    })
+    .then(function (data) {
+      serviceProviders = Array.isArray(data.providers) ? data.providers : [];
+      if (memberData) render();
+    })
+    .catch(function () {
+      serviceProviders = [];
+    });
 })();

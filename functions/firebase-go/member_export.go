@@ -186,7 +186,7 @@ func sohRows(snapshot memberSnapshot) [][]string {
 }
 
 func serviceRows(snapshot memberSnapshot) [][]string {
-	rows := [][]string{{"Vehicle", "Type", "Date", "Mileage", "Title", "Description", "Status", "Campaigns", "Final fix date", "Days to final fix", "Courtesy vehicle offered", "Courtesy vehicle provided", "Parts delay", "Warranty cover", "Dispute status", "Created", "Updated"}}
+	rows := [][]string{{"Vehicle", "Type", "Date", "Mileage", "Title", "Description", "Status", "Campaigns", "Service provider", "Provider postcode", "Authorised JLR provider", "Final fix date", "Days to final fix", "Courtesy vehicle offered", "Courtesy vehicle provided", "Parts delay", "Goodwill payment", "Miles driven whilst faulty", "Warranty cover", "Dispute status", "Created", "Updated"}}
 	for _, record := range snapshot.ServiceEvents {
 		rows = append(rows, []string{
 			vehicleLabelByID(snapshot, record.VehicleID),
@@ -197,11 +197,16 @@ func serviceRows(snapshot memberSnapshot) [][]string {
 			record.Description,
 			record.Status,
 			strings.Join(record.Campaigns, "; "),
+			record.ServiceProviderName,
+			record.ServiceProviderPostcode,
+			exportBool(record.ServiceProviderAuthorised),
 			record.FinalFixAt,
 			exportInt(record.DaysToFinalFix),
 			record.CourtesyVehicleOffered,
 			record.CourtesyVehicleProvided,
 			record.PartsDelay,
+			exportBool(record.GoodwillPayment),
+			exportInt(record.MilesDrivenWhilstFaulty),
 			record.WarrantyCover,
 			record.DisputeStatus,
 			exportTime(record.CreatedAt),
@@ -249,6 +254,16 @@ func exportFloat(value *float64) string {
 		return ""
 	}
 	return strconv.FormatFloat(*value, 'f', -1, 64)
+}
+
+func exportBool(value *bool) string {
+	if value == nil {
+		return ""
+	}
+	if *value {
+		return "Yes"
+	}
+	return "No"
 }
 
 func buildMemberWorkbook(snapshot memberSnapshot) ([]byte, error) {
@@ -433,7 +448,7 @@ func memberWorkbookValue(sheet string, rowIndex int, colIndex int, value string)
 	numericColumns := map[string]map[int]bool{
 		"Vehicles":         {5: true, 8: true, 10: true},
 		"SoH History":      {2: true, 3: true},
-		"Service & Faults": {3: true, 9: true},
+		"Service & Faults": {3: true, 12: true, 17: true},
 	}
 	if numericColumns[sheet][colIndex] {
 		if number, err := strconv.ParseFloat(value, 64); err == nil {

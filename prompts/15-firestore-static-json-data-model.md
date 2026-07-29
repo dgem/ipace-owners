@@ -17,9 +17,10 @@ Firestore is the source of truth for:
 - vehicles, with one member able to own or submit data for multiple vehicles;
 - battery State of Health readings;
 - service, fault, repair, recall, and inspection timeline records, including optional
-  campaign tags (`H441`, `H448`, `H570`, `H571`, `H572`), fix duration, courtesy vehicle,
-  parts-delay, warranty-cover, and dispute fields;
-- future payment, goodwill, expense, evidence-upload, responsibility-publication, and review data;
+  campaign tags (`H441`, `H448`, `H570`, `H571`, `H572`), structured service-provider
+  reference, server-derived fix duration, courtesy vehicle, parts-delay range, goodwill
+  payment received, miles driven whilst faulty, warranty-cover, and dispute fields;
+- future payment amount, expense, evidence-upload, responsibility-publication, and review data;
 - admin review state, verification levels, and audit events.
 - email campaign parent records and hashed per-recipient delivery ledgers.
 

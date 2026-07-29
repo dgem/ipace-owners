@@ -658,7 +658,9 @@ behind the single Go `Api` Cloud Function:
   the signed-in member owns the referenced record. Earlier readings are retained for
   degradation analysis.
 - `upsert-service-event` adds or edits an owned vehicle's dated service, fault, repair,
-  recall, or inspection record after server-side ownership verification.
+  recall, or inspection record after server-side ownership verification. It stores structured
+  service-provider references, parts-delay range, goodwill support, and miles driven whilst
+  faulty, and derives days to resolution from the event and final-fix dates.
 - `member-data` returns only the authenticated member's generated private snapshot after
   Firebase ID-token verification.
 - `member-export` returns that same member's data as either a ZIP of separate CSV datasets
@@ -682,7 +684,10 @@ SoH, and service/fault writes also regenerate the anonymised public evidence sna
 Cloud Storage.
 
 Members may register more than one I-PACE. The member dashboard uses vehicle tabs and shows
-one selected car's SoH graph and service/fault timeline at a time.
+one selected car's SoH graph and service/fault timeline at a time. Service-provider suggestions
+come from a generated snapshot of Jaguar UK's official EV-service locator and are searchable
+by name or postcode. Refresh the snapshot with `make update-service-providers`; members should
+still confirm current capabilities directly with the provider.
 
 Set `VIN_PEPPER` as a GCP Secret Manager value and Function environment variable before
 collecting VINs. Full VINs are not stored; the Function uses `VIN_PEPPER` to create an HMAC

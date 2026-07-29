@@ -2183,6 +2183,113 @@ legend {
   margin-bottom: var(--space-5);
 }
 
+.member-form-grid .form-group {
+  margin-bottom: 0;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: var(--space-1);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.calculated-field {
+  display: flex;
+  align-items: center;
+  min-height: 3rem;
+  padding: var(--space-3) var(--space-4);
+  color: var(--color-text-muted);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.campaign-selector {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-1) 0 var(--space-2);
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.campaign-selector .check-label {
+  flex: 0 0 auto;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: var(--space-2) var(--space-3);
+  margin: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+}
+
+.campaign-selector .check-label:has(input:checked) {
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
+}
+
+.campaign-selector .check-label input {
+  margin-top: 0;
+}
+
+.toggle-control {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: 0;
+  cursor: pointer;
+}
+
+.toggle-control input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.toggle-control__track {
+  position: relative;
+  flex: 0 0 auto;
+  width: 2.75rem;
+  height: 1.5rem;
+  background: var(--color-border);
+  border-radius: var(--radius-pill);
+  transition: background-color var(--transition-fast);
+}
+
+.toggle-control__track::after {
+  position: absolute;
+  top: 0.2rem;
+  left: 0.2rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  content: "";
+  background: var(--color-surface);
+  border-radius: 50%;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-fast);
+}
+
+.toggle-control input:checked + .toggle-control__track {
+  background: var(--color-accent);
+}
+
+.toggle-control input:checked + .toggle-control__track::after {
+  transform: translateX(1.25rem);
+}
+
+.toggle-control input:focus-visible + .toggle-control__track {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
 .soh-chart {
   background: var(--color-bg);
   border: 1px solid var(--color-border);

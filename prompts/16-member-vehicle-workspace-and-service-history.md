@@ -49,12 +49,26 @@ Go handler.
 New records should default to `fault`. The form should also capture optional structured
 evidence fields:
 
-- related campaigns or recalls: `H441`, `H448`, `H570`, `H571`, `H572`, other, unsure, none;
-- final fix date and days from fault to final fix;
+- a single service-provider lookup searchable by provider name or postcode, backed by a
+  refreshable static snapshot of Jaguar UK's official Electric Vehicle Service directory;
+  store the locator CI code, name, postcode, and member-confirmed authorised-JLR status;
+  allow a member to enter a provider not present in the suggestions;
+- related campaigns or recalls: `H441`, `H448`, `H570`, `H571`, `H572`, other, unsure,
+  none, presented in one horizontal, overflow-safe selector;
+- final fix date; calculate days from fault to final fix on the server rather than accepting
+  a member-entered duration, and show the same calculation in the browser as immediate help;
 - whether a courtesy vehicle was offered and whether one was provided;
-- whether the repair was delayed due to parts;
+- the parts-delay range: none, up to one week, up to one month, up to two months, up to
+  three months, or four months and over;
+- whether a goodwill payment was received and optional miles driven whilst faulty;
 - warranty cover in place at the time;
 - responsibility or warranty dispute status.
+
+Refresh `src/assets/data/jaguar-uk-service-providers.json` with
+`make update-service-providers`. The generator queries the official Jaguar UK retailer
+locator's Electric Vehicle Service and Electric Vehicle Battery Repair filters, retains
+source/retrieval metadata, and rejects implausibly small results. This is a suggestion list,
+not a warranty of current capability; the UI must tell members to confirm with the provider.
 
 The Go Function must verify Firebase Auth, vehicle ownership, and existing-record ownership.
 Store canonical records in Firestore `serviceEvents`, preserve creation/review metadata on
@@ -92,6 +106,8 @@ identity, sheet structure, representative totals, and chart parts.
 - Test ownership predicates for both user and vehicle IDs.
 - Test Firebase Hosting route and browser bearer-token wiring.
 - Test tab semantics, full-width workspace markup, graph accessibility, and add/edit controls.
+- Test the provider-directory shape, server-derived resolution duration, new service fields,
+  and the single-row campaign selector at desktop and mobile widths.
 - Test export authentication, method/format validation, ZIP datasets, formula-injection
   neutralisation, workbook sheets/charts, response headers, and browser bearer-token wiring.
 - Run `make test` and `make build`.

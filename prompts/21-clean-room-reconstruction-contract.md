@@ -91,7 +91,7 @@ change rather than assuming it exists.
 | `POST /api/submit-join` | Optional Firebase token | `name`, `email`, `country`, `relationship`, `skills[]`, `consent-contact`, `consent-not-legal`, `consent-data`, and `bot-field`; save the Join record and initiate guest activation. |
 | `POST /api/submit-vehicle-basics` | Member | `vin`, `registration`, `country`, `modelYear`, `mileage`, `ownedSince`, `firstReg`, plus optional `soh`, `sohDate`, `sohMileage`, `sohSource`. |
 | `POST /api/submit-soh` | Member/vehicle owner | `vehicleId`, `soh`, `sohDate`, `sohMileage`, `sohSource`; append history and update the vehicle compatibility value. |
-| `POST /api/upsert-service-event` | Member/vehicle and record owner | `id`, `vehicleId`, `eventType`, `occurredAt`, `mileage`, `title`, `description`, `status`, `campaigns[]`, `finalFixAt`, `daysToFinalFix`, `courtesyVehicleOffered`, `courtesyVehicleProvided`, `partsDelay`, `warrantyCover`, `disputeStatus`. |
+| `POST /api/upsert-service-event` | Member/vehicle and record owner | `id`, `vehicleId`, `eventType`, `occurredAt`, `mileage`, `title`, `description`, `status`, `campaigns[]`, `serviceProviderId`, `serviceProviderName`, `serviceProviderPostcode`, `serviceProviderAuthorised`, `finalFixAt`, `courtesyVehicleOffered`, `courtesyVehicleProvided`, `partsDelay`, `goodwillPayment`, `milesDrivenWhilstFaulty`, `warrantyCover`, `disputeStatus`. Derive `daysToFinalFix` server-side. |
 | `GET /api/member-data` | Member | Return only that UID's private member snapshot. |
 | `GET /api/member-export?format=csv\|xlsx` | Member | Return a private no-store ZIP of four CSV datasets or a formatted five-sheet Excel workbook built from only that UID's snapshot; omit internal IDs/hashes and neutralise spreadsheet formulas. |
 | `GET /api/admin-data` | Admin claim | Return Join and vehicle review records. |
@@ -313,6 +313,8 @@ pushed below the fold. Keep all three on one row at mobile and desktop widths an
 clearly smaller than the headline Owners joined wreath. Show authenticated members a
 restrained, evidence-led CTA from those counters to the member vehicle-data workspace, using
 spacing rather than horizontal rules to separate the subsection and CTA. The complete
+evidence subsection, including the three counters, heading and CTA, is authenticated-member
+UI and remains hidden for signed-out visitors. The complete
 signed-in CTA must remain fully contained and reachable when scrolling the hero at a current
 Android-phone responsive breakpoint, without being clipped or overflowing the viewport width.
 Keep the nudge text and action together as one compact vertical subsection at every width,

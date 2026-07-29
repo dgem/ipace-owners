@@ -8,6 +8,7 @@ import (
 
 func sampleInt(value int) *int           { return &value }
 func sampleFloat(value float64) *float64 { return &value }
+func sampleBool(value bool) *bool        { return &value }
 
 func TestGeneratePublicSampleWorkbook(t *testing.T) {
 	if os.Getenv("GENERATE_MEMBER_EXPORT_SAMPLE") != "1" {
@@ -105,9 +106,9 @@ func TestGeneratePublicSampleWorkbook(t *testing.T) {
 		})
 	}
 	for index, event := range []serviceEventRecord{
-		{VehicleID: "sample-vehicle-one", EventType: "fault", OccurredAt: "2025-11-14", Mileage: sampleInt(40230), Title: "Traction battery warning", Description: "Warning displayed; vehicle inspected by retailer.", Status: "Resolved", Campaigns: []string{"Sample campaign A"}, FinalFixAt: "2025-11-20", DaysToFinalFix: sampleInt(6), CourtesyVehicleOffered: "Yes", CourtesyVehicleProvided: "Yes", PartsDelay: "No", WarrantyCover: "Full", DisputeStatus: "None"},
-		{VehicleID: "sample-vehicle-one", EventType: "service", OccurredAt: "2026-03-08", Mileage: sampleInt(44700), Title: "Scheduled service", Description: "Routine inspection and software updates.", Status: "Complete", WarrantyCover: "Not applicable", DisputeStatus: "None"},
-		{VehicleID: "sample-vehicle-two", EventType: "recall", OccurredAt: "2026-02-11", Mileage: sampleInt(17540), Title: "Recall inspection", Description: "Vehicle inspected and returned the same day.", Status: "Complete", Campaigns: []string{"Sample campaign B"}, FinalFixAt: "2026-02-11", DaysToFinalFix: sampleInt(0), CourtesyVehicleOffered: "No", CourtesyVehicleProvided: "No", PartsDelay: "No", WarrantyCover: "Full", DisputeStatus: "None"},
+		{VehicleID: "sample-vehicle-one", EventType: "fault", OccurredAt: "2025-11-14", Mileage: sampleInt(40230), Title: "Traction battery warning", Description: "Warning displayed; vehicle inspected by retailer.", Status: "Resolved", Campaigns: []string{"Sample campaign A"}, ServiceProviderName: "Example Jaguar North", ServiceProviderPostcode: "AB1 2CD", ServiceProviderAuthorised: sampleBool(true), FinalFixAt: "2025-11-20", DaysToFinalFix: sampleInt(6), CourtesyVehicleOffered: "Yes", CourtesyVehicleProvided: "Yes", PartsDelay: "up-to-1-week", GoodwillPayment: sampleBool(true), MilesDrivenWhilstFaulty: sampleInt(220), WarrantyCover: "Full", DisputeStatus: "None"},
+		{VehicleID: "sample-vehicle-one", EventType: "service", OccurredAt: "2026-03-08", Mileage: sampleInt(44700), Title: "Scheduled service", Description: "Routine inspection and software updates.", Status: "Complete", ServiceProviderName: "Example Jaguar North", ServiceProviderPostcode: "AB1 2CD", ServiceProviderAuthorised: sampleBool(true), WarrantyCover: "Not applicable", DisputeStatus: "None"},
+		{VehicleID: "sample-vehicle-two", EventType: "recall", OccurredAt: "2026-02-11", Mileage: sampleInt(17540), Title: "Recall inspection", Description: "Vehicle inspected and returned the same day.", Status: "Complete", Campaigns: []string{"Sample campaign B"}, ServiceProviderName: "Example Jaguar South", ServiceProviderPostcode: "XY9 8ZZ", ServiceProviderAuthorised: sampleBool(true), FinalFixAt: "2026-02-11", DaysToFinalFix: sampleInt(0), CourtesyVehicleOffered: "No", CourtesyVehicleProvided: "No", PartsDelay: "none", GoodwillPayment: sampleBool(false), MilesDrivenWhilstFaulty: sampleInt(0), WarrantyCover: "Full", DisputeStatus: "None"},
 		{VehicleID: "sample-vehicle-two", EventType: "inspection", OccurredAt: "2026-07-22", Mileage: sampleInt(21790), Title: "Battery health check", Description: "Diagnostic report added to personal records.", Status: "Complete", WarrantyCover: "Not applicable", DisputeStatus: "None"},
 	} {
 		event.ID = "sample-event-" + string(rune('a'+index))
