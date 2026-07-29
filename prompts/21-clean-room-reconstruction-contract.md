@@ -303,8 +303,9 @@ If those assets are genuinely unavailable, regenerate them from prompt `19`, lab
 result as a new visual revision, verify QR scanning and print dimensions, and obtain human
 design approval. Never silently claim pixel equivalence. Recreate page copy from prompts
 `04`, `18`, and `19`; preserve British English, constructive advocacy tone, official launch
-date of 17 July 2026, the canonicalised Join-submission “Owners joined” count, and its responsive garland
-presentation.
+date of 17 July 2026, the canonicalised Join-submission “Owners joined” count, and the reusable
+responsive gold racing-wreath presentation shared by the launch-page owners, registered-cars,
+SoH-readings, and service/fault-record counters.
 
 ## Dependency, infrastructure, and CI contract
 

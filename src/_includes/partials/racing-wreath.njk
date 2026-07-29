@@ -1,0 +1,34 @@
+{% macro racingWreath(id, statKey, label, note, datetime) %}
+<div class="launch-member-count-group" aria-label="{{ label }}">
+  <div class="launch-member-count">
+    <svg class="launch-member-count__laurels" viewBox="-4 -4 128 128" aria-hidden="true">
+      <defs>
+        <g id="{{ id }}-leaf">
+          <path class="launch-member-count__leaf" d="M0 0C-7-6-7-17 0-24C8-17 8-6 0 0Z" />
+          <path class="launch-member-count__vein" d="M0-2V-20" />
+        </g>
+      </defs>
+      <g id="{{ id }}-half">
+        <path class="launch-member-count__stem" d="M79 119C71 109 65 105 58 103C31 100 14 82 14 58C14 34 28 18 47 11C30 22 18 37 18 58C17 80 32 96 59 100C67 102 73 109 81 117Z" />
+        <use href="#{{ id }}-leaf" transform="translate(52 103) rotate(-76) scale(1)" />
+        <use href="#{{ id }}-leaf" transform="translate(40 98) rotate(-23) scale(.95)" />
+        <use href="#{{ id }}-leaf" transform="translate(30 91) rotate(-60) scale(.9)" />
+        <use href="#{{ id }}-leaf" transform="translate(22 81) rotate(3) scale(.85)" />
+        <use href="#{{ id }}-leaf" transform="translate(17 68) rotate(-38) scale(.8)" />
+        <use href="#{{ id }}-leaf" transform="translate(17 54) rotate(35) scale(.75)" />
+        <use href="#{{ id }}-leaf" transform="translate(21 40) rotate(-3) scale(.69)" />
+        <use href="#{{ id }}-leaf" transform="translate(29 27) rotate(67) scale(.62)" />
+        <use href="#{{ id }}-leaf" transform="translate(44 14) rotate(77) scale(.48)" />
+      </g>
+      <use href="#{{ id }}-half" transform="translate(120 0) scale(-1 1)" />
+    </svg>
+    <span class="launch-member-count__content">
+      <strong class="launch-member-count__value" data-public-stat="{{ statKey }}" aria-live="polite">Loading</strong>
+    </span>
+  </div>
+  <span class="launch-member-count__label">{{ label }}</span>
+  <span class="launch-member-count__date">
+    {% if datetime %}Since <time datetime="{{ datetime }}">{{ note }}</time>{% else %}{{ note }}{% endif %}
+  </span>
+</div>
+{% endmacro %}

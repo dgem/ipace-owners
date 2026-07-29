@@ -23,14 +23,16 @@ test('member UI appends authenticated SoH readings to owned vehicles', function 
 test('homepage and evidence dashboard load real public aggregate statistics', function () {
   const home = read('src/index.njk');
   const dashboard = read('src/evidence-dashboard.njk');
+  const wreath = read('src/_includes/partials/racing-wreath.njk');
   const stats = read('src/assets/js/public-stats.js');
 
-  assert.match(home, /data-public-stat="vehiclesRegistered"/);
-  assert.match(home, /data-public-stat="sohReadings"/);
-  assert.match(home, /data-public-stat="serviceEventsLogged"/);
-  assert.match(home, /data-public-stat="joinedOwners"/);
-  assert.match(home, /Owners Joined/);
-  assert.match(home, /launch-member-count__date[^>]*>Since <time datetime="2026-07-17">17th July 2026/);
+  assert.match(home, /racingWreath\("owners-joined-wreath", "joinedOwners", "Owners joined", "17th July 2026", "2026-07-17"\)/);
+  assert.match(home, /racingWreath\("cars-registered-wreath", "vehiclesRegistered"/);
+  assert.match(home, /racingWreath\("soh-readings-wreath", "sohReadings"/);
+  assert.match(home, /racingWreath\("service-records-wreath", "serviceEventsLogged"/);
+  assert.match(wreath, /launch-member-count__date/);
+  assert.match(wreath, /data-public-stat="\{\{ statKey \}\}"/);
+  assert.match(wreath, /Since <time datetime="\{\{ datetime \}\}">\{\{ note \}\}<\/time>/);
   assert.match(dashboard, /data-public-stat="averageReportedSoh"/);
   assert.match(dashboard, /data-public-stat="serviceEventsLogged"/);
   assert.match(dashboard, /data-public-distribution="soh"/);
@@ -43,4 +45,5 @@ test('homepage and evidence dashboard load real public aggregate statistics', fu
   assert.match(css, /data-count-size="four"/);
   assert.match(css, /data-count-size="five"/);
   assert.match(css, /data-count-size="large"/);
+  assert.match(css, /\.launch-evidence-wreaths[^}]*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/s);
 });

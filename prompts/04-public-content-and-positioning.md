@@ -209,6 +209,10 @@ offer a downloadable sample Excel workbook generated with fictional data only.
   space between the number and inner leaves at values such as 111 or 126, with further
   reductions at four, five, and six-plus digits so membership growth cannot collide with the
   wreath.
+- Present the launch-page cars-registered, SoH-readings, and service/fault-record totals with
+  the same reusable gold racing-wreath component as the Owners joined count. Group the three
+  evidence wreaths in a compact dark band, keep them on one row at desktop and mobile widths,
+  and shorten labels as needed without hiding what each aggregate represents.
 - Mark placeholder figures and illustrative examples clearly.
 - Do not use Jaguar/JLR logos, badges, readable plates, copyrighted press imagery, or other unlicensed manufacturer assets.
 - If using a vehicle image, make it original/licensed/generated, avoid visible brand marks, and provide meaningful alt text.

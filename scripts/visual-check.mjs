@@ -441,6 +441,10 @@ async function checkPublicEvidenceCounters(url, viewport, screenshotName) {
   assert.equal(await page.locator('[data-public-stat="vehiclesRegistered"]').first().textContent(), '312');
   assert.equal(await page.locator('[data-public-stat="sohReadings"]').first().textContent(), '634');
   assert.equal(await page.locator('[data-public-stat="serviceEventsLogged"]').first().textContent(), '148');
+  if (url === '/') {
+    assert.equal(await page.locator('.launch-evidence-wreaths .launch-member-count').count(), 3);
+    assert.equal(await page.locator('.launch-evidence-wreaths .launch-member-count__laurels').count(), 3);
+  }
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
   await page.close();
