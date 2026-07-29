@@ -904,7 +904,8 @@ a.site-context-nav__section:focus-visible {
 
 .launch-hero__evidence-cta {
   display: flex;
-  gap: var(--space-4);
+  flex-direction: column;
+  gap: var(--space-3);
   align-items: center;
   justify-content: center;
   max-width: 52rem;
@@ -917,7 +918,7 @@ a.site-context-nav__section:focus-visible {
   margin: 0;
   color: rgb(255 255 255 / 0.8);
   font-size: var(--text-sm);
-  text-align: left;
+  text-align: center;
 }
 
 .launch-hero__evidence-cta strong {
@@ -926,6 +927,9 @@ a.site-context-nav__section:focus-visible {
 
 .launch-hero__evidence-cta .btn {
   flex: 0 0 auto;
+  align-self: center;
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
 }
 
 @media (max-width: 30rem) {
@@ -952,8 +956,6 @@ a.site-context-nav__section:focus-visible {
   }
 
   .launch-hero__evidence-cta {
-    flex-direction: column;
-    align-items: stretch;
     padding-top: var(--space-5);
     margin-top: var(--space-5);
   }
@@ -1018,6 +1020,10 @@ a.site-context-nav__section:focus-visible {
   .launch-hero .btn,
   .launch-final-cta .btn {
     justify-content: center;
+  }
+
+  .launch-hero .launch-hero__evidence-cta .btn {
+    width: auto;
   }
 }
 

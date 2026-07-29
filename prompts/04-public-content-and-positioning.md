@@ -226,7 +226,10 @@ offer a downloadable sample Excel workbook generated with fictional data only.
   CTA with spacing rather than a horizontal rule.
   Keep the complete signed-in CTA, including its button, fully contained and reachable when
   scrolling the hero at a current Android-phone responsive breakpoint; it must not be clipped
-  by the hero or extend beyond the viewport width.
+  by the hero or extend beyond the viewport width. Treat its nudge and action as one compact
+  vertical subsection at every width: centred text first, followed by a deliberately small
+  centred button. Do not let the button stretch across the hero. Verify the intermediate
+  490 × 874 Firefox responsive-design viewport as well as narrower mobile widths.
 - Mark placeholder figures and illustrative examples clearly.
 - Do not use Jaguar/JLR logos, badges, readable plates, copyrighted press imagery, or other unlicensed manufacturer assets.
 - If using a vehicle image, make it original/licensed/generated, avoid visible brand marks, and provide meaningful alt text.

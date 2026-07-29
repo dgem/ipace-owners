@@ -315,6 +315,10 @@ restrained, evidence-led CTA from those counters to the member vehicle-data work
 spacing rather than horizontal rules to separate the subsection and CTA. The complete
 signed-in CTA must remain fully contained and reachable when scrolling the hero at a current
 Android-phone responsive breakpoint, without being clipped or overflowing the viewport width.
+Keep the nudge text and action together as one compact vertical subsection at every width,
+with centred text before a deliberately small centred button rather than a full-width action.
+Include a 490 × 874 Firefox responsive-design checkpoint so the intermediate mobile breakpoint
+cannot regress into a clipped horizontal layout.
 
 ## Dependency, infrastructure, and CI contract
 

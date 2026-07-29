@@ -447,14 +447,27 @@ async function checkPublicEvidenceCounters(url, viewport, screenshotName, showMe
       '/member/dashboard/'
     );
     if (viewport.width < 640) {
-      assert.equal(await page.getByRole('link', { name: 'Add Your Vehicle Data' }).evaluate((element) => {
+      const mobileCtaComposition = await page.locator('.launch-hero__evidence-cta').evaluate((element) => {
         const bounds = element.getBoundingClientRect();
         const heroBounds = element.closest('.launch-hero').getBoundingClientRect();
-        return bounds.left >= 0
-          && bounds.right <= document.documentElement.clientWidth
-          && bounds.top >= heroBounds.top
-          && bounds.bottom <= heroBounds.bottom;
-      }), true, 'the signed-in evidence CTA must remain fully contained by the mobile hero');
+        const textBounds = element.querySelector('p').getBoundingClientRect();
+        const buttonBounds = element.querySelector('.btn').getBoundingClientRect();
+        return {
+          contained: bounds.left >= 0
+            && bounds.right <= document.documentElement.clientWidth
+            && bounds.top >= heroBounds.top
+            && bounds.bottom <= heroBounds.bottom,
+          vertical: getComputedStyle(element).flexDirection === 'column'
+            && buttonBounds.top >= textBounds.bottom,
+          compactButton: buttonBounds.width < bounds.width * 0.8
+        };
+      });
+      assert.equal(mobileCtaComposition.contained, true,
+        'the signed-in evidence CTA must remain fully contained by the mobile hero');
+      assert.equal(mobileCtaComposition.vertical, true,
+        'the signed-in evidence CTA must place its button below its text');
+      assert.equal(mobileCtaComposition.compactButton, true,
+        'the signed-in evidence CTA button must not dominate the mobile subsection');
     }
   }
   await page.locator('[data-public-stat="serviceEventsLogged"]').first().waitFor({ state: 'visible' });
@@ -523,6 +536,7 @@ try {
   await checkPublicEvidenceCounters('/', { width: 1440, height: 1000 }, 'public-evidence-member-cta-desktop.png', true);
   await checkPublicEvidenceCounters('/', { width: 390, height: 844 }, 'public-evidence-member-cta-mobile.png', true);
   await checkPublicEvidenceCounters('/', { width: 412, height: 915 }, 'public-evidence-member-cta-android-15.png', true);
+  await checkPublicEvidenceCounters('/', { width: 490, height: 874 }, 'public-evidence-member-cta-firefox-android.png', true);
   await checkPublicEvidenceCounters('/evidence-dashboard/?site-mode=full', { width: 1440, height: 1000 }, 'evidence-dashboard-desktop.png');
   await checkPublicEvidenceCounters('/evidence-dashboard/?site-mode=full', { width: 390, height: 844 }, 'evidence-dashboard-mobile.png');
   console.log(`Visual checks passed; screenshots written to ${outputDir}`);
