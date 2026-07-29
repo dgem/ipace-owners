@@ -849,15 +849,15 @@ a.site-context-nav__section:focus-visible {
 .launch-hero__evidence {
   position: relative;
   z-index: 1;
-  padding-top: var(--space-8);
-  margin-top: var(--space-10);
+  padding-top: var(--space-5);
+  margin-top: var(--space-5);
   background: transparent;
 }
 
 .launch-hero__evidence h2 {
   color: #fff;
-  font-size: clamp(var(--text-lg), 2.5vw, var(--text-2xl));
-  margin-bottom: var(--space-6);
+  font-size: var(--text-lg);
+  margin-bottom: var(--space-3);
   text-align: center;
 }
 
@@ -873,15 +873,43 @@ a.site-context-nav__section:focus-visible {
   min-width: 0;
 }
 
+.launch-evidence-wreaths .launch-member-count {
+  width: 6.25rem;
+}
+
+.launch-evidence-wreaths .launch-member-count__value {
+  font-size: 1.8rem;
+}
+
+.launch-evidence-wreaths .launch-member-count__value[data-count-size="three"],
+.launch-evidence-wreaths .launch-member-count__value[data-count-size="four"] {
+  font-size: 1.5rem;
+}
+
+.launch-evidence-wreaths .launch-member-count__value[data-count-size="five"] {
+  font-size: 1.3rem;
+}
+
+.launch-evidence-wreaths .launch-member-count__value[data-count-size="large"] {
+  font-size: 1.1rem;
+}
+
+.launch-evidence-wreaths .launch-member-count__label {
+  font-size: 0.58rem;
+}
+
+.launch-evidence-wreaths .launch-member-count__date {
+  font-size: 0.52rem;
+}
+
 .launch-hero__evidence-cta {
   display: flex;
   gap: var(--space-4);
   align-items: center;
   justify-content: center;
   max-width: 52rem;
-  padding-top: var(--space-6);
-  margin: var(--space-6) auto 0;
-  border-top: 1px solid rgb(255 255 255 / 0.12);
+  padding-top: var(--space-4);
+  margin: var(--space-4) auto 0;
 }
 
 .launch-hero__evidence-cta p {
@@ -902,8 +930,8 @@ a.site-context-nav__section:focus-visible {
 
 @media (max-width: 30rem) {
   .launch-hero__evidence {
-    padding-top: var(--space-6);
-    margin-top: var(--space-8);
+    padding-top: var(--space-5);
+    margin-top: var(--space-5);
   }
 
   .launch-hero__evidence h2 {
@@ -915,7 +943,7 @@ a.site-context-nav__section:focus-visible {
   }
 
   .launch-evidence-wreaths .launch-member-count {
-    width: min(6.5rem, 100%);
+    width: min(5.4rem, 100%);
   }
 
   .launch-evidence-wreaths .launch-member-count__label {
@@ -1023,6 +1051,10 @@ a.site-context-nav__section:focus-visible {
   .hero__media {
     width: 100%;
     transform: translateX(1rem);
+  }
+
+  .launch-hero .hero__inner {
+    align-items: start;
   }
 }
 

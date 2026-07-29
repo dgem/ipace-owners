@@ -211,14 +211,22 @@ offer a downloadable sample Excel workbook generated with fictional data only.
   wreath.
 - Present the launch-page cars-registered, SoH-readings, and service/fault-record totals with
   the same reusable gold racing-wreath component as the Owners joined count. Treat the three
-  evidence wreaths as a compact subsection of the hero, with no separate filled background,
-  so they sit directly on and visually continue the hero gradient. Use restrained spacing,
+  evidence wreaths as a compact subsection directly below the hero image, with no separate
+  filled background, so they sit directly on and visually continue the hero gradient. On
+  desktop, keep this subsection in the image column so it uses the available space and allows
+  the `Why now?` section to remain visible without unnecessary scrolling. Use restrained spacing,
   without a horizontal rule between the main hero and evidence subsection, to preserve
   hierarchy without creating a disconnected band. Keep them on one row at desktop and mobile
-  widths, and shorten labels as needed without hiding what each aggregate represents. For
-  authenticated members, follow the counters with a visually
+  widths. Make each evidence wreath clearly smaller than the headline Owners joined wreath so
+  the supporting figures cannot compete with the primary membership count, and shorten labels
+  as needed without hiding what each aggregate represents. For authenticated members, follow
+  the counters with a visually
   subordinate CTA that gently explains how each added vehicle, SoH reading, or service/fault
-  record strengthens the shared evidence and links to the member data workspace.
+  record strengthens the shared evidence and links to the member data workspace. Separate that
+  CTA with spacing rather than a horizontal rule.
+  Keep the complete signed-in CTA, including its button, fully contained and reachable when
+  scrolling the hero at a current Android-phone responsive breakpoint; it must not be clipped
+  by the hero or extend beyond the viewport width.
 - Mark placeholder figures and illustrative examples clearly.
 - Do not use Jaguar/JLR logos, badges, readable plates, copyrighted press imagery, or other unlicensed manufacturer assets.
 - If using a vehicle image, make it original/licensed/generated, avoid visible brand marks, and provide meaningful alt text.

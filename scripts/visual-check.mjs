@@ -446,37 +446,57 @@ async function checkPublicEvidenceCounters(url, viewport, screenshotName, showMe
       await page.getByRole('link', { name: 'Add Your Vehicle Data' }).getAttribute('href'),
       '/member/dashboard/'
     );
+    if (viewport.width < 640) {
+      assert.equal(await page.getByRole('link', { name: 'Add Your Vehicle Data' }).evaluate((element) => {
+        const bounds = element.getBoundingClientRect();
+        const heroBounds = element.closest('.launch-hero').getBoundingClientRect();
+        return bounds.left >= 0
+          && bounds.right <= document.documentElement.clientWidth
+          && bounds.top >= heroBounds.top
+          && bounds.bottom <= heroBounds.bottom;
+      }), true, 'the signed-in evidence CTA must remain fully contained by the mobile hero');
+    }
   }
   await page.locator('[data-public-stat="serviceEventsLogged"]').first().waitFor({ state: 'visible' });
   assert.equal(await page.locator('[data-public-stat="vehiclesRegistered"]').first().textContent(), '312');
   assert.equal(await page.locator('[data-public-stat="sohReadings"]').first().textContent(), '634');
   assert.equal(await page.locator('[data-public-stat="serviceEventsLogged"]').first().textContent(), '148');
   if (url === '/') {
-    assert.equal(await page.locator('.launch-hero > .container > .launch-hero__evidence').count(), 1);
+    assert.equal(await page.locator('.launch-hero .hero__media > .launch-hero__evidence').count(), 1);
     assert.equal(await page.locator('.launch-evidence-wreaths .launch-member-count').count(), 3);
     assert.equal(await page.locator('.launch-evidence-wreaths .launch-member-count__laurels').count(), 3);
     const evidenceComposition = await page.evaluate(() => {
       const hero = document.querySelector('.launch-hero');
       const heroInner = hero.querySelector('.hero__inner');
+      const media = heroInner.querySelector('.hero__media');
+      const image = media.querySelector('img');
       const evidence = hero.querySelector('.launch-hero__evidence');
       const wreaths = Array.from(evidence.querySelectorAll('.launch-member-count'));
       const heroBounds = hero.getBoundingClientRect();
-      const contentBounds = heroInner.getBoundingClientRect();
+      const imageBounds = image.getBoundingClientRect();
       const evidenceBounds = evidence.getBoundingClientRect();
       const wreathBounds = wreaths.map((wreath) => wreath.getBoundingClientRect());
+      const headlineWreathBounds = heroInner.querySelector('.launch-member-count').getBoundingClientRect();
+      const memberCta = hero.querySelector('.launch-hero__evidence-cta');
       return {
         background: getComputedStyle(evidence).backgroundColor,
         borderTopWidth: getComputedStyle(evidence).borderTopWidth,
-        followsHeroContent: evidenceBounds.top >= contentBounds.bottom,
+        ctaBorderTopWidth: getComputedStyle(memberCta).borderTopWidth,
+        followsHeroImage: evidenceBounds.top >= imageBounds.bottom,
+        belongsToMediaColumn: evidence.parentElement === media,
         containedByHero: evidenceBounds.bottom <= heroBounds.bottom,
+        subordinateSize: wreathBounds.every((bounds) => bounds.width < headlineWreathBounds.width),
         oneRow: Math.max(...wreathBounds.map((bounds) => bounds.top))
           - Math.min(...wreathBounds.map((bounds) => bounds.top)) < 2
       };
     });
     assert.equal(evidenceComposition.background, 'rgba(0, 0, 0, 0)');
     assert.equal(evidenceComposition.borderTopWidth, '0px');
-    assert.equal(evidenceComposition.followsHeroContent, true);
+    assert.equal(evidenceComposition.ctaBorderTopWidth, '0px');
+    assert.equal(evidenceComposition.followsHeroImage, true);
+    assert.equal(evidenceComposition.belongsToMediaColumn, true);
     assert.equal(evidenceComposition.containedByHero, true);
+    assert.equal(evidenceComposition.subordinateSize, true);
     assert.equal(evidenceComposition.oneRow, true);
   }
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
@@ -502,6 +522,7 @@ try {
   await checkPublicEvidenceCounters('/', { width: 390, height: 844 }, 'public-evidence-counters-mobile.png');
   await checkPublicEvidenceCounters('/', { width: 1440, height: 1000 }, 'public-evidence-member-cta-desktop.png', true);
   await checkPublicEvidenceCounters('/', { width: 390, height: 844 }, 'public-evidence-member-cta-mobile.png', true);
+  await checkPublicEvidenceCounters('/', { width: 412, height: 915 }, 'public-evidence-member-cta-android-15.png', true);
   await checkPublicEvidenceCounters('/evidence-dashboard/?site-mode=full', { width: 1440, height: 1000 }, 'evidence-dashboard-desktop.png');
   await checkPublicEvidenceCounters('/evidence-dashboard/?site-mode=full', { width: 390, height: 844 }, 'evidence-dashboard-mobile.png');
   console.log(`Visual checks passed; screenshots written to ${outputDir}`);

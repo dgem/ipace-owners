@@ -307,8 +307,14 @@ date of 17 July 2026, the canonicalised Join-submission “Owners joined” coun
 responsive gold racing-wreath presentation shared by the launch-page owners, registered-cars,
 SoH-readings, and service/fault-record counters. Keep the three evidence counters within the
 hero as a transparent subsection over the same graduated background rather than introducing
-a separate solid-colour band. Show authenticated members a restrained, evidence-led CTA from
-those counters to the member vehicle-data workspace.
+a separate solid-colour band. Place them directly beneath the hero image, retaining that
+image-column composition on desktop so the following `Why now?` section is not needlessly
+pushed below the fold. Keep all three on one row at mobile and desktop widths and make them
+clearly smaller than the headline Owners joined wreath. Show authenticated members a
+restrained, evidence-led CTA from those counters to the member vehicle-data workspace, using
+spacing rather than horizontal rules to separate the subsection and CTA. The complete
+signed-in CTA must remain fully contained and reachable when scrolling the hero at a current
+Android-phone responsive breakpoint, without being clipped or overflowing the viewport width.
 
 ## Dependency, infrastructure, and CI contract
 
