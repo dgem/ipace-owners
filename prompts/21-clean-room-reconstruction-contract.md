@@ -158,9 +158,10 @@ keys where applicable, and `{ status, verificationLevel }` review metadata. Pres
   day counts, ownership keys, timestamps, and review metadata.
 - Member snapshots contain `identityUserId`, `email`, `generatedAt`, `joinRecords[]`,
   `vehicleRecords[]`, `batteryReadings[]`, and `serviceEvents[]`.
-- Public statistics currently use `schemaVersion: 5` and contain `generatedAt`, `joinedOwners`,
+- Public statistics currently use `schemaVersion: 6` and contain `generatedAt`, `joinedOwners`,
   `registeredMembers`,
   `ownersContributed`, `vehiclesRegistered`, `vehiclesWithSoh`, `sohReadings`,
+  `serviceEventsLogged`,
   `vehiclesWithRepeatSoh`, optional `averageReportedSoh`, optional `averageSohChange`, and
   `{ label, count }[]` arrays for `sohDistribution` and `modelYearDistribution`.
 
@@ -302,8 +303,22 @@ If those assets are genuinely unavailable, regenerate them from prompt `19`, lab
 result as a new visual revision, verify QR scanning and print dimensions, and obtain human
 design approval. Never silently claim pixel equivalence. Recreate page copy from prompts
 `04`, `18`, and `19`; preserve British English, constructive advocacy tone, official launch
-date of 17 July 2026, the canonicalised Join-submission “Owners joined” count, and its responsive garland
-presentation.
+date of 17 July 2026, the canonicalised Join-submission “Owners joined” count, and the reusable
+responsive gold racing-wreath presentation shared by the launch-page owners, registered-cars,
+SoH-readings, and service/fault-record counters. Keep the three evidence counters within the
+hero as a transparent subsection over the same graduated background rather than introducing
+a separate solid-colour band. Place them directly beneath the hero image, retaining that
+image-column composition on desktop so the following `Why now?` section is not needlessly
+pushed below the fold. Keep all three on one row at mobile and desktop widths and make them
+clearly smaller than the headline Owners joined wreath. Show authenticated members a
+restrained, evidence-led CTA from those counters to the member vehicle-data workspace, using
+spacing rather than horizontal rules to separate the subsection and CTA. The complete
+signed-in CTA must remain fully contained and reachable when scrolling the hero at a current
+Android-phone responsive breakpoint, without being clipped or overflowing the viewport width.
+Keep the nudge text and action together as one compact vertical subsection at every width,
+with centred text before a deliberately small centred button rather than a full-width action.
+Include a 490 × 874 Firefox responsive-design checkpoint so the intermediate mobile breakpoint
+cannot regress into a clipped horizontal layout.
 
 ## Dependency, infrastructure, and CI contract
 

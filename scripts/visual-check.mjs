@@ -403,6 +403,120 @@ async function checkPublicContentPage(url, heading, viewport, screenshotName) {
   await page.close();
 }
 
+async function checkPublicEvidenceCounters(url, viewport, screenshotName, showMemberCta = false) {
+  const page = await browser.newPage({ viewport });
+  await page.route('**/api/public-stats?v=6', (route) => route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({
+      schemaVersion: 6,
+      generatedAt: '2026-07-29T09:30:00Z',
+      joinedOwners: 429,
+      registeredMembers: 401,
+      ownersContributed: 287,
+      vehiclesRegistered: 312,
+      vehiclesWithSoh: 196,
+      sohReadings: 634,
+      serviceEventsLogged: 148,
+      vehiclesWithRepeatSoh: 83,
+      averageReportedSoh: 87.4,
+      averageSohChange: -2.7,
+      sohDistribution: [
+        { label: '90-100%', count: 61 },
+        { label: '80-89.9%', count: 102 },
+        { label: '70-79.9%', count: 28 },
+        { label: 'Below 70%', count: 5 }
+      ],
+      modelYearDistribution: [
+        { label: '2019', count: 92 },
+        { label: '2020', count: 118 },
+        { label: '2021', count: 102 }
+      ]
+    })
+  }));
+  await page.goto(baseURL + url, { waitUntil: 'networkidle' });
+  await page.evaluate(() => {
+    document.querySelectorAll('.cookie-notice').forEach((element) => { element.hidden = true; });
+  });
+  if (showMemberCta) {
+    await page.locator('.launch-hero__evidence-cta').evaluate((element) => {
+      element.style.display = '';
+    });
+    assert.equal(await page.getByRole('link', { name: 'Add Your Vehicle Data' }).isVisible(), true);
+    assert.equal(
+      await page.getByRole('link', { name: 'Add Your Vehicle Data' }).getAttribute('href'),
+      '/member/dashboard/'
+    );
+    if (viewport.width < 640) {
+      const mobileCtaComposition = await page.locator('.launch-hero__evidence-cta').evaluate((element) => {
+        const bounds = element.getBoundingClientRect();
+        const heroBounds = element.closest('.launch-hero').getBoundingClientRect();
+        const textBounds = element.querySelector('p').getBoundingClientRect();
+        const buttonBounds = element.querySelector('.btn').getBoundingClientRect();
+        return {
+          contained: bounds.left >= 0
+            && bounds.right <= document.documentElement.clientWidth
+            && bounds.top >= heroBounds.top
+            && bounds.bottom <= heroBounds.bottom,
+          vertical: getComputedStyle(element).flexDirection === 'column'
+            && buttonBounds.top >= textBounds.bottom,
+          compactButton: buttonBounds.width < bounds.width * 0.8
+        };
+      });
+      assert.equal(mobileCtaComposition.contained, true,
+        'the signed-in evidence CTA must remain fully contained by the mobile hero');
+      assert.equal(mobileCtaComposition.vertical, true,
+        'the signed-in evidence CTA must place its button below its text');
+      assert.equal(mobileCtaComposition.compactButton, true,
+        'the signed-in evidence CTA button must not dominate the mobile subsection');
+    }
+  }
+  await page.locator('[data-public-stat="serviceEventsLogged"]').first().waitFor({ state: 'visible' });
+  assert.equal(await page.locator('[data-public-stat="vehiclesRegistered"]').first().textContent(), '312');
+  assert.equal(await page.locator('[data-public-stat="sohReadings"]').first().textContent(), '634');
+  assert.equal(await page.locator('[data-public-stat="serviceEventsLogged"]').first().textContent(), '148');
+  if (url === '/') {
+    assert.equal(await page.locator('.launch-hero .hero__media > .launch-hero__evidence').count(), 1);
+    assert.equal(await page.locator('.launch-evidence-wreaths .launch-member-count').count(), 3);
+    assert.equal(await page.locator('.launch-evidence-wreaths .launch-member-count__laurels').count(), 3);
+    const evidenceComposition = await page.evaluate(() => {
+      const hero = document.querySelector('.launch-hero');
+      const heroInner = hero.querySelector('.hero__inner');
+      const media = heroInner.querySelector('.hero__media');
+      const image = media.querySelector('img');
+      const evidence = hero.querySelector('.launch-hero__evidence');
+      const wreaths = Array.from(evidence.querySelectorAll('.launch-member-count'));
+      const heroBounds = hero.getBoundingClientRect();
+      const imageBounds = image.getBoundingClientRect();
+      const evidenceBounds = evidence.getBoundingClientRect();
+      const wreathBounds = wreaths.map((wreath) => wreath.getBoundingClientRect());
+      const headlineWreathBounds = heroInner.querySelector('.launch-member-count').getBoundingClientRect();
+      const memberCta = hero.querySelector('.launch-hero__evidence-cta');
+      return {
+        background: getComputedStyle(evidence).backgroundColor,
+        borderTopWidth: getComputedStyle(evidence).borderTopWidth,
+        ctaBorderTopWidth: getComputedStyle(memberCta).borderTopWidth,
+        followsHeroImage: evidenceBounds.top >= imageBounds.bottom,
+        belongsToMediaColumn: evidence.parentElement === media,
+        containedByHero: evidenceBounds.bottom <= heroBounds.bottom,
+        subordinateSize: wreathBounds.every((bounds) => bounds.width < headlineWreathBounds.width),
+        oneRow: Math.max(...wreathBounds.map((bounds) => bounds.top))
+          - Math.min(...wreathBounds.map((bounds) => bounds.top)) < 2
+      };
+    });
+    assert.equal(evidenceComposition.background, 'rgba(0, 0, 0, 0)');
+    assert.equal(evidenceComposition.borderTopWidth, '0px');
+    assert.equal(evidenceComposition.ctaBorderTopWidth, '0px');
+    assert.equal(evidenceComposition.followsHeroImage, true);
+    assert.equal(evidenceComposition.belongsToMediaColumn, true);
+    assert.equal(evidenceComposition.containedByHero, true);
+    assert.equal(evidenceComposition.subordinateSize, true);
+    assert.equal(evidenceComposition.oneRow, true);
+  }
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
+  await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
+  await page.close();
+}
+
 try {
   await checkDesktopAdminHeader();
   await checkMobileAdminDrawer();
@@ -417,6 +531,14 @@ try {
   await checkPublicContentPage('/updates/member-data-export/', 'Export your member and vehicle data', { width: 390, height: 844 }, 'member-export-update-mobile.png');
   await checkPublicContentPage('/privacy/', 'Privacy Policy', { width: 1440, height: 1000 }, 'privacy-desktop.png');
   await checkPublicContentPage('/privacy/', 'Privacy Policy', { width: 390, height: 844 }, 'privacy-mobile.png');
+  await checkPublicEvidenceCounters('/', { width: 1440, height: 1000 }, 'public-evidence-counters-desktop.png');
+  await checkPublicEvidenceCounters('/', { width: 390, height: 844 }, 'public-evidence-counters-mobile.png');
+  await checkPublicEvidenceCounters('/', { width: 1440, height: 1000 }, 'public-evidence-member-cta-desktop.png', true);
+  await checkPublicEvidenceCounters('/', { width: 390, height: 844 }, 'public-evidence-member-cta-mobile.png', true);
+  await checkPublicEvidenceCounters('/', { width: 412, height: 915 }, 'public-evidence-member-cta-android-15.png', true);
+  await checkPublicEvidenceCounters('/', { width: 490, height: 874 }, 'public-evidence-member-cta-firefox-android.png', true);
+  await checkPublicEvidenceCounters('/evidence-dashboard/?site-mode=full', { width: 1440, height: 1000 }, 'evidence-dashboard-desktop.png');
+  await checkPublicEvidenceCounters('/evidence-dashboard/?site-mode=full', { width: 390, height: 844 }, 'evidence-dashboard-mobile.png');
   console.log(`Visual checks passed; screenshots written to ${outputDir}`);
 } finally {
   await browser.close();

@@ -76,7 +76,8 @@ The current public aggregate snapshot is written to
 emitted into `_site/`.
 Any future snapshot location must preserve the same anonymisation, verification, exclusion,
 and cache-version rules.
-The public statistics snapshot includes both `joinedOwners` and `registeredMembers` aggregates.
+The public statistics snapshot includes both `joinedOwners` and `registeredMembers` aggregates,
+plus consent-filtered vehicle, SoH-reading, and service/fault-record counts.
 Derive the headline `joinedOwners` count from contact-consenting Join submissions, deduplicating
 case-insensitively and treating `+tag` aliases as the same address. Obtain `registeredMembers`
 separately from the complete, paginated Firebase Authentication user list. Show "Since 17th July

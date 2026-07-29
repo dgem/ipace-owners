@@ -174,9 +174,9 @@ sheet and chart format without exposing member data.
   master. Concurrent status polls must not duplicate either billable provider operation, and
   generation never publishes as a side effect.
 - Regenerate private member snapshots after vehicle, SoH, or service-event writes. Regenerate
-  public aggregate snapshots after Join, vehicle, and SoH writes, using only fields with
-  defined consent and publication rules. Service/fault events stay private until explicit
-  moderation and publication rules exist.
+  public aggregate snapshots after Join, vehicle, SoH, and service-event writes, using only
+  records with anonymised-analysis consent and excluding records marked out of public reporting.
+  Publish only the aggregate service/fault record count; service-event details remain private.
 - Full VINs are never stored. Store only an HMAC-SHA-256 digest using `VIN_PEPPER` plus the
   final six VIN characters for member reference.
 - Raw email addresses and names must never appear in public static files or public

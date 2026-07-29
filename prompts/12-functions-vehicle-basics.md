@@ -31,8 +31,9 @@ storing full VINs. Members may register multiple vehicles.
 - An initial SoH value creates an append-only `batteryReadings` record.
 - Members append later readings with `POST /api/submit-soh`; `SubmitSOH` verifies that the
   authenticated UID owns the referenced vehicle before writing.
-- Vehicle and SoH writes regenerate both the private member snapshot and consent-filtered
-  public aggregate snapshot.
+- Vehicle, SoH, and service/fault writes regenerate both the private member snapshot and
+  consent-filtered public aggregate snapshot. Public service/fault reporting is limited to
+  the aggregate number of eligible records.
 
 ## Collected fields
 

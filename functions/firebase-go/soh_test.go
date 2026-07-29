@@ -110,12 +110,18 @@ func TestAggregatePublicStatsUsesLatestConsentedReadings(t *testing.T) {
 		{ID: "r3", VehicleID: "v2", Battery: batteryDetails{StateOfHealth: soh(90), MeasuredAt: "2026-06-22"}, Review: reviewRecord{Status: "new"}},
 		{ID: "r4", VehicleID: "v3", Battery: batteryDetails{StateOfHealth: soh(10), MeasuredAt: "2026-06-22"}, Review: reviewRecord{Status: "new"}},
 	}
+	serviceEvents := []serviceEventRecord{
+		{ID: "e1", VehicleID: "v1", EventType: "service", Review: reviewRecord{Status: "new"}},
+		{ID: "e2", VehicleID: "v2", EventType: "fault", Review: reviewRecord{Status: "reviewed"}},
+		{ID: "e3", VehicleID: "v2", EventType: "repair", Review: reviewRecord{Status: "excluded"}},
+		{ID: "e4", VehicleID: "v3", EventType: "service", Review: reviewRecord{Status: "new"}},
+	}
 
-	got := aggregatePublicStats(vehicles, readings, map[string]bool{"consented": true}, 20, 12, now)
+	got := aggregatePublicStats(vehicles, readings, serviceEvents, map[string]bool{"consented": true}, 20, 12, now)
 	if got.JoinedOwners != 20 || got.RegisteredMembers != 12 || got.SchemaVersion != publicStatsSchemaVersion {
 		t.Fatalf("membership aggregate = %+v", got)
 	}
-	if got.OwnersContributed != 1 || got.VehiclesRegistered != 2 || got.SOHReadings != 3 || got.VehiclesWithRepeatSOH != 1 {
+	if got.OwnersContributed != 1 || got.VehiclesRegistered != 2 || got.SOHReadings != 3 || got.ServiceEventsLogged != 2 || got.VehiclesWithRepeatSOH != 1 {
 		t.Fatalf("unexpected counts: %+v", got)
 	}
 	if got.AverageReportedSOH == nil || *got.AverageReportedSOH != 85 {
@@ -136,7 +142,7 @@ func TestAggregatePublicStatsUsesLegacyEmbeddedReading(t *testing.T) {
 		Battery: batteryDetails{StateOfHealth: &value, MeasuredAt: "2025-01-01"},
 		Review:  reviewRecord{Status: "new"},
 	}
-	got := aggregatePublicStats([]vehicleRecord{vehicle}, nil, map[string]bool{"consented": true}, 2, 1, time.Now())
+	got := aggregatePublicStats([]vehicleRecord{vehicle}, nil, nil, map[string]bool{"consented": true}, 2, 1, time.Now())
 	if got.SOHReadings != 1 || got.VehiclesWithSOH != 1 || got.AverageReportedSOH == nil || *got.AverageReportedSOH != 88 {
 		t.Fatalf("legacy aggregate = %+v", got)
 	}

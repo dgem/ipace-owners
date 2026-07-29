@@ -144,6 +144,9 @@ test('homepage vehicle CTAs switch between guest and signed-in states', function
 
   assert.match(home, /data-requires-guest[\s\S]*Join to Submit Vehicle Data/);
   assert.match(home, /href="\/member\/submit-vehicle-data\/"[\s\S]*data-requires-auth/);
+  assert.match(home, /launch-hero__evidence-cta" data-requires-auth style="display:none"/);
+  assert.match(home, /Every record strengthens the picture/);
+  assert.match(home, /href="\/member\/dashboard\/">Add Your Vehicle Data/);
 });
 
 test('multi-step forms do not scroll on every step unless explicitly opted in', function () {

@@ -194,6 +194,11 @@ Defined in `:root` in `site.css`. Key tokens:
   `make test-visual`, inspect every generated screenshot, and update the deterministic desktop
   and mobile checkpoints when a new critical state is introduced. Do not report a visually
   significant PR ready based only on source-level tests.
+- Treat visual inspection as a design review, not only a regression check. At desktop and
+  mobile widths, explicitly assess visual continuity between adjacent sections, information
+  hierarchy, spacing rhythm, alignment, component and interaction consistency, colour and
+  contrast, copy wrapping, and whether any element feels visually appended or disconnected.
+  Record material findings in the PR and iterate before reporting the visual work ready.
 - Tests should cover:
   - Server-side validation and authorization paths (unauthenticated, authenticated, admin).
   - Input sanitisation and edge cases (empty bodies, invalid JSON, honeypot fields).

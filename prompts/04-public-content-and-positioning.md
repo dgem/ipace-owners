@@ -209,6 +209,27 @@ offer a downloadable sample Excel workbook generated with fictional data only.
   space between the number and inner leaves at values such as 111 or 126, with further
   reductions at four, five, and six-plus digits so membership growth cannot collide with the
   wreath.
+- Present the launch-page cars-registered, SoH-readings, and service/fault-record totals with
+  the same reusable gold racing-wreath component as the Owners joined count. Treat the three
+  evidence wreaths as a compact subsection directly below the hero image, with no separate
+  filled background, so they sit directly on and visually continue the hero gradient. On
+  desktop, keep this subsection in the image column so it uses the available space and allows
+  the `Why now?` section to remain visible without unnecessary scrolling. Use restrained spacing,
+  without a horizontal rule between the main hero and evidence subsection, to preserve
+  hierarchy without creating a disconnected band. Keep them on one row at desktop and mobile
+  widths. Make each evidence wreath clearly smaller than the headline Owners joined wreath so
+  the supporting figures cannot compete with the primary membership count, and shorten labels
+  as needed without hiding what each aggregate represents. For authenticated members, follow
+  the counters with a visually
+  subordinate CTA that gently explains how each added vehicle, SoH reading, or service/fault
+  record strengthens the shared evidence and links to the member data workspace. Separate that
+  CTA with spacing rather than a horizontal rule.
+  Keep the complete signed-in CTA, including its button, fully contained and reachable when
+  scrolling the hero at a current Android-phone responsive breakpoint; it must not be clipped
+  by the hero or extend beyond the viewport width. Treat its nudge and action as one compact
+  vertical subsection at every width: centred text first, followed by a deliberately small
+  centred button. Do not let the button stretch across the hero. Verify the intermediate
+  490 × 874 Firefox responsive-design viewport as well as narrower mobile widths.
 - Mark placeholder figures and illustrative examples clearly.
 - Do not use Jaguar/JLR logos, badges, readable plates, copyrighted press imagery, or other unlicensed manufacturer assets.
 - If using a vehicle image, make it original/licensed/generated, avoid visible brand marks, and provide meaningful alt text.

@@ -15,7 +15,7 @@ import (
 	"google.golang.org/api/iterator"
 )
 
-const publicStatsSchemaVersion = 5
+const publicStatsSchemaVersion = 6
 
 type firebaseAuthUserIterator interface {
 	Next() (*auth.ExportedUserRecord, error)
@@ -81,6 +81,7 @@ func buildPublicStatsSnapshot(ctx context.Context) (publicStatsSnapshot, error) 
 	joins := []joinRecord{}
 	vehicles := []vehicleRecord{}
 	readings := []batteryReadingRecord{}
+	serviceEvents := []serviceEventRecord{}
 	if err := readCollection(ctx, db.Collection("joinSubmissions").Query, &joins); err != nil {
 		return publicStatsSnapshot{}, err
 	}
@@ -88,6 +89,9 @@ func buildPublicStatsSnapshot(ctx context.Context) (publicStatsSnapshot, error) 
 		return publicStatsSnapshot{}, err
 	}
 	if err := readCollection(ctx, db.Collection("batteryReadings").Query, &readings); err != nil {
+		return publicStatsSnapshot{}, err
+	}
+	if err := readCollection(ctx, db.Collection("serviceEvents").Query, &serviceEvents); err != nil {
 		return publicStatsSnapshot{}, err
 	}
 	consented := map[string]bool{}
@@ -100,7 +104,7 @@ func buildPublicStatsSnapshot(ctx context.Context) (publicStatsSnapshot, error) 
 	if err != nil {
 		return publicStatsSnapshot{}, err
 	}
-	return aggregatePublicStats(vehicles, readings, consented, joinedOwnerCount(joins), registeredMembers, time.Now().UTC()), nil
+	return aggregatePublicStats(vehicles, readings, serviceEvents, consented, joinedOwnerCount(joins), registeredMembers, time.Now().UTC()), nil
 }
 
 func joinedOwnerCount(joins []joinRecord) int {
@@ -159,7 +163,7 @@ func refreshRegisteredMemberCount(ctx context.Context, snapshot publicStatsSnaps
 	return snapshot, true
 }
 
-func aggregatePublicStats(vehicles []vehicleRecord, readings []batteryReadingRecord, consented map[string]bool, joinedOwners int, registeredMembers int, generatedAt time.Time) publicStatsSnapshot {
+func aggregatePublicStats(vehicles []vehicleRecord, readings []batteryReadingRecord, serviceEvents []serviceEventRecord, consented map[string]bool, joinedOwners int, registeredMembers int, generatedAt time.Time) publicStatsSnapshot {
 	filteredVehicles := map[string]vehicleRecord{}
 	owners := map[string]bool{}
 	modelYears := map[string]int{}
@@ -186,6 +190,13 @@ func aggregatePublicStats(vehicles []vehicleRecord, readings []batteryReadingRec
 			if reading := initialBatteryReading(vehicle); reading != nil {
 				byVehicle[id] = append(byVehicle[id], *reading)
 			}
+		}
+	}
+
+	serviceEventCount := 0
+	for _, event := range serviceEvents {
+		if _, ok := filteredVehicles[event.VehicleID]; ok && event.Review.Status != "excluded" {
+			serviceEventCount++
 		}
 	}
 
@@ -227,6 +238,7 @@ func aggregatePublicStats(vehicles []vehicleRecord, readings []batteryReadingRec
 		VehiclesRegistered:    len(filteredVehicles),
 		VehiclesWithSOH:       len(byVehicle),
 		SOHReadings:           readingCount,
+		ServiceEventsLogged:   serviceEventCount,
 		VehiclesWithRepeatSOH: repeatVehicles,
 		AverageReportedSOH:    averageRounded(latestValues),
 		AverageSOHChange:      averageRounded(changeValues),
