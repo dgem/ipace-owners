@@ -210,9 +210,14 @@ offer a downloadable sample Excel workbook generated with fictional data only.
   reductions at four, five, and six-plus digits so membership growth cannot collide with the
   wreath.
 - Present the launch-page cars-registered, SoH-readings, and service/fault-record totals with
-  the same reusable gold racing-wreath component as the Owners joined count. Group the three
-  evidence wreaths in a compact dark band, keep them on one row at desktop and mobile widths,
-  and shorten labels as needed without hiding what each aggregate represents.
+  the same reusable gold racing-wreath component as the Owners joined count. Treat the three
+  evidence wreaths as a compact subsection of the hero, with no separate filled background,
+  so they sit directly on and visually continue the hero gradient. Use restrained spacing or
+  a subtle divider to preserve hierarchy without creating a disconnected band. Keep them on
+  one row at desktop and mobile widths, and shorten labels as needed without hiding what each
+  aggregate represents. For authenticated members, follow the counters with a visually
+  subordinate CTA that gently explains how each added vehicle, SoH reading, or service/fault
+  record strengthens the shared evidence and links to the member data workspace.
 - Mark placeholder figures and illustrative examples clearly.
 - Do not use Jaguar/JLR logos, badges, readable plates, copyrighted press imagery, or other unlicensed manufacturer assets.
 - If using a vehicle image, make it original/licensed/generated, avoid visible brand marks, and provide meaningful alt text.

@@ -403,7 +403,7 @@ async function checkPublicContentPage(url, heading, viewport, screenshotName) {
   await page.close();
 }
 
-async function checkPublicEvidenceCounters(url, viewport, screenshotName) {
+async function checkPublicEvidenceCounters(url, viewport, screenshotName, showMemberCta = false) {
   const page = await browser.newPage({ viewport });
   await page.route('**/api/public-stats?v=6', (route) => route.fulfill({
     contentType: 'application/json',
@@ -437,13 +437,45 @@ async function checkPublicEvidenceCounters(url, viewport, screenshotName) {
   await page.evaluate(() => {
     document.querySelectorAll('.cookie-notice').forEach((element) => { element.hidden = true; });
   });
+  if (showMemberCta) {
+    await page.locator('.launch-hero__evidence-cta').evaluate((element) => {
+      element.style.display = '';
+    });
+    assert.equal(await page.getByRole('link', { name: 'Add Your Vehicle Data' }).isVisible(), true);
+    assert.equal(
+      await page.getByRole('link', { name: 'Add Your Vehicle Data' }).getAttribute('href'),
+      '/member/dashboard/'
+    );
+  }
   await page.locator('[data-public-stat="serviceEventsLogged"]').first().waitFor({ state: 'visible' });
   assert.equal(await page.locator('[data-public-stat="vehiclesRegistered"]').first().textContent(), '312');
   assert.equal(await page.locator('[data-public-stat="sohReadings"]').first().textContent(), '634');
   assert.equal(await page.locator('[data-public-stat="serviceEventsLogged"]').first().textContent(), '148');
   if (url === '/') {
+    assert.equal(await page.locator('.launch-hero > .container > .launch-hero__evidence').count(), 1);
     assert.equal(await page.locator('.launch-evidence-wreaths .launch-member-count').count(), 3);
     assert.equal(await page.locator('.launch-evidence-wreaths .launch-member-count__laurels').count(), 3);
+    const evidenceComposition = await page.evaluate(() => {
+      const hero = document.querySelector('.launch-hero');
+      const heroInner = hero.querySelector('.hero__inner');
+      const evidence = hero.querySelector('.launch-hero__evidence');
+      const wreaths = Array.from(evidence.querySelectorAll('.launch-member-count'));
+      const heroBounds = hero.getBoundingClientRect();
+      const contentBounds = heroInner.getBoundingClientRect();
+      const evidenceBounds = evidence.getBoundingClientRect();
+      const wreathBounds = wreaths.map((wreath) => wreath.getBoundingClientRect());
+      return {
+        background: getComputedStyle(evidence).backgroundColor,
+        followsHeroContent: evidenceBounds.top >= contentBounds.bottom,
+        containedByHero: evidenceBounds.bottom <= heroBounds.bottom,
+        oneRow: Math.max(...wreathBounds.map((bounds) => bounds.top))
+          - Math.min(...wreathBounds.map((bounds) => bounds.top)) < 2
+      };
+    });
+    assert.equal(evidenceComposition.background, 'rgba(0, 0, 0, 0)');
+    assert.equal(evidenceComposition.followsHeroContent, true);
+    assert.equal(evidenceComposition.containedByHero, true);
+    assert.equal(evidenceComposition.oneRow, true);
   }
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
@@ -466,6 +498,8 @@ try {
   await checkPublicContentPage('/privacy/', 'Privacy Policy', { width: 390, height: 844 }, 'privacy-mobile.png');
   await checkPublicEvidenceCounters('/', { width: 1440, height: 1000 }, 'public-evidence-counters-desktop.png');
   await checkPublicEvidenceCounters('/', { width: 390, height: 844 }, 'public-evidence-counters-mobile.png');
+  await checkPublicEvidenceCounters('/', { width: 1440, height: 1000 }, 'public-evidence-member-cta-desktop.png', true);
+  await checkPublicEvidenceCounters('/', { width: 390, height: 844 }, 'public-evidence-member-cta-mobile.png', true);
   await checkPublicEvidenceCounters('/evidence-dashboard/?site-mode=full', { width: 1440, height: 1000 }, 'evidence-dashboard-desktop.png');
   await checkPublicEvidenceCounters('/evidence-dashboard/?site-mode=full', { width: 390, height: 844 }, 'evidence-dashboard-mobile.png');
   console.log(`Visual checks passed; screenshots written to ${outputDir}`);

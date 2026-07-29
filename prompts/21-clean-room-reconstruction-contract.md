@@ -305,7 +305,10 @@ design approval. Never silently claim pixel equivalence. Recreate page copy from
 `04`, `18`, and `19`; preserve British English, constructive advocacy tone, official launch
 date of 17 July 2026, the canonicalised Join-submission “Owners joined” count, and the reusable
 responsive gold racing-wreath presentation shared by the launch-page owners, registered-cars,
-SoH-readings, and service/fault-record counters.
+SoH-readings, and service/fault-record counters. Keep the three evidence counters within the
+hero as a transparent subsection over the same graduated background rather than introducing
+a separate solid-colour band. Show authenticated members a restrained, evidence-led CTA from
+those counters to the member vehicle-data workspace.
 
 ## Dependency, infrastructure, and CI contract
 

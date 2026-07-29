@@ -7,19 +7,19 @@ description: "A UK-led independent group helping Jaguar I-PACE owners work toget
 {% from "partials/racing-wreath.njk" import racingWreath %}
 
 <div data-site-mode-only="launch">
-  <section class="hero hero--image launch-hero">
+  <section class="hero hero--image launch-hero" data-public-stats aria-labelledby="launch-hero-title">
     <div class="container">
       <div class="hero__inner">
         <div class="hero__content">
           <span class="hero__eyebrow">i-Pace Owners' Advocacy Group</span>
-          <h1 class="hero__title">I-PACE owners working together for fair outcomes</h1>
+          <h1 id="launch-hero-title" class="hero__title">I-PACE owners working together for fair outcomes</h1>
           <p class="hero__subtitle">
             We are an independent group of Jaguar I-PACE owners who want to engage constructively with JLR.
           </p>
           <p class="hero__subtitle">
           Register and help shape a fair and consistent resolution for us all.
           </p>
-          <div class="launch-hero__actions" data-public-stats>
+          <div class="launch-hero__actions">
             <div class="launch-hero__join">
               <a href="/join/" class="btn btn--primary btn--lg">Join the Group</a>
               <p class="launch-hero__note">Free to join. It takes less than a minute.</p>
@@ -34,16 +34,18 @@ description: "A UK-led independent group helping Jaguar I-PACE owners work toget
             height="905">
         </div>
       </div>
-    </div>
-  </section>
 
-  <section class="section section--sm launch-evidence-wreaths-section" data-public-stats aria-labelledby="launch-evidence-title">
-    <div class="container">
-      <h2 id="launch-evidence-title" class="text-center" style="margin-bottom: var(--space-6);">Our shared evidence is growing</h2>
-      <div class="launch-evidence-wreaths">
-        {{ racingWreath("cars-registered-wreath", "vehiclesRegistered", "Cars registered", "Live aggregate") }}
-        {{ racingWreath("soh-readings-wreath", "sohReadings", "SoH readings logged", "Live aggregate") }}
-        {{ racingWreath("service-records-wreath", "serviceEventsLogged", "Service & fault records", "Live aggregate") }}
+      <div class="launch-hero__evidence" aria-labelledby="launch-evidence-title">
+        <h2 id="launch-evidence-title">Our shared evidence is growing</h2>
+        <div class="launch-evidence-wreaths">
+          {{ racingWreath("cars-registered-wreath", "vehiclesRegistered", "Cars registered", "Live aggregate") }}
+          {{ racingWreath("soh-readings-wreath", "sohReadings", "SoH readings logged", "Live aggregate") }}
+          {{ racingWreath("service-records-wreath", "serviceEventsLogged", "Service & fault records", "Live aggregate") }}
+        </div>
+        <div class="launch-hero__evidence-cta" data-requires-auth style="display:none">
+          <p><strong>Every record strengthens the picture.</strong> Add another car, battery reading or service and fault record to help make the shared evidence harder to overlook.</p>
+          <a class="btn btn--primary" href="/member/dashboard/">Add Your Vehicle Data</a>
+        </div>
       </div>
     </div>
   </section>
