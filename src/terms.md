@@ -4,6 +4,7 @@ title: Participation Statement
 eyebrow: Terms
 subtitle: "What participation in the I-PACE Owners' Advocacy Group means."
 description: "Participation statement and terms for the I-PACE Owners' Advocacy Group."
+date: Last Modified
 ---
 
 This statement explains the basis on which owners participate in the group. It does not

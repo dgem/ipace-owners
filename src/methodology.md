@@ -5,6 +5,7 @@ title: Evidence Methodology
 eyebrow: How We Work
 subtitle: "How data is collected, verified, and published."
 description: "Evidence methodology for the I-PACE Owners' Advocacy Group data collection."
+date: Last Modified
 ---
 
 ## Why methodology matters

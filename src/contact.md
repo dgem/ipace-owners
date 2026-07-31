@@ -4,6 +4,7 @@ title: Contact
 eyebrow: Get in Touch
 subtitle: "Questions, media enquiries, or want to help run the group?"
 description: "Contact the I-PACE Owners' Advocacy Group."
+date: Last Modified
 ---
 
 ## How to reach us
