@@ -41,7 +41,9 @@ go.work
 go.work.sum
 
 .ignore/
+docs/topix
 deno.lock
+tmp/
 
 # Local OpenTofu/Terraform working directories
 **/.terraform/

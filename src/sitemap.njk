@@ -1,0 +1,18 @@
+---
+layout: page.njk
+eleventyArgs:
+  template_file: sitemap.njk
+  output_filename: sitemap.xml
+---
+<url>
+  <loc><%= config.base_url %></loc>
+  <changefreq>daily</changefreq>
+  <priority>1.0</priority>
+</url>
+{% for item in navigation.public %}
+<url>
+  <loc><%= item.url %></loc>
+  <changefreq>monthly</changefreq>
+  <priority>0.8</priority>
+</url>
+{% endfor %}
