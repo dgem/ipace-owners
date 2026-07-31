@@ -1,4 +1,4 @@
-const nunjucks = require("nunjucks");
+require("nunjucks");
 const dateFilter = require('nunjucks-date-filter');
 
 module.exports = function (eleventyConfig) {
