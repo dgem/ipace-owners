@@ -1,10 +1,13 @@
-const nunjucks = require("nunjucks");
+require("nunjucks");
 const dateFilter = require('nunjucks-date-filter');
 
 module.exports = function (eleventyConfig) {
   // Passthrough copies
   eleventyConfig.addPassthroughCopy("src/assets");
   eleventyConfig.addPassthroughCopy({ public: "." });
+  eleventyConfig.addPassthroughCopy("robots.txt");
+  eleventyConfig.addPassthroughCopy("favicon.ico");
+  eleventyConfig.addPassthroughCopy("sitemap.xml");
 
   // Watch targets
   eleventyConfig.addWatchTarget("src/assets/css/");

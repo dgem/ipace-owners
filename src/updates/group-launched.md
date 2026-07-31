@@ -1,6 +1,6 @@
 ---
 title: I-PACE Owners' Advocacy Group launched
-date: 2025-01-15
+date: 2026-07-17
 summary: "The I-PACE Owners' Advocacy Group website is now live. Join us and help build the evidence base."
 layout: page.njk
 fullModeOnly: true

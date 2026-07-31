@@ -4,6 +4,7 @@ title: About Us
 eyebrow: About the Group
 subtitle: "A UK-led, independent voice for Jaguar I-PACE owners."
 description: "Learn about the I-PACE Owners' Advocacy Group — our purpose, UK-led scope, principles and goals."
+date: Last Modified
 ---
 
 ## Who we are

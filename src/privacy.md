@@ -4,6 +4,7 @@ title: Privacy Policy
 eyebrow: Privacy
 subtitle: "How we handle your data. Plain English, no jargon."
 description: "Privacy policy for the I-PACE Owners' Advocacy Group website."
+date: Last Modified
 ---
 
 This notice explains how the I-PACE Owners' Advocacy Group handles personal data on this

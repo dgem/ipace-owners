@@ -1,6 +1,6 @@
 ---
 title: Evidence methodology published
-date: 2025-02-15
+date: 2026-07-17
 summary: "We have published our evidence methodology — explaining how data is collected, verified and published."
 layout: page.njk
 fullModeOnly: true
