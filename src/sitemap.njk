@@ -1,18 +1,15 @@
 ---
-layout: page.njk
-eleventyArgs:
-  template_file: sitemap.njk
-  output_filename: sitemap.xml
+permalink: /sitemap.xml
+eleventyExcludeFromCollections: true
 ---
-<url>
-  <loc><%= config.base_url %></loc>
-  <changefreq>daily</changefreq>
-  <priority>1.0</priority>
-</url>
-{% for item in navigation.public %}
-<url>
-  <loc><%= item.url %></loc>
-  <changefreq>monthly</changefreq>
-  <priority>0.8</priority>
-</url>
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+{% for item in collections.all %}
+  <url>
+    <loc>{{ site.url }}{{ item.url }}</loc>
+    <lastmod>{{ item.date | date("yyyy-MM-dd")}}</lastmod>
+    <changefreq>{{ item.data.sitemapChangefreq | default("monthly") }}</changefreq>
+    <priority>{{ item.data.sitemapPriority | default(0.8) }}</priority>
+  </url>
 {% endfor %}
+</urlset>

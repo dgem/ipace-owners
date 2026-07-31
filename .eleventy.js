@@ -1,3 +1,6 @@
+const nunjucks = require("nunjucks");
+const dateFilter = require('nunjucks-date-filter');
+
 module.exports = function (eleventyConfig) {
   // Passthrough copies
   eleventyConfig.addPassthroughCopy("src/assets");
@@ -32,6 +35,8 @@ module.exports = function (eleventyConfig) {
     appId: process.env.FIREBASE_APP_ID || "",
     storageBucket: process.env.FIREBASE_STORAGE_BUCKET || "",
   });
+
+  eleventyConfig.addFilter("date", dateFilter);
 
   // Collections
   eleventyConfig.addCollection("updates", function (collectionApi) {
