@@ -25,15 +25,6 @@
       .replace(/'/g, '&#39;');
   }
 
-  function formatDate(value) {
-    if (!value) return '';
-    var date = new Date(value);
-    if (isNaN(date.getTime())) return '';
-    return date.toLocaleDateString('en-GB', {
-      day: 'numeric', month: 'short', year: 'numeric'
-    });
-  }
-
   function findParentDashboard(container) {
     while (container && !container.hasAttribute('data-dashboard-root')) {
       container = container.parentElement;
@@ -148,9 +139,9 @@
     ctx.font = '11px system-ui, -apple-system, sans-serif';
     ctx.textAlign = 'right';
     var ySteps = 5;
-    for (var y = 0; y <= ySteps; y++) {
-      var value = Math.round(maxCount / ySteps * y);
-      var yPos = height - padding.bottom - (chartHeight / ySteps * y);
+    for (var step = 0; step <= ySteps; step++) {
+      var value = Math.round(maxCount / ySteps * step);
+      var yPos = height - padding.bottom - (chartHeight / ySteps * step);
       ctx.fillText(String(value), padding.left - 5, yPos + 4);
       ctx.strokeStyle = '#e5e7eb';
       ctx.beginPath();
@@ -203,31 +194,6 @@
   }
 
   // ── Data Tables ───────────────────────────────────────────────────────────
-
-  function renderDataTable(container, selector, rows) {
-    var table = container.querySelector('[' + selector.substring(1) + ']');
-    if (!table || !rows || rows.length === 0) {
-      if (table) table.parentNode.innerHTML = '<p>No data available.</p>';
-      return;
-    }
-
-    var tbody = table.querySelector('tbody');
-    if (!tbody) return;
-    tbody.innerHTML = '';
-
-    for (var i = 0; i < Math.min(rows.length, TABLE_ROWS_LIMIT); i++) {
-      var row = rows[i];
-      var tr = document.createElement('tr');
-      for (var key in row) {
-        if (Object.prototype.hasOwnProperty.call(row, key)) {
-          var th = document.createElement('td');
-          th.textContent = String(row[key] == null ? '—' : row[key]);
-          tr.appendChild(th);
-        }
-      }
-      tbody.appendChild(tr);
-    }
-  }
 
   // ── Service Event Aggregates Table ────────────────────────────────────────
 
@@ -282,11 +248,11 @@
         countryTable.innerHTML = '';
         for (var c = 0; c < Math.min(memberStats.countryBreakup.length, TABLE_ROWS_LIMIT); c++) {
           var item = memberStats.countryBreakup[c];
-          var tr = document.createElement('tr');
-          tr.innerHTML =
+          var countryRow = document.createElement('tr');
+          countryRow.innerHTML =
             '<td>' + escapeHtml(item.country) + '</td>' +
             '<td>' + escapeHtml(item.count) + '</td>';
-          countryTable.appendChild(tr);
+          countryTable.appendChild(countryRow);
         }
       }
     }
@@ -310,11 +276,11 @@
         modelYearTable.innerHTML = '';
         for (var m = 0; m < Math.min(vehicleStats.modelYearBreakup.length, TABLE_ROWS_LIMIT); m++) {
           var vItem = vehicleStats.modelYearBreakup[m];
-          var tr = document.createElement('tr');
-          tr.innerHTML =
+          var modelYearRow = document.createElement('tr');
+          modelYearRow.innerHTML =
             '<td>' + escapeHtml(vItem.modelYear) + '</td>' +
             '<td>' + escapeHtml(vItem.count) + '</td>';
-          modelYearTable.appendChild(tr);
+          modelYearTable.appendChild(modelYearRow);
         }
       }
     }

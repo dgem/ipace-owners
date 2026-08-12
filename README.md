@@ -184,6 +184,7 @@ src/
       outreach-assistant.js # Facebook search-link and reply helper; no automation
       instagram-campaigns.js # Instagram draft/history, insight, preview and publish controls
       admin-campaign-summary.js # Admin email/social campaign totals
+      `admin-stats.js`     # Claim-gated member, vehicle, SoH and service aggregate dashboard
       email-campaigns.js  # Admin re-engagement preview and bounded send controls
       public-stats.js    # Public aggregate-statistics rendering
       site-mode.js       # Launch/full presentation selection
@@ -279,6 +280,10 @@ stale PR preview entries while retaining permanent authorized domains. OpenTofu 
 GitHub deployer a custom role containing only `firebaseauth.configs.get` and
 `firebaseauth.configs.update`; apply staging infrastructure after changing these permissions
 and before rerunning the preview workflow.
+
+`GET /api/admin/stats` is an administrator-claim-gated aggregate dashboard endpoint. It returns
+member, vehicle, State of Health, and service-event totals and breakdowns for the Admin home;
+it is not a public-statistics endpoint and does not return private member snapshots.
 
 Firebase does not permit preview or default `web.app` domains as Identity Toolkit's
 `linkDomain`. Preview emails therefore use Firebase's default action-handler domain and the
