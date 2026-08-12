@@ -88,6 +88,9 @@ type timelineBucket struct {
 	Count int    `json:"count"`
 }
 
+var adminStatsRequireUser = requireUser
+var adminStatsIsAdmin = isAdmin
+
 // AdminStats serves aggregate statistics for the admin dashboard.
 func AdminStats(w http.ResponseWriter, r *http.Request) {
 	if cors(w, r) {
@@ -101,12 +104,12 @@ func AdminStats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := requireUser(r.Context(), r)
+	user, err := adminStatsRequireUser(r.Context(), r)
 	if err != nil {
 		writeJSON(w, http.StatusUnauthorized, map[string]any{"error": "Sign in required"})
 		return
 	}
-	if !isAdmin(user) {
+	if !adminStatsIsAdmin(user) {
 		writeJSON(w, http.StatusForbidden, map[string]any{"error": "Admin role required"})
 		return
 	}
@@ -149,7 +152,7 @@ func AdminStats(w http.ResponseWriter, r *http.Request) {
 		ServiceEventStats: computeServiceEventStats(services),
 	}
 
-	w.Header().Set("Cache-Control", "public, max-age=60, stale-while-revalidate=300")
+	w.Header().Set("Cache-Control", "private, no-store")
 	writeJSON(w, http.StatusOK, resp)
 }
 
@@ -320,14 +323,15 @@ func computeServiceEventStats(services []serviceEventRecord) serviceEventStats {
 	eventTypeCounts := make(map[string]int)
 	categoryMap := make(map[string][]*serviceEventRecord)
 
-	for _, rec := range services {
+	for index := range services {
+		rec := &services[index]
 		eventTypeCounts[rec.EventType]++
 		if rec.ServiceProviderName != "" {
-			categoryMap[rec.ServiceProviderName] = append(categoryMap[rec.ServiceProviderName], &rec)
+			categoryMap[rec.ServiceProviderName] = append(categoryMap[rec.ServiceProviderName], rec)
 		} else if rec.DisputeStatus != "" {
-			categoryMap["Disputes"] = append(categoryMap["Disputes"], &rec)
+			categoryMap["Disputes"] = append(categoryMap["Disputes"], rec)
 		} else {
-			categoryMap[rec.EventType] = append(categoryMap[rec.EventType], &rec)
+			categoryMap[rec.EventType] = append(categoryMap[rec.EventType], rec)
 		}
 	}
 

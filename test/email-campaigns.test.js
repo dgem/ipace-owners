@@ -126,6 +126,7 @@ test('custom campaign editor provides history, Markdown preview, reruns and safe
   assert.match(script, /event\.key === 'ArrowLeft'/);
   assert.match(script, /selectCampaignTab\('freeform'\)/);
   assert.match(script, /\/api\/admin\/custom-campaign-templates/);
+  assert.match(script, /template\.name \+ ' loaded/);
   assert.match(campaignBackend, /func AdminCustomCampaignTemplates/);
   assert.match(script, /data-custom-campaign-template/);
   assert.match(script, /textContent = campaign\.campaignId/);

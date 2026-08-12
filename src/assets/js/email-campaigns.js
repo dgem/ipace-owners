@@ -158,10 +158,10 @@
           nameInput.value = template.name;
           subjectInput.value = template.subject;
           markdownInput.value = template.markdown;
-          status.textContent = 'JLR contact update loaded. Review, save and preview before sending.';
+          status.textContent = template.name + ' loaded. Review, save and preview before sending.';
           nameInput.focus();
         } catch (error) {
-          status.textContent = error.message;
+          status.textContent = error && error.message ? error.message : 'Could not load the campaign template.';
         }
         button.disabled = false;
       });

@@ -25,26 +25,18 @@
       .replace(/'/g, '&#39;');
   }
 
-  function findParentDashboard(container) {
-    while (container && !container.hasAttribute('data-dashboard-root')) {
-      container = container.parentElement;
-    }
-    return container || document.body;
-  }
-
   // ── Fetch & Render ────────────────────────────────────────────────────────
 
   async function fetchAdminStats(container) {
-    container.innerHTML = '<p>Fetching statistics…</p>';
     var descriptionEl = container.querySelector('[data-admin-stats-description]');
     if (descriptionEl) descriptionEl.textContent = 'Fetching statistics…';
 
     try {
-      // We intentionally skip identity token injection for admin stats.
-      // The Firebase ID token is already present in the page's fetch context.
+      var token = window.ipaceGetIdentityToken ? await window.ipaceGetIdentityToken() : '';
+      if (!token) throw new Error('Sign in as an administrator first.');
       var response = await window.fetch(API_ENDPOINT, {
         method: 'GET',
-        headers: { 'Accept': 'application/json' }
+        headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token }
       });
 
       if (!response.ok) {
@@ -52,23 +44,18 @@
       }
 
       var data = await response.json();
-      container.innerHTML = '';
       if (descriptionEl) descriptionEl.textContent = 'Loaded on ' + new Date().toLocaleDateString('en-GB') + ' at ' + new Date().toLocaleTimeString('en-GB');
       renderAllStats(container, data);
     } catch (err) {
       console.error(NS, err);
-      container.innerHTML =
-        '<p class="error-message">Failed to load statistics: ' +
-        escapeHtml(err.message) + '</p>' +
-        '<button type="button" onclick="location.reload()">Retry</button>';
+      if (descriptionEl) descriptionEl.textContent = 'Failed to load statistics: ' + escapeHtml(err && err.message ? err.message : 'Unknown error');
     }
   }
 
   // ── Stat Cards ───────────────────────────────────────────────────────────
 
-  function renderStatCards(container, stats, dataAttrs) {
-    var grid = container.querySelector('[data-member-stats]') ||
-               container.querySelector('[data-vehicle-stats]');
+  function renderStatCards(container, selector, stats, dataAttrs) {
+    var grid = container.querySelector(selector);
     if (!grid) return;
 
     grid.innerHTML = '';
@@ -82,14 +69,7 @@
       grid.appendChild(card);
     }
 
-    // Populate stat values from response
-    var statsGrid = container.querySelector('[data-member-stats]');
-    if (!statsGrid) statsGrid = container.querySelector('[data-vehicle-stats]');
-    var totalEl = statsGrid ? statsGrid.querySelector('[data-total-members], [data-total-vehicles]') : null;
-    if (totalEl && dataAttrs[0]) {
-      totalEl.textContent = String(stats[dataAttrs[0].key || 'totalMembers'] || 0);
-    }
-    var secondaryEl = statsGrid ? statsGrid.querySelectorAll('[data-stat]') : [];
+    var secondaryEl = grid.querySelectorAll('[data-stat]');
     for (var j = 0; j < secondaryEl.length; j++) {
       var key = secondaryEl[j].getAttribute('data-stat');
       if (key && stats[key] != null) {
@@ -107,7 +87,7 @@
       return;
     }
 
-    var width = Math.min(parseInt(canvas.getAttribute('width'), 10) || 600, TABLE_ROWS_LIMIT);
+    var width = parseInt(canvas.getAttribute('width'), 10) || canvas.clientWidth || 600;
     var height = parseInt(canvas.getAttribute('height'), 10) || 300;
     var ctx = canvas.getContext('2d');
 
@@ -236,9 +216,9 @@
     var serviceStats = data.serviceEventStats || {};
 
     // Render stat cards for members
-    renderStatCards(container, memberStats, [
+    renderStatCards(container, '[data-member-stats]', memberStats, [
       { key: 'totalMembers', label: 'Total Members' },
-      { key: 'verifiedCount', label: 'Verified Accounts' }
+      { key: 'verifiedCount', label: 'Verified Accounts', accent: true }
     ]);
 
     // Render country table
@@ -264,7 +244,7 @@
     }
 
     // Render stat cards for vehicles
-    renderStatCards(container, vehicleStats, [
+    renderStatCards(container, '[data-vehicle-stats]', vehicleStats, [
       { key: 'totalVehicles', label: 'Total Vehicles' },
       { key: 'vehiclesWithSoh', label: 'SoH Readings' }
     ]);
@@ -301,28 +281,19 @@
   function init() {
     var containers = document.querySelectorAll('[data-admin-stats-section]');
     for (var i = 0; i < containers.length; i++) {
-      var container = containers[i];
-      var parent = findParentDashboard(container);
-      var observer = new MutationObserver(function(mutations) {
-        for (var m = 0; m < mutations.length; m++) {
-          if (mutations[m].type === 'childList' && mutations[m].addedNodes.length > 0) {
-            var visible = parent.querySelector('[data-admin-content]');
-            if (visible && !visible.hidden) {
-              fetchAdminStats(container);
-              observer.disconnect();
-              break;
-            }
+      (function (container) {
+        var content = container.closest('[data-admin-container]').querySelector('[data-admin-content]');
+        if (!content) return;
+        var loadWhenVisible = function () {
+          if (!content.hidden) {
+            fetchAdminStats(container);
+            observer.disconnect();
           }
-        }
-      });
-      observer.observe(parent, { childList: true, subtree: true });
-
-      // Also check if already visible
-      var content = parent.querySelector('[data-admin-content]');
-      if (content && !content.hidden) {
-        fetchAdminStats(container);
-        observer.disconnect();
-      }
+        };
+        var observer = new MutationObserver(loadWhenVisible);
+        observer.observe(content, { attributes: true, attributeFilter: ['hidden'] });
+        loadWhenVisible();
+      }(containers[i]));
     }
   }
 
