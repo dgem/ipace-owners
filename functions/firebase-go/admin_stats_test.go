@@ -16,6 +16,15 @@ func TestAdminStatsRejectsNonGETRequests(t *testing.T) {
 	}
 }
 
+func TestAdminStatsRequiresSignIn(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/api/admin/stats", nil)
+	res := httptest.NewRecorder()
+	AdminStats(res, req)
+	if res.Code != http.StatusUnauthorized {
+		t.Fatalf("status=%d body=%s", res.Code, res.Body.String())
+	}
+}
+
 func TestAdminStatsRequiresAdministrator(t *testing.T) {
 	originalRequireUser, originalIsAdmin := adminStatsRequireUser, adminStatsIsAdmin
 	t.Cleanup(func() { adminStatsRequireUser, adminStatsIsAdmin = originalRequireUser, originalIsAdmin })
