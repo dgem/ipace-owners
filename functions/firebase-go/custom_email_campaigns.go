@@ -46,6 +46,27 @@ type customCampaignDraftRequest struct {
 	Markdown         string `json:"markdown"`
 }
 
+func AdminCustomCampaignTemplates(w http.ResponseWriter, r *http.Request) {
+	if cors(w, r) || rejectDisallowedOrigin(w, r) {
+		return
+	}
+	if r.Method != http.MethodPost {
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"error": "Method Not Allowed"})
+		return
+	}
+	if err := campaignAuthorize(r.Context(), r); err != nil {
+		writeJSON(w, http.StatusForbidden, map[string]any{"error": "Admin role required"})
+		return
+	}
+	template, err := embeddedCampaignTemplate("jlr-contact")
+	if err != nil {
+		logEvent("admin-custom-campaign-templates", "error", "template load failed", map[string]any{"error": err.Error()})
+		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Could not load campaign templates"})
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"templates": []campaignTemplateSource{template}})
+}
+
 type customCampaignRecord struct {
 	CampaignID       string    `json:"campaignId" firestore:"campaignId"`
 	Kind             string    `json:"kind" firestore:"kind"`

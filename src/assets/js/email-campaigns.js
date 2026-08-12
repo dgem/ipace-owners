@@ -144,6 +144,29 @@
 
     newButton.addEventListener('click', clearEditor);
 
+    root.querySelectorAll('[data-custom-campaign-template]').forEach(function (button) {
+      button.addEventListener('click', async function () {
+        button.disabled = true;
+        status.textContent = 'Loading the campaign template…';
+        try {
+          var data = await request('/api/admin/custom-campaign-templates');
+          var template = (data.templates || []).find(function (item) {
+            return item.id === button.getAttribute('data-custom-campaign-template');
+          });
+          if (!template) throw new Error('The requested campaign template is unavailable.');
+          clearEditor();
+          nameInput.value = template.name;
+          subjectInput.value = template.subject;
+          markdownInput.value = template.markdown;
+          status.textContent = 'JLR contact update loaded. Review, save and preview before sending.';
+          nameInput.focus();
+        } catch (error) {
+          status.textContent = error.message;
+        }
+        button.disabled = false;
+      });
+    });
+
     function insertPlaceholder(name) {
       var token = '{{' + name + '}}';
       var start = markdownInput.selectionStart;

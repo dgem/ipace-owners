@@ -37,6 +37,75 @@ date: Last Modified
           <div class="grid grid--3 campaign-summary-grid" data-campaign-summary-cards></div>
         </section>
 
+        <section class="dashboard-panel" data-admin-stats-section>
+            <div class="dashboard-panel__header">
+              <div>
+                <p class="dashboard-panel__eyebrow">Growth metrics</p>
+                <h2 class="dashboard-panel__title" id="admin-stats-title">Member and vehicle statistics</h2>
+                <p data-admin-stats-description>Loading statistics…</p>
+              </div>
+            </div>
+            <div class="stack" data-admin-stats-container>
+              <div class="grid grid--4 stat-cards" data-member-stats>
+                <article class="stat-card">
+                  <h3 class="stat-card__label">Total Members</h3>
+                  <p class="stat-card__value" data-total-members>—</p>
+                </article>
+                <article class="stat-card stat-card--accent">
+                  <h3 class="stat-card__label">Verified Accounts</h3>
+                  <p class="stat-card__value" data-verified-count>—</p>
+                </article>
+              </div>
+              <section aria-labelledby="country-table-title">
+                <h2 id="country-table-title">Members by Country</h2>
+                <div class="table-wrapper">
+                  <table class="data-table" data-country-table>
+                    <thead>
+                      <tr><th scope="col">Country</th><th scope="col">Count</th></tr>
+                    </thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+              </section>
+              <section aria-labelledby="member-timeline-title">
+                <h2 id="member-timeline-title">Join Timeline</h2>
+                <canvas data-member-timeline width="600" height="300" role="img" aria-label="Monthly join timeline"></canvas>
+              </section>
+              <section aria-labelledby="vehicle-section-title">
+                <h2 id="vehicle-section-title">Vehicle Statistics</h2>
+                <div class="grid grid--4 stat-cards" data-vehicle-stats>
+                  <article class="stat-card">
+                    <h3 class="stat-card__label">Total Vehicles</h3>
+                    <p class="stat-card__value" data-total-vehicles>—</p>
+                  </article>
+                  <article class="stat-card">
+                    <h3 class="stat-card__label">SoH Readings</h3>
+                    <p class="stat-card__value" data-soh-count>—</p>
+                  </article>
+                </div>
+                <div class="table-wrapper">
+                  <table class="data-table" data-model-year-table>
+                    <thead>
+                      <tr><th scope="col">Model / Year</th><th scope="col">Count</th></tr>
+                    </thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+              </section>
+              <section aria-labelledby="service-section-title">
+                <h2 id="service-section-title">Service Event Summary</h2>
+                <div class="table-wrapper">
+                  <table class="data-table" data-service-event-aggregates>
+                    <thead>
+                      <tr><th scope="col">Category</th><th scope="col">Count</th><th scope="col">Min Fix (days)</th><th scope="col">Avg Fix (days)</th><th scope="col">Max Fix (days)</th></tr>
+                    </thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+              </section>
+            </div>
+          </section>
+
         <div>
           <p class="dashboard-panel__eyebrow">Active tools</p>
           <h2>Administration and member growth</h2>

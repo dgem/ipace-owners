@@ -463,11 +463,14 @@ after previewing its unchanged saved content; editing it creates a new run and p
 original delivery ledger.
 
 Administrators can create custom campaigns for verified Firebase accounts with matching
-contact-consenting Join records. `POST /api/admin/custom-campaign-preview` validates and saves the
-draft, recalculates the canonical-email-deduped audience and renders sandboxed branded HTML plus
-plain text. `POST /api/admin/custom-campaign-send` reloads that immutable draft and uses the same
-exact-count confirmation, ten-message batches, Resend idempotency and hashed ledgers. History is
-returned by `POST /api/admin/email-campaign-history`; none of these responses contain addresses.
+contact-consenting Join records. Source-controlled campaign presets are Markdown files under
+`functions/firebase-go/email-templates/`; `POST /api/admin/custom-campaign-templates` returns
+their editable copy only to administrators and does not create a draft or send email.
+`POST /api/admin/custom-campaign-preview` validates and saves the draft, recalculates the
+canonical-email-deduped audience and renders sandboxed branded HTML plus plain text.
+`POST /api/admin/custom-campaign-send` reloads that immutable draft and uses the same exact-count
+confirmation, ten-message batches, Resend idempotency and hashed ledgers. History is returned by
+`POST /api/admin/email-campaign-history`; none of these responses contain addresses.
 
 Custom Markdown supports only these literal substitutions: `{{membersJoined}}`,
 `{{membersVerified}}`, `{{memberFirstName}}`, `{{memberLastName}}`, `{{memberTittle}}` (and the

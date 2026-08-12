@@ -119,6 +119,7 @@ header.
 | `POST /api/admin/all-members-drive-preview` | `AdminAllMembersDrivePreview` | Admin | Preview the contact-consenting, canonical-email-deduplicated audience across verified and unverified Join records. |
 | `POST /api/admin/all-members-drive-send` | `AdminAllMembersDriveSend` | Admin | Confirm and send the next resumable batch of at most ten all-member recruitment emails. |
 | `POST /api/admin/email-campaign-history` | `AdminEmailCampaignHistory` | Admin | Return campaign metadata and aggregate delivery history without recipient addresses. |
+| `POST /api/admin/custom-campaign-templates` | `AdminCustomCampaignTemplates` | Admin | Return source-controlled custom-composer Markdown templates and their metadata; loading a template has no delivery side effect. |
 | `POST /api/admin/custom-campaign-preview` | `AdminCustomCampaignPreview` | Admin | Validate and persist a custom Markdown draft, calculate the verified consented audience, and return personalised HTML/plain-text previews. |
 | `POST /api/admin/custom-campaign-send` | `AdminCustomCampaignSend` | Admin | Recheck the saved draft and audience, require exact confirmation, and send the next idempotent batch of at most ten. |
 | `POST /api/admin/instagram-preview` | `AdminInstagramPreview` | Admin | Validate and preview an administrator-reviewed, chat-prepared Reel path and caption without publishing. |

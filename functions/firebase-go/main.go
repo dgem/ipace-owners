@@ -57,6 +57,7 @@ func init() {
 	functions.HTTP("MemberExport", MemberExport)
 	functions.HTTP("AdminData", AdminData)
 	functions.HTTP("PublicStats", PublicStats)
+	functions.HTTP("AdminStats", AdminStats)
 }
 
 func Api(w http.ResponseWriter, r *http.Request) {
@@ -93,6 +94,8 @@ func Api(w http.ResponseWriter, r *http.Request) {
 		AdminEmailCampaignHistory(w, r)
 	case "/api/admin/custom-campaign-preview":
 		AdminCustomCampaignPreview(w, r)
+	case "/api/admin/custom-campaign-templates":
+		AdminCustomCampaignTemplates(w, r)
 	case "/api/admin/custom-campaign-send":
 		AdminCustomCampaignSend(w, r)
 	case "/api/admin/instagram-preview":
@@ -109,6 +112,8 @@ func Api(w http.ResponseWriter, r *http.Request) {
 		AdminCampaignSummary(w, r)
 	case "/api/public-stats":
 		PublicStats(w, r)
+	case "/api/admin/stats":
+		AdminStats(w, r)
 	default:
 		if strings.HasPrefix(strings.TrimRight(r.URL.Path, "/"), "/api/instagram-media/") {
 			InstagramGeneratedMedia(w, r)

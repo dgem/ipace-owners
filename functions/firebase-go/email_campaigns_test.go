@@ -60,6 +60,21 @@ func TestCampaignSummaryNeverReportsNegativeRemaining(t *testing.T) {
 	}
 }
 
+func TestEmbeddedCustomCampaignTemplateHasReviewableMetadata(t *testing.T) {
+	template, err := embeddedCampaignTemplate("jlr-contact")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if template.ID != "jlr-contact" || template.Audience != "custom-member" || template.Subject != "We have contact with Jaguar Land Rover" {
+		t.Fatalf("unexpected template metadata: %#v", template)
+	}
+	for _, expected := range []string{"{{memberFirstName}}", "1,000 members", "/member/dashboard/"} {
+		if !strings.Contains(template.Markdown, expected) {
+			t.Fatalf("template Markdown missing %q", expected)
+		}
+	}
+}
+
 func TestCampaignEmailPreviewUsesTheDeliveryTemplate(t *testing.T) {
 	preview := makeCampaignEmailPreview(371, 12)
 	if strings.TrimSpace(preview.Subject) == "" {

@@ -64,6 +64,17 @@ Allow drafts to reopen and partially sent custom runs to continue after re-previ
 unchanged saved content. If the administrator edits a run that has sent anything, clear its active
 campaign ID and create a new run linked through `sourceCampaignId`.
 
+Campaign body copy is source-controlled Markdown. The specialised registration reminder,
+member-referral, and Reach 1,000 campaigns render their deployed Markdown templates from
+`functions/firebase-go/email-templates/`; their delivery mechanics remain in Go. Custom-editor
+presets are also Markdown files with front matter in that directory. The JLR contact preset for
+the 12 August 2026 public update is loaded by an authenticated admin-only endpoint, never held
+as a JavaScript string. Loading a preset only fills the editable composer; it must not save a
+draft or send email until an administrator explicitly previews it and completes the existing
+exact-count confirmation. Its copy must distinguish initial contact from a substantive JLR
+commitment, link to `/updates/jaguar-contact/`, ask owners to help reach 1,000 members, and
+invite registered members to add vehicle, SoH, and service/fault records before the next meeting.
+
 ## Command Surface
 
 - The Makefile is the shared command surface for local development and CI.

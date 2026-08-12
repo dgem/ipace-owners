@@ -11,7 +11,7 @@ import (
 	texttemplate "text/template"
 )
 
-//go:embed email-templates/*.md.tmpl
+//go:embed email-templates/*
 var emailTemplateFiles embed.FS
 
 var (
@@ -20,6 +20,46 @@ var (
 	markdownStrongRegexp   = regexp.MustCompile(`\*\*([^*\n]+)\*\*`)
 	markdownEmphasisRegexp = regexp.MustCompile(`\*([^*\n]+)\*`)
 )
+
+type campaignTemplateSource struct {
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Subject  string `json:"subject"`
+	Audience string `json:"audience"`
+	Markdown string `json:"markdown"`
+}
+
+func embeddedCampaignTemplate(name string) (campaignTemplateSource, error) {
+	contents, err := emailTemplateFiles.ReadFile("email-templates/" + name + ".md")
+	if err != nil {
+		return campaignTemplateSource{}, err
+	}
+	parts := strings.SplitN(string(contents), "---\n", 3)
+	if len(parts) != 3 || strings.TrimSpace(parts[0]) != "" {
+		return campaignTemplateSource{}, fmt.Errorf("campaign template %s must start with front matter", name)
+	}
+	template := campaignTemplateSource{Markdown: strings.TrimSpace(parts[2])}
+	for _, line := range strings.Split(parts[1], "\n") {
+		key, value, found := strings.Cut(line, ":")
+		if !found {
+			continue
+		}
+		switch strings.TrimSpace(key) {
+		case "id":
+			template.ID = strings.TrimSpace(value)
+		case "name":
+			template.Name = strings.TrimSpace(value)
+		case "subject":
+			template.Subject = strings.TrimSpace(value)
+		case "audience":
+			template.Audience = strings.TrimSpace(value)
+		}
+	}
+	if template.ID == "" || template.Name == "" || template.Subject == "" || template.Audience == "" || template.Markdown == "" {
+		return campaignTemplateSource{}, fmt.Errorf("campaign template %s has incomplete front matter", name)
+	}
+	return template, nil
+}
 
 func renderEmailMarkdownTemplate(name string, data any) (string, error) {
 	var output bytes.Buffer
