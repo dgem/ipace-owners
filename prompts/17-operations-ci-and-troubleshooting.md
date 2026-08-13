@@ -69,7 +69,8 @@ member-referral, and Reach 1,000 campaigns render their deployed Markdown templa
 `functions/firebase-go/email-templates/`; their delivery mechanics remain in Go. Custom-editor
 presets are also Markdown files with front matter in that directory. The JLR contact preset for
 the 12 August 2026 public update is loaded by an authenticated admin-only endpoint, never held
-as a JavaScript string. Loading a preset only fills the editable composer; it must not save a
+as a JavaScript string. It must be a visible, dedicated **JLR Contact** campaign tab so it is
+discoverable independently of campaign-history loading. Loading a preset only fills the editable composer; it must not save a
 draft or send email until an administrator explicitly previews it and completes the existing
 exact-count confirmation. Its copy must distinguish initial contact from a substantive JLR
 commitment, link to `/updates/jaguar-contact/`, ask owners to help reach 1,000 members, and

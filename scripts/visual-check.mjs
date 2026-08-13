@@ -172,6 +172,18 @@ async function checkCampaignControls(viewport, screenshotName) {
       }]
     })
   }));
+  await page.route('**/api/admin/custom-campaign-templates', (route) => route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({
+      templates: [{
+        id: 'jlr-contact',
+        name: 'August 2026 — JLR contact update',
+        subject: 'We have contact with Jaguar Land Rover',
+        audience: 'custom-member',
+        markdown: 'Hi {{memberFirstName}},\n\nWe have made initial contact with Jaguar Land Rover.'
+      }]
+    })
+  }));
   await page.route('**/api/admin/custom-campaign-preview', (route) => route.fulfill({
     contentType: 'application/json',
     body: JSON.stringify({
@@ -224,6 +236,12 @@ async function checkCampaignControls(viewport, screenshotName) {
   assert.equal(await page.locator('[data-campaign-tab="registration"]').getAttribute('aria-selected'), 'true');
   assert.equal(await page.locator('[data-campaign-panel="registration"]').isVisible(), true);
   assert.equal(await page.locator('[data-campaign-panel="freeform"]').isVisible(), false);
+  await page.locator('[data-campaign-tab="jlr-contact"]').click();
+  assert.equal(await page.locator('[data-campaign-panel="jlr-contact"]').isVisible(), true);
+  await page.getByRole('button', { name: 'Load JLR contact update' }).click();
+  await page.locator('[data-custom-campaign-markdown]').waitFor({ state: 'visible' });
+  assert.equal(await page.locator('[data-custom-campaign-name]').inputValue(), 'August 2026 — JLR contact update');
+  assert.equal(await page.locator('[data-custom-campaign-subject]').inputValue(), 'We have contact with Jaguar Land Rover');
   await page.locator('[data-campaign-open-tab="freeform"]').click();
   assert.equal(await page.locator('[data-campaign-tab="freeform"]').getAttribute('aria-selected'), 'true');
   assert.equal(await page.locator('[data-custom-campaign-markdown]').isVisible(), true);

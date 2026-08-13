@@ -49,8 +49,20 @@ date: Last Modified
         <button type="button" role="tab" id="campaign-tab-registration" aria-controls="campaign-panel-registration" aria-selected="true" tabindex="0" data-campaign-tab="registration">Reminders</button>
         <button type="button" role="tab" id="campaign-tab-referral" aria-controls="campaign-panel-referral" aria-selected="false" tabindex="-1" data-campaign-tab="referral">Find members</button>
         <button type="button" role="tab" id="campaign-tab-member-drive" aria-controls="campaign-panel-member-drive" aria-selected="false" tabindex="-1" data-campaign-tab="member-drive">Reach 1,000</button>
+        <button type="button" role="tab" id="campaign-tab-jlr-contact" aria-controls="campaign-panel-jlr-contact" aria-selected="false" tabindex="-1" data-campaign-tab="jlr-contact">JLR Contact</button>
         <button type="button" role="tab" id="campaign-tab-freeform" aria-controls="create-member-campaign" aria-selected="false" tabindex="-1" data-campaign-tab="freeform">Freeform</button>
       </div>
+
+    <section class="email-campaign-tabpanel" id="campaign-panel-jlr-contact" role="tabpanel" aria-labelledby="campaign-tab-jlr-contact" tabindex="0" data-campaign-panel="jlr-contact" hidden>
+      <div class="dashboard-panel__header"><div><p class="dashboard-panel__eyebrow">Member update</p><h2 class="dashboard-panel__title">JLR Contact</h2></div></div>
+      <p>Load the approved “We have contact with Jaguar Land Rover” update into the member-email editor. You can review and amend it before saving a preview; no email is sent by loading it.</p>
+      <div class="email-campaign-step">
+        <p class="dashboard-panel__eyebrow">Step 1</p>
+        <h3>Load the JLR contact update</h3>
+        <p>The campaign asks members to help reach 1,000, register their cars, and add SoH and service records before discussions resume.</p>
+        <div class="cluster"><button type="button" class="btn btn--primary" data-campaign-template="jlr-contact">Load JLR contact update</button></div>
+      </div>
+    </section>
 
     <section class="email-campaign-tabpanel email-campaign-composer" id="create-member-campaign" role="tabpanel" aria-labelledby="campaign-tab-freeform" tabindex="0" data-campaign-panel="freeform" data-custom-email-campaign hidden>
       <div class="dashboard-panel__header"><div><p class="dashboard-panel__eyebrow">New campaign</p><h2 class="dashboard-panel__title">Create a member email campaign</h2></div></div>

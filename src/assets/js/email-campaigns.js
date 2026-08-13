@@ -98,6 +98,7 @@
     var sourceId = '';
     var current = null;
     var historyLoaded = false;
+    var campaignTemplates = [];
 
     function setDeliveryState(data) {
       current = data;
@@ -145,14 +146,32 @@
 
     newButton.addEventListener('click', clearEditor);
 
-    function loadCustomTemplate(template, button) {
-      button.disabled = true;
+    function loadCustomTemplate(template) {
       clearEditor();
       nameInput.value = template.name;
       subjectInput.value = template.subject;
       markdownInput.value = template.markdown;
       status.textContent = template.name + ' loaded. Review, save and preview before sending.';
       nameInput.focus();
+    }
+
+    async function loadCampaignTemplate(id, button) {
+      button.disabled = true;
+      status.textContent = 'Loading the campaign template…';
+      try {
+        if (campaignTemplates.length === 0) {
+          var data = await request('/api/admin/custom-campaign-templates');
+          campaignTemplates = data.templates || [];
+          renderCampaignLibrary(campaignTemplates);
+        }
+        var template = campaignTemplates.find(function (item) { return item.id === id; });
+        if (!template || template.audience !== 'custom-member') throw new Error('This campaign template is unavailable.');
+        loadCustomTemplate(template);
+        selectCampaignTab('freeform');
+        root.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch (error) {
+        status.textContent = error && error.message ? error.message : 'Could not load the campaign template.';
+      }
       button.disabled = false;
     }
 
@@ -165,7 +184,7 @@
         button.className = 'btn btn--secondary btn--sm';
         if (template.audience === 'custom-member') {
           button.textContent = 'Load ' + template.name;
-          button.addEventListener('click', function () { loadCustomTemplate(template, button); });
+          button.addEventListener('click', function () { loadCampaignTemplate(template.id, button); });
         } else {
           var tab = template.audience === 'member-referral' ? 'referral' : (template.audience === 'all-members-drive' ? 'member-drive' : 'registration');
           button.textContent = 'Open ' + template.name;
@@ -182,7 +201,8 @@
       if (!templateList) return;
       try {
         var data = await request('/api/admin/custom-campaign-templates');
-        renderCampaignLibrary(data.templates || []);
+        campaignTemplates = data.templates || [];
+        renderCampaignLibrary(campaignTemplates);
       } catch (error) {
         templateList.textContent = error && error.message ? error.message : 'Could not load the campaign library.';
       }
@@ -338,6 +358,11 @@
     }
 
     historyRefresh.addEventListener('click', loadHistory);
+    document.querySelectorAll('[data-campaign-template]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        loadCampaignTemplate(button.getAttribute('data-campaign-template'), button);
+      });
+    });
 
     form.addEventListener('submit', async function (event) {
       event.preventDefault();
