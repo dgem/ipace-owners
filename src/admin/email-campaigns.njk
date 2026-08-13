@@ -57,11 +57,11 @@ date: Last Modified
       <p>Write Markdown for verified members who have consented to contact. Preview saves the draft and renders the exact branded HTML and plain-text alternatives. Sent campaigns remain immutable.</p>
 
       <div class="email-campaign-editor">
-        <div class="callout callout--info">
+        <div class="callout callout--info" data-campaign-template-library>
           <div class="callout__content">
-            <p class="callout__title">Ready-to-review member update</p>
-            <p>Load the JLR contact update to create a new editable draft. Preview and confirm the audience before sending.</p>
-            <button type="button" class="btn btn--secondary btn--sm" data-custom-campaign-template="jlr-contact">Load JLR contact update</button>
+            <p class="callout__title">Campaign library</p>
+            <p>Source-controlled Markdown campaigns load here. Custom member campaigns open in this editor; specialised campaigns keep their purpose-built, consent-aware audiences.</p>
+            <div class="cluster" data-campaign-template-list aria-live="polite"><p>Loading campaign library…</p></div>
           </div>
         </div>
         <form class="stack" data-custom-campaign-form>

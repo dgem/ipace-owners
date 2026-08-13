@@ -2,7 +2,7 @@
  * admin-stats.js — Client-side admin statistics dashboard.
  *
  * Fetches /api/admin/stats, renders member/vehicle/service stats with
- * timeline graphs (Canvas API), data tables and stat cards.
+ * daily line charts (Canvas API), data tables and stat cards.
  *
  * Usage: Load on admin pages via defer script tag.
  */
@@ -130,39 +130,42 @@
       ctx.stroke();
     }
 
-    // Bars and labels
-    var barWidth = Math.max(chartWidth / buckets.length - 4, 2);
+    // Daily trend line and labels
+    var pointGap = buckets.length > 1 ? chartWidth / (buckets.length - 1) : 0;
     ctx.textAlign = 'center';
     ctx.font = '10px system-ui, -apple-system, sans-serif';
-
+    ctx.beginPath();
     for (var b = 0; b < buckets.length; b++) {
       var bucket = buckets[b];
-      var barHeight = (bucket.count / maxCount) * chartHeight;
-      var x = padding.left + (chartWidth / buckets.length) * b + 2;
-      var y = height - padding.bottom - barHeight;
+      var x = padding.left + pointGap * b;
+      var y = height - padding.bottom - (bucket.count / maxCount) * chartHeight;
+      if (b === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = '#0f766e';
+    ctx.lineWidth = 2;
+    ctx.stroke();
 
-      // Bar fill
+    for (var pointIndex = 0; pointIndex < buckets.length; pointIndex++) {
+      var pointBucket = buckets[pointIndex];
+      var pointX = padding.left + pointGap * pointIndex;
+      var pointY = height - padding.bottom - (pointBucket.count / maxCount) * chartHeight;
       ctx.fillStyle = '#0f766e';
-      ctx.fillRect(x, y, barWidth, barHeight);
-
-      // Count label on top
-      ctx.fillStyle = '#111827';
-      ctx.font = '9px system-ui, -apple-system, sans-serif';
-      if (bucket.count > 0) {
-        ctx.fillText(String(bucket.count), x + barWidth / 2, y - 3);
-      }
+      ctx.beginPath();
+      ctx.arc(pointX, pointY, 3, 0, Math.PI * 2);
+      ctx.fill();
 
       // X-axis label (rotate if needed)
       ctx.save();
-      ctx.translate(x + barWidth / 2, height - padding.bottom + 12);
-      if (buckets.length > 12) {
+      ctx.translate(pointX, height - padding.bottom + 12);
+      if (buckets.length > 7) {
         ctx.rotate(-Math.PI / 4);
         ctx.textAlign = 'right';
       } else {
         ctx.textAlign = 'center';
       }
       ctx.fillStyle = '#4b5563';
-      ctx.fillText(bucket.label, 0, 0);
+      ctx.fillText(pointBucket.label, 0, 0);
       ctx.restore();
     }
 
@@ -240,7 +243,7 @@
     // Render join timeline
     var memberTimelineCanvas = container.querySelector('[data-member-timeline]');
     if (memberTimelineCanvas && memberStats.joinedTimeline && memberStats.joinedTimeline.length > 0) {
-      renderTimeline(memberTimelineCanvas, memberStats.joinedTimeline, 'Members Joined by Month');
+      renderTimeline(memberTimelineCanvas, memberStats.joinedTimeline, 'Members Joined by Day');
     }
 
     // Render stat cards for vehicles

@@ -75,6 +75,27 @@ func TestEmbeddedCustomCampaignTemplateHasReviewableMetadata(t *testing.T) {
 	}
 }
 
+func TestAllCampaignsUseMarkdownSources(t *testing.T) {
+	templates, err := embeddedCampaignTemplates()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(templates) != 4 {
+		t.Fatalf("templates=%#v", templates)
+	}
+	for _, expected := range []string{"registration-reminder", "member-referral", "reach-1000", "jlr-contact"} {
+		found := false
+		for _, template := range templates {
+			if template.ID == expected {
+				found = true
+			}
+		}
+		if !found {
+			t.Fatalf("campaign library is missing %q", expected)
+		}
+	}
+}
+
 func TestCampaignEmailPreviewUsesTheDeliveryTemplate(t *testing.T) {
 	preview := makeCampaignEmailPreview(371, 12)
 	if strings.TrimSpace(preview.Subject) == "" {

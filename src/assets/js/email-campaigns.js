@@ -93,6 +93,7 @@
     var historyList = historyRoot.querySelector('[data-campaign-history-list]');
     var historyStatus = historyRoot.querySelector('[data-campaign-history-status]');
     var historyRefresh = historyRoot.querySelector('[data-campaign-history-refresh]');
+    var templateList = root.querySelector('[data-campaign-template-list]');
     var draftId = '';
     var sourceId = '';
     var current = null;
@@ -144,28 +145,48 @@
 
     newButton.addEventListener('click', clearEditor);
 
-    root.querySelectorAll('[data-custom-campaign-template]').forEach(function (button) {
-      button.addEventListener('click', async function () {
-        button.disabled = true;
-        status.textContent = 'Loading the campaign template…';
-        try {
-          var data = await request('/api/admin/custom-campaign-templates');
-          var template = (data.templates || []).find(function (item) {
-            return item.id === button.getAttribute('data-custom-campaign-template');
+    function loadCustomTemplate(template, button) {
+      button.disabled = true;
+      clearEditor();
+      nameInput.value = template.name;
+      subjectInput.value = template.subject;
+      markdownInput.value = template.markdown;
+      status.textContent = template.name + ' loaded. Review, save and preview before sending.';
+      nameInput.focus();
+      button.disabled = false;
+    }
+
+    function renderCampaignLibrary(templates) {
+      if (!templateList) return;
+      templateList.textContent = '';
+      templates.forEach(function (template) {
+        var button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'btn btn--secondary btn--sm';
+        if (template.audience === 'custom-member') {
+          button.textContent = 'Load ' + template.name;
+          button.addEventListener('click', function () { loadCustomTemplate(template, button); });
+        } else {
+          var tab = template.audience === 'member-referral' ? 'referral' : (template.audience === 'all-members-drive' ? 'member-drive' : 'registration');
+          button.textContent = 'Open ' + template.name;
+          button.addEventListener('click', function () {
+            selectCampaignTab(tab);
+            document.querySelector('#campaign-tools').scrollIntoView({ behavior: 'smooth', block: 'start' });
           });
-          if (!template) throw new Error('The requested campaign template is unavailable.');
-          clearEditor();
-          nameInput.value = template.name;
-          subjectInput.value = template.subject;
-          markdownInput.value = template.markdown;
-          status.textContent = template.name + ' loaded. Review, save and preview before sending.';
-          nameInput.focus();
-        } catch (error) {
-          status.textContent = error && error.message ? error.message : 'Could not load the campaign template.';
         }
-        button.disabled = false;
+        templateList.appendChild(button);
       });
-    });
+    }
+
+    async function loadCampaignLibrary() {
+      if (!templateList) return;
+      try {
+        var data = await request('/api/admin/custom-campaign-templates');
+        renderCampaignLibrary(data.templates || []);
+      } catch (error) {
+        templateList.textContent = error && error.message ? error.message : 'Could not load the campaign library.';
+      }
+    }
 
     function insertPlaceholder(name) {
       var token = '{{' + name + '}}';
@@ -235,7 +256,7 @@
     }
 
     function renderHistory(data) {
-      renderPlaceholders(data.placeholders || []);
+        renderPlaceholders(data.placeholders || []);
       historyList.textContent = '';
       if (!data.campaigns || data.campaigns.length === 0) {
         historyList.textContent = 'No campaign runs have been recorded yet.';
@@ -309,6 +330,7 @@
         renderHistory(data);
         historyStatus.textContent = data.feedbackMessage || (data.feedbackRefreshedAt ? 'Delivery feedback checked ' + formatDate(data.feedbackRefreshedAt) + '.' : '');
         historyLoaded = true;
+        await loadCampaignLibrary();
       } catch (error) {
         historyStatus.textContent = error.message;
       }

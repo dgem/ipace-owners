@@ -38,5 +38,7 @@ test('admin statistics load only after admin visibility with an identity token',
   assert.match(statsScript, /attributeFilter: \['hidden'\]/);
   assert.match(statsScript, /renderStatCards\(container, '\[data-member-stats\]'/);
   assert.match(statsScript, /renderStatCards\(container, '\[data-vehicle-stats\]'/);
+  assert.match(statsScript, /ctx\.lineTo/);
+  assert.doesNotMatch(statsScript, /ctx\.fillRect/);
   assert.doesNotMatch(statsScript, /container\.innerHTML\s*=/);
 });

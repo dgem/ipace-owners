@@ -58,13 +58,13 @@ func AdminCustomCampaignTemplates(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusForbidden, map[string]any{"error": "Admin role required"})
 		return
 	}
-	template, err := embeddedCampaignTemplate("jlr-contact")
+	templates, err := embeddedCampaignTemplates()
 	if err != nil {
 		logEvent("admin-custom-campaign-templates", "error", "template load failed", map[string]any{"error": err.Error()})
 		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Could not load campaign templates"})
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"templates": []campaignTemplateSource{template}})
+	writeJSON(w, http.StatusOK, map[string]any{"templates": templates})
 }
 
 type customCampaignRecord struct {

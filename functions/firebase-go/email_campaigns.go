@@ -697,7 +697,7 @@ func campaignEmailBodies(person campaignRecipient, link string, memberCount, eli
 		first = fields[0]
 	}
 	subject := "Complete your I-PACE Owners registration"
-	text, bodyHTML := mustRenderCampaignTemplate("campaign-reengagement.md.tmpl", struct {
+	text, bodyHTML := mustRenderCampaignTemplate("campaign-reengagement.md", struct {
 		FirstName     string
 		JoinedDate    string
 		MemberCount   int
@@ -762,7 +762,7 @@ func memberReferralEmailBodies(person campaignRecipient, memberCount int) (strin
 	shares := memberReferralShareLinks(memberCount)
 	suggestedShareText := memberReferralShareMessage(memberCount)
 	instagramURL := "https://www.instagram.com/ipaceowners/"
-	text, bodyHTML := mustRenderCampaignTemplate("member-referral.md.tmpl", struct {
+	text, bodyHTML := mustRenderCampaignTemplate("member-referral.md", struct {
 		FirstName          string
 		MemberCount        int
 		RemainingCount     int
@@ -807,7 +807,7 @@ func allMembersDriveEmailBodies(person campaignRecipient, memberCount int) (stri
 	subject := "Thanks for joining — help us reach 1,000 I-PACE owners"
 	shares := memberReferralShareLinks(memberCount)
 	suggestedShareText := memberReferralShareMessage(memberCount)
-	text, bodyHTML := mustRenderCampaignTemplate("all-members-drive.md.tmpl", struct {
+	text, bodyHTML := mustRenderCampaignTemplate("all-members-drive.md", struct {
 		FirstName          string
 		MemberCount        int
 		SuggestedShareText string

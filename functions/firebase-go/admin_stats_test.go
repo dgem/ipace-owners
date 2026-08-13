@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 func TestAdminStatsRejectsNonGETRequests(t *testing.T) {
@@ -13,6 +14,17 @@ func TestAdminStatsRejectsNonGETRequests(t *testing.T) {
 	AdminStats(res, req)
 	if res.Code != http.StatusMethodNotAllowed {
 		t.Fatalf("status=%d body=%s", res.Code, res.Body.String())
+	}
+}
+
+func TestComputeMemberStatsBucketsJoinsByDay(t *testing.T) {
+	stats := computeMemberStats([]joinRecord{
+		{CreatedAt: time.Date(2026, time.August, 12, 8, 0, 0, 0, time.UTC)},
+		{CreatedAt: time.Date(2026, time.August, 12, 18, 0, 0, 0, time.UTC)},
+		{CreatedAt: time.Date(2026, time.August, 13, 9, 0, 0, 0, time.UTC)},
+	})
+	if len(stats.JoinedTimeline) != 2 || stats.JoinedTimeline[0] != (timelineBucket{Label: "2026-08-12", Count: 2}) || stats.JoinedTimeline[1] != (timelineBucket{Label: "2026-08-13", Count: 1}) {
+		t.Fatalf("timeline=%#v", stats.JoinedTimeline)
 	}
 }
 

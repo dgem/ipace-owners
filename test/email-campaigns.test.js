@@ -100,7 +100,8 @@ test('custom campaign editor provides history, Markdown preview, reruns and safe
   assert.match(page, /Create a member email campaign/);
   assert.match(page, /href="#campaign-tools" data-campaign-open-tab="freeform"/);
   assert.match(page, /data-custom-campaign-markdown/);
-  assert.match(page, /Load JLR contact update/);
+  assert.match(page, /Campaign library/);
+  assert.match(page, /data-campaign-template-list/);
   assert.match(page, /data-custom-campaign-email-html[^>]+sandbox/);
   assert.match(page, /Previous campaigns/);
   assert.match(page, /Tweak and rerun/);
@@ -128,7 +129,8 @@ test('custom campaign editor provides history, Markdown preview, reruns and safe
   assert.match(script, /\/api\/admin\/custom-campaign-templates/);
   assert.match(script, /template\.name \+ ' loaded/);
   assert.match(campaignBackend, /func AdminCustomCampaignTemplates/);
-  assert.match(script, /data-custom-campaign-template/);
+  assert.match(script, /renderCampaignLibrary/);
+  assert.match(script, /Open ' \+ template\.name/);
   assert.match(script, /textContent = campaign\.campaignId/);
   assert.doesNotMatch(script, /innerHTML\s*=/);
 });

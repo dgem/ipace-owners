@@ -176,9 +176,9 @@ func computeMemberStats(joins []joinRecord) memberStats {
 			countryCounts[rec.Contact.Country]++
 		}
 
-		// Joined timeline: bucket by month.
+		// Joined timeline: bucket by day to match the other admin trends.
 		if !rec.CreatedAt.IsZero() {
-			key := rec.CreatedAt.Format("2006-01")
+			key := rec.CreatedAt.Format("2006-01-02")
 			timelineMap[key]++
 		}
 	}

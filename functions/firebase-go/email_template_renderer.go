@@ -7,6 +7,7 @@ import (
 	"html"
 	"net/url"
 	"regexp"
+	"sort"
 	"strings"
 	texttemplate "text/template"
 )
@@ -15,7 +16,10 @@ import (
 var emailTemplateFiles embed.FS
 
 var (
-	emailTemplates         = texttemplate.Must(texttemplate.New("emails").ParseFS(emailTemplateFiles, "email-templates/*.md.tmpl"))
+	emailTemplates = texttemplate.Must(texttemplate.New("emails").ParseFS(emailTemplateFiles,
+		"email-templates/campaign-reengagement.md",
+		"email-templates/member-referral.md",
+		"email-templates/all-members-drive.md"))
 	markdownLinkRegexp     = regexp.MustCompile(`\[([^\]]+)\]\(([^)]+)\)`)
 	markdownStrongRegexp   = regexp.MustCompile(`\*\*([^*\n]+)\*\*`)
 	markdownEmphasisRegexp = regexp.MustCompile(`\*([^*\n]+)\*`)
@@ -61,12 +65,36 @@ func embeddedCampaignTemplate(name string) (campaignTemplateSource, error) {
 	return template, nil
 }
 
+func embeddedCampaignTemplates() ([]campaignTemplateSource, error) {
+	files, err := emailTemplateFiles.ReadDir("email-templates")
+	if err != nil {
+		return nil, err
+	}
+	templates := make([]campaignTemplateSource, 0, len(files))
+	for _, file := range files {
+		if file.IsDir() || !strings.HasSuffix(file.Name(), ".md") {
+			continue
+		}
+		template, err := embeddedCampaignTemplate(strings.TrimSuffix(file.Name(), ".md"))
+		if err != nil {
+			return nil, err
+		}
+		templates = append(templates, template)
+	}
+	sort.Slice(templates, func(i, j int) bool { return templates[i].Name < templates[j].Name })
+	return templates, nil
+}
+
 func renderEmailMarkdownTemplate(name string, data any) (string, error) {
 	var output bytes.Buffer
 	if err := emailTemplates.ExecuteTemplate(&output, name, data); err != nil {
 		return "", err
 	}
-	return strings.TrimSpace(output.String()), nil
+	parts := strings.SplitN(output.String(), "---\n", 3)
+	if len(parts) != 3 || strings.TrimSpace(parts[0]) != "" {
+		return "", fmt.Errorf("campaign template %s must start with front matter", name)
+	}
+	return strings.TrimSpace(parts[2]), nil
 }
 
 func markdownToEmailHTML(markdown string) string {
