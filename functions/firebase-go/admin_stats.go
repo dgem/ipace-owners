@@ -29,8 +29,15 @@ type memberStats struct {
 
 // countryBreakdown shows member counts by country.
 type countryBreakdown struct {
-	Country string `json:"country"`
-	Count   int    `json:"count"`
+	Country    string `json:"country"`
+	Joined     int    `json:"joined"`
+	Registered int    `json:"registered"`
+	Verified   int    `json:"verified"`
+}
+
+type memberAccountStatus struct {
+	Registered bool
+	VerifiedAt time.Time
 }
 
 // vehicleStats holds aggregate vehicle/SoH metrics.
@@ -149,7 +156,7 @@ func AdminStats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	verifiedAt, err := loadVerifiedAccountDates(r.Context(), joins)
+	accounts, err := loadMemberAccountStatuses(r.Context(), joins)
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Could not load verified accounts"})
 		return
@@ -157,7 +164,7 @@ func AdminStats(w http.ResponseWriter, r *http.Request) {
 
 	resp := adminStatsResponse{
 		GeneratedAt:       now.Format(time.RFC3339),
-		MemberStats:       computeMemberStats(joins, verifiedAt),
+		MemberStats:       computeMemberStats(joins, accounts),
 		VehicleStats:      computeVehicleStats(vehicles, readings),
 		ServiceEventStats: computeServiceEventStats(services),
 	}
@@ -167,18 +174,32 @@ func AdminStats(w http.ResponseWriter, r *http.Request) {
 }
 
 // computeMemberStats aggregates member data.
-func computeMemberStats(joins []joinRecord, verifiedAt []time.Time) memberStats {
+func computeMemberStats(joins []joinRecord, accounts map[string]memberAccountStatus) memberStats {
 	totalMembers := 0
-	countryCounts := make(map[string]int)
+	countryCounts := make(map[string]countryBreakdown)
 	timelineMap := make(map[string]int)
 	verifiedTimelineMap := make(map[string]int)
+	seenMembers := map[string]bool{}
+	verifiedCount := 0
 
 	for _, rec := range joins {
 		totalMembers++
 
 		// Country breakdown.
-		if rec.Contact.Country != "" {
-			countryCounts[rec.Contact.Country]++
+		if email := canonicalCampaignEmail(rec.Contact.Email); email != "" && !seenMembers[email] {
+			seenMembers[email] = true
+			if rec.Contact.Country != "" {
+				row := countryCounts[rec.Contact.Country]
+				row.Country = rec.Contact.Country
+				row.Joined++
+				if account := accounts[email]; account.Registered {
+					row.Registered++
+					if !account.VerifiedAt.IsZero() {
+						row.Verified++
+					}
+				}
+				countryCounts[rec.Contact.Country] = row
+			}
 		}
 
 		// Joined timeline: bucket by day to match the other admin trends.
@@ -187,21 +208,22 @@ func computeMemberStats(joins []joinRecord, verifiedAt []time.Time) memberStats 
 			timelineMap[key]++
 		}
 	}
-	for _, verified := range verifiedAt {
-		if !verified.IsZero() {
-			verifiedTimelineMap[verified.UTC().Format("2006-01-02")]++
+	for _, account := range accounts {
+		if !account.VerifiedAt.IsZero() {
+			verifiedCount++
+			verifiedTimelineMap[account.VerifiedAt.UTC().Format("2006-01-02")]++
 		}
 	}
 
 	countryBreakup := make([]countryBreakdown, 0, len(countryCounts))
-	for country, count := range countryCounts {
-		countryBreakup = append(countryBreakup, countryBreakdown{Country: country, Count: count})
+	for _, row := range countryCounts {
+		countryBreakup = append(countryBreakup, row)
 	}
 	sort.Slice(countryBreakup, func(i, j int) bool {
-		if countryBreakup[i].Count == countryBreakup[j].Count {
+		if countryBreakup[i].Joined == countryBreakup[j].Joined {
 			return countryBreakup[i].Country < countryBreakup[j].Country
 		}
-		return countryBreakup[i].Count > countryBreakup[j].Count
+		return countryBreakup[i].Joined > countryBreakup[j].Joined
 	})
 
 	timeline := make([]timelineBucket, 0, len(timelineMap))
@@ -219,14 +241,14 @@ func computeMemberStats(joins []joinRecord, verifiedAt []time.Time) memberStats 
 
 	return memberStats{
 		TotalMembers:     totalMembers,
-		VerifiedCount:    len(verifiedAt),
+		VerifiedCount:    verifiedCount,
 		CountryBreakup:   countryBreakup,
 		JoinedTimeline:   timeline,
 		VerifiedTimeline: verifiedTimeline,
 	}
 }
 
-func loadVerifiedAccountDates(ctx context.Context, joins []joinRecord) ([]time.Time, error) {
+func loadMemberAccountStatuses(ctx context.Context, joins []joinRecord) (map[string]memberAccountStatus, error) {
 	client, err := firebaseAuth(ctx)
 	if err != nil {
 		return nil, err
@@ -238,7 +260,7 @@ func loadVerifiedAccountDates(ctx context.Context, joins []joinRecord) ([]time.T
 		}
 	}
 	iter := client.Users(ctx, "")
-	dates := []time.Time{}
+	accounts := make(map[string]memberAccountStatus)
 	for {
 		account, err := iter.Next()
 		if err == iterator.Done {
@@ -247,13 +269,18 @@ func loadVerifiedAccountDates(ctx context.Context, joins []joinRecord) ([]time.T
 		if err != nil {
 			return nil, err
 		}
-		if _, joined := joinEmails[canonicalCampaignEmail(account.Email)]; !joined || account.UserMetadata == nil || account.UserMetadata.LastLogInTimestamp < 1 || account.UserMetadata.CreationTimestamp < 1 {
+		email := canonicalCampaignEmail(account.Email)
+		if _, joined := joinEmails[email]; !joined {
 			continue
 		}
-		// Passwordless accounts are created when their first magic link is completed.
-		dates = append(dates, time.UnixMilli(account.UserMetadata.CreationTimestamp).UTC())
+		status := memberAccountStatus{Registered: true}
+		if account.UserMetadata != nil && account.UserMetadata.LastLogInTimestamp > 0 && account.UserMetadata.CreationTimestamp > 0 {
+			// Passwordless accounts are created when their first magic link is completed.
+			status.VerifiedAt = time.UnixMilli(account.UserMetadata.CreationTimestamp).UTC()
+		}
+		accounts[email] = status
 	}
-	return dates, nil
+	return accounts, nil
 }
 
 // computeVehicleStats aggregates vehicle and SoH data.

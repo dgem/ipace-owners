@@ -112,7 +112,7 @@ header.
 | `GET /api/member-data` | `MemberData` | Member | Return the signed-in user's generated snapshot. |
 | `GET /api/member-export?format=csv\|xlsx` | `MemberExport` | Member | Download that snapshot as separate CSV datasets in a ZIP or a formatted Excel workbook. |
 | `GET /api/admin-data` | `AdminData` | Admin | Return review data for administrators. |
-| `GET /api/admin/stats` | `AdminStats` | Admin | Return aggregate member, vehicle, SoH, and service-event statistics for the admin dashboard with `Cache-Control: private, no-store`; joins and magic-link-verified accounts are bucketed by day for separate daily line charts. |
+| `GET /api/admin/stats` | `AdminStats` | Admin | Return aggregate member, vehicle, SoH, and service-event statistics for the admin dashboard with `Cache-Control: private, no-store`; joins and magic-link-verified accounts are bucketed by day for separate daily line charts, and country rows distinguish joined, registered, and verified members. |
 | `POST /api/admin/reengagement-preview` | `AdminReengagementPreview` | Admin | Return aggregate counts for the consented, unsigned-in Join audience. |
 | `POST /api/admin/reengagement-send` | `AdminReengagementSend` | Admin | Confirm and send the next resumable batch of at most ten reminders. |
 | `POST /api/admin/member-referral-preview` | `AdminMemberReferralPreview` | Admin | Preview the consented registered-member referral audience and exact campaign copy. |

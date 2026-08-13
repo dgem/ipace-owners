@@ -234,7 +234,9 @@
           var countryRow = document.createElement('tr');
           countryRow.innerHTML =
             '<td>' + escapeHtml(item.country) + '</td>' +
-            '<td>' + escapeHtml(item.count) + '</td>';
+            '<td>' + escapeHtml(item.joined) + '</td>' +
+            '<td>' + escapeHtml(item.registered) + '</td>' +
+            '<td>' + escapeHtml(item.verified) + '</td>';
           countryTable.appendChild(countryRow);
         }
       }
