@@ -456,8 +456,8 @@ Legacy runs that predate parent records are recovered from those delivery ledger
 possible. “Tweak and rerun” copies an old subject and Markdown into a new run rather than
 changing its audit history. Campaign history is presented before the campaign tools, with a
 direct create-new shortcut. A compact page header links to history and the tools, while
-registration reminders, member referrals
-and freeform campaigns share one keyboard-operable tabbed panel. Create, continue and rerun
+registration reminders, member referrals, Reach 1,000, JLR Contact,
+and Freeform campaigns share one keyboard-operable tabbed panel. Create, continue and rerun
 actions select the relevant tab automatically. Safety guidance appears beside the relevant
 confirmation controls instead of as a persistent page-level warning.
 Registration reminders remain on their specialised tool because they require an unverified
@@ -467,10 +467,11 @@ Draft and partially sent custom runs can be reopened from history. A partial run
 after previewing its unchanged saved content; editing it creates a new run and preserves the
 original delivery ledger.
 
-Administrators can create custom campaigns for verified Firebase accounts with matching
-contact-consenting Join records. Source-controlled campaign presets are Markdown files under
-`functions/firebase-go/email-templates/`; `POST /api/admin/custom-campaign-templates` returns
-their editable copy only to administrators and does not create a draft or send email.
+Administrators can create ad-hoc custom campaigns for verified Firebase accounts with matching
+contact-consenting Join records. Every static campaign is source-controlled Markdown under
+`functions/firebase-go/email-templates/` and is selected server-side through its dedicated tab;
+the JLR Contact tab uses `POST /api/admin/jlr-contact-preview`. Static copy cannot be edited in
+the browser.
 `POST /api/admin/custom-campaign-preview` validates and saves the draft, recalculates the
 canonical-email-deduped audience and renders sandboxed branded HTML plus plain text.
 `POST /api/admin/custom-campaign-send` reloads that immutable draft and uses the same exact-count

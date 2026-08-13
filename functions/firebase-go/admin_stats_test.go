@@ -22,9 +22,15 @@ func TestComputeMemberStatsBucketsJoinsByDay(t *testing.T) {
 		{CreatedAt: time.Date(2026, time.August, 12, 8, 0, 0, 0, time.UTC)},
 		{CreatedAt: time.Date(2026, time.August, 12, 18, 0, 0, 0, time.UTC)},
 		{CreatedAt: time.Date(2026, time.August, 13, 9, 0, 0, 0, time.UTC)},
+	}, []time.Time{
+		time.Date(2026, time.August, 12, 10, 0, 0, 0, time.UTC),
+		time.Date(2026, time.August, 13, 10, 0, 0, 0, time.UTC),
 	})
 	if len(stats.JoinedTimeline) != 2 || stats.JoinedTimeline[0] != (timelineBucket{Label: "2026-08-12", Count: 2}) || stats.JoinedTimeline[1] != (timelineBucket{Label: "2026-08-13", Count: 1}) {
 		t.Fatalf("timeline=%#v", stats.JoinedTimeline)
+	}
+	if stats.VerifiedCount != 2 || len(stats.VerifiedTimeline) != 2 || stats.VerifiedTimeline[0] != (timelineBucket{Label: "2026-08-12", Count: 1}) {
+		t.Fatalf("verified=%#v", stats)
 	}
 }
 

@@ -90,12 +90,12 @@ func Api(w http.ResponseWriter, r *http.Request) {
 		AdminAllMembersDrivePreview(w, r)
 	case "/api/admin/all-members-drive-send":
 		AdminAllMembersDriveSend(w, r)
+	case "/api/admin/jlr-contact-preview":
+		AdminJLRContactPreview(w, r)
 	case "/api/admin/email-campaign-history":
 		AdminEmailCampaignHistory(w, r)
 	case "/api/admin/custom-campaign-preview":
 		AdminCustomCampaignPreview(w, r)
-	case "/api/admin/custom-campaign-templates":
-		AdminCustomCampaignTemplates(w, r)
 	case "/api/admin/custom-campaign-send":
 		AdminCustomCampaignSend(w, r)
 	case "/api/admin/instagram-preview":

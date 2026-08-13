@@ -40,5 +40,7 @@ test('admin statistics load only after admin visibility with an identity token',
   assert.match(statsScript, /renderStatCards\(container, '\[data-vehicle-stats\]'/);
   assert.match(statsScript, /ctx\.lineTo/);
   assert.doesNotMatch(statsScript, /ctx\.fillRect/);
+  assert.match(statsScript, /data-verified-timeline/);
+  assert.match(page, /Verified accounts by day/);
   assert.doesNotMatch(statsScript, /container\.innerHTML\s*=/);
 });

@@ -67,12 +67,11 @@ campaign ID and create a new run linked through `sourceCampaignId`.
 Campaign body copy is source-controlled Markdown (`.md`, including front matter). The specialised registration reminder,
 member-referral, and Reach 1,000 campaigns render their deployed Markdown templates from
 `functions/firebase-go/email-templates/`; their delivery mechanics remain in Go. Custom-editor
-presets are also Markdown files with front matter in that directory. The JLR contact preset for
-the 12 August 2026 public update is loaded by an authenticated admin-only endpoint, never held
-as a JavaScript string. It must be a visible, dedicated **JLR Contact** campaign tab so it is
-discoverable independently of campaign-history loading. Loading a preset only fills the editable composer; it must not save a
-draft or send email until an administrator explicitly previews it and completes the existing
-exact-count confirmation. Its copy must distinguish initial contact from a substantive JLR
+campaigns are also Markdown files with front matter in that directory. Every static campaign
+must have a dedicated tab with the same preview, exact-count confirmation, and bounded-send flow;
+the server selects its Markdown source and audience, never JavaScript. The JLR Contact campaign
+for the 12 August 2026 public update is one of those dedicated tabs. Freeform remains only for
+ad-hoc, editable verified-member campaigns. Its copy must distinguish initial contact from a substantive JLR
 commitment, link to `/updates/jaguar-contact/`, ask owners to help reach 1,000 members, and
 invite registered members to add vehicle, SoH, and service/fault records before the next meeting.
 

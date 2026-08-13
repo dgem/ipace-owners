@@ -95,15 +95,15 @@ change rather than assuming it exists.
 | `GET /api/member-data` | Member | Return only that UID's private member snapshot. |
 | `GET /api/member-export?format=csv\|xlsx` | Member | Return a private no-store ZIP of four CSV datasets or a formatted five-sheet Excel workbook built from only that UID's snapshot; omit internal IDs/hashes and neutralise spreadsheet formulas. |
 | `GET /api/admin-data` | Admin claim | Return Join and vehicle review records. |
-| `GET /api/admin/stats` | Admin claim | Return aggregate member, vehicle, SoH, and service-event statistics for the admin dashboard with `Cache-Control: private, no-store`; member joins are bucketed by day for the daily line chart. |
+| `GET /api/admin/stats` | Admin claim | Return aggregate member, vehicle, SoH, and service-event statistics for the admin dashboard with `Cache-Control: private, no-store`; joins and magic-link-verified accounts are bucketed by day for separate daily line charts. |
 | `POST /api/admin/reengagement-preview` | Admin claim | Return aggregate counts for consented Join submitters who have not registered. |
 | `POST /api/admin/reengagement-send` | Admin claim | Require the campaign ID, exact eligible count and typed confirmation; recheck registrations and send the next batch of at most ten. |
 | `POST /api/admin/member-referral-preview` | Admin claim | Preview aggregate counts and exact copy for registered accounts with matching contact consent. |
 | `POST /api/admin/member-referral-send` | Admin claim | Confirm and send the next batch of at most ten referral emails with the same idempotent ledger safeguards. |
 | `POST /api/admin/all-members-drive-preview` | Admin claim | Preview the deduplicated, contact-consenting audience across verified and unverified Join records and the exact recruitment email. |
 | `POST /api/admin/all-members-drive-send` | Admin claim | Confirm and send the next batch of at most ten all-member recruitment emails with hashed idempotent delivery records. |
+| `POST /api/admin/jlr-contact-preview` | Admin claim | Load the fixed JLR Contact Markdown source, calculate the verified consented audience, and return the exact branded preview. |
 | `POST /api/admin/email-campaign-history` | Admin claim | Return parent campaign records and aggregate hashed-ledger delivery counts, including inferred legacy runs and cached Resend delivery outcomes, without addresses. |
-| `POST /api/admin/custom-campaign-templates` | Admin claim | Return source-controlled custom-composer Markdown templates and metadata without sending or saving a campaign. |
 | `POST /api/admin/custom-campaign-preview` | Admin claim | Validate/save a named subject and Markdown draft, calculate the verified consented audience, and return representative branded HTML/plain-text output. |
 | `POST /api/admin/custom-campaign-send` | Admin claim | Load immutable saved content, recheck the audience and exact `SEND <count>` confirmation, then send at most ten idempotent messages. |
 | `POST /api/admin/instagram-preview` | Admin claim | Validate a site-relative MP4/MOV path, caption and explicit full-media review; return the deterministic confirmation without a provider side effect. |

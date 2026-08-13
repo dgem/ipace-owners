@@ -53,15 +53,28 @@ date: Last Modified
         <button type="button" role="tab" id="campaign-tab-freeform" aria-controls="create-member-campaign" aria-selected="false" tabindex="-1" data-campaign-tab="freeform">Freeform</button>
       </div>
 
-    <section class="email-campaign-tabpanel" id="campaign-panel-jlr-contact" role="tabpanel" aria-labelledby="campaign-tab-jlr-contact" tabindex="0" data-campaign-panel="jlr-contact" hidden>
-      <div class="dashboard-panel__header"><div><p class="dashboard-panel__eyebrow">Member update</p><h2 class="dashboard-panel__title">JLR Contact</h2></div></div>
-      <p>Load the approved “We have contact with Jaguar Land Rover” update into the member-email editor. You can review and amend it before saving a preview; no email is sent by loading it.</p>
+    <section class="email-campaign-tabpanel" id="campaign-panel-jlr-contact" role="tabpanel" aria-labelledby="campaign-tab-jlr-contact" tabindex="0" data-campaign-panel="jlr-contact" data-email-campaign data-preview-endpoint="/api/admin/jlr-contact-preview" data-send-endpoint="/api/admin/custom-campaign-send" hidden>
+      <div class="dashboard-panel__header"><div><p class="dashboard-panel__eyebrow">Email verified, consented members</p><h2 class="dashboard-panel__title">JLR Contact</h2></div></div>
+      <p>This is the approved initial-contact update. It asks members to help reach 1,000, add their cars, and contribute SoH and service records before discussions resume. The source-controlled copy cannot be changed here.</p>
       <div class="email-campaign-step">
         <p class="dashboard-panel__eyebrow">Step 1</p>
-        <h3>Load the JLR contact update</h3>
-        <p>The campaign asks members to help reach 1,000, register their cars, and add SoH and service records before discussions resume.</p>
-        <div class="cluster"><button type="button" class="btn btn--primary" data-campaign-template="jlr-contact">Load JLR contact update</button></div>
+        <h3>Check the recipients and preview the email</h3>
+        <p>No email is sent during this step.</p>
+        <div class="cluster"><button type="button" class="btn btn--primary" data-campaign-preview>Check recipients and load email preview</button></div>
       </div>
+      <div data-campaign-summary class="stack" aria-live="polite"></div>
+      <section class="email-preview" data-campaign-email-preview hidden aria-labelledby="jlr-contact-email-preview-title">
+        <p class="dashboard-panel__eyebrow">Email preview</p><h3 id="jlr-contact-email-preview-title">What each recipient will receive</h3>
+        <p><strong>Subject:</strong> <span data-campaign-email-subject></span></p>
+        <div class="email-preview__viewport"><iframe data-campaign-email-html title="Rendered HTML JLR contact email preview" sandbox></iframe></div>
+        <details class="email-preview__plain"><summary>View plain-text alternative</summary><pre data-campaign-email-text></pre></details>
+      </section>
+      <form data-campaign-send class="stack email-campaign-step">
+        <div><p class="dashboard-panel__eyebrow">Step 2</p><h3>Confirm and send the emails</h3><p>The controls unlock after Step 1 confirms the current consented audience.</p></div>
+        <div class="form-group email-campaign-confirmation"><label for="jlr-contact-campaign-confirm">Type the exact confirmation shown below</label><input id="jlr-contact-campaign-confirm" type="text" data-campaign-confirm autocomplete="off" disabled><p class="form-hint" data-campaign-confirm-hint>Check the recipients and email preview first.</p></div>
+        <button type="submit" class="btn btn--danger" data-campaign-send-button disabled>Send emails</button>
+      </form>
+      <p data-campaign-status role="status" aria-live="polite">No email has been sent.</p>
     </section>
 
     <section class="email-campaign-tabpanel email-campaign-composer" id="create-member-campaign" role="tabpanel" aria-labelledby="campaign-tab-freeform" tabindex="0" data-campaign-panel="freeform" data-custom-email-campaign hidden>
@@ -69,13 +82,6 @@ date: Last Modified
       <p>Write Markdown for verified members who have consented to contact. Preview saves the draft and renders the exact branded HTML and plain-text alternatives. Sent campaigns remain immutable.</p>
 
       <div class="email-campaign-editor">
-        <div class="callout callout--info" data-campaign-template-library>
-          <div class="callout__content">
-            <p class="callout__title">Campaign library</p>
-            <p>Source-controlled Markdown campaigns load here. Custom member campaigns open in this editor; specialised campaigns keep their purpose-built, consent-aware audiences.</p>
-            <div class="cluster" data-campaign-template-list aria-live="polite"><p>Loading campaign library…</p></div>
-          </div>
-        </div>
         <form class="stack" data-custom-campaign-form>
           <div class="form-group"><label for="custom-campaign-name">Campaign name</label><input id="custom-campaign-name" type="text" data-custom-campaign-name maxlength="100" required placeholder="August member update"></div>
           <div class="form-group"><label for="custom-campaign-subject">Email subject</label><input id="custom-campaign-subject" type="text" data-custom-campaign-subject maxlength="200" required placeholder="A quick update for I-PACE owners"></div>

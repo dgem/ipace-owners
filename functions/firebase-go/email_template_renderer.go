@@ -7,7 +7,6 @@ import (
 	"html"
 	"net/url"
 	"regexp"
-	"sort"
 	"strings"
 	texttemplate "text/template"
 )
@@ -63,26 +62,6 @@ func embeddedCampaignTemplate(name string) (campaignTemplateSource, error) {
 		return campaignTemplateSource{}, fmt.Errorf("campaign template %s has incomplete front matter", name)
 	}
 	return template, nil
-}
-
-func embeddedCampaignTemplates() ([]campaignTemplateSource, error) {
-	files, err := emailTemplateFiles.ReadDir("email-templates")
-	if err != nil {
-		return nil, err
-	}
-	templates := make([]campaignTemplateSource, 0, len(files))
-	for _, file := range files {
-		if file.IsDir() || !strings.HasSuffix(file.Name(), ".md") {
-			continue
-		}
-		template, err := embeddedCampaignTemplate(strings.TrimSuffix(file.Name(), ".md"))
-		if err != nil {
-			return nil, err
-		}
-		templates = append(templates, template)
-	}
-	sort.Slice(templates, func(i, j int) bool { return templates[i].Name < templates[j].Name })
-	return templates, nil
 }
 
 func renderEmailMarkdownTemplate(name string, data any) (string, error) {

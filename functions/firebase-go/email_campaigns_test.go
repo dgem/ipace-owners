@@ -76,23 +76,31 @@ func TestEmbeddedCustomCampaignTemplateHasReviewableMetadata(t *testing.T) {
 }
 
 func TestAllCampaignsUseMarkdownSources(t *testing.T) {
-	templates, err := embeddedCampaignTemplates()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(templates) != 4 {
-		t.Fatalf("templates=%#v", templates)
-	}
-	for _, expected := range []string{"registration-reminder", "member-referral", "reach-1000", "jlr-contact"} {
-		found := false
-		for _, template := range templates {
-			if template.ID == expected {
-				found = true
-			}
+	for fileName, expectedID := range map[string]string{
+		"campaign-reengagement": "registration-reminder",
+		"member-referral":       "member-referral",
+		"all-members-drive":     "reach-1000",
+		"jlr-contact":           "jlr-contact",
+	} {
+		template, err := embeddedCampaignTemplate(fileName)
+		if err != nil {
+			t.Fatalf("load %q: %v", fileName, err)
 		}
-		if !found {
-			t.Fatalf("campaign library is missing %q", expected)
+		if template.ID != expectedID {
+			t.Fatalf("template ID = %q, want %q", template.ID, expectedID)
 		}
+	}
+}
+
+func TestAdminJLRContactPreviewRequiresAdmin(t *testing.T) {
+	original := campaignAuthorize
+	t.Cleanup(func() { campaignAuthorize = original })
+	campaignAuthorize = func(context.Context, *http.Request) error { return context.Canceled }
+	req := httptest.NewRequest(http.MethodPost, "/api/admin/jlr-contact-preview", strings.NewReader(`{}`))
+	res := httptest.NewRecorder()
+	AdminJLRContactPreview(res, req)
+	if res.Code != http.StatusForbidden {
+		t.Fatalf("status=%d body=%s", res.Code, res.Body.String())
 	}
 }
 

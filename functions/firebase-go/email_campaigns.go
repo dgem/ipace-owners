@@ -75,6 +75,7 @@ var memberReferralPreview = previewMemberReferralCampaign
 var memberReferralSend = sendMemberReferralCampaignBatch
 var allMembersDrivePreview = previewAllMembersDriveCampaign
 var allMembersDriveSend = sendAllMembersDriveCampaignBatch
+var jlrContactPreview = previewJLRContactCampaign
 
 func AdminReengagementPreview(w http.ResponseWriter, r *http.Request) {
 	if cors(w, r) || rejectDisallowedOrigin(w, r) {
@@ -136,6 +137,23 @@ func AdminAllMembersDrivePreview(w http.ResponseWriter, r *http.Request) {
 
 func AdminAllMembersDriveSend(w http.ResponseWriter, r *http.Request) {
 	adminCampaignSendHandler(w, r, allMembersDriveSend)
+}
+
+func AdminJLRContactPreview(w http.ResponseWriter, r *http.Request) {
+	adminCustomCampaignPreviewHandler(w, r, "admin-jlr-contact-preview", jlrContactPreview)
+}
+
+func adminCustomCampaignPreviewHandler(w http.ResponseWriter, r *http.Request, logName string, preview func(context.Context) (customCampaignPreviewResponse, error)) {
+	if !adminCampaignRequestAllowed(w, r) {
+		return
+	}
+	summary, err := preview(r.Context())
+	if err != nil {
+		logEvent(logName, "error", "preview failed", map[string]any{"error": err.Error()})
+		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Could not calculate the campaign audience"})
+		return
+	}
+	writeJSON(w, http.StatusOK, summary)
 }
 
 func adminCampaignPreviewHandler(w http.ResponseWriter, r *http.Request, logName string, preview func(context.Context) (campaignSummary, error)) {

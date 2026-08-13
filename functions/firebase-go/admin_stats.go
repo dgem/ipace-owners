@@ -1,10 +1,13 @@
 package ipace
 
 import (
+	"context"
 	"math"
 	"net/http"
 	"sort"
 	"time"
+
+	"google.golang.org/api/iterator"
 )
 
 // adminStatsResponse is returned by the /api/admin/stats endpoint.
@@ -17,10 +20,11 @@ type adminStatsResponse struct {
 
 // memberStats holds aggregate member metrics.
 type memberStats struct {
-	TotalMembers   int                `json:"totalMembers"`
-	VerifiedCount  int                `json:"verifiedCount"`
-	CountryBreakup []countryBreakdown `json:"countryBreakup"`
-	JoinedTimeline []timelineBucket   `json:"joinedTimeline"`
+	TotalMembers     int                `json:"totalMembers"`
+	VerifiedCount    int                `json:"verifiedCount"`
+	CountryBreakup   []countryBreakdown `json:"countryBreakup"`
+	JoinedTimeline   []timelineBucket   `json:"joinedTimeline"`
+	VerifiedTimeline []timelineBucket   `json:"verifiedTimeline"`
 }
 
 // countryBreakdown shows member counts by country.
@@ -145,9 +149,15 @@ func AdminStats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	verifiedAt, err := loadVerifiedAccountDates(r.Context(), joins)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Could not load verified accounts"})
+		return
+	}
+
 	resp := adminStatsResponse{
 		GeneratedAt:       now.Format(time.RFC3339),
-		MemberStats:       computeMemberStats(joins),
+		MemberStats:       computeMemberStats(joins, verifiedAt),
 		VehicleStats:      computeVehicleStats(vehicles, readings),
 		ServiceEventStats: computeServiceEventStats(services),
 	}
@@ -157,19 +167,14 @@ func AdminStats(w http.ResponseWriter, r *http.Request) {
 }
 
 // computeMemberStats aggregates member data.
-func computeMemberStats(joins []joinRecord) memberStats {
+func computeMemberStats(joins []joinRecord, verifiedAt []time.Time) memberStats {
 	totalMembers := 0
-	verifiedCount := 0
 	countryCounts := make(map[string]int)
 	timelineMap := make(map[string]int)
+	verifiedTimelineMap := make(map[string]int)
 
 	for _, rec := range joins {
 		totalMembers++
-
-		// Count verified accounts (verificationLevel is not empty or "self-reported").
-		if rec.Review.VerificationLevel != "" && rec.Review.VerificationLevel != "self-reported" {
-			verifiedCount++
-		}
 
 		// Country breakdown.
 		if rec.Contact.Country != "" {
@@ -180,6 +185,11 @@ func computeMemberStats(joins []joinRecord) memberStats {
 		if !rec.CreatedAt.IsZero() {
 			key := rec.CreatedAt.Format("2006-01-02")
 			timelineMap[key]++
+		}
+	}
+	for _, verified := range verifiedAt {
+		if !verified.IsZero() {
+			verifiedTimelineMap[verified.UTC().Format("2006-01-02")]++
 		}
 	}
 
@@ -201,13 +211,49 @@ func computeMemberStats(joins []joinRecord) memberStats {
 	sort.Slice(timeline, func(i, j int) bool {
 		return timeline[i].Label < timeline[j].Label
 	})
+	verifiedTimeline := make([]timelineBucket, 0, len(verifiedTimelineMap))
+	for label, count := range verifiedTimelineMap {
+		verifiedTimeline = append(verifiedTimeline, timelineBucket{Label: label, Count: count})
+	}
+	sort.Slice(verifiedTimeline, func(i, j int) bool { return verifiedTimeline[i].Label < verifiedTimeline[j].Label })
 
 	return memberStats{
-		TotalMembers:   totalMembers,
-		VerifiedCount:  verifiedCount,
-		CountryBreakup: countryBreakup,
-		JoinedTimeline: timeline,
+		TotalMembers:     totalMembers,
+		VerifiedCount:    len(verifiedAt),
+		CountryBreakup:   countryBreakup,
+		JoinedTimeline:   timeline,
+		VerifiedTimeline: verifiedTimeline,
 	}
+}
+
+func loadVerifiedAccountDates(ctx context.Context, joins []joinRecord) ([]time.Time, error) {
+	client, err := firebaseAuth(ctx)
+	if err != nil {
+		return nil, err
+	}
+	joinEmails := make(map[string]struct{}, len(joins))
+	for _, join := range joins {
+		if email := canonicalCampaignEmail(join.Contact.Email); email != "" {
+			joinEmails[email] = struct{}{}
+		}
+	}
+	iter := client.Users(ctx, "")
+	dates := []time.Time{}
+	for {
+		account, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		if _, joined := joinEmails[canonicalCampaignEmail(account.Email)]; !joined || account.UserMetadata == nil || account.UserMetadata.LastLogInTimestamp < 1 || account.UserMetadata.CreationTimestamp < 1 {
+			continue
+		}
+		// Passwordless accounts are created when their first magic link is completed.
+		dates = append(dates, time.UnixMilli(account.UserMetadata.CreationTimestamp).UTC())
+	}
+	return dates, nil
 }
 
 // computeVehicleStats aggregates vehicle and SoH data.

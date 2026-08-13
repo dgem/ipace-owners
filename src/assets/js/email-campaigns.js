@@ -93,12 +93,10 @@
     var historyList = historyRoot.querySelector('[data-campaign-history-list]');
     var historyStatus = historyRoot.querySelector('[data-campaign-history-status]');
     var historyRefresh = historyRoot.querySelector('[data-campaign-history-refresh]');
-    var templateList = root.querySelector('[data-campaign-template-list]');
     var draftId = '';
     var sourceId = '';
     var current = null;
     var historyLoaded = false;
-    var campaignTemplates = [];
 
     function setDeliveryState(data) {
       current = data;
@@ -145,68 +143,6 @@
     }
 
     newButton.addEventListener('click', clearEditor);
-
-    function loadCustomTemplate(template) {
-      clearEditor();
-      nameInput.value = template.name;
-      subjectInput.value = template.subject;
-      markdownInput.value = template.markdown;
-      status.textContent = template.name + ' loaded. Review, save and preview before sending.';
-      nameInput.focus();
-    }
-
-    async function loadCampaignTemplate(id, button) {
-      button.disabled = true;
-      status.textContent = 'Loading the campaign template…';
-      try {
-        if (campaignTemplates.length === 0) {
-          var data = await request('/api/admin/custom-campaign-templates');
-          campaignTemplates = data.templates || [];
-          renderCampaignLibrary(campaignTemplates);
-        }
-        var template = campaignTemplates.find(function (item) { return item.id === id; });
-        if (!template || template.audience !== 'custom-member') throw new Error('This campaign template is unavailable.');
-        loadCustomTemplate(template);
-        selectCampaignTab('freeform');
-        root.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      } catch (error) {
-        status.textContent = error && error.message ? error.message : 'Could not load the campaign template.';
-      }
-      button.disabled = false;
-    }
-
-    function renderCampaignLibrary(templates) {
-      if (!templateList) return;
-      templateList.textContent = '';
-      templates.forEach(function (template) {
-        var button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'btn btn--secondary btn--sm';
-        if (template.audience === 'custom-member') {
-          button.textContent = 'Load ' + template.name;
-          button.addEventListener('click', function () { loadCampaignTemplate(template.id, button); });
-        } else {
-          var tab = template.audience === 'member-referral' ? 'referral' : (template.audience === 'all-members-drive' ? 'member-drive' : 'registration');
-          button.textContent = 'Open ' + template.name;
-          button.addEventListener('click', function () {
-            selectCampaignTab(tab);
-            document.querySelector('#campaign-tools').scrollIntoView({ behavior: 'smooth', block: 'start' });
-          });
-        }
-        templateList.appendChild(button);
-      });
-    }
-
-    async function loadCampaignLibrary() {
-      if (!templateList) return;
-      try {
-        var data = await request('/api/admin/custom-campaign-templates');
-        campaignTemplates = data.templates || [];
-        renderCampaignLibrary(campaignTemplates);
-      } catch (error) {
-        templateList.textContent = error && error.message ? error.message : 'Could not load the campaign library.';
-      }
-    }
 
     function insertPlaceholder(name) {
       var token = '{{' + name + '}}';
@@ -321,10 +257,10 @@
         var rerunButton = document.createElement('button');
         rerunButton.type = 'button';
         rerunButton.className = 'btn btn--secondary btn--sm';
-        var specialisedTab = campaign.kind === 'all-members-drive' ? 'member-drive' : 'registration';
-        rerunButton.textContent = canRerun ? 'Tweak and rerun' : (specialisedTab === 'member-drive' ? 'Use Reach 1,000 tool' : 'Use registration reminder tool');
+        var specialisedTab = campaign.kind === 'all-members-drive' ? 'member-drive' : (campaign.kind === 'jlr-contact' ? 'jlr-contact' : 'registration');
+        rerunButton.textContent = canRerun ? 'Tweak and rerun' : (specialisedTab === 'member-drive' ? 'Use Reach 1,000 tool' : (specialisedTab === 'jlr-contact' ? 'Use JLR Contact tool' : 'Use registration reminder tool'));
         rerunButton.disabled = canRerun && (!campaign.subject || !campaign.markdown);
-        if (!canRerun) rerunButton.title = specialisedTab === 'member-drive' ? 'This campaign retains its all-joined, contact-consenting audience.' : 'Registration reminders require a fresh private sign-in link and their original unverified-member audience.';
+        if (!canRerun) rerunButton.title = specialisedTab === 'member-drive' ? 'This campaign retains its all-joined, contact-consenting audience.' : (specialisedTab === 'jlr-contact' ? 'This campaign retains its approved source-controlled copy and verified, consented audience.' : 'Registration reminders require a fresh private sign-in link and their original unverified-member audience.');
         rerunButton.addEventListener('click', function () {
           if (canRerun) {
             loadForRerun(campaign);
@@ -350,7 +286,6 @@
         renderHistory(data);
         historyStatus.textContent = data.feedbackMessage || (data.feedbackRefreshedAt ? 'Delivery feedback checked ' + formatDate(data.feedbackRefreshedAt) + '.' : '');
         historyLoaded = true;
-        await loadCampaignLibrary();
       } catch (error) {
         historyStatus.textContent = error.message;
       }
@@ -358,11 +293,6 @@
     }
 
     historyRefresh.addEventListener('click', loadHistory);
-    document.querySelectorAll('[data-campaign-template]').forEach(function (button) {
-      button.addEventListener('click', function () {
-        loadCampaignTemplate(button.getAttribute('data-campaign-template'), button);
-      });
-    });
 
     form.addEventListener('submit', async function (event) {
       event.preventDefault();

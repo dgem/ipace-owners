@@ -112,15 +112,15 @@ header.
 | `GET /api/member-data` | `MemberData` | Member | Return the signed-in user's generated snapshot. |
 | `GET /api/member-export?format=csv\|xlsx` | `MemberExport` | Member | Download that snapshot as separate CSV datasets in a ZIP or a formatted Excel workbook. |
 | `GET /api/admin-data` | `AdminData` | Admin | Return review data for administrators. |
-| `GET /api/admin/stats` | `AdminStats` | Admin | Return aggregate member, vehicle, SoH, and service-event statistics for the admin dashboard with `Cache-Control: private, no-store`; member joins are bucketed by day for the daily line chart. |
+| `GET /api/admin/stats` | `AdminStats` | Admin | Return aggregate member, vehicle, SoH, and service-event statistics for the admin dashboard with `Cache-Control: private, no-store`; joins and magic-link-verified accounts are bucketed by day for separate daily line charts. |
 | `POST /api/admin/reengagement-preview` | `AdminReengagementPreview` | Admin | Return aggregate counts for the consented, unsigned-in Join audience. |
 | `POST /api/admin/reengagement-send` | `AdminReengagementSend` | Admin | Confirm and send the next resumable batch of at most ten reminders. |
 | `POST /api/admin/member-referral-preview` | `AdminMemberReferralPreview` | Admin | Preview the consented registered-member referral audience and exact campaign copy. |
 | `POST /api/admin/member-referral-send` | `AdminMemberReferralSend` | Admin | Confirm and send the next resumable batch of at most ten referral emails. |
 | `POST /api/admin/all-members-drive-preview` | `AdminAllMembersDrivePreview` | Admin | Preview the contact-consenting, canonical-email-deduplicated audience across verified and unverified Join records. |
 | `POST /api/admin/all-members-drive-send` | `AdminAllMembersDriveSend` | Admin | Confirm and send the next resumable batch of at most ten all-member recruitment emails. |
+| `POST /api/admin/jlr-contact-preview` | `AdminJLRContactPreview` | Admin | Load the fixed JLR Contact Markdown source, calculate the verified, consented audience, and return the exact branded preview. |
 | `POST /api/admin/email-campaign-history` | `AdminEmailCampaignHistory` | Admin | Return campaign metadata and aggregate delivery history without recipient addresses. |
-| `POST /api/admin/custom-campaign-templates` | `AdminCustomCampaignTemplates` | Admin | Return source-controlled custom-composer Markdown templates and their metadata; loading a template has no delivery side effect. |
 | `POST /api/admin/custom-campaign-preview` | `AdminCustomCampaignPreview` | Admin | Validate and persist a custom Markdown draft, calculate the verified consented audience, and return personalised HTML/plain-text previews. |
 | `POST /api/admin/custom-campaign-send` | `AdminCustomCampaignSend` | Admin | Recheck the saved draft and audience, require exact confirmation, and send the next idempotent batch of at most ten. |
 | `POST /api/admin/instagram-preview` | `AdminInstagramPreview` | Admin | Validate and preview an administrator-reviewed, chat-prepared Reel path and caption without publishing. |

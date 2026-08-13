@@ -245,6 +245,10 @@
     if (memberTimelineCanvas && memberStats.joinedTimeline && memberStats.joinedTimeline.length > 0) {
       renderTimeline(memberTimelineCanvas, memberStats.joinedTimeline, 'Members Joined by Day');
     }
+    var verifiedTimelineCanvas = container.querySelector('[data-verified-timeline]');
+    if (verifiedTimelineCanvas && memberStats.verifiedTimeline && memberStats.verifiedTimeline.length > 0) {
+      renderTimeline(verifiedTimelineCanvas, memberStats.verifiedTimeline, 'Verified Accounts by Day');
+    }
 
     // Render stat cards for vehicles
     renderStatCards(container, '[data-vehicle-stats]', vehicleStats, [
