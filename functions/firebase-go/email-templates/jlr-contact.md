@@ -6,7 +6,7 @@ audience: custom-member
 ---
 Hi {{memberFirstName}},
 
-Three days after one of our founding members sent Jaguar Land Rover an introductory email, JLR got in touch and held an exploratory call with the group.
+Three days after Joel, our founding member, sent Jaguar Land Rover an introductory email, JLR got in touch and had a call.
 
 Soon afterwardsl, JLR offered a face-to-face meeting in early September with its UK Director of Client Care. The proposed venue is Gaydon, home of JLR engineering, subject to final confirmation.
 
