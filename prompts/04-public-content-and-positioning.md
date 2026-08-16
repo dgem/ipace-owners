@@ -43,17 +43,16 @@ Create or maintain:
 - Methodology: how evidence is collected, verified, anonymised, aggregated, and caveated.
 - Updates index: list update posts from `src/updates/`.
 - Individual update posts: Markdown with front matter.
-- Publish a launch-visible update dated 12 August 2026, “We have contact with Jaguar Land Rover”.
-  Report only an initial response within three working days and an introductory telephone call:
-  JLR acknowledged owner concerns, said it was taking them seriously, and welcomed a constructive
-  route to hear the voice of customers. Make clear that this is not a substantive commitment or
-  solution. State that a further discussion appears likely after the August bank holiday, that the
-  group's aim is meaningful discussion with appropriate senior decision-makers by mid-September,
-  and that the group is holding off contacting original letter recipients until the JLR contact's
-  place in the decision-making process is clearer. Do not name the individual contact or speculate
-  about their role or motives. Invite owners to help the group return with a stronger voice by
-  recruiting toward the 1,000-member target and, once signed in, registering vehicles and adding
-  available SoH plus service/fault records.
+- Publish a launch-visible update dated 16 August 2026, “JLR Client Care meeting proposed for
+  September”. Report the initial response within three working days and the exploratory telephone
+  call, then state that founding member Joel received a courteous thank-you and an invitation to
+  meet the UK Client Care team, with a tentative date in the second week of September. Make clear
+  that this is not a substantive commitment or solution. Ask owners to use the short period before
+  September to recruit toward the 1,000-member target and, once signed in, register their vehicles
+  and add available SoH plus service, fault and repair records. Explain that the group will use only
+  suitably anonymised evidence in the meeting. Use the bright, original, non-branded right-hand-drive
+  electric-car road-trip image at `/images/jlr-client-care-september-hero.png` as the article hero;
+  it must not imply JLR endorsement or display generated JLR branding.
 - Keep the Updates index and its navigation/footer links visible in launch mode. Launch-mode
   visitors should see current operational updates, while historical posts marked
   `fullModeOnly` remain hidden until full mode.

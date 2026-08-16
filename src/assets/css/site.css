@@ -3028,6 +3028,19 @@ details .details-body p:last-child {
   padding-top: var(--space-6);
 }
 
+.page-hero-image {
+  margin-block: var(--space-8) 0;
+}
+
+.page-hero-image img {
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  display: block;
+  object-fit: cover;
+  width: 100%;
+}
+
 .email-campaign-page {
   display: grid;
   gap: var(--space-6);

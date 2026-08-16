@@ -65,10 +65,10 @@ func TestEmbeddedCustomCampaignTemplateHasReviewableMetadata(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if template.ID != "jlr-contact" || template.Audience != "custom-member" || template.Subject != "We have contact with Jaguar Land Rover" {
+	if template.ID != "jlr-contact" || template.Audience != "custom-member" || template.Subject != "JLR Client Care meeting proposed for September" {
 		t.Fatalf("unexpected template metadata: %#v", template)
 	}
-	for _, expected := range []string{"{{memberFirstName}}", "1,000 members", "/member/dashboard/"} {
+	for _, expected := range []string{"{{memberFirstName}}", "1,000 members", "second week of September", "/member/dashboard/"} {
 		if !strings.Contains(template.Markdown, expected) {
 			t.Fatalf("template Markdown missing %q", expected)
 		}

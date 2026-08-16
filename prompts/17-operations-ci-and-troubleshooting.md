@@ -70,10 +70,11 @@ member-referral, and Reach 1,000 campaigns render their deployed Markdown templa
 campaigns are also Markdown files with front matter in that directory. Every static campaign
 must have a dedicated tab with the same preview, exact-count confirmation, and bounded-send flow;
 the server selects its Markdown source and audience, never JavaScript. The JLR Contact campaign
-for the 12 August 2026 public update is one of those dedicated tabs. Freeform remains only for
-ad-hoc, editable verified-member campaigns. Its copy must distinguish initial contact from a substantive JLR
-commitment, link to `/updates/jaguar-contact/`, ask owners to help reach 1,000 members, and
-invite registered members to add vehicle, SoH, and service/fault records before the next meeting.
+for the 16 August 2026 update is one of those dedicated tabs. Freeform remains only for ad-hoc,
+editable verified-member campaigns. Its copy must distinguish a tentative second-week-of-September
+UK Client Care meeting from a substantive JLR commitment, link to `/updates/jaguar-contact/`, ask
+owners to help reach 1,000 members, and invite registered members to add vehicle, SoH, service,
+fault and repair records before September so the group can reference suitably anonymised evidence.
 
 ## Command Surface
 
