@@ -37,6 +37,24 @@ func TestComputeMemberStatsBucketsJoinsByDay(t *testing.T) {
 	}
 }
 
+func TestComputeMemberStatsCountsEachEmailOnceAtItsFirstJoin(t *testing.T) {
+	stats := computeMemberStats([]joinRecord{
+		{ID: "later", CreatedAt: time.Date(2026, time.August, 13, 9, 0, 0, 0, time.UTC), Contact: contactRecord{Email: "owner@example.com", Country: "France"}},
+		{ID: "first", CreatedAt: time.Date(2026, time.August, 12, 9, 0, 0, 0, time.UTC), Contact: contactRecord{Email: "OWNER@example.com", Country: "United Kingdom"}},
+	}, map[string]memberAccountStatus{
+		"owner@example.com": {Registered: true},
+	})
+	if stats.TotalMembers != 1 {
+		t.Fatalf("total members=%d, want 1", stats.TotalMembers)
+	}
+	if got := stats.JoinedTimeline; len(got) != 1 || got[0] != (timelineBucket{Label: "2026-08-12", Count: 1}) {
+		t.Fatalf("timeline=%#v", got)
+	}
+	if got := stats.CountryBreakup; len(got) != 1 || got[0] != (countryBreakdown{Country: "United Kingdom", Joined: 1, Registered: 1}) {
+		t.Fatalf("countries=%#v", got)
+	}
+}
+
 func TestAdminStatsRequiresSignIn(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/api/admin/stats", nil)
 	res := httptest.NewRecorder()

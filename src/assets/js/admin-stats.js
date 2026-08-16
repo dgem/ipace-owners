@@ -48,7 +48,7 @@
       renderAllStats(container, data);
     } catch (err) {
       console.error(NS, err);
-      if (descriptionEl) descriptionEl.textContent = 'Failed to load statistics: ' + escapeHtml(err && err.message ? err.message : 'Unknown error');
+      if (descriptionEl) descriptionEl.textContent = 'Failed to load statistics: ' + (err && err.message ? err.message : 'Unknown error');
     }
   }
 
@@ -82,10 +82,20 @@
 
   function renderTimeline(canvas, buckets, title) {
     if (!canvas || !buckets || buckets.length === 0) {
-      if (canvas) canvas.parentNode.innerHTML =
-        '<p>No timeline data available.</p>';
+      if (canvas) {
+        canvas.hidden = true;
+        var emptyMessage = canvas.nextElementSibling;
+        if (!emptyMessage || !emptyMessage.hasAttribute('data-timeline-empty-message')) {
+          emptyMessage = document.createElement('p');
+          emptyMessage.setAttribute('data-timeline-empty-message', '');
+          canvas.insertAdjacentElement('afterend', emptyMessage);
+        }
+        emptyMessage.textContent = 'No timeline data available.';
+      }
       return;
     }
+
+    canvas.hidden = false;
 
     var width = parseInt(canvas.getAttribute('width'), 10) || canvas.clientWidth || 600;
     var height = parseInt(canvas.getAttribute('height'), 10) || 300;
@@ -198,7 +208,7 @@
         { key: 'category' },
         { key: 'eventCount', format: function(v) { return v == null ? '—' : String(v); } },
         { key: 'minDays', format: function(v) { return v == null ? '—' : String(v); } },
-        { key: 'avgDays', format: function(v) { return v == null ? '—' : (v != null ? Math.round(v).toString() : '—'); } },
+        { key: 'avgDays', format: function(v) { return v == null ? '—' : Number(v).toFixed(1); } },
         { key: 'maxDays', format: function(v) { return v == null ? '—' : String(v); } }
       ];
       for (var f = 0; f < fields.length; f++) {
@@ -255,7 +265,7 @@
     // Render stat cards for vehicles
     renderStatCards(container, '[data-vehicle-stats]', vehicleStats, [
       { key: 'totalVehicles', label: 'Total Vehicles' },
-      { key: 'vehiclesWithSoh', label: 'SoH Readings' }
+      { key: 'vehiclesWithSoh', label: 'Vehicles with SoH' }
     ]);
 
     // Render model year table
@@ -291,7 +301,9 @@
     var containers = document.querySelectorAll('[data-admin-stats-section]');
     for (var i = 0; i < containers.length; i++) {
       (function (container) {
-        var content = container.closest('[data-admin-container]').querySelector('[data-admin-content]');
+        var adminContainer = container.closest('[data-admin-container]');
+        if (!adminContainer) return;
+        var content = adminContainer.querySelector('[data-admin-content]');
         if (!content) return;
         var loadWhenVisible = function () {
           if (!content.hidden) {

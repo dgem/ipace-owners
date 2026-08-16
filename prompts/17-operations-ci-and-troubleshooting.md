@@ -111,6 +111,10 @@ fault and repair records before September so the group can reference suitably an
   events; never expose those distinctions in the browser response.
 - Dependabot must check npm, Go modules, GitHub Actions, and OpenTofu weekly. Group compatible
   minor and patch updates by ecosystem to reduce PR noise; review major upgrades separately.
+- Before declaring a PR ready, inspect every current human and automated review thread against
+  the latest commit. Implement valid findings, and record any stale or intentionally declined
+  finding with its evidence; do not assume a Copilot, CI, or human comment is correct without
+  verification.
 - `make lint` is the aggregate source-quality gate. It checks JavaScript, CSS, Markdown,
   JSON/YAML, Nunjucks templates, Bash syntax, Go formatting and vetting, OpenTofu/HCL
   formatting, and SVG/XML syntax; keep focused `lint-*` targets available for iteration.

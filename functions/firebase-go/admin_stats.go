@@ -7,7 +7,7 @@ import (
 	"sort"
 	"time"
 
-	"google.golang.org/api/iterator"
+	"firebase.google.com/go/v4/auth"
 )
 
 // adminStatsResponse is returned by the /api/admin/stats endpoint.
@@ -42,33 +42,15 @@ type memberAccountStatus struct {
 
 // vehicleStats holds aggregate vehicle/SoH metrics.
 type vehicleStats struct {
-	TotalVehicles        int                  `json:"totalVehicles"`
-	VehiclesWithSOH      int                  `json:"vehiclesWithSoh"`
-	ModelYearBreakup     []modelYearBreakdown `json:"modelYearBreakup"`
-	RegistrationTimeline []timelineBucket     `json:"registrationTimeline"`
-	BatteryReadings      []batteryReadingRow  `json:"batteryReadings"`
+	TotalVehicles    int                  `json:"totalVehicles"`
+	VehiclesWithSOH  int                  `json:"vehiclesWithSoh"`
+	ModelYearBreakup []modelYearBreakdown `json:"modelYearBreakup"`
 }
 
 // modelYearBreakdown shows vehicle counts by model year.
 type modelYearBreakdown struct {
 	ModelYear string `json:"modelYear"`
 	Count     int    `json:"count"`
-}
-
-// batteryReadingRow captures per-vehicle SoH history.
-type batteryReadingRow struct {
-	VehicleID    string       `json:"vehicleId"`
-	Registration string       `json:"registration"`
-	ModelYear    string       `json:"modelYear"`
-	Readings     []sohReading `json:"readings"`
-	LatestSOH    *float64     `json:"latestSoh,omitempty"`
-}
-
-// sohReading captures a single SoH measurement.
-type sohReading struct {
-	MeasuredAt string   `json:"measuredAt"`
-	SOH        *float64 `json:"soh,omitempty"`
-	Mileage    *int     `json:"mileage,omitempty"`
 }
 
 // serviceEventStats holds aggregate service event metrics.
@@ -136,7 +118,6 @@ func AdminStats(w http.ResponseWriter, r *http.Request) {
 	// Fetch all collections.
 	var joins []joinRecord
 	var vehicles []vehicleRecord
-	var readings []batteryReadingRecord
 	var services []serviceEventRecord
 
 	if err := readCollection(r.Context(), db.Collection("joinSubmissions").Query, &joins); err != nil {
@@ -145,10 +126,6 @@ func AdminStats(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := readCollection(r.Context(), db.Collection("vehicles").Query, &vehicles); err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Could not load vehicle submissions"})
-		return
-	}
-	if err := readCollection(r.Context(), db.Collection("batteryReadings").Query, &readings); err != nil {
-		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Could not load battery readings"})
 		return
 	}
 	if err := readCollection(r.Context(), db.Collection("serviceEvents").Query, &services); err != nil {
@@ -165,7 +142,7 @@ func AdminStats(w http.ResponseWriter, r *http.Request) {
 	resp := adminStatsResponse{
 		GeneratedAt:       now.Format(time.RFC3339),
 		MemberStats:       computeMemberStats(joins, accounts),
-		VehicleStats:      computeVehicleStats(vehicles, readings),
+		VehicleStats:      computeVehicleStats(vehicles),
 		ServiceEventStats: computeServiceEventStats(services),
 	}
 
@@ -175,36 +152,36 @@ func AdminStats(w http.ResponseWriter, r *http.Request) {
 
 // computeMemberStats aggregates member data.
 func computeMemberStats(joins []joinRecord, accounts map[string]memberAccountStatus) memberStats {
-	totalMembers := 0
 	countryCounts := make(map[string]countryBreakdown)
 	timelineMap := make(map[string]int)
 	verifiedTimelineMap := make(map[string]int)
-	seenMembers := map[string]bool{}
+	uniqueJoins := make(map[string]joinRecord)
 	verifiedCount := 0
 
 	for _, rec := range joins {
-		totalMembers++
-
-		// Country breakdown.
-		if email := canonicalCampaignEmail(rec.Contact.Email); email != "" && !seenMembers[email] {
-			seenMembers[email] = true
-			if rec.Contact.Country != "" {
-				row := countryCounts[rec.Contact.Country]
-				row.Country = rec.Contact.Country
-				row.Joined++
-				if account := accounts[email]; account.Registered {
-					row.Registered++
-					if !account.VerifiedAt.IsZero() {
-						row.Verified++
-					}
-				}
-				countryCounts[rec.Contact.Country] = row
-			}
+		email := canonicalCampaignEmail(rec.Contact.Email)
+		if email == "" {
+			continue
 		}
-
-		// Joined timeline: bucket by day to match the other admin trends.
+		if existing, ok := uniqueJoins[email]; !ok || joinRecordPrecedes(rec, existing) {
+			uniqueJoins[email] = rec
+		}
+	}
+	for email, rec := range uniqueJoins {
+		if rec.Contact.Country != "" {
+			row := countryCounts[rec.Contact.Country]
+			row.Country = rec.Contact.Country
+			row.Joined++
+			if account := accounts[email]; account.Registered {
+				row.Registered++
+				if !account.VerifiedAt.IsZero() {
+					row.Verified++
+				}
+			}
+			countryCounts[rec.Contact.Country] = row
+		}
 		if !rec.CreatedAt.IsZero() {
-			key := rec.CreatedAt.Format("2006-01-02")
+			key := rec.CreatedAt.UTC().Format("2006-01-02")
 			timelineMap[key]++
 		}
 	}
@@ -240,12 +217,22 @@ func computeMemberStats(joins []joinRecord, accounts map[string]memberAccountSta
 	sort.Slice(verifiedTimeline, func(i, j int) bool { return verifiedTimeline[i].Label < verifiedTimeline[j].Label })
 
 	return memberStats{
-		TotalMembers:     totalMembers,
+		TotalMembers:     len(uniqueJoins),
 		VerifiedCount:    verifiedCount,
 		CountryBreakup:   countryBreakup,
 		JoinedTimeline:   timeline,
 		VerifiedTimeline: verifiedTimeline,
 	}
+}
+
+func joinRecordPrecedes(candidate, existing joinRecord) bool {
+	if existing.CreatedAt.IsZero() {
+		return !candidate.CreatedAt.IsZero()
+	}
+	if candidate.CreatedAt.IsZero() {
+		return false
+	}
+	return candidate.CreatedAt.Before(existing.CreatedAt)
 }
 
 func loadMemberAccountStatuses(ctx context.Context, joins []joinRecord) (map[string]memberAccountStatus, error) {
@@ -259,36 +246,40 @@ func loadMemberAccountStatuses(ctx context.Context, joins []joinRecord) (map[str
 			joinEmails[email] = struct{}{}
 		}
 	}
-	iter := client.Users(ctx, "")
 	accounts := make(map[string]memberAccountStatus)
-	for {
-		account, err := iter.Next()
-		if err == iterator.Done {
-			break
+	emails := make([]string, 0, len(joinEmails))
+	for email := range joinEmails {
+		emails = append(emails, email)
+	}
+	sort.Strings(emails)
+	for start := 0; start < len(emails); start += 100 {
+		end := min(start+100, len(emails))
+		identifiers := make([]auth.UserIdentifier, 0, end-start)
+		for _, email := range emails[start:end] {
+			identifiers = append(identifiers, auth.EmailIdentifier{Email: email})
 		}
+		result, err := client.GetUsers(ctx, identifiers)
 		if err != nil {
 			return nil, err
 		}
-		email := canonicalCampaignEmail(account.Email)
-		if _, joined := joinEmails[email]; !joined {
-			continue
+		for _, account := range result.Users {
+			email := canonicalCampaignEmail(account.Email)
+			status := memberAccountStatus{Registered: true}
+			if account.UserMetadata != nil && account.UserMetadata.LastLogInTimestamp > 0 && account.UserMetadata.CreationTimestamp > 0 {
+				// Passwordless accounts are created when their first magic link is completed.
+				status.VerifiedAt = time.UnixMilli(account.UserMetadata.CreationTimestamp).UTC()
+			}
+			accounts[email] = status
 		}
-		status := memberAccountStatus{Registered: true}
-		if account.UserMetadata != nil && account.UserMetadata.LastLogInTimestamp > 0 && account.UserMetadata.CreationTimestamp > 0 {
-			// Passwordless accounts are created when their first magic link is completed.
-			status.VerifiedAt = time.UnixMilli(account.UserMetadata.CreationTimestamp).UTC()
-		}
-		accounts[email] = status
 	}
 	return accounts, nil
 }
 
 // computeVehicleStats aggregates vehicle and SoH data.
-func computeVehicleStats(vehicles []vehicleRecord, readings []batteryReadingRecord) vehicleStats {
+func computeVehicleStats(vehicles []vehicleRecord) vehicleStats {
 	totalVehicles := 0
 	vehiclesWithSOH := 0
 	modelYearCounts := make(map[string]int)
-	regTimelineMap := make(map[string]int)
 
 	for _, rec := range vehicles {
 		totalVehicles++
@@ -301,10 +292,6 @@ func computeVehicleStats(vehicles []vehicleRecord, readings []batteryReadingReco
 			modelYearCounts[rec.Vehicle.ModelYear]++
 		}
 
-		if !rec.CreatedAt.IsZero() {
-			key := rec.CreatedAt.Format("2006-01")
-			regTimelineMap[key]++
-		}
 	}
 
 	modelYearBreakup := make([]modelYearBreakdown, 0, len(modelYearCounts))
@@ -315,79 +302,11 @@ func computeVehicleStats(vehicles []vehicleRecord, readings []batteryReadingReco
 		return modelYearBreakup[i].ModelYear < modelYearBreakup[j].ModelYear
 	})
 
-	regTimeline := make([]timelineBucket, 0, len(regTimelineMap))
-	for label, count := range regTimelineMap {
-		regTimeline = append(regTimeline, timelineBucket{Label: label, Count: count})
-	}
-	sort.Slice(regTimeline, func(i, j int) bool {
-		return regTimeline[i].Label < regTimeline[j].Label
-	})
-
-	// Build per-vehicle SoH history.
-	batteryReadings := buildBatteryReadingRows(vehicles, readings)
-
 	return vehicleStats{
-		TotalVehicles:        totalVehicles,
-		VehiclesWithSOH:      vehiclesWithSOH,
-		ModelYearBreakup:     modelYearBreakup,
-		RegistrationTimeline: regTimeline,
-		BatteryReadings:      batteryReadings,
+		TotalVehicles:    totalVehicles,
+		VehiclesWithSOH:  vehiclesWithSOH,
+		ModelYearBreakup: modelYearBreakup,
 	}
-}
-
-// buildBatteryReadingRows groups readings by vehicle.
-func buildBatteryReadingRows(vehicles []vehicleRecord, readings []batteryReadingRecord) []batteryReadingRow {
-	vehMap := make(map[string]vehicleRecord)
-	for _, rec := range vehicles {
-		vehMap[rec.ID] = rec
-	}
-
-	grouped := make(map[string][]batteryReadingRecord)
-	var order []string
-	for _, reading := range readings {
-		if _, ok := grouped[reading.VehicleID]; !ok {
-			order = append(order, reading.VehicleID)
-		}
-		grouped[reading.VehicleID] = append(grouped[reading.VehicleID], reading)
-	}
-
-	rows := make([]batteryReadingRow, 0, len(order))
-	for _, vid := range order {
-		recs := grouped[vid]
-		sort.Slice(recs, func(i, j int) bool {
-			return recs[i].CreatedAt.Before(recs[j].CreatedAt)
-		})
-
-		readingsArr := make([]sohReading, 0, len(recs))
-		var latestSOH *float64
-		for _, r := range recs {
-			readingsArr = append(readingsArr, sohReading{
-				MeasuredAt: r.Battery.MeasuredAt,
-				SOH:        r.Battery.StateOfHealth,
-				Mileage:    r.Battery.MileageAtMeasurement,
-			})
-			if r.Battery.StateOfHealth != nil {
-				latestSOH = r.Battery.StateOfHealth
-			}
-		}
-
-		var reg string
-		var modelYear string
-		if veh, ok := vehMap[vid]; ok {
-			reg = veh.Vehicle.Registration
-			modelYear = veh.Vehicle.ModelYear
-		}
-
-		rows = append(rows, batteryReadingRow{
-			VehicleID:    vid,
-			Registration: reg,
-			ModelYear:    modelYear,
-			Readings:     readingsArr,
-			LatestSOH:    latestSOH,
-		})
-	}
-
-	return rows
 }
 
 // computeServiceEventStats aggregates service event data.

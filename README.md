@@ -283,7 +283,8 @@ and before rerunning the preview workflow.
 
 `GET /api/admin/stats` is an administrator-claim-gated aggregate dashboard endpoint. It returns
 member, vehicle, State of Health, and service-event totals and breakdowns for the Admin home;
-it is not a public-statistics endpoint and does not return private member snapshots.
+it is not a public-statistics endpoint, counts each member once by canonical email at their first
+Join, and does not return private member snapshots or per-vehicle evidence.
 
 Firebase does not permit preview or default `web.app` domains as Identity Toolkit's
 `linkDomain`. Preview emails therefore use Firebase's default action-handler domain and the
