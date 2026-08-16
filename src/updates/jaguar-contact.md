@@ -1,8 +1,8 @@
 ---
-title: JLR Client Care meeting proposed for September
+title: JLR invites the group to meet in September
 date: 2026-08-16
-summary: "Following JLR's initial contact, the group has been invited to meet the UK Client Care team in the second week of September."
-description: "An update on the I-PACE Owners' Advocacy Group's contact with Jaguar Land Rover and the evidence needed before a proposed September meeting."
+summary: "Three days after the group's introductory email, JLR made contact and proposed a face-to-face meeting with its UK Director of Client Care."
+description: "An update on Jaguar Land Rover's proposed early-September meeting with the I-PACE Owners' Advocacy Group, and the evidence needed beforehand."
 layout: page.njk
 eyebrow: Group update
 seoType: article
@@ -10,13 +10,13 @@ heroImage: /images/jlr-client-care-september-hero.png
 heroImageAlt: "View from a right-hand-drive electric car on a sunny English country road, with a generic customer-care message on the centre display."
 ---
 
-Jaguar Land Rover has made initial contact with the I-PACE Owners' Advocacy Group. The response came within three working days of our approach, which is an encouraging start for an organisation of this size.
+Three days after one of our founding members sent Jaguar Land Rover an introductory email, JLR got in touch and held an exploratory call with the group.
 
-Following that exploratory telephone call with Anna at JLR, Joel, one of the group's founding members, received a courteous thank-you and an invitation to meet the UK Client Care team. A date in the second week of September is being explored.
+Soon afterwards, JLR asked whether our founding member would be available for a face-to-face meeting in early September with its UK Director of Client Care. The proposed venue is Gaydon, home of JLR engineering, subject to final confirmation.
 
 ## What this means — and what it does not
 
-This is a welcome step forward, but it is not yet a substantive discussion of solutions or commitments. The September date is tentative, and we are treating the invitation as the beginning of a dialogue rather than an outcome.
+This shows JLR is taking the group seriously and wants the opportunity to talk through the matters in our email face to face. It is not yet a substantive discussion of solutions or commitments: the date and venue are still being confirmed, and we are treating the invitation as the beginning of a dialogue rather than an outcome.
 
 Our aim is to have direct, meaningful discussions with the appropriate people at JLR, informed by the real experiences of I-PACE owners.
 

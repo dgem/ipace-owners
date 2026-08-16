@@ -71,10 +71,12 @@ campaigns are also Markdown files with front matter in that directory. Every sta
 must have a dedicated tab with the same preview, exact-count confirmation, and bounded-send flow;
 the server selects its Markdown source and audience, never JavaScript. The JLR Contact campaign
 for the 16 August 2026 update is one of those dedicated tabs. Freeform remains only for ad-hoc,
-editable verified-member campaigns. Its copy must distinguish a tentative second-week-of-September
-UK Client Care meeting from a substantive JLR commitment, link to `/updates/jaguar-contact/`, ask
-owners to help reach 1,000 members, and invite registered members to add vehicle, SoH, service,
-fault and repair records before September so the group can reference suitably anonymised evidence.
+editable verified-member campaigns. Its copy must describe the proposed early-September
+face-to-face meeting with JLR's UK Director of Client Care at Gaydon, while making the date and
+venue subject to final confirmation and distinguishing it from a substantive JLR commitment. Link
+to `/updates/jaguar-contact/`, ask owners to help reach 1,000 members, and invite registered
+members to add vehicle, SoH, service, fault and repair records before September so the group can
+reference suitably anonymised evidence.
 
 ## Command Surface
 

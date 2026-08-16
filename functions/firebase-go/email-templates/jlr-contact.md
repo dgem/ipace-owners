@@ -1,16 +1,16 @@
 ---
 id: jlr-contact
-name: August 2026 — JLR Client Care meeting update
-subject: JLR Client Care meeting proposed for September
+name: August 2026 — JLR face-to-face meeting update
+subject: JLR invites the group to meet in September
 audience: custom-member
 ---
 Hi {{memberFirstName}},
 
-We wanted to share an important early update: Jaguar Land Rover has made initial contact with the I-PACE Owners' Advocacy Group.
+Three days after one of our founding members sent Jaguar Land Rover an introductory email, JLR got in touch and held an exploratory call with the group.
 
-Following the exploratory call with Anna at JLR, Joel, one of the group's founding members, received a courteous thank-you and an invitation to meet the UK Client Care team. A date in the second week of September is being explored.
+Soon afterwards, JLR asked whether our founding member would be available for a face-to-face meeting in early September with its UK Director of Client Care. The proposed venue is Gaydon, home of JLR engineering, subject to final confirmation.
 
-This is a welcome step forward, but it is not yet a substantive discussion of solutions or commitments. The date is tentative, and we are treating the invitation as the beginning of a dialogue rather than an outcome.
+This shows JLR is taking the group seriously and wants the opportunity to talk through the matters in our email face to face. It is not yet a substantive discussion of solutions or commitments: the date and venue are still being confirmed, and we are treating the invitation as the beginning of a dialogue rather than an outcome.
 
 We have a short window before the start of September to return with an even stronger voice and a clearer, anonymised evidence base. Please help us reach our target of 1,000 members by inviting another I-PACE owner to join:
 
