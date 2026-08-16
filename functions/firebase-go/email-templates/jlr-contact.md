@@ -8,7 +8,7 @@ Hi {{memberFirstName}},
 
 Three days after one of our founding members sent Jaguar Land Rover an introductory email, JLR got in touch and held an exploratory call with the group.
 
-Soon afterwards, JLR asked whether our founding member would be available for a face-to-face meeting in early September with its UK Director of Client Care. The proposed venue is Gaydon, home of JLR engineering, subject to final confirmation.
+Soon afterwardsl, JLR offered a face-to-face meeting in early September with its UK Director of Client Care. The proposed venue is Gaydon, home of JLR engineering, subject to final confirmation.
 
 This shows JLR is taking the group seriously and wants the opportunity to talk through the matters in our email face to face. It is not yet a substantive discussion of solutions or commitments: the date and venue are still being confirmed, and we are treating the invitation as the beginning of a dialogue rather than an outcome.
 
