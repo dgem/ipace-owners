@@ -243,6 +243,8 @@ async function checkCampaignControls(viewport, screenshotName) {
   assert.equal(await page.locator('[data-campaign-panel="jlr-contact"]').isVisible(), true);
   await page.locator('[data-campaign-panel="jlr-contact"] [data-campaign-preview]').click();
   await page.frameLocator('[data-campaign-panel="jlr-contact"] [data-campaign-email-html]').getByText('We have contact with Jaguar Land Rover').waitFor({ state: 'visible' });
+  assert.equal(await page.locator('[data-campaign-panel="jlr-contact"] [data-campaign-send-button]').isDisabled(), false,
+    'JLR Contact send controls must unlock only after preview');
   await page.locator('[data-campaign-open-tab="freeform"]').click();
   assert.equal(await page.locator('[data-campaign-tab="freeform"]').getAttribute('aria-selected'), 'true');
   assert.equal(await page.locator('[data-custom-campaign-markdown]').isVisible(), true);
@@ -268,6 +270,7 @@ async function checkCampaignControls(viewport, screenshotName) {
   for (let index = 0; index < await buttons.count(); index += 1) {
     const button = buttons.nth(index);
     const panelName = await button.locator('xpath=ancestor::*[@data-campaign-panel]').getAttribute('data-campaign-panel');
+    if (panelName === 'jlr-contact') continue;
     await page.locator(`[data-campaign-tab="${panelName}"]`).focus();
     await page.keyboard.press('Enter');
     await button.scrollIntoViewIfNeeded();
