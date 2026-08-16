@@ -269,7 +269,7 @@ sheet and chart format without exposing member data.
 - GitHub Actions must delegate common operations through Make targets. Before deploying,
   run `make test-node`, `make test-go`, and `make build`; local verification can use
   `make test` and `make build`.
-- GitHub Actions should use the current Node.js Active LTS from `.nvmrc`, Go 1.26 / `go126` for
+- GitHub Actions should use the current Node.js Active LTS from `.nvmrc`, Go 1.26.6 / `go126` for
   Cloud Run functions, and current runtime-compatible action majors. Deploy Cloud Function runtime
   environment variables from an env vars file rather than comma-separated `--set-env-vars`,
   because values such as `ALLOWED_ORIGINS` contain commas.

@@ -1,6 +1,6 @@
 module github.com/dgem/ipace-owners/functions/firebase-go
 
-go 1.26
+go 1.26.6
 
 require (
 	cloud.google.com/go/firestore v1.24.0
