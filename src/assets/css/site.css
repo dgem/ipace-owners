@@ -2575,6 +2575,89 @@ canvas.admin-timeline {
   margin-bottom: 0;
 }
 
+/* Update articles use a dedicated editorial frame rather than the generic page layout. */
+.update-header {
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  padding-block: var(--space-12);
+}
+
+.update-header__inner,
+.update-page > .container {
+  max-width: 66rem;
+}
+
+.update-header__eyebrow {
+  color: var(--color-accent);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  margin-bottom: var(--space-2);
+  text-transform: uppercase;
+}
+
+.update-header__title {
+  margin-bottom: var(--space-3);
+  max-width: 24ch;
+}
+
+.update-header__meta {
+  align-items: center;
+  color: var(--color-text-muted);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: var(--text-sm);
+  gap: var(--space-2);
+}
+
+.update-header__summary {
+  color: var(--color-text-muted);
+  font-size: var(--text-lg);
+  line-height: 1.6;
+  margin-bottom: 0;
+  margin-top: var(--space-5);
+  max-width: 62ch;
+}
+
+.update-page {
+  padding-block: var(--space-12);
+}
+
+.update-article {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  margin-inline: auto;
+  max-width: 62rem;
+  overflow: hidden;
+}
+
+.update-article__hero {
+  background: var(--color-primary);
+  margin: 0;
+}
+
+.update-article__hero img {
+  aspect-ratio: 16 / 9;
+  display: block;
+  object-fit: cover;
+  width: 100%;
+}
+
+.update-article__body {
+  margin-inline: auto;
+  padding: clamp(var(--space-6), 5vw, var(--space-10));
+}
+
+.update-article__body > :first-child {
+  margin-top: 0;
+}
+
+.update-article__body > :last-child {
+  margin-bottom: 0;
+}
+
 /* Content prose area */
 .prose {
   max-width: 70ch;
@@ -2586,6 +2669,17 @@ canvas.admin-timeline {
 
 .prose h3 {
   margin-top: var(--space-8);
+}
+
+@media (max-width: 40rem) {
+  .update-header,
+  .update-page {
+    padding-block: var(--space-8);
+  }
+
+  .update-article {
+    border-radius: var(--radius-lg);
+  }
 }
 
 /* ------------------------------------------------------------

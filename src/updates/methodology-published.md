@@ -2,7 +2,7 @@
 title: Evidence methodology published
 date: 2026-07-17
 summary: "We have published our evidence methodology — explaining how data is collected, verified and published."
-layout: page.njk
+layout: update.njk
 fullModeOnly: true
 eyebrow: Update
 ---

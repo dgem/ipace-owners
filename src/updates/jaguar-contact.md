@@ -3,7 +3,7 @@ title: JLR invites the group to meet in September
 date: 2026-08-16
 summary: "Three days after the group's introductory email, JLR made contact and proposed a face-to-face meeting with its UK Director of Client Care."
 description: "An update on Jaguar Land Rover's proposed early-September meeting with the I-PACE Owners' Advocacy Group, and the evidence needed beforehand."
-layout: page.njk
+layout: update.njk
 eyebrow: Group update
 seoType: article
 heroImage: /images/jlr-client-care-september-hero.png

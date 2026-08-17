@@ -42,7 +42,10 @@ Create or maintain:
 - FAQ: common owner questions, data use, membership, legal status, privacy, evidence process.
 - Methodology: how evidence is collected, verified, anonymised, aggregated, and caveated.
 - Updates index: list update posts from `src/updates/`.
-- Individual update posts: Markdown with front matter.
+- Individual update posts: Markdown with front matter and the dedicated `update.njk` editorial
+  layout. The layout must present the update type, title, publication date, source attribution
+  and summary together in its header, then keep the article (and optional hero image) in one
+  readable, responsive surface rather than leaving narrow prose unframed on the page background.
 - Publish a launch-visible update dated 16 August 2026, “JLR invites the group to meet in
   September”. Say that JLR got in touch and held an exploratory call three days after a founding
   member sent its introductory email, then report JLR's proposed early-September face-to-face

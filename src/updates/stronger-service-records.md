@@ -2,7 +2,7 @@
 title: Build a stronger service and fault record
 date: 2026-07-29
 summary: "Signed-in members can now record who worked on their I-PACE, repair times, parts delays, goodwill support and miles driven with a fault."
-layout: page.njk
+layout: update.njk
 eyebrow: Member update
 seoType: article
 ---
