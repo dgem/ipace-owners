@@ -76,9 +76,10 @@ face-to-face meeting with JLR's UK Director of Client Care at Gaydon, while maki
 venue subject to final confirmation and distinguishing it from a substantive JLR commitment. Link
 to `/updates/jaguar-contact/`, ask owners to help reach 1,000 members, and invite registered
 members to add vehicle, SoH, service, fault and repair records before September so the group can
-reference suitably anonymised evidence. Its branded email uses the same bright, non-branded
-`/images/jlr-client-care-september-hero.png` holiday image as the public update, rather than the
-generic campaign hero.
+reference suitably anonymised evidence. Its `heroImage` and `heroImageAlt` Markdown front-matter
+fields use the same bright, non-branded `/images/jlr-client-care-september-hero.png` holiday image
+as the public update, rather than the generic campaign hero. Static template heroes must be
+site-owned `/images/` paths; Freeform campaigns retain the generic hero.
 
 ## Command Surface
 

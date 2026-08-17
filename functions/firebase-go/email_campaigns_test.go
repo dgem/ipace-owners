@@ -65,7 +65,7 @@ func TestEmbeddedCustomCampaignTemplateHasReviewableMetadata(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if template.ID != "jlr-contact" || template.Audience != "custom-member" || template.Subject != "JLR invites the group to meet in September" {
+	if template.ID != "jlr-contact" || template.Audience != "custom-member" || template.Subject != "JLR invites the group to meet in September" || template.HeroImage != "/images/jlr-client-care-september-hero.png" {
 		t.Fatalf("unexpected template metadata: %#v", template)
 	}
 	for _, expected := range []string{"{{memberFirstName}}", "1,000 members", "UK Director of Client Care", "Gaydon", "/member/dashboard/"} {
@@ -77,9 +77,11 @@ func TestEmbeddedCustomCampaignTemplateHasReviewableMetadata(t *testing.T) {
 
 func TestJLRContactCampaignUsesItsHolidayHeroImage(t *testing.T) {
 	_, htmlBody, _, err := renderCustomCampaignEmail(customCampaignRecord{
-		Kind:     jlrContactCampaignKind,
-		Subject:  "JLR update",
-		Markdown: "Hi {{memberFirstName}},",
+		Kind:         jlrContactCampaignKind,
+		Subject:      "JLR update",
+		Markdown:     "Hi {{memberFirstName}},",
+		HeroImage:    "/images/jlr-client-care-september-hero.png",
+		HeroImageAlt: "View from a right-hand-drive electric car on a sunny English country road.",
 	}, customCampaignAudience{}, customCampaignRecipient{Name: "Jane"})
 	if err != nil {
 		t.Fatal(err)

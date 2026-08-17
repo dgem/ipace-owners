@@ -45,6 +45,8 @@ type customCampaignDraftRequest struct {
 	Name             string `json:"name"`
 	Subject          string `json:"subject"`
 	Markdown         string `json:"markdown"`
+	HeroImage        string `json:"-"`
+	HeroImageAlt     string `json:"-"`
 	Kind             string `json:"-"`
 	CreateWithID     bool   `json:"-"`
 }
@@ -55,6 +57,8 @@ type customCampaignRecord struct {
 	Name             string    `json:"name" firestore:"name"`
 	Subject          string    `json:"subject" firestore:"subject"`
 	Markdown         string    `json:"markdown" firestore:"markdown"`
+	HeroImage        string    `json:"-" firestore:"heroImage,omitempty"`
+	HeroImageAlt     string    `json:"-" firestore:"heroImageAlt,omitempty"`
 	SourceCampaignID string    `json:"sourceCampaignId,omitempty" firestore:"sourceCampaignId,omitempty"`
 	Status           string    `json:"status" firestore:"status"`
 	Eligible         int       `json:"eligible" firestore:"eligible"`
@@ -267,6 +271,8 @@ func previewCustomCampaign(ctx context.Context, input customCampaignDraftRequest
 		Name:             input.Name,
 		Subject:          input.Subject,
 		Markdown:         input.Markdown,
+		HeroImage:        input.HeroImage,
+		HeroImageAlt:     input.HeroImageAlt,
 		SourceCampaignID: input.SourceCampaignID,
 		Status:           customCampaignStatus(len(audience.Recipients), sentCount),
 		Eligible:         len(audience.Recipients),
@@ -297,6 +303,8 @@ func previewJLRContactCampaign(ctx context.Context) (customCampaignPreviewRespon
 		Name:         template.Name,
 		Subject:      template.Subject,
 		Markdown:     template.Markdown,
+		HeroImage:    template.HeroImage,
+		HeroImageAlt: template.HeroImageAlt,
 		Kind:         jlrContactCampaignKind,
 		CreateWithID: true,
 	})
@@ -321,6 +329,8 @@ func sameCustomCampaignDraft(record customCampaignRecord, input customCampaignDr
 	return record.Name == input.Name &&
 		record.Subject == input.Subject &&
 		record.Markdown == input.Markdown &&
+		record.HeroImage == input.HeroImage &&
+		record.HeroImageAlt == input.HeroImageAlt &&
 		record.SourceCampaignID == input.SourceCampaignID
 }
 
@@ -475,24 +485,10 @@ func renderCustomCampaignEmail(record customCampaignRecord, audience customCampa
 		BodyHTML:      contentHTML,
 		FooterNote:    "You are receiving this because you registered with the group and agreed that we could contact you. Reply if you no longer wish to hear from us.",
 		AssetBaseURL:  emailAssetBaseURL(campaignContinueURL()),
-		HeroImagePath: campaignHeroImagePath(record.Kind),
-		HeroImageAlt:  campaignHeroImageAlt(record.Kind),
+		HeroImagePath: record.HeroImage,
+		HeroImageAlt:  record.HeroImageAlt,
 	})
 	return subject, htmlBody, text, nil
-}
-
-func campaignHeroImagePath(kind string) string {
-	if kind == jlrContactCampaignKind {
-		return "/images/jlr-client-care-september-hero.png"
-	}
-	return ""
-}
-
-func campaignHeroImageAlt(kind string) string {
-	if kind == jlrContactCampaignKind {
-		return "View from a right-hand-drive electric car on a sunny English country road, with a generic customer-care message on the centre display."
-	}
-	return ""
 }
 
 func customCampaignSubstitutionData(audience customCampaignAudience, person customCampaignRecipient) customCampaignData {

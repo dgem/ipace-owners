@@ -25,11 +25,13 @@ var (
 )
 
 type campaignTemplateSource struct {
-	ID       string `json:"id"`
-	Name     string `json:"name"`
-	Subject  string `json:"subject"`
-	Audience string `json:"audience"`
-	Markdown string `json:"markdown"`
+	ID           string `json:"id"`
+	Name         string `json:"name"`
+	Subject      string `json:"subject"`
+	Audience     string `json:"audience"`
+	HeroImage    string `json:"heroImage,omitempty"`
+	HeroImageAlt string `json:"heroImageAlt,omitempty"`
+	Markdown     string `json:"markdown"`
 }
 
 func embeddedCampaignTemplate(name string) (campaignTemplateSource, error) {
@@ -56,10 +58,17 @@ func embeddedCampaignTemplate(name string) (campaignTemplateSource, error) {
 			template.Subject = strings.TrimSpace(value)
 		case "audience":
 			template.Audience = strings.TrimSpace(value)
+		case "heroImage":
+			template.HeroImage = strings.TrimSpace(value)
+		case "heroImageAlt":
+			template.HeroImageAlt = strings.Trim(strings.TrimSpace(value), `"`)
 		}
 	}
 	if template.ID == "" || template.Name == "" || template.Subject == "" || template.Audience == "" || template.Markdown == "" {
 		return campaignTemplateSource{}, fmt.Errorf("campaign template %s has incomplete front matter", name)
+	}
+	if template.HeroImage != "" && !strings.HasPrefix(template.HeroImage, "/images/") {
+		return campaignTemplateSource{}, fmt.Errorf("campaign template %s hero image must be a site image path", name)
 	}
 	return template, nil
 }
