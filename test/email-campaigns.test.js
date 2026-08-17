@@ -124,13 +124,17 @@ test('custom campaign editor provides history, Markdown preview, reruns and safe
   assert.match(script, /sourceCampaignId: sourceId/);
   assert.match(script, /Continue sending/);
   assert.match(script, /Edit draft/);
+  assert.match(script, /campaign\.kind !== 'registration-reminder' && hasEditableCopy/);
+  assert.match(script, /campaignTypeLabel\(campaign\.kind\)/);
+  assert.match(script, /… ' \+ metrics\.length \+ ' more metrics/);
+  assert.match(page, /more metrics/);
   assert.match(script, /event\.key === 'ArrowRight'/);
   assert.match(script, /event\.key === 'ArrowLeft'/);
   assert.match(script, /selectCampaignTab\('freeform'\)/);
   assert.match(page, /data-preview-endpoint="\/api\/admin\/jlr-contact-preview"/);
   assert.match(specialisedCampaignBackend, /func AdminJLRContactPreview/);
   assert.doesNotMatch(page, /Campaign library/);
-  assert.match(script, /textContent = campaign\.campaignId/);
+  assert.match(script, /campaignTypeLabel\(campaign\.kind\) \+ ' · ' \+ campaign\.campaignId/);
   assert.doesNotMatch(script, /innerHTML\s*=/);
 });
 

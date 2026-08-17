@@ -450,7 +450,9 @@ parent does not remove its delivery subcollection, so summary-write retries rema
 When an administrator refreshes campaign history, the Function reconciles stored Resend IDs
 against the provider's paginated sent-email feed and caches the check for five minutes.
 History and the Admin overview show delivered, awaiting-delivery, opened, clicked, delayed,
-bounced, suppressed, complained, provider-failed and combined-undeliverable totals. Only the
+bounced, suppressed, complained, provider-failed and combined-undeliverable totals. Campaign
+history keeps its primary delivery totals visible and places the complete set (including zeroes)
+behind an expandable “more metrics” pill. Only the
 provider ID, normalised status and update time are retained on hashed delivery documents;
 provider recipient addresses are ignored and never returned to the browser.
 Legacy runs that predate parent records are recovered from those delivery ledgers where
@@ -463,8 +465,9 @@ actions select the relevant tab automatically. Safety guidance appears beside th
 confirmation controls instead of as a persistent page-level warning.
 Registration reminders remain on their specialised tool because they require an unverified
 audience and a fresh private sign-in link; the custom editor must not silently retarget them to
-verified members.
-Draft and partially sent custom runs can be reopened from history. A partial run can continue only
+verified members. Every non-reminder run that retains its saved subject and Markdown, including
+historical JLR updates, can be tweaked into a new Freeform run. An unsent editable draft instead
+offers “Edit draft”. Draft and partially sent custom runs can be reopened from history. A partial run can continue only
 after previewing its unchanged saved content; editing it creates a new run and preserves the
 original delivery ledger.
 

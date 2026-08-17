@@ -177,6 +177,32 @@
       parent.appendChild(item);
     }
 
+    function campaignTypeLabel(kind) {
+      var labels = {
+        'all-members-drive': 'Reach 1,000',
+        'custom-member': 'Freeform',
+        'jlr-contact': 'JLR Contact',
+        'member-referral': 'Find members',
+        'registration-reminder': 'Registration reminder'
+      };
+      return labels[kind] || 'Email campaign';
+    }
+
+    function createMoreMetrics(metrics) {
+      var details = document.createElement('details');
+      details.className = 'email-campaign-history__more-metrics';
+      var summary = document.createElement('summary');
+      summary.textContent = '… ' + metrics.length + ' more metrics';
+      var values = document.createElement('div');
+      values.className = 'email-campaign-history__secondary-stats';
+      metrics.forEach(function (metric) {
+        addStat(values, metric.label, metric.value);
+      });
+      details.appendChild(summary);
+      details.appendChild(values);
+      return details;
+    }
+
     function loadForRerun(campaign) {
       selectCampaignTab('freeform');
       draftId = '';
@@ -225,28 +251,36 @@
         heading.textContent = campaign.name || campaign.campaignId;
         var meta = document.createElement('p');
         meta.className = 'form-hint';
-        meta.textContent = campaign.campaignId + ' · ' + (campaign.status || 'recorded') + ' · updated ' + formatDate(campaign.updatedAt || campaign.lastSentAt);
+        meta.textContent = campaignTypeLabel(campaign.kind) + ' · ' + campaign.campaignId + ' · ' + (campaign.status || 'recorded') + ' · updated ' + formatDate(campaign.updatedAt || campaign.lastSentAt);
         var stats = document.createElement('div');
         stats.className = 'email-campaign-history__stats';
         addStat(stats, 'Eligible', campaign.eligible || 0);
         addStat(stats, 'Sent', campaign.sent || 0);
-        addStat(stats, 'Delivered', campaign.delivered || 0);
-        addStat(stats, 'Awaiting delivery', campaign.awaitingDelivery || 0);
-        addStat(stats, 'Undeliverable', campaign.undeliverable || 0);
-        addStat(stats, 'Bounced', campaign.bounced || 0);
-        addStat(stats, 'Suppressed', campaign.suppressed || 0);
-        addStat(stats, 'Provider failed', campaign.providerFailed || 0);
-        addStat(stats, 'Delayed', campaign.delayed || 0);
-        addStat(stats, 'Opened', campaign.opened || 0);
-        addStat(stats, 'Clicked', campaign.clicked || 0);
-        addStat(stats, 'Complaints', campaign.complained || 0);
         addStat(stats, 'Remaining', campaign.remaining || 0);
-        addStat(stats, 'Send failures', campaign.failed || 0);
-        addStat(stats, 'Batches', campaign.batchCount || 0);
+        var secondaryMetrics = [
+          { label: 'Delivered', value: campaign.delivered || 0 },
+          { label: 'Awaiting delivery', value: campaign.awaitingDelivery || 0 },
+          { label: 'Undeliverable', value: campaign.undeliverable || 0 },
+          { label: 'Bounced', value: campaign.bounced || 0 },
+          { label: 'Suppressed', value: campaign.suppressed || 0 },
+          { label: 'Provider failed', value: campaign.providerFailed || 0 },
+          { label: 'Delayed', value: campaign.delayed || 0 },
+          { label: 'Opened', value: campaign.opened || 0 },
+          { label: 'Clicked', value: campaign.clicked || 0 },
+          { label: 'Complaints', value: campaign.complained || 0 },
+          { label: 'Send failures', value: campaign.failed || 0 },
+          { label: 'Batches', value: campaign.batchCount || 0 }
+        ];
+        secondaryMetrics.forEach(function (metric) {
+          if (metric.value > 0) addStat(stats, metric.label, metric.value);
+        });
+        var moreMetrics = createMoreMetrics(secondaryMetrics);
         var actions = document.createElement('div');
         actions.className = 'cluster';
-        var canRerun = campaign.kind === 'custom-member' || campaign.kind === 'member-referral';
-        if (campaign.kind === 'custom-member' && campaign.remaining > 0) {
+        var hasEditableCopy = Boolean(campaign.subject && campaign.markdown);
+        var canRerun = campaign.kind !== 'registration-reminder' && hasEditableCopy;
+        var canEditDraft = canRerun && campaign.sent === 0 && campaign.remaining > 0;
+        if (canEditDraft) {
           var continueButton = document.createElement('button');
           continueButton.type = 'button';
           continueButton.className = 'btn btn--primary btn--sm';
@@ -254,25 +288,27 @@
           continueButton.addEventListener('click', function () { loadExistingRun(campaign); });
           actions.appendChild(continueButton);
         }
-        var rerunButton = document.createElement('button');
-        rerunButton.type = 'button';
-        rerunButton.className = 'btn btn--secondary btn--sm';
         var specialisedTab = campaign.kind === 'all-members-drive' ? 'member-drive' : (campaign.kind === 'jlr-contact' ? 'jlr-contact' : 'registration');
-        rerunButton.textContent = canRerun ? 'Tweak and rerun' : (specialisedTab === 'member-drive' ? 'Use Reach 1,000 tool' : (specialisedTab === 'jlr-contact' ? 'Use JLR Contact tool' : 'Use registration reminder tool'));
-        rerunButton.disabled = canRerun && (!campaign.subject || !campaign.markdown);
-        if (!canRerun) rerunButton.title = specialisedTab === 'member-drive' ? 'This campaign retains its all-joined, contact-consenting audience.' : (specialisedTab === 'jlr-contact' ? 'This campaign retains its approved source-controlled copy and verified, consented audience.' : 'Registration reminders require a fresh private sign-in link and their original unverified-member audience.');
-        rerunButton.addEventListener('click', function () {
-          if (canRerun) {
-            loadForRerun(campaign);
-            return;
-          }
-          selectCampaignTab(specialisedTab);
-          document.querySelector('#campaign-tools').scrollIntoView({ behavior: 'smooth', block: 'start' });
-        });
-        actions.appendChild(rerunButton);
+        if (!canEditDraft) {
+          var rerunButton = document.createElement('button');
+          rerunButton.type = 'button';
+          rerunButton.className = 'btn btn--secondary btn--sm';
+          rerunButton.textContent = canRerun ? 'Tweak and rerun' : (specialisedTab === 'member-drive' ? 'Use Reach 1,000 tool' : (specialisedTab === 'jlr-contact' ? 'Use JLR Contact tool' : 'Use registration reminder tool'));
+          if (!canRerun) rerunButton.title = specialisedTab === 'member-drive' ? 'This campaign retains its all-joined, contact-consenting audience.' : (specialisedTab === 'jlr-contact' ? 'This campaign retains its approved source-controlled copy and verified, consented audience.' : 'Registration reminders require a fresh private sign-in link and their original unverified-member audience.');
+          rerunButton.addEventListener('click', function () {
+            if (canRerun) {
+              loadForRerun(campaign);
+              return;
+            }
+            selectCampaignTab(specialisedTab);
+            document.querySelector('#campaign-tools').scrollIntoView({ behavior: 'smooth', block: 'start' });
+          });
+          actions.appendChild(rerunButton);
+        }
         article.appendChild(heading);
         article.appendChild(meta);
         article.appendChild(stats);
+        article.appendChild(moreMetrics);
         article.appendChild(actions);
         historyList.appendChild(article);
       });

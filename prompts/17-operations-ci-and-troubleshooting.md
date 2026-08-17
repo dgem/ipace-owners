@@ -59,7 +59,10 @@ into history and the Admin home. Ignore provider recipient fields: persist only 
 and update time on hashed delivery documents and never return addresses to the browser.
 Registration reminders remain rerunnable only through their specialised tool because they require
 an unverified-member audience and a fresh private sign-in link; do not clone them into the
-verified-member custom editor.
+verified-member custom editor. Other historical runs with saved subject and Markdown, including
+JLR Contact, use “Tweak and rerun” to create a linked Freeform run. An unsent editable draft uses
+“Edit draft” instead. Keep only headline history metrics visible and retain the full set, including
+zero values, in an expandable “more metrics” control.
 Allow drafts to reopen and partially sent custom runs to continue after re-previewing the exact
 unchanged saved content. If the administrator edits a run that has sent anything, clear its active
 campaign ID and create a new run linked through `sourceCampaignId`.

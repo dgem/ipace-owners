@@ -3310,6 +3310,34 @@ details .details-body p:last-child {
   padding: var(--space-1) var(--space-3);
 }
 
+.email-campaign-history__more-metrics {
+  display: inline-block;
+  margin: 0 0 var(--space-4);
+}
+
+.email-campaign-history__more-metrics summary {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  color: var(--color-primary);
+  display: inline-flex;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+}
+
+.email-campaign-history__more-metrics summary::after {
+  font-size: var(--text-base);
+}
+
+.email-campaign-history__secondary-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding-top: var(--space-3);
+}
+
 .instagram-campaigns {
   gap: var(--space-5);
 }
