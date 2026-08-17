@@ -94,3 +94,20 @@ func TestComputeServiceEventStatsKeepsEachRecord(t *testing.T) {
 		t.Fatalf("aggregate=%#v", agg)
 	}
 }
+
+func TestComputeServiceEventStatsDoesNotClassifyNoDisputeAsDisputed(t *testing.T) {
+	stats := computeServiceEventStats([]serviceEventRecord{
+		{EventType: "inspection", DisputeStatus: "none"},
+		{EventType: "repair", DisputeStatus: "still-disputed"},
+	})
+	if len(stats.CategoryAggregates) != 2 {
+		t.Fatalf("aggregates=%#v", stats.CategoryAggregates)
+	}
+	byCategory := make(map[string]categoryAggregate, len(stats.CategoryAggregates))
+	for _, aggregate := range stats.CategoryAggregates {
+		byCategory[aggregate.Category] = aggregate
+	}
+	if byCategory["inspection"].EventCount != 1 || byCategory["Disputes"].EventCount != 1 {
+		t.Fatalf("aggregates=%#v", byCategory)
+	}
+}

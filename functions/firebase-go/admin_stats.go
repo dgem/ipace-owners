@@ -320,7 +320,7 @@ func computeServiceEventStats(services []serviceEventRecord) serviceEventStats {
 		eventTypeCounts[rec.EventType]++
 		if rec.ServiceProviderName != "" {
 			categoryMap[rec.ServiceProviderName] = append(categoryMap[rec.ServiceProviderName], rec)
-		} else if rec.DisputeStatus != "" {
+		} else if rec.DisputeStatus != "" && rec.DisputeStatus != "none" {
 			categoryMap["Disputes"] = append(categoryMap["Disputes"], rec)
 		} else {
 			categoryMap[rec.EventType] = append(categoryMap[rec.EventType], rec)
