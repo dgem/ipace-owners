@@ -75,6 +75,22 @@ func TestEmbeddedCustomCampaignTemplateHasReviewableMetadata(t *testing.T) {
 	}
 }
 
+func TestJLRContactCampaignUsesItsHolidayHeroImage(t *testing.T) {
+	_, htmlBody, _, err := renderCustomCampaignEmail(customCampaignRecord{
+		Kind:     jlrContactCampaignKind,
+		Subject:  "JLR update",
+		Markdown: "Hi {{memberFirstName}},",
+	}, customCampaignAudience{}, customCampaignRecipient{Name: "Jane"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, expected := range []string{"/images/jlr-client-care-september-hero.png", "sunny English country road"} {
+		if !strings.Contains(htmlBody, expected) {
+			t.Fatalf("JLR campaign HTML missing %q: %s", expected, htmlBody)
+		}
+	}
+}
+
 func TestAllCampaignsUseMarkdownSources(t *testing.T) {
 	for fileName, expectedID := range map[string]string{
 		"campaign-reengagement": "registration-reminder",

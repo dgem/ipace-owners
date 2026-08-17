@@ -475,8 +475,24 @@ func renderCustomCampaignEmail(record customCampaignRecord, audience customCampa
 		BodyHTML:      contentHTML,
 		FooterNote:    "You are receiving this because you registered with the group and agreed that we could contact you. Reply if you no longer wish to hear from us.",
 		AssetBaseURL:  emailAssetBaseURL(campaignContinueURL()),
+		HeroImagePath: campaignHeroImagePath(record.Kind),
+		HeroImageAlt:  campaignHeroImageAlt(record.Kind),
 	})
 	return subject, htmlBody, text, nil
+}
+
+func campaignHeroImagePath(kind string) string {
+	if kind == jlrContactCampaignKind {
+		return "/images/jlr-client-care-september-hero.png"
+	}
+	return ""
+}
+
+func campaignHeroImageAlt(kind string) string {
+	if kind == jlrContactCampaignKind {
+		return "View from a right-hand-drive electric car on a sunny English country road, with a generic customer-care message on the centre display."
+	}
+	return ""
 }
 
 func customCampaignSubstitutionData(audience customCampaignAudience, person customCampaignRecipient) customCampaignData {
