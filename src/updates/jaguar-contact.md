@@ -1,5 +1,5 @@
 ---
-title: JLR invites the group to meet in September
+title: JLR invites group representatives to meet in September
 date: 2026-08-16
 summary: "Three days after the group's introductory email, JLR made contact and proposed a face-to-face meeting with its UK Director of Client Care."
 description: "An update on Jaguar Land Rover's proposed early-September meeting with the I-PACE Owners' Advocacy Group, and the evidence needed beforehand."
@@ -16,7 +16,7 @@ Soon afterwards, JLR asked whether our founding member would be available for a 
 
 ## What this means — and what it does not
 
-This shows JLR is taking the group seriously and wants the opportunity to talk through the matters in our email face to face. It is not yet a substantive discussion of solutions or commitments: the date and venue are still being confirmed, and we are treating the invitation as the beginning of a dialogue rather than an outcome.
+We hope this shows JLR is taking the group seriously and wants the opportunity to talk through the matters in our email face to face. It is not yet a substantive discussion of solutions or commitments: the date and venue are still being confirmed, and we are treating the invitation as the beginning of a dialogue rather than an outcome.
 
 Our aim is to have direct, meaningful discussions with the appropriate people at JLR, informed by the real experiences of I-PACE owners.
 
