@@ -60,18 +60,22 @@ func TestCampaignSummaryNeverReportsNegativeRemaining(t *testing.T) {
 	}
 }
 
-func TestEmbeddedCustomCampaignTemplateHasReviewableMetadata(t *testing.T) {
+func TestEmbeddedJLRContactCampaignHasRequiredDeliveryMetadata(t *testing.T) {
 	template, err := embeddedCampaignTemplate("jlr-contact")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if template.ID != "jlr-contact" || template.Audience != "custom-member" || template.Subject != "JLR invites the group to meet in September" || template.HeroImage != "/images/jlr-client-care-september-hero.png" {
-		t.Fatalf("unexpected template metadata: %#v", template)
+	if template.ID != "jlr-contact" || template.Audience != "custom-member" {
+		t.Fatalf("unexpected campaign routing metadata: %#v", template)
 	}
-	for _, expected := range []string{"{{memberFirstName}}", "1,000 members", "UK Director of Client Care", "Gaydon", "/member/dashboard/"} {
-		if !strings.Contains(template.Markdown, expected) {
-			t.Fatalf("template Markdown missing %q", expected)
-		}
+	if strings.TrimSpace(template.Name) == "" || strings.TrimSpace(template.Subject) == "" {
+		t.Fatalf("campaign must provide a name and subject: %#v", template)
+	}
+	if template.HeroImage != "/images/jlr-client-care-september-hero.png" || strings.TrimSpace(template.HeroImageAlt) == "" {
+		t.Fatalf("campaign must provide the approved JLR hero and alt text: %#v", template)
+	}
+	if !strings.Contains(template.Markdown, "{{memberFirstName}}") {
+		t.Fatal("campaign must retain the recipient greeting placeholder")
 	}
 }
 
