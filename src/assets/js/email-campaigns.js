@@ -238,7 +238,7 @@
     }
 
     function renderHistory(data) {
-        renderPlaceholders(data.placeholders || []);
+      renderPlaceholders(data.placeholders || []);
       historyList.textContent = '';
       if (!data.campaigns || data.campaigns.length === 0) {
         historyList.textContent = 'No campaign runs have been recorded yet.';
@@ -271,9 +271,6 @@
           { label: 'Send failures', value: campaign.failed || 0 },
           { label: 'Batches', value: campaign.batchCount || 0 }
         ];
-        secondaryMetrics.forEach(function (metric) {
-          if (metric.value > 0) addStat(stats, metric.label, metric.value);
-        });
         var moreMetrics = createMoreMetrics(secondaryMetrics);
         var actions = document.createElement('div');
         actions.className = 'cluster';
@@ -288,13 +285,24 @@
           continueButton.addEventListener('click', function () { loadExistingRun(campaign); });
           actions.appendChild(continueButton);
         }
-        var specialisedTab = campaign.kind === 'all-members-drive' ? 'member-drive' : (campaign.kind === 'jlr-contact' ? 'jlr-contact' : 'registration');
+        var specialisedTab = 'registration';
+        var specialisedActionLabel = 'Use registration reminder tool';
+        var specialisedActionTitle = 'Registration reminders require a fresh private sign-in link and their original unverified-member audience.';
+        if (campaign.kind === 'all-members-drive') {
+          specialisedTab = 'member-drive';
+          specialisedActionLabel = 'Use Reach 1,000 tool';
+          specialisedActionTitle = 'This campaign retains its all-joined, contact-consenting audience.';
+        } else if (campaign.kind === 'jlr-contact') {
+          specialisedTab = 'jlr-contact';
+          specialisedActionLabel = 'Use JLR Contact tool';
+          specialisedActionTitle = 'This campaign retains its approved source-controlled copy and verified, consented audience.';
+        }
         if (!canEditDraft) {
           var rerunButton = document.createElement('button');
           rerunButton.type = 'button';
           rerunButton.className = 'btn btn--secondary btn--sm';
-          rerunButton.textContent = canRerun ? 'Tweak and rerun' : (specialisedTab === 'member-drive' ? 'Use Reach 1,000 tool' : (specialisedTab === 'jlr-contact' ? 'Use JLR Contact tool' : 'Use registration reminder tool'));
-          if (!canRerun) rerunButton.title = specialisedTab === 'member-drive' ? 'This campaign retains its all-joined, contact-consenting audience.' : (specialisedTab === 'jlr-contact' ? 'This campaign retains its approved source-controlled copy and verified, consented audience.' : 'Registration reminders require a fresh private sign-in link and their original unverified-member audience.');
+          rerunButton.textContent = canRerun ? 'Tweak and rerun' : specialisedActionLabel;
+          if (!canRerun) rerunButton.title = specialisedActionTitle;
           rerunButton.addEventListener('click', function () {
             if (canRerun) {
               loadForRerun(campaign);

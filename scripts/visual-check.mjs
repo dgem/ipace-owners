@@ -255,8 +255,8 @@ async function checkCampaignControls(viewport, screenshotName) {
   assert.equal(await page.locator('.email-campaign-history__item button').count(), 1);
   await page.locator('.email-campaign-history__item details summary').click();
   assert.equal(await page.locator('.email-campaign-history__item .email-campaign-history__secondary-stats').isVisible(), true);
-  await page.locator('.email-campaign-history__item .btn--primary').click();
-  assert.equal(await page.locator('[data-custom-campaign-name]').inputValue(), 'July member update');
+  await page.locator('.email-campaign-history__item .btn--secondary').getByText('Tweak and rerun').click();
+  assert.equal(await page.locator('[data-custom-campaign-name]').inputValue(), 'July member update — rerun');
   await page.locator('[data-custom-campaign-preview]').click();
   await page.locator('[data-custom-campaign-email-preview]').waitFor({ state: 'visible' });
   await page.waitForFunction(() => !document.querySelector('[data-custom-campaign-send-button]').disabled);
