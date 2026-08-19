@@ -9,6 +9,12 @@ layout: base.njk
   </div>
 </div>
 
+{% if heroImage %}
+<figure class="page-hero-image container">
+  <img src="{{ heroImage }}" alt="{{ heroImageAlt | default('') }}"{% if heroImageAlt %} loading="eager"{% else %} aria-hidden="true"{% endif %}>
+</figure>
+{% endif %}
+
 <div class="section">
   <div class="container">
     <div class="prose">

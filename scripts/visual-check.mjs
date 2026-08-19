@@ -172,6 +172,21 @@ async function checkCampaignControls(viewport, screenshotName) {
       }]
     })
   }));
+  await page.route('**/api/admin/jlr-contact-preview', (route) => route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({
+      campaignId: 'jlr-contact-staging-2026-08-13',
+      eligible: 412,
+      sent: 0,
+      batchSent: 0,
+      remaining: 412,
+      emailPreview: {
+        subject: 'We have contact with Jaguar Land Rover',
+        html: '<!doctype html><html lang="en"><body><h1>We have contact with Jaguar Land Rover</h1><p>We have made initial contact with Jaguar Land Rover.</p></body></html>',
+        text: 'We have made initial contact with Jaguar Land Rover.'
+      }
+    })
+  }));
   await page.route('**/api/admin/custom-campaign-preview', (route) => route.fulfill({
     contentType: 'application/json',
     body: JSON.stringify({
@@ -212,7 +227,7 @@ async function checkCampaignControls(viewport, screenshotName) {
   await page.evaluate(() => {
     window.firebase = { auth: () => ({ currentUser: { getIdToken: async () => 'visual-admin-token' } }) };
   });
-  assert.equal(await page.locator('[data-email-campaign]').count(), 3);
+  assert.equal(await page.locator('[data-email-campaign]').count(), 4);
   assert.equal(await page.locator('[data-custom-email-campaign]').count(), 1);
   assert.equal(await page.locator('[data-custom-placeholder]').count(), 11);
   if (viewport.width < 640) {
@@ -224,6 +239,12 @@ async function checkCampaignControls(viewport, screenshotName) {
   assert.equal(await page.locator('[data-campaign-tab="registration"]').getAttribute('aria-selected'), 'true');
   assert.equal(await page.locator('[data-campaign-panel="registration"]').isVisible(), true);
   assert.equal(await page.locator('[data-campaign-panel="freeform"]').isVisible(), false);
+  await page.locator('[data-campaign-tab="jlr-contact"]').click();
+  assert.equal(await page.locator('[data-campaign-panel="jlr-contact"]').isVisible(), true);
+  await page.locator('[data-campaign-panel="jlr-contact"] [data-campaign-preview]').click();
+  await page.frameLocator('[data-campaign-panel="jlr-contact"] [data-campaign-email-html]').getByText('We have contact with Jaguar Land Rover').waitFor({ state: 'visible' });
+  assert.equal(await page.locator('[data-campaign-panel="jlr-contact"] [data-campaign-send-button]').isDisabled(), false,
+    'JLR Contact send controls must unlock only after preview');
   await page.locator('[data-campaign-open-tab="freeform"]').click();
   assert.equal(await page.locator('[data-campaign-tab="freeform"]').getAttribute('aria-selected'), 'true');
   assert.equal(await page.locator('[data-custom-campaign-markdown]').isVisible(), true);
@@ -231,8 +252,10 @@ async function checkCampaignControls(viewport, screenshotName) {
   await page.locator('[data-campaign-history-refresh]').click();
   await page.locator('.email-campaign-history__item').waitFor({ state: 'visible' });
   assert.equal(await page.locator('.email-campaign-history__item').count(), 1);
-  assert.equal(await page.locator('.email-campaign-history__item button').count(), 2);
-  await page.locator('.email-campaign-history__item .btn--secondary').click();
+  assert.equal(await page.locator('.email-campaign-history__item button').count(), 1);
+  await page.locator('.email-campaign-history__item details summary').click();
+  assert.equal(await page.locator('.email-campaign-history__item .email-campaign-history__secondary-stats').isVisible(), true);
+  await page.locator('.email-campaign-history__item .btn--secondary').getByText('Tweak and rerun').click();
   assert.equal(await page.locator('[data-custom-campaign-name]').inputValue(), 'July member update — rerun');
   await page.locator('[data-custom-campaign-preview]').click();
   await page.locator('[data-custom-campaign-email-preview]').waitFor({ state: 'visible' });
@@ -245,10 +268,11 @@ async function checkCampaignControls(viewport, screenshotName) {
   await page.frameLocator('[data-custom-campaign-email-html]').locator('h1').waitFor({ state: 'visible' });
   assert.equal(await page.locator('[data-custom-campaign-send-button]').isDisabled(), false);
   const buttons = page.locator('[data-campaign-send-button]');
-  assert.equal(await buttons.count(), 3);
+  assert.equal(await buttons.count(), 4);
   for (let index = 0; index < await buttons.count(); index += 1) {
     const button = buttons.nth(index);
     const panelName = await button.locator('xpath=ancestor::*[@data-campaign-panel]').getAttribute('data-campaign-panel');
+    if (panelName === 'jlr-contact') continue;
     await page.locator(`[data-campaign-tab="${panelName}"]`).focus();
     await page.keyboard.press('Enter');
     await button.scrollIntoViewIfNeeded();

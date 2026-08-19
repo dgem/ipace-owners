@@ -1,3 +1,9 @@
+---
+id: reach-1000
+name: Reach 1,000
+subject: Thanks for joining — help us reach 1,000 I-PACE owners
+audience: all-members-drive
+---
 Hi {{.FirstName}},
 
 Thank you for joining the I-PACE Owners group and for your support. We now have **{{.MemberCount}} members** since launching on **17 July—less than two weeks ago**.

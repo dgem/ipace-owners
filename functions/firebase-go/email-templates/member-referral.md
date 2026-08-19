@@ -1,3 +1,9 @@
+---
+id: member-referral
+name: Find members
+subject: Could you help one more I-PACE owner find us?
+audience: member-referral
+---
 Hi {{.FirstName}},
 
 Thank you for joining the I-PACE Owners group. Your membership helps us build a stronger, constructive voice.

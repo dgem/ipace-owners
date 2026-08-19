@@ -184,6 +184,7 @@ src/
       outreach-assistant.js # Facebook search-link and reply helper; no automation
       instagram-campaigns.js # Instagram draft/history, insight, preview and publish controls
       admin-campaign-summary.js # Admin email/social campaign totals
+      `admin-stats.js`     # Claim-gated member, vehicle, SoH and service aggregate dashboard
       email-campaigns.js  # Admin re-engagement preview and bounded send controls
       public-stats.js    # Public aggregate-statistics rendering
       site-mode.js       # Launch/full presentation selection
@@ -279,6 +280,11 @@ stale PR preview entries while retaining permanent authorized domains. OpenTofu 
 GitHub deployer a custom role containing only `firebaseauth.configs.get` and
 `firebaseauth.configs.update`; apply staging infrastructure after changing these permissions
 and before rerunning the preview workflow.
+
+`GET /api/admin/stats` is an administrator-claim-gated aggregate dashboard endpoint. It returns
+member, vehicle, State of Health, and service-event totals and breakdowns for the Admin home;
+it is not a public-statistics endpoint, counts each member once by canonical email at their first
+Join, and does not return private member snapshots or per-vehicle evidence.
 
 Firebase does not permit preview or default `web.app` domains as Identity Toolkit's
 `linkDomain`. Preview emails therefore use Firebase's default action-handler domain and the
@@ -444,30 +450,40 @@ parent does not remove its delivery subcollection, so summary-write retries rema
 When an administrator refreshes campaign history, the Function reconciles stored Resend IDs
 against the provider's paginated sent-email feed and caches the check for five minutes.
 History and the Admin overview show delivered, awaiting-delivery, opened, clicked, delayed,
-bounced, suppressed, complained, provider-failed and combined-undeliverable totals. Only the
+bounced, suppressed, complained, provider-failed and combined-undeliverable totals. Campaign
+history keeps its primary delivery totals visible and places the complete set (including zeroes)
+behind an expandable “more metrics” pill. Only the
 provider ID, normalised status and update time are retained on hashed delivery documents;
 provider recipient addresses are ignored and never returned to the browser.
 Legacy runs that predate parent records are recovered from those delivery ledgers where
 possible. “Tweak and rerun” copies an old subject and Markdown into a new run rather than
 changing its audit history. Campaign history is presented before the campaign tools, with a
 direct create-new shortcut. A compact page header links to history and the tools, while
-registration reminders, member referrals
-and freeform campaigns share one keyboard-operable tabbed panel. Create, continue and rerun
+registration reminders, member referrals, Reach 1,000, JLR Contact,
+and Freeform campaigns share one keyboard-operable tabbed panel. Create, continue and rerun
 actions select the relevant tab automatically. Safety guidance appears beside the relevant
 confirmation controls instead of as a persistent page-level warning.
 Registration reminders remain on their specialised tool because they require an unverified
 audience and a fresh private sign-in link; the custom editor must not silently retarget them to
-verified members.
-Draft and partially sent custom runs can be reopened from history. A partial run can continue only
+verified members. Every non-reminder run that retains its saved subject and Markdown, including
+historical JLR updates, can be tweaked into a new Freeform run. An unsent editable draft instead
+offers “Edit draft”. Draft and partially sent custom runs can be reopened from history. A partial run can continue only
 after previewing its unchanged saved content; editing it creates a new run and preserves the
 original delivery ledger.
 
-Administrators can create custom campaigns for verified Firebase accounts with matching
-contact-consenting Join records. `POST /api/admin/custom-campaign-preview` validates and saves the
-draft, recalculates the canonical-email-deduped audience and renders sandboxed branded HTML plus
-plain text. `POST /api/admin/custom-campaign-send` reloads that immutable draft and uses the same
-exact-count confirmation, ten-message batches, Resend idempotency and hashed ledgers. History is
-returned by `POST /api/admin/email-campaign-history`; none of these responses contain addresses.
+Administrators can create ad-hoc custom campaigns for verified Firebase accounts with matching
+contact-consenting Join records. Every static campaign is source-controlled Markdown under
+`functions/firebase-go/email-templates/` and is selected server-side through its dedicated tab;
+the JLR Contact tab uses `POST /api/admin/jlr-contact-preview`. Static copy cannot be edited in
+the browser.
+Once a static JLR batch has started, its saved copy remains immutable even if the source
+Markdown changes later: its preview shows the saved version and an exhausted audience simply
+disables sending rather than failing to calculate a preview.
+`POST /api/admin/custom-campaign-preview` validates and saves the draft, recalculates the
+canonical-email-deduped audience and renders sandboxed branded HTML plus plain text.
+`POST /api/admin/custom-campaign-send` reloads that immutable draft and uses the same exact-count
+confirmation, ten-message batches, Resend idempotency and hashed ledgers. History is returned by
+`POST /api/admin/email-campaign-history`; none of these responses contain addresses.
 
 Custom Markdown supports only these literal substitutions: `{{membersJoined}}`,
 `{{membersVerified}}`, `{{memberFirstName}}`, `{{memberLastName}}`, `{{memberTittle}}` (and the

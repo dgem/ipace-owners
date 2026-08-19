@@ -18,6 +18,7 @@ import (
 
 const (
 	customCampaignKind        = "custom-member"
+	jlrContactCampaignKind    = "jlr-contact"
 	customCampaignMarkdownMax = 20000
 )
 
@@ -44,6 +45,10 @@ type customCampaignDraftRequest struct {
 	Name             string `json:"name"`
 	Subject          string `json:"subject"`
 	Markdown         string `json:"markdown"`
+	HeroImage        string `json:"-"`
+	HeroImageAlt     string `json:"-"`
+	Kind             string `json:"-"`
+	CreateWithID     bool   `json:"-"`
 }
 
 type customCampaignRecord struct {
@@ -52,6 +57,8 @@ type customCampaignRecord struct {
 	Name             string    `json:"name" firestore:"name"`
 	Subject          string    `json:"subject" firestore:"subject"`
 	Markdown         string    `json:"markdown" firestore:"markdown"`
+	HeroImage        string    `json:"-" firestore:"heroImage,omitempty"`
+	HeroImageAlt     string    `json:"-" firestore:"heroImageAlt,omitempty"`
 	SourceCampaignID string    `json:"sourceCampaignId,omitempty" firestore:"sourceCampaignId,omitempty"`
 	Status           string    `json:"status" firestore:"status"`
 	Eligible         int       `json:"eligible" firestore:"eligible"`
@@ -238,15 +245,22 @@ func previewCustomCampaign(ctx context.Context, input customCampaignDraftRequest
 	if id != "" {
 		existing, err := loadCustomCampaignRecord(ctx, db, id)
 		if err != nil {
-			return customCampaignPreviewResponse{}, fmt.Errorf("campaign draft was not found; create a new preview")
+			if !input.CreateWithID {
+				return customCampaignPreviewResponse{}, fmt.Errorf("campaign draft was not found; create a new preview")
+			}
+		} else {
+			if existing.Sent > 0 && !sameCustomCampaignDraft(existing, input) {
+				var reused bool
+				input, reused = staticCampaignInputForStartedRecord(input, existing)
+				if !reused {
+					return customCampaignPreviewResponse{}, fmt.Errorf("a campaign that has started sending cannot be edited; rerun it as a new campaign")
+				}
+			}
+			createdAt = existing.CreatedAt
+			failed = existing.Failed
+			batchCount = existing.BatchCount
+			lastSentAt = existing.LastSentAt
 		}
-		if existing.Sent > 0 && !sameCustomCampaignDraft(existing, input) {
-			return customCampaignPreviewResponse{}, fmt.Errorf("a campaign that has started sending cannot be edited; rerun it as a new campaign")
-		}
-		createdAt = existing.CreatedAt
-		failed = existing.Failed
-		batchCount = existing.BatchCount
-		lastSentAt = existing.LastSentAt
 	} else {
 		id = submissionID("email-campaign")
 	}
@@ -257,10 +271,12 @@ func previewCustomCampaign(ctx context.Context, input customCampaignDraftRequest
 	sentCount := countCustomCampaignSent(audience.Recipients, sent)
 	record := customCampaignRecord{
 		CampaignID:       id,
-		Kind:             customCampaignKind,
+		Kind:             campaignDraftKind(input),
 		Name:             input.Name,
 		Subject:          input.Subject,
 		Markdown:         input.Markdown,
+		HeroImage:        input.HeroImage,
+		HeroImageAlt:     input.HeroImageAlt,
 		SourceCampaignID: input.SourceCampaignID,
 		Status:           customCampaignStatus(len(audience.Recipients), sentCount),
 		Eligible:         len(audience.Recipients),
@@ -278,11 +294,64 @@ func previewCustomCampaign(ctx context.Context, input customCampaignDraftRequest
 	return makeCustomCampaignPreview(record, audience), nil
 }
 
+func previewJLRContactCampaign(ctx context.Context) (customCampaignPreviewResponse, error) {
+	template, err := embeddedCampaignTemplate("jlr-contact")
+	if err != nil {
+		return customCampaignPreviewResponse{}, err
+	}
+	if template.ID != "jlr-contact" || template.Audience != customCampaignKind {
+		return customCampaignPreviewResponse{}, fmt.Errorf("JLR contact template has an invalid audience")
+	}
+	return previewCustomCampaign(ctx, customCampaignDraftRequest{
+		CampaignID:   staticCustomCampaignID(template.ID),
+		Name:         template.Name,
+		Subject:      template.Subject,
+		Markdown:     template.Markdown,
+		HeroImage:    template.HeroImage,
+		HeroImageAlt: template.HeroImageAlt,
+		Kind:         jlrContactCampaignKind,
+		CreateWithID: true,
+	})
+}
+
+func campaignDraftKind(input customCampaignDraftRequest) string {
+	if input.Kind == jlrContactCampaignKind {
+		return jlrContactCampaignKind
+	}
+	return customCampaignKind
+}
+
+func staticCustomCampaignID(templateID string) string {
+	environment := "production"
+	if strings.Contains(strings.ToLower(projectID()), "staging") {
+		environment = "staging"
+	}
+	return templateID + "-" + environment + "-" + time.Now().UTC().Format("2006-01-02")
+}
+
 func sameCustomCampaignDraft(record customCampaignRecord, input customCampaignDraftRequest) bool {
 	return record.Name == input.Name &&
 		record.Subject == input.Subject &&
 		record.Markdown == input.Markdown &&
+		record.HeroImage == input.HeroImage &&
+		record.HeroImageAlt == input.HeroImageAlt &&
 		record.SourceCampaignID == input.SourceCampaignID
+}
+
+// staticCampaignInputForStartedRecord keeps a sent static campaign immutable when its
+// source Markdown is edited later. Its preview must show the version that recipients
+// received, including when everyone in the current audience has already been sent.
+func staticCampaignInputForStartedRecord(input customCampaignDraftRequest, record customCampaignRecord) (customCampaignDraftRequest, bool) {
+	if !input.CreateWithID || input.Kind != jlrContactCampaignKind || record.Kind != jlrContactCampaignKind {
+		return input, false
+	}
+	input.Name = record.Name
+	input.Subject = record.Subject
+	input.Markdown = record.Markdown
+	input.HeroImage = record.HeroImage
+	input.HeroImageAlt = record.HeroImageAlt
+	input.SourceCampaignID = record.SourceCampaignID
+	return input, true
 }
 
 func sendCustomCampaignBatch(ctx context.Context, input customCampaignSendRequest) (customCampaignPreviewResponse, error) {
@@ -294,7 +363,7 @@ func sendCustomCampaignBatch(ctx context.Context, input customCampaignSendReques
 		return customCampaignPreviewResponse{}, err
 	}
 	record, err := loadCustomCampaignRecord(ctx, db, strings.TrimSpace(input.CampaignID))
-	if err != nil || record.Kind != customCampaignKind {
+	if err != nil || (record.Kind != customCampaignKind && record.Kind != jlrContactCampaignKind) {
 		return customCampaignPreviewResponse{}, fmt.Errorf("campaign draft was not found; preview again")
 	}
 	if err := validateCustomCampaignDraft(customCampaignDraftRequest{
@@ -334,7 +403,7 @@ func sendCustomCampaignBatch(ctx context.Context, input customCampaignSendReques
 		if err != nil {
 			return customCampaignPreviewResponse{}, err
 		}
-		resendID, err := sendCampaignPayload(ctx, person.Email, subject, htmlBody, text, customCampaignKind, record.CampaignID)
+		resendID, err := sendCampaignPayload(ctx, person.Email, subject, htmlBody, text, record.Kind, record.CampaignID)
 		if err != nil {
 			_, _ = db.Collection("emailCampaigns").Doc(record.CampaignID).Set(ctx, map[string]any{
 				"failed":    firestore.Increment(1),
@@ -436,6 +505,8 @@ func renderCustomCampaignEmail(record customCampaignRecord, audience customCampa
 		BodyHTML:      contentHTML,
 		FooterNote:    "You are receiving this because you registered with the group and agreed that we could contact you. Reply if you no longer wish to hear from us.",
 		AssetBaseURL:  emailAssetBaseURL(campaignContinueURL()),
+		HeroImagePath: record.HeroImage,
+		HeroImageAlt:  record.HeroImageAlt,
 	})
 	return subject, htmlBody, text, nil
 }

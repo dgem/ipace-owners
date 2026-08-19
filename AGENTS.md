@@ -226,6 +226,9 @@ Defined in `:root` in `site.css`. Key tokens:
 - **Code review is required before merging.** Use GitHub's automatic Copilot code review
   (configured via repository branch ruleset) as a first pass, but every PR must receive
   human review for logic, security, accessibility, and tone.
+- Before reporting a PR ready, inspect every current review thread from every source, including
+  humans and automated reviewers. Verify each finding against the latest code, implement every
+  valid finding, and explicitly record any finding that is stale or intentionally not adopted.
 - Do not merge until `make build` and `make test` pass cleanly.
 
 ## Commit message conventions

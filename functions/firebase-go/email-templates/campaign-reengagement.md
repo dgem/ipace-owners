@@ -1,3 +1,9 @@
+---
+id: registration-reminder
+name: Registration reminder
+subject: Complete your I-PACE Owners registration
+audience: join-reengagement
+---
 Hi {{.FirstName}},
 
 Thanks for joining our group on {{.JoinedDate}}.

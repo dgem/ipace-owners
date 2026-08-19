@@ -75,6 +75,7 @@ var memberReferralPreview = previewMemberReferralCampaign
 var memberReferralSend = sendMemberReferralCampaignBatch
 var allMembersDrivePreview = previewAllMembersDriveCampaign
 var allMembersDriveSend = sendAllMembersDriveCampaignBatch
+var jlrContactPreview = previewJLRContactCampaign
 
 func AdminReengagementPreview(w http.ResponseWriter, r *http.Request) {
 	if cors(w, r) || rejectDisallowedOrigin(w, r) {
@@ -136,6 +137,23 @@ func AdminAllMembersDrivePreview(w http.ResponseWriter, r *http.Request) {
 
 func AdminAllMembersDriveSend(w http.ResponseWriter, r *http.Request) {
 	adminCampaignSendHandler(w, r, allMembersDriveSend)
+}
+
+func AdminJLRContactPreview(w http.ResponseWriter, r *http.Request) {
+	adminCustomCampaignPreviewHandler(w, r, "admin-jlr-contact-preview", jlrContactPreview)
+}
+
+func adminCustomCampaignPreviewHandler(w http.ResponseWriter, r *http.Request, logName string, preview func(context.Context) (customCampaignPreviewResponse, error)) {
+	if !adminCampaignRequestAllowed(w, r) {
+		return
+	}
+	summary, err := preview(r.Context())
+	if err != nil {
+		logEvent(logName, "error", "preview failed", map[string]any{"error": err.Error()})
+		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Could not calculate the campaign audience"})
+		return
+	}
+	writeJSON(w, http.StatusOK, summary)
 }
 
 func adminCampaignPreviewHandler(w http.ResponseWriter, r *http.Request, logName string, preview func(context.Context) (campaignSummary, error)) {
@@ -697,7 +715,7 @@ func campaignEmailBodies(person campaignRecipient, link string, memberCount, eli
 		first = fields[0]
 	}
 	subject := "Complete your I-PACE Owners registration"
-	text, bodyHTML := mustRenderCampaignTemplate("campaign-reengagement.md.tmpl", struct {
+	text, bodyHTML := mustRenderCampaignTemplate("campaign-reengagement.md", struct {
 		FirstName     string
 		JoinedDate    string
 		MemberCount   int
@@ -762,7 +780,7 @@ func memberReferralEmailBodies(person campaignRecipient, memberCount int) (strin
 	shares := memberReferralShareLinks(memberCount)
 	suggestedShareText := memberReferralShareMessage(memberCount)
 	instagramURL := "https://www.instagram.com/ipaceowners/"
-	text, bodyHTML := mustRenderCampaignTemplate("member-referral.md.tmpl", struct {
+	text, bodyHTML := mustRenderCampaignTemplate("member-referral.md", struct {
 		FirstName          string
 		MemberCount        int
 		RemainingCount     int
@@ -807,7 +825,7 @@ func allMembersDriveEmailBodies(person campaignRecipient, memberCount int) (stri
 	subject := "Thanks for joining — help us reach 1,000 I-PACE owners"
 	shares := memberReferralShareLinks(memberCount)
 	suggestedShareText := memberReferralShareMessage(memberCount)
-	text, bodyHTML := mustRenderCampaignTemplate("all-members-drive.md.tmpl", struct {
+	text, bodyHTML := mustRenderCampaignTemplate("all-members-drive.md", struct {
 		FirstName          string
 		MemberCount        int
 		SuggestedShareText string

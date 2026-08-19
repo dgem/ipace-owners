@@ -68,6 +68,7 @@ test('preservation-critical visual assets exist and are named in the reconstruct
   const assets = [
     'public/favicon.png',
     'public/images/ipace-hero.png',
+    'public/images/jlr-client-care-september-hero.png',
     'public/images/ipace-owners-logo.png',
     'public/images/ipace-owners-logo.svg',
     'public/images/ipace-owners-qr.svg',

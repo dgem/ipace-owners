@@ -140,6 +140,8 @@ type brandedEmailMessage struct {
 	FallbackLabel      string
 	FooterNote         string
 	AssetBaseURL       string
+	HeroImagePath      string
+	HeroImageAlt       string
 	SupplementHTML     string
 }
 
@@ -150,7 +152,15 @@ func brandedEmailHTML(message brandedEmailMessage) string {
 	}
 	preheader := html.EscapeString(strings.TrimSpace(message.Preheader))
 	heading := html.EscapeString(strings.TrimSpace(message.Heading))
-	imageURL := html.EscapeString(strings.TrimRight(strings.TrimSpace(message.AssetBaseURL), "/") + "/images/ipace-hero.png")
+	heroImagePath := strings.TrimSpace(message.HeroImagePath)
+	if heroImagePath == "" {
+		heroImagePath = "/images/ipace-hero.png"
+	}
+	heroImageAlt := strings.TrimSpace(message.HeroImageAlt)
+	if heroImageAlt == "" {
+		heroImageAlt = "Jaguar I-PACE"
+	}
+	imageURL := html.EscapeString(strings.TrimRight(strings.TrimSpace(message.AssetBaseURL), "/") + "/" + strings.TrimLeft(heroImagePath, "/"))
 	body := strings.TrimSpace(message.BodyHTML)
 	if body == "" {
 		body = `<p style="margin:0;font-size:16px;line-height:1.6;color:#374151;">Thank you for being part of I-PACE Owners.</p>`
@@ -202,7 +212,7 @@ func brandedEmailHTML(message brandedEmailMessage) string {
 						</tr>
 						<tr>
 							<td>
-								<img src="` + imageURL + `" width="640" alt="Jaguar I-PACE" style="display:block;width:100%;height:auto;border:0;">
+								<img src="` + imageURL + `" width="640" alt="` + html.EscapeString(heroImageAlt) + `" style="display:block;width:100%;height:auto;border:0;">
 							</td>
 						</tr>
 						<tr>
