@@ -250,7 +250,11 @@ func previewCustomCampaign(ctx context.Context, input customCampaignDraftRequest
 			}
 		} else {
 			if existing.Sent > 0 && !sameCustomCampaignDraft(existing, input) {
-				return customCampaignPreviewResponse{}, fmt.Errorf("a campaign that has started sending cannot be edited; rerun it as a new campaign")
+				var reused bool
+				input, reused = staticCampaignInputForStartedRecord(input, existing)
+				if !reused {
+					return customCampaignPreviewResponse{}, fmt.Errorf("a campaign that has started sending cannot be edited; rerun it as a new campaign")
+				}
 			}
 			createdAt = existing.CreatedAt
 			failed = existing.Failed
@@ -332,6 +336,22 @@ func sameCustomCampaignDraft(record customCampaignRecord, input customCampaignDr
 		record.HeroImage == input.HeroImage &&
 		record.HeroImageAlt == input.HeroImageAlt &&
 		record.SourceCampaignID == input.SourceCampaignID
+}
+
+// staticCampaignInputForStartedRecord keeps a sent static campaign immutable when its
+// source Markdown is edited later. Its preview must show the version that recipients
+// received, including when everyone in the current audience has already been sent.
+func staticCampaignInputForStartedRecord(input customCampaignDraftRequest, record customCampaignRecord) (customCampaignDraftRequest, bool) {
+	if !input.CreateWithID || input.Kind != jlrContactCampaignKind || record.Kind != jlrContactCampaignKind {
+		return input, false
+	}
+	input.Name = record.Name
+	input.Subject = record.Subject
+	input.Markdown = record.Markdown
+	input.HeroImage = record.HeroImage
+	input.HeroImageAlt = record.HeroImageAlt
+	input.SourceCampaignID = record.SourceCampaignID
+	return input, true
 }
 
 func sendCustomCampaignBatch(ctx context.Context, input customCampaignSendRequest) (customCampaignPreviewResponse, error) {

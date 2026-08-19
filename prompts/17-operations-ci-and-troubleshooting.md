@@ -73,7 +73,10 @@ member-referral, and Reach 1,000 campaigns render their deployed Markdown templa
 campaigns are also Markdown files with front matter in that directory. Every static campaign
 must have a dedicated tab with the same preview, exact-count confirmation, and bounded-send flow;
 the server selects its Markdown source and audience, never JavaScript. The JLR Contact campaign
-for the 16 August 2026 update is one of those dedicated tabs. Freeform remains only for ad-hoc,
+for the 16 August 2026 update is one of those dedicated tabs. Once a static JLR batch has sent,
+preserve its saved subject, body and hero for subsequent previews even if its Markdown source is
+later edited; show the saved email and a disabled send action when the audience is exhausted,
+rather than failing the preview. Freeform remains only for ad-hoc,
 editable verified-member campaigns. Its copy must describe the proposed early-September
 face-to-face meeting with JLR's UK Director of Client Care at Gaydon, while making the date and
 venue subject to final confirmation and distinguishing it from a substantive JLR commitment. Link

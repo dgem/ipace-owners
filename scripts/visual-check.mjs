@@ -252,9 +252,11 @@ async function checkCampaignControls(viewport, screenshotName) {
   await page.locator('[data-campaign-history-refresh]').click();
   await page.locator('.email-campaign-history__item').waitFor({ state: 'visible' });
   assert.equal(await page.locator('.email-campaign-history__item').count(), 1);
-  assert.equal(await page.locator('.email-campaign-history__item button').count(), 2);
-  await page.locator('.email-campaign-history__item .btn--secondary').click();
-  assert.equal(await page.locator('[data-custom-campaign-name]').inputValue(), 'July member update — rerun');
+  assert.equal(await page.locator('.email-campaign-history__item button').count(), 1);
+  await page.locator('.email-campaign-history__item details summary').click();
+  assert.equal(await page.locator('.email-campaign-history__item .email-campaign-history__secondary-stats').isVisible(), true);
+  await page.locator('.email-campaign-history__item .btn--primary').click();
+  assert.equal(await page.locator('[data-custom-campaign-name]').inputValue(), 'July member update');
   await page.locator('[data-custom-campaign-preview]').click();
   await page.locator('[data-custom-campaign-email-preview]').waitFor({ state: 'visible' });
   await page.waitForFunction(() => !document.querySelector('[data-custom-campaign-send-button]').disabled);

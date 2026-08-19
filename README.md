@@ -476,6 +476,9 @@ contact-consenting Join records. Every static campaign is source-controlled Mark
 `functions/firebase-go/email-templates/` and is selected server-side through its dedicated tab;
 the JLR Contact tab uses `POST /api/admin/jlr-contact-preview`. Static copy cannot be edited in
 the browser.
+Once a static JLR batch has started, its saved copy remains immutable even if the source
+Markdown changes later: its preview shows the saved version and an exhausted audience simply
+disables sending rather than failing to calculate a preview.
 `POST /api/admin/custom-campaign-preview` validates and saves the draft, recalculates the
 canonical-email-deduped audience and renders sandboxed branded HTML plus plain text.
 `POST /api/admin/custom-campaign-send` reloads that immutable draft and uses the same exact-count
