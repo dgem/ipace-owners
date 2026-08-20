@@ -25,7 +25,7 @@ func TestComputeMemberStatsBucketsJoinsByDay(t *testing.T) {
 	}, map[string]memberAccountStatus{
 		"first@example.com":  {Registered: true, VerifiedAt: time.Date(2026, time.August, 12, 10, 0, 0, 0, time.UTC)},
 		"second@example.com": {Registered: true, VerifiedAt: time.Date(2026, time.August, 13, 10, 0, 0, 0, time.UTC)},
-	})
+	}, nil)
 	if len(stats.JoinedTimeline) != 2 || stats.JoinedTimeline[0] != (timelineBucket{Label: "2026-08-12", Count: 2}) || stats.JoinedTimeline[1] != (timelineBucket{Label: "2026-08-13", Count: 1}) {
 		t.Fatalf("timeline=%#v", stats.JoinedTimeline)
 	}
@@ -43,7 +43,7 @@ func TestComputeMemberStatsCountsEachEmailOnceAtItsFirstJoin(t *testing.T) {
 		{ID: "first", CreatedAt: time.Date(2026, time.August, 12, 9, 0, 0, 0, time.UTC), Contact: contactRecord{Email: "OWNER@example.com", Country: "United Kingdom"}},
 	}, map[string]memberAccountStatus{
 		"owner@example.com": {Registered: true},
-	})
+	}, nil)
 	if stats.TotalMembers != 1 {
 		t.Fatalf("total members=%d, want 1", stats.TotalMembers)
 	}
@@ -52,6 +52,27 @@ func TestComputeMemberStatsCountsEachEmailOnceAtItsFirstJoin(t *testing.T) {
 	}
 	if got := stats.CountryBreakup; len(got) != 1 || got[0] != (countryBreakdown{Country: "United Kingdom", Joined: 1, Registered: 1}) {
 		t.Fatalf("countries=%#v", got)
+	}
+}
+
+func TestComputeMemberStatsUsesVehicleCountryAndConservativeUKPlateInference(t *testing.T) {
+	stats := computeMemberStats([]joinRecord{
+		{IdentityUserID: "vehicle-country", Contact: contactRecord{Email: "country@example.com"}},
+		{IdentityUserID: "uk-plate", Contact: contactRecord{Email: "plate@example.com"}},
+		{IdentityUserID: "unknown", Contact: contactRecord{Email: "unknown@example.com"}},
+	}, nil, []vehicleRecord{
+		{IdentityUserID: "vehicle-country", Vehicle: vehicleDetails{Country: "IE"}},
+		{IdentityUserID: "uk-plate", Vehicle: vehicleDetails{Registration: "AB12 CDE"}},
+		{IdentityUserID: "unknown", Vehicle: vehicleDetails{Registration: "not a plate"}},
+	})
+	got := map[string]countryBreakdown{}
+	for _, row := range stats.CountryBreakup {
+		got[row.Country] = row
+	}
+	for _, country := range []string{"IE", "GB", "Unknown"} {
+		if got[country].Joined != 1 {
+			t.Fatalf("%s row = %#v", country, got[country])
+		}
 	}
 }
 

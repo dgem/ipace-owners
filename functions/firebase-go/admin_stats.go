@@ -4,7 +4,9 @@ import (
 	"context"
 	"math"
 	"net/http"
+	"regexp"
 	"sort"
+	"strings"
 	"time"
 
 	"firebase.google.com/go/v4/auth"
@@ -12,10 +14,19 @@ import (
 
 // adminStatsResponse is returned by the /api/admin/stats endpoint.
 type adminStatsResponse struct {
-	GeneratedAt       string            `json:"generatedAt"`
-	MemberStats       memberStats       `json:"memberStats"`
-	VehicleStats      vehicleStats      `json:"vehicleStats"`
-	ServiceEventStats serviceEventStats `json:"serviceEventStats"`
+	GeneratedAt       string               `json:"generatedAt"`
+	PublicStats       publicDashboardStats `json:"publicStats"`
+	MemberStats       memberStats          `json:"memberStats"`
+	VehicleStats      vehicleStats         `json:"vehicleStats"`
+	ServiceEventStats serviceEventStats    `json:"serviceEventStats"`
+}
+
+// publicDashboardStats mirrors the consent-filtered counters displayed on the homepage.
+type publicDashboardStats struct {
+	JoinedOwners        int `json:"joinedOwners"`
+	VehiclesRegistered  int `json:"vehiclesRegistered"`
+	SOHReadings         int `json:"sohReadings"`
+	ServiceEventsLogged int `json:"serviceEventsLogged"`
 }
 
 // memberStats holds aggregate member metrics.
@@ -83,6 +94,7 @@ type timelineBucket struct {
 
 var adminStatsRequireUser = requireUser
 var adminStatsIsAdmin = isAdmin
+var ukRegistrationRE = regexp.MustCompile(`^[A-Z]{2}[0-9]{2}[A-Z]{3}$`)
 
 // AdminStats serves aggregate statistics for the admin dashboard.
 func AdminStats(w http.ResponseWriter, r *http.Request) {
@@ -118,6 +130,7 @@ func AdminStats(w http.ResponseWriter, r *http.Request) {
 	// Fetch all collections.
 	var joins []joinRecord
 	var vehicles []vehicleRecord
+	var readings []batteryReadingRecord
 	var services []serviceEventRecord
 
 	if err := readCollection(r.Context(), db.Collection("joinSubmissions").Query, &joins); err != nil {
@@ -126,6 +139,10 @@ func AdminStats(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := readCollection(r.Context(), db.Collection("vehicles").Query, &vehicles); err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Could not load vehicle submissions"})
+		return
+	}
+	if err := readCollection(r.Context(), db.Collection("batteryReadings").Query, &readings); err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Could not load battery readings"})
 		return
 	}
 	if err := readCollection(r.Context(), db.Collection("serviceEvents").Query, &services); err != nil {
@@ -139,9 +156,17 @@ func AdminStats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	consented := consentedJoinHashes(joins)
+	published := aggregatePublicStats(vehicles, readings, services, consented, joinedOwnerCount(joins), 0, now)
 	resp := adminStatsResponse{
-		GeneratedAt:       now.Format(time.RFC3339),
-		MemberStats:       computeMemberStats(joins, accounts),
+		GeneratedAt: now.Format(time.RFC3339),
+		PublicStats: publicDashboardStats{
+			JoinedOwners:        published.JoinedOwners,
+			VehiclesRegistered:  published.VehiclesRegistered,
+			SOHReadings:         published.SOHReadings,
+			ServiceEventsLogged: published.ServiceEventsLogged,
+		},
+		MemberStats:       computeMemberStats(joins, accounts, vehicles),
 		VehicleStats:      computeVehicleStats(vehicles),
 		ServiceEventStats: computeServiceEventStats(services),
 	}
@@ -151,7 +176,7 @@ func AdminStats(w http.ResponseWriter, r *http.Request) {
 }
 
 // computeMemberStats aggregates member data.
-func computeMemberStats(joins []joinRecord, accounts map[string]memberAccountStatus) memberStats {
+func computeMemberStats(joins []joinRecord, accounts map[string]memberAccountStatus, vehicles []vehicleRecord) memberStats {
 	countryCounts := make(map[string]countryBreakdown)
 	timelineMap := make(map[string]int)
 	verifiedTimelineMap := make(map[string]int)
@@ -168,18 +193,17 @@ func computeMemberStats(joins []joinRecord, accounts map[string]memberAccountSta
 		}
 	}
 	for email, rec := range uniqueJoins {
-		if rec.Contact.Country != "" {
-			row := countryCounts[rec.Contact.Country]
-			row.Country = rec.Contact.Country
-			row.Joined++
-			if account := accounts[email]; account.Registered {
-				row.Registered++
-				if !account.VerifiedAt.IsZero() {
-					row.Verified++
-				}
+		country := memberCountry(rec, vehicles)
+		row := countryCounts[country]
+		row.Country = country
+		row.Joined++
+		if account := accounts[email]; account.Registered {
+			row.Registered++
+			if !account.VerifiedAt.IsZero() {
+				row.Verified++
 			}
-			countryCounts[rec.Contact.Country] = row
 		}
+		countryCounts[country] = row
 		if !rec.CreatedAt.IsZero() {
 			key := rec.CreatedAt.UTC().Format("2006-01-02")
 			timelineMap[key]++
@@ -223,6 +247,39 @@ func computeMemberStats(joins []joinRecord, accounts map[string]memberAccountSta
 		JoinedTimeline:   timeline,
 		VerifiedTimeline: verifiedTimeline,
 	}
+}
+
+func consentedJoinHashes(joins []joinRecord) map[string]bool {
+	consented := make(map[string]bool)
+	for _, record := range joins {
+		if record.Consents.AnonymisedAnalysis && record.Review.Status != "excluded" {
+			consented[record.UserEmailHash] = true
+		}
+	}
+	return consented
+}
+
+func memberCountry(member joinRecord, vehicles []vehicleRecord) string {
+	if country := strings.TrimSpace(member.Contact.Country); country != "" {
+		return country
+	}
+	for _, vehicle := range vehicles {
+		if member.IdentityUserID != "" && member.IdentityUserID == vehicle.IdentityUserID ||
+			member.IdentityUserID == "" && member.UserEmailHash != "" && member.UserEmailHash == vehicle.UserEmailHash {
+			if country := strings.TrimSpace(vehicle.Vehicle.Country); country != "" {
+				return country
+			}
+		}
+	}
+	for _, vehicle := range vehicles {
+		if member.IdentityUserID != "" && member.IdentityUserID == vehicle.IdentityUserID ||
+			member.IdentityUserID == "" && member.UserEmailHash != "" && member.UserEmailHash == vehicle.UserEmailHash {
+			if ukRegistrationRE.MatchString(strings.ToUpper(strings.ReplaceAll(strings.TrimSpace(vehicle.Vehicle.Registration), " ", ""))) {
+				return "GB"
+			}
+		}
+	}
+	return "Unknown"
 }
 
 func joinRecordPrecedes(candidate, existing joinRecord) bool {

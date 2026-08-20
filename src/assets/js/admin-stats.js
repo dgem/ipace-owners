@@ -224,11 +224,19 @@
   // ── Main Render Function ──────────────────────────────────────────────────
 
   function renderAllStats(container, data) {
+    var publicStats = data.publicStats || {};
     var memberStats = data.memberStats || {};
     var vehicleStats = data.vehicleStats || {};
     var serviceStats = data.serviceEventStats || {};
 
-    // Render stat cards for members
+    renderStatCards(container, '[data-published-stats]', publicStats, [
+      { key: 'joinedOwners', label: 'Owners Joined' },
+      { key: 'vehiclesRegistered', label: 'Cars Registered' },
+      { key: 'sohReadings', label: 'SoH Readings Logged' },
+      { key: 'serviceEventsLogged', label: 'Service & Fault Records' }
+    ]);
+
+    // Render private operational stat cards for members
     renderStatCards(container, '[data-member-stats]', memberStats, [
       { key: 'totalMembers', label: 'Total Members' },
       { key: 'verifiedCount', label: 'Verified Accounts', accent: true }
