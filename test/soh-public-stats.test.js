@@ -42,7 +42,7 @@ test('homepage and evidence dashboard load real public aggregate statistics', fu
 
   const css = read('src/assets/css/site.css');
   assert.match(css, /data-count-size="three"[^}]*font-size: 1\.75rem/s);
-  assert.match(css, /data-count-size="four"/);
+  assert.match(css, /data-count-size="four"[^}]*font-size: 1\.4rem/s);
   assert.match(css, /data-count-size="five"/);
   assert.match(css, /data-count-size="large"/);
   assert.match(css, /\.launch-evidence-wreaths[^}]*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/s);

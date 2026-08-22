@@ -107,7 +107,9 @@ identity, sheet structure, representative totals, and chart parts.
 - Test Firebase Hosting route and browser bearer-token wiring.
 - Test tab semantics, full-width workspace markup, graph accessibility, and add/edit controls.
 - Test the provider-directory shape, server-derived resolution duration, new service fields,
-  and the single-row campaign selector at desktop and mobile widths.
+  and its accessible in-page provider suggestions, which must match provider name, town,
+  postcode, county, and address fragments. Campaign choices must wrap in a compact grid at
+  desktop and mobile widths without creating horizontal form overflow.
 - Test export authentication, method/format validation, ZIP datasets, formula-injection
   neutralisation, workbook sheets/charts, response headers, and browser bearer-token wiring.
 - Run `make test` and `make build`.

@@ -86,13 +86,44 @@
     return provider.name + ' — ' + provider.postcode;
   }
 
-  function serviceProviderOptionsMarkup() {
-    return serviceProviders.map(function (provider) {
-      var details = [provider.town];
-      if (provider.authorisedRepairer) details.push('Authorised Jaguar repairer');
-      if (provider.electricVehicleBatteryRepair) details.push('EV battery repair');
-      return '<option value="' + escapeHtml(serviceProviderValue(provider)) + '" label="' + escapeHtml(details.filter(Boolean).join(' · ')) + '"></option>';
-    }).join('');
+  function serviceProviderSearchText(provider) {
+    return [provider.name, provider.postcode, provider.town, provider.county]
+      .concat(provider.addressLines || [])
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+  }
+
+  function matchingServiceProviders(value) {
+    var query = String(value || '').trim().toLowerCase();
+    if (!query) return [];
+    return serviceProviders.filter(function (provider) {
+      return serviceProviderSearchText(provider).indexOf(query) !== -1;
+    }).slice(0, 8);
+  }
+
+  function providerSuggestionMarkup(provider) {
+    var details = [provider.postcode, provider.town];
+    if (provider.authorisedRepairer) details.push('Authorised Jaguar repairer');
+    return '<button type="button" class="provider-autocomplete__option" role="option" data-service-provider-choice="' + escapeHtml(provider.id) + '" aria-selected="false">' +
+      '<strong>' + escapeHtml(provider.name) + '</strong><span>' + escapeHtml(details.filter(Boolean).join(' · ')) + '</span></button>';
+  }
+
+  function renderServiceProviderSuggestions(form) {
+    var lookup = form.querySelector('[data-service-provider-lookup]');
+    var results = form.querySelector('[data-service-provider-suggestions]');
+    if (!lookup || !results) return;
+    var matches = matchingServiceProviders(lookup.value);
+    results.innerHTML = matches.map(providerSuggestionMarkup).join('');
+    results.hidden = matches.length === 0;
+    lookup.setAttribute('aria-expanded', matches.length ? 'true' : 'false');
+  }
+
+  function hideServiceProviderSuggestions(form) {
+    var lookup = form.querySelector('[data-service-provider-lookup]');
+    var results = form.querySelector('[data-service-provider-suggestions]');
+    if (results) results.hidden = true;
+    if (lookup) lookup.setAttribute('aria-expanded', 'false');
   }
 
   function findServiceProvider(value) {
@@ -100,6 +131,10 @@
     return serviceProviders.find(function (provider) {
       return serviceProviderValue(provider).toLowerCase() === normalized;
     });
+  }
+
+  function findServiceProviderByID(id) {
+    return serviceProviders.find(function (provider) { return provider.id === id; });
   }
 
   function syncServiceProviderFields(form, updateAuthorised) {
@@ -226,7 +261,7 @@
       '<div class="form-group"><label for="event-date">Date</label><input id="event-date" name="occurredAt" type="date" required' + notFutureDateAttributes('event-date-error') + '><span class="form-error" id="event-date-error" role="alert" hidden>Event date cannot be in the future.</span></div>' +
       '<div class="form-group"><label for="event-mileage">Mileage</label><input id="event-mileage" name="mileage" type="number" min="0" max="500000"></div>' +
       '<div class="form-group"><label for="event-status">Status</label><select id="event-status" name="status" required><option value="open">Open</option><option value="monitoring">Monitoring</option><option value="resolved">Resolved</option><option value="completed">Completed</option></select></div>' +
-      '<div class="form-group member-form-grid__wide"><label for="event-service-provider">Service provider</label><input id="event-service-provider" type="text" list="jaguar-service-providers" autocomplete="off" data-service-provider-lookup placeholder="Search by provider name or postcode"><datalist id="jaguar-service-providers">' + serviceProviderOptionsMarkup() + '</datalist>' +
+      '<div class="form-group member-form-grid__wide"><label for="event-service-provider">Service provider</label><div class="provider-autocomplete"><input id="event-service-provider" type="text" autocomplete="off" data-service-provider-lookup placeholder="Search by provider name, town or postcode" role="combobox" aria-autocomplete="list" aria-controls="jaguar-service-provider-suggestions" aria-expanded="false"><div id="jaguar-service-provider-suggestions" class="provider-autocomplete__suggestions" data-service-provider-suggestions role="listbox" hidden></div></div>' +
       '<input type="hidden" name="serviceProviderId"><input type="hidden" name="serviceProviderName"><input type="hidden" name="serviceProviderPostcode"><p class="form-hint">Jaguar UK EV service locations are suggested. You can also enter another provider.</p>' +
       '<label class="check-label"><input type="checkbox" name="serviceProviderAuthorised" value="true"> Authorised Jaguar Land Rover service provider</label></div>' +
       '<fieldset class="form-group member-form-grid__wide"><legend>Related campaigns or recalls</legend><div class="campaign-selector" aria-label="Select related campaigns or recalls">' +
@@ -420,10 +455,35 @@
     if (!form) return;
     if (event.target.matches('[data-service-provider-lookup]')) {
       syncServiceProviderFields(form, true);
+      hideServiceProviderSuggestions(form);
     }
     if (event.target.name === 'occurredAt' || event.target.name === 'finalFixAt') {
       updateResolutionDays(form);
     }
+  });
+
+  workspace.addEventListener('input', function (event) {
+    var form = event.target.closest('[data-service-event-form]');
+    if (form && event.target.matches('[data-service-provider-lookup]')) {
+      renderServiceProviderSuggestions(form);
+    }
+  });
+
+  workspace.addEventListener('click', function (event) {
+    var choice = event.target.closest('[data-service-provider-choice]');
+    if (!choice) return;
+    var form = choice.closest('[data-service-event-form]');
+    var provider = findServiceProviderByID(choice.dataset.serviceProviderChoice);
+    if (!form || !provider) return;
+    form.querySelector('[data-service-provider-lookup]').value = serviceProviderValue(provider);
+    syncServiceProviderFields(form, true);
+    hideServiceProviderSuggestions(form);
+  });
+
+  workspace.addEventListener('keydown', function (event) {
+    if (event.key !== 'Escape' || !event.target.matches('[data-service-provider-lookup]')) return;
+    var form = event.target.closest('[data-service-event-form]');
+    if (form) hideServiceProviderSuggestions(form);
   });
 
   workspace.addEventListener('submit', function (event) {
@@ -484,6 +544,11 @@
     .then(function (data) {
       serviceProviders = Array.isArray(data.providers) ? data.providers : [];
       if (memberData) render();
+      workspace.querySelectorAll('[data-service-event-form]').forEach(function (form) {
+        if (form.querySelector('[data-service-provider-lookup]').value) {
+          renderServiceProviderSuggestions(form);
+        }
+      });
     })
     .catch(function () {
       serviceProviders = [];

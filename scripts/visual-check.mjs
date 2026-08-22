@@ -442,12 +442,20 @@ async function checkServiceRecordForm(viewport, screenshotName) {
     }));
   });
   await page.getByRole('button', { name: 'Add record' }).click();
-  assert.equal(await page.locator('#jaguar-service-providers option').count() >= 50, true);
+  await page.waitForFunction(() => {
+    return typeof window.fetch === 'function' && document.querySelector('[data-service-provider-lookup]');
+  });
+  await page.locator('[data-service-provider-lookup]').fill('Hendy');
+  assert.equal(await page.getByRole('option', { name: /Hendy Jaguar, Southampton/ }).isVisible(), true);
+  await page.getByRole('option', { name: /Hendy Jaguar, Southampton/ }).click();
+  assert.equal(await page.locator('[data-service-provider-lookup]').inputValue(), 'Hendy Jaguar, Southampton — SO18 2JD');
   assert.equal(await page.locator('.campaign-selector').evaluate((element) => {
-    const first = element.firstElementChild.getBoundingClientRect();
-    return getComputedStyle(element).display === 'flex'
-      && Array.from(element.children).every((child) => Math.abs(child.getBoundingClientRect().top - first.top) < 2);
-  }), true, 'campaign choices must remain in one horizontal selector');
+    return getComputedStyle(element).display === 'grid'
+      && element.scrollWidth <= element.clientWidth;
+  }), true, 'campaign choices must wrap without horizontal overflow');
+  assert.equal(await page.locator('[data-service-event-form]').evaluate((element) => {
+    return element.scrollWidth <= element.clientWidth;
+  }), true, 'the service record form must not overflow its container');
   assert.equal(await page.getByText('Calculated automatically when both dates are entered').isVisible(), true);
   assert.equal(await page.getByText('Goodwill payment received').isVisible(), true);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
@@ -603,6 +611,7 @@ try {
   await checkMemberExport({ width: 390, height: 844 }, 'member-export-mobile.png');
   await checkServiceRecordForm({ width: 1440, height: 1100 }, 'member-service-record-desktop.png');
   await checkServiceRecordForm({ width: 390, height: 844 }, 'member-service-record-mobile.png');
+  await checkServiceRecordForm({ width: 360, height: 800 }, 'member-service-record-galaxy-s25.png');
   await checkPublicContentPage('/updates/member-data-export/', 'Export your member and vehicle data', { width: 1440, height: 1000 }, 'member-export-update-desktop.png');
   await checkPublicContentPage('/updates/member-data-export/', 'Export your member and vehicle data', { width: 390, height: 844 }, 'member-export-update-mobile.png');
   await checkPublicContentPage('/privacy/', 'Privacy Policy', { width: 1440, height: 1000 }, 'privacy-desktop.png');
