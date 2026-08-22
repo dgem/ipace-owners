@@ -441,14 +441,14 @@ async function checkServiceRecordForm(viewport, screenshotName) {
       }
     }));
   });
+  await page.waitForFunction(() => document.querySelector('[data-vehicle-workspace]').dataset.serviceProvidersReady === 'true');
   await page.getByRole('button', { name: 'Add record' }).click();
-  await page.waitForFunction(() => {
-    return typeof window.fetch === 'function' && document.querySelector('[data-service-provider-lookup]');
-  });
   await page.locator('[data-service-provider-lookup]').fill('Hendy');
   assert.equal(await page.getByRole('option', { name: /Hendy Jaguar, Southampton/ }).isVisible(), true);
   await page.getByRole('option', { name: /Hendy Jaguar, Southampton/ }).click();
-  assert.equal(await page.locator('[data-service-provider-lookup]').inputValue(), 'Hendy Jaguar, Southampton — SO18 2JD');
+  await page.waitForFunction(() => {
+    return document.querySelector('[data-service-provider-lookup]').value === 'Hendy Jaguar, Southampton — SO18 2JD';
+  });
   assert.equal(await page.locator('.campaign-selector').evaluate((element) => {
     return getComputedStyle(element).display === 'grid'
       && element.scrollWidth <= element.clientWidth;

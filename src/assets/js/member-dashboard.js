@@ -543,6 +543,7 @@
     })
     .then(function (data) {
       serviceProviders = Array.isArray(data.providers) ? data.providers : [];
+      workspace.dataset.serviceProvidersReady = 'true';
       if (memberData) render();
       workspace.querySelectorAll('[data-service-event-form]').forEach(function (form) {
         if (form.querySelector('[data-service-provider-lookup]').value) {
@@ -552,5 +553,6 @@
     })
     .catch(function () {
       serviceProviders = [];
+      workspace.dataset.serviceProvidersReady = 'failed';
     });
 })();

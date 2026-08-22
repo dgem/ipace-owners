@@ -25,6 +25,7 @@ test('member dashboard uses a full-width tabbed vehicle workspace', function () 
   assert.match(script, /campaign-selector/);
   assert.match(script, /Search by provider name, town or postcode/);
   assert.match(script, /data-service-provider-suggestions/);
+  assert.match(script, /serviceProvidersReady/);
   assert.match(script, /matchingServiceProviders/);
   assert.match(script, /provider\.name, provider\.postcode, provider\.town, provider\.county/);
   assert.match(script, /Authorised Jaguar Land Rover service provider/);
