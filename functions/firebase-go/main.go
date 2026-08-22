@@ -835,7 +835,7 @@ func buildMemberSnapshot(ctx context.Context, uid string, email string) (memberS
 				return memberSnapshot{}, err
 			}
 			var record joinRecord
-			if err := doc.DataTo(&record); err == nil {
+			if err := doc.DataTo(&record); err == nil && !recordDeleted(record.Review) {
 				record.IdentityUserID = uid
 				record.Contact.Email = ""
 				snapshot.JoinRecords = append(snapshot.JoinRecords, record)
@@ -852,7 +852,7 @@ func buildMemberSnapshot(ctx context.Context, uid string, email string) (memberS
 			return memberSnapshot{}, err
 		}
 		var record vehicleRecord
-		if err := doc.DataTo(&record); err == nil {
+		if err := doc.DataTo(&record); err == nil && !recordDeleted(record.Review) {
 			snapshot.VehicleRecords = append(snapshot.VehicleRecords, record)
 		}
 	}
@@ -866,7 +866,7 @@ func buildMemberSnapshot(ctx context.Context, uid string, email string) (memberS
 			return memberSnapshot{}, err
 		}
 		var record batteryReadingRecord
-		if err := doc.DataTo(&record); err == nil {
+		if err := doc.DataTo(&record); err == nil && !recordDeleted(record.Review) {
 			snapshot.BatteryReadings = append(snapshot.BatteryReadings, record)
 		}
 	}
@@ -880,7 +880,7 @@ func buildMemberSnapshot(ctx context.Context, uid string, email string) (memberS
 			return memberSnapshot{}, err
 		}
 		var record serviceEventRecord
-		if err := doc.DataTo(&record); err == nil {
+		if err := doc.DataTo(&record); err == nil && !recordDeleted(record.Review) {
 			snapshot.ServiceEvents = append(snapshot.ServiceEvents, record)
 		}
 	}
@@ -911,6 +911,10 @@ func buildMemberSnapshot(ctx context.Context, uid string, email string) (memberS
 		return snapshot.ServiceEvents[i].OccurredAt > snapshot.ServiceEvents[j].OccurredAt
 	})
 	return snapshot, nil
+}
+
+func recordDeleted(review reviewRecord) bool {
+	return review.Status == "deleted" || !review.DeletedAt.IsZero()
 }
 
 func readCollection[T any](ctx context.Context, query firestore.Query, dest *[]T) error {
