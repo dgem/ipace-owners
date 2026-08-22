@@ -74,6 +74,12 @@ header exposes Sign in beside the menu toggle and repeats it in the drawer for d
 both signed-out actions disappear after authentication, and the mobile header action remains
 hidden at desktop widths.
 
+The authenticated account page presents preference values as a concise summary with an explicit
+`Edit preferences` action; its editing controls are hidden until requested. Vehicle cards remain
+readable summaries. Their Edit and Delete actions open one full-width, well-spaced panel below
+the vehicle list rather than inserting a form into a narrow vehicle-card column. Deletion requires
+the typed confirmation documented in the API contract.
+
 `/admin/` is the claim-gated landing dashboard. It links to every implemented admin tool and
 describes planned areas without linking to unimplemented routes.
 

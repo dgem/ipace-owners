@@ -184,12 +184,12 @@
       html += '<p class="account-vehicle-card__hint">' + vehicleReadings.length + ' SoH ' + (vehicleReadings.length === 1 ? 'reading' : 'readings') + '</p>';
       html += '<a class="btn btn--secondary btn--sm" href="/member/dashboard/">Manage history</a>';
       html += '</div>';
-      html += '<div class="cluster" style="margin-top:var(--space-3)"><button class="btn btn--secondary btn--sm" type="button" data-toggle-edit-vehicle="' + escapeHtml(rec.id) + '">Edit vehicle</button><button class="btn btn--secondary btn--sm" type="button" data-toggle-delete data-delete-url="/api/delete-vehicle" data-delete-id="' + escapeHtml(rec.id) + '" data-delete-label="this vehicle and its SoH and service records">Delete vehicle</button></div>';
-      html += '<form class="member-form-panel" data-vehicle-edit-form hidden><input type="hidden" name="id" value="' + escapeHtml(rec.id) + '"><div class="member-form-grid"><div class="form-group"><label>Registration / plate</label><input name="registration" value="' + escapeHtml(veh.registration) + '"></div><div class="form-group"><label>Country</label><input name="country" value="' + escapeHtml(veh.country) + '"></div><div class="form-group"><label>Model year</label><input name="modelYear" value="' + escapeHtml(veh.modelYear) + '" inputmode="numeric"></div><div class="form-group"><label>Mileage</label><input name="mileage" type="number" min="0" max="500000" value="' + escapeHtml(veh.mileage == null ? '' : veh.mileage) + '"></div><div class="form-group"><label>Owned since</label><input name="ownedSince" type="date" value="' + escapeHtml(veh.ownedSince) + '"></div><div class="form-group"><label>First registration date</label><input name="firstReg" type="date" value="' + escapeHtml(veh.firstRegistrationDate) + '"></div></div><div class="cluster"><button class="btn btn--primary btn--sm" type="submit">Save vehicle</button><button class="btn btn--secondary btn--sm" type="button" data-close-edit-vehicle>Cancel</button></div><p class="form-hint" data-form-status role="status"></p></form>';
-      html += '<form class="member-form-panel" data-delete-form hidden><p><strong>Delete ' + escapeHtml(veh.registration || 'this vehicle') + '?</strong> This is a soft delete: it is removed from your account and anonymised totals, but retained securely for recovery. Type <strong>DELETE</strong> to confirm.</p><input type="hidden" name="id" value="' + escapeHtml(rec.id) + '"><div class="cluster"><div class="form-group"><label>Confirmation <input name="confirmation" autocomplete="off"></label></div><button class="btn btn--secondary btn--sm" type="submit">Confirm deletion</button><button class="btn btn--secondary btn--sm" type="button" data-close-delete>Cancel</button></div><p class="form-hint" data-form-status role="status"></p></form>';
+      html += '<div class="cluster account-vehicle-card__actions"><button class="btn btn--secondary btn--sm" type="button" data-toggle-edit-vehicle="' + escapeHtml(rec.id) + '">Edit vehicle</button><button class="btn btn--secondary btn--sm" type="button" data-toggle-delete data-delete-id="' + escapeHtml(rec.id) + '" data-delete-label="' + escapeHtml(veh.registration || 'this vehicle') + '">Delete vehicle</button></div>';
       html += '</article>';
     });
     html += '</div>';
+    html += '<section class="member-form-panel account-vehicle-editor" data-vehicle-edit-panel hidden aria-labelledby="vehicle-editor-title"><h3 id="vehicle-editor-title">Edit vehicle</h3><p class="form-hint">Update the vehicle details we use in your private record and, where you allow it, anonymised totals.</p><form data-vehicle-edit-form><input type="hidden" name="id"><div class="member-form-grid"><div class="form-group"><label for="vehicle-edit-registration">Registration / plate</label><input id="vehicle-edit-registration" name="registration" autocomplete="off"></div><div class="form-group"><label for="vehicle-edit-country">Country</label><select id="vehicle-edit-country" name="country"><option value="">Select country</option><option value="GB">United Kingdom</option><option value="IE">Ireland</option><option value="DE">Germany</option><option value="FR">France</option><option value="NL">Netherlands</option><option value="NO">Norway</option><option value="SE">Sweden</option><option value="DK">Denmark</option><option value="AT">Austria</option><option value="CH">Switzerland</option><option value="BE">Belgium</option><option value="ES">Spain</option><option value="IT">Italy</option><option value="PT">Portugal</option><option value="US">United States</option><option value="CA">Canada</option><option value="AU">Australia</option><option value="NZ">New Zealand</option><option value="other">Other</option></select></div><div class="form-group"><label for="vehicle-edit-model-year">Model year</label><select id="vehicle-edit-model-year" name="modelYear"><option value="">Select year</option><option>2018</option><option>2019</option><option>2020</option><option>2021</option><option>2022</option><option>2023</option><option>2024</option></select></div><div class="form-group"><label for="vehicle-edit-mileage">Current mileage</label><input id="vehicle-edit-mileage" name="mileage" type="number" min="0" max="500000"></div><div class="form-group"><label for="vehicle-edit-owned-since">Owned since</label><input id="vehicle-edit-owned-since" name="ownedSince" type="date" data-not-future></div><div class="form-group"><label for="vehicle-edit-first-registration">First registration date</label><input id="vehicle-edit-first-registration" name="firstReg" type="date" data-not-future></div></div><div class="cluster"><button class="btn btn--primary" type="submit">Save vehicle changes</button><button class="btn btn--secondary" type="button" data-close-edit-vehicle>Cancel</button></div><p class="form-hint" data-form-status role="status" aria-live="polite"></p></form></section>';
+    html += '<section class="member-form-panel account-vehicle-editor" data-delete-panel hidden aria-labelledby="vehicle-delete-title"><h3 id="vehicle-delete-title">Delete vehicle</h3><form data-delete-form data-delete-url="/api/delete-vehicle"><p data-delete-copy></p><input type="hidden" name="id"><div class="cluster"><div class="form-group"><label for="vehicle-delete-confirmation">Confirmation</label><input id="vehicle-delete-confirmation" name="confirmation" autocomplete="off"></div><button class="btn btn--secondary" type="submit">Confirm deletion</button><button class="btn btn--secondary" type="button" data-close-delete>Cancel</button></div><p class="form-hint" data-form-status role="status" aria-live="polite"></p></form></section>';
     vehicleList.innerHTML = html;
    }
 
@@ -248,7 +248,8 @@
       html += '<div class="preference-list__row"><dt>Recorded</dt><dd>' + escapeHtml(formatDate(rec.createdAt)) + '</dd></div>';
     }
     html += '</dl>';
-    html += '<form class="member-form-panel" data-preferences-form><fieldset><legend>Update preferences</legend><label class="check-label"><input name="contact" type="checkbox"' + (consents.contact ? ' checked' : '') + '> Receive group contact</label><label class="check-label"><input name="anonymisedAnalysis" type="checkbox"' + (consents.anonymisedAnalysis ? ' checked' : '') + '> Allow my anonymised vehicle and evidence data in aggregate statistics</label></fieldset><div class="cluster"><button class="btn btn--primary btn--sm" type="submit">Save preferences</button></div><p class="form-hint" data-form-status role="status" aria-live="polite"></p></form>';
+    html += '<div class="cluster" style="margin-top:var(--space-4)"><button class="btn btn--secondary btn--sm" type="button" data-toggle-preferences>Edit preferences</button></div>';
+    html += '<form class="member-form-panel" data-preferences-form hidden><fieldset><legend>Update preferences</legend><label class="check-label"><input name="contact" type="checkbox"' + (consents.contact ? ' checked' : '') + '> Receive group contact</label><label class="check-label"><input name="anonymisedAnalysis" type="checkbox"' + (consents.anonymisedAnalysis ? ' checked' : '') + '> Allow my anonymised vehicle and evidence data in aggregate statistics</label></fieldset><div class="cluster"><button class="btn btn--primary btn--sm" type="submit">Save changes</button><button class="btn btn--secondary btn--sm" type="button" data-close-preferences>Cancel</button></div><p class="form-hint" data-form-status role="status" aria-live="polite"></p></form>';
     preferencesEl.innerHTML = html;
    }
 
@@ -545,16 +546,56 @@
     var remove = event.target.closest('[data-toggle-delete]');
     var closeEdit = event.target.closest('[data-close-edit-vehicle]');
     var closeDelete = event.target.closest('[data-close-delete]');
+    var preferences = event.target.closest('[data-toggle-preferences]');
+    var closePreferences = event.target.closest('[data-close-preferences]');
     if (edit) {
-      var editForm = edit.closest('.account-vehicle-card').querySelector('[data-vehicle-edit-form]');
-      if (editForm) editForm.hidden = !editForm.hidden;
+      var vehicleContainer = edit.closest('[data-vehicle-container]');
+      var authContainer = edit.closest('[data-auth-container]');
+      var memberData = authContainer && authContainer.dataset.memberData ? JSON.parse(authContainer.dataset.memberData) : {};
+      var record = (memberData.vehicleRecords || []).filter(function (item) { return item.id === edit.dataset.toggleEditVehicle; })[0];
+      var editor = vehicleContainer && vehicleContainer.querySelector('[data-vehicle-edit-panel]');
+      if (record && editor) {
+        var vehicle = record.vehicle || {};
+        var form = editor.querySelector('[data-vehicle-edit-form]');
+        form.elements.id.value = record.id;
+        form.elements.registration.value = vehicle.registration || '';
+        form.elements.country.value = vehicle.country || '';
+        form.elements.modelYear.value = vehicle.modelYear || '';
+        form.elements.mileage.value = vehicle.mileage == null ? '' : vehicle.mileage;
+        form.elements.ownedSince.value = vehicle.ownedSince || '';
+        form.elements.firstReg.value = vehicle.firstRegistrationDate || '';
+        editor.hidden = false;
+        var deletePanel = vehicleContainer.querySelector('[data-delete-panel]');
+        if (deletePanel) deletePanel.hidden = true;
+        editor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        form.elements.registration.focus();
+      }
     } else if (remove) {
-      var deleteForm = remove.closest('.account-vehicle-card').querySelector('[data-delete-form]');
-      if (deleteForm) deleteForm.hidden = !deleteForm.hidden;
+      var list = remove.closest('[data-vehicle-container]');
+      var deleteConfirmationPanel = list && list.querySelector('[data-delete-panel]');
+      if (deleteConfirmationPanel) {
+        var deleteForm = deleteConfirmationPanel.querySelector('[data-delete-form]');
+        deleteForm.elements.id.value = remove.dataset.deleteId;
+        deleteForm.elements.confirmation.value = '';
+        deleteConfirmationPanel.querySelector('[data-delete-copy]').innerHTML = '<strong>Delete ' + escapeHtml(remove.dataset.deleteLabel) + '?</strong> This is a soft delete: it is removed from your account and anonymised totals, but retained securely for recovery. Type <strong>DELETE</strong> to confirm.';
+        deleteConfirmationPanel.hidden = false;
+        var vehicleEditor = list.querySelector('[data-vehicle-edit-panel]');
+        if (vehicleEditor) vehicleEditor.hidden = true;
+        deleteConfirmationPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        deleteForm.elements.confirmation.focus();
+      }
     } else if (closeEdit) {
-      closeEdit.closest('[data-vehicle-edit-form]').hidden = true;
+      closeEdit.closest('[data-vehicle-edit-panel]').hidden = true;
     } else if (closeDelete) {
-      closeDelete.closest('[data-delete-form]').hidden = true;
+      closeDelete.closest('[data-delete-panel]').hidden = true;
+    } else if (preferences) {
+      var preferenceForm = preferences.closest('[data-preferences-container]').querySelector('[data-preferences-form]');
+      if (preferenceForm) {
+        preferenceForm.hidden = false;
+        preferenceForm.elements.contact.focus();
+      }
+    } else if (closePreferences) {
+      closePreferences.closest('[data-preferences-form]').hidden = true;
     }
   });
 
@@ -564,13 +605,17 @@
     event.preventDefault();
     var status = form.querySelector('[data-form-status]');
     var button = form.querySelector('button[type="submit"]');
-    var url = form.matches('[data-preferences-form]') ? '/api/update-member-preferences' : form.matches('[data-vehicle-edit-form]') ? '/api/submit-vehicle-basics' : form.closest('.account-vehicle-card').querySelector('[data-toggle-delete]').dataset.deleteUrl;
+    var url = form.matches('[data-preferences-form]') ? '/api/update-member-preferences' : form.matches('[data-vehicle-edit-form]') ? '/api/submit-vehicle-basics' : form.dataset.deleteUrl;
     var payload = {};
     if (form.matches('[data-preferences-form]')) {
       payload.contact = form.elements.contact.checked;
       payload.anonymisedAnalysis = form.elements.anonymisedAnalysis.checked;
     } else {
       new FormData(form).forEach(function (value, key) { payload[key] = value; });
+    }
+    if (!validateNotFutureDates(form)) {
+      if (status) status.textContent = 'Check the highlighted date before saving.';
+      return;
     }
     button.disabled = true;
     if (status) status.textContent = 'Saving changes...';

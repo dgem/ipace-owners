@@ -2136,6 +2136,19 @@ canvas.admin-timeline {
   margin: 0;
 }
 
+.account-vehicle-card__actions {
+  grid-column: 1 / -1;
+}
+
+.account-vehicle-editor {
+  margin-top: var(--space-5);
+  scroll-margin-top: 8rem;
+}
+
+.account-vehicle-editor .form-hint {
+  max-width: 65ch;
+}
+
 @media (min-width: 48em) {
   .account-layout {
     grid-template-columns: repeat(2, minmax(0, 1fr));
