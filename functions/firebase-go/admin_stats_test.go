@@ -76,6 +76,18 @@ func TestComputeMemberStatsUsesVehicleCountryAndConservativeUKPlateInference(t *
 	}
 }
 
+func TestComputeMemberStatsUsesUnknownForConflictingVehicleCountries(t *testing.T) {
+	stats := computeMemberStats([]joinRecord{
+		{IdentityUserID: "multi-country", Contact: contactRecord{Email: "owner@example.com"}},
+	}, nil, []vehicleRecord{
+		{IdentityUserID: "multi-country", Vehicle: vehicleDetails{Country: "GB"}},
+		{IdentityUserID: "multi-country", Vehicle: vehicleDetails{Country: "IE"}},
+	})
+	if got := stats.CountryBreakup; len(got) != 1 || got[0] != (countryBreakdown{Country: "Unknown", Joined: 1}) {
+		t.Fatalf("countries=%#v", got)
+	}
+}
+
 func TestPublishedDashboardStatsUsesOnlyEligibleEvidenceConsent(t *testing.T) {
 	now := time.Date(2026, time.August, 22, 12, 0, 0, 0, time.UTC)
 	joins := []joinRecord{

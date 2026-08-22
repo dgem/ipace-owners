@@ -296,10 +296,19 @@ func memberCountry(member joinRecord, vehiclesByMember map[string][]vehicleRecor
 		return country
 	}
 	vehicles := vehiclesByMember[memberVehicleKey(member.IdentityUserID, member.UserEmailHash)]
+	vehicleCountries := make(map[string]struct{})
 	for _, vehicle := range vehicles {
 		if country := strings.TrimSpace(vehicle.Vehicle.Country); country != "" {
+			vehicleCountries[country] = struct{}{}
+		}
+	}
+	if len(vehicleCountries) == 1 {
+		for country := range vehicleCountries {
 			return country
 		}
+	}
+	if len(vehicleCountries) > 1 {
+		return "Unknown"
 	}
 	for _, vehicle := range vehicles {
 		if ukRegistrationRE.MatchString(strings.ToUpper(strings.ReplaceAll(strings.TrimSpace(vehicle.Vehicle.Registration), " ", ""))) {
