@@ -116,7 +116,7 @@ header.
 | `GET /api/member-data` | `MemberData` | Member | Return the signed-in user's generated snapshot. |
 | `GET /api/member-export?format=csv\|xlsx` | `MemberExport` | Member | Download that snapshot as separate CSV datasets in a ZIP or a formatted Excel workbook. |
 | `GET /api/admin-data` | `AdminData` | Admin | Return review data for administrators. |
-| `GET /api/admin/stats` | `AdminStats` | Admin | Return aggregate member, vehicle, SoH, and service-event statistics for the admin dashboard with `Cache-Control: private, no-store`; canonical emails are deduplicated at the first Join before the daily Join trend and country rows are calculated, magic-link-verified accounts have a separate daily line chart, and no per-vehicle evidence is returned. |
+| `GET /api/admin/stats` | `AdminStats` | Admin | Return public consent-filtered homepage counters alongside private all-record member, vehicle, SoH, and service-event statistics with `Cache-Control: private, no-store`; canonical emails are deduplicated at the first Join before the daily Join trend and country rows are calculated. Derive country from the Join, one unambiguous vehicle country, or a strict UK registration, otherwise use `Unknown` (including conflicting vehicle countries). Magic-link-verified accounts have a separate daily line chart, and no per-vehicle evidence is returned. |
 | `POST /api/admin/reengagement-preview` | `AdminReengagementPreview` | Admin | Return aggregate counts for the consented, unsigned-in Join audience. |
 | `POST /api/admin/reengagement-send` | `AdminReengagementSend` | Admin | Confirm and send the next resumable batch of at most ten reminders. |
 | `POST /api/admin/member-referral-preview` | `AdminMemberReferralPreview` | Admin | Preview the consented registered-member referral audience and exact campaign copy. |
@@ -171,9 +171,10 @@ sheet and chart format without exposing member data.
 - Store editable service and fault history in `serviceEvents`, tied to both the authenticated
   member UID and vehicle ID. Preserve creation timestamps and review metadata on edits.
   Service-provider references retain the Jaguar locator CI code, provider name and postcode
-  plus the member-confirmed authorised-JLR flag; also retain parts-delay range, goodwill
-  payment and miles driven whilst faulty. Derive days to final fix server-side from the two
-  recorded dates.
+  plus the member-confirmed authorised-JLR flag. The member lookup must search provider name,
+  town, postcode, county, and address fragments, while related campaigns use a compact,
+  overflow-safe wrapping grid. Also retain parts-delay range, goodwill payment and miles driven
+  whilst faulty. Derive days to final fix server-side from the two recorded dates.
 - Store named Instagram drafts and publication records in `instagramCampaigns`. Drafts can be
   updated, but published records are immutable; an edited repost receives a new ID and
   `sourceCampaignId`. Reserve before contacting Meta; a published retry returns the existing

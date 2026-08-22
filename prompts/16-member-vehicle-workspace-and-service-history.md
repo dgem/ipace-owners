@@ -49,12 +49,13 @@ Go handler.
 New records should default to `fault`. The form should also capture optional structured
 evidence fields:
 
-- a single service-provider lookup searchable by provider name or postcode, backed by a
+- a single service-provider lookup searchable by provider name, town, postcode, county, or
+  address fragment, backed by a
   refreshable static snapshot of Jaguar UK's official Electric Vehicle Service directory;
   store the locator CI code, name, postcode, and member-confirmed authorised-JLR status;
   allow a member to enter a provider not present in the suggestions;
 - related campaigns or recalls: `H441`, `H448`, `H570`, `H571`, `H572`, other, unsure,
-  none, presented in one horizontal, overflow-safe selector;
+  none, presented as a compact wrapping grid that remains overflow-safe at every width;
 - final fix date; calculate days from fault to final fix on the server rather than accepting
   a member-entered duration, and show the same calculation in the browser as immediate help;
 - whether a courtesy vehicle was offered and whether one was provided;
@@ -107,7 +108,9 @@ identity, sheet structure, representative totals, and chart parts.
 - Test Firebase Hosting route and browser bearer-token wiring.
 - Test tab semantics, full-width workspace markup, graph accessibility, and add/edit controls.
 - Test the provider-directory shape, server-derived resolution duration, new service fields,
-  and the single-row campaign selector at desktop and mobile widths.
+  and its accessible in-page provider suggestions, which must match provider name, town,
+  postcode, county, and address fragments. Campaign choices must wrap in a compact grid at
+  desktop and mobile widths without creating horizontal form overflow.
 - Test export authentication, method/format validation, ZIP datasets, formula-injection
   neutralisation, workbook sheets/charts, response headers, and browser bearer-token wiring.
 - Run `make test` and `make build`.

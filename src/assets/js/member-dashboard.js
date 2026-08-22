@@ -86,13 +86,66 @@
     return provider.name + ' — ' + provider.postcode;
   }
 
-  function serviceProviderOptionsMarkup() {
-    return serviceProviders.map(function (provider) {
-      var details = [provider.town];
-      if (provider.authorisedRepairer) details.push('Authorised Jaguar repairer');
-      if (provider.electricVehicleBatteryRepair) details.push('EV battery repair');
-      return '<option value="' + escapeHtml(serviceProviderValue(provider)) + '" label="' + escapeHtml(details.filter(Boolean).join(' · ')) + '"></option>';
-    }).join('');
+  function serviceProviderSearchText(provider) {
+    return [provider.name, provider.postcode, provider.town, provider.county]
+      .concat(provider.addressLines || [])
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+  }
+
+  function matchingServiceProviders(value) {
+    var query = String(value || '').trim().toLowerCase();
+    if (!query) return [];
+    return serviceProviders.filter(function (provider) {
+      return serviceProviderSearchText(provider).indexOf(query) !== -1;
+    }).slice(0, 8);
+  }
+
+  function providerSuggestionID(provider) {
+    return 'service-provider-suggestion-' + provider.id;
+  }
+
+  function providerSuggestionMarkup(provider) {
+    var details = [provider.postcode, provider.town];
+    if (provider.authorisedRepairer) details.push('Authorised Jaguar repairer');
+    return '<button type="button" id="' + escapeHtml(providerSuggestionID(provider)) + '" class="provider-autocomplete__option" role="option" tabindex="-1" data-service-provider-choice="' + escapeHtml(provider.id) + '" aria-selected="false">' +
+      '<strong>' + escapeHtml(provider.name) + '</strong><span>' + escapeHtml(details.filter(Boolean).join(' · ')) + '</span></button>';
+  }
+
+  function setActiveServiceProviderSuggestion(form, index) {
+    var lookup = form.querySelector('[data-service-provider-lookup]');
+    var results = form.querySelector('[data-service-provider-suggestions]');
+    var choices = results ? Array.from(results.querySelectorAll('[data-service-provider-choice]')) : [];
+    if (!lookup || !choices.length) return -1;
+    var activeIndex = Math.max(0, Math.min(index, choices.length - 1));
+    choices.forEach(function (choice, choiceIndex) {
+      choice.setAttribute('aria-selected', choiceIndex === activeIndex ? 'true' : 'false');
+    });
+    lookup.setAttribute('aria-activedescendant', choices[activeIndex].id);
+    choices[activeIndex].scrollIntoView({ block: 'nearest' });
+    return activeIndex;
+  }
+
+  function renderServiceProviderSuggestions(form) {
+    var lookup = form.querySelector('[data-service-provider-lookup]');
+    var results = form.querySelector('[data-service-provider-suggestions]');
+    if (!lookup || !results) return;
+    var matches = matchingServiceProviders(lookup.value);
+    results.innerHTML = matches.map(providerSuggestionMarkup).join('');
+    results.hidden = matches.length === 0;
+    lookup.setAttribute('aria-expanded', matches.length ? 'true' : 'false');
+    lookup.removeAttribute('aria-activedescendant');
+  }
+
+  function hideServiceProviderSuggestions(form) {
+    var lookup = form.querySelector('[data-service-provider-lookup]');
+    var results = form.querySelector('[data-service-provider-suggestions]');
+    if (results) results.hidden = true;
+    if (lookup) {
+      lookup.setAttribute('aria-expanded', 'false');
+      lookup.removeAttribute('aria-activedescendant');
+    }
   }
 
   function findServiceProvider(value) {
@@ -100,6 +153,19 @@
     return serviceProviders.find(function (provider) {
       return serviceProviderValue(provider).toLowerCase() === normalized;
     });
+  }
+
+  function findServiceProviderByID(id) {
+    return serviceProviders.find(function (provider) { return provider.id === id; });
+  }
+
+  function selectServiceProvider(form, provider) {
+    var lookup = form.querySelector('[data-service-provider-lookup]');
+    if (!lookup || !provider) return;
+    lookup.value = serviceProviderValue(provider);
+    syncServiceProviderFields(form, true);
+    hideServiceProviderSuggestions(form);
+    lookup.focus();
   }
 
   function syncServiceProviderFields(form, updateAuthorised) {
@@ -226,7 +292,7 @@
       '<div class="form-group"><label for="event-date">Date</label><input id="event-date" name="occurredAt" type="date" required' + notFutureDateAttributes('event-date-error') + '><span class="form-error" id="event-date-error" role="alert" hidden>Event date cannot be in the future.</span></div>' +
       '<div class="form-group"><label for="event-mileage">Mileage</label><input id="event-mileage" name="mileage" type="number" min="0" max="500000"></div>' +
       '<div class="form-group"><label for="event-status">Status</label><select id="event-status" name="status" required><option value="open">Open</option><option value="monitoring">Monitoring</option><option value="resolved">Resolved</option><option value="completed">Completed</option></select></div>' +
-      '<div class="form-group member-form-grid__wide"><label for="event-service-provider">Service provider</label><input id="event-service-provider" type="text" list="jaguar-service-providers" autocomplete="off" data-service-provider-lookup placeholder="Search by provider name or postcode"><datalist id="jaguar-service-providers">' + serviceProviderOptionsMarkup() + '</datalist>' +
+      '<div class="form-group member-form-grid__wide"><label for="event-service-provider">Service provider</label><div class="provider-autocomplete"><input id="event-service-provider" type="text" autocomplete="off" data-service-provider-lookup placeholder="Search by provider name, town or postcode" role="combobox" aria-autocomplete="list" aria-controls="jaguar-service-provider-suggestions" aria-expanded="false"><div id="jaguar-service-provider-suggestions" class="provider-autocomplete__suggestions" data-service-provider-suggestions role="listbox" hidden></div></div>' +
       '<input type="hidden" name="serviceProviderId"><input type="hidden" name="serviceProviderName"><input type="hidden" name="serviceProviderPostcode"><p class="form-hint">Jaguar UK EV service locations are suggested. You can also enter another provider.</p>' +
       '<label class="check-label"><input type="checkbox" name="serviceProviderAuthorised" value="true"> Authorised Jaguar Land Rover service provider</label></div>' +
       '<fieldset class="form-group member-form-grid__wide"><legend>Related campaigns or recalls</legend><div class="campaign-selector" aria-label="Select related campaigns or recalls">' +
@@ -466,6 +532,62 @@
     }
   });
 
+  workspace.addEventListener('input', function (event) {
+    var form = event.target.closest('[data-service-event-form]');
+    if (form && event.target.matches('[data-service-provider-lookup]')) {
+      renderServiceProviderSuggestions(form);
+    }
+  });
+
+  workspace.addEventListener('click', function (event) {
+    var choice = event.target.closest('[data-service-provider-choice]');
+    if (!choice) return;
+    var form = choice.closest('[data-service-event-form]');
+    var provider = findServiceProviderByID(choice.dataset.serviceProviderChoice);
+    if (!form || !provider) return;
+    selectServiceProvider(form, provider);
+  });
+
+  workspace.addEventListener('pointerdown', function (event) {
+    var choice = event.target.closest('[data-service-provider-choice]');
+    if (!choice) return;
+    var form = choice.closest('[data-service-event-form]');
+    var provider = findServiceProviderByID(choice.dataset.serviceProviderChoice);
+    if (!form || !provider) return;
+    event.preventDefault();
+    selectServiceProvider(form, provider);
+  });
+
+  workspace.addEventListener('focusout', function (event) {
+    if (!event.target.matches('[data-service-provider-lookup]')) return;
+    var form = event.target.closest('[data-service-event-form]');
+    window.setTimeout(function () {
+      if (form && !form.contains(document.activeElement)) hideServiceProviderSuggestions(form);
+    }, 0);
+  });
+
+  workspace.addEventListener('keydown', function (event) {
+    if (!event.target.matches('[data-service-provider-lookup]')) return;
+    var form = event.target.closest('[data-service-event-form]');
+    if (!form) return;
+    var choices = Array.from(form.querySelectorAll('[data-service-provider-choice]'));
+    if (event.key === 'Escape') {
+      hideServiceProviderSuggestions(form);
+      return;
+    }
+    if (!choices.length || (event.key !== 'ArrowDown' && event.key !== 'ArrowUp' && event.key !== 'Enter')) return;
+    if (event.key === 'Enter') {
+      var activeChoice = choices.find(function (choice) { return choice.getAttribute('aria-selected') === 'true'; });
+      if (!activeChoice) return;
+      event.preventDefault();
+      selectServiceProvider(form, findServiceProviderByID(activeChoice.dataset.serviceProviderChoice));
+      return;
+    }
+    event.preventDefault();
+    var currentIndex = choices.findIndex(function (choice) { return choice.getAttribute('aria-selected') === 'true'; });
+    setActiveServiceProviderSuggestion(form, currentIndex + (event.key === 'ArrowDown' ? 1 : -1));
+  });
+
   workspace.addEventListener('submit', function (event) {
     var form = event.target.closest('[data-service-event-form]');
     if (!form) return;
@@ -523,9 +645,15 @@
     })
     .then(function (data) {
       serviceProviders = Array.isArray(data.providers) ? data.providers : [];
-      if (memberData) render();
+      workspace.dataset.serviceProvidersReady = 'true';
+      workspace.querySelectorAll('[data-service-event-form]').forEach(function (form) {
+        if (form.querySelector('[data-service-provider-lookup]').value) {
+          renderServiceProviderSuggestions(form);
+        }
+      });
     })
     .catch(function () {
       serviceProviders = [];
+      workspace.dataset.serviceProvidersReady = 'failed';
     });
 })();

@@ -282,9 +282,11 @@ GitHub deployer a custom role containing only `firebaseauth.configs.get` and
 and before rerunning the preview workflow.
 
 `GET /api/admin/stats` is an administrator-claim-gated aggregate dashboard endpoint. It returns
-member, vehicle, State of Health, and service-event totals and breakdowns for the Admin home;
-it is not a public-statistics endpoint, counts each member once by canonical email at their first
-Join, and does not return private member snapshots or per-vehicle evidence.
+the consent-filtered homepage counters alongside private member, vehicle, State of Health, and
+service-event totals and breakdowns for the Admin home. It counts each member once by canonical
+email at their first Join, derives country from the Join, a single unambiguous vehicle country,
+or a strict UK plate before recording `Unknown` (including where a member's vehicle countries
+conflict), and does not return private member snapshots or per-vehicle evidence.
 
 Firebase does not permit preview or default `web.app` domains as Identity Toolkit's
 `linkDomain`. Preview emails therefore use Firebase's default action-handler domain and the
@@ -708,8 +710,9 @@ Cloud Storage.
 Members may register more than one I-PACE. The member dashboard uses vehicle tabs and shows
 one selected car's SoH graph and service/fault timeline at a time. Service-provider suggestions
 come from a generated snapshot of Jaguar UK's official EV-service locator and are searchable
-by name or postcode. Refresh the snapshot with `make update-service-providers`; members should
-still confirm current capabilities directly with the provider.
+by name, town, postcode, county, or address fragment. Refresh the snapshot with
+`make update-service-providers`; members should still confirm current capabilities directly
+with the provider.
 
 Set `VIN_PEPPER` as a GCP Secret Manager value and Function environment variable before
 collecting VINs. Full VINs are not stored; the Function uses `VIN_PEPPER` to create an HMAC

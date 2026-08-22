@@ -94,12 +94,7 @@ func buildPublicStatsSnapshot(ctx context.Context) (publicStatsSnapshot, error) 
 	if err := readCollection(ctx, db.Collection("serviceEvents").Query, &serviceEvents); err != nil {
 		return publicStatsSnapshot{}, err
 	}
-	consented := map[string]bool{}
-	for _, record := range joins {
-		if record.Consents.AnonymisedAnalysis && record.Review.Status != "excluded" && !recordDeleted(record.Review) {
-			consented[record.UserEmailHash] = true
-		}
-	}
+	consented := consentedJoinHashes(joins)
 	registeredMembers, err := registeredFirebaseAuthUsers(ctx)
 	if err != nil {
 		return publicStatsSnapshot{}, err

@@ -46,6 +46,14 @@ date: Last Modified
               </div>
             </div>
             <div class="stack" data-admin-stats-container>
+              <section aria-labelledby="public-stats-title">
+                <h3 id="public-stats-title">Published on the homepage</h3>
+                <p class="form-hint">Public consent-filtered figures — owner joins use contact consent; evidence totals use anonymised-analysis consent.</p>
+                <div class="grid grid--4 stat-cards" data-published-stats></div>
+              </section>
+              <section aria-labelledby="all-member-stats-title">
+                <h3 id="all-member-stats-title">All member records</h3>
+                <p class="form-hint">Private operational totals, including records not included in public evidence.</p>
               <div class="grid grid--4 stat-cards" data-member-stats>
                 <article class="stat-card">
                   <h3 class="stat-card__label">Total Members</h3>
@@ -56,8 +64,10 @@ date: Last Modified
                   <p class="stat-card__value" data-verified-count>—</p>
                 </article>
               </div>
+              </section>
               <section aria-labelledby="country-table-title">
                 <h3 id="country-table-title">Members by Country</h3>
+                <p class="form-hint">Join country, then vehicle country, then a recognised UK registration. We do not assume a country where none is recorded.</p>
                 <div class="table-wrapper">
                   <table class="data-table" data-country-table>
                     <thead>

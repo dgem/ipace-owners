@@ -222,8 +222,8 @@ offer a downloadable sample Excel workbook generated with fictional data only.
   garland rather than squeezing supporting copy into the artwork. Format the count with UK
   thousands separators. Reduce its font size from three digits onward, keeping generous clear
   space between the number and inner leaves at values such as 111 or 126, with further
-  reductions at four, five, and six-plus digits so membership growth cannot collide with the
-  wreath.
+  reductions at four, five, and six-plus displayed characters (including the thousands
+  separator) so membership growth cannot collide with the wreath.
 - Present the launch-page cars-registered, SoH-readings, and service/fault-record totals with
   the same reusable gold racing-wreath component as the Owners joined count. Treat the three
   evidence wreaths as a compact subsection directly below the hero image, with no separate
