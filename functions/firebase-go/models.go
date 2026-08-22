@@ -101,8 +101,8 @@ type batteryDetails struct {
 }
 
 type reviewRecord struct {
-	Status            string `json:"status" firestore:"status"`
-	VerificationLevel string `json:"verificationLevel" firestore:"verificationLevel"`
+	Status            string    `json:"status" firestore:"status"`
+	VerificationLevel string    `json:"verificationLevel" firestore:"verificationLevel"`
 	DeletedAt         time.Time `json:"deletedAt,omitempty" firestore:"deletedAt,omitempty"`
 }
 
