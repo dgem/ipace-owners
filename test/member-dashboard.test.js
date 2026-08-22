@@ -46,6 +46,8 @@ test('member dashboard uses a full-width tabbed vehicle workspace', function () 
   assert.match(script, /Event date cannot be in the future/);
   assert.match(script, /function validateNotFutureDates/);
   assert.match(script, /jaguar-uk-service-providers\.json/);
+  assert.match(script, /electricVehicleBatteryRepair/);
+  assert.match(script, /results\.innerHTML = ''/);
 });
 
 test('member dashboard supports owned SoH and service record editing and soft deletion', function () {

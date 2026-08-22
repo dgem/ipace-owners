@@ -37,6 +37,10 @@ const expectedAdminDestinations = [
   '/admin/email-campaigns/',
   '/admin/instagram-campaigns/'
 ];
+const serviceProviders = JSON.parse(fs.readFileSync('src/assets/data/jaguar-uk-service-providers.json', 'utf8')).providers;
+const providerFixture = serviceProviders.find((provider) => provider.name && provider.postcode && provider.town && provider.county && Array.isArray(provider.addressLines) && provider.addressLines[0]);
+assert.ok(providerFixture, 'service-provider fixture needs name, postcode, town, county, and address data');
+const escapeRegExp = (value) => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 async function revealAdminState(page) {
   await page.evaluate(function () {
@@ -443,22 +447,17 @@ async function checkServiceRecordForm(viewport, screenshotName) {
   });
   await page.waitForFunction(() => document.querySelector('[data-vehicle-workspace]').dataset.serviceProvidersReady === 'true');
   await page.getByRole('button', { name: 'Add record' }).click();
-  await page.locator('[data-service-provider-lookup]').fill('Hendy');
-  assert.equal(await page.getByRole('option', { name: /Hendy Jaguar, Southampton/ }).isVisible(), true);
-  await page.locator('[data-service-provider-lookup]').fill('Southampton');
-  assert.equal(await page.getByRole('option', { name: /Hendy Jaguar, Southampton/ }).isVisible(), true);
-  await page.locator('[data-service-provider-lookup]').fill('SO18 2JD');
-  assert.equal(await page.getByRole('option', { name: /Hendy Jaguar, Southampton/ }).isVisible(), true);
-  await page.locator('[data-service-provider-lookup]').fill('Dorset');
-  assert.equal(await page.getByRole('option', { name: /Hendy Accident Repair/ }).isVisible(), true);
-  await page.locator('[data-service-provider-lookup]').fill('Nuffield Industrial Estate');
-  assert.equal(await page.getByRole('option', { name: /Hendy Accident Repair/ }).isVisible(), true);
-  await page.locator('[data-service-provider-lookup]').fill('SO18 2JD');
+  const providerName = new RegExp(escapeRegExp(providerFixture.name));
+  for (const query of [providerFixture.name, providerFixture.town, providerFixture.postcode, providerFixture.county, providerFixture.addressLines[0]]) {
+    await page.locator('[data-service-provider-lookup]').fill(query);
+    assert.equal(await page.getByRole('option', { name: providerName }).isVisible(), true);
+  }
+  await page.locator('[data-service-provider-lookup]').fill(providerFixture.postcode);
   await page.locator('[data-service-provider-lookup]').press('ArrowDown');
   await page.locator('[data-service-provider-lookup]').press('Enter');
-  await page.waitForFunction(() => {
-    return document.querySelector('[data-service-provider-lookup]').value === 'Hendy Jaguar, Southampton — SO18 2JD';
-  });
+  await page.waitForFunction(({ name, postcode }) => {
+    return document.querySelector('[data-service-provider-lookup]').value === name + ' — ' + postcode;
+  }, { name: providerFixture.name, postcode: providerFixture.postcode });
   assert.equal(await page.locator('.campaign-selector').evaluate((element) => {
     return getComputedStyle(element).display === 'grid'
       && element.scrollWidth <= element.clientWidth;
