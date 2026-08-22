@@ -53,6 +53,10 @@ func init() {
 	functions.HTTP("SubmitVehicleBasics", SubmitVehicleBasics)
 	functions.HTTP("SubmitSOH", SubmitSOH)
 	functions.HTTP("UpsertServiceEvent", UpsertServiceEvent)
+	functions.HTTP("UpdateMemberPreferences", UpdateMemberPreferences)
+	functions.HTTP("DeleteVehicle", DeleteVehicle)
+	functions.HTTP("DeleteSOH", DeleteSOH)
+	functions.HTTP("DeleteServiceEvent", DeleteServiceEvent)
 	functions.HTTP("MemberData", MemberData)
 	functions.HTTP("MemberExport", MemberExport)
 	functions.HTTP("AdminData", AdminData)
@@ -72,6 +76,14 @@ func Api(w http.ResponseWriter, r *http.Request) {
 		SubmitSOH(w, r)
 	case "/api/upsert-service-event":
 		UpsertServiceEvent(w, r)
+	case "/api/update-member-preferences":
+		UpdateMemberPreferences(w, r)
+	case "/api/delete-vehicle":
+		DeleteVehicle(w, r)
+	case "/api/delete-soh":
+		DeleteSOH(w, r)
+	case "/api/delete-service-event":
+		DeleteServiceEvent(w, r)
 	case "/api/member-data":
 		MemberData(w, r)
 	case "/api/member-export":
@@ -367,6 +379,17 @@ func SubmitVehicleBasics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var existing vehicleRecord
+	if req.ID != "" {
+		existing, err = loadOwnedVehicle(r.Context(), cleanString(req.ID, 100), user.UID)
+		if err != nil {
+			writeJSON(w, http.StatusNotFound, map[string]any{"error": "Vehicle not found"})
+			return
+		}
+		if cleanString(req.Registration, 40) == "" {
+			req.Registration = existing.Vehicle.Registration
+		}
+	}
 	vin, registration, ignoredInvalidVIN, validationMessage := vehicleIdentifiers(req)
 	if validationMessage != "" {
 		logEvent("submit-vehicle-basics", "warn", "request rejected: invalid vehicle identifiers", map[string]any{
@@ -431,8 +454,20 @@ func SubmitVehicleBasics(w http.ResponseWriter, r *http.Request) {
 		},
 		Review: reviewRecord{Status: "new", VerificationLevel: "self-reported"},
 	}
+	if existing.ID != "" {
+		record.ID = existing.ID
+		record.CreatedAt = existing.CreatedAt
+		record.Review = existing.Review
+		record.Vehicle.VINHash = existing.Vehicle.VINHash
+		record.Vehicle.VINLast6 = existing.Vehicle.VINLast6
+		record.Battery = existing.Battery
+	}
 
-	if err := saveVehicle(r.Context(), record, initialBatteryReading(record)); err != nil {
+	var reading *batteryReadingRecord
+	if existing.ID == "" {
+		reading = initialBatteryReading(record)
+	}
+	if err := saveVehicle(r.Context(), record, reading); err != nil {
 		logEvent("submit-vehicle-basics", "error", "record save failed", map[string]any{"uid": user.UID, "error": err.Error()})
 		writeJSON(w, http.StatusInternalServerError, map[string]any{"ok": false, "error": "Could not save vehicle basics"})
 		return

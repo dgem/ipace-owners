@@ -198,23 +198,23 @@
 
   function readingsMarkup(readings) {
     if (!readings.length) return '';
-    return '<div class="reading-table-wrap"><table class="reading-table"><thead><tr><th>Date</th><th>SoH</th><th>Mileage</th><th>Source</th></tr></thead><tbody>' +
+    return '<div class="reading-table-wrap"><table class="reading-table"><thead><tr><th>Date</th><th>SoH</th><th>Mileage</th><th>Source</th><th><span class="sr-only">Actions</span></th></tr></thead><tbody>' +
       readings.slice().reverse().map(function (reading) {
         var battery = reading.battery || {};
         return '<tr><td>' + escapeHtml(formatDate(battery.measuredAt)) + '</td><td><strong>' + escapeHtml(battery.stateOfHealth) + '%</strong></td><td>' +
-          (battery.mileageAtMeasurement == null ? 'Not recorded' : Number(battery.mileageAtMeasurement).toLocaleString() + ' miles') + '</td><td>' + escapeHtml(sourceLabel(battery.source)) + '</td></tr>';
+          (battery.mileageAtMeasurement == null ? 'Not recorded' : Number(battery.mileageAtMeasurement).toLocaleString() + ' miles') + '</td><td>' + escapeHtml(sourceLabel(battery.source)) + '</td><td><div class="cluster cluster--sm"><button class="btn btn--secondary btn--sm" type="button" data-edit-soh="' + escapeHtml(reading.id) + '">Edit</button><button class="btn btn--secondary btn--sm" type="button" data-delete-record="soh" data-record-id="' + escapeHtml(reading.id) + '">Delete</button></div></td></tr>';
       }).join('') + '</tbody></table></div>';
   }
 
   function sohFormMarkup(vehicleId) {
     var id = escapeHtml(vehicleId);
     return '<div class="member-form-panel" data-soh-panel hidden><form data-soh-update-form>' +
-      '<input type="hidden" name="vehicleId" value="' + id + '"><div class="member-form-grid">' +
+      '<input type="hidden" name="id"><input type="hidden" name="vehicleId" value="' + id + '"><div class="member-form-grid">' +
       '<div class="form-group"><label for="dashboard-soh">State of Health (%)</label><input id="dashboard-soh" name="soh" type="number" min="0" max="100" step="0.1" required></div>' +
       '<div class="form-group"><label for="dashboard-soh-date">Measurement date</label><input id="dashboard-soh-date" name="sohDate" type="date" required' + notFutureDateAttributes('dashboard-soh-date-error') + '><span class="form-error" id="dashboard-soh-date-error" role="alert" hidden>Measurement date cannot be in the future.</span></div>' +
       '<div class="form-group"><label for="dashboard-soh-mileage">Mileage at measurement</label><input id="dashboard-soh-mileage" name="sohMileage" type="number" min="0" max="500000"></div>' +
       '<div class="form-group"><label for="dashboard-soh-source">Measurement source</label><select id="dashboard-soh-source" name="sohSource" required><option value="">Select source</option><option value="dealer-report">Dealer report</option><option value="diagnostic-app">Diagnostic app / OBD</option><option value="service-paperwork">Service paperwork</option><option value="jlr-communication">JLR communication</option><option value="estimate-unsure">Estimate / unsure</option></select></div>' +
-      '</div><div class="cluster"><button class="btn btn--primary" type="submit">Save reading</button><button class="btn btn--secondary" type="button" data-close-panel="soh">Cancel</button></div>' +
+      '</div><div class="cluster"><button class="btn btn--primary" type="submit" data-soh-save>Save reading</button><button class="btn btn--secondary" type="button" data-close-panel="soh">Cancel</button></div>' +
       '<p class="form-hint" data-soh-update-status role="status" aria-live="polite"></p></form></div>';
   }
 
@@ -274,7 +274,7 @@
         '<h3>' + escapeHtml(item.title) + '</h3><p class="service-event__meta">' + escapeHtml(meta.join(' · ')) + '</p>' +
         (support.length ? '<p class="service-event__meta">' + escapeHtml(support.join(' · ')) + '</p>' : '') +
         (item.description ? '<p>' + escapeHtml(item.description) + '</p>' : '') + '</div>' +
-        '<button class="btn btn--sm btn--secondary" type="button" data-edit-event="' + escapeHtml(item.id) + '">Edit</button></article>';
+        '<div class="cluster cluster--sm"><button class="btn btn--sm btn--secondary" type="button" data-edit-event="' + escapeHtml(item.id) + '">Edit</button><button class="btn btn--sm btn--secondary" type="button" data-delete-record="event" data-record-id="' + escapeHtml(item.id) + '">Delete</button></div></article>';
     }).join('') + '</div>';
   }
 
@@ -358,6 +358,34 @@
     openPanel('event');
   }
 
+  function editSOH(id) {
+    var item = (memberData.batteryReadings || []).find(function (reading) { return reading.id === id; });
+    if (!item) return;
+    var form = workspace.querySelector('[data-soh-update-form]');
+    var battery = item.battery || {};
+    form.elements.id.value = item.id;
+    form.elements.vehicleId.value = item.vehicleId;
+    form.elements.soh.value = battery.stateOfHealth == null ? '' : battery.stateOfHealth;
+    form.elements.sohDate.value = battery.measuredAt || '';
+    form.elements.sohMileage.value = battery.mileageAtMeasurement == null ? '' : battery.mileageAtMeasurement;
+    form.elements.sohSource.value = battery.source || '';
+    form.querySelector('[data-soh-save]').textContent = 'Save reading';
+    openPanel('soh');
+  }
+
+  function deleteRecord(kind, id) {
+    var confirmation = window.prompt('This is a soft delete. Type DELETE to confirm.');
+    if (confirmation !== 'DELETE') return;
+    var endpoint = kind === 'soh' ? '/api/delete-soh' : '/api/delete-service-event';
+    Promise.resolve(window.ipaceGetIdentityToken ? window.ipaceGetIdentityToken() : '').then(function (token) {
+      return fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify({ id: id, confirmation: confirmation }) });
+    }).then(function (response) {
+      return response.json().catch(function () { return {}; }).then(function (data) {
+        if (!response.ok || !data.ok) throw new Error(data.error || 'Could not delete record');
+      });
+    }).then(function () { return window.ipaceRefreshMemberData(); }).catch(function (error) { window.alert(error.message || 'Could not delete record.'); });
+  }
+
   function dateIsFuture(value) {
     return !!value && value > todayString();
   }
@@ -382,6 +410,8 @@
     var open = event.target.closest('[data-open-panel]');
     var close = event.target.closest('[data-close-panel]');
     var edit = event.target.closest('[data-edit-event]');
+    var editSOHButton = event.target.closest('[data-edit-soh]');
+    var remove = event.target.closest('[data-delete-record]');
     if (tab) {
       activeVehicleId = tab.dataset.vehicleTab;
       render();
@@ -395,6 +425,12 @@
         form.elements.vehicleId.value = activeVehicleId;
         updateResolutionDays(form);
         form.querySelector('[data-event-form-title]').textContent = 'Add service event or fault';
+      } else if (open.dataset.openPanel === 'soh') {
+        var sohForm = workspace.querySelector('[data-soh-update-form]');
+        sohForm.reset();
+        sohForm.elements.id.value = '';
+        sohForm.elements.vehicleId.value = activeVehicleId;
+        sohForm.querySelector('[data-soh-save]').textContent = 'Save reading';
       }
       openPanel(open.dataset.openPanel);
     } else if (close) {
@@ -402,6 +438,10 @@
       if (panel) panel.hidden = true;
     } else if (edit) {
       editEvent(edit.dataset.editEvent);
+    } else if (editSOHButton) {
+      editSOH(editSOHButton.dataset.editSoh);
+    } else if (remove) {
+      deleteRecord(remove.dataset.deleteRecord, remove.dataset.recordId);
     }
   });
 

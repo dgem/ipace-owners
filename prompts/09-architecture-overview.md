@@ -106,9 +106,13 @@ header.
 |---|---|---|---|
 | `POST /api/send-magic-link` | `SendMagicLink` | No | Request a passwordless sign-in email for an already registered member. |
 | `POST /api/submit-join` | `SubmitJoin` | Optional | Save Join submission; send email link for guests. |
-| `POST /api/submit-vehicle-basics` | `SubmitVehicleBasics` | Member | Save one vehicle basics record and optional initial SoH reading. |
-| `POST /api/submit-soh` | `SubmitSOH` | Member | Append an SoH reading after verifying vehicle ownership. |
+| `POST /api/submit-vehicle-basics` | `SubmitVehicleBasics` | Member | Create or edit one owned vehicle basics record; creation may include an initial SoH reading. |
+| `POST /api/submit-soh` | `SubmitSOH` | Member | Create or edit an owned SoH reading after verifying vehicle ownership. |
 | `POST /api/upsert-service-event` | `UpsertServiceEvent` | Member | Add or edit an owned vehicle's service/fault timeline record. |
+| `POST /api/update-member-preferences` | `UpdateMemberPreferences` | Member | Update contact and anonymised-analysis consent for all Join records of the signed-in email. |
+| `POST /api/delete-vehicle` | `DeleteVehicle` | Member | Soft-delete an owned vehicle and its dependent SoH and service records after typed confirmation. |
+| `POST /api/delete-soh` | `DeleteSOH` | Member | Soft-delete an owned SoH reading after typed confirmation. |
+| `POST /api/delete-service-event` | `DeleteServiceEvent` | Member | Soft-delete an owned service/fault record after typed confirmation. |
 | `GET /api/member-data` | `MemberData` | Member | Return the signed-in user's generated snapshot. |
 | `GET /api/member-export?format=csv\|xlsx` | `MemberExport` | Member | Download that snapshot as separate CSV datasets in a ZIP or a formatted Excel workbook. |
 | `GET /api/admin-data` | `AdminData` | Admin | Return review data for administrators. |

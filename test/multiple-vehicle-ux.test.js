@@ -18,6 +18,9 @@ test('member/account UI treats vehicle records as a list', function () {
   assert.match(account, /account-layout__wide/);
   assert.match(memberAuth, /account-vehicle-grid/);
   assert.match(memberAuth, /Manage history/);
+  assert.match(memberAuth, /data-vehicle-edit-form/);
+  assert.match(memberAuth, /\/api\/delete-vehicle/);
+  assert.match(memberAuth, /Type <strong>DELETE<\/strong> to confirm/);
   assert.match(dashboard, /Your vehicles/);
   assert.match(dashboard, /Add vehicle/);
   assert.match(memberAuth, /Add your first vehicle/);

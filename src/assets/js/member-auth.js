@@ -184,6 +184,9 @@
       html += '<p class="account-vehicle-card__hint">' + vehicleReadings.length + ' SoH ' + (vehicleReadings.length === 1 ? 'reading' : 'readings') + '</p>';
       html += '<a class="btn btn--secondary btn--sm" href="/member/dashboard/">Manage history</a>';
       html += '</div>';
+      html += '<div class="cluster" style="margin-top:var(--space-3)"><button class="btn btn--secondary btn--sm" type="button" data-toggle-edit-vehicle="' + escapeHtml(rec.id) + '">Edit vehicle</button><button class="btn btn--secondary btn--sm" type="button" data-toggle-delete data-delete-url="/api/delete-vehicle" data-delete-id="' + escapeHtml(rec.id) + '" data-delete-label="this vehicle and its SoH and service records">Delete vehicle</button></div>';
+      html += '<form class="member-form-panel" data-vehicle-edit-form hidden><input type="hidden" name="id" value="' + escapeHtml(rec.id) + '"><div class="member-form-grid"><div class="form-group"><label>Registration / plate</label><input name="registration" value="' + escapeHtml(veh.registration) + '"></div><div class="form-group"><label>Country</label><input name="country" value="' + escapeHtml(veh.country) + '"></div><div class="form-group"><label>Model year</label><input name="modelYear" value="' + escapeHtml(veh.modelYear) + '" inputmode="numeric"></div><div class="form-group"><label>Mileage</label><input name="mileage" type="number" min="0" max="500000" value="' + escapeHtml(veh.mileage == null ? '' : veh.mileage) + '"></div><div class="form-group"><label>Owned since</label><input name="ownedSince" type="date" value="' + escapeHtml(veh.ownedSince) + '"></div><div class="form-group"><label>First registration date</label><input name="firstReg" type="date" value="' + escapeHtml(veh.firstRegistrationDate) + '"></div></div><div class="cluster"><button class="btn btn--primary btn--sm" type="submit">Save vehicle</button><button class="btn btn--secondary btn--sm" type="button" data-close-edit-vehicle>Cancel</button></div><p class="form-hint" data-form-status role="status"></p></form>';
+      html += '<form class="member-form-panel" data-delete-form hidden><p><strong>Delete ' + escapeHtml(veh.registration || 'this vehicle') + '?</strong> This is a soft delete: it is removed from your account and anonymised totals, but retained securely for recovery. Type <strong>DELETE</strong> to confirm.</p><input type="hidden" name="id" value="' + escapeHtml(rec.id) + '"><div class="cluster"><div class="form-group"><label>Confirmation <input name="confirmation" autocomplete="off"></label></div><button class="btn btn--secondary btn--sm" type="submit">Confirm deletion</button><button class="btn btn--secondary btn--sm" type="button" data-close-delete>Cancel</button></div><p class="form-hint" data-form-status role="status"></p></form>';
       html += '</article>';
     });
     html += '</div>';
@@ -245,9 +248,18 @@
       html += '<div class="preference-list__row"><dt>Recorded</dt><dd>' + escapeHtml(formatDate(rec.createdAt)) + '</dd></div>';
     }
     html += '</dl>';
-    html += '<p class="form-hint">Preference editing will be added with an audited account update flow. For now, contact the group if these details need correcting.</p>';
+    html += '<form class="member-form-panel" data-preferences-form><fieldset><legend>Update preferences</legend><label class="check-label"><input name="contact" type="checkbox"' + (consents.contact ? ' checked' : '') + '> Receive group contact</label><label class="check-label"><input name="anonymisedAnalysis" type="checkbox"' + (consents.anonymisedAnalysis ? ' checked' : '') + '> Allow my anonymised vehicle and evidence data in aggregate statistics</label></fieldset><div class="cluster"><button class="btn btn--primary btn--sm" type="submit">Save preferences</button></div><p class="form-hint" data-form-status role="status" aria-live="polite"></p></form>';
     preferencesEl.innerHTML = html;
    }
+
+  function requestJSON(url, payload) {
+    return fetchWithIdentity(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }).then(function (response) {
+      return response.json().catch(function () { return {}; }).then(function (data) {
+        if (!response.ok || !data.ok) throw new Error(data.error || 'Could not save your changes');
+        return data;
+      });
+    });
+  }
 
   async function verifyMemberAuth() {
     var runId = ++authRunId;
@@ -526,6 +538,48 @@
     }).finally(function () {
       if (button) button.disabled = false;
     });
+  });
+
+  document.addEventListener('click', function (event) {
+    var edit = event.target.closest('[data-toggle-edit-vehicle]');
+    var remove = event.target.closest('[data-toggle-delete]');
+    var closeEdit = event.target.closest('[data-close-edit-vehicle]');
+    var closeDelete = event.target.closest('[data-close-delete]');
+    if (edit) {
+      var editForm = edit.closest('.account-vehicle-card').querySelector('[data-vehicle-edit-form]');
+      if (editForm) editForm.hidden = !editForm.hidden;
+    } else if (remove) {
+      var deleteForm = remove.closest('.account-vehicle-card').querySelector('[data-delete-form]');
+      if (deleteForm) deleteForm.hidden = !deleteForm.hidden;
+    } else if (closeEdit) {
+      closeEdit.closest('[data-vehicle-edit-form]').hidden = true;
+    } else if (closeDelete) {
+      closeDelete.closest('[data-delete-form]').hidden = true;
+    }
+  });
+
+  document.addEventListener('submit', function (event) {
+    var form = event.target.closest('[data-preferences-form], [data-vehicle-edit-form], [data-delete-form]');
+    if (!form) return;
+    event.preventDefault();
+    var status = form.querySelector('[data-form-status]');
+    var button = form.querySelector('button[type="submit"]');
+    var url = form.matches('[data-preferences-form]') ? '/api/update-member-preferences' : form.matches('[data-vehicle-edit-form]') ? '/api/submit-vehicle-basics' : form.closest('.account-vehicle-card').querySelector('[data-toggle-delete]').dataset.deleteUrl;
+    var payload = {};
+    if (form.matches('[data-preferences-form]')) {
+      payload.contact = form.elements.contact.checked;
+      payload.anonymisedAnalysis = form.elements.anonymisedAnalysis.checked;
+    } else {
+      new FormData(form).forEach(function (value, key) { payload[key] = value; });
+    }
+    button.disabled = true;
+    if (status) status.textContent = 'Saving changes...';
+    requestJSON(url, payload).then(function () {
+      if (status) status.textContent = 'Saved. Refreshing your account...';
+      return verifyMemberAuth();
+    }).catch(function (error) {
+      if (status) status.textContent = error.message || 'Could not save your changes.';
+    }).finally(function () { button.disabled = false; });
   });
 
   function initWhenIdentityReady() {
