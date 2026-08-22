@@ -109,6 +109,7 @@
   function providerSuggestionMarkup(provider) {
     var details = [provider.postcode, provider.town];
     if (provider.authorisedRepairer) details.push('Authorised Jaguar repairer');
+    if (provider.electricVehicleBatteryRepair) details.push('EV battery repair');
     return '<button type="button" id="' + escapeHtml(providerSuggestionID(provider)) + '" class="provider-autocomplete__option" role="option" tabindex="-1" data-service-provider-choice="' + escapeHtml(provider.id) + '" aria-selected="false">' +
       '<strong>' + escapeHtml(provider.name) + '</strong><span>' + escapeHtml(details.filter(Boolean).join(' · ')) + '</span></button>';
   }
@@ -141,7 +142,10 @@
   function hideServiceProviderSuggestions(form) {
     var lookup = form.querySelector('[data-service-provider-lookup]');
     var results = form.querySelector('[data-service-provider-suggestions]');
-    if (results) results.hidden = true;
+    if (results) {
+      results.hidden = true;
+      results.innerHTML = '';
+    }
     if (lookup) {
       lookup.setAttribute('aria-expanded', 'false');
       lookup.removeAttribute('aria-activedescendant');
@@ -460,12 +464,16 @@
         form.reset();
         form.elements.vehicleId.value = activeVehicleId;
         updateResolutionDays(form);
+        hideServiceProviderSuggestions(form);
         form.querySelector('[data-event-form-title]').textContent = 'Add service event or fault';
       }
       openPanel(open.dataset.openPanel);
     } else if (close) {
       var panel = workspace.querySelector(close.dataset.closePanel === 'soh' ? '[data-soh-panel]' : '[data-event-panel]');
-      if (panel) panel.hidden = true;
+      if (panel) {
+        hideServiceProviderSuggestions(panel);
+        panel.hidden = true;
+      }
     } else if (edit) {
       editEvent(edit.dataset.editEvent);
     }
@@ -522,7 +530,8 @@
     if (!event.target.matches('[data-service-provider-lookup]')) return;
     var form = event.target.closest('[data-service-event-form]');
     window.setTimeout(function () {
-      if (form && !form.contains(document.activeElement)) hideServiceProviderSuggestions(form);
+      var active = document.activeElement;
+      if (form && !(active && (active.matches('[data-service-provider-lookup]') || active.matches('[data-service-provider-choice]')))) hideServiceProviderSuggestions(form);
     }, 0);
   });
 
