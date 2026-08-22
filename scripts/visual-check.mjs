@@ -37,6 +37,10 @@ const expectedAdminDestinations = [
   '/admin/email-campaigns/',
   '/admin/instagram-campaigns/'
 ];
+const serviceProviders = JSON.parse(fs.readFileSync('src/assets/data/jaguar-uk-service-providers.json', 'utf8')).providers;
+const providerFixture = serviceProviders.find((provider) => provider.name && provider.postcode && provider.town && provider.county && Array.isArray(provider.addressLines) && provider.addressLines[0]);
+assert.ok(providerFixture, 'service-provider fixture needs name, postcode, town, county, and address data');
+const escapeRegExp = (value) => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 async function revealAdminState(page) {
   await page.evaluate(function () {
@@ -441,13 +445,26 @@ async function checkServiceRecordForm(viewport, screenshotName) {
       }
     }));
   });
+  await page.waitForFunction(() => document.querySelector('[data-vehicle-workspace]').dataset.serviceProvidersReady === 'true');
   await page.getByRole('button', { name: 'Add record' }).click();
-  assert.equal(await page.locator('#jaguar-service-providers option').count() >= 50, true);
+  const providerName = new RegExp(escapeRegExp(providerFixture.name));
+  for (const query of [providerFixture.name, providerFixture.town, providerFixture.postcode, providerFixture.county, providerFixture.addressLines[0]]) {
+    await page.locator('[data-service-provider-lookup]').fill(query);
+    assert.equal(await page.getByRole('option', { name: providerName }).isVisible(), true);
+  }
+  await page.locator('[data-service-provider-lookup]').fill(providerFixture.postcode);
+  await page.locator('[data-service-provider-lookup]').press('ArrowDown');
+  await page.locator('[data-service-provider-lookup]').press('Enter');
+  await page.waitForFunction(({ name, postcode }) => {
+    return document.querySelector('[data-service-provider-lookup]').value === name + ' — ' + postcode;
+  }, { name: providerFixture.name, postcode: providerFixture.postcode });
   assert.equal(await page.locator('.campaign-selector').evaluate((element) => {
-    const first = element.firstElementChild.getBoundingClientRect();
-    return getComputedStyle(element).display === 'flex'
-      && Array.from(element.children).every((child) => Math.abs(child.getBoundingClientRect().top - first.top) < 2);
-  }), true, 'campaign choices must remain in one horizontal selector');
+    return getComputedStyle(element).display === 'grid'
+      && element.scrollWidth <= element.clientWidth;
+  }), true, 'campaign choices must wrap without horizontal overflow');
+  assert.equal(await page.locator('[data-service-event-form]').evaluate((element) => {
+    return element.scrollWidth <= element.clientWidth;
+  }), true, 'the service record form must not overflow its container');
   assert.equal(await page.getByText('Calculated automatically when both dates are entered').isVisible(), true);
   assert.equal(await page.getByText('Goodwill payment received').isVisible(), true);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
@@ -468,11 +485,11 @@ async function checkPublicContentPage(url, heading, viewport, screenshotName) {
   await page.close();
 }
 
-async function checkPublicEvidenceCounters(url, viewport, screenshotName, showMemberCta = false) {
+async function checkPublicEvidenceCounters(url, viewport, screenshotName, showMemberCta = false, publicStatsOverrides = {}, expectedJoinedCountSize = '') {
   const page = await browser.newPage({ viewport });
   await page.route('**/api/public-stats?v=6', (route) => route.fulfill({
     contentType: 'application/json',
-    body: JSON.stringify({
+    body: JSON.stringify(Object.assign({
       schemaVersion: 6,
       generatedAt: '2026-07-29T09:30:00Z',
       joinedOwners: 429,
@@ -496,9 +513,14 @@ async function checkPublicEvidenceCounters(url, viewport, screenshotName, showMe
         { label: '2020', count: 118 },
         { label: '2021', count: 102 }
       ]
-    })
+    }, publicStatsOverrides))
   }));
   await page.goto(baseURL + url, { waitUntil: 'networkidle' });
+  if (expectedJoinedCountSize) {
+    const joinedOwners = page.locator('[data-public-stat="joinedOwners"]').first();
+    await joinedOwners.waitFor({ state: 'visible' });
+    assert.equal(await joinedOwners.getAttribute('data-count-size'), expectedJoinedCountSize);
+  }
   await page.evaluate(() => {
     document.querySelectorAll('.cookie-notice').forEach((element) => { element.hidden = true; });
   });
@@ -603,11 +625,15 @@ try {
   await checkMemberExport({ width: 390, height: 844 }, 'member-export-mobile.png');
   await checkServiceRecordForm({ width: 1440, height: 1100 }, 'member-service-record-desktop.png');
   await checkServiceRecordForm({ width: 390, height: 844 }, 'member-service-record-mobile.png');
+  await checkServiceRecordForm({ width: 360, height: 800 }, 'member-service-record-galaxy-s25.png');
   await checkPublicContentPage('/updates/member-data-export/', 'Export your member and vehicle data', { width: 1440, height: 1000 }, 'member-export-update-desktop.png');
   await checkPublicContentPage('/updates/member-data-export/', 'Export your member and vehicle data', { width: 390, height: 844 }, 'member-export-update-mobile.png');
   await checkPublicContentPage('/privacy/', 'Privacy Policy', { width: 1440, height: 1000 }, 'privacy-desktop.png');
   await checkPublicContentPage('/privacy/', 'Privacy Policy', { width: 390, height: 844 }, 'privacy-mobile.png');
   await checkPublicEvidenceCounters('/', { width: 1440, height: 1000 }, 'public-evidence-counters-desktop.png');
+  await checkPublicEvidenceCounters('/', { width: 1440, height: 1000 }, 'public-evidence-count-999.png', false, { joinedOwners: 999 }, 'three');
+  await checkPublicEvidenceCounters('/', { width: 1440, height: 1000 }, 'public-evidence-count-1000.png', false, { joinedOwners: 1000 }, 'five');
+  await checkPublicEvidenceCounters('/', { width: 1440, height: 1000 }, 'public-evidence-count-10000.png', false, { joinedOwners: 10000 }, 'large');
   await checkPublicEvidenceCounters('/', { width: 390, height: 844 }, 'public-evidence-counters-mobile.png');
   await checkPublicEvidenceCounters('/', { width: 1440, height: 1000 }, 'public-evidence-member-cta-desktop.png', true);
   await checkPublicEvidenceCounters('/', { width: 390, height: 844 }, 'public-evidence-member-cta-mobile.png', true);

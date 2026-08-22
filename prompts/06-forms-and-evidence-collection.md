@@ -168,8 +168,9 @@ Below the SoH history, show an editable service/fault timeline. Members can add 
 fault, repair, recall, inspection, or other records with date, optional mileage, summary,
 details, and status. New records should default to `fault`, because fault reporting is the
 main evidence workflow. Service/fault records should optionally capture related campaigns
-(`H441`, `H448`, `H570`, `H571`, `H572`, other/unsure/none) in a horizontal selector; service
-provider via a name/postcode lookup; authorised-JLR status; final fix date; courtesy vehicle
+(`H441`, `H448`, `H570`, `H571`, `H572`, other/unsure/none) in a compact wrapping grid; service
+provider via a lookup searchable by provider name, town, postcode, county, or address fragment;
+authorised-JLR status; final fix date; courtesy vehicle
 offered/provided; a bounded parts-delay range; goodwill payment received; miles driven whilst
 faulty; warranty cover; and responsibility/warranty dispute status. Calculate days from fault
 to final fix on the server from the two dates. Post additions and edits to

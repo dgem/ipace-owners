@@ -38,12 +38,13 @@ test('homepage and evidence dashboard load real public aggregate statistics', fu
   assert.match(dashboard, /data-public-distribution="soh"/);
   assert.doesNotMatch(dashboard, /Illustrative data|Sample data|Placeholder data/);
   assert.match(stats, /fetch\('\/api\/public-stats\?v=6'\)/);
-  assert.match(stats, /count >= 100000 \? 'large' : count >= 10000 \? 'five' : count >= 1000 \? 'four' : count >= 100 \? 'three'/);
+  assert.match(stats, /displayedCharacters = count\.toLocaleString\('en-GB'\)\.length/);
+  assert.match(stats, /displayedCharacters >= 6 \? 'large' : displayedCharacters >= 5 \? 'five' : displayedCharacters >= 4 \? 'four'/);
 
   const css = read('src/assets/css/site.css');
   assert.match(css, /data-count-size="three"[^}]*font-size: 1\.75rem/s);
-  assert.match(css, /data-count-size="four"/);
-  assert.match(css, /data-count-size="five"/);
-  assert.match(css, /data-count-size="large"/);
+  assert.match(css, /data-count-size="four"[^}]*font-size: 1\.4rem/s);
+  assert.match(css, /data-count-size="five"[^}]*font-size: 1\.4rem/s);
+  assert.match(css, /data-count-size="large"[^}]*font-size: 1\.25rem/s);
   assert.match(css, /\.launch-evidence-wreaths[^}]*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/s);
 });
