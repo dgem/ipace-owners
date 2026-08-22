@@ -445,7 +445,17 @@ async function checkServiceRecordForm(viewport, screenshotName) {
   await page.getByRole('button', { name: 'Add record' }).click();
   await page.locator('[data-service-provider-lookup]').fill('Hendy');
   assert.equal(await page.getByRole('option', { name: /Hendy Jaguar, Southampton/ }).isVisible(), true);
-  await page.getByRole('option', { name: /Hendy Jaguar, Southampton/ }).click();
+  await page.locator('[data-service-provider-lookup]').fill('Southampton');
+  assert.equal(await page.getByRole('option', { name: /Hendy Jaguar, Southampton/ }).isVisible(), true);
+  await page.locator('[data-service-provider-lookup]').fill('SO18 2JD');
+  assert.equal(await page.getByRole('option', { name: /Hendy Jaguar, Southampton/ }).isVisible(), true);
+  await page.locator('[data-service-provider-lookup]').fill('Dorset');
+  assert.equal(await page.getByRole('option', { name: /Hendy Accident Repair/ }).isVisible(), true);
+  await page.locator('[data-service-provider-lookup]').fill('Nuffield Industrial Estate');
+  assert.equal(await page.getByRole('option', { name: /Hendy Accident Repair/ }).isVisible(), true);
+  await page.locator('[data-service-provider-lookup]').fill('Hendy');
+  await page.locator('[data-service-provider-lookup]').press('ArrowDown');
+  await page.locator('[data-service-provider-lookup]').press('Enter');
   await page.waitForFunction(() => {
     return document.querySelector('[data-service-provider-lookup]').value === 'Hendy Jaguar, Southampton — SO18 2JD';
   });

@@ -102,11 +102,28 @@
     }).slice(0, 8);
   }
 
+  function providerSuggestionID(provider) {
+    return 'service-provider-suggestion-' + provider.id;
+  }
+
   function providerSuggestionMarkup(provider) {
     var details = [provider.postcode, provider.town];
     if (provider.authorisedRepairer) details.push('Authorised Jaguar repairer');
-    return '<button type="button" class="provider-autocomplete__option" role="option" data-service-provider-choice="' + escapeHtml(provider.id) + '" aria-selected="false">' +
+    return '<button type="button" id="' + escapeHtml(providerSuggestionID(provider)) + '" class="provider-autocomplete__option" role="option" tabindex="-1" data-service-provider-choice="' + escapeHtml(provider.id) + '" aria-selected="false">' +
       '<strong>' + escapeHtml(provider.name) + '</strong><span>' + escapeHtml(details.filter(Boolean).join(' · ')) + '</span></button>';
+  }
+
+  function setActiveServiceProviderSuggestion(form, index) {
+    var lookup = form.querySelector('[data-service-provider-lookup]');
+    var results = form.querySelector('[data-service-provider-suggestions]');
+    var choices = results ? Array.from(results.querySelectorAll('[data-service-provider-choice]')) : [];
+    if (!lookup || !choices.length) return -1;
+    var activeIndex = Math.max(0, Math.min(index, choices.length - 1));
+    choices.forEach(function (choice, choiceIndex) {
+      choice.setAttribute('aria-selected', choiceIndex === activeIndex ? 'true' : 'false');
+    });
+    lookup.setAttribute('aria-activedescendant', choices[activeIndex].id);
+    return activeIndex;
   }
 
   function renderServiceProviderSuggestions(form) {
@@ -117,13 +134,17 @@
     results.innerHTML = matches.map(providerSuggestionMarkup).join('');
     results.hidden = matches.length === 0;
     lookup.setAttribute('aria-expanded', matches.length ? 'true' : 'false');
+    lookup.removeAttribute('aria-activedescendant');
   }
 
   function hideServiceProviderSuggestions(form) {
     var lookup = form.querySelector('[data-service-provider-lookup]');
     var results = form.querySelector('[data-service-provider-suggestions]');
     if (results) results.hidden = true;
-    if (lookup) lookup.setAttribute('aria-expanded', 'false');
+    if (lookup) {
+      lookup.setAttribute('aria-expanded', 'false');
+      lookup.removeAttribute('aria-activedescendant');
+    }
   }
 
   function findServiceProvider(value) {
@@ -135,6 +156,15 @@
 
   function findServiceProviderByID(id) {
     return serviceProviders.find(function (provider) { return provider.id === id; });
+  }
+
+  function selectServiceProvider(form, provider) {
+    var lookup = form.querySelector('[data-service-provider-lookup]');
+    if (!lookup || !provider) return;
+    lookup.value = serviceProviderValue(provider);
+    syncServiceProviderFields(form, true);
+    hideServiceProviderSuggestions(form);
+    lookup.focus();
   }
 
   function syncServiceProviderFields(form, updateAuthorised) {
@@ -475,15 +505,29 @@
     var form = choice.closest('[data-service-event-form]');
     var provider = findServiceProviderByID(choice.dataset.serviceProviderChoice);
     if (!form || !provider) return;
-    form.querySelector('[data-service-provider-lookup]').value = serviceProviderValue(provider);
-    syncServiceProviderFields(form, true);
-    hideServiceProviderSuggestions(form);
+    selectServiceProvider(form, provider);
   });
 
   workspace.addEventListener('keydown', function (event) {
-    if (event.key !== 'Escape' || !event.target.matches('[data-service-provider-lookup]')) return;
+    if (!event.target.matches('[data-service-provider-lookup]')) return;
     var form = event.target.closest('[data-service-event-form]');
-    if (form) hideServiceProviderSuggestions(form);
+    if (!form) return;
+    var choices = Array.from(form.querySelectorAll('[data-service-provider-choice]'));
+    if (event.key === 'Escape') {
+      hideServiceProviderSuggestions(form);
+      return;
+    }
+    if (!choices.length || (event.key !== 'ArrowDown' && event.key !== 'ArrowUp' && event.key !== 'Enter')) return;
+    if (event.key === 'Enter') {
+      var activeChoice = choices.find(function (choice) { return choice.getAttribute('aria-selected') === 'true'; });
+      if (!activeChoice) return;
+      event.preventDefault();
+      selectServiceProvider(form, findServiceProviderByID(activeChoice.dataset.serviceProviderChoice));
+      return;
+    }
+    event.preventDefault();
+    var currentIndex = choices.findIndex(function (choice) { return choice.getAttribute('aria-selected') === 'true'; });
+    setActiveServiceProviderSuggestion(form, currentIndex + (event.key === 'ArrowDown' ? 1 : -1));
   });
 
   workspace.addEventListener('submit', function (event) {
@@ -544,7 +588,6 @@
     .then(function (data) {
       serviceProviders = Array.isArray(data.providers) ? data.providers : [];
       workspace.dataset.serviceProvidersReady = 'true';
-      if (memberData) render();
       workspace.querySelectorAll('[data-service-event-form]').forEach(function (form) {
         if (form.querySelector('[data-service-provider-lookup]').value) {
           renderServiceProviderSuggestions(form);

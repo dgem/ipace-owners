@@ -47,7 +47,8 @@
       element.textContent = displayValue(value, element.getAttribute('data-public-stat-format'));
       if (element.classList.contains('launch-member-count__value') && Number.isFinite(Number(value))) {
         var count = Math.max(0, Math.round(Number(value)));
-        var countSize = count >= 100000 ? 'large' : count >= 10000 ? 'five' : count >= 1000 ? 'four' : count >= 100 ? 'three' : 'standard';
+        var displayedCharacters = count.toLocaleString('en-GB').length;
+        var countSize = displayedCharacters >= 6 ? 'large' : displayedCharacters >= 5 ? 'five' : displayedCharacters >= 4 ? 'four' : displayedCharacters >= 3 ? 'three' : 'standard';
         element.setAttribute('data-count-size', countSize);
       }
     });

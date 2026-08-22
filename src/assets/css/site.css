@@ -824,11 +824,13 @@ a.site-context-nav__section:focus-visible {
 }
 
 .launch-member-count__value[data-count-size="five"] {
-  font-size: 1.55rem;
+  font-size: 1.4rem;
+  letter-spacing: -0.075em;
 }
 
 .launch-member-count__value[data-count-size="large"] {
-  font-size: 1.3rem;
+  font-size: 1.25rem;
+  letter-spacing: -0.08em;
 }
 
 .launch-member-count__label {
@@ -2361,7 +2363,8 @@ canvas.admin-timeline {
 }
 
 .provider-autocomplete__option:hover,
-.provider-autocomplete__option:focus-visible {
+.provider-autocomplete__option:focus-visible,
+.provider-autocomplete__option[aria-selected="true"] {
   color: var(--color-primary);
   background: var(--color-accent-soft);
 }
