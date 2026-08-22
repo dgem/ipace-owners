@@ -25,7 +25,7 @@ func TestComputeMemberStatsBucketsJoinsByDay(t *testing.T) {
 	}, map[string]memberAccountStatus{
 		"first@example.com":  {Registered: true, VerifiedAt: time.Date(2026, time.August, 12, 10, 0, 0, 0, time.UTC)},
 		"second@example.com": {Registered: true, VerifiedAt: time.Date(2026, time.August, 13, 10, 0, 0, 0, time.UTC)},
-	})
+	}, nil)
 	if len(stats.JoinedTimeline) != 2 || stats.JoinedTimeline[0] != (timelineBucket{Label: "2026-08-12", Count: 2}) || stats.JoinedTimeline[1] != (timelineBucket{Label: "2026-08-13", Count: 1}) {
 		t.Fatalf("timeline=%#v", stats.JoinedTimeline)
 	}
@@ -43,7 +43,7 @@ func TestComputeMemberStatsCountsEachEmailOnceAtItsFirstJoin(t *testing.T) {
 		{ID: "first", CreatedAt: time.Date(2026, time.August, 12, 9, 0, 0, 0, time.UTC), Contact: contactRecord{Email: "OWNER@example.com", Country: "United Kingdom"}},
 	}, map[string]memberAccountStatus{
 		"owner@example.com": {Registered: true},
-	})
+	}, nil)
 	if stats.TotalMembers != 1 {
 		t.Fatalf("total members=%d, want 1", stats.TotalMembers)
 	}
@@ -52,6 +52,74 @@ func TestComputeMemberStatsCountsEachEmailOnceAtItsFirstJoin(t *testing.T) {
 	}
 	if got := stats.CountryBreakup; len(got) != 1 || got[0] != (countryBreakdown{Country: "United Kingdom", Joined: 1, Registered: 1}) {
 		t.Fatalf("countries=%#v", got)
+	}
+}
+
+func TestComputeMemberStatsUsesVehicleCountryAndConservativeUKPlateInference(t *testing.T) {
+	stats := computeMemberStats([]joinRecord{
+		{IdentityUserID: "vehicle-country", Contact: contactRecord{Email: "country@example.com"}},
+		{IdentityUserID: "uk-plate", Contact: contactRecord{Email: "plate@example.com"}},
+		{IdentityUserID: "unknown", Contact: contactRecord{Email: "unknown@example.com"}},
+	}, nil, []vehicleRecord{
+		{IdentityUserID: "vehicle-country", Vehicle: vehicleDetails{Country: "IE"}},
+		{IdentityUserID: "uk-plate", Vehicle: vehicleDetails{Registration: "AB12 CDE"}},
+		{IdentityUserID: "unknown", Vehicle: vehicleDetails{Registration: "not a plate"}},
+	})
+	got := map[string]countryBreakdown{}
+	for _, row := range stats.CountryBreakup {
+		got[row.Country] = row
+	}
+	for _, country := range []string{"IE", "GB", "Unknown"} {
+		if got[country].Joined != 1 {
+			t.Fatalf("%s row = %#v", country, got[country])
+		}
+	}
+}
+
+func TestComputeMemberStatsUsesUnknownForConflictingVehicleCountries(t *testing.T) {
+	stats := computeMemberStats([]joinRecord{
+		{IdentityUserID: "multi-country", Contact: contactRecord{Email: "owner@example.com"}},
+	}, nil, []vehicleRecord{
+		{IdentityUserID: "multi-country", Vehicle: vehicleDetails{Country: "GB"}},
+		{IdentityUserID: "multi-country", Vehicle: vehicleDetails{Country: "IE"}},
+	})
+	if got := stats.CountryBreakup; len(got) != 1 || got[0] != (countryBreakdown{Country: "Unknown", Joined: 1}) {
+		t.Fatalf("countries=%#v", got)
+	}
+}
+
+func TestPublishedDashboardStatsUsesOnlyEligibleEvidenceConsent(t *testing.T) {
+	now := time.Date(2026, time.August, 22, 12, 0, 0, 0, time.UTC)
+	joins := []joinRecord{
+		{Contact: contactRecord{Email: "included@example.com"}, UserEmailHash: "included", Consents: consentRecord{Contact: true, AnonymisedAnalysis: true}},
+		{Contact: contactRecord{Email: "opted-out@example.com"}, UserEmailHash: "opted-out", Consents: consentRecord{Contact: true}},
+		{Contact: contactRecord{Email: "excluded@example.com"}, UserEmailHash: "excluded", Consents: consentRecord{Contact: true, AnonymisedAnalysis: true}, Review: reviewRecord{Status: "excluded"}},
+	}
+	vehicles := []vehicleRecord{
+		{ID: "included", UserEmailHash: "included", Review: reviewRecord{Status: "new"}},
+		{ID: "opted-out", UserEmailHash: "opted-out", Review: reviewRecord{Status: "new"}},
+		{ID: "excluded", UserEmailHash: "excluded", Review: reviewRecord{Status: "new"}},
+	}
+	got := publishedDashboardStats(joins, vehicles, nil, nil, now)
+	if got.JoinedOwners != 3 || got.OwnersContributed != 1 || got.VehiclesRegistered != 1 {
+		t.Fatalf("published dashboard stats = %+v", got)
+	}
+}
+
+func TestIndexVehiclesByMemberUsesIdentityBeforeEmailHash(t *testing.T) {
+	vehicles := []vehicleRecord{
+		{IdentityUserID: "member-1", UserEmailHash: "member-1-hash"},
+		{UserEmailHash: "member-2-hash"},
+	}
+	indexed := indexVehiclesByMember(vehicles)
+	if got := len(indexed["identity:member-1"]); got != 1 {
+		t.Fatalf("identity index contains %d vehicles, want 1", got)
+	}
+	if got := len(indexed["email-hash:member-2-hash"]); got != 1 {
+		t.Fatalf("email-hash index contains %d vehicles, want 1", got)
+	}
+	if got := len(indexed["email-hash:member-1-hash"]); got != 1 {
+		t.Fatalf("identity-linked vehicle's email-hash index contains %d vehicles, want 1", got)
 	}
 }
 
