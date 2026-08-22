@@ -455,9 +455,9 @@ async function checkServiceRecordForm(viewport, screenshotName) {
   await page.locator('[data-service-provider-lookup]').fill(providerFixture.postcode);
   await page.locator('[data-service-provider-lookup]').press('ArrowDown');
   await page.locator('[data-service-provider-lookup]').press('Enter');
-  await page.waitForFunction(() => {
-    return document.querySelector('[data-service-provider-lookup]').value === providerFixture.name + ' — ' + providerFixture.postcode;
-  });
+  await page.waitForFunction(({ name, postcode }) => {
+    return document.querySelector('[data-service-provider-lookup]').value === name + ' — ' + postcode;
+  }, { name: providerFixture.name, postcode: providerFixture.postcode });
   assert.equal(await page.locator('.campaign-selector').evaluate((element) => {
     return getComputedStyle(element).display === 'grid'
       && element.scrollWidth <= element.clientWidth;
