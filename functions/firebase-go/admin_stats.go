@@ -178,6 +178,7 @@ func AdminStats(w http.ResponseWriter, r *http.Request) {
 // computeMemberStats aggregates member data.
 func computeMemberStats(joins []joinRecord, accounts map[string]memberAccountStatus, vehicles []vehicleRecord) memberStats {
 	countryCounts := make(map[string]countryBreakdown)
+	vehiclesByMember := indexVehiclesByMember(vehicles)
 	timelineMap := make(map[string]int)
 	verifiedTimelineMap := make(map[string]int)
 	uniqueJoins := make(map[string]joinRecord)
@@ -193,7 +194,7 @@ func computeMemberStats(joins []joinRecord, accounts map[string]memberAccountSta
 		}
 	}
 	for email, rec := range uniqueJoins {
-		country := memberCountry(rec, vehicles)
+		country := memberCountry(rec, vehiclesByMember)
 		row := countryCounts[country]
 		row.Country = country
 		row.Joined++
@@ -259,24 +260,44 @@ func consentedJoinHashes(joins []joinRecord) map[string]bool {
 	return consented
 }
 
-func memberCountry(member joinRecord, vehicles []vehicleRecord) string {
+func memberVehicleKey(identityUserID, emailHash string) string {
+	if identityUserID != "" {
+		return "identity:" + identityUserID
+	}
+	if emailHash != "" {
+		return "email-hash:" + emailHash
+	}
+	return ""
+}
+
+func indexVehiclesByMember(vehicles []vehicleRecord) map[string][]vehicleRecord {
+	indexed := make(map[string][]vehicleRecord)
+	for _, vehicle := range vehicles {
+		if vehicle.IdentityUserID != "" {
+			key := memberVehicleKey(vehicle.IdentityUserID, "")
+			indexed[key] = append(indexed[key], vehicle)
+		}
+		if vehicle.UserEmailHash != "" {
+			key := memberVehicleKey("", vehicle.UserEmailHash)
+			indexed[key] = append(indexed[key], vehicle)
+		}
+	}
+	return indexed
+}
+
+func memberCountry(member joinRecord, vehiclesByMember map[string][]vehicleRecord) string {
 	if country := strings.TrimSpace(member.Contact.Country); country != "" {
 		return country
 	}
+	vehicles := vehiclesByMember[memberVehicleKey(member.IdentityUserID, member.UserEmailHash)]
 	for _, vehicle := range vehicles {
-		if member.IdentityUserID != "" && member.IdentityUserID == vehicle.IdentityUserID ||
-			member.IdentityUserID == "" && member.UserEmailHash != "" && member.UserEmailHash == vehicle.UserEmailHash {
-			if country := strings.TrimSpace(vehicle.Vehicle.Country); country != "" {
-				return country
-			}
+		if country := strings.TrimSpace(vehicle.Vehicle.Country); country != "" {
+			return country
 		}
 	}
 	for _, vehicle := range vehicles {
-		if member.IdentityUserID != "" && member.IdentityUserID == vehicle.IdentityUserID ||
-			member.IdentityUserID == "" && member.UserEmailHash != "" && member.UserEmailHash == vehicle.UserEmailHash {
-			if ukRegistrationRE.MatchString(strings.ToUpper(strings.ReplaceAll(strings.TrimSpace(vehicle.Vehicle.Registration), " ", ""))) {
-				return "GB"
-			}
+		if ukRegistrationRE.MatchString(strings.ToUpper(strings.ReplaceAll(strings.TrimSpace(vehicle.Vehicle.Registration), " ", ""))) {
+			return "GB"
 		}
 	}
 	return "Unknown"

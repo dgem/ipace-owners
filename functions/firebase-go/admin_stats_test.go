@@ -76,6 +76,23 @@ func TestComputeMemberStatsUsesVehicleCountryAndConservativeUKPlateInference(t *
 	}
 }
 
+func TestIndexVehiclesByMemberUsesIdentityBeforeEmailHash(t *testing.T) {
+	vehicles := []vehicleRecord{
+		{IdentityUserID: "member-1", UserEmailHash: "member-1-hash"},
+		{UserEmailHash: "member-2-hash"},
+	}
+	indexed := indexVehiclesByMember(vehicles)
+	if got := len(indexed["identity:member-1"]); got != 1 {
+		t.Fatalf("identity index contains %d vehicles, want 1", got)
+	}
+	if got := len(indexed["email-hash:member-2-hash"]); got != 1 {
+		t.Fatalf("email-hash index contains %d vehicles, want 1", got)
+	}
+	if got := len(indexed["email-hash:member-1-hash"]); got != 1 {
+		t.Fatalf("identity-linked vehicle's email-hash index contains %d vehicles, want 1", got)
+	}
+}
+
 func TestAdminStatsRequiresSignIn(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/api/admin/stats", nil)
 	res := httptest.NewRecorder()
