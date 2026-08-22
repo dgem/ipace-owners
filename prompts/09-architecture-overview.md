@@ -167,9 +167,10 @@ sheet and chart format without exposing member data.
 - Store editable service and fault history in `serviceEvents`, tied to both the authenticated
   member UID and vehicle ID. Preserve creation timestamps and review metadata on edits.
   Service-provider references retain the Jaguar locator CI code, provider name and postcode
-  plus the member-confirmed authorised-JLR flag; also retain parts-delay range, goodwill
-  payment and miles driven whilst faulty. Derive days to final fix server-side from the two
-  recorded dates.
+  plus the member-confirmed authorised-JLR flag. The member lookup must search provider name,
+  town, postcode, county, and address fragments, while related campaigns use a compact,
+  overflow-safe wrapping grid. Also retain parts-delay range, goodwill payment and miles driven
+  whilst faulty. Derive days to final fix server-side from the two recorded dates.
 - Store named Instagram drafts and publication records in `instagramCampaigns`. Drafts can be
   updated, but published records are immutable; an edited repost receives a new ID and
   `sourceCampaignId`. Reserve before contacting Meta; a published retry returns the existing
