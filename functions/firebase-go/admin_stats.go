@@ -24,6 +24,7 @@ type adminStatsResponse struct {
 // publicDashboardStats mirrors the consent-filtered counters displayed on the homepage.
 type publicDashboardStats struct {
 	JoinedOwners        int `json:"joinedOwners"`
+	OwnersContributed   int `json:"ownersContributed"`
 	VehiclesRegistered  int `json:"vehiclesRegistered"`
 	SOHReadings         int `json:"sohReadings"`
 	ServiceEventsLogged int `json:"serviceEventsLogged"`
@@ -156,12 +157,12 @@ func AdminStats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	consented := consentedJoinHashes(joins)
-	published := aggregatePublicStats(vehicles, readings, services, consented, joinedOwnerCount(joins), 0, now)
+	published := publishedDashboardStats(joins, vehicles, readings, services, now)
 	resp := adminStatsResponse{
 		GeneratedAt: now.Format(time.RFC3339),
 		PublicStats: publicDashboardStats{
 			JoinedOwners:        published.JoinedOwners,
+			OwnersContributed:   published.OwnersContributed,
 			VehiclesRegistered:  published.VehiclesRegistered,
 			SOHReadings:         published.SOHReadings,
 			ServiceEventsLogged: published.ServiceEventsLogged,
@@ -173,6 +174,11 @@ func AdminStats(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Cache-Control", "private, no-store")
 	writeJSON(w, http.StatusOK, resp)
+}
+
+func publishedDashboardStats(joins []joinRecord, vehicles []vehicleRecord, readings []batteryReadingRecord, services []serviceEventRecord, now time.Time) publicStatsSnapshot {
+	consented := consentedJoinHashes(joins)
+	return aggregatePublicStats(vehicles, readings, services, consented, joinedOwnerCount(joins), 0, now)
 }
 
 // computeMemberStats aggregates member data.

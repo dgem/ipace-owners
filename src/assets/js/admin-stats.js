@@ -231,6 +231,7 @@
 
     renderStatCards(container, '[data-published-stats]', publicStats, [
       { key: 'joinedOwners', label: 'Owners Joined' },
+      { key: 'ownersContributed', label: 'Owners Contributed' },
       { key: 'vehiclesRegistered', label: 'Cars Registered' },
       { key: 'sohReadings', label: 'SoH Readings Logged' },
       { key: 'serviceEventsLogged', label: 'Service & Fault Records' }

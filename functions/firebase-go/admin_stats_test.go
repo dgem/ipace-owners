@@ -76,6 +76,24 @@ func TestComputeMemberStatsUsesVehicleCountryAndConservativeUKPlateInference(t *
 	}
 }
 
+func TestPublishedDashboardStatsUsesOnlyEligibleEvidenceConsent(t *testing.T) {
+	now := time.Date(2026, time.August, 22, 12, 0, 0, 0, time.UTC)
+	joins := []joinRecord{
+		{Contact: contactRecord{Email: "included@example.com"}, UserEmailHash: "included", Consents: consentRecord{Contact: true, AnonymisedAnalysis: true}},
+		{Contact: contactRecord{Email: "opted-out@example.com"}, UserEmailHash: "opted-out", Consents: consentRecord{Contact: true}},
+		{Contact: contactRecord{Email: "excluded@example.com"}, UserEmailHash: "excluded", Consents: consentRecord{Contact: true, AnonymisedAnalysis: true}, Review: reviewRecord{Status: "excluded"}},
+	}
+	vehicles := []vehicleRecord{
+		{ID: "included", UserEmailHash: "included", Review: reviewRecord{Status: "new"}},
+		{ID: "opted-out", UserEmailHash: "opted-out", Review: reviewRecord{Status: "new"}},
+		{ID: "excluded", UserEmailHash: "excluded", Review: reviewRecord{Status: "new"}},
+	}
+	got := publishedDashboardStats(joins, vehicles, nil, nil, now)
+	if got.JoinedOwners != 3 || got.OwnersContributed != 1 || got.VehiclesRegistered != 1 {
+		t.Fatalf("published dashboard stats = %+v", got)
+	}
+}
+
 func TestIndexVehiclesByMemberUsesIdentityBeforeEmailHash(t *testing.T) {
 	vehicles := []vehicleRecord{
 		{IdentityUserID: "member-1", UserEmailHash: "member-1-hash"},
