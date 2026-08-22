@@ -212,7 +212,7 @@ func loadOwnedServiceEvent(ctx context.Context, id string, uid string, vehicleID
 		return serviceEventRecord{}, err
 	}
 	var record serviceEventRecord
-	if err := doc.DataTo(&record); err != nil || !serviceEventOwnedBy(record, uid, vehicleID) {
+	if err := doc.DataTo(&record); err != nil || !serviceEventOwnedBy(record, uid, vehicleID) || recordDeleted(record.Review) {
 		return serviceEventRecord{}, fmt.Errorf("service event not found")
 	}
 	return record, nil

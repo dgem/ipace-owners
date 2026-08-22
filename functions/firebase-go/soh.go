@@ -56,6 +56,16 @@ func SubmitSOH(w http.ResponseWriter, r *http.Request) {
 		Battery:        battery,
 		Review:         reviewRecord{Status: "new", VerificationLevel: "self-reported"},
 	}
+	if id := cleanString(req.ID, 100); id != "" {
+		existing, err := loadOwnedBatteryReading(r.Context(), id, user.UID, vehicle.ID)
+		if err != nil {
+			writeJSON(w, http.StatusNotFound, map[string]any{"error": "State of Health reading not found"})
+			return
+		}
+		record.ID = existing.ID
+		record.CreatedAt = existing.CreatedAt
+		record.Review = existing.Review
+	}
 	if err := saveBatteryReading(r.Context(), vehicle, record); err != nil {
 		logEvent("submit-soh", "error", "record save failed", map[string]any{"uid": user.UID, "vehicleId": vehicle.ID, "error": err.Error()})
 		writeJSON(w, http.StatusInternalServerError, map[string]any{"ok": false, "error": "Could not save State of Health reading"})
@@ -111,8 +121,24 @@ func loadOwnedVehicle(ctx context.Context, vehicleID string, uid string) (vehicl
 		return vehicleRecord{}, err
 	}
 	var record vehicleRecord
-	if err := doc.DataTo(&record); err != nil || !vehicleOwnedBy(record, uid) {
+	if err := doc.DataTo(&record); err != nil || !vehicleOwnedBy(record, uid) || recordDeleted(record.Review) {
 		return vehicleRecord{}, fmt.Errorf("vehicle not found")
+	}
+	return record, nil
+}
+
+func loadOwnedBatteryReading(ctx context.Context, id string, uid string, vehicleID string) (batteryReadingRecord, error) {
+	db, err := firestoreClient(ctx)
+	if err != nil {
+		return batteryReadingRecord{}, err
+	}
+	doc, err := db.Collection("batteryReadings").Doc(id).Get(ctx)
+	if err != nil {
+		return batteryReadingRecord{}, err
+	}
+	var record batteryReadingRecord
+	if err := doc.DataTo(&record); err != nil || record.IdentityUserID != uid || record.VehicleID != vehicleID || recordDeleted(record.Review) {
+		return batteryReadingRecord{}, fmt.Errorf("State of Health reading not found")
 	}
 	return record, nil
 }

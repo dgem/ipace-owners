@@ -669,16 +669,22 @@ behind the single Go `Api` Cloud Function:
   the configured Firebase-default or Admin-SDK/Resend delivery path. This lets claim-managed
   staging administrators sign in even when preview data has no copied Join record, while the
   generic browser response continues to conceal registration state.
-- `submit-vehicle-basics` stores the first vehicle registration slice for signed-in users:
+- `submit-vehicle-basics` creates or edits an owned vehicle registration slice for signed-in users:
   VIN HMAC / final six characters, registration, country, model year, ownership dates,
   mileage, State of Health, measurement date, measurement mileage, and SoH source.
-- `submit-soh` appends a dated State of Health reading to a vehicle after verifying that
-  the signed-in member owns the referenced record. Earlier readings are retained for
+- `submit-soh` creates or edits a dated State of Health reading after verifying that
+  the signed-in member owns the referenced vehicle and any existing reading. Earlier readings are retained for
   degradation analysis.
 - `upsert-service-event` adds or edits an owned vehicle's dated service, fault, repair,
   recall, or inspection record after server-side ownership verification. It stores structured
   service-provider references, parts-delay range, goodwill support, and miles driven whilst
   faulty, and derives days to resolution from the event and final-fix dates.
+- `update-member-preferences` updates the signed-in member's contact and anonymised-analysis
+  consent across their matching Join records.
+- `delete-vehicle`, `delete-soh`, and `delete-service-event` require typed `DELETE`
+  confirmation, soft-delete only the signed-in member's owned data, and immediately remove
+  it from private snapshots and consent-filtered public aggregates. Deleting a vehicle also
+  soft-deletes its dependent SoH and service records.
 - `member-data` returns only the authenticated member's generated private snapshot after
   Firebase ID-token verification.
 - `member-export` returns that same member's data as either a ZIP of separate CSV datasets

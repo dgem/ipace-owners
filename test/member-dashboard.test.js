@@ -50,6 +50,15 @@ test('member dashboard uses a full-width tabbed vehicle workspace', function () 
   assert.match(script, /results\.innerHTML = ''/);
 });
 
+test('member dashboard supports owned SoH and service record editing and soft deletion', function () {
+  var dashboard = read('src/assets/js/member-dashboard.js');
+  assert.match(dashboard, /data-edit-soh/);
+  assert.match(dashboard, /data-delete-record/);
+  assert.match(dashboard, /\/api\/delete-soh/);
+  assert.match(dashboard, /\/api\/delete-service-event/);
+  assert.match(dashboard, /Type DELETE to confirm/);
+});
+
 test('service event editing is wired through the protected API', function () {
   const script = read('src/assets/js/member-dashboard.js');
   const auth = read('src/assets/js/member-auth.js');
