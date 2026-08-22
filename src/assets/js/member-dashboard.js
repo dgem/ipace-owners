@@ -123,6 +123,7 @@
       choice.setAttribute('aria-selected', choiceIndex === activeIndex ? 'true' : 'false');
     });
     lookup.setAttribute('aria-activedescendant', choices[activeIndex].id);
+    choices[activeIndex].scrollIntoView({ block: 'nearest' });
     return activeIndex;
   }
 
@@ -485,7 +486,6 @@
     if (!form) return;
     if (event.target.matches('[data-service-provider-lookup]')) {
       syncServiceProviderFields(form, true);
-      hideServiceProviderSuggestions(form);
     }
     if (event.target.name === 'occurredAt' || event.target.name === 'finalFixAt') {
       updateResolutionDays(form);
@@ -506,6 +506,24 @@
     var provider = findServiceProviderByID(choice.dataset.serviceProviderChoice);
     if (!form || !provider) return;
     selectServiceProvider(form, provider);
+  });
+
+  workspace.addEventListener('pointerdown', function (event) {
+    var choice = event.target.closest('[data-service-provider-choice]');
+    if (!choice) return;
+    var form = choice.closest('[data-service-event-form]');
+    var provider = findServiceProviderByID(choice.dataset.serviceProviderChoice);
+    if (!form || !provider) return;
+    event.preventDefault();
+    selectServiceProvider(form, provider);
+  });
+
+  workspace.addEventListener('focusout', function (event) {
+    if (!event.target.matches('[data-service-provider-lookup]')) return;
+    var form = event.target.closest('[data-service-event-form]');
+    window.setTimeout(function () {
+      if (form && !form.contains(document.activeElement)) hideServiceProviderSuggestions(form);
+    }, 0);
   });
 
   workspace.addEventListener('keydown', function (event) {

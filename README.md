@@ -702,8 +702,9 @@ Cloud Storage.
 Members may register more than one I-PACE. The member dashboard uses vehicle tabs and shows
 one selected car's SoH graph and service/fault timeline at a time. Service-provider suggestions
 come from a generated snapshot of Jaguar UK's official EV-service locator and are searchable
-by name or postcode. Refresh the snapshot with `make update-service-providers`; members should
-still confirm current capabilities directly with the provider.
+by name, town, postcode, county, or address fragment. Refresh the snapshot with
+`make update-service-providers`; members should still confirm current capabilities directly
+with the provider.
 
 Set `VIN_PEPPER` as a GCP Secret Manager value and Function environment variable before
 collecting VINs. Full VINs are not stored; the Function uses `VIN_PEPPER` to create an HMAC
