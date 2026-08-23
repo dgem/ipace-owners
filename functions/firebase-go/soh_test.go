@@ -135,6 +135,32 @@ func TestAggregatePublicStatsUsesLatestConsentedReadings(t *testing.T) {
 	}
 }
 
+func TestAggregatePublicStatsExcludesSoftDeletedEvidence(t *testing.T) {
+	now := time.Date(2026, 6, 22, 12, 0, 0, 0, time.UTC)
+	deletedAt := now.Add(-time.Hour)
+	soh := 88.0
+	vehicle := vehicleRecord{
+		ID:            "deleted-vehicle",
+		UserEmailHash: "consented",
+		Review:        reviewRecord{Status: "deleted", DeletedAt: deletedAt},
+	}
+	reading := batteryReadingRecord{
+		ID:        "deleted-reading",
+		VehicleID: "deleted-vehicle",
+		Battery:   batteryDetails{StateOfHealth: &soh, MeasuredAt: "2026-06-20"},
+		Review:    reviewRecord{Status: "deleted", DeletedAt: deletedAt},
+	}
+	event := serviceEventRecord{
+		ID:        "deleted-event",
+		VehicleID: "deleted-vehicle",
+		Review:    reviewRecord{Status: "deleted", DeletedAt: deletedAt},
+	}
+	got := aggregatePublicStats([]vehicleRecord{vehicle}, []batteryReadingRecord{reading}, []serviceEventRecord{event}, map[string]bool{"consented": true}, 1, 0, now)
+	if got.VehiclesRegistered != 0 || got.OwnersContributed != 0 || got.SOHReadings != 0 || got.ServiceEventsLogged != 0 {
+		t.Fatalf("soft-deleted records must be excluded: %+v", got)
+	}
+}
+
 func TestAggregatePublicStatsUsesLegacyEmbeddedReading(t *testing.T) {
 	value := 88.0
 	vehicle := vehicleRecord{

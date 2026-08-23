@@ -282,9 +282,11 @@ GitHub deployer a custom role containing only `firebaseauth.configs.get` and
 and before rerunning the preview workflow.
 
 `GET /api/admin/stats` is an administrator-claim-gated aggregate dashboard endpoint. It returns
-member, vehicle, State of Health, and service-event totals and breakdowns for the Admin home;
-it is not a public-statistics endpoint, counts each member once by canonical email at their first
-Join, and does not return private member snapshots or per-vehicle evidence.
+the consent-filtered homepage counters alongside private member, vehicle, State of Health, and
+service-event totals and breakdowns for the Admin home. It counts each member once by canonical
+email at their first Join, derives country from the Join, a single unambiguous vehicle country,
+or a strict UK plate before recording `Unknown` (including where a member's vehicle countries
+conflict), and does not return private member snapshots or per-vehicle evidence.
 
 Firebase does not permit preview or default `web.app` domains as Identity Toolkit's
 `linkDomain`. Preview emails therefore use Firebase's default action-handler domain and the
@@ -667,16 +669,22 @@ behind the single Go `Api` Cloud Function:
   the configured Firebase-default or Admin-SDK/Resend delivery path. This lets claim-managed
   staging administrators sign in even when preview data has no copied Join record, while the
   generic browser response continues to conceal registration state.
-- `submit-vehicle-basics` stores the first vehicle registration slice for signed-in users:
+- `submit-vehicle-basics` creates or edits an owned vehicle registration slice for signed-in users:
   VIN HMAC / final six characters, registration, country, model year, ownership dates,
   mileage, State of Health, measurement date, measurement mileage, and SoH source.
-- `submit-soh` appends a dated State of Health reading to a vehicle after verifying that
-  the signed-in member owns the referenced record. Earlier readings are retained for
+- `submit-soh` creates or edits a dated State of Health reading after verifying that
+  the signed-in member owns the referenced vehicle and any existing reading. Earlier readings are retained for
   degradation analysis.
 - `upsert-service-event` adds or edits an owned vehicle's dated service, fault, repair,
   recall, or inspection record after server-side ownership verification. It stores structured
   service-provider references, parts-delay range, goodwill support, and miles driven whilst
   faulty, and derives days to resolution from the event and final-fix dates.
+- `update-member-preferences` updates the signed-in member's contact and anonymised-analysis
+  consent across their matching Join records.
+- `delete-vehicle`, `delete-soh`, and `delete-service-event` require typed `DELETE`
+  confirmation, soft-delete only the signed-in member's owned data, and immediately remove
+  it from private snapshots and consent-filtered public aggregates. Deleting a vehicle also
+  soft-deletes its dependent SoH and service records.
 - `member-data` returns only the authenticated member's generated private snapshot after
   Firebase ID-token verification.
 - `member-export` returns that same member's data as either a ZIP of separate CSV datasets
@@ -702,8 +710,9 @@ Cloud Storage.
 Members may register more than one I-PACE. The member dashboard uses vehicle tabs and shows
 one selected car's SoH graph and service/fault timeline at a time. Service-provider suggestions
 come from a generated snapshot of Jaguar UK's official EV-service locator and are searchable
-by name or postcode. Refresh the snapshot with `make update-service-providers`; members should
-still confirm current capabilities directly with the provider.
+by name, town, postcode, county, or address fragment. Refresh the snapshot with
+`make update-service-providers`; members should still confirm current capabilities directly
+with the provider.
 
 Set `VIN_PEPPER` as a GCP Secret Manager value and Function environment variable before
 collecting VINs. Full VINs are not stored; the Function uses `VIN_PEPPER` to create an HMAC

@@ -98,7 +98,8 @@ test('account preferences render from saved member data', function () {
   assert.match(memberAuth, /Group contact/);
   assert.match(memberAuth, /Anonymised aggregate analysis/);
   assert.match(memberAuth, /Participation acknowledgement/);
-  assert.match(memberAuth, /Preference editing will be added with an audited account update flow/);
+  assert.match(memberAuth, /data-preferences-form/);
+  assert.match(memberAuth, /\/api\/update-member-preferences/);
   assert.match(css, /\.preference-list/);
 });
 
