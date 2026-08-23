@@ -259,7 +259,7 @@ func computeMemberStats(joins []joinRecord, accounts map[string]memberAccountSta
 func consentedJoinHashes(joins []joinRecord) map[string]bool {
 	consented := make(map[string]bool)
 	for _, record := range joins {
-		if record.Consents.AnonymisedAnalysis && record.Review.Status != "excluded" {
+		if record.Consents.AnonymisedAnalysis && record.Review.Status != "excluded" && !recordDeleted(record.Review) {
 			consented[record.UserEmailHash] = true
 		}
 	}

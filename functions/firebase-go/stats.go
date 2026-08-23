@@ -163,7 +163,7 @@ func aggregatePublicStats(vehicles []vehicleRecord, readings []batteryReadingRec
 	owners := map[string]bool{}
 	modelYears := map[string]int{}
 	for _, vehicle := range vehicles {
-		if vehicle.Review.Status == "excluded" || !consented[vehicle.UserEmailHash] {
+		if vehicle.Review.Status == "excluded" || recordDeleted(vehicle.Review) || !consented[vehicle.UserEmailHash] {
 			continue
 		}
 		filteredVehicles[vehicle.ID] = vehicle
@@ -175,7 +175,7 @@ func aggregatePublicStats(vehicles []vehicleRecord, readings []batteryReadingRec
 
 	byVehicle := map[string][]batteryReadingRecord{}
 	for _, reading := range readings {
-		if _, ok := filteredVehicles[reading.VehicleID]; !ok || reading.Review.Status == "excluded" || reading.Battery.StateOfHealth == nil {
+		if _, ok := filteredVehicles[reading.VehicleID]; !ok || reading.Review.Status == "excluded" || recordDeleted(reading.Review) || reading.Battery.StateOfHealth == nil {
 			continue
 		}
 		byVehicle[reading.VehicleID] = append(byVehicle[reading.VehicleID], reading)
@@ -190,7 +190,7 @@ func aggregatePublicStats(vehicles []vehicleRecord, readings []batteryReadingRec
 
 	serviceEventCount := 0
 	for _, event := range serviceEvents {
-		if _, ok := filteredVehicles[event.VehicleID]; ok && event.Review.Status != "excluded" {
+		if _, ok := filteredVehicles[event.VehicleID]; ok && event.Review.Status != "excluded" && !recordDeleted(event.Review) {
 			serviceEventCount++
 		}
 	}

@@ -419,6 +419,31 @@ async function checkMemberExport(viewport, screenshotName) {
   await page.close();
 }
 
+async function checkMemberAccountManagement(viewport, screenshotName) {
+  const page = await browser.newPage({ viewport });
+  await page.route('**/api/member-data', async (route) => {
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify({
+      joinRecords: [{ createdAt: '2026-06-22T12:00:00Z', consents: { contact: true, anonymisedAnalysis: true, notLegalClaim: true }, membership: { relationship: 'current-owner-one' } }],
+      vehicleRecords: [{ id: 'vehicle-example', createdAt: '2026-06-22T12:00:00Z', updatedAt: '2026-06-22T12:00:00Z', vehicle: { registration: 'EXAMPLE', country: 'GB', modelYear: '2021', mileage: 42000, ownedSince: '2024-01-01', firstRegistrationDate: '2021-03-01' }, battery: { stateOfHealth: 89, measuredAt: '2026-06-21T12:00:00Z' } }],
+      batteryReadings: []
+    }) });
+  });
+  await page.goto(baseURL + '/member/account/', { waitUntil: 'networkidle' });
+  await page.locator('[data-vehicle-list] .account-vehicle-card').waitFor({ state: 'visible' });
+  assert.equal(await page.locator('[data-preferences-form]').isHidden(), true, 'preferences should be an explicit action');
+  await page.getByRole('button', { name: 'Edit preferences' }).click();
+  assert.equal(await page.locator('[data-preferences-form]').isVisible(), true);
+  await page.getByRole('button', { name: 'Cancel' }).first().click();
+  await page.getByRole('button', { name: 'Edit vehicle' }).click();
+  const editor = page.locator('[data-vehicle-edit-panel]');
+  assert.equal(await editor.isVisible(), true);
+  assert.equal(await editor.evaluate((element) => element.scrollWidth <= element.clientWidth), true, 'vehicle editor must fit its panel');
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
+  await editor.scrollIntoViewIfNeeded();
+  await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
+  await page.close();
+}
+
 async function checkServiceRecordForm(viewport, screenshotName) {
   const page = await browser.newPage({ viewport });
   await page.goto(baseURL + '/member/dashboard/', { waitUntil: 'networkidle' });
@@ -623,6 +648,8 @@ try {
   await checkInstagramCampaigns({ width: 390, height: 844 }, 'admin-instagram-campaigns-mobile.png');
   await checkMemberExport({ width: 1440, height: 1000 }, 'member-export-desktop.png');
   await checkMemberExport({ width: 390, height: 844 }, 'member-export-mobile.png');
+  await checkMemberAccountManagement({ width: 1440, height: 1000 }, 'member-account-management-desktop.png');
+  await checkMemberAccountManagement({ width: 390, height: 844 }, 'member-account-management-mobile.png');
   await checkServiceRecordForm({ width: 1440, height: 1100 }, 'member-service-record-desktop.png');
   await checkServiceRecordForm({ width: 390, height: 844 }, 'member-service-record-mobile.png');
   await checkServiceRecordForm({ width: 360, height: 800 }, 'member-service-record-galaxy-s25.png');
