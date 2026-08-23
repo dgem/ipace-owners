@@ -16,10 +16,14 @@ test('service document importer remains local, review-gated and uses the protect
   assert.match(script, /crypto\.subtle\.digest\('SHA-256'/);
   assert.match(script, /pdfjs\/pdf\.min\.mjs/);
   assert.match(script, /Tesseract\.createWorker/);
+  assert.match(script, /pdfPageImages/);
+  assert.match(script, /page ' \+ \(index \+ 1\) \+ ' of '/);
   assert.match(script, /Submit reviewed record/);
   assert.match(script, /fetch\('\/api\/upsert-service-event'/);
   assert.match(script, /ipaceGetIdentityToken/);
   assert.doesNotMatch(script, /FormData\(.*file/i);
+  assert.doesNotMatch(script, /Source retained locally:/);
+  assert.doesNotMatch(script, /title: source/);
 });
 
 test('browser OCR assets are generated from pinned dependencies', function () {
