@@ -894,8 +894,10 @@ The following features are **not yet implemented** in this version:
   readings, and member service/fault timeline records are structured slices. Detailed recall,
   battery-work, loan car, payment, responsibility, consent-review, and evidence upload fields
   are not yet stored in the GCP model.
-- **Evidence document uploads** — A placeholder message explains what will be supported.
-  Requires Cloud Storage for files plus Firestore metadata and Functions integration.
+- **Evidence document uploads** — Original evidence files are not uploaded or retained.
+  Members can use the local browser document importer to extract and review structured
+  service records, but any future server-side evidence store still needs Cloud Storage,
+  metadata and legal/privacy review.
 - **Admin review workflow** — The review queue can read server-side data for admins, but
   review status updates, review-queue exports, and moderation actions are not yet implemented.
 - **Legal/privacy review** — The plain-English pages reflect the live service, but still
@@ -935,6 +937,8 @@ that does not duplicate contact details. The verification flag is not exposed to
 Configure `IDEAL_POSTCODES_API_KEY_STAGING` and `IDEAL_POSTCODES_API_KEY_PRODUCTION` as
 GitHub environment secrets to enable lookup in deployments; without them, manual entry works.
 - `member-dashboard.js` — vehicle tabs, SoH history and service/fault editing
+- `service-record-importer.js` — local PDF/image extraction, on-device OCR and reviewed
+  service-record submission; source documents are never uploaded
 - `member-export.js` — authenticated CSV-bundle and Excel-report downloads
 - `multistep-form.js` — generic multi-step form (data-attribute driven)
 - `outreach-assistant.js` — admin-only Facebook search-link and editable reply helper; no retrieval or posting automation
