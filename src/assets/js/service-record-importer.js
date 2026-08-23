@@ -20,12 +20,11 @@
     var match = text.match(/(?:mileage|odometer|miles?)\D{0,20}([0-9]{1,3}(?:[, ]?[0-9]{3})*)/i);
     return match ? Number(match[1].replace(/[, ]/g, '')) : '';
   }
-  function guess(file, text, hash) {
-    var source = file.name.replace(/\.[^.]+$/, '');
-    var haystack = (source + '\n' + text).toLowerCase();
+  function guess(file, text) {
+    var haystack = String(text).toLowerCase();
     var type = /recall|campaign/.test(haystack) ? 'recall' : /warranty|repair|rectif/.test(haystack) ? 'repair' : /fault|issue|concern|error/.test(haystack) ? 'fault' : /inspect|vhc/.test(haystack) ? 'inspection' : 'service';
     var warranty = /warranty/.test(haystack);
-    return { occurredAt: dateFrom(source) || dateFrom(text), mileage: extractMileage(text), eventType: type, status: warranty || /invoice|cash/.test(haystack) ? 'completed' : 'resolved', serviceProviderName: /hendy/i.test(haystack) ? 'Hendy Jaguar' : '', warrantyCover: warranty ? 'manufacturer' : '', title: source.slice(0, 160), description: 'Source retained locally: ' + file.name + '\nSHA-256: ' + hash + '\n\nCheck this draft against the original document before submitting.' };
+    return { occurredAt: dateFrom(text), mileage: extractMileage(text), eventType: type, status: warranty || /invoice|cash/.test(haystack) ? 'completed' : 'resolved', serviceProviderName: /hendy/i.test(haystack) ? 'Hendy Jaguar' : '', warrantyCover: warranty ? 'manufacturer' : '', title: 'Imported service document', description: 'Check this draft against the original document before submitting.' };
   }
   function hashFile(file) { return file.arrayBuffer().then(function (buffer) { return crypto.subtle.digest('SHA-256', buffer); }).then(function (digest) { return Array.from(new Uint8Array(digest)).map(function (n) { return n.toString(16).padStart(2, '0'); }).join(''); }); }
   function pdfText(file) {
@@ -44,14 +43,33 @@
     }).then(function () { return window.Tesseract.createWorker('eng', 1, { workerPath: '/assets/vendor/tesseract/worker.min.js', corePath: '/assets/vendor/tesseract-core', langPath: '/assets/vendor/tessdata/4.0.0', logger: function () {} }); });
     return ocrWorker;
   }
-  function firstPDFPage(file) {
-    return import('/assets/vendor/pdfjs/pdf.min.mjs').then(function (pdfjs) { pdfjs.GlobalWorkerOptions.workerSrc = '/assets/vendor/pdfjs/pdf.worker.min.mjs'; return file.arrayBuffer().then(function (buffer) { return pdfjs.getDocument({ data: new Uint8Array(buffer) }).promise; }); }).then(function (pdf) { return pdf.getPage(1); }).then(function (page) {
-      var viewport = page.getViewport({ scale: 1.75 }); var canvas = document.createElement('canvas'); canvas.width = viewport.width; canvas.height = viewport.height; return page.render({ canvasContext: canvas.getContext('2d'), viewport: viewport }).promise.then(function () { return canvas.toDataURL('image/png'); });
+  function pdfPageImages(file) {
+    return import('/assets/vendor/pdfjs/pdf.min.mjs').then(function (pdfjs) {
+      pdfjs.GlobalWorkerOptions.workerSrc = '/assets/vendor/pdfjs/pdf.worker.min.mjs';
+      return file.arrayBuffer().then(function (buffer) { return pdfjs.getDocument({ data: new Uint8Array(buffer) }).promise; });
+    }).then(function (pdf) {
+      var pages = [];
+      for (var index = 1; index <= pdf.numPages; index += 1) {
+        pages.push(pdf.getPage(index).then(function (page) {
+          var viewport = page.getViewport({ scale: 1.75 }); var canvas = document.createElement('canvas'); canvas.width = viewport.width; canvas.height = viewport.height;
+          return page.render({ canvasContext: canvas.getContext('2d'), viewport: viewport }).promise.then(function () { return canvas.toDataURL('image/png'); });
+        }));
+      }
+      return Promise.all(pages);
     });
   }
   function ocrFile(file) {
-    var input = file.type === 'application/pdf' ? firstPDFPage(file) : Promise.resolve(URL.createObjectURL(file));
-    return input.then(function (image) { return loadOCR().then(function (worker) { return worker.recognize(image).then(function (result) { if (image.indexOf('blob:') === 0) URL.revokeObjectURL(image); return result.data.text; }); }); });
+    var images = file.type === 'application/pdf' ? pdfPageImages(file) : Promise.resolve([URL.createObjectURL(file)]);
+    return images.then(function (pages) {
+      return loadOCR().then(function (worker) {
+        return pages.reduce(function (chain, image, index) {
+          return chain.then(function (text) {
+            status.textContent = 'Running local OCR for ' + file.name + ', page ' + (index + 1) + ' of ' + pages.length + '…';
+            return worker.recognize(image).then(function (result) { if (image.indexOf('blob:') === 0) URL.revokeObjectURL(image); return text.concat(result.data.text); });
+          });
+        }, Promise.resolve([]));
+      });
+    }).then(function (pages) { return pages.join('\n\n'); });
   }
   function field(form, grid, labelText, name, type, value, wide, options) {
     if (!form) return null;
@@ -63,11 +81,11 @@
     var actions = document.createElement('div'); actions.className = 'cluster'; var submit = document.createElement('button'); submit.className = 'btn btn--primary'; submit.type = 'submit'; submit.textContent = 'Submit reviewed record'; var discard = document.createElement('button'); discard.className = 'btn btn--secondary'; discard.type = 'button'; discard.dataset.removeImport = ''; discard.textContent = 'Discard'; actions.append(submit, discard); var message = document.createElement('p'); message.className = 'form-hint'; message.dataset.recordStatus = ''; message.setAttribute('role', 'status'); message.setAttribute('aria-live', 'polite'); form.append(grid, warranty, actions, message); card.append(source, form); return card;
   }
   function selectValue(form, name, value) { if (value) form.elements[name].value = value; }
-  function addRecord(file, text, hash, method) { var record = guess(file, text, hash); record.hash = hash; var card = recordCard(record, file, method); results.appendChild(card); var form = card.querySelector('form'); selectValue(form, 'eventType', record.eventType); selectValue(form, 'status', record.status); }
+  function addRecord(file, text, hash, method) { var record = guess(file, text); record.hash = hash; var card = recordCard(record, file, method); results.appendChild(card); var form = card.querySelector('form'); selectValue(form, 'eventType', record.eventType); selectValue(form, 'status', record.status); }
   fileInput.addEventListener('change', function () {
     var files = Array.from(fileInput.files || []); if (!files.length) return; if (!memberData || !(memberData.vehicleRecords || []).length) { status.textContent = 'Add a vehicle before importing service records.'; return; }
     status.textContent = 'Reading ' + files.length + ' local file' + (files.length === 1 ? '' : 's') + '…';
-    files.reduce(function (chain, file) { return chain.then(function () { return hashFile(file).then(function (hash) { if (hashes[hash]) { status.textContent = 'Skipped duplicate: ' + file.name; return; } hashes[hash] = true; return (file.type === 'application/pdf' ? pdfText(file) : Promise.resolve('')).then(function (text) { if (text.trim().length > 40) { addRecord(file, text, hash, 'Embedded PDF text'); return; } status.textContent = 'Running local OCR for ' + file.name + '…'; return ocrFile(file).then(function (ocrText) { addRecord(file, ocrText, hash, 'Local OCR'); }); }); }); }); }, Promise.resolve()).then(function () { status.textContent = 'Ready for review. No source file has been uploaded.'; }).catch(function (error) { status.textContent = 'Could not read one of the files: ' + (error.message || 'unknown error'); });
+    files.reduce(function (chain, file) { return chain.then(function () { return hashFile(file).then(function (hash) { if (hashes[hash]) { status.textContent = 'Skipped duplicate: ' + file.name; return; } return (file.type === 'application/pdf' ? pdfText(file) : Promise.resolve('')).then(function (text) { return text.trim().length > 40 ? { text: text, method: 'Embedded PDF text' } : ocrFile(file).then(function (ocrText) { return { text: ocrText, method: 'Local OCR' }; }); }).then(function (extracted) { addRecord(file, extracted.text, hash, extracted.method); hashes[hash] = true; }).catch(function (error) { status.textContent = 'Could not read ' + file.name + ': ' + (error.message || 'unknown error'); }); }); }); }, Promise.resolve()).then(function () { status.textContent = 'Ready for review. No source file has been uploaded.'; });
   });
   results.addEventListener('click', function (event) { var remove = event.target.closest('[data-remove-import]'); if (remove) remove.closest('[data-import-card]').remove(); });
   results.addEventListener('submit', function (event) {
