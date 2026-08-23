@@ -42,7 +42,22 @@ Create or maintain:
 - FAQ: common owner questions, data use, membership, legal status, privacy, evidence process.
 - Methodology: how evidence is collected, verified, anonymised, aggregated, and caveated.
 - Updates index: list update posts from `src/updates/`.
-- Individual update posts: Markdown with front matter.
+- Individual update posts: Markdown with front matter and the dedicated `update.njk` editorial
+  layout. The layout must present the update type, title, publication date, source attribution
+  and summary together in its header, then keep the article (and optional hero image) in one
+  readable, responsive surface rather than leaving narrow prose unframed on the page background.
+- Publish a launch-visible update dated 16 August 2026, “JLR invites the group to meet in
+  September”. Say that JLR got in touch and held an exploratory call three days after a founding
+  member sent its introductory email, then report JLR's proposed early-September face-to-face
+  meeting with its UK Director of Client Care at Gaydon, home of JLR engineering. Make clear that
+  the date and venue remain subject to confirmation and that this is not a substantive commitment
+  or solution, while stating that it shows JLR is taking the group seriously and wants to discuss
+  the matters in the email face to face. Ask owners to use the short period before September to
+  recruit toward the 1,000-member target and, once signed in, register their vehicles and add
+  available SoH plus service, fault and repair records. Explain that the group will use only
+  suitably anonymised evidence in the meeting. Use the bright, original, non-branded
+  right-hand-drive electric-car road-trip image at `/images/jlr-client-care-september-hero.png` as
+  the article hero; it must not imply JLR endorsement or display generated JLR branding.
 - Keep the Updates index and its navigation/footer links visible in launch mode. Launch-mode
   visitors should see current operational updates, while historical posts marked
   `fullModeOnly` remain hidden until full mode.
@@ -207,8 +222,8 @@ offer a downloadable sample Excel workbook generated with fictional data only.
   garland rather than squeezing supporting copy into the artwork. Format the count with UK
   thousands separators. Reduce its font size from three digits onward, keeping generous clear
   space between the number and inner leaves at values such as 111 or 126, with further
-  reductions at four, five, and six-plus digits so membership growth cannot collide with the
-  wreath.
+  reductions at four, five, and six-plus displayed characters (including the thousands
+  separator) so membership growth cannot collide with the wreath.
 - Present the launch-page cars-registered, SoH-readings, and service/fault-record totals with
   the same reusable gold racing-wreath component as the Owners joined count. Treat the three
   evidence wreaths as a compact subsection directly below the hero image, with no separate

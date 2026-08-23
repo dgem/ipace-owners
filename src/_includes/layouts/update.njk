@@ -1,0 +1,30 @@
+---
+layout: base.njk
+---
+<header class="update-header">
+  <div class="container update-header__inner">
+    <p class="update-header__eyebrow">{{ eyebrow | default('Update') }}</p>
+    <h1 class="update-header__title">{{ title }}</h1>
+    <div class="update-header__meta">
+      <time datetime="{{ date | isoDate }}">{{ date | readableDate }}</time>
+      <span aria-hidden="true">&middot;</span>
+      <span>I-PACE Owners' Advocacy Group</span>
+    </div>
+    {% if summary %}<p class="update-header__summary">{{ summary }}</p>{% endif %}
+  </div>
+</header>
+
+<div class="section update-page">
+  <div class="container">
+    <article class="update-article">
+      {% if heroImage %}
+      <figure class="update-article__hero">
+        <img src="{{ heroImage }}" alt="{{ heroImageAlt | default('') }}"{% if heroImageAlt %} loading="eager"{% else %} aria-hidden="true"{% endif %}>
+      </figure>
+      {% endif %}
+      <div class="prose update-article__body">
+        {{ content | safe }}
+      </div>
+    </article>
+  </div>
+</div>

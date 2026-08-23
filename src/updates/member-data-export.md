@@ -2,7 +2,7 @@
 title: Export your member and vehicle data
 date: 2026-07-28
 summary: "A feature requested by a member: download your saved membership, vehicle, battery and service records as CSV files or a formatted Excel report."
-layout: page.njk
+layout: update.njk
 eyebrow: Member update
 seoType: article
 ---

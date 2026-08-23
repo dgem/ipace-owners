@@ -239,6 +239,44 @@ func TestSentCustomCampaignCanOnlyBePreviewedUnchanged(t *testing.T) {
 	}
 }
 
+func TestStartedJLRCampaignRetainsSavedCopyWhenTemplateChanges(t *testing.T) {
+	record := customCampaignRecord{
+		Kind:         jlrContactCampaignKind,
+		Name:         "JLR meeting update",
+		Subject:      "We have contact",
+		Markdown:     "Saved body",
+		HeroImage:    "/images/saved-hero.png",
+		HeroImageAlt: "Saved hero",
+		Sent:         2,
+	}
+	changed := customCampaignDraftRequest{
+		Kind:         jlrContactCampaignKind,
+		CreateWithID: true,
+		Name:         "Changed JLR update",
+		Subject:      "Changed subject",
+		Markdown:     "Changed body",
+		HeroImage:    "/images/changed-hero.png",
+		HeroImageAlt: "Changed hero",
+	}
+
+	got, reused := staticCampaignInputForStartedRecord(changed, record)
+	if !reused {
+		t.Fatal("started JLR campaign did not reuse its saved copy")
+	}
+	if !sameCustomCampaignDraft(record, got) {
+		t.Fatalf("started JLR campaign preview did not retain saved copy: %#v", got)
+	}
+}
+
+func TestStartedNonStaticCampaignCannotReuseSavedCopy(t *testing.T) {
+	record := customCampaignRecord{Kind: customCampaignKind, Name: "Saved", Sent: 1}
+	input := customCampaignDraftRequest{Kind: customCampaignKind, Name: "Changed"}
+	got, reused := staticCampaignInputForStartedRecord(input, record)
+	if reused || got.Name != input.Name {
+		t.Fatalf("non-static campaign unexpectedly reused saved copy: %#v", got)
+	}
+}
+
 func TestAdminCustomCampaignPreviewRequiresAdmin(t *testing.T) {
 	original := campaignAuthorize
 	t.Cleanup(func() { campaignAuthorize = original })

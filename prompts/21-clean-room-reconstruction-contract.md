@@ -74,6 +74,12 @@ header exposes Sign in beside the menu toggle and repeats it in the drawer for d
 both signed-out actions disappear after authentication, and the mobile header action remains
 hidden at desktop widths.
 
+The authenticated account page presents preference values as a concise summary with an explicit
+`Edit preferences` action; its editing controls are hidden until requested. Vehicle cards remain
+readable summaries. Their Edit and Delete actions open one full-width, well-spaced panel below
+the vehicle list rather than inserting a form into a narrow vehicle-card column. Deletion requires
+the typed confirmation documented in the API contract.
+
 `/admin/` is the claim-gated landing dashboard. It links to every implemented admin tool and
 describes planned areas without linking to unimplemented routes.
 
@@ -89,18 +95,24 @@ change rather than assuming it exists.
 |---|---|---|
 | `POST /api/send-magic-link` | Public | JSON `email`, optional `name`; send only for a matching Join submission or existing Firebase Auth account and return enumeration-resistant `{ "ok": true }` for syntactically valid requests. |
 | `POST /api/submit-join` | Optional Firebase token | `name`, `email`, `country`, `relationship`, `skills[]`, `consent-contact`, `consent-not-legal`, `consent-data`, and `bot-field`; save the Join record and initiate guest activation. |
-| `POST /api/submit-vehicle-basics` | Member | `vin`, `registration`, `country`, `modelYear`, `mileage`, `ownedSince`, `firstReg`, plus optional `soh`, `sohDate`, `sohMileage`, `sohSource`. |
-| `POST /api/submit-soh` | Member/vehicle owner | `vehicleId`, `soh`, `sohDate`, `sohMileage`, `sohSource`; append history and update the vehicle compatibility value. |
+| `POST /api/submit-vehicle-basics` | Member | Optional `id` for an owned edit; otherwise `vin`, `registration`, `country`, `modelYear`, `mileage`, `ownedSince`, `firstReg`, plus optional initial `soh`, `sohDate`, `sohMileage`, `sohSource`. |
+| `POST /api/submit-soh` | Member/vehicle owner | Optional `id` for an owned edit plus `vehicleId`, `soh`, `sohDate`, `sohMileage`, `sohSource`; maintain the vehicle compatibility value. |
 | `POST /api/upsert-service-event` | Member/vehicle and record owner | `id`, `vehicleId`, `eventType`, `occurredAt`, `mileage`, `title`, `description`, `status`, `campaigns[]`, `serviceProviderId`, `serviceProviderName`, `serviceProviderPostcode`, `serviceProviderAuthorised`, `finalFixAt`, `courtesyVehicleOffered`, `courtesyVehicleProvided`, `partsDelay`, `goodwillPayment`, `milesDrivenWhilstFaulty`, `warrantyCover`, `disputeStatus`. Derive `daysToFinalFix` server-side. |
+| `POST /api/update-member-preferences` | Member | Required booleans `contact`, `anonymisedAnalysis`; apply to every Join record sharing the authenticated email hash. |
+| `POST /api/delete-vehicle` | Member/vehicle owner | `id`, `confirmation: "DELETE"`; soft-delete the vehicle and its dependent SoH and service records. |
+| `POST /api/delete-soh` | Member/reading owner | `id`, `confirmation: "DELETE"`; soft-delete an SoH reading and refresh the vehicle compatibility value. |
+| `POST /api/delete-service-event` | Member/event owner | `id`, `confirmation: "DELETE"`; soft-delete a service/fault record. |
 | `GET /api/member-data` | Member | Return only that UID's private member snapshot. |
 | `GET /api/member-export?format=csv\|xlsx` | Member | Return a private no-store ZIP of four CSV datasets or a formatted five-sheet Excel workbook built from only that UID's snapshot; omit internal IDs/hashes and neutralise spreadsheet formulas. |
 | `GET /api/admin-data` | Admin claim | Return Join and vehicle review records. |
+| `GET /api/admin/stats` | Admin claim | Return the consent-filtered homepage counters alongside private all-record member, vehicle, SoH, and service-event statistics with `Cache-Control: private, no-store`; canonical emails are deduplicated at the first Join before the daily Join trend and country rows are calculated. Derive country from the Join, one unambiguous vehicle country, or a strict UK registration, otherwise use `Unknown` (including conflicting vehicle countries). Magic-link-verified accounts have a separate daily line chart, and no per-vehicle evidence is returned. |
 | `POST /api/admin/reengagement-preview` | Admin claim | Return aggregate counts for consented Join submitters who have not registered. |
 | `POST /api/admin/reengagement-send` | Admin claim | Require the campaign ID, exact eligible count and typed confirmation; recheck registrations and send the next batch of at most ten. |
 | `POST /api/admin/member-referral-preview` | Admin claim | Preview aggregate counts and exact copy for registered accounts with matching contact consent. |
 | `POST /api/admin/member-referral-send` | Admin claim | Confirm and send the next batch of at most ten referral emails with the same idempotent ledger safeguards. |
 | `POST /api/admin/all-members-drive-preview` | Admin claim | Preview the deduplicated, contact-consenting audience across verified and unverified Join records and the exact recruitment email. |
 | `POST /api/admin/all-members-drive-send` | Admin claim | Confirm and send the next batch of at most ten all-member recruitment emails with hashed idempotent delivery records. |
+| `POST /api/admin/jlr-contact-preview` | Admin claim | Load the fixed JLR Contact Markdown source, calculate the verified consented audience, and return the exact branded preview. |
 | `POST /api/admin/email-campaign-history` | Admin claim | Return parent campaign records and aggregate hashed-ledger delivery counts, including inferred legacy runs and cached Resend delivery outcomes, without addresses. |
 | `POST /api/admin/custom-campaign-preview` | Admin claim | Validate/save a named subject and Markdown draft, calculate the verified consented audience, and return representative branded HTML/plain-text output. |
 | `POST /api/admin/custom-campaign-send` | Admin claim | Load immutable saved content, recheck the audience and exact `SEND <count>` confirmation, then send at most ten idempotent messages. |
@@ -268,6 +280,7 @@ the repository or an artifact archive:
 
 - `public/favicon.png`;
 - `public/images/ipace-hero.png`;
+- `public/images/jlr-client-care-september-hero.png`;
 - `public/images/ipace-owners-logo.svg` and `public/images/ipace-owners-logo.png`;
 - `public/images/ipace-owners-qr.svg`;
 - `public/images/ipace-owners-card-front.svg` and

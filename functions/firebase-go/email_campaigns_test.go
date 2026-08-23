@@ -60,6 +60,72 @@ func TestCampaignSummaryNeverReportsNegativeRemaining(t *testing.T) {
 	}
 }
 
+func TestEmbeddedJLRContactCampaignHasRequiredDeliveryMetadata(t *testing.T) {
+	template, err := embeddedCampaignTemplate("jlr-contact")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if template.ID != "jlr-contact" || template.Audience != "custom-member" {
+		t.Fatalf("unexpected campaign routing metadata: %#v", template)
+	}
+	if strings.TrimSpace(template.Name) == "" || strings.TrimSpace(template.Subject) == "" {
+		t.Fatalf("campaign must provide a name and subject: %#v", template)
+	}
+	if template.HeroImage != "/images/jlr-client-care-september-hero.png" || strings.TrimSpace(template.HeroImageAlt) == "" {
+		t.Fatalf("campaign must provide the approved JLR hero and alt text: %#v", template)
+	}
+	if !strings.Contains(template.Markdown, "{{memberFirstName}}") {
+		t.Fatal("campaign must retain the recipient greeting placeholder")
+	}
+}
+
+func TestJLRContactCampaignUsesItsHolidayHeroImage(t *testing.T) {
+	_, htmlBody, _, err := renderCustomCampaignEmail(customCampaignRecord{
+		Kind:         jlrContactCampaignKind,
+		Subject:      "JLR update",
+		Markdown:     "Hi {{memberFirstName}},",
+		HeroImage:    "/images/jlr-client-care-september-hero.png",
+		HeroImageAlt: "View from a right-hand-drive electric car on a sunny English country road.",
+	}, customCampaignAudience{}, customCampaignRecipient{Name: "Jane"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, expected := range []string{"/images/jlr-client-care-september-hero.png", "sunny English country road"} {
+		if !strings.Contains(htmlBody, expected) {
+			t.Fatalf("JLR campaign HTML missing %q: %s", expected, htmlBody)
+		}
+	}
+}
+
+func TestAllCampaignsUseMarkdownSources(t *testing.T) {
+	for fileName, expectedID := range map[string]string{
+		"campaign-reengagement": "registration-reminder",
+		"member-referral":       "member-referral",
+		"all-members-drive":     "reach-1000",
+		"jlr-contact":           "jlr-contact",
+	} {
+		template, err := embeddedCampaignTemplate(fileName)
+		if err != nil {
+			t.Fatalf("load %q: %v", fileName, err)
+		}
+		if template.ID != expectedID {
+			t.Fatalf("template ID = %q, want %q", template.ID, expectedID)
+		}
+	}
+}
+
+func TestAdminJLRContactPreviewRequiresAdmin(t *testing.T) {
+	original := campaignAuthorize
+	t.Cleanup(func() { campaignAuthorize = original })
+	campaignAuthorize = func(context.Context, *http.Request) error { return context.Canceled }
+	req := httptest.NewRequest(http.MethodPost, "/api/admin/jlr-contact-preview", strings.NewReader(`{}`))
+	res := httptest.NewRecorder()
+	AdminJLRContactPreview(res, req)
+	if res.Code != http.StatusForbidden {
+		t.Fatalf("status=%d body=%s", res.Code, res.Body.String())
+	}
+}
+
 func TestCampaignEmailPreviewUsesTheDeliveryTemplate(t *testing.T) {
 	preview := makeCampaignEmailPreview(371, 12)
 	if strings.TrimSpace(preview.Subject) == "" {

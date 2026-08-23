@@ -59,10 +59,33 @@ into history and the Admin home. Ignore provider recipient fields: persist only 
 and update time on hashed delivery documents and never return addresses to the browser.
 Registration reminders remain rerunnable only through their specialised tool because they require
 an unverified-member audience and a fresh private sign-in link; do not clone them into the
-verified-member custom editor.
+verified-member custom editor. Other historical runs with saved subject and Markdown, including
+JLR Contact, use “Tweak and rerun” to create a linked Freeform run. An unsent editable draft uses
+“Edit draft” instead. Keep only headline history metrics visible and retain the full set, including
+zero values, in an expandable “more metrics” control.
 Allow drafts to reopen and partially sent custom runs to continue after re-previewing the exact
 unchanged saved content. If the administrator edits a run that has sent anything, clear its active
 campaign ID and create a new run linked through `sourceCampaignId`.
+
+Campaign body copy is source-controlled Markdown (`.md`, including front matter). The specialised registration reminder,
+member-referral, and Reach 1,000 campaigns render their deployed Markdown templates from
+`functions/firebase-go/email-templates/`; their delivery mechanics remain in Go. Custom-editor
+campaigns are also Markdown files with front matter in that directory. Every static campaign
+must have a dedicated tab with the same preview, exact-count confirmation, and bounded-send flow;
+the server selects its Markdown source and audience, never JavaScript. The JLR Contact campaign
+for the 16 August 2026 update is one of those dedicated tabs. Once a static JLR batch has sent,
+preserve its saved subject, body and hero for subsequent previews even if its Markdown source is
+later edited; show the saved email and a disabled send action when the audience is exhausted,
+rather than failing the preview. Freeform remains only for ad-hoc,
+editable verified-member campaigns. Its copy must describe the proposed early-September
+face-to-face meeting with JLR's UK Director of Client Care at Gaydon, while making the date and
+venue subject to final confirmation and distinguishing it from a substantive JLR commitment. Link
+to `/updates/jaguar-contact/`, ask owners to help reach 1,000 members, and invite registered
+members to add vehicle, SoH, service, fault and repair records before September so the group can
+reference suitably anonymised evidence. Its `heroImage` and `heroImageAlt` Markdown front-matter
+fields use the same bright, non-branded `/images/jlr-client-care-september-hero.png` holiday image
+as the public update, rather than the generic campaign hero. Static template heroes must be
+site-owned `/images/` paths; Freeform campaigns retain the generic hero.
 
 ## Command Surface
 
@@ -99,6 +122,10 @@ campaign ID and create a new run linked through `sourceCampaignId`.
   events; never expose those distinctions in the browser response.
 - Dependabot must check npm, Go modules, GitHub Actions, and OpenTofu weekly. Group compatible
   minor and patch updates by ecosystem to reduce PR noise; review major upgrades separately.
+- Before declaring a PR ready, inspect every current human and automated review thread against
+  the latest commit. Implement valid findings, and record any stale or intentionally declined
+  finding with its evidence; do not assume a Copilot, CI, or human comment is correct without
+  verification.
 - `make lint` is the aggregate source-quality gate. It checks JavaScript, CSS, Markdown,
   JSON/YAML, Nunjucks templates, Bash syntax, Go formatting and vetting, OpenTofu/HCL
   formatting, and SVG/XML syntax; keep focused `lint-*` targets available for iteration.

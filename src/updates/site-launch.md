@@ -2,7 +2,7 @@
 title: The I-PACE Owners site is live
 date: 2026-07-18
 summary: "Join the group, add your cars and start building a stronger shared evidence base."
-layout: page.njk
+layout: update.njk
 eyebrow: Site launch
 seoType: article
 ---

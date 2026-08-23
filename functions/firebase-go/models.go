@@ -15,6 +15,7 @@ type joinRequest struct {
 }
 
 type vehicleRequest struct {
+	ID           string `json:"id"`
 	VIN          string `json:"vin"`
 	Registration string `json:"registration"`
 	Country      string `json:"country"`
@@ -29,11 +30,22 @@ type vehicleRequest struct {
 }
 
 type batteryReadingRequest struct {
+	ID         string `json:"id"`
 	VehicleID  string `json:"vehicleId"`
 	SOH        string `json:"soh"`
 	SOHDate    string `json:"sohDate"`
 	SOHMileage string `json:"sohMileage"`
 	SOHSource  string `json:"sohSource"`
+}
+
+type preferenceRequest struct {
+	Contact            *bool `json:"contact"`
+	AnonymisedAnalysis *bool `json:"anonymisedAnalysis"`
+}
+
+type deleteRequest struct {
+	ID           string `json:"id"`
+	Confirmation string `json:"confirmation"`
 }
 
 type serviceEventRequest struct {
@@ -101,8 +113,9 @@ type batteryDetails struct {
 }
 
 type reviewRecord struct {
-	Status            string `json:"status" firestore:"status"`
-	VerificationLevel string `json:"verificationLevel" firestore:"verificationLevel"`
+	Status            string    `json:"status" firestore:"status"`
+	VerificationLevel string    `json:"verificationLevel" firestore:"verificationLevel"`
+	DeletedAt         time.Time `json:"deletedAt,omitempty" firestore:"deletedAt,omitempty"`
 }
 
 type joinRecord struct {
