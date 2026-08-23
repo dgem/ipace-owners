@@ -65,6 +65,25 @@ evidence fields:
 - warranty cover in place at the time;
 - responsibility or warranty dispute status.
 
+## Local service-document importer
+
+Provide authenticated members with `/member/import-service-records/`, linked from the
+vehicle workspace. It is a private, browser-only assistant for turning local PDFs and
+JPEG/PNG/WebP scans into reviewed service-event drafts. Do not upload or persist the source
+files. Use PDF.js to extract embedded text from native PDFs; where that is insufficient,
+render the first PDF page or use the supplied image and run Tesseract WebAssembly OCR locally.
+Ship the PDF, OCR worker/core, and English trained-data assets with the static site, rather
+than calling a third-party document or OCR service.
+
+Hash each selected file using SHA-256 in the browser and suppress duplicates for the current
+session. Use filename/text hints only to draft date, mileage, invoice category, type, status,
+provider, and a short title. Always show an in-browser local preview and editable vehicle,
+date, mileage, provider, type, status, title, and details fields. Never submit automatically;
+the member must use an explicit `Submit reviewed record` control. Submit only the reviewed
+structured JSON to the existing authenticated `POST /api/upsert-service-event`; retain the
+source filename and digest in the editable description as an audit reference. Do not send OCR
+output wholesale because it may contain personal data. The original document remains local.
+
 Refresh `src/assets/data/jaguar-uk-service-providers.json` with
 `make update-service-providers`. The generator queries the official Jaguar UK retailer
 locator's Electric Vehicle Service and Electric Vehicle Battery Repair filters, retains
@@ -104,6 +123,8 @@ identity, sheet structure, representative totals, and chart parts.
 ## Tests
 
 - Test unauthenticated rejection and input validation.
+- Test that the document importer is member-gated, uses local PDF/OCR assets, hashes files,
+  includes a review-and-submit boundary, and has no document-upload endpoint.
 - Test ownership predicates for both user and vehicle IDs.
 - Test Firebase Hosting route and browser bearer-token wiring.
 - Test tab semantics, full-width workspace markup, graph accessibility, and add/edit controls.
