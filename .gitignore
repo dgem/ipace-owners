@@ -51,3 +51,4 @@ tmp/
 *.tfstate.*
 *.tfvars
 !*.tfvars.example
+src/assets/vendor/

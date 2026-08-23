@@ -7,8 +7,9 @@
     "node": ">=24 <25"
   },
   "scripts": {
-    "dev": "eleventy --serve",
-    "build": "eleventy",
+    "dev": "npm run copy:browser-vendors && eleventy --serve",
+    "build": "npm run copy:browser-vendors && eleventy",
+    "copy:browser-vendors": "node scripts/copy-browser-vendors.mjs",
     "clean": "rm -rf _site",
     "lint:js": "eslint .eleventy.js scripts test src/assets/js",
     "lint:css": "stylelint \"src/**/*.css\"",
@@ -19,7 +20,10 @@
     "smoke:deployment": "node scripts/smoke-test-deployment.mjs"
   },
   "dependencies": {
-    "@11ty/eleventy": "^3.0.0"
+    "@11ty/eleventy": "^3.0.0",
+    "@tesseract.js-data/eng": "^1.0.0",
+    "pdfjs-dist": "^6.2.108",
+    "tesseract.js": "^7.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

@@ -3529,7 +3529,23 @@ details .details-body p:last-child {
 }
 
 /* ------------------------------------------------------------
-   19. SKIP LINK
+   19. SERVICE RECORD IMPORTER
+   ------------------------------------------------------------ */
+.service-importer { display: grid; gap: var(--space-6); }
+.service-importer__intro { align-items: start; display: flex; gap: var(--space-4); justify-content: space-between; }
+.service-importer__intro h2 { margin-bottom: var(--space-2); }
+.service-importer__intro p { color: var(--color-text-muted); max-width: 52rem; }
+.service-importer__controls { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-5); }
+.service-import-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); display: grid; gap: var(--space-5); margin-top: var(--space-5); overflow: hidden; padding: var(--space-5); }
+.service-import-card__source h3 { font-size: var(--text-base); margin-bottom: var(--space-1); overflow-wrap: anywhere; }
+.service-import-card__source iframe, .service-import-card__source img { background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-sm); height: 20rem; margin-top: var(--space-3); max-width: 100%; object-fit: contain; width: 100%; }
+.service-import-card__form label { display: grid; gap: var(--space-2); font-weight: 600; }
+.service-import-card__form input, .service-import-card__form select, .service-import-card__form textarea { font-weight: 400; }
+@media (min-width: 56em) { .service-import-card { grid-template-columns: minmax(16rem, .75fr) minmax(0, 1.25fr); } }
+@media (max-width: 40em) { .service-importer__intro { align-items: stretch; flex-direction: column; } }
+
+/* ------------------------------------------------------------
+   20. SKIP LINK
    ------------------------------------------------------------ */
 .skip-link {
   position: absolute;
