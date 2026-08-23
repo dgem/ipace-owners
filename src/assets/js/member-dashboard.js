@@ -86,13 +86,70 @@
     return provider.name + ' — ' + provider.postcode;
   }
 
-  function serviceProviderOptionsMarkup() {
-    return serviceProviders.map(function (provider) {
-      var details = [provider.town];
-      if (provider.authorisedRepairer) details.push('Authorised Jaguar repairer');
-      if (provider.electricVehicleBatteryRepair) details.push('EV battery repair');
-      return '<option value="' + escapeHtml(serviceProviderValue(provider)) + '" label="' + escapeHtml(details.filter(Boolean).join(' · ')) + '"></option>';
-    }).join('');
+  function serviceProviderSearchText(provider) {
+    return [provider.name, provider.postcode, provider.town, provider.county]
+      .concat(provider.addressLines || [])
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+  }
+
+  function matchingServiceProviders(value) {
+    var query = String(value || '').trim().toLowerCase();
+    if (!query) return [];
+    return serviceProviders.filter(function (provider) {
+      return serviceProviderSearchText(provider).indexOf(query) !== -1;
+    }).slice(0, 8);
+  }
+
+  function providerSuggestionID(provider) {
+    return 'service-provider-suggestion-' + provider.id;
+  }
+
+  function providerSuggestionMarkup(provider) {
+    var details = [provider.postcode, provider.town];
+    if (provider.authorisedRepairer) details.push('Authorised Jaguar repairer');
+    if (provider.electricVehicleBatteryRepair) details.push('EV battery repair');
+    return '<button type="button" id="' + escapeHtml(providerSuggestionID(provider)) + '" class="provider-autocomplete__option" role="option" tabindex="-1" data-service-provider-choice="' + escapeHtml(provider.id) + '" aria-selected="false">' +
+      '<strong>' + escapeHtml(provider.name) + '</strong><span>' + escapeHtml(details.filter(Boolean).join(' · ')) + '</span></button>';
+  }
+
+  function setActiveServiceProviderSuggestion(form, index) {
+    var lookup = form.querySelector('[data-service-provider-lookup]');
+    var results = form.querySelector('[data-service-provider-suggestions]');
+    var choices = results ? Array.from(results.querySelectorAll('[data-service-provider-choice]')) : [];
+    if (!lookup || !choices.length) return -1;
+    var activeIndex = Math.max(0, Math.min(index, choices.length - 1));
+    choices.forEach(function (choice, choiceIndex) {
+      choice.setAttribute('aria-selected', choiceIndex === activeIndex ? 'true' : 'false');
+    });
+    lookup.setAttribute('aria-activedescendant', choices[activeIndex].id);
+    choices[activeIndex].scrollIntoView({ block: 'nearest' });
+    return activeIndex;
+  }
+
+  function renderServiceProviderSuggestions(form) {
+    var lookup = form.querySelector('[data-service-provider-lookup]');
+    var results = form.querySelector('[data-service-provider-suggestions]');
+    if (!lookup || !results) return;
+    var matches = matchingServiceProviders(lookup.value);
+    results.innerHTML = matches.map(providerSuggestionMarkup).join('');
+    results.hidden = matches.length === 0;
+    lookup.setAttribute('aria-expanded', matches.length ? 'true' : 'false');
+    lookup.removeAttribute('aria-activedescendant');
+  }
+
+  function hideServiceProviderSuggestions(form) {
+    var lookup = form.querySelector('[data-service-provider-lookup]');
+    var results = form.querySelector('[data-service-provider-suggestions]');
+    if (results) {
+      results.hidden = true;
+      results.innerHTML = '';
+    }
+    if (lookup) {
+      lookup.setAttribute('aria-expanded', 'false');
+      lookup.removeAttribute('aria-activedescendant');
+    }
   }
 
   function findServiceProvider(value) {
@@ -100,6 +157,19 @@
     return serviceProviders.find(function (provider) {
       return serviceProviderValue(provider).toLowerCase() === normalized;
     });
+  }
+
+  function findServiceProviderByID(id) {
+    return serviceProviders.find(function (provider) { return provider.id === id; });
+  }
+
+  function selectServiceProvider(form, provider) {
+    var lookup = form.querySelector('[data-service-provider-lookup]');
+    if (!lookup || !provider) return;
+    lookup.value = serviceProviderValue(provider);
+    syncServiceProviderFields(form, true);
+    hideServiceProviderSuggestions(form);
+    lookup.focus();
   }
 
   function syncServiceProviderFields(form, updateAuthorised) {
@@ -198,23 +268,23 @@
 
   function readingsMarkup(readings) {
     if (!readings.length) return '';
-    return '<div class="reading-table-wrap"><table class="reading-table"><thead><tr><th>Date</th><th>SoH</th><th>Mileage</th><th>Source</th></tr></thead><tbody>' +
+    return '<div class="reading-table-wrap"><table class="reading-table"><thead><tr><th>Date</th><th>SoH</th><th>Mileage</th><th>Source</th><th><span class="sr-only">Actions</span></th></tr></thead><tbody>' +
       readings.slice().reverse().map(function (reading) {
         var battery = reading.battery || {};
         return '<tr><td>' + escapeHtml(formatDate(battery.measuredAt)) + '</td><td><strong>' + escapeHtml(battery.stateOfHealth) + '%</strong></td><td>' +
-          (battery.mileageAtMeasurement == null ? 'Not recorded' : Number(battery.mileageAtMeasurement).toLocaleString() + ' miles') + '</td><td>' + escapeHtml(sourceLabel(battery.source)) + '</td></tr>';
+          (battery.mileageAtMeasurement == null ? 'Not recorded' : Number(battery.mileageAtMeasurement).toLocaleString() + ' miles') + '</td><td>' + escapeHtml(sourceLabel(battery.source)) + '</td><td><div class="cluster cluster--sm"><button class="btn btn--secondary btn--sm" type="button" data-edit-soh="' + escapeHtml(reading.id) + '">Edit</button><button class="btn btn--secondary btn--sm" type="button" data-delete-record="soh" data-record-id="' + escapeHtml(reading.id) + '">Delete</button></div></td></tr>';
       }).join('') + '</tbody></table></div>';
   }
 
   function sohFormMarkup(vehicleId) {
     var id = escapeHtml(vehicleId);
     return '<div class="member-form-panel" data-soh-panel hidden><form data-soh-update-form>' +
-      '<input type="hidden" name="vehicleId" value="' + id + '"><div class="member-form-grid">' +
+      '<input type="hidden" name="id"><input type="hidden" name="vehicleId" value="' + id + '"><div class="member-form-grid">' +
       '<div class="form-group"><label for="dashboard-soh">State of Health (%)</label><input id="dashboard-soh" name="soh" type="number" min="0" max="100" step="0.1" required></div>' +
       '<div class="form-group"><label for="dashboard-soh-date">Measurement date</label><input id="dashboard-soh-date" name="sohDate" type="date" required' + notFutureDateAttributes('dashboard-soh-date-error') + '><span class="form-error" id="dashboard-soh-date-error" role="alert" hidden>Measurement date cannot be in the future.</span></div>' +
       '<div class="form-group"><label for="dashboard-soh-mileage">Mileage at measurement</label><input id="dashboard-soh-mileage" name="sohMileage" type="number" min="0" max="500000"></div>' +
       '<div class="form-group"><label for="dashboard-soh-source">Measurement source</label><select id="dashboard-soh-source" name="sohSource" required><option value="">Select source</option><option value="dealer-report">Dealer report</option><option value="diagnostic-app">Diagnostic app / OBD</option><option value="service-paperwork">Service paperwork</option><option value="jlr-communication">JLR communication</option><option value="estimate-unsure">Estimate / unsure</option></select></div>' +
-      '</div><div class="cluster"><button class="btn btn--primary" type="submit">Save reading</button><button class="btn btn--secondary" type="button" data-close-panel="soh">Cancel</button></div>' +
+      '</div><div class="cluster"><button class="btn btn--primary" type="submit" data-soh-save>Save reading</button><button class="btn btn--secondary" type="button" data-close-panel="soh">Cancel</button></div>' +
       '<p class="form-hint" data-soh-update-status role="status" aria-live="polite"></p></form></div>';
   }
 
@@ -226,7 +296,7 @@
       '<div class="form-group"><label for="event-date">Date</label><input id="event-date" name="occurredAt" type="date" required' + notFutureDateAttributes('event-date-error') + '><span class="form-error" id="event-date-error" role="alert" hidden>Event date cannot be in the future.</span></div>' +
       '<div class="form-group"><label for="event-mileage">Mileage</label><input id="event-mileage" name="mileage" type="number" min="0" max="500000"></div>' +
       '<div class="form-group"><label for="event-status">Status</label><select id="event-status" name="status" required><option value="open">Open</option><option value="monitoring">Monitoring</option><option value="resolved">Resolved</option><option value="completed">Completed</option></select></div>' +
-      '<div class="form-group member-form-grid__wide"><label for="event-service-provider">Service provider</label><input id="event-service-provider" type="text" list="jaguar-service-providers" autocomplete="off" data-service-provider-lookup placeholder="Search by provider name or postcode"><datalist id="jaguar-service-providers">' + serviceProviderOptionsMarkup() + '</datalist>' +
+      '<div class="form-group member-form-grid__wide"><label for="event-service-provider">Service provider</label><div class="provider-autocomplete"><input id="event-service-provider" type="text" autocomplete="off" data-service-provider-lookup placeholder="Search by provider name, town or postcode" role="combobox" aria-autocomplete="list" aria-controls="jaguar-service-provider-suggestions" aria-expanded="false"><div id="jaguar-service-provider-suggestions" class="provider-autocomplete__suggestions" data-service-provider-suggestions role="listbox" hidden></div></div>' +
       '<input type="hidden" name="serviceProviderId"><input type="hidden" name="serviceProviderName"><input type="hidden" name="serviceProviderPostcode"><p class="form-hint">Jaguar UK EV service locations are suggested. You can also enter another provider.</p>' +
       '<label class="check-label"><input type="checkbox" name="serviceProviderAuthorised" value="true"> Authorised Jaguar Land Rover service provider</label></div>' +
       '<fieldset class="form-group member-form-grid__wide"><legend>Related campaigns or recalls</legend><div class="campaign-selector" aria-label="Select related campaigns or recalls">' +
@@ -274,7 +344,7 @@
         '<h3>' + escapeHtml(item.title) + '</h3><p class="service-event__meta">' + escapeHtml(meta.join(' · ')) + '</p>' +
         (support.length ? '<p class="service-event__meta">' + escapeHtml(support.join(' · ')) + '</p>' : '') +
         (item.description ? '<p>' + escapeHtml(item.description) + '</p>' : '') + '</div>' +
-        '<button class="btn btn--sm btn--secondary" type="button" data-edit-event="' + escapeHtml(item.id) + '">Edit</button></article>';
+        '<div class="cluster cluster--sm"><button class="btn btn--sm btn--secondary" type="button" data-edit-event="' + escapeHtml(item.id) + '">Edit</button><button class="btn btn--sm btn--secondary" type="button" data-delete-record="event" data-record-id="' + escapeHtml(item.id) + '">Delete</button></div></article>';
     }).join('') + '</div>';
   }
 
@@ -358,6 +428,34 @@
     openPanel('event');
   }
 
+  function editSOH(id) {
+    var item = (memberData.batteryReadings || []).find(function (reading) { return reading.id === id; });
+    if (!item) return;
+    var form = workspace.querySelector('[data-soh-update-form]');
+    var battery = item.battery || {};
+    form.elements.id.value = item.id;
+    form.elements.vehicleId.value = item.vehicleId;
+    form.elements.soh.value = battery.stateOfHealth == null ? '' : battery.stateOfHealth;
+    form.elements.sohDate.value = battery.measuredAt || '';
+    form.elements.sohMileage.value = battery.mileageAtMeasurement == null ? '' : battery.mileageAtMeasurement;
+    form.elements.sohSource.value = battery.source || '';
+    form.querySelector('[data-soh-save]').textContent = 'Save reading';
+    openPanel('soh');
+  }
+
+  function deleteRecord(kind, id) {
+    var confirmation = window.prompt('This is a soft delete. Type DELETE to confirm.');
+    if (confirmation !== 'DELETE') return;
+    var endpoint = kind === 'soh' ? '/api/delete-soh' : '/api/delete-service-event';
+    Promise.resolve(window.ipaceGetIdentityToken ? window.ipaceGetIdentityToken() : '').then(function (token) {
+      return fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify({ id: id, confirmation: confirmation }) });
+    }).then(function (response) {
+      return response.json().catch(function () { return {}; }).then(function (data) {
+        if (!response.ok || !data.ok) throw new Error(data.error || 'Could not delete record');
+      });
+    }).then(function () { return window.ipaceRefreshMemberData(); }).catch(function (error) { window.alert(error.message || 'Could not delete record.'); });
+  }
+
   function dateIsFuture(value) {
     return !!value && value > todayString();
   }
@@ -382,6 +480,8 @@
     var open = event.target.closest('[data-open-panel]');
     var close = event.target.closest('[data-close-panel]');
     var edit = event.target.closest('[data-edit-event]');
+    var editSOHButton = event.target.closest('[data-edit-soh]');
+    var remove = event.target.closest('[data-delete-record]');
     if (tab) {
       activeVehicleId = tab.dataset.vehicleTab;
       render();
@@ -394,14 +494,28 @@
         form.reset();
         form.elements.vehicleId.value = activeVehicleId;
         updateResolutionDays(form);
+        hideServiceProviderSuggestions(form);
         form.querySelector('[data-event-form-title]').textContent = 'Add service event or fault';
+      } else if (open.dataset.openPanel === 'soh') {
+        var sohForm = workspace.querySelector('[data-soh-update-form]');
+        sohForm.reset();
+        sohForm.elements.id.value = '';
+        sohForm.elements.vehicleId.value = activeVehicleId;
+        sohForm.querySelector('[data-soh-save]').textContent = 'Save reading';
       }
       openPanel(open.dataset.openPanel);
     } else if (close) {
       var panel = workspace.querySelector(close.dataset.closePanel === 'soh' ? '[data-soh-panel]' : '[data-event-panel]');
-      if (panel) panel.hidden = true;
+      if (panel) {
+        hideServiceProviderSuggestions(panel);
+        panel.hidden = true;
+      }
     } else if (edit) {
       editEvent(edit.dataset.editEvent);
+    } else if (editSOHButton) {
+      editSOH(editSOHButton.dataset.editSoh);
+    } else if (remove) {
+      deleteRecord(remove.dataset.deleteRecord, remove.dataset.recordId);
     }
   });
 
@@ -424,6 +538,63 @@
     if (event.target.name === 'occurredAt' || event.target.name === 'finalFixAt') {
       updateResolutionDays(form);
     }
+  });
+
+  workspace.addEventListener('input', function (event) {
+    var form = event.target.closest('[data-service-event-form]');
+    if (form && event.target.matches('[data-service-provider-lookup]')) {
+      renderServiceProviderSuggestions(form);
+    }
+  });
+
+  workspace.addEventListener('click', function (event) {
+    var choice = event.target.closest('[data-service-provider-choice]');
+    if (!choice) return;
+    var form = choice.closest('[data-service-event-form]');
+    var provider = findServiceProviderByID(choice.dataset.serviceProviderChoice);
+    if (!form || !provider) return;
+    selectServiceProvider(form, provider);
+  });
+
+  workspace.addEventListener('pointerdown', function (event) {
+    var choice = event.target.closest('[data-service-provider-choice]');
+    if (!choice) return;
+    var form = choice.closest('[data-service-event-form]');
+    var provider = findServiceProviderByID(choice.dataset.serviceProviderChoice);
+    if (!form || !provider) return;
+    event.preventDefault();
+    selectServiceProvider(form, provider);
+  });
+
+  workspace.addEventListener('focusout', function (event) {
+    if (!event.target.matches('[data-service-provider-lookup]')) return;
+    var form = event.target.closest('[data-service-event-form]');
+    window.setTimeout(function () {
+      var active = document.activeElement;
+      if (form && !(active && (active.matches('[data-service-provider-lookup]') || active.matches('[data-service-provider-choice]')))) hideServiceProviderSuggestions(form);
+    }, 0);
+  });
+
+  workspace.addEventListener('keydown', function (event) {
+    if (!event.target.matches('[data-service-provider-lookup]')) return;
+    var form = event.target.closest('[data-service-event-form]');
+    if (!form) return;
+    var choices = Array.from(form.querySelectorAll('[data-service-provider-choice]'));
+    if (event.key === 'Escape') {
+      hideServiceProviderSuggestions(form);
+      return;
+    }
+    if (!choices.length || (event.key !== 'ArrowDown' && event.key !== 'ArrowUp' && event.key !== 'Enter')) return;
+    if (event.key === 'Enter') {
+      var activeChoice = choices.find(function (choice) { return choice.getAttribute('aria-selected') === 'true'; });
+      if (!activeChoice) return;
+      event.preventDefault();
+      selectServiceProvider(form, findServiceProviderByID(activeChoice.dataset.serviceProviderChoice));
+      return;
+    }
+    event.preventDefault();
+    var currentIndex = choices.findIndex(function (choice) { return choice.getAttribute('aria-selected') === 'true'; });
+    setActiveServiceProviderSuggestion(form, currentIndex + (event.key === 'ArrowDown' ? 1 : -1));
   });
 
   workspace.addEventListener('submit', function (event) {
@@ -483,9 +654,15 @@
     })
     .then(function (data) {
       serviceProviders = Array.isArray(data.providers) ? data.providers : [];
-      if (memberData) render();
+      workspace.dataset.serviceProvidersReady = 'true';
+      workspace.querySelectorAll('[data-service-event-form]').forEach(function (form) {
+        if (form.querySelector('[data-service-provider-lookup]').value) {
+          renderServiceProviderSuggestions(form);
+        }
+      });
     })
     .catch(function () {
       serviceProviders = [];
+      workspace.dataset.serviceProvidersReady = 'failed';
     });
 })();

@@ -18,6 +18,15 @@ test('member/account UI treats vehicle records as a list', function () {
   assert.match(account, /account-layout__wide/);
   assert.match(memberAuth, /account-vehicle-grid/);
   assert.match(memberAuth, /Manage history/);
+  assert.match(memberAuth, /data-vehicle-edit-form/);
+  assert.match(memberAuth, /data-vehicle-edit-panel hidden/);
+  assert.match(memberAuth, /data-delete-panel hidden/);
+  assert.match(memberAuth, /Save vehicle changes/);
+  assert.match(memberAuth, /\/api\/delete-vehicle/);
+  assert.match(memberAuth, /Type <strong>DELETE<\/strong> to confirm/);
+  assert.match(memberAuth, /data-toggle-preferences>Edit preferences/);
+  assert.match(memberAuth, /data-preferences-form hidden/);
+  assert.match(memberAuth, /data-close-preferences/);
   assert.match(dashboard, /Your vehicles/);
   assert.match(dashboard, /Add vehicle/);
   assert.match(memberAuth, /Add your first vehicle/);
@@ -64,4 +73,5 @@ test('vehicle basics form invites adding each I-PACE separately', function () {
   assert.match(identity, /showDatabaseError\(result, err && err\.message/);
   assert.doesNotMatch(css, /grid-template-columns:\s*minmax\(0,\s*1fr\)\s*minmax\(18rem,\s*23rem\)/);
   assert.doesNotMatch(css, /position:\s*sticky;\s*\n\s*top:\s*calc\(4\.5rem \+ var\(--space-6\)\)/);
+  assert.match(css, /\.account-vehicle-editor/);
 });

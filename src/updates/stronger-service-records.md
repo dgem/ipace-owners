@@ -15,14 +15,14 @@ but how owners are supported while they are put right.
 
 The updated service and fault form includes:
 
-- the service provider, searchable by name or postcode;
+- the service provider, searchable by name, town, postcode, county or address fragment;
 - whether it is an authorised Jaguar Land Rover service provider;
 - the final fix date, with days to resolution calculated automatically;
 - miles driven while the vehicle was faulty;
 - parts delays ranging from one week to four months or more;
 - whether a goodwill payment was received;
 - courtesy vehicle, warranty and dispute details; and
-- related recall or campaign references in a simple horizontal selector.
+- related recall or campaign references in a compact, wrapping grid.
 
 Provider suggestions come from Jaguar's official UK retailer locator and include locations
 listed for electric-vehicle service. The directory changes over time, so always confirm
