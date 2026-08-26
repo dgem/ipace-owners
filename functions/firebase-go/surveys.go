@@ -105,17 +105,12 @@ func AdminSurveys(w http.ResponseWriter, r *http.Request) {
 				writeJSON(w, 404, map[string]any{"error": "Survey not found"})
 				return
 			}
-			if old.DataTo(&record) != nil {
+			var existing surveyRecord
+			if old.DataTo(&existing) != nil {
 				writeJSON(w, 500, map[string]any{"error": "Could not load survey"})
 				return
 			}
-			record.Title = cleanString(input.Title, 120)
-			record.Question = cleanString(input.Question, 500)
-			record.Multiple = input.Multiple
-			record.StartsOn = input.StartsOn
-			record.EndsOn = input.EndsOn
-			record.ShowResults = input.ShowResults
-			record.Options = input.Options
+			record.CreatedAt = existing.CreatedAt
 		}
 		record.UpdatedAt = now
 		if _, e = db.Collection("surveys").Doc(record.ID).Set(r.Context(), record); e != nil {
@@ -129,11 +124,15 @@ func AdminSurveys(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, 400, map[string]any{"error": "Survey ID is required"})
 			return
 		}
+		if e := deleteSurveyResponses(r.Context(), db, id); e != nil {
+			writeJSON(w, 500, map[string]any{"error": "Could not delete survey responses"})
+			return
+		}
 		if _, e := db.Collection("surveys").Doc(id).Delete(r.Context()); e != nil {
 			writeJSON(w, 500, map[string]any{"error": "Could not delete survey"})
 			return
 		}
-		writeJSON(w, 204, nil)
+		w.WriteHeader(http.StatusNoContent)
 	default:
 		writeJSON(w, 405, map[string]any{"error": "Method Not Allowed"})
 	}
@@ -155,6 +154,7 @@ func validateSurvey(input surveyInput) (surveyRecord, error) {
 		return r, fmt.Errorf("add between 2 and 12 options")
 	}
 	seen := map[string]bool{}
+	textOptions := 0
 	for i, o := range input.Options {
 		o.ID = cleanString(o.ID, 40)
 		o.Label = cleanString(o.Label, 250)
@@ -165,9 +165,32 @@ func validateSurvey(input surveyInput) (surveyRecord, error) {
 			return r, fmt.Errorf("each option needs a unique ID and label")
 		}
 		seen[o.ID] = true
+		if o.AllowsText {
+			textOptions++
+		}
 		r.Options = append(r.Options, o)
 	}
+	if textOptions > 1 {
+		return r, fmt.Errorf("only one option can request short text")
+	}
 	return r, nil
+}
+
+func deleteSurveyResponses(ctx context.Context, db *firestore.Client, surveyID string) error {
+	iter := db.Collection("surveys").Doc(surveyID).Collection("responses").Documents(ctx)
+	defer iter.Stop()
+	for {
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		if _, err := doc.Ref.Delete(ctx); err != nil {
+			return err
+		}
+	}
 }
 func MemberSurveys(w http.ResponseWriter, r *http.Request) {
 	if cors(w, r) || rejectDisallowedOrigin(w, r) {

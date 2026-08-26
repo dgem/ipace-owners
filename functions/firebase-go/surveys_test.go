@@ -16,6 +16,13 @@ func TestValidateSurveyRequiresDatesAndOptions(t *testing.T) {
 	}
 }
 
+func TestValidateSurveyAllowsOnlyOneTextOption(t *testing.T) {
+	_, err := validateSurvey(surveyInput{Title: "Preferred outcomes", Question: "Choose", StartsOn: "2026-08-29", EndsOn: "2026-08-30", Options: []surveyOption{{Label: "Other A", AllowsText: true}, {Label: "Other B", AllowsText: true}}})
+	if err == nil {
+		t.Fatal("expected multiple text options to be rejected")
+	}
+}
+
 func TestSurveyResponseValidation(t *testing.T) {
 	s := surveyRecord{Multiple: false, Options: []surveyOption{{ID: "warranty", Label: "Warranty"}, {ID: "other", Label: "Other", AllowsText: true}}}
 	if _, _, err := validateSurveyResponse(s, surveyResponseInput{OptionIDs: []string{"other"}}); err == nil {

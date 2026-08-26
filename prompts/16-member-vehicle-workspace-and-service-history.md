@@ -120,8 +120,9 @@ identity, sheet structure, representative totals, and chart parts.
 Provide a protected member survey page at `/member/surveys/` and an admin CRUD workspace at
 `/admin/surveys/`. Administrators can create, edit, list, and delete a survey with a title,
 question, two to twelve options, a single- or multiple-choice setting, inclusive whole-day
-start/end dates, and an aggregate-results visibility setting. An option may request a required
-free-text explanation, capped at 250 characters (for example, an `Other` option).
+start/end dates, and an aggregate-results visibility setting. One option may request a required
+free-text explanation, capped at 250 characters (for example, an `Other` option); reject more
+than one text-enabled option because each response stores a single explanation.
 
 Use Firestore `surveys/{surveyId}` documents and a `responses/{uid}` subcollection so a signed-in
 member has one replaceable response per survey. The member APIs must verify Firebase ID tokens
@@ -130,4 +131,4 @@ cardinality, and never expose free-text responses in aggregate results. Return o
 the signed-in member's own answer; display counts only when the administrator enabled results.
 Register `/api/admin/surveys`, `/api/member/surveys`, and `/api/member/survey-response` through
 the shared `Api` function. Test survey definition validation, response validation, and inclusive
-date boundaries.
+date boundaries. Delete a survey's response subcollection before deleting its parent document.

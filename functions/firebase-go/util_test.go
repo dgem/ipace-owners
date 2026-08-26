@@ -34,6 +34,17 @@ func TestOriginAllowed(t *testing.T) {
 	}
 }
 
+func TestCorsAdvertisesSupportedSurveyMethods(t *testing.T) {
+	request := httptest.NewRequest(http.MethodOptions, "/api/admin/surveys", nil)
+	response := httptest.NewRecorder()
+	if !cors(response, request) {
+		t.Fatal("expected OPTIONS request to be handled")
+	}
+	if methods := response.Header().Get("Access-Control-Allow-Methods"); methods != "GET, POST, PUT, DELETE, OPTIONS" {
+		t.Fatalf("allowed methods = %q", methods)
+	}
+}
+
 func TestEmailContinueURLUsesAllowedRequestOrigin(t *testing.T) {
 	t.Setenv("FIREBASE_PROJECT_ID", "ipace-owners-staging")
 	t.Setenv("FIREBASE_EMAIL_CONTINUE_URL", "https://stage.ipace-owners.org/member/account/")
