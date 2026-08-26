@@ -186,6 +186,7 @@ src/
       admin-campaign-summary.js # Admin email/social campaign totals
       `admin-stats.js`     # Claim-gated member, vehicle, SoH and service aggregate dashboard
       email-campaigns.js  # Admin re-engagement preview and bounded send controls
+      `surveys.js`        # Admin survey CRUD and member survey responses/results
       public-stats.js    # Public aggregate-statistics rendering
       site-mode.js       # Launch/full presentation selection
 public/            # Favicons, images and other root-level static assets
@@ -280,6 +281,10 @@ stale PR preview entries while retaining permanent authorized domains. OpenTofu 
 GitHub deployer a custom role containing only `firebaseauth.configs.get` and
 `firebaseauth.configs.update`; apply staging infrastructure after changing these permissions
 and before rerunning the preview workflow.
+
+When a same-repository, repository-owner pull request is merged, the staging workflow deletes
+its `pr-<number>` Firebase Hosting preview channel. Closed but unmerged PRs and external PRs are
+left untouched.
 
 `GET /api/admin/stats` is an administrator-claim-gated aggregate dashboard endpoint. It returns
 the consent-filtered homepage counters alongside private member, vehicle, State of Health, and
@@ -658,6 +663,10 @@ not required for Firebase Hosting and would require a careful migration of every
 ### Submission storage
 
 Cloud Firestore is the intended canonical source for structured owner data.
+
+Member survey administration and responses use `GET/POST/PUT/DELETE /api/admin/surveys`,
+`GET /api/member/surveys`, and `POST /api/member/survey-response`. All are authenticated with a
+Firebase ID token; the admin route additionally requires the administrator claim.
 
 Join submissions, vehicle basics, SoH updates, and service history are handled by routes
 behind the single Go `Api` Cloud Function:

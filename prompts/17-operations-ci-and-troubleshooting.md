@@ -179,6 +179,10 @@ site-owned `/images/` paths; Freeform campaigns retain the generic hero.
   final attempt and still fail deterministically after the retry limit.
 - Serialize staging deployments because PR previews share the staging Auth configuration
   and staging Functions.
+- When a repository-owner pull request is merged, trigger a closed-PR cleanup job that uses the
+  same staging deployment credentials and serialized concurrency group to delete exactly its
+  `pr-<number>` Firebase Hosting preview channel. Do not delete previews for closed-but-unmerged
+  pull requests or external contributors.
 - Before pushing additional commits to an existing PR branch, cancel any in-progress staging
   deployment for that same branch so obsolete code does not continue through the deployment
   sequence. Keep this cancellation branch-scoped: do not cancel another PR's deployment, and

@@ -763,7 +763,7 @@ a.site-context-nav__section:focus-visible {
   position: relative;
   display: grid;
   flex: 0 0 auto;
-  width: 7.5rem;
+  width: 8.25rem;
   aspect-ratio: 1;
   color: #fff;
   place-items: center;
@@ -826,7 +826,7 @@ a.site-context-nav__section:focus-visible {
 }
 
 .launch-member-count__value[data-count-size="four"] {
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   letter-spacing: -0.075em;
 }
 
@@ -836,7 +836,7 @@ a.site-context-nav__section:focus-visible {
 }
 
 .launch-member-count__value[data-count-size="five"] {
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   letter-spacing: -0.075em;
 }
 
@@ -890,7 +890,7 @@ a.site-context-nav__section:focus-visible {
 }
 
 .launch-evidence-wreaths .launch-member-count {
-  width: 6.25rem;
+  width: 6.75rem;
 }
 
 .launch-evidence-wreaths .launch-member-count__value {

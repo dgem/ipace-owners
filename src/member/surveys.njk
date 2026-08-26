@@ -1,0 +1,18 @@
+---
+layout: base.njk
+title: Member Surveys
+description: "Share your view on current I-PACE member advocacy priorities."
+noindex: true
+permalink: /member/surveys/
+surveys: true
+memberNavigation: true
+memberBreadcrumb: Surveys
+eleventyExcludeFromCollections: true
+date: Last Modified
+---
+{% from "partials/auth-login-gate.njk" import authLoginGate %}
+<div class="page-header page-header--compact"><div class="container"><h1 class="page-header__title">Member surveys</h1></div></div>
+<div class="section"><div class="container" data-auth-container>
+  {{ authLoginGate("survey-member-email", "Sign in to share your view", "Enter your member email address and we will send a secure sign-in link.") }}
+  <div class="auth-content" data-auth-content hidden data-member-surveys><p>Loading surveys…</p></div>
+</div></div>

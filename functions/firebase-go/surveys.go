@@ -1,0 +1,334 @@
+package ipace
+
+import (
+	"cloud.google.com/go/firestore"
+	"context"
+	"fmt"
+	"google.golang.org/api/iterator"
+	"net/http"
+	"time"
+)
+
+const surveyOtherTextMax = 250
+
+type surveyOption struct {
+	ID         string `json:"id" firestore:"id"`
+	Label      string `json:"label" firestore:"label"`
+	AllowsText bool   `json:"allowsText" firestore:"allowsText"`
+}
+type surveyRecord struct {
+	ID          string         `json:"id" firestore:"id"`
+	Title       string         `json:"title" firestore:"title"`
+	Question    string         `json:"question" firestore:"question"`
+	Multiple    bool           `json:"multiple" firestore:"multiple"`
+	StartsOn    string         `json:"startsOn" firestore:"startsOn"`
+	EndsOn      string         `json:"endsOn" firestore:"endsOn"`
+	ShowResults bool           `json:"showResults" firestore:"showResults"`
+	Options     []surveyOption `json:"options" firestore:"options"`
+	CreatedAt   time.Time      `json:"createdAt" firestore:"createdAt"`
+	UpdatedAt   time.Time      `json:"updatedAt" firestore:"updatedAt"`
+}
+type surveyInput struct {
+	ID          string         `json:"id"`
+	Title       string         `json:"title"`
+	Question    string         `json:"question"`
+	Multiple    bool           `json:"multiple"`
+	StartsOn    string         `json:"startsOn"`
+	EndsOn      string         `json:"endsOn"`
+	ShowResults bool           `json:"showResults"`
+	Options     []surveyOption `json:"options"`
+}
+type surveyResponseInput struct {
+	SurveyID  string   `json:"surveyId"`
+	OptionIDs []string `json:"optionIds"`
+	OtherText string   `json:"otherText"`
+}
+type surveyResult struct {
+	SurveyRecord surveyRecord   `json:"survey"`
+	Counts       map[string]int `json:"counts"`
+	Total        int            `json:"total"`
+	MyOptionIDs  []string       `json:"myOptionIds,omitempty"`
+	MyOtherText  string         `json:"myOtherText,omitempty"`
+	CanRespond   bool           `json:"canRespond"`
+}
+
+var surveyNow = time.Now
+
+func AdminSurveys(w http.ResponseWriter, r *http.Request) {
+	if cors(w, r) || rejectDisallowedOrigin(w, r) {
+		return
+	}
+	if err := campaignAuthorize(r.Context(), r); err != nil {
+		writeJSON(w, 403, map[string]any{"error": "Admin role required"})
+		return
+	}
+	db, err := firestoreClient(r.Context())
+	if err != nil {
+		writeJSON(w, 500, map[string]any{"error": "Could not connect to data store"})
+		return
+	}
+	switch r.Method {
+	case http.MethodGet:
+		var surveys []surveyRecord
+		if err := readCollection(r.Context(), db.Collection("surveys").OrderBy("createdAt", firestore.Desc), &surveys); err != nil {
+			writeJSON(w, 500, map[string]any{"error": "Could not load surveys"})
+			return
+		}
+		if surveys == nil {
+			surveys = []surveyRecord{}
+		}
+		writeJSON(w, 200, map[string]any{"surveys": surveys})
+	case http.MethodPost, http.MethodPut:
+		var input surveyInput
+		if decodeJSON(r, &input) != nil {
+			writeJSON(w, 400, map[string]any{"error": "Invalid request body"})
+			return
+		}
+		record, e := validateSurvey(input)
+		if e != nil {
+			writeJSON(w, 400, map[string]any{"error": e.Error()})
+			return
+		}
+		now := surveyNow().UTC()
+		if r.Method == http.MethodPost {
+			if record.ID == "" {
+				record.ID = submissionID("survey")
+			}
+			record.CreatedAt = now
+		} else {
+			if record.ID == "" {
+				writeJSON(w, 400, map[string]any{"error": "Survey ID is required"})
+				return
+			}
+			old, e := db.Collection("surveys").Doc(record.ID).Get(r.Context())
+			if e != nil {
+				writeJSON(w, 404, map[string]any{"error": "Survey not found"})
+				return
+			}
+			if old.DataTo(&record) != nil {
+				writeJSON(w, 500, map[string]any{"error": "Could not load survey"})
+				return
+			}
+			record.Title = cleanString(input.Title, 120)
+			record.Question = cleanString(input.Question, 500)
+			record.Multiple = input.Multiple
+			record.StartsOn = input.StartsOn
+			record.EndsOn = input.EndsOn
+			record.ShowResults = input.ShowResults
+			record.Options = input.Options
+		}
+		record.UpdatedAt = now
+		if _, e = db.Collection("surveys").Doc(record.ID).Set(r.Context(), record); e != nil {
+			writeJSON(w, 500, map[string]any{"error": "Could not save survey"})
+			return
+		}
+		writeJSON(w, 200, record)
+	case http.MethodDelete:
+		id := cleanString(r.URL.Query().Get("id"), 160)
+		if id == "" {
+			writeJSON(w, 400, map[string]any{"error": "Survey ID is required"})
+			return
+		}
+		if _, e := db.Collection("surveys").Doc(id).Delete(r.Context()); e != nil {
+			writeJSON(w, 500, map[string]any{"error": "Could not delete survey"})
+			return
+		}
+		writeJSON(w, 204, nil)
+	default:
+		writeJSON(w, 405, map[string]any{"error": "Method Not Allowed"})
+	}
+}
+func validateSurvey(input surveyInput) (surveyRecord, error) {
+	r := surveyRecord{ID: cleanString(input.ID, 160), Title: cleanString(input.Title, 120), Question: cleanString(input.Question, 500), Multiple: input.Multiple, StartsOn: cleanString(input.StartsOn, 10), EndsOn: cleanString(input.EndsOn, 10), ShowResults: input.ShowResults}
+	if r.Title == "" || r.Question == "" {
+		return r, fmt.Errorf("title and question are required")
+	}
+	start, e := time.Parse("2006-01-02", r.StartsOn)
+	if e != nil {
+		return r, fmt.Errorf("a valid start date is required")
+	}
+	end, e := time.Parse("2006-01-02", r.EndsOn)
+	if e != nil || end.Before(start) {
+		return r, fmt.Errorf("end date must be on or after the start date")
+	}
+	if len(input.Options) < 2 || len(input.Options) > 12 {
+		return r, fmt.Errorf("add between 2 and 12 options")
+	}
+	seen := map[string]bool{}
+	for i, o := range input.Options {
+		o.ID = cleanString(o.ID, 40)
+		o.Label = cleanString(o.Label, 250)
+		if o.ID == "" {
+			o.ID = fmt.Sprintf("option-%d", i+1)
+		}
+		if o.Label == "" || seen[o.ID] {
+			return r, fmt.Errorf("each option needs a unique ID and label")
+		}
+		seen[o.ID] = true
+		r.Options = append(r.Options, o)
+	}
+	return r, nil
+}
+func MemberSurveys(w http.ResponseWriter, r *http.Request) {
+	if cors(w, r) || rejectDisallowedOrigin(w, r) {
+		return
+	}
+	if r.Method != http.MethodGet {
+		writeJSON(w, 405, map[string]any{"error": "Method Not Allowed"})
+		return
+	}
+	u, e := requireUser(r.Context(), r)
+	if e != nil {
+		writeJSON(w, 401, map[string]any{"error": "Sign in required"})
+		return
+	}
+	db, e := firestoreClient(r.Context())
+	if e != nil {
+		writeJSON(w, 500, map[string]any{"error": "Could not connect to data store"})
+		return
+	}
+	var surveys []surveyRecord
+	if e = readCollection(r.Context(), db.Collection("surveys").OrderBy("createdAt", firestore.Desc), &surveys); e != nil {
+		writeJSON(w, 500, map[string]any{"error": "Could not load surveys"})
+		return
+	}
+	out := []surveyResult{}
+	for _, s := range surveys {
+		if result, e := loadSurveyResult(r.Context(), db, s, u.UID); e == nil {
+			if !s.ShowResults {
+				result.Counts = nil
+				result.Total = 0
+			}
+			out = append(out, result)
+		}
+	}
+	writeJSON(w, 200, map[string]any{"surveys": out})
+}
+func SubmitSurveyResponse(w http.ResponseWriter, r *http.Request) {
+	if cors(w, r) || rejectDisallowedOrigin(w, r) {
+		return
+	}
+	if r.Method != http.MethodPost {
+		writeJSON(w, 405, map[string]any{"error": "Method Not Allowed"})
+		return
+	}
+	u, e := requireUser(r.Context(), r)
+	if e != nil {
+		writeJSON(w, 401, map[string]any{"error": "Sign in required"})
+		return
+	}
+	var input surveyResponseInput
+	if decodeJSON(r, &input) != nil {
+		writeJSON(w, 400, map[string]any{"error": "Invalid request body"})
+		return
+	}
+	db, e := firestoreClient(r.Context())
+	if e != nil {
+		writeJSON(w, 500, map[string]any{"error": "Could not connect to data store"})
+		return
+	}
+	snap, e := db.Collection("surveys").Doc(cleanString(input.SurveyID, 160)).Get(r.Context())
+	if e != nil {
+		writeJSON(w, 404, map[string]any{"error": "Survey not found"})
+		return
+	}
+	var s surveyRecord
+	if snap.DataTo(&s) != nil {
+		writeJSON(w, 500, map[string]any{"error": "Could not load survey"})
+		return
+	}
+	if !surveyIsLive(s, surveyNow()) {
+		writeJSON(w, 409, map[string]any{"error": "This survey is not currently open"})
+		return
+	}
+	ids, other, e := validateSurveyResponse(s, input)
+	if e != nil {
+		writeJSON(w, 400, map[string]any{"error": e.Error()})
+		return
+	}
+	if _, e = db.Collection("surveys").Doc(s.ID).Collection("responses").Doc(u.UID).Set(r.Context(), map[string]any{"optionIds": ids, "otherText": other, "updatedAt": surveyNow().UTC()}); e != nil {
+		writeJSON(w, 500, map[string]any{"error": "Could not save response"})
+		return
+	}
+	result, e := loadSurveyResult(r.Context(), db, s, u.UID)
+	if e != nil {
+		writeJSON(w, 500, map[string]any{"error": "Could not load results"})
+		return
+	}
+	if !s.ShowResults {
+		result.Counts = nil
+		result.Total = 0
+	}
+	writeJSON(w, 200, result)
+}
+func validateSurveyResponse(s surveyRecord, input surveyResponseInput) ([]string, string, error) {
+	allowed := map[string]surveyOption{}
+	for _, o := range s.Options {
+		allowed[o.ID] = o
+	}
+	seen := map[string]bool{}
+	ids := []string{}
+	needs := false
+	for _, id := range input.OptionIDs {
+		id = cleanString(id, 40)
+		o, ok := allowed[id]
+		if !ok || seen[id] {
+			return nil, "", fmt.Errorf("choose valid survey options")
+		}
+		seen[id] = true
+		ids = append(ids, id)
+		needs = needs || o.AllowsText
+	}
+	if len(ids) == 0 || (!s.Multiple && len(ids) != 1) {
+		return nil, "", fmt.Errorf("choose a valid number of options")
+	}
+	other := cleanString(input.OtherText, surveyOtherTextMax)
+	if needs && other == "" {
+		return nil, "", fmt.Errorf("please describe your other preference")
+	}
+	if !needs {
+		other = ""
+	}
+	return ids, other, nil
+}
+func surveyIsLive(s surveyRecord, now time.Time) bool {
+	start, e := time.Parse("2006-01-02", s.StartsOn)
+	if e != nil {
+		return false
+	}
+	end, e := time.Parse("2006-01-02", s.EndsOn)
+	if e != nil {
+		return false
+	}
+	today := time.Date(now.UTC().Year(), now.UTC().Month(), now.UTC().Day(), 0, 0, 0, 0, time.UTC)
+	return !today.Before(start) && !today.After(end)
+}
+func loadSurveyResult(ctx context.Context, db *firestore.Client, s surveyRecord, uid string) (surveyResult, error) {
+	r := surveyResult{SurveyRecord: s, Counts: map[string]int{}, CanRespond: surveyIsLive(s, surveyNow())}
+	iter := db.Collection("surveys").Doc(s.ID).Collection("responses").Documents(ctx)
+	defer iter.Stop()
+	for {
+		doc, e := iter.Next()
+		if e == iterator.Done {
+			break
+		}
+		if e != nil {
+			return r, e
+		}
+		var x struct {
+			OptionIDs []string `firestore:"optionIds"`
+			OtherText string   `firestore:"otherText"`
+		}
+		if doc.DataTo(&x) == nil {
+			r.Total++
+			for _, id := range x.OptionIDs {
+				r.Counts[id]++
+			}
+			if doc.Ref.ID == uid {
+				r.MyOptionIDs = x.OptionIDs
+				r.MyOtherText = x.OtherText
+			}
+		}
+	}
+	return r, nil
+}

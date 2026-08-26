@@ -9,6 +9,10 @@ Create a calm, credible, technical-feeling public site that is mobile-first, acc
 ## CSS rules
 
 - Put all CSS in `src/assets/css/site.css`.
+- Serve HTML and `/assets/` with `Cache-Control: no-cache`. This retains a local copy but requires
+  the browser to revalidate it with Firebase Hosting before reuse, allowing standard HTTP validators
+  such as ETags to deliver an unchanged asset efficiently and a changed stylesheet on the next
+  navigation without requiring a manual hard refresh.
 - Do not add Tailwind, Bootstrap, utility-first frameworks, Sass, PostCSS, or a CSS build step.
 - Structure the stylesheet in this order:
   1. Modern reset
