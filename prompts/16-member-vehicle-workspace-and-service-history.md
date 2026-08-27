@@ -123,6 +123,8 @@ question, two to twelve options, a single- or multiple-choice setting, inclusive
 start/end dates, and an aggregate-results visibility setting. One option may request a required
 free-text explanation, capped at 250 characters (for example, an `Other` option); reject more
 than one text-enabled option because each response stores a single explanation.
+Link the implemented survey workspace from the protected Admin dashboard; do not leave it as an
+undiscoverable direct URL.
 
 Use Firestore `surveys/{surveyId}` documents and a `responses/{uid}` subcollection so a signed-in
 member has one replaceable response per survey. The member APIs must verify Firebase ID tokens
