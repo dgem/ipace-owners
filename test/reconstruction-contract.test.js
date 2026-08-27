@@ -54,6 +54,7 @@ test('clean-room route inventory maps to source pages and Hosting redirects', fu
     ['/admin/outreach/', 'src/admin/outreach.njk'],
     ['/admin/email-campaigns/', 'src/admin/email-campaigns.njk'],
     ['/admin/instagram-campaigns/', 'src/admin/instagram-campaigns.njk'],
+    ['/admin/surveys/', 'src/admin/surveys.njk'],
     ['/404.html', 'src/404.njk'],
   ];
 

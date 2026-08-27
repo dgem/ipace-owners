@@ -35,7 +35,8 @@ const expectedAdminDestinations = [
   '/admin/review-queue/',
   '/admin/outreach/',
   '/admin/email-campaigns/',
-  '/admin/instagram-campaigns/'
+  '/admin/instagram-campaigns/',
+  '/admin/surveys/'
 ];
 const serviceProviders = JSON.parse(fs.readFileSync('src/assets/data/jaguar-uk-service-providers.json', 'utf8')).providers;
 const providerFixture = serviceProviders.find((provider) => provider.name && provider.postcode && provider.town && provider.county && Array.isArray(provider.addressLines) && provider.addressLines[0]);

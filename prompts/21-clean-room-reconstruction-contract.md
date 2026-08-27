@@ -36,7 +36,7 @@ The generated public route surface must include:
 - dated or named update pages generated from `src/updates/`;
 - `/member/dashboard/`, `/member/account/`, and `/member/submit-vehicle-data/`;
 - `/admin/`, `/admin/review-queue/`, `/admin/outreach/`, `/admin/email-campaigns/`, and
-  `/admin/instagram-campaigns/`;
+  `/admin/instagram-campaigns/`, and `/admin/surveys/`;
 - permanent redirects from `/account/**` and `/submit-vehicle-data/**` to their member
   equivalents;
 - a generated 404 page, clean URLs, trailing slashes, and a final Hosting fallback to
