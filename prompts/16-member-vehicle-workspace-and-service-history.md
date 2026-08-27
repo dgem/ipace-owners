@@ -132,11 +132,14 @@ undiscoverable direct URL.
 Place the existing-surveys history above the admin editor. Load it after server-side admin
 verification, refresh it automatically every 30 seconds and when the tab regains focus, as well
 as after every save or delete; do not require an administrator to press Refresh after signing in.
-On the member dashboard, place a prominent, plain-language callout before the vehicle workspace:
-when one or more surveys are open, name them and provide a primary `Take the survey` action plus
-a `View previous surveys` action, both linking to `/member/surveys/`. Refresh this summary after
-member verification, every minute, and on focus. When none are open, retain the previous-surveys
-link without presenting an unnecessary decision.
+On both member landing pages—`/member/dashboard/` and `/member/account/` (the destination of the
+signed-in `My Data` header action)—place a prominent, plain-language callout before the main
+workspace: when one or more surveys are open, name them and provide a primary `Take the survey`
+action plus a `View previous surveys` action, both linking to `/member/surveys/`. Refresh this
+summary after member verification, every minute, and on focus. When none are open, retain the
+previous-surveys link without presenting an unnecessary decision. The member survey itself must
+use large, numbered, card-like checkboxes/radio choices with a visibly selected state and a
+separate compact count-only results panel; it must not read as a wall of unstructured text.
 
 Use Firestore `surveys/{surveyId}` documents and a `responses/{uid}` subcollection so a signed-in
 member has one replaceable response per survey. The member APIs must verify Firebase ID tokens

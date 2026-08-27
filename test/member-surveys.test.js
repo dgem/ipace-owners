@@ -15,7 +15,7 @@ test('admin dashboard exposes the implemented member surveys workspace', functio
   assert.match(surveys, /permalink: \/admin\/surveys\//);
   assert.match(surveys, /data-admin-content hidden data-survey-admin/);
   assert.ok(surveys.indexOf('Existing surveys') < surveys.indexOf('Create or edit a survey'));
-  assert.match(surveys, /survey-editor__title/);
+  assert.match(surveys, /survey-editor__title[\s\S]*type="text"/);
 });
 
 test('surveys support public Markdown copy, multiple text options, and seven-day defaults', function () {
@@ -34,6 +34,7 @@ test('surveys support public Markdown copy, multiple text options, and seven-day
 
 test('member dashboard prominently links members to current and previous surveys', function () {
   const dashboard = fs.readFileSync(path.join(root, 'src/member/dashboard.njk'), 'utf8');
+  const account = fs.readFileSync(path.join(root, 'src/member/account.njk'), 'utf8');
   const script = fs.readFileSync(path.join(root, 'src/assets/js/surveys.js'), 'utf8');
 
   assert.match(dashboard, /data-member-survey-summary/);
@@ -41,4 +42,17 @@ test('member dashboard prominently links members to current and previous surveys
   assert.match(script, /Help steer our discussions with JLR/);
   assert.match(script, /View previous surveys/);
   assert.match(script, /href="\/member\/surveys\/"/);
+  assert.match(account, /data-member-survey-summary/);
+  assert.match(account, /surveys: true/);
+});
+
+test('member survey choices are structured as prominent selectable cards', function () {
+  const script = fs.readFileSync(path.join(root, 'src/assets/js/surveys.js'), 'utf8');
+  const css = fs.readFileSync(path.join(root, 'src/assets/css/site.css'), 'utf8');
+
+  assert.match(script, /survey-choice__number/);
+  assert.match(script, /Select every outcome you would support/);
+  assert.match(script, /survey-results__header/);
+  assert.match(css, /\.survey-choice:has\(input:checked\)/);
+  assert.match(css, /\.survey-member-card__title/);
 });
