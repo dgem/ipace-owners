@@ -129,12 +129,23 @@ two distinct `Other` options); store the response text against the relevant sele
 Link the implemented survey workspace from the protected Admin dashboard; do not leave it as an
 undiscoverable direct URL.
 
+Place the existing-surveys history above the admin editor. Load it after server-side admin
+verification, refresh it automatically every 30 seconds and when the tab regains focus, as well
+as after every save or delete; do not require an administrator to press Refresh after signing in.
+On the member dashboard, place a prominent, plain-language callout before the vehicle workspace:
+when one or more surveys are open, name them and provide a primary `Take the survey` action plus
+a `View previous surveys` action, both linking to `/member/surveys/`. Refresh this summary after
+member verification, every minute, and on focus. When none are open, retain the previous-surveys
+link without presenting an unnecessary decision.
+
 Use Firestore `surveys/{surveyId}` documents and a `responses/{uid}` subcollection so a signed-in
 member has one replaceable response per survey. The member APIs must verify Firebase ID tokens
 server-side, accept responses only while the survey is live, validate option IDs and the selected
 cardinality, require an explanation for every selected text-enabled option, and never expose
 free-text responses in aggregate results. Return option counts and the signed-in member's own
-answer; display counts only when the administrator enabled results.
+answer; display counts only when the administrator enabled results. In particular, never expose
+one member's written response to another member: free-text is retained for administrators to
+review manually, not published with results.
 Register `/api/admin/surveys`, `/api/member/surveys`, and `/api/member/survey-response` through
 the shared `Api` function. Test survey definition validation, response validation, and inclusive
 date boundaries. Delete a survey's response subcollection before deleting its parent document.

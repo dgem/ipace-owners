@@ -1551,6 +1551,24 @@ textarea {
   margin-top: var(--space-2);
 }
 
+.survey-editor__title {
+  max-width: none;
+}
+
+.survey-dashboard-callout {
+  margin-bottom: var(--space-6);
+  padding: var(--space-6);
+  border: 2px solid var(--color-accent);
+  border-radius: var(--radius-xl);
+  background: color-mix(in srgb, var(--color-accent) 8%, var(--color-surface));
+  box-shadow: var(--shadow-sm);
+}
+
+.survey-dashboard-callout__title {
+  margin: 0 0 var(--space-2);
+  color: var(--color-primary);
+}
+
 .survey-choice {
   padding: var(--space-3) 0;
   border-bottom: 1px solid var(--color-border);

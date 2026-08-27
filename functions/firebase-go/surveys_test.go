@@ -1,6 +1,8 @@
 package ipace
 
 import (
+	"encoding/json"
+	"strings"
 	"testing"
 	"time"
 )
@@ -45,6 +47,17 @@ func TestSurveyResponseRequiresTextForEverySelectedTextOption(t *testing.T) {
 	_, texts, err := validateSurveyResponse(s, surveyResponseInput{OptionIDs: []string{"problem", "something"}, TextByOption: map[string]string{"problem": "Battery fault", "something": "A fair settlement"}})
 	if err != nil || len(texts) != 2 {
 		t.Fatalf("multiple text response = %#v, %v", texts, err)
+	}
+}
+
+func TestAggregateSurveyResultsNeverSerialiseFreeText(t *testing.T) {
+	result := surveyResult{Counts: map[string]int{"option-1": 3}, Total: 3}
+	encoded, err := json.Marshal(result)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(encoded), "myTextByOption") || strings.Contains(string(encoded), "textByOption") {
+		t.Fatalf("aggregate survey result exposed free text: %s", encoded)
 	}
 }
 

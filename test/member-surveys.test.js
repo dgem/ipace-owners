@@ -14,6 +14,8 @@ test('admin dashboard exposes the implemented member surveys workspace', functio
   assert.match(dashboard, /href="\/admin\/surveys\/">Member Surveys<\/a>/);
   assert.match(surveys, /permalink: \/admin\/surveys\//);
   assert.match(surveys, /data-admin-content hidden data-survey-admin/);
+  assert.ok(surveys.indexOf('Existing surveys') < surveys.indexOf('Create or edit a survey'));
+  assert.match(surveys, /survey-editor__title/);
 });
 
 test('surveys support public Markdown copy, multiple text options, and seven-day defaults', function () {
@@ -26,4 +28,17 @@ test('surveys support public Markdown copy, multiple text options, and seven-day
   assert.match(script, /function markdown\(v\)/);
   assert.match(script, /end\.setDate\(end\.getDate\(\) \+ 6\)/);
   assert.match(script, /textByOption/);
+  assert.match(script, /document\.addEventListener\('admin:data', start\)/);
+  assert.match(script, /window\.setInterval\(load, 30000\)/);
+});
+
+test('member dashboard prominently links members to current and previous surveys', function () {
+  const dashboard = fs.readFileSync(path.join(root, 'src/member/dashboard.njk'), 'utf8');
+  const script = fs.readFileSync(path.join(root, 'src/assets/js/surveys.js'), 'utf8');
+
+  assert.match(dashboard, /data-member-survey-summary/);
+  assert.match(dashboard, /surveys: true/);
+  assert.match(script, /Help steer our discussions with JLR/);
+  assert.match(script, /View previous surveys/);
+  assert.match(script, /href="\/member\/surveys\/"/);
 });
