@@ -119,18 +119,22 @@ identity, sheet structure, representative totals, and chart parts.
 
 Provide a protected member survey page at `/member/surveys/` and an admin CRUD workspace at
 `/admin/surveys/`. Administrators can create, edit, list, and delete a survey with a title,
-question, two to twelve options, a single- or multiple-choice setting, inclusive whole-day
-start/end dates, and an aggregate-results visibility setting. One option may request a required
-free-text explanation, capped at 250 characters (for example, an `Other` option); reject more
-than one text-enabled option because each response stores a single explanation.
+public Description and Call to action fields, an optional question/prompt, two to twelve options,
+a single- or multiple-choice setting, inclusive whole-day start/end dates, and an aggregate-results
+visibility setting. New surveys default to today through six days later (seven inclusive whole
+days), while retaining editable dates. Description, CTA, and option text accept a safe Markdown
+subset (bold, emphasis, links, paragraphs, and bullet lists); raw HTML is displayed as text.
+Any number of options may request a required 250-character free-text explanation (for example,
+two distinct `Other` options); store the response text against the relevant selected option.
 Link the implemented survey workspace from the protected Admin dashboard; do not leave it as an
 undiscoverable direct URL.
 
 Use Firestore `surveys/{surveyId}` documents and a `responses/{uid}` subcollection so a signed-in
 member has one replaceable response per survey. The member APIs must verify Firebase ID tokens
 server-side, accept responses only while the survey is live, validate option IDs and the selected
-cardinality, and never expose free-text responses in aggregate results. Return option counts and
-the signed-in member's own answer; display counts only when the administrator enabled results.
+cardinality, require an explanation for every selected text-enabled option, and never expose
+free-text responses in aggregate results. Return option counts and the signed-in member's own
+answer; display counts only when the administrator enabled results.
 Register `/api/admin/surveys`, `/api/member/surveys`, and `/api/member/survey-response` through
 the shared `Api` function. Test survey definition validation, response validation, and inclusive
 date boundaries. Delete a survey's response subcollection before deleting its parent document.

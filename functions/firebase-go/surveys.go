@@ -10,6 +10,9 @@ import (
 )
 
 const surveyOtherTextMax = 250
+const surveyDescriptionMax = 4000
+const surveyCallToActionMax = 1000
+const surveyOptionLabelMax = 2000
 
 type surveyOption struct {
 	ID         string `json:"id" firestore:"id"`
@@ -17,39 +20,43 @@ type surveyOption struct {
 	AllowsText bool   `json:"allowsText" firestore:"allowsText"`
 }
 type surveyRecord struct {
-	ID          string         `json:"id" firestore:"id"`
-	Title       string         `json:"title" firestore:"title"`
-	Question    string         `json:"question" firestore:"question"`
-	Multiple    bool           `json:"multiple" firestore:"multiple"`
-	StartsOn    string         `json:"startsOn" firestore:"startsOn"`
-	EndsOn      string         `json:"endsOn" firestore:"endsOn"`
-	ShowResults bool           `json:"showResults" firestore:"showResults"`
-	Options     []surveyOption `json:"options" firestore:"options"`
-	CreatedAt   time.Time      `json:"createdAt" firestore:"createdAt"`
-	UpdatedAt   time.Time      `json:"updatedAt" firestore:"updatedAt"`
+	ID           string         `json:"id" firestore:"id"`
+	Title        string         `json:"title" firestore:"title"`
+	Description  string         `json:"description" firestore:"description"`
+	Question     string         `json:"question" firestore:"question"`
+	CallToAction string         `json:"callToAction" firestore:"callToAction"`
+	Multiple     bool           `json:"multiple" firestore:"multiple"`
+	StartsOn     string         `json:"startsOn" firestore:"startsOn"`
+	EndsOn       string         `json:"endsOn" firestore:"endsOn"`
+	ShowResults  bool           `json:"showResults" firestore:"showResults"`
+	Options      []surveyOption `json:"options" firestore:"options"`
+	CreatedAt    time.Time      `json:"createdAt" firestore:"createdAt"`
+	UpdatedAt    time.Time      `json:"updatedAt" firestore:"updatedAt"`
 }
 type surveyInput struct {
-	ID          string         `json:"id"`
-	Title       string         `json:"title"`
-	Question    string         `json:"question"`
-	Multiple    bool           `json:"multiple"`
-	StartsOn    string         `json:"startsOn"`
-	EndsOn      string         `json:"endsOn"`
-	ShowResults bool           `json:"showResults"`
-	Options     []surveyOption `json:"options"`
+	ID           string         `json:"id"`
+	Title        string         `json:"title"`
+	Description  string         `json:"description"`
+	Question     string         `json:"question"`
+	CallToAction string         `json:"callToAction"`
+	Multiple     bool           `json:"multiple"`
+	StartsOn     string         `json:"startsOn"`
+	EndsOn       string         `json:"endsOn"`
+	ShowResults  bool           `json:"showResults"`
+	Options      []surveyOption `json:"options"`
 }
 type surveyResponseInput struct {
-	SurveyID  string   `json:"surveyId"`
-	OptionIDs []string `json:"optionIds"`
-	OtherText string   `json:"otherText"`
+	SurveyID     string            `json:"surveyId"`
+	OptionIDs    []string          `json:"optionIds"`
+	TextByOption map[string]string `json:"textByOption"`
 }
 type surveyResult struct {
-	SurveyRecord surveyRecord   `json:"survey"`
-	Counts       map[string]int `json:"counts"`
-	Total        int            `json:"total"`
-	MyOptionIDs  []string       `json:"myOptionIds,omitempty"`
-	MyOtherText  string         `json:"myOtherText,omitempty"`
-	CanRespond   bool           `json:"canRespond"`
+	SurveyRecord   surveyRecord      `json:"survey"`
+	Counts         map[string]int    `json:"counts"`
+	Total          int               `json:"total"`
+	MyOptionIDs    []string          `json:"myOptionIds,omitempty"`
+	MyTextByOption map[string]string `json:"myTextByOption,omitempty"`
+	CanRespond     bool              `json:"canRespond"`
 }
 
 var surveyNow = time.Now
@@ -138,9 +145,9 @@ func AdminSurveys(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func validateSurvey(input surveyInput) (surveyRecord, error) {
-	r := surveyRecord{ID: cleanString(input.ID, 160), Title: cleanString(input.Title, 120), Question: cleanString(input.Question, 500), Multiple: input.Multiple, StartsOn: cleanString(input.StartsOn, 10), EndsOn: cleanString(input.EndsOn, 10), ShowResults: input.ShowResults}
-	if r.Title == "" || r.Question == "" {
-		return r, fmt.Errorf("title and question are required")
+	r := surveyRecord{ID: cleanString(input.ID, 160), Title: cleanString(input.Title, 120), Description: cleanString(input.Description, surveyDescriptionMax), Question: cleanString(input.Question, 500), CallToAction: cleanString(input.CallToAction, surveyCallToActionMax), Multiple: input.Multiple, StartsOn: cleanString(input.StartsOn, 10), EndsOn: cleanString(input.EndsOn, 10), ShowResults: input.ShowResults}
+	if r.Title == "" {
+		return r, fmt.Errorf("title is required")
 	}
 	start, e := time.Parse("2006-01-02", r.StartsOn)
 	if e != nil {
@@ -154,10 +161,9 @@ func validateSurvey(input surveyInput) (surveyRecord, error) {
 		return r, fmt.Errorf("add between 2 and 12 options")
 	}
 	seen := map[string]bool{}
-	textOptions := 0
 	for i, o := range input.Options {
 		o.ID = cleanString(o.ID, 40)
-		o.Label = cleanString(o.Label, 250)
+		o.Label = cleanString(o.Label, surveyOptionLabelMax)
 		if o.ID == "" {
 			o.ID = fmt.Sprintf("option-%d", i+1)
 		}
@@ -165,13 +171,7 @@ func validateSurvey(input surveyInput) (surveyRecord, error) {
 			return r, fmt.Errorf("each option needs a unique ID and label")
 		}
 		seen[o.ID] = true
-		if o.AllowsText {
-			textOptions++
-		}
 		r.Options = append(r.Options, o)
-	}
-	if textOptions > 1 {
-		return r, fmt.Errorf("only one option can request short text")
 	}
 	return r, nil
 }
@@ -264,12 +264,12 @@ func SubmitSurveyResponse(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, 409, map[string]any{"error": "This survey is not currently open"})
 		return
 	}
-	ids, other, e := validateSurveyResponse(s, input)
+	ids, textByOption, e := validateSurveyResponse(s, input)
 	if e != nil {
 		writeJSON(w, 400, map[string]any{"error": e.Error()})
 		return
 	}
-	if _, e = db.Collection("surveys").Doc(s.ID).Collection("responses").Doc(u.UID).Set(r.Context(), map[string]any{"optionIds": ids, "otherText": other, "updatedAt": surveyNow().UTC()}); e != nil {
+	if _, e = db.Collection("surveys").Doc(s.ID).Collection("responses").Doc(u.UID).Set(r.Context(), map[string]any{"optionIds": ids, "textByOption": textByOption, "updatedAt": surveyNow().UTC()}); e != nil {
 		writeJSON(w, 500, map[string]any{"error": "Could not save response"})
 		return
 	}
@@ -284,35 +284,37 @@ func SubmitSurveyResponse(w http.ResponseWriter, r *http.Request) {
 	}
 	writeJSON(w, 200, result)
 }
-func validateSurveyResponse(s surveyRecord, input surveyResponseInput) ([]string, string, error) {
+func validateSurveyResponse(s surveyRecord, input surveyResponseInput) ([]string, map[string]string, error) {
 	allowed := map[string]surveyOption{}
 	for _, o := range s.Options {
 		allowed[o.ID] = o
 	}
 	seen := map[string]bool{}
 	ids := []string{}
-	needs := false
+	textByOption := map[string]string{}
 	for _, id := range input.OptionIDs {
 		id = cleanString(id, 40)
-		o, ok := allowed[id]
+		_, ok := allowed[id]
 		if !ok || seen[id] {
-			return nil, "", fmt.Errorf("choose valid survey options")
+			return nil, nil, fmt.Errorf("choose valid survey options")
 		}
 		seen[id] = true
 		ids = append(ids, id)
-		needs = needs || o.AllowsText
 	}
 	if len(ids) == 0 || (!s.Multiple && len(ids) != 1) {
-		return nil, "", fmt.Errorf("choose a valid number of options")
+		return nil, nil, fmt.Errorf("choose a valid number of options")
 	}
-	other := cleanString(input.OtherText, surveyOtherTextMax)
-	if needs && other == "" {
-		return nil, "", fmt.Errorf("please describe your other preference")
+	for _, id := range ids {
+		if !allowed[id].AllowsText {
+			continue
+		}
+		text := cleanString(input.TextByOption[id], surveyOtherTextMax)
+		if text == "" {
+			return nil, nil, fmt.Errorf("please describe each selected option that requests short text")
+		}
+		textByOption[id] = text
 	}
-	if !needs {
-		other = ""
-	}
-	return ids, other, nil
+	return ids, textByOption, nil
 }
 func surveyIsLive(s surveyRecord, now time.Time) bool {
 	start, e := time.Parse("2006-01-02", s.StartsOn)
@@ -339,8 +341,8 @@ func loadSurveyResult(ctx context.Context, db *firestore.Client, s surveyRecord,
 			return r, e
 		}
 		var x struct {
-			OptionIDs []string `firestore:"optionIds"`
-			OtherText string   `firestore:"otherText"`
+			OptionIDs    []string          `firestore:"optionIds"`
+			TextByOption map[string]string `firestore:"textByOption"`
 		}
 		if doc.DataTo(&x) == nil {
 			r.Total++
@@ -349,7 +351,7 @@ func loadSurveyResult(ctx context.Context, db *firestore.Client, s surveyRecord,
 			}
 			if doc.Ref.ID == uid {
 				r.MyOptionIDs = x.OptionIDs
-				r.MyOtherText = x.OtherText
+				r.MyTextByOption = x.TextByOption
 			}
 		}
 	}

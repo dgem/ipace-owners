@@ -137,10 +137,11 @@ Never depend on frontend gating for data protection.
 
 ## Canonical Firestore and snapshot schemas
 
-`surveys/{surveyId}` stores the administrator-managed question, option definitions, inclusive
-whole-day schedule, visibility setting, and timestamps. `surveys/{surveyId}/responses/{uid}`
-stores only that member's selected option IDs, optional 250-character Other explanation, and
-update timestamp. Aggregate survey APIs must never return free-text explanations.
+`surveys/{surveyId}` stores the administrator-managed title, public Markdown description and CTA,
+optional prompt, option definitions, inclusive whole-day schedule, visibility setting, and
+timestamps. `surveys/{surveyId}/responses/{uid}` stores only that member's selected option IDs,
+a map of 250-character explanations keyed by selected text-enabled option, and update timestamp.
+Aggregate survey APIs must never return free-text explanations.
 
 Use these exact collection names: `joinSubmissions`, `members`, `vehicles`,
 `batteryReadings`, `serviceEvents`, `memberSnapshots`, `emailCampaigns`, `campaignMetadata`,

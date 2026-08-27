@@ -666,7 +666,10 @@ Cloud Firestore is the intended canonical source for structured owner data.
 
 Member survey administration and responses use `GET/POST/PUT/DELETE /api/admin/surveys`,
 `GET /api/member/surveys`, and `POST /api/member/survey-response`. All are authenticated with a
-Firebase ID token; the admin route additionally requires the administrator claim.
+Firebase ID token; the admin route additionally requires the administrator claim. Survey
+descriptions, CTAs, and option text support a safe Markdown subset; raw HTML is rendered as text.
+Each selected text-enabled option can carry its own 250-character member explanation, which is
+never included in aggregate results.
 
 Join submissions, vehicle basics, SoH updates, and service history are handled by routes
 behind the single Go `Api` Cloud Function:
