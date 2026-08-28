@@ -59,6 +59,7 @@ test('member survey choices are structured as prominent selectable cards', funct
   assert.match(script, /survey-results__header/);
   assert.match(css, /\.survey-choice:has\(input\[name="survey"\]:checked\)/);
   assert.match(css, /\.survey-member-card__title/);
+  assert.match(css, /\.survey-options legend\s*\{[\s\S]*padding: 0;/);
 });
 
 test('survey directory filters its date-ordered list and results follow the blind-vote rule', function () {
@@ -109,6 +110,9 @@ test('draft surveys have an admin-only preview and test-response path', function
   assert.match(preview, /data-admin-container/);
   assert.match(script, /Test response is valid\. Nothing was saved or counted/);
   assert.match(script, /api\/admin\/survey-preview/);
+  assert.match(script, /adminContainer && adminContainer\.dataset\.adminData/);
+  assert.match(script, /Could not load survey preview/);
+  assert.match(script, /data-survey-preview-retry/);
   assert.match(backend, /if !surveyIsPublished\(s\)/);
   assert.match(backend, /without creating a response document/);
 });
