@@ -130,6 +130,10 @@ header.
 | `POST /api/admin/instagram-preview` | `AdminInstagramPreview` | Admin | Validate and preview an administrator-reviewed, chat-prepared Reel path and caption without publishing. |
 | `POST /api/admin/instagram-campaign-history` | `AdminInstagramCampaignHistory` | Admin | List saved drafts and publication records and refresh cached provider insights when available. |
 | `POST /api/admin/campaign-summary` | `AdminCampaignSummary` | Admin | Aggregate email delivery, Instagram publication/insight, and Facebook integration-availability totals for the Admin home. |
+| `GET/POST/PUT/DELETE /api/admin/surveys` | `AdminSurveys` | Admin | Create, edit, list, and remove timed member surveys. |
+| `GET /api/admin/survey-results` | `AdminSurveyResults` | Admin | Return aggregate and individual survey responses for manual analysis, including optional preferred-option counts; `format=csv` exports masked, PII-minimised rows. |
+| `GET /api/member/surveys` | `MemberSurveys` | Member | List surveys, the member's own response, and permitted aggregate counts. |
+| `POST /api/member/survey-response` | `SubmitSurveyResponse` | Member | Validate and save the member's one replaceable survey response. |
 | `POST /api/admin/instagram-publish` | `AdminInstagramPublish` | Admin | Revalidate the exact draft and confirmation, process the Reel through Meta, and publish it immediately. |
 | `POST /api/admin/instagram-generate` | `AdminInstagramGenerate` | Admin | Idempotently start the explicitly confirmed, billable eight-second Veo generation operation. |
 | `POST /api/admin/instagram-generation-status` | `AdminInstagramGenerationStatus` | Admin | Poll and advance the job into the seven-second continuation, promote the 15-second master, and issue a short-lived review path. |

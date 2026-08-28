@@ -114,3 +114,66 @@ identity, sheet structure, representative totals, and chart parts.
 - Test export authentication, method/format validation, ZIP datasets, formula-injection
   neutralisation, workbook sheets/charts, response headers, and browser bearer-token wiring.
 - Run `make test` and `make build`.
+
+## Member surveys
+
+Provide a protected member survey page at `/member/surveys/` and an admin CRUD workspace at
+`/admin/surveys/`. Administrators can create, edit, list, and delete a survey with a title,
+public Description and Call to action fields, an optional question/prompt, two to twelve options,
+a single- or multiple-choice setting, inclusive whole-day start/end dates, and an aggregate-results
+visibility setting. Each survey also has an explicit `draft` or `published` status; drafts are
+visible only in the admin workspace and published surveys are eligible for member views. New
+surveys default to draft and today through six days later (seven inclusive whole
+days), while retaining editable dates. Description, CTA, and option text accept a safe Markdown
+subset (bold, emphasis, links, paragraphs, and bullet lists); raw HTML is displayed as text.
+Any number of options may request a required 250-character free-text explanation (for example,
+two distinct `Other` options); store the response text against the relevant selected option.
+For multiple-choice surveys only, let a member optionally mark one of their selected options as
+their preferred outcome. Use a clearly labelled checkbox on each selected choice, keep at most one
+checked in the browser, and validate server-side that it is selected and that the survey is
+multiple-choice. Store its stable option ID and include separate aggregate preferred counts.
+Link the implemented survey workspace from the protected Admin dashboard; do not leave it as an
+undiscoverable direct URL.
+
+Place the existing-surveys history above the admin editor. Load it after server-side admin
+verification, refresh it automatically every 30 seconds and when the tab regains focus, as well
+as after every save or delete; do not require an administrator to press Refresh after signing in.
+On both member landing pages—`/member/dashboard/` and `/member/account/` (the destination of the
+signed-in `My Data` header action)—place a prominent, plain-language callout before the main
+workspace: when one or more surveys are open, name them and provide a primary `Take the survey`
+action plus a `Past surveys` action only when closed surveys exist. Refresh this summary after
+member verification, every minute, and on focus. The member survey page is a date-ordered
+directory of every published survey, with All, Open, Upcoming, and Closed filters. Each item
+shows whether the member has submitted, and provides Submit/Edit only while open, and View
+results when permitted. The separate response page must use large, numbered, card-like
+checkboxes/radio choices with a visibly selected state; it must not read as a wall of unstructured
+text.
+Keep results off the response form. After a successful first submission or amendment, redirect to
+`/member/survey-results/?id={surveyId}` with an explicit saved confirmation and the aggregate
+count-only results. The server must withhold aggregate counts for an open survey until that member
+has submitted a response, preventing popularity-led voting; once a published survey is closed,
+results may be visible to every member if the administrator enabled them. Provide an `Edit your
+response` link back to the response page. `Past surveys` filters `/member/surveys/?filter=closed`;
+it is not a separate route and must never point to a currently open survey.
+
+The admin dashboard places its actionable tool grid before campaign and member-statistics panels,
+which are reference information rather than the primary starting point for administrator work.
+
+Use Firestore `surveys/{surveyId}` documents and a `responses/{uid}` subcollection so a signed-in
+member has one replaceable response per survey. The member APIs must verify Firebase ID tokens
+server-side, accept responses only while the survey is live, validate option IDs and the selected
+cardinality, require an explanation for every selected text-enabled option, and never expose
+free-text responses in aggregate results. Return option counts and the signed-in member's own
+answer; display counts only when the administrator enabled results. In particular, never expose
+one member's written response to another member: free-text is retained for administrators to
+review manually, not published with results. Give administrators a separate
+`/admin/survey-results/?id={surveyId}` analysis page, linked from every survey in the admin
+history. It may show aggregate counts and each submitted answer, including free text, but must
+identify a respondent only by a consistently masked email address. Its CSV export must contain
+only that masked respondent, UTC submission time, selected option IDs, the optional preferred
+option ID and text responses in `option-id: text` form—never
+a full email address, name, Firebase UID, or member/vehicle data. Neutralise spreadsheet formula
+characters in the CSV's user-controlled cells before exporting them.
+Register `/api/admin/surveys`, `/api/admin/survey-results`, `/api/member/surveys`, and `/api/member/survey-response` through
+the shared `Api` function. Test survey definition validation, response validation, and inclusive
+date boundaries, including the PII-safe CSV fields. Delete a survey's response subcollection before deleting its parent document.

@@ -50,10 +50,15 @@ test('clean-room route inventory maps to source pages and Hosting redirects', fu
     ['/member/dashboard/', 'src/member/dashboard.njk'],
     ['/member/account/', 'src/member/account.njk'],
     ['/member/submit-vehicle-data/', 'src/member/submit-vehicle-data.njk'],
+    ['/member/surveys/', 'src/member/surveys.njk'],
+    ['/member/survey-response/', 'src/member/survey-response.njk'],
+    ['/member/survey-results/', 'src/member/survey-results.njk'],
     ['/admin/review-queue/', 'src/admin/review-queue.njk'],
     ['/admin/outreach/', 'src/admin/outreach.njk'],
     ['/admin/email-campaigns/', 'src/admin/email-campaigns.njk'],
     ['/admin/instagram-campaigns/', 'src/admin/instagram-campaigns.njk'],
+    ['/admin/surveys/', 'src/admin/surveys.njk'],
+    ['/admin/survey-results/', 'src/admin/survey-results.njk'],
     ['/404.html', 'src/404.njk'],
   ];
 
