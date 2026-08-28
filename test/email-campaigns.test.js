@@ -45,6 +45,8 @@ test('admin index is a gated dashboard of implemented tools', function () {
   assert.equal((dashboard.match(/class="admin-tool-logo"/g) || []).length, 5);
   assert.equal((dashboard.match(/class="btn btn--primary" href="\/admin\//g) || []).length, 5);
   assert.match(dashboard, /not linked prematurely/);
+  assert.match(dashboard, /admin-dashboard-tools/);
+  assert.match(dashboard, /admin-dashboard-insights/);
 });
 
 test('email campaign browser sends tokens and explicit confirmation data', function () {

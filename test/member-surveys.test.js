@@ -40,7 +40,7 @@ test('member dashboard prominently links members to current and previous surveys
   assert.match(dashboard, /data-member-survey-summary/);
   assert.match(dashboard, /surveys: true/);
   assert.match(script, /Help steer our discussions with JLR/);
-  assert.match(script, /View previous surveys/);
+  assert.match(script, /Past surveys/);
   assert.match(script, /href="\/member\/surveys\/"/);
   assert.match(account, /data-member-survey-summary/);
   assert.match(account, /surveys: true/);
@@ -55,4 +55,18 @@ test('member survey choices are structured as prominent selectable cards', funct
   assert.match(script, /survey-results__header/);
   assert.match(css, /\.survey-choice:has\(input:checked\)/);
   assert.match(css, /\.survey-member-card__title/);
+});
+
+test('survey results require a response and past surveys exclude live surveys', function () {
+  const script = fs.readFileSync(path.join(root, 'src/assets/js/surveys.js'), 'utf8');
+  const backend = fs.readFileSync(path.join(root, 'functions/firebase-go/surveys.go'), 'utf8');
+  const results = fs.readFileSync(path.join(root, 'src/member/survey-results.njk'), 'utf8');
+  const history = fs.readFileSync(path.join(root, 'src/member/survey-history.njk'), 'utf8');
+
+  assert.match(backend, /memberMayViewSurveyResults/);
+  assert.match(script, /survey-results\/\?id=/);
+  assert.match(script, /window\.location\.assign/);
+  assert.match(script, /!result\.canRespond/);
+  assert.match(results, /data-member-survey-results/);
+  assert.match(history, /data-member-survey-history/);
 });

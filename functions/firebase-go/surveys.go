@@ -218,7 +218,7 @@ func MemberSurveys(w http.ResponseWriter, r *http.Request) {
 	out := []surveyResult{}
 	for _, s := range surveys {
 		if result, e := loadSurveyResult(r.Context(), db, s, u.UID); e == nil {
-			if !s.ShowResults {
+			if !memberMayViewSurveyResults(s, result) {
 				result.Counts = nil
 				result.Total = 0
 			}
@@ -278,11 +278,15 @@ func SubmitSurveyResponse(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, 500, map[string]any{"error": "Could not load results"})
 		return
 	}
-	if !s.ShowResults {
+	if !memberMayViewSurveyResults(s, result) {
 		result.Counts = nil
 		result.Total = 0
 	}
 	writeJSON(w, 200, result)
+}
+
+func memberMayViewSurveyResults(s surveyRecord, result surveyResult) bool {
+	return s.ShowResults && len(result.MyOptionIDs) > 0
 }
 func validateSurveyResponse(s surveyRecord, input surveyResponseInput) ([]string, map[string]string, error) {
 	allowed := map[string]surveyOption{}

@@ -61,6 +61,19 @@ func TestAggregateSurveyResultsNeverSerialiseFreeText(t *testing.T) {
 	}
 }
 
+func TestMemberMayViewResultsOnlyAfterSubmittingResponse(t *testing.T) {
+	s := surveyRecord{ShowResults: true}
+	if memberMayViewSurveyResults(s, surveyResult{}) {
+		t.Fatal("expected results to stay private until the member has responded")
+	}
+	if !memberMayViewSurveyResults(s, surveyResult{MyOptionIDs: []string{"option-1"}}) {
+		t.Fatal("expected a responding member to see enabled results")
+	}
+	if memberMayViewSurveyResults(surveyRecord{ShowResults: false}, surveyResult{MyOptionIDs: []string{"option-1"}}) {
+		t.Fatal("expected disabled results to stay hidden")
+	}
+}
+
 func TestSurveyIsLiveOnBothWholeDayBoundaries(t *testing.T) {
 	s := surveyRecord{StartsOn: "2026-08-29", EndsOn: "2026-08-30"}
 	if !surveyIsLive(s, time.Date(2026, 8, 29, 0, 0, 0, 0, time.UTC)) || !surveyIsLive(s, time.Date(2026, 8, 30, 23, 59, 0, 0, time.UTC)) {

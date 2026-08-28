@@ -140,6 +140,16 @@ summary after member verification, every minute, and on focus. When none are ope
 previous-surveys link without presenting an unnecessary decision. The member survey itself must
 use large, numbered, card-like checkboxes/radio choices with a visibly selected state and a
 separate compact count-only results panel; it must not read as a wall of unstructured text.
+Keep results off the response form. After a successful first submission or amendment, redirect to
+`/member/survey-results/?id={surveyId}` with an explicit saved confirmation and the aggregate
+count-only results. The server must withhold aggregate counts until that member has submitted a
+response and the administrator has enabled results. Provide an `Edit your response` link back to
+the response page. `Past surveys` must link only to `/member/survey-history/`, which lists closed
+surveys; do not render that action when there are no closed surveys, and never point it to the
+currently open survey.
+
+The admin dashboard places its actionable tool grid before campaign and member-statistics panels,
+which are reference information rather than the primary starting point for administrator work.
 
 Use Firestore `surveys/{surveyId}` documents and a `responses/{uid}` subcollection so a signed-in
 member has one replaceable response per survey. The member APIs must verify Firebase ID tokens
