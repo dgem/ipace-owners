@@ -20,7 +20,7 @@ func TestValidateSurveyRequiresDatesAndOptions(t *testing.T) {
 
 func TestValidateSurveyAllowsMarkdownFieldsAndMultipleTextOptions(t *testing.T) {
 	record, err := validateSurvey(surveyInput{Title: "Preferred outcomes", Description: "**Context**", CallToAction: "Choose all that apply", StartsOn: "2026-08-29", EndsOn: "2026-08-30", Options: []surveyOption{{Label: "Other A", AllowsText: true}, {Label: "Other B", AllowsText: true}}})
-	if err != nil || record.Description != "**Context**" || record.CallToAction != "Choose all that apply" || !record.Options[0].AllowsText || !record.Options[1].AllowsText {
+	if err != nil || record.Status != "draft" || record.Description != "**Context**" || record.CallToAction != "Choose all that apply" || !record.Options[0].AllowsText || !record.Options[1].AllowsText {
 		t.Fatalf("valid markdown survey = %#v, %v", record, err)
 	}
 }
@@ -62,7 +62,10 @@ func TestAggregateSurveyResultsNeverSerialiseFreeText(t *testing.T) {
 }
 
 func TestMemberMayViewResultsOnlyAfterSubmittingResponse(t *testing.T) {
-	s := surveyRecord{ShowResults: true}
+	s := surveyRecord{ShowResults: true, StartsOn: "2026-08-29", EndsOn: "2026-08-30"}
+	previousNow := surveyNow
+	surveyNow = func() time.Time { return time.Date(2026, 8, 30, 12, 0, 0, 0, time.UTC) }
+	defer func() { surveyNow = previousNow }()
 	if memberMayViewSurveyResults(s, surveyResult{}) {
 		t.Fatal("expected results to stay private until the member has responded")
 	}
@@ -71,6 +74,19 @@ func TestMemberMayViewResultsOnlyAfterSubmittingResponse(t *testing.T) {
 	}
 	if memberMayViewSurveyResults(surveyRecord{ShowResults: false}, surveyResult{MyOptionIDs: []string{"option-1"}}) {
 		t.Fatal("expected disabled results to stay hidden")
+	}
+	surveyNow = func() time.Time { return time.Date(2026, 8, 31, 12, 0, 0, 0, time.UTC) }
+	if !memberMayViewSurveyResults(s, surveyResult{}) {
+		t.Fatal("expected closed published survey results to be visible to every member")
+	}
+}
+
+func TestSurveyPublicationStatus(t *testing.T) {
+	if surveyIsPublished(surveyRecord{Status: "draft"}) {
+		t.Fatal("draft survey must not be published")
+	}
+	if !surveyIsPublished(surveyRecord{Status: "published"}) || !surveyIsPublished(surveyRecord{}) {
+		t.Fatal("published and legacy surveys must be visible")
 	}
 }
 

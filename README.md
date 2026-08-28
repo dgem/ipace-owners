@@ -670,6 +670,10 @@ Firebase ID token; the admin route additionally requires the administrator claim
 descriptions, CTAs, and option text support a safe Markdown subset; raw HTML is rendered as text.
 Each selected text-enabled option can carry its own 250-character member explanation, which is
 never included in aggregate results or disclosed to other members.
+Surveys are drafted in the admin workspace before being explicitly published. Members browse
+published surveys by date (including future and closed surveys); results remain blind while a
+survey is open, becoming available after a member responds or to every member once the survey
+closes when aggregate results were enabled.
 
 Join submissions, vehicle basics, SoH updates, and service history are handled by routes
 behind the single Go `Api` Cloud Function:

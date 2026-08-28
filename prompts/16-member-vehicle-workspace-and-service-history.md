@@ -121,7 +121,9 @@ Provide a protected member survey page at `/member/surveys/` and an admin CRUD w
 `/admin/surveys/`. Administrators can create, edit, list, and delete a survey with a title,
 public Description and Call to action fields, an optional question/prompt, two to twelve options,
 a single- or multiple-choice setting, inclusive whole-day start/end dates, and an aggregate-results
-visibility setting. New surveys default to today through six days later (seven inclusive whole
+visibility setting. Each survey also has an explicit `draft` or `published` status; drafts are
+visible only in the admin workspace and published surveys are eligible for member views. New
+surveys default to draft and today through six days later (seven inclusive whole
 days), while retaining editable dates. Description, CTA, and option text accept a safe Markdown
 subset (bold, emphasis, links, paragraphs, and bullet lists); raw HTML is displayed as text.
 Any number of options may request a required 250-character free-text explanation (for example,
@@ -135,18 +137,20 @@ as after every save or delete; do not require an administrator to press Refresh 
 On both member landing pages—`/member/dashboard/` and `/member/account/` (the destination of the
 signed-in `My Data` header action)—place a prominent, plain-language callout before the main
 workspace: when one or more surveys are open, name them and provide a primary `Take the survey`
-action plus a `View previous surveys` action, both linking to `/member/surveys/`. Refresh this
-summary after member verification, every minute, and on focus. When none are open, retain the
-previous-surveys link without presenting an unnecessary decision. The member survey itself must
-use large, numbered, card-like checkboxes/radio choices with a visibly selected state and a
-separate compact count-only results panel; it must not read as a wall of unstructured text.
+action plus a `Past surveys` action only when closed surveys exist. Refresh this summary after
+member verification, every minute, and on focus. The member survey page is a date-ordered
+directory of every published survey, with All, Open, Upcoming, and Closed filters. Each item
+shows whether the member has submitted, and provides Submit/Edit only while open, and View
+results when permitted. The separate response page must use large, numbered, card-like
+checkboxes/radio choices with a visibly selected state; it must not read as a wall of unstructured
+text.
 Keep results off the response form. After a successful first submission or amendment, redirect to
 `/member/survey-results/?id={surveyId}` with an explicit saved confirmation and the aggregate
-count-only results. The server must withhold aggregate counts until that member has submitted a
-response and the administrator has enabled results. Provide an `Edit your response` link back to
-the response page. `Past surveys` must link only to `/member/survey-history/`, which lists closed
-surveys; do not render that action when there are no closed surveys, and never point it to the
-currently open survey.
+count-only results. The server must withhold aggregate counts for an open survey until that member
+has submitted a response, preventing popularity-led voting; once a published survey is closed,
+results may be visible to every member if the administrator enabled them. Provide an `Edit your
+response` link back to the response page. `Past surveys` filters `/member/surveys/?filter=closed`;
+it is not a separate route and must never point to a currently open survey.
 
 The admin dashboard places its actionable tool grid before campaign and member-statistics panels,
 which are reference information rather than the primary starting point for administrator work.

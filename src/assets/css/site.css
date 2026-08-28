@@ -1575,6 +1575,44 @@ textarea {
   max-width: 72rem;
 }
 
+.survey-list__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-5);
+  margin-bottom: var(--space-6);
+  flex-wrap: wrap;
+}
+
+.survey-list__header h2 {
+  margin: 0 0 var(--space-2);
+  color: var(--color-primary);
+}
+
+.survey-list__header p:last-child {
+  margin-bottom: 0;
+  color: var(--color-text-muted);
+}
+
+.survey-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+  margin-bottom: var(--space-4);
+}
+
+.survey-list-item .survey-member-card__status {
+  margin: 0 0 var(--space-3);
+}
+
+@media (max-width: 39.99em) {
+  .survey-list-item {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
 .survey-member-card {
   padding: clamp(var(--space-5), 4vw, var(--space-8));
 }

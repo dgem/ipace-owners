@@ -35,7 +35,7 @@ The generated public route surface must include:
   `/methodology/`, `/evidence-dashboard/`, and `/updates/`;
 - dated or named update pages generated from `src/updates/`;
 - `/member/dashboard/`, `/member/account/`, `/member/submit-vehicle-data/`,
-  `/member/surveys/`, `/member/survey-results/`, and `/member/survey-history/`;
+  `/member/surveys/`, `/member/survey-response/`, and `/member/survey-results/`;
 - `/admin/`, `/admin/review-queue/`, `/admin/outreach/`, `/admin/email-campaigns/`, and
   `/admin/instagram-campaigns/`, and `/admin/surveys/`;
 - permanent redirects from `/account/**` and `/submit-vehicle-data/**` to their member

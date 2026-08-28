@@ -25,6 +25,7 @@ type surveyRecord struct {
 	Description  string         `json:"description" firestore:"description"`
 	Question     string         `json:"question" firestore:"question"`
 	CallToAction string         `json:"callToAction" firestore:"callToAction"`
+	Status       string         `json:"status" firestore:"status"`
 	Multiple     bool           `json:"multiple" firestore:"multiple"`
 	StartsOn     string         `json:"startsOn" firestore:"startsOn"`
 	EndsOn       string         `json:"endsOn" firestore:"endsOn"`
@@ -39,6 +40,7 @@ type surveyInput struct {
 	Description  string         `json:"description"`
 	Question     string         `json:"question"`
 	CallToAction string         `json:"callToAction"`
+	Status       string         `json:"status"`
 	Multiple     bool           `json:"multiple"`
 	StartsOn     string         `json:"startsOn"`
 	EndsOn       string         `json:"endsOn"`
@@ -145,9 +147,15 @@ func AdminSurveys(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func validateSurvey(input surveyInput) (surveyRecord, error) {
-	r := surveyRecord{ID: cleanString(input.ID, 160), Title: cleanString(input.Title, 120), Description: cleanString(input.Description, surveyDescriptionMax), Question: cleanString(input.Question, 500), CallToAction: cleanString(input.CallToAction, surveyCallToActionMax), Multiple: input.Multiple, StartsOn: cleanString(input.StartsOn, 10), EndsOn: cleanString(input.EndsOn, 10), ShowResults: input.ShowResults}
+	r := surveyRecord{ID: cleanString(input.ID, 160), Title: cleanString(input.Title, 120), Description: cleanString(input.Description, surveyDescriptionMax), Question: cleanString(input.Question, 500), CallToAction: cleanString(input.CallToAction, surveyCallToActionMax), Status: cleanString(input.Status, 16), Multiple: input.Multiple, StartsOn: cleanString(input.StartsOn, 10), EndsOn: cleanString(input.EndsOn, 10), ShowResults: input.ShowResults}
 	if r.Title == "" {
 		return r, fmt.Errorf("title is required")
+	}
+	if r.Status == "" {
+		r.Status = "draft"
+	}
+	if r.Status != "draft" && r.Status != "published" {
+		return r, fmt.Errorf("survey status must be draft or published")
 	}
 	start, e := time.Parse("2006-01-02", r.StartsOn)
 	if e != nil {
@@ -217,6 +225,9 @@ func MemberSurveys(w http.ResponseWriter, r *http.Request) {
 	}
 	out := []surveyResult{}
 	for _, s := range surveys {
+		if !surveyIsPublished(s) {
+			continue
+		}
 		if result, e := loadSurveyResult(r.Context(), db, s, u.UID); e == nil {
 			if !memberMayViewSurveyResults(s, result) {
 				result.Counts = nil
@@ -286,7 +297,12 @@ func SubmitSurveyResponse(w http.ResponseWriter, r *http.Request) {
 }
 
 func memberMayViewSurveyResults(s surveyRecord, result surveyResult) bool {
-	return s.ShowResults && len(result.MyOptionIDs) > 0
+	return s.ShowResults && (len(result.MyOptionIDs) > 0 || surveyIsClosed(s, surveyNow()))
+}
+
+func surveyIsPublished(s surveyRecord) bool {
+	// Surveys created before the status field existed remain visible rather than disappearing.
+	return s.Status != "draft"
 }
 func validateSurveyResponse(s surveyRecord, input surveyResponseInput) ([]string, map[string]string, error) {
 	allowed := map[string]surveyOption{}
@@ -331,6 +347,15 @@ func surveyIsLive(s surveyRecord, now time.Time) bool {
 	}
 	today := time.Date(now.UTC().Year(), now.UTC().Month(), now.UTC().Day(), 0, 0, 0, 0, time.UTC)
 	return !today.Before(start) && !today.After(end)
+}
+
+func surveyIsClosed(s surveyRecord, now time.Time) bool {
+	end, err := time.Parse("2006-01-02", s.EndsOn)
+	if err != nil {
+		return false
+	}
+	today := time.Date(now.UTC().Year(), now.UTC().Month(), now.UTC().Day(), 0, 0, 0, 0, time.UTC)
+	return today.After(end)
 }
 func loadSurveyResult(ctx context.Context, db *firestore.Client, s surveyRecord, uid string) (surveyResult, error) {
 	r := surveyResult{SurveyRecord: s, Counts: map[string]int{}, CanRespond: surveyIsLive(s, surveyNow())}
