@@ -43,6 +43,20 @@ test('private account, vehicle, member and admin pages opt out of indexing', fun
   });
 });
 
+test('authenticated UI and active CSS or JavaScript use native no-store cache controls', function () {
+  var firebase = JSON.parse(read('firebase.json'));
+  var headers = firebase.hosting.headers;
+  var noStoreSources = headers.filter(function (rule) {
+    return rule.headers.some(function (header) {
+      return header.key === 'Cache-Control' && header.value === 'no-store, max-age=0';
+    });
+  }).map(function (rule) { return rule.source; });
+
+  ['/admin/**', '/member/**', '/assets/css/**', '/assets/js/**'].forEach(function (source) {
+    assert.ok(noStoreSources.includes(source), source + ' should prevent stale UI cache restores');
+  });
+});
+
 test('site launch update exposes article metadata', function () {
   var update = read('src/updates/site-launch.md');
   var seo = read('src/_includes/partials/seo.njk');
