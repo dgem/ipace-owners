@@ -34,6 +34,9 @@ Create a calm, credible, technical-feeling public site that is mobile-first, acc
   unnumbered row; it must never fall back to ordered-list markers or push page content below the
   fold. The open mobile drawer must be scrollable rather than consume the full page, and every
   drawer link, section label, and identity button needs explicit WCAG-AA contrast against navy.
+- Inline SVG decorative marks must carry their essential fill and stroke attributes in the SVG
+  itself, rather than relying only on stylesheet inheritance through `<use>` instances. Give
+  intrinsically square marks an explicit width and height as a fallback for older Safari layout.
 - Cookie/privacy notices must not depend on JavaScript for disclosure: include a no-JavaScript
   fallback with a privacy-policy link, while using JavaScript only to persist dismissal. The
   no-JavaScript fallback should sit in the page flow rather than permanently overlaying the
