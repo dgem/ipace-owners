@@ -131,6 +131,7 @@ header.
 | `POST /api/admin/instagram-campaign-history` | `AdminInstagramCampaignHistory` | Admin | List saved drafts and publication records and refresh cached provider insights when available. |
 | `POST /api/admin/campaign-summary` | `AdminCampaignSummary` | Admin | Aggregate email delivery, Instagram publication/insight, and Facebook integration-availability totals for the Admin home. |
 | `GET/POST/PUT/DELETE /api/admin/surveys` | `AdminSurveys` | Admin | Create, edit, list, and remove timed member surveys. |
+| `GET/POST /api/admin/survey-preview` | `AdminSurveyPreview` | Admin | Load a survey regardless of publication status and validate a non-persisted test response. |
 | `GET /api/admin/survey-results` | `AdminSurveyResults` | Admin | Return aggregate and individual survey responses for manual analysis, including optional preferred-option counts; `format=csv` exports masked, PII-minimised rows. |
 | `GET /api/member/surveys` | `MemberSurveys` | Member | List surveys, the member's own response, and permitted aggregate counts. |
 | `POST /api/member/survey-response` | `SubmitSurveyResponse` | Member | Validate and save the member's one replaceable survey response. |

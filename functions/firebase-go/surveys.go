@@ -211,6 +211,56 @@ func AdminSurveyResults(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, analysis)
 }
 
+// AdminSurveyPreview lets administrators validate a response against an unpublished survey
+// without creating a response document or affecting member-visible results.
+func AdminSurveyPreview(w http.ResponseWriter, r *http.Request) {
+	if cors(w, r) || rejectDisallowedOrigin(w, r) {
+		return
+	}
+	if err := campaignAuthorize(r.Context(), r); err != nil {
+		writeJSON(w, http.StatusForbidden, map[string]any{"error": "Admin role required"})
+		return
+	}
+	if r.Method != http.MethodGet && r.Method != http.MethodPost {
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"error": "Method Not Allowed"})
+		return
+	}
+	id := cleanString(r.URL.Query().Get("id"), 160)
+	if id == "" {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "Survey ID is required"})
+		return
+	}
+	db, err := firestoreClient(r.Context())
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Could not connect to data store"})
+		return
+	}
+	snapshot, err := db.Collection("surveys").Doc(id).Get(r.Context())
+	if err != nil {
+		writeJSON(w, http.StatusNotFound, map[string]any{"error": "Survey not found"})
+		return
+	}
+	var survey surveyRecord
+	if err := snapshot.DataTo(&survey); err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Could not load survey"})
+		return
+	}
+	if r.Method == http.MethodGet {
+		writeJSON(w, http.StatusOK, survey)
+		return
+	}
+	var input surveyResponseInput
+	if decodeJSON(r, &input) != nil || cleanString(input.SurveyID, 160) != id {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "Invalid test response"})
+		return
+	}
+	if _, _, _, err := validateSurveyResponse(survey, input); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": err.Error()})
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"valid": true})
+}
+
 func loadAdminSurveyAnalysis(ctx context.Context, db *firestore.Client, survey surveyRecord) (adminSurveyAnalysis, error) {
 	analysis := adminSurveyAnalysis{Survey: survey, Counts: map[string]int{}, PreferredCounts: map[string]int{}, Responses: []adminSurveyResponse{}}
 	allowed := map[string]bool{}
@@ -411,6 +461,10 @@ func SubmitSurveyResponse(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, 500, map[string]any{"error": "Could not load survey"})
 		return
 	}
+	if !surveyIsPublished(s) {
+		writeJSON(w, 404, map[string]any{"error": "Survey not found"})
+		return
+	}
 	if !surveyIsLive(s, surveyNow()) {
 		writeJSON(w, 409, map[string]any{"error": "This survey is not currently open"})
 		return
@@ -470,10 +524,9 @@ func validateSurveyResponse(s surveyRecord, input surveyResponseInput) ([]string
 			continue
 		}
 		text := cleanString(input.TextByOption[id], surveyOtherTextMax)
-		if text == "" {
-			return nil, nil, "", fmt.Errorf("please describe each selected option that requests short text")
+		if text != "" {
+			textByOption[id] = text
 		}
-		textByOption[id] = text
 	}
 	preferred := cleanString(input.PreferredOptionID, 40)
 	if preferred != "" {
