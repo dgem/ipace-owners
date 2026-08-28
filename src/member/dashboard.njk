@@ -6,6 +6,7 @@ noindex: true
 permalink: /member/dashboard/
 memberNavigation: true
 memberBreadcrumb: My data
+surveys: true
 date: Last Modified
 ---
 
@@ -27,6 +28,10 @@ date: Last Modified
 
       <!-- Content — revealed by member-auth.js after server confirms auth -->
       <div class="auth-content" data-auth-content hidden>
+
+        <section class="survey-dashboard-callout" data-member-survey-summary aria-live="polite">
+          <p>Loading member surveys…</p>
+        </section>
 
         <section class="member-workspace" data-vehicle-workspace aria-labelledby="vehicle-workspace-title">
           <div class="member-workspace__loading" data-vehicle-workspace-loading>

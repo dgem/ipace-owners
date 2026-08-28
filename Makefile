@@ -9,7 +9,7 @@ FIREBASE_PREVIEW_ERROR ?= firebase-preview-error.log
 GOVULNCHECK_VERSION ?= v1.6.0
 INFRA_ENV_SCRIPT := scripts/infra-env.sh
 
-.PHONY: help functions check-node install ci-install dev build clean lint lint-js lint-css lint-markdown lint-data lint-templates lint-shell lint-go lint-tofu lint-svg audit audit-node audit-go test test-node test-go test-visual smoke join-reengagement update-service-providers write-functions-env authorize-preview-domain deploy-functions deploy-hosting-preview deploy-hosting-production infra-config infra-auth infra-init infra-workspace infra-dns-records infra-resend-dns-records infra-email-domain infra-plan infra-apply deploy-hosting-env
+.PHONY: help functions check-node install ci-install dev build clean lint lint-js lint-css lint-markdown lint-data lint-templates lint-shell lint-go lint-tofu lint-svg audit audit-node audit-go test test-node test-go test-visual smoke join-reengagement update-service-providers write-functions-env authorize-preview-domain deploy-functions deploy-hosting-preview delete-hosting-preview deploy-hosting-production infra-config infra-auth infra-init infra-workspace infra-dns-records infra-resend-dns-records infra-email-domain infra-plan infra-apply deploy-hosting-env
 
 help: ## Show available make targets.
 	@awk 'BEGIN {FS = ":.*##"; printf "Available targets:\n"} /^[a-zA-Z0-9_.-]+:.*##/ {printf "  %-28s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -190,6 +190,11 @@ deploy-hosting-preview: ## Deploy Firebase Hosting preview channel and extract i
 	fi; \
 	rm -f "$$error_log"
 	node scripts/extract-firebase-preview-url.mjs "$(FIREBASE_PREVIEW_JSON)"
+
+delete-hosting-preview: ## Delete a Firebase Hosting preview channel; requires GCP_PROJECT_ID and CHANNEL_ID.
+	@test -n "$(GCP_PROJECT_ID)" || (echo "GCP_PROJECT_ID is required" >&2; exit 2)
+	@test -n "$(CHANNEL_ID)" || (echo "CHANNEL_ID is required" >&2; exit 2)
+	NODE_OPTIONS="$${NODE_OPTIONS:+$${NODE_OPTIONS} }--require=./scripts/firebase-access-token-preload.cjs" npx firebase-tools hosting:channel:delete "$(CHANNEL_ID)" --project "$(GCP_PROJECT_ID)" --force
 
 deploy-hosting-production: ## Deploy Firebase Hosting production.
 	@if [ -z "$${GCP_PROJECT_ID}" ]; then echo "GCP_PROJECT_ID is required"; exit 1; fi

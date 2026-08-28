@@ -4,6 +4,7 @@ title: Account
 description: "Your account — I-PACE Owners' Advocacy Group."
 noindex: true
 memberExport: true
+surveys: true
 memberNavigation: true
 memberBreadcrumb: Account
 date: Last Modified
@@ -27,6 +28,9 @@ date: Last Modified
 
 				 <!-- Content — revealed by member-auth.js after server confirms auth -->
 				<div class="auth-content" data-auth-content hidden>
+					<section class="survey-dashboard-callout" data-member-survey-summary aria-live="polite">
+						<p>Loading member surveys…</p>
+					</section>
 					<div class="account-layout">
 
 						<div class="dashboard-panel">
@@ -43,6 +47,7 @@ date: Last Modified
 							</dl>
 							<div class="cluster" style="margin-top: var(--space-5); padding-top: var(--space-5); border-top: 1px solid var(--color-border);">
 								<a href="/member/dashboard/" class="btn btn--primary btn--sm">Vehicle Data</a>
+								<a href="/member/surveys/" class="btn btn--secondary btn--sm">Member surveys</a>
 								<button id="account-logout-btn" class="btn btn--secondary btn--sm" type="button">Sign out</button>
 							</div>
 						</div>

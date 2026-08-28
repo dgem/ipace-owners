@@ -1,0 +1,18 @@
+---
+layout: base.njk
+title: Survey Results
+description: "View aggregate results for a member survey after submitting your response."
+noindex: true
+permalink: /member/survey-results/
+surveys: true
+memberNavigation: true
+memberBreadcrumb: Survey results
+eleventyExcludeFromCollections: true
+date: Last Modified
+---
+{% from "partials/auth-login-gate.njk" import authLoginGate %}
+<div class="page-header page-header--compact"><div class="container"><h1 class="page-header__title">Survey results</h1></div></div>
+<div class="section"><div class="container survey-page__container" data-auth-container>
+  {{ authLoginGate("survey-results-email", "Sign in to view results", "Enter your member email address and we will send a secure sign-in link.") }}
+  <div class="auth-content" data-auth-content hidden data-member-survey-results><p>Loading results…</p></div>
+</div></div>

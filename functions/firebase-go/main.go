@@ -62,6 +62,9 @@ func init() {
 	functions.HTTP("AdminData", AdminData)
 	functions.HTTP("PublicStats", PublicStats)
 	functions.HTTP("AdminStats", AdminStats)
+	functions.HTTP("AdminSurveys", AdminSurveys)
+	functions.HTTP("MemberSurveys", MemberSurveys)
+	functions.HTTP("SubmitSurveyResponse", SubmitSurveyResponse)
 }
 
 func Api(w http.ResponseWriter, r *http.Request) {
@@ -122,6 +125,14 @@ func Api(w http.ResponseWriter, r *http.Request) {
 		AdminInstagramCampaignHistory(w, r)
 	case "/api/admin/campaign-summary":
 		AdminCampaignSummary(w, r)
+	case "/api/admin/surveys":
+		AdminSurveys(w, r)
+	case "/api/admin/survey-results":
+		AdminSurveyResults(w, r)
+	case "/api/member/surveys":
+		MemberSurveys(w, r)
+	case "/api/member/survey-response":
+		SubmitSurveyResponse(w, r)
 	case "/api/public-stats":
 		PublicStats(w, r)
 	case "/api/admin/stats":

@@ -1,0 +1,19 @@
+---
+layout: base.njk
+title: Survey Analysis
+description: "Review member survey results and masked free-text responses."
+noindex: true
+permalink: /admin/survey-results/
+surveys: true
+adminNavigation: true
+adminBreadcrumb: Survey analysis
+eleventyExcludeFromCollections: true
+date: Last Modified
+---
+{% from "partials/auth-login-gate.njk" import authLoginGate %}
+<div class="page-header page-header--compact"><div class="container"><h1 class="page-header__title">Survey analysis</h1></div></div>
+<div class="section"><div class="container survey-page__container" data-admin-container>
+  {{ authLoginGate("survey-results-admin-email", "Sign in required", "Enter your admin email address and we will send a secure sign-in link.", "admin", false) }}
+  <div class="auth-gate" data-admin-only-gate hidden><div class="auth-gate__icon" aria-hidden="true">⛔</div><h2 class="auth-gate__title">Access restricted</h2><p class="auth-gate__body">This workspace is for group administrators only.</p></div>
+  <div class="auth-content" data-admin-content hidden data-admin-survey-results><p>Loading survey analysis…</p></div>
+</div></div>

@@ -186,6 +186,7 @@ src/
       admin-campaign-summary.js # Admin email/social campaign totals
       `admin-stats.js`     # Claim-gated member, vehicle, SoH and service aggregate dashboard
       email-campaigns.js  # Admin re-engagement preview and bounded send controls
+      `surveys.js`        # Admin survey CRUD and member survey responses/results
       public-stats.js    # Public aggregate-statistics rendering
       site-mode.js       # Launch/full presentation selection
 public/            # Favicons, images and other root-level static assets
@@ -280,6 +281,10 @@ stale PR preview entries while retaining permanent authorized domains. OpenTofu 
 GitHub deployer a custom role containing only `firebaseauth.configs.get` and
 `firebaseauth.configs.update`; apply staging infrastructure after changing these permissions
 and before rerunning the preview workflow.
+
+When a same-repository, repository-owner pull request is merged, the staging workflow deletes
+its `pr-<number>` Firebase Hosting preview channel. Closed but unmerged PRs and external PRs are
+left untouched.
 
 `GET /api/admin/stats` is an administrator-claim-gated aggregate dashboard endpoint. It returns
 the consent-filtered homepage counters alongside private member, vehicle, State of Health, and
@@ -658,6 +663,23 @@ not required for Firebase Hosting and would require a careful migration of every
 ### Submission storage
 
 Cloud Firestore is the intended canonical source for structured owner data.
+
+Member survey administration and responses use `GET/POST/PUT/DELETE /api/admin/surveys`,
+`GET /api/admin/survey-results`, `GET /api/member/surveys`, and `POST /api/member/survey-response`. All are authenticated with a
+Firebase ID token; the admin route additionally requires the administrator claim. Survey
+descriptions, CTAs, and option text support a safe Markdown subset; raw HTML is rendered as text.
+Each selected text-enabled option can carry its own 250-character member explanation, which is
+never included in aggregate results or disclosed to other members.
+The separate admin analysis page can review those free-text answers with consistently masked
+respondent emails and download a CSV restricted to that masked identifier, UTC submission time,
+selected option IDs, an optional preferred option ID, and text answers in `option-id: text` form; it never includes full emails, names, Firebase UIDs, or
+member/vehicle data.
+For a multiple-choice survey, a member may optionally mark exactly one selected option as their
+preferred outcome; aggregate preference counts are included with the normal option counts.
+Surveys are drafted in the admin workspace before being explicitly published. Members browse
+published surveys by date (including future and closed surveys); results remain blind while a
+survey is open, becoming available after a member responds or to every member once the survey
+closes when aggregate results were enabled.
 
 Join submissions, vehicle basics, SoH updates, and service history are handled by routes
 behind the single Go `Api` Cloud Function:
