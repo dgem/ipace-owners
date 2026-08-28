@@ -524,10 +524,9 @@ func validateSurveyResponse(s surveyRecord, input surveyResponseInput) ([]string
 			continue
 		}
 		text := cleanString(input.TextByOption[id], surveyOtherTextMax)
-		if text == "" {
-			return nil, nil, "", fmt.Errorf("please describe each selected option that requests short text")
+		if text != "" {
+			textByOption[id] = text
 		}
-		textByOption[id] = text
 	}
 	preferred := cleanString(input.PreferredOptionID, 40)
 	if preferred != "" {

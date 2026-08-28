@@ -28,6 +28,8 @@ test('surveys support public Markdown copy, multiple text options, and seven-day
   assert.match(script, /function markdown\(v\)/);
   assert.match(script, /end\.setDate\(end\.getDate\(\) \+ 6\)/);
   assert.match(script, /textByOption/);
+  assert.match(script, /optional, up to 250 characters/);
+  assert.match(script, /Offer an optional short explanation/);
   assert.match(script, /document\.addEventListener\('admin:data', start\)/);
   assert.match(script, /window\.setInterval\(load, 30000\)/);
 });

@@ -126,8 +126,9 @@ visible only in the admin workspace and published surveys are eligible for membe
 surveys default to draft and today through six days later (seven inclusive whole
 days), while retaining editable dates. Description, CTA, and option text accept a safe Markdown
 subset (bold, emphasis, links, paragraphs, and bullet lists); raw HTML is displayed as text.
-Any number of options may request a required 250-character free-text explanation (for example,
-two distinct `Other` options); store the response text against the relevant selected option.
+Any number of options may offer an optional 250-character free-text explanation (for example,
+two distinct `Other` options); store text only when the member supplies it against the relevant
+selected option.
 For multiple-choice surveys only, let a member optionally mark one of their selected options as
 their preferred outcome. Use a clearly labelled checkbox on each selected choice, keep at most one
 checked in the browser, and validate server-side that it is selected and that the survey is
