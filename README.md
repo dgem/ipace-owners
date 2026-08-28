@@ -672,8 +672,10 @@ Each selected text-enabled option can carry its own 250-character member explana
 never included in aggregate results or disclosed to other members.
 The separate admin analysis page can review those free-text answers with consistently masked
 respondent emails and download a CSV restricted to that masked identifier, UTC submission time,
-selected options, and text answers; it never includes full emails, names, Firebase UIDs, or
+selected option IDs, an optional preferred option ID, and raw text answers; it never includes full emails, names, Firebase UIDs, or
 member/vehicle data.
+For a multiple-choice survey, a member may optionally mark exactly one selected option as their
+preferred outcome; aggregate preference counts are included with the normal option counts.
 Surveys are drafted in the admin workspace before being explicitly published. Members browse
 published surveys by date (including future and closed surveys); results remain blind while a
 survey is open, becoming available after a member responds or to every member once the survey

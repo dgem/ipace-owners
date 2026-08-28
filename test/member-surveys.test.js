@@ -52,8 +52,10 @@ test('member survey choices are structured as prominent selectable cards', funct
 
   assert.match(script, /survey-choice__number/);
   assert.match(script, /Select every outcome you would support/);
+  assert.match(script, /Make this my preferred outcome/);
+  assert.match(script, /preferredOptionId/);
   assert.match(script, /survey-results__header/);
-  assert.match(css, /\.survey-choice:has\(input:checked\)/);
+  assert.match(css, /\.survey-choice:has\(input\[name="survey"\]:checked\)/);
   assert.match(css, /\.survey-member-card__title/);
 });
 
@@ -85,6 +87,9 @@ test('survey analysis is an admin-only page with masked-response CSV download', 
   assert.match(analysis, /data-admin-survey-results/);
   assert.match(analysis, /data-admin-container/);
   assert.match(script, /format=csv/);
+  assert.match(script, /Selected option IDs/);
+  assert.match(script, /textResponses/);
   assert.match(backend, /func AdminSurveyResults/);
   assert.match(backend, /maskedEmail/);
+  assert.match(backend, /preferredOptionId/);
 });

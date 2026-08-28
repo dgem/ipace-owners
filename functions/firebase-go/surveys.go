@@ -50,29 +50,34 @@ type surveyInput struct {
 	Options      []surveyOption `json:"options"`
 }
 type surveyResponseInput struct {
-	SurveyID     string            `json:"surveyId"`
-	OptionIDs    []string          `json:"optionIds"`
-	TextByOption map[string]string `json:"textByOption"`
+	SurveyID          string            `json:"surveyId"`
+	OptionIDs         []string          `json:"optionIds"`
+	TextByOption      map[string]string `json:"textByOption"`
+	PreferredOptionID string            `json:"preferredOptionId"`
 }
 type surveyResult struct {
-	SurveyRecord   surveyRecord      `json:"survey"`
-	Counts         map[string]int    `json:"counts"`
-	Total          int               `json:"total"`
-	MyOptionIDs    []string          `json:"myOptionIds,omitempty"`
-	MyTextByOption map[string]string `json:"myTextByOption,omitempty"`
-	CanRespond     bool              `json:"canRespond"`
+	SurveyRecord        surveyRecord      `json:"survey"`
+	Counts              map[string]int    `json:"counts"`
+	PreferredCounts     map[string]int    `json:"preferredCounts"`
+	Total               int               `json:"total"`
+	MyOptionIDs         []string          `json:"myOptionIds,omitempty"`
+	MyTextByOption      map[string]string `json:"myTextByOption,omitempty"`
+	MyPreferredOptionID string            `json:"myPreferredOptionId,omitempty"`
+	CanRespond          bool              `json:"canRespond"`
 }
 type adminSurveyResponse struct {
-	Respondent string    `json:"respondent"`
-	Options    []string  `json:"options"`
-	Text       []string  `json:"text"`
-	UpdatedAt  time.Time `json:"updatedAt"`
+	Respondent        string    `json:"respondent"`
+	OptionIDs         []string  `json:"optionIds"`
+	TextResponses     []string  `json:"textResponses"`
+	PreferredOptionID string    `json:"preferredOptionId,omitempty"`
+	UpdatedAt         time.Time `json:"updatedAt"`
 }
 type adminSurveyAnalysis struct {
-	Survey    surveyRecord          `json:"survey"`
-	Counts    map[string]int        `json:"counts"`
-	Total     int                   `json:"total"`
-	Responses []adminSurveyResponse `json:"responses"`
+	Survey          surveyRecord          `json:"survey"`
+	Counts          map[string]int        `json:"counts"`
+	PreferredCounts map[string]int        `json:"preferredCounts"`
+	Total           int                   `json:"total"`
+	Responses       []adminSurveyResponse `json:"responses"`
 }
 
 var surveyNow = time.Now
@@ -207,10 +212,10 @@ func AdminSurveyResults(w http.ResponseWriter, r *http.Request) {
 }
 
 func loadAdminSurveyAnalysis(ctx context.Context, db *firestore.Client, survey surveyRecord) (adminSurveyAnalysis, error) {
-	analysis := adminSurveyAnalysis{Survey: survey, Counts: map[string]int{}, Responses: []adminSurveyResponse{}}
-	labels := map[string]string{}
+	analysis := adminSurveyAnalysis{Survey: survey, Counts: map[string]int{}, PreferredCounts: map[string]int{}, Responses: []adminSurveyResponse{}}
+	allowed := map[string]bool{}
 	for _, option := range survey.Options {
-		labels[option.ID] = option.Label
+		allowed[option.ID] = true
 	}
 	client, err := firebaseAuth(ctx)
 	if err != nil {
@@ -227,9 +232,10 @@ func loadAdminSurveyAnalysis(ctx context.Context, db *firestore.Client, survey s
 			return analysis, err
 		}
 		var response struct {
-			OptionIDs    []string          `firestore:"optionIds"`
-			TextByOption map[string]string `firestore:"textByOption"`
-			UpdatedAt    time.Time         `firestore:"updatedAt"`
+			OptionIDs         []string          `firestore:"optionIds"`
+			TextByOption      map[string]string `firestore:"textByOption"`
+			PreferredOptionID string            `firestore:"preferredOptionId"`
+			UpdatedAt         time.Time         `firestore:"updatedAt"`
 		}
 		if err := doc.DataTo(&response); err != nil {
 			return analysis, err
@@ -242,15 +248,18 @@ func loadAdminSurveyAnalysis(ctx context.Context, db *firestore.Client, survey s
 		}
 		item := adminSurveyResponse{Respondent: respondent, UpdatedAt: response.UpdatedAt}
 		for _, id := range response.OptionIDs {
-			label := labels[id]
-			if label == "" {
+			if !allowed[id] {
 				continue
 			}
 			analysis.Counts[id]++
-			item.Options = append(item.Options, label)
+			item.OptionIDs = append(item.OptionIDs, id)
 			if text := cleanString(response.TextByOption[id], surveyOtherTextMax); text != "" {
-				item.Text = append(item.Text, label+": "+text)
+				item.TextResponses = append(item.TextResponses, text)
 			}
+		}
+		if allowed[response.PreferredOptionID] {
+			item.PreferredOptionID = response.PreferredOptionID
+			analysis.PreferredCounts[response.PreferredOptionID]++
 		}
 		analysis.Total++
 		analysis.Responses = append(analysis.Responses, item)
@@ -262,9 +271,9 @@ func writeAdminSurveyCSV(w http.ResponseWriter, id string, analysis adminSurveyA
 	w.Header().Set("Content-Type", "text/csv; charset=utf-8")
 	w.Header().Set("Content-Disposition", "attachment; filename=survey-results-"+id+".csv")
 	writer := csv.NewWriter(w)
-	_ = writer.Write([]string{"masked_respondent", "submitted_at_utc", "selected_options", "text_responses"})
+	_ = writer.Write([]string{"masked_respondent", "submitted_at_utc", "selected_option_ids", "preferred_option_id", "text_responses"})
 	for _, response := range analysis.Responses {
-		_ = writer.Write([]string{safeCSVCell(response.Respondent), response.UpdatedAt.UTC().Format(time.RFC3339), safeCSVCell(strings.Join(response.Options, " | ")), safeCSVCell(strings.Join(response.Text, " | "))})
+		_ = writer.Write([]string{safeCSVCell(response.Respondent), response.UpdatedAt.UTC().Format(time.RFC3339), safeCSVCell(strings.Join(response.OptionIDs, " | ")), safeCSVCell(response.PreferredOptionID), safeCSVCell(strings.Join(response.TextResponses, " | "))})
 	}
 	writer.Flush()
 }
@@ -361,6 +370,7 @@ func MemberSurveys(w http.ResponseWriter, r *http.Request) {
 		if result, e := loadSurveyResult(r.Context(), db, s, u.UID); e == nil {
 			if !memberMayViewSurveyResults(s, result) {
 				result.Counts = nil
+				result.PreferredCounts = nil
 				result.Total = 0
 			}
 			out = append(out, result)
@@ -405,12 +415,12 @@ func SubmitSurveyResponse(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, 409, map[string]any{"error": "This survey is not currently open"})
 		return
 	}
-	ids, textByOption, e := validateSurveyResponse(s, input)
+	ids, textByOption, preferredOptionID, e := validateSurveyResponse(s, input)
 	if e != nil {
 		writeJSON(w, 400, map[string]any{"error": e.Error()})
 		return
 	}
-	if _, e = db.Collection("surveys").Doc(s.ID).Collection("responses").Doc(u.UID).Set(r.Context(), map[string]any{"optionIds": ids, "textByOption": textByOption, "updatedAt": surveyNow().UTC()}); e != nil {
+	if _, e = db.Collection("surveys").Doc(s.ID).Collection("responses").Doc(u.UID).Set(r.Context(), map[string]any{"optionIds": ids, "textByOption": textByOption, "preferredOptionId": preferredOptionID, "updatedAt": surveyNow().UTC()}); e != nil {
 		writeJSON(w, 500, map[string]any{"error": "Could not save response"})
 		return
 	}
@@ -421,6 +431,7 @@ func SubmitSurveyResponse(w http.ResponseWriter, r *http.Request) {
 	}
 	if !memberMayViewSurveyResults(s, result) {
 		result.Counts = nil
+		result.PreferredCounts = nil
 		result.Total = 0
 	}
 	writeJSON(w, 200, result)
@@ -434,7 +445,7 @@ func surveyIsPublished(s surveyRecord) bool {
 	// Surveys created before the status field existed remain visible rather than disappearing.
 	return s.Status != "draft"
 }
-func validateSurveyResponse(s surveyRecord, input surveyResponseInput) ([]string, map[string]string, error) {
+func validateSurveyResponse(s surveyRecord, input surveyResponseInput) ([]string, map[string]string, string, error) {
 	allowed := map[string]surveyOption{}
 	for _, o := range s.Options {
 		allowed[o.ID] = o
@@ -446,13 +457,13 @@ func validateSurveyResponse(s surveyRecord, input surveyResponseInput) ([]string
 		id = cleanString(id, 40)
 		_, ok := allowed[id]
 		if !ok || seen[id] {
-			return nil, nil, fmt.Errorf("choose valid survey options")
+			return nil, nil, "", fmt.Errorf("choose valid survey options")
 		}
 		seen[id] = true
 		ids = append(ids, id)
 	}
 	if len(ids) == 0 || (!s.Multiple && len(ids) != 1) {
-		return nil, nil, fmt.Errorf("choose a valid number of options")
+		return nil, nil, "", fmt.Errorf("choose a valid number of options")
 	}
 	for _, id := range ids {
 		if !allowed[id].AllowsText {
@@ -460,11 +471,17 @@ func validateSurveyResponse(s surveyRecord, input surveyResponseInput) ([]string
 		}
 		text := cleanString(input.TextByOption[id], surveyOtherTextMax)
 		if text == "" {
-			return nil, nil, fmt.Errorf("please describe each selected option that requests short text")
+			return nil, nil, "", fmt.Errorf("please describe each selected option that requests short text")
 		}
 		textByOption[id] = text
 	}
-	return ids, textByOption, nil
+	preferred := cleanString(input.PreferredOptionID, 40)
+	if preferred != "" {
+		if !s.Multiple || !seen[preferred] {
+			return nil, nil, "", fmt.Errorf("choose one selected option as preferred, or leave it blank")
+		}
+	}
+	return ids, textByOption, preferred, nil
 }
 func surveyIsLive(s surveyRecord, now time.Time) bool {
 	start, e := time.Parse("2006-01-02", s.StartsOn)
@@ -488,7 +505,7 @@ func surveyIsClosed(s surveyRecord, now time.Time) bool {
 	return today.After(end)
 }
 func loadSurveyResult(ctx context.Context, db *firestore.Client, s surveyRecord, uid string) (surveyResult, error) {
-	r := surveyResult{SurveyRecord: s, Counts: map[string]int{}, CanRespond: surveyIsLive(s, surveyNow())}
+	r := surveyResult{SurveyRecord: s, Counts: map[string]int{}, PreferredCounts: map[string]int{}, CanRespond: surveyIsLive(s, surveyNow())}
 	iter := db.Collection("surveys").Doc(s.ID).Collection("responses").Documents(ctx)
 	defer iter.Stop()
 	for {
@@ -500,17 +517,22 @@ func loadSurveyResult(ctx context.Context, db *firestore.Client, s surveyRecord,
 			return r, e
 		}
 		var x struct {
-			OptionIDs    []string          `firestore:"optionIds"`
-			TextByOption map[string]string `firestore:"textByOption"`
+			OptionIDs         []string          `firestore:"optionIds"`
+			TextByOption      map[string]string `firestore:"textByOption"`
+			PreferredOptionID string            `firestore:"preferredOptionId"`
 		}
 		if doc.DataTo(&x) == nil {
 			r.Total++
 			for _, id := range x.OptionIDs {
 				r.Counts[id]++
 			}
+			if x.PreferredOptionID != "" {
+				r.PreferredCounts[x.PreferredOptionID]++
+			}
 			if doc.Ref.ID == uid {
 				r.MyOptionIDs = x.OptionIDs
 				r.MyTextByOption = x.TextByOption
+				r.MyPreferredOptionID = x.PreferredOptionID
 			}
 		}
 	}

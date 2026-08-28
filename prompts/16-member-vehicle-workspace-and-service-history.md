@@ -128,6 +128,10 @@ days), while retaining editable dates. Description, CTA, and option text accept 
 subset (bold, emphasis, links, paragraphs, and bullet lists); raw HTML is displayed as text.
 Any number of options may request a required 250-character free-text explanation (for example,
 two distinct `Other` options); store the response text against the relevant selected option.
+For multiple-choice surveys only, let a member optionally mark one of their selected options as
+their preferred outcome. Use a clearly labelled checkbox on each selected choice, keep at most one
+checked in the browser, and validate server-side that it is selected and that the survey is
+multiple-choice. Store its stable option ID and include separate aggregate preferred counts.
 Link the implemented survey workspace from the protected Admin dashboard; do not leave it as an
 undiscoverable direct URL.
 
@@ -166,7 +170,8 @@ review manually, not published with results. Give administrators a separate
 `/admin/survey-results/?id={surveyId}` analysis page, linked from every survey in the admin
 history. It may show aggregate counts and each submitted answer, including free text, but must
 identify a respondent only by a consistently masked email address. Its CSV export must contain
-only that masked respondent, UTC submission time, selected option labels and text responses—never
+only that masked respondent, UTC submission time, selected option IDs, the optional preferred
+option ID and raw text responses—never
 a full email address, name, Firebase UID, or member/vehicle data. Neutralise spreadsheet formula
 characters in the CSV's user-controlled cells before exporting them.
 Register `/api/admin/surveys`, `/api/admin/survey-results`, `/api/member/surveys`, and `/api/member/survey-response` through

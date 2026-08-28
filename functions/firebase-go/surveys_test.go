@@ -28,31 +28,42 @@ func TestValidateSurveyAllowsMarkdownFieldsAndMultipleTextOptions(t *testing.T) 
 
 func TestSurveyResponseValidation(t *testing.T) {
 	s := surveyRecord{Multiple: false, Options: []surveyOption{{ID: "warranty", Label: "Warranty"}, {ID: "other", Label: "Other", AllowsText: true}}}
-	if _, _, err := validateSurveyResponse(s, surveyResponseInput{OptionIDs: []string{"other"}}); err == nil {
+	if _, _, _, err := validateSurveyResponse(s, surveyResponseInput{OptionIDs: []string{"other"}}); err == nil {
 		t.Fatal("expected missing Other detail to be rejected")
 	}
-	_, textByOption, err := validateSurveyResponse(s, surveyResponseInput{OptionIDs: []string{"other"}, TextByOption: map[string]string{"other": "A fair buy-back"}})
+	_, textByOption, _, err := validateSurveyResponse(s, surveyResponseInput{OptionIDs: []string{"other"}, TextByOption: map[string]string{"other": "A fair buy-back"}})
 	if err != nil || textByOption["other"] != "A fair buy-back" {
 		t.Fatalf("other response = %#v, %v", textByOption, err)
 	}
-	if _, _, err := validateSurveyResponse(s, surveyResponseInput{OptionIDs: []string{"warranty", "other"}}); err == nil {
+	if _, _, _, err := validateSurveyResponse(s, surveyResponseInput{OptionIDs: []string{"warranty", "other"}}); err == nil {
 		t.Fatal("expected multiple response on single choice survey to be rejected")
 	}
 }
 
 func TestSurveyResponseRequiresTextForEverySelectedTextOption(t *testing.T) {
 	s := surveyRecord{Multiple: true, Options: []surveyOption{{ID: "problem", Label: "Problem", AllowsText: true}, {ID: "something", Label: "Something", AllowsText: true}}}
-	if _, _, err := validateSurveyResponse(s, surveyResponseInput{OptionIDs: []string{"problem", "something"}, TextByOption: map[string]string{"problem": "Battery fault"}}); err == nil {
+	if _, _, _, err := validateSurveyResponse(s, surveyResponseInput{OptionIDs: []string{"problem", "something"}, TextByOption: map[string]string{"problem": "Battery fault"}}); err == nil {
 		t.Fatal("expected text to be required for every selected text option")
 	}
-	_, texts, err := validateSurveyResponse(s, surveyResponseInput{OptionIDs: []string{"problem", "something"}, TextByOption: map[string]string{"problem": "Battery fault", "something": "A fair settlement"}})
-	if err != nil || len(texts) != 2 {
-		t.Fatalf("multiple text response = %#v, %v", texts, err)
+	_, texts, preferred, err := validateSurveyResponse(s, surveyResponseInput{OptionIDs: []string{"problem", "something"}, PreferredOptionID: "problem", TextByOption: map[string]string{"problem": "Battery fault", "something": "A fair settlement"}})
+	if err != nil || len(texts) != 2 || preferred != "problem" {
+		t.Fatalf("multiple text response = %#v, %q, %v", texts, preferred, err)
+	}
+}
+
+func TestSurveyResponsePreferredOptionMustBeSelectedOnMultipleChoice(t *testing.T) {
+	multiple := surveyRecord{Multiple: true, Options: []surveyOption{{ID: "first"}, {ID: "second"}}}
+	if _, _, _, err := validateSurveyResponse(multiple, surveyResponseInput{OptionIDs: []string{"first"}, PreferredOptionID: "second"}); err == nil {
+		t.Fatal("expected an unselected preferred option to be rejected")
+	}
+	single := surveyRecord{Multiple: false, Options: []surveyOption{{ID: "first"}, {ID: "second"}}}
+	if _, _, _, err := validateSurveyResponse(single, surveyResponseInput{OptionIDs: []string{"first"}, PreferredOptionID: "first"}); err == nil {
+		t.Fatal("expected a preferred option on a single-choice survey to be rejected")
 	}
 }
 
 func TestAggregateSurveyResultsNeverSerialiseFreeText(t *testing.T) {
-	result := surveyResult{Counts: map[string]int{"option-1": 3}, Total: 3}
+	result := surveyResult{Counts: map[string]int{"option-1": 3}, PreferredCounts: map[string]int{"option-1": 2}, Total: 3}
 	encoded, err := json.Marshal(result)
 	if err != nil {
 		t.Fatal(err)
@@ -93,9 +104,9 @@ func TestSurveyPublicationStatus(t *testing.T) {
 
 func TestAdminSurveyCSVUsesMaskedRespondentsOnly(t *testing.T) {
 	recorder := httptest.NewRecorder()
-	writeAdminSurveyCSV(recorder, "survey-1", adminSurveyAnalysis{Responses: []adminSurveyResponse{{Respondent: "d***@k***.uk", Options: []string{"=Buy back"}, Text: []string{"Other: Fair amount"}}}})
+	writeAdminSurveyCSV(recorder, "survey-1", adminSurveyAnalysis{Responses: []adminSurveyResponse{{Respondent: "d***@k***.uk", OptionIDs: []string{"=buy-back"}, PreferredOptionID: "=buy-back", TextResponses: []string{"Fair amount"}}}})
 	body := recorder.Body.String()
-	if !strings.Contains(body, "masked_respondent") || !strings.Contains(body, "d***@k***.uk") || !strings.Contains(body, "'=Buy back") || !strings.Contains(body, "Fair amount") {
+	if !strings.Contains(body, "selected_option_ids") || !strings.Contains(body, "preferred_option_id") || !strings.Contains(body, "d***@k***.uk") || !strings.Contains(body, "'=buy-back") || !strings.Contains(body, "Fair amount") || strings.Contains(body, "Other:") {
 		t.Fatalf("unexpected CSV: %s", body)
 	}
 	if strings.Contains(body, "uid") || strings.Contains(body, "dan@kanzi.co.uk") {
