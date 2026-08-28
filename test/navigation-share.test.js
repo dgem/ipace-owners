@@ -37,6 +37,8 @@ test('header exposes one My Data account action without exposing the member emai
   assert.match(css, /\.site-header \.mobile-header-login\s*\{\s*display: none;/);
   assert.match(css, /@media \(max-width: 39\.99em\)[\s\S]*\.site-header \.mobile-header-login\s*\{[\s\S]*display: inline-flex;/);
   assert.match(css, /\.site-context-nav__current\[aria-current="page"\][\s\S]*font-weight: 800;/);
+  assert.match(css, /\.site-context-nav__list\s*\{[\s\S]*list-style: none !important;/);
+  assert.match(css, /\.mobile-nav__identity \.btn--secondary\s*\{[\s\S]*color: #ffffff;/);
   assert.doesNotMatch(identityJs, /identity-user-display|userDisplay/);
 });
 

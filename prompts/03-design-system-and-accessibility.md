@@ -30,6 +30,10 @@ Create a calm, credible, technical-feeling public site that is mobile-first, acc
 - For brand/product/vehicle imagery, use licensed, original, or generated bitmap assets only; do not use manufacturer logos, badges, watermarks, or copyrighted press imagery.
 - Favicon artwork should be simple, legible at small sizes, aligned with the navy/teal palette, and free of Jaguar/JLR logos or badges. It should read as an I-PACE-style low electric crossover silhouette rather than a generic upright car.
 - Cookie/privacy notices should be compact, dismissible, keyboard accessible, and should not obscure primary form actions on common laptop viewports.
+- On small iOS/mobile viewports, the contextual Member/Admin breadcrumb must remain one compact,
+  unnumbered row; it must never fall back to ordered-list markers or push page content below the
+  fold. The open mobile drawer must be scrollable rather than consume the full page, and every
+  drawer link, section label, and identity button needs explicit WCAG-AA contrast against navy.
 - Cookie/privacy notices must not depend on JavaScript for disclosure: include a no-JavaScript
   fallback with a privacy-policy link, while using JavaScript only to persist dismissal. The
   no-JavaScript fallback should sit in the page flow rather than permanently overlaying the

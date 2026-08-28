@@ -59,6 +59,7 @@ test('member survey choices are structured as prominent selectable cards', funct
   assert.match(script, /survey-results__header/);
   assert.match(css, /\.survey-choice:has\(input\[name="survey"\]:checked\)/);
   assert.match(css, /\.survey-member-card__title/);
+  assert.match(css, /\.survey-options legend\s*\{[\s\S]*padding: 0;/);
 });
 
 test('survey directory filters its date-ordered list and results follow the blind-vote rule', function () {
