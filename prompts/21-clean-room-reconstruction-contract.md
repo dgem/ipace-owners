@@ -121,7 +121,7 @@ change rather than assuming it exists.
 | `POST /api/admin/instagram-campaign-history` | Admin claim | List named drafts and immutable publication records, refreshing cached provider insights when available. |
 | `POST /api/admin/campaign-summary` | Admin claim | Aggregate reconciled Resend email outcomes and Instagram publication/insight totals; report Facebook as manual unless Page Insights is connected. |
 | `GET/POST/PUT/DELETE /api/admin/surveys` | Admin claim | Manage timed single- or multiple-choice member surveys. |
-| `GET /api/admin/survey-results` | Admin claim | Return admin-only aggregate and individual survey answers; CSV export contains only masked email, UTC time, selected/preferred option IDs and raw free text. |
+| `GET /api/admin/survey-results` | Admin claim | Return admin-only aggregate and individual survey answers; CSV export contains only masked email, UTC time, selected/preferred option IDs and free text in `option-id: text` form. |
 | `GET /api/member/surveys` | Member | Return survey state, the member's own response, and allowed aggregate counts. |
 | `POST /api/member/survey-response` | Member | Save one validated replaceable response while a survey is live. |
 | `POST /api/admin/instagram-publish` | Admin claim | Revalidate the unchanged preview and exact confirmation, then create, process and publish one organic Reel through Meta. |

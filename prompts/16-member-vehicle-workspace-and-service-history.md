@@ -171,7 +171,7 @@ review manually, not published with results. Give administrators a separate
 history. It may show aggregate counts and each submitted answer, including free text, but must
 identify a respondent only by a consistently masked email address. Its CSV export must contain
 only that masked respondent, UTC submission time, selected option IDs, the optional preferred
-option ID and raw text responses—never
+option ID and text responses in `option-id: text` form—never
 a full email address, name, Firebase UID, or member/vehicle data. Neutralise spreadsheet formula
 characters in the CSV's user-controlled cells before exporting them.
 Register `/api/admin/surveys`, `/api/admin/survey-results`, `/api/member/surveys`, and `/api/member/survey-response` through

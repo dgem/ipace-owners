@@ -89,6 +89,7 @@ test('survey analysis is an admin-only page with masked-response CSV download', 
   assert.match(script, /format=csv/);
   assert.match(script, /Selected option IDs/);
   assert.match(script, /textResponses/);
+  assert.match(script, /survey-result__count/);
   assert.match(backend, /func AdminSurveyResults/);
   assert.match(backend, /maskedEmail/);
   assert.match(backend, /preferredOptionId/);

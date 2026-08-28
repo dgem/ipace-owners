@@ -104,9 +104,9 @@ func TestSurveyPublicationStatus(t *testing.T) {
 
 func TestAdminSurveyCSVUsesMaskedRespondentsOnly(t *testing.T) {
 	recorder := httptest.NewRecorder()
-	writeAdminSurveyCSV(recorder, "survey-1", adminSurveyAnalysis{Responses: []adminSurveyResponse{{Respondent: "d***@k***.uk", OptionIDs: []string{"=buy-back"}, PreferredOptionID: "=buy-back", TextResponses: []string{"Fair amount"}}}})
+	writeAdminSurveyCSV(recorder, "survey-1", adminSurveyAnalysis{Responses: []adminSurveyResponse{{Respondent: "d***@k***.uk", OptionIDs: []string{"=buy-back"}, PreferredOptionID: "=buy-back", TextResponses: []string{"=buy-back: Fair amount"}}}})
 	body := recorder.Body.String()
-	if !strings.Contains(body, "selected_option_ids") || !strings.Contains(body, "preferred_option_id") || !strings.Contains(body, "d***@k***.uk") || !strings.Contains(body, "'=buy-back") || !strings.Contains(body, "Fair amount") || strings.Contains(body, "Other:") {
+	if !strings.Contains(body, "selected_option_ids") || !strings.Contains(body, "preferred_option_id") || !strings.Contains(body, "d***@k***.uk") || !strings.Contains(body, "'=buy-back") || !strings.Contains(body, "=buy-back: Fair amount") || strings.Contains(body, "Other:") {
 		t.Fatalf("unexpected CSV: %s", body)
 	}
 	if strings.Contains(body, "uid") || strings.Contains(body, "dan@kanzi.co.uk") {

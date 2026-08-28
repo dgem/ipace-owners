@@ -1780,12 +1780,12 @@ textarea {
 }
 
 .survey-results__header span,
-.survey-result strong {
+.survey-result__count {
   color: var(--color-accent);
   font-weight: 700;
 }
 
-.survey-result strong {
+.survey-result__count {
   display: grid;
   justify-items: end;
 }

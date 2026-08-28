@@ -254,7 +254,7 @@ func loadAdminSurveyAnalysis(ctx context.Context, db *firestore.Client, survey s
 			analysis.Counts[id]++
 			item.OptionIDs = append(item.OptionIDs, id)
 			if text := cleanString(response.TextByOption[id], surveyOtherTextMax); text != "" {
-				item.TextResponses = append(item.TextResponses, text)
+				item.TextResponses = append(item.TextResponses, id+": "+text)
 			}
 		}
 		if allowed[response.PreferredOptionID] {
