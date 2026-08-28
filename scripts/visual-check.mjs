@@ -35,7 +35,8 @@ const expectedAdminDestinations = [
   '/admin/review-queue/',
   '/admin/outreach/',
   '/admin/email-campaigns/',
-  '/admin/instagram-campaigns/'
+  '/admin/instagram-campaigns/',
+  '/admin/surveys/'
 ];
 const serviceProviders = JSON.parse(fs.readFileSync('src/assets/data/jaguar-uk-service-providers.json', 'utf8')).providers;
 const providerFixture = serviceProviders.find((provider) => provider.name && provider.postcode && provider.town && provider.county && Array.isArray(provider.addressLines) && provider.addressLines[0]);
@@ -332,11 +333,11 @@ async function checkAdminDashboard() {
   await page.locator('[data-campaign-summary-refresh]').click();
   await page.locator('.campaign-summary-card').first().waitFor({ state: 'visible' });
   assert.equal(await page.locator('.campaign-summary-card').count(), 3);
-  assert.equal(await page.locator('.admin-dashboard-grid .card').count(), 4);
-  assert.equal(await page.locator('.admin-dashboard-grid .admin-tool-logo svg').count(), 4);
-  assert.equal(await page.locator('.admin-dashboard-grid .btn--primary').count(), 4);
+  assert.equal(await page.locator('.admin-dashboard-grid .card').count(), 5);
+  assert.equal(await page.locator('.admin-dashboard-grid .admin-tool-logo svg').count(), 5);
+  assert.equal(await page.locator('.admin-dashboard-grid .btn--primary').count(), 5);
   assert.deepEqual(await page.locator('.admin-dashboard-grid .btn').allTextContents(), [
-    'Review Queue', 'Facebook Assistant', 'Email Campaigns', 'Instagram Campaigns'
+    'Review Queue', 'Facebook Assistant', 'Email Campaigns', 'Instagram Campaigns', 'Member Surveys'
   ]);
   assert.deepEqual(await page.locator('.admin-dashboard-grid a').evaluateAll((links) => links.map((link) => link.getAttribute('href'))), expectedAdminDestinations.slice(1));
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);

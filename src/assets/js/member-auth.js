@@ -484,6 +484,9 @@
 
          // Expose raw data for other scripts
         container.dataset.adminData = JSON.stringify(data);
+        document.dispatchEvent(new CustomEvent('admin:data', {
+          detail: { container: container, data: data },
+        }));
        } catch (err) {
       console.warn('[member-auth] Failed to verify admin auth:', err);
       showAdminGate(container);

@@ -34,9 +34,10 @@ The generated public route surface must include:
 - `/`, `/about/`, `/faq/`, `/join/`, `/contact/`, `/privacy/`, `/terms/`,
   `/methodology/`, `/evidence-dashboard/`, and `/updates/`;
 - dated or named update pages generated from `src/updates/`;
-- `/member/dashboard/`, `/member/account/`, and `/member/submit-vehicle-data/`;
+- `/member/dashboard/`, `/member/account/`, `/member/submit-vehicle-data/`,
+  `/member/surveys/`, `/member/survey-response/`, and `/member/survey-results/`;
 - `/admin/`, `/admin/review-queue/`, `/admin/outreach/`, `/admin/email-campaigns/`, and
-  `/admin/instagram-campaigns/`;
+  `/admin/instagram-campaigns/`, `/admin/surveys/`, and `/admin/survey-results/`;
 - permanent redirects from `/account/**` and `/submit-vehicle-data/**` to their member
   equivalents;
 - a generated 404 page, clean URLs, trailing slashes, and a final Hosting fallback to
@@ -119,6 +120,10 @@ change rather than assuming it exists.
 | `POST /api/admin/instagram-preview` | Admin claim | Validate a site-relative MP4/MOV path, caption and explicit full-media review; return the deterministic confirmation without a provider side effect. |
 | `POST /api/admin/instagram-campaign-history` | Admin claim | List named drafts and immutable publication records, refreshing cached provider insights when available. |
 | `POST /api/admin/campaign-summary` | Admin claim | Aggregate reconciled Resend email outcomes and Instagram publication/insight totals; report Facebook as manual unless Page Insights is connected. |
+| `GET/POST/PUT/DELETE /api/admin/surveys` | Admin claim | Manage timed single- or multiple-choice member surveys. |
+| `GET /api/admin/survey-results` | Admin claim | Return admin-only aggregate and individual survey answers; CSV export contains only masked email, UTC time, selected/preferred option IDs and free text in `option-id: text` form. |
+| `GET /api/member/surveys` | Member | Return survey state, the member's own response, and allowed aggregate counts. |
+| `POST /api/member/survey-response` | Member | Save one validated replaceable response while a survey is live. |
 | `POST /api/admin/instagram-publish` | Admin claim | Revalidate the unchanged preview and exact confirmation, then create, process and publish one organic Reel through Meta. |
 | `POST /api/admin/instagram-generate` | Admin claim | Reserve an idempotent job and start one billable eight-second 9:16 Veo operation after exact `GENERATE VIDEO` confirmation. |
 | `POST /api/admin/instagram-generation-status` | Admin claim | Poll the Vertex operation, start the supported seven-second video continuation, promote the resulting 15-second master, and return an expiring delivery path. |
@@ -133,6 +138,13 @@ return generic success for Join honeypot submissions as specified in the feature
 Never depend on frontend gating for data protection.
 
 ## Canonical Firestore and snapshot schemas
+
+`surveys/{surveyId}` stores the administrator-managed title, public Markdown description and CTA,
+optional prompt, option definitions, inclusive whole-day schedule, visibility setting, and
+timestamps. `surveys/{surveyId}/responses/{uid}` stores only that member's selected option IDs,
+an optional preferred option ID (which must be selected on a multiple-choice survey), a map of
+250-character explanations keyed by selected text-enabled option, and update timestamp.
+Aggregate survey APIs must never return free-text explanations.
 
 Use these exact collection names: `joinSubmissions`, `members`, `vehicles`,
 `batteryReadings`, `serviceEvents`, `memberSnapshots`, `emailCampaigns`, `campaignMetadata`,
