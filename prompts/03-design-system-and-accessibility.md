@@ -37,6 +37,8 @@ Create a calm, credible, technical-feeling public site that is mobile-first, acc
 - Inline SVG decorative marks must carry their essential fill and stroke attributes in the SVG
   itself, rather than relying only on stylesheet inheritance through `<use>` instances. Give
   intrinsically square marks an explicit width and height as a fallback for older Safari layout.
+  If their layout is essential to comprehension, include minimal inline layout fallbacks for the
+  SVG, its count, and its label so a Safari CSS failure cannot separate the count from the mark.
 - Cookie/privacy notices must not depend on JavaScript for disclosure: include a no-JavaScript
   fallback with a privacy-policy link, while using JavaScript only to persist dismissal. The
   no-JavaScript fallback should sit in the page flow rather than permanently overlaying the

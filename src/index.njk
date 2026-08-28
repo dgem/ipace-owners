@@ -36,10 +36,10 @@ date: Last Modified
 
           <div class="launch-hero__evidence" aria-labelledby="launch-evidence-title" data-requires-auth style="display:none">
             <h2 id="launch-evidence-title">Our shared evidence is growing</h2>
-            <div class="launch-evidence-wreaths">
-              {{ racingWreath("cars-registered-wreath", "vehiclesRegistered", "Cars registered", "Live aggregate") }}
-              {{ racingWreath("soh-readings-wreath", "sohReadings", "SoH readings logged", "Live aggregate") }}
-              {{ racingWreath("service-records-wreath", "serviceEventsLogged", "Service & fault records", "Live aggregate") }}
+            <div class="launch-evidence-wreaths" style="display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:0.5rem; margin-inline:auto;">
+              {{ racingWreath("cars-registered-wreath", "vehiclesRegistered", "Cars registered", "Live aggregate", false, "5.4rem", "1.5rem") }}
+              {{ racingWreath("soh-readings-wreath", "sohReadings", "SoH readings logged", "Live aggregate", false, "5.4rem", "1.5rem") }}
+              {{ racingWreath("service-records-wreath", "serviceEventsLogged", "Service & fault records", "Live aggregate", false, "5.4rem", "1.5rem") }}
             </div>
             <div class="launch-hero__evidence-cta">
               <p><strong>Every record strengthens the picture.</strong> Add another car, battery reading or service and fault record to help make the shared evidence harder to overlook.</p>
