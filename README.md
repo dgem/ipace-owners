@@ -665,7 +665,7 @@ not required for Firebase Hosting and would require a careful migration of every
 Cloud Firestore is the intended canonical source for structured owner data.
 
 Member survey administration and responses use `GET/POST/PUT/DELETE /api/admin/surveys`,
-`GET /api/admin/survey-results`, `GET /api/member/surveys`, and `POST /api/member/survey-response`. All are authenticated with a
+`GET/POST /api/admin/survey-preview`, `GET /api/admin/survey-results`, `GET /api/member/surveys`, and `POST /api/member/survey-response`. All are authenticated with a
 Firebase ID token; the admin route additionally requires the administrator claim. Survey
 descriptions, CTAs, and option text support a safe Markdown subset; raw HTML is rendered as text.
 Each selected text-enabled option can carry its own 250-character member explanation, which is
@@ -676,6 +676,9 @@ selected option IDs, an optional preferred option ID, and text answers in `optio
 member/vehicle data.
 For a multiple-choice survey, a member may optionally mark exactly one selected option as their
 preferred outcome; aggregate preference counts are included with the normal option counts.
+Administrators can preview any draft in the member response layout and submit a validation-only
+test response; it is never stored or included in results. Drafts remain inaccessible through the
+member response API until explicitly published.
 Surveys are drafted in the admin workspace before being explicitly published. Members browse
 published surveys by date (including future and closed surveys); results remain blind while a
 survey is open, becoming available after a member responds or to every member once the survey

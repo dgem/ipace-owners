@@ -138,6 +138,11 @@ undiscoverable direct URL.
 Place the existing-surveys history above the admin editor. Load it after server-side admin
 verification, refresh it automatically every 30 seconds and when the tab regains focus, as well
 as after every save or delete; do not require an administrator to press Refresh after signing in.
+Every survey, including a draft, must have an admin-only `Preview / test` action. The preview uses
+the member response layout and validates a test selection, text explanation, and optional preferred
+choice without persisting a response or affecting counts/results. Drafts must stay absent from all
+member endpoints; reject an attempted member response to a draft rather than relying on its hidden
+listing.
 On both member landing pages—`/member/dashboard/` and `/member/account/` (the destination of the
 signed-in `My Data` header action)—place a prominent, plain-language callout before the main
 workspace: when one or more surveys are open, name them and provide a primary `Take the survey`
@@ -174,6 +179,6 @@ only that masked respondent, UTC submission time, selected option IDs, the optio
 option ID and text responses in `option-id: text` form—never
 a full email address, name, Firebase UID, or member/vehicle data. Neutralise spreadsheet formula
 characters in the CSV's user-controlled cells before exporting them.
-Register `/api/admin/surveys`, `/api/admin/survey-results`, `/api/member/surveys`, and `/api/member/survey-response` through
+Register `/api/admin/surveys`, `/api/admin/survey-preview`, `/api/admin/survey-results`, `/api/member/surveys`, and `/api/member/survey-response` through
 the shared `Api` function. Test survey definition validation, response validation, and inclusive
 date boundaries, including the PII-safe CSV fields. Delete a survey's response subcollection before deleting its parent document.

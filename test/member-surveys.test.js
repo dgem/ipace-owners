@@ -83,6 +83,8 @@ test('survey analysis is an admin-only page with masked-response CSV download', 
   const backend = fs.readFileSync(path.join(root, 'functions/firebase-go/surveys.go'), 'utf8');
 
   assert.match(admin, /admin-only results/);
+  assert.match(admin, /Preview and test draft surveys/);
+  assert.match(script, /\/admin\/survey-preview\/\?id=/);
   assert.match(script, /\/admin\/survey-results\/\?id=/);
   assert.match(analysis, /data-admin-survey-results/);
   assert.match(analysis, /data-admin-container/);
@@ -91,6 +93,20 @@ test('survey analysis is an admin-only page with masked-response CSV download', 
   assert.match(script, /textResponses/);
   assert.match(script, /survey-result__count/);
   assert.match(backend, /func AdminSurveyResults/);
+  assert.match(backend, /func AdminSurveyPreview/);
   assert.match(backend, /maskedEmail/);
   assert.match(backend, /preferredOptionId/);
+});
+
+test('draft surveys have an admin-only preview and test-response path', function () {
+  const preview = fs.readFileSync(path.join(root, 'src/admin/survey-preview.njk'), 'utf8');
+  const script = fs.readFileSync(path.join(root, 'src/assets/js/surveys.js'), 'utf8');
+  const backend = fs.readFileSync(path.join(root, 'functions/firebase-go/surveys.go'), 'utf8');
+
+  assert.match(preview, /data-admin-survey-preview/);
+  assert.match(preview, /data-admin-container/);
+  assert.match(script, /Test response is valid\. Nothing was saved or counted/);
+  assert.match(script, /api\/admin\/survey-preview/);
+  assert.match(backend, /if !surveyIsPublished\(s\)/);
+  assert.match(backend, /without creating a response document/);
 });

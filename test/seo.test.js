@@ -37,6 +37,7 @@ test('private account, vehicle, member and admin pages opt out of indexing', fun
     'src/member/dashboard.njk',
     'src/admin/review-queue.njk',
     'src/admin/survey-results.njk',
+    'src/admin/survey-preview.njk',
   ].forEach(function (file) {
     assert.match(read(file), /noindex: true/, file + ' should be noindex');
   });
