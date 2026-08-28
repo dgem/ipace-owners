@@ -25,6 +25,7 @@ test('homepage and evidence dashboard load real public aggregate statistics', fu
   const dashboard = read('src/evidence-dashboard.njk');
   const wreath = read('src/_includes/partials/racing-wreath.njk');
   const stats = read('src/assets/js/public-stats.js');
+  const css = read('src/assets/css/site.css');
 
   assert.match(home, /racingWreath\("owners-joined-wreath", "joinedOwners", "Owners joined", "17th July 2026", "2026-07-17"\)/);
   assert.match(home, /racingWreath\("cars-registered-wreath", "vehiclesRegistered"/);
@@ -33,6 +34,9 @@ test('homepage and evidence dashboard load real public aggregate statistics', fu
   assert.match(wreath, /launch-member-count__date/);
   assert.match(wreath, /data-public-stat="\{\{ statKey \}\}"/);
   assert.match(wreath, /Since <time datetime="\{\{ datetime \}\}">\{\{ note \}\}<\/time>/);
+  assert.match(wreath, /launch-member-count__leaf" fill="#e9bd52" stroke="#9d7925"/);
+  assert.match(wreath, /launch-member-count__stem" fill="#e9bd52" stroke="#9d7925"/);
+  assert.match(css, /\.launch-member-count\s*\{[\s\S]*height: 8\.25rem;/);
   assert.match(dashboard, /data-public-stat="averageReportedSoh"/);
   assert.match(dashboard, /data-public-stat="serviceEventsLogged"/);
   assert.match(dashboard, /data-public-distribution="soh"/);
@@ -41,7 +45,6 @@ test('homepage and evidence dashboard load real public aggregate statistics', fu
   assert.match(stats, /displayedCharacters = count\.toLocaleString\('en-GB'\)\.length/);
   assert.match(stats, /displayedCharacters >= 6 \? 'large' : displayedCharacters >= 5 \? 'five' : displayedCharacters >= 4 \? 'four'/);
 
-  const css = read('src/assets/css/site.css');
   assert.match(css, /data-count-size="three"[^}]*font-size: 1\.75rem/s);
   assert.match(css, /data-count-size="four"[^}]*font-size: 1\.5rem/s);
   assert.match(css, /data-count-size="five"[^}]*font-size: 1\.5rem/s);
