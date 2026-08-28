@@ -2,6 +2,7 @@ package ipace
 
 import (
 	"encoding/json"
+	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
@@ -87,6 +88,21 @@ func TestSurveyPublicationStatus(t *testing.T) {
 	}
 	if !surveyIsPublished(surveyRecord{Status: "published"}) || !surveyIsPublished(surveyRecord{}) {
 		t.Fatal("published and legacy surveys must be visible")
+	}
+}
+
+func TestAdminSurveyCSVUsesMaskedRespondentsOnly(t *testing.T) {
+	recorder := httptest.NewRecorder()
+	writeAdminSurveyCSV(recorder, "survey-1", adminSurveyAnalysis{Responses: []adminSurveyResponse{{Respondent: "d***@k***.uk", Options: []string{"=Buy back"}, Text: []string{"Other: Fair amount"}}}})
+	body := recorder.Body.String()
+	if !strings.Contains(body, "masked_respondent") || !strings.Contains(body, "d***@k***.uk") || !strings.Contains(body, "'=Buy back") || !strings.Contains(body, "Fair amount") {
+		t.Fatalf("unexpected CSV: %s", body)
+	}
+	if strings.Contains(body, "uid") || strings.Contains(body, "dan@kanzi.co.uk") {
+		t.Fatalf("CSV leaked an identifier: %s", body)
+	}
+	if got := recorder.Header().Get("Cache-Control"); got != "private, no-store" {
+		t.Fatalf("Cache-Control = %q", got)
 	}
 }
 

@@ -16,7 +16,7 @@ date: Last Modified
   {{ authLoginGate("survey-admin-email", "Sign in required", "Enter your admin email address and we will send a secure sign-in link.", "admin", false) }}
   <div class="auth-gate" data-admin-only-gate hidden><div class="auth-gate__icon" aria-hidden="true">⛔</div><h2 class="auth-gate__title">Access restricted</h2><p class="auth-gate__body">This workspace is for group administrators only.</p></div>
   <div class="auth-content" data-admin-content hidden data-survey-admin>
-    <section class="dashboard-panel"><div class="dashboard-panel__header"><div><p class="dashboard-panel__eyebrow">All surveys</p><h2 class="dashboard-panel__title">Existing surveys</h2></div><button class="btn btn--secondary btn--sm" data-survey-refresh type="button">Refresh</button></div><div class="stack" data-survey-admin-list aria-live="polite">Loading surveys…</div></section>
+    <section class="dashboard-panel"><div class="dashboard-panel__header"><div><p class="dashboard-panel__eyebrow">All surveys</p><h2 class="dashboard-panel__title">Existing surveys</h2></div><button class="btn btn--secondary btn--sm" data-survey-refresh type="button">Refresh</button></div><p class="form-hint">Open a survey's admin-only results to review masked responses and download a PII-safe CSV.</p><div class="stack" data-survey-admin-list aria-live="polite">Loading surveys…</div></section>
     <section class="dashboard-panel"><div class="dashboard-panel__header"><div><p class="dashboard-panel__eyebrow">Survey manager</p><h2 class="dashboard-panel__title">Create or edit a survey</h2></div></div>
       <form class="stack" data-survey-editor>
         <input type="hidden" data-survey-id>

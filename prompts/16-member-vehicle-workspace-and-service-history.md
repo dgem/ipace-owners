@@ -162,7 +162,13 @@ cardinality, require an explanation for every selected text-enabled option, and 
 free-text responses in aggregate results. Return option counts and the signed-in member's own
 answer; display counts only when the administrator enabled results. In particular, never expose
 one member's written response to another member: free-text is retained for administrators to
-review manually, not published with results.
-Register `/api/admin/surveys`, `/api/member/surveys`, and `/api/member/survey-response` through
+review manually, not published with results. Give administrators a separate
+`/admin/survey-results/?id={surveyId}` analysis page, linked from every survey in the admin
+history. It may show aggregate counts and each submitted answer, including free text, but must
+identify a respondent only by a consistently masked email address. Its CSV export must contain
+only that masked respondent, UTC submission time, selected option labels and text responses—never
+a full email address, name, Firebase UID, or member/vehicle data. Neutralise spreadsheet formula
+characters in the CSV's user-controlled cells before exporting them.
+Register `/api/admin/surveys`, `/api/admin/survey-results`, `/api/member/surveys`, and `/api/member/survey-response` through
 the shared `Api` function. Test survey definition validation, response validation, and inclusive
-date boundaries. Delete a survey's response subcollection before deleting its parent document.
+date boundaries, including the PII-safe CSV fields. Delete a survey's response subcollection before deleting its parent document.

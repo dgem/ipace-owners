@@ -665,11 +665,15 @@ not required for Firebase Hosting and would require a careful migration of every
 Cloud Firestore is the intended canonical source for structured owner data.
 
 Member survey administration and responses use `GET/POST/PUT/DELETE /api/admin/surveys`,
-`GET /api/member/surveys`, and `POST /api/member/survey-response`. All are authenticated with a
+`GET /api/admin/survey-results`, `GET /api/member/surveys`, and `POST /api/member/survey-response`. All are authenticated with a
 Firebase ID token; the admin route additionally requires the administrator claim. Survey
 descriptions, CTAs, and option text support a safe Markdown subset; raw HTML is rendered as text.
 Each selected text-enabled option can carry its own 250-character member explanation, which is
 never included in aggregate results or disclosed to other members.
+The separate admin analysis page can review those free-text answers with consistently masked
+respondent emails and download a CSV restricted to that masked identifier, UTC submission time,
+selected options, and text answers; it never includes full emails, names, Firebase UIDs, or
+member/vehicle data.
 Surveys are drafted in the admin workspace before being explicitly published. Members browse
 published surveys by date (including future and closed surveys); results remain blind while a
 survey is open, becoming available after a member responds or to every member once the survey

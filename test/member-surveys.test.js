@@ -73,3 +73,18 @@ test('survey directory filters its date-ordered list and results follow the blin
   assert.match(results, /data-member-survey-results/);
   assert.match(response, /data-member-survey-response/);
 });
+
+test('survey analysis is an admin-only page with masked-response CSV download', function () {
+  const admin = fs.readFileSync(path.join(root, 'src/admin/surveys.njk'), 'utf8');
+  const analysis = fs.readFileSync(path.join(root, 'src/admin/survey-results.njk'), 'utf8');
+  const script = fs.readFileSync(path.join(root, 'src/assets/js/surveys.js'), 'utf8');
+  const backend = fs.readFileSync(path.join(root, 'functions/firebase-go/surveys.go'), 'utf8');
+
+  assert.match(admin, /admin-only results/);
+  assert.match(script, /\/admin\/survey-results\/\?id=/);
+  assert.match(analysis, /data-admin-survey-results/);
+  assert.match(analysis, /data-admin-container/);
+  assert.match(script, /format=csv/);
+  assert.match(backend, /func AdminSurveyResults/);
+  assert.match(backend, /maskedEmail/);
+});

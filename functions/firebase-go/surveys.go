@@ -3,9 +3,11 @@ package ipace
 import (
 	"cloud.google.com/go/firestore"
 	"context"
+	"encoding/csv"
 	"fmt"
 	"google.golang.org/api/iterator"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -59,6 +61,18 @@ type surveyResult struct {
 	MyOptionIDs    []string          `json:"myOptionIds,omitempty"`
 	MyTextByOption map[string]string `json:"myTextByOption,omitempty"`
 	CanRespond     bool              `json:"canRespond"`
+}
+type adminSurveyResponse struct {
+	Respondent string    `json:"respondent"`
+	Options    []string  `json:"options"`
+	Text       []string  `json:"text"`
+	UpdatedAt  time.Time `json:"updatedAt"`
+}
+type adminSurveyAnalysis struct {
+	Survey    surveyRecord          `json:"survey"`
+	Counts    map[string]int        `json:"counts"`
+	Total     int                   `json:"total"`
+	Responses []adminSurveyResponse `json:"responses"`
 }
 
 var surveyNow = time.Now
@@ -145,6 +159,122 @@ func AdminSurveys(w http.ResponseWriter, r *http.Request) {
 	default:
 		writeJSON(w, 405, map[string]any{"error": "Method Not Allowed"})
 	}
+}
+
+func AdminSurveyResults(w http.ResponseWriter, r *http.Request) {
+	if cors(w, r) || rejectDisallowedOrigin(w, r) {
+		return
+	}
+	if r.Method != http.MethodGet {
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"error": "Method Not Allowed"})
+		return
+	}
+	if err := campaignAuthorize(r.Context(), r); err != nil {
+		writeJSON(w, http.StatusForbidden, map[string]any{"error": "Admin role required"})
+		return
+	}
+	id := cleanString(r.URL.Query().Get("id"), 160)
+	if id == "" {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "Survey ID is required"})
+		return
+	}
+	db, err := firestoreClient(r.Context())
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Could not connect to data store"})
+		return
+	}
+	snapshot, err := db.Collection("surveys").Doc(id).Get(r.Context())
+	if err != nil {
+		writeJSON(w, http.StatusNotFound, map[string]any{"error": "Survey not found"})
+		return
+	}
+	var survey surveyRecord
+	if err := snapshot.DataTo(&survey); err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Could not load survey"})
+		return
+	}
+	analysis, err := loadAdminSurveyAnalysis(r.Context(), db, survey)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Could not load survey responses"})
+		return
+	}
+	if r.URL.Query().Get("format") == "csv" {
+		writeAdminSurveyCSV(w, id, analysis)
+		return
+	}
+	w.Header().Set("Cache-Control", "private, no-store")
+	writeJSON(w, http.StatusOK, analysis)
+}
+
+func loadAdminSurveyAnalysis(ctx context.Context, db *firestore.Client, survey surveyRecord) (adminSurveyAnalysis, error) {
+	analysis := adminSurveyAnalysis{Survey: survey, Counts: map[string]int{}, Responses: []adminSurveyResponse{}}
+	labels := map[string]string{}
+	for _, option := range survey.Options {
+		labels[option.ID] = option.Label
+	}
+	client, err := firebaseAuth(ctx)
+	if err != nil {
+		return analysis, err
+	}
+	iter := db.Collection("surveys").Doc(survey.ID).Collection("responses").OrderBy("updatedAt", firestore.Desc).Documents(ctx)
+	defer iter.Stop()
+	for {
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			return analysis, nil
+		}
+		if err != nil {
+			return analysis, err
+		}
+		var response struct {
+			OptionIDs    []string          `firestore:"optionIds"`
+			TextByOption map[string]string `firestore:"textByOption"`
+			UpdatedAt    time.Time         `firestore:"updatedAt"`
+		}
+		if err := doc.DataTo(&response); err != nil {
+			return analysis, err
+		}
+		respondent := "Email unavailable"
+		if user, err := client.GetUser(ctx, doc.Ref.ID); err == nil {
+			if masked := maskedEmail(user.Email); masked != "" {
+				respondent = masked
+			}
+		}
+		item := adminSurveyResponse{Respondent: respondent, UpdatedAt: response.UpdatedAt}
+		for _, id := range response.OptionIDs {
+			label := labels[id]
+			if label == "" {
+				continue
+			}
+			analysis.Counts[id]++
+			item.Options = append(item.Options, label)
+			if text := cleanString(response.TextByOption[id], surveyOtherTextMax); text != "" {
+				item.Text = append(item.Text, label+": "+text)
+			}
+		}
+		analysis.Total++
+		analysis.Responses = append(analysis.Responses, item)
+	}
+}
+
+func writeAdminSurveyCSV(w http.ResponseWriter, id string, analysis adminSurveyAnalysis) {
+	w.Header().Set("Cache-Control", "private, no-store")
+	w.Header().Set("Content-Type", "text/csv; charset=utf-8")
+	w.Header().Set("Content-Disposition", "attachment; filename=survey-results-"+id+".csv")
+	writer := csv.NewWriter(w)
+	_ = writer.Write([]string{"masked_respondent", "submitted_at_utc", "selected_options", "text_responses"})
+	for _, response := range analysis.Responses {
+		_ = writer.Write([]string{safeCSVCell(response.Respondent), response.UpdatedAt.UTC().Format(time.RFC3339), safeCSVCell(strings.Join(response.Options, " | ")), safeCSVCell(strings.Join(response.Text, " | "))})
+	}
+	writer.Flush()
+}
+
+// safeCSVCell prevents spreadsheet applications from interpreting member-supplied text as a formula.
+func safeCSVCell(value string) string {
+	if value != "" && strings.ContainsRune("=+-@", rune(value[0])) {
+		return "'" + value
+	}
+	return value
 }
 func validateSurvey(input surveyInput) (surveyRecord, error) {
 	r := surveyRecord{ID: cleanString(input.ID, 160), Title: cleanString(input.Title, 120), Description: cleanString(input.Description, surveyDescriptionMax), Question: cleanString(input.Question, 500), CallToAction: cleanString(input.CallToAction, surveyCallToActionMax), Status: cleanString(input.Status, 16), Multiple: input.Multiple, StartsOn: cleanString(input.StartsOn, 10), EndsOn: cleanString(input.EndsOn, 10), ShowResults: input.ShowResults}
