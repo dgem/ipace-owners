@@ -110,6 +110,9 @@ test('draft surveys have an admin-only preview and test-response path', function
   assert.match(preview, /data-admin-container/);
   assert.match(script, /Test response is valid\. Nothing was saved or counted/);
   assert.match(script, /api\/admin\/survey-preview/);
+  assert.match(script, /adminContainer && adminContainer\.dataset\.adminData/);
+  assert.match(script, /Could not load survey preview/);
+  assert.match(script, /data-survey-preview-retry/);
   assert.match(backend, /if !surveyIsPublished\(s\)/);
   assert.match(backend, /without creating a response document/);
 });
