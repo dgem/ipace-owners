@@ -129,6 +129,8 @@ func Api(w http.ResponseWriter, r *http.Request) {
 		AdminSurveys(w, r)
 	case "/api/admin/survey-results":
 		AdminSurveyResults(w, r)
+	case "/api/admin/survey-preview":
+		AdminSurveyPreview(w, r)
 	case "/api/member/surveys":
 		MemberSurveys(w, r)
 	case "/api/member/survey-response":

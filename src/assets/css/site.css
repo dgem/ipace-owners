@@ -527,6 +527,37 @@ a.site-context-nav__section:focus-visible {
   font-weight: 800;
 }
 
+@media (max-width: 39.99em) {
+  .site-context-nav {
+    margin-top: var(--space-1);
+    padding-block: var(--space-1);
+  }
+
+  .site-context-nav__list {
+    display: flex !important;
+    flex-wrap: nowrap;
+    gap: var(--space-1);
+    list-style: none !important;
+    margin: 0 !important;
+    min-height: 0;
+    padding: 0 !important;
+    white-space: nowrap;
+  }
+
+  .site-context-nav__list > li {
+    display: block;
+    list-style: none !important;
+    margin: 0;
+    padding: 0;
+  }
+
+  .site-context-nav__section,
+  .site-context-nav__current {
+    font-size: 0.75rem;
+    padding: var(--space-1) var(--space-2);
+  }
+}
+
 /* Mobile menu button */
 .mobile-menu-toggle {
   display: flex;
@@ -636,6 +667,34 @@ a.site-context-nav__section:focus-visible {
 .mobile-nav__section-label a {
   color: inherit;
   text-decoration: none;
+}
+
+@media (max-width: 39.99em) {
+  .mobile-nav {
+    max-height: 62vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mobile-nav__link {
+    color: #ffffff;
+    padding-block: var(--space-2);
+  }
+
+  .mobile-nav__identity-label,
+  .mobile-nav__section-label {
+    color: #dbe7f0;
+  }
+
+  .mobile-nav__identity .btn,
+  .mobile-nav__identity .btn--secondary,
+  .mobile-nav__identity .btn--ghost {
+    color: #ffffff;
+  }
+
+  .mobile-nav__identity .btn--secondary {
+    border-color: #b9c8d5;
+  }
 }
 
 /* ------------------------------------------------------------
@@ -764,6 +823,7 @@ a.site-context-nav__section:focus-visible {
   display: grid;
   flex: 0 0 auto;
   width: 8.25rem;
+  height: 8.25rem;
   aspect-ratio: 1;
   color: #fff;
   place-items: center;
@@ -891,6 +951,7 @@ a.site-context-nav__section:focus-visible {
 
 .launch-evidence-wreaths .launch-member-count {
   width: 6.75rem;
+  height: 6.75rem;
 }
 
 .launch-evidence-wreaths .launch-member-count__value {
@@ -964,6 +1025,7 @@ a.site-context-nav__section:focus-visible {
 
   .launch-evidence-wreaths .launch-member-count {
     width: min(5.4rem, 100%);
+    height: 5.4rem;
   }
 
   .launch-evidence-wreaths .launch-member-count__label {
@@ -1654,6 +1716,10 @@ textarea {
 }
 
 .survey-options legend {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
   color: var(--color-primary);
   font-size: var(--text-lg);
   font-weight: 700;

@@ -37,7 +37,7 @@ The generated public route surface must include:
 - `/member/dashboard/`, `/member/account/`, `/member/submit-vehicle-data/`,
   `/member/surveys/`, `/member/survey-response/`, and `/member/survey-results/`;
 - `/admin/`, `/admin/review-queue/`, `/admin/outreach/`, `/admin/email-campaigns/`, and
-  `/admin/instagram-campaigns/`, `/admin/surveys/`, and `/admin/survey-results/`;
+  `/admin/instagram-campaigns/`, `/admin/surveys/`, `/admin/survey-preview/`, and `/admin/survey-results/`;
 - permanent redirects from `/account/**` and `/submit-vehicle-data/**` to their member
   equivalents;
 - a generated 404 page, clean URLs, trailing slashes, and a final Hosting fallback to
@@ -121,6 +121,7 @@ change rather than assuming it exists.
 | `POST /api/admin/instagram-campaign-history` | Admin claim | List named drafts and immutable publication records, refreshing cached provider insights when available. |
 | `POST /api/admin/campaign-summary` | Admin claim | Aggregate reconciled Resend email outcomes and Instagram publication/insight totals; report Facebook as manual unless Page Insights is connected. |
 | `GET/POST/PUT/DELETE /api/admin/surveys` | Admin claim | Manage timed single- or multiple-choice member surveys. |
+| `GET/POST /api/admin/survey-preview` | Admin claim | Load drafts or published surveys for a member-layout preview; POST validates but never saves a test response. |
 | `GET /api/admin/survey-results` | Admin claim | Return admin-only aggregate and individual survey answers; CSV export contains only masked email, UTC time, selected/preferred option IDs and free text in `option-id: text` form. |
 | `GET /api/member/surveys` | Member | Return survey state, the member's own response, and allowed aggregate counts. |
 | `POST /api/member/survey-response` | Member | Save one validated replaceable response while a survey is live. |

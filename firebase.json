@@ -42,6 +42,42 @@
             "value": "no-cache"
           }
         ]
+      },
+      {
+        "source": "/admin/**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-store, max-age=0"
+          }
+        ]
+      },
+      {
+        "source": "/member/**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-store, max-age=0"
+          }
+        ]
+      },
+      {
+        "source": "/assets/css/**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-store, max-age=0"
+          }
+        ]
+      },
+      {
+        "source": "/assets/js/**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-store, max-age=0"
+          }
+        ]
       }
     ],
     "redirects": [

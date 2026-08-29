@@ -28,8 +28,9 @@ func TestValidateSurveyAllowsMarkdownFieldsAndMultipleTextOptions(t *testing.T) 
 
 func TestSurveyResponseValidation(t *testing.T) {
 	s := surveyRecord{Multiple: false, Options: []surveyOption{{ID: "warranty", Label: "Warranty"}, {ID: "other", Label: "Other", AllowsText: true}}}
-	if _, _, _, err := validateSurveyResponse(s, surveyResponseInput{OptionIDs: []string{"other"}}); err == nil {
-		t.Fatal("expected missing Other detail to be rejected")
+	_, emptyTexts, _, err := validateSurveyResponse(s, surveyResponseInput{OptionIDs: []string{"other"}})
+	if err != nil || len(emptyTexts) != 0 {
+		t.Fatalf("empty optional text response = %#v, %v", emptyTexts, err)
 	}
 	_, textByOption, _, err := validateSurveyResponse(s, surveyResponseInput{OptionIDs: []string{"other"}, TextByOption: map[string]string{"other": "A fair buy-back"}})
 	if err != nil || textByOption["other"] != "A fair buy-back" {
@@ -40,10 +41,11 @@ func TestSurveyResponseValidation(t *testing.T) {
 	}
 }
 
-func TestSurveyResponseRequiresTextForEverySelectedTextOption(t *testing.T) {
+func TestSurveyResponseStoresOnlyProvidedOptionalText(t *testing.T) {
 	s := surveyRecord{Multiple: true, Options: []surveyOption{{ID: "problem", Label: "Problem", AllowsText: true}, {ID: "something", Label: "Something", AllowsText: true}}}
-	if _, _, _, err := validateSurveyResponse(s, surveyResponseInput{OptionIDs: []string{"problem", "something"}, TextByOption: map[string]string{"problem": "Battery fault"}}); err == nil {
-		t.Fatal("expected text to be required for every selected text option")
+	_, texts, _, err := validateSurveyResponse(s, surveyResponseInput{OptionIDs: []string{"problem", "something"}, TextByOption: map[string]string{"problem": "Battery fault"}})
+	if err != nil || len(texts) != 1 || texts["problem"] != "Battery fault" {
+		t.Fatalf("optional text response = %#v, %v", texts, err)
 	}
 	_, texts, preferred, err := validateSurveyResponse(s, surveyResponseInput{OptionIDs: []string{"problem", "something"}, PreferredOptionID: "problem", TextByOption: map[string]string{"problem": "Battery fault", "something": "A fair settlement"}})
 	if err != nil || len(texts) != 2 || preferred != "problem" {

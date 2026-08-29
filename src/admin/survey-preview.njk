@@ -1,0 +1,19 @@
+---
+layout: base.njk
+title: Survey Preview
+description: "Preview and test a member survey before publishing it."
+noindex: true
+permalink: /admin/survey-preview/
+surveys: true
+adminNavigation: true
+adminBreadcrumb: Survey preview
+eleventyExcludeFromCollections: true
+date: Last Modified
+---
+{% from "partials/auth-login-gate.njk" import authLoginGate %}
+<div class="page-header page-header--compact"><div class="container"><h1 class="page-header__title">Survey preview</h1></div></div>
+<div class="section"><div class="container survey-page__container" data-admin-container>
+  {{ authLoginGate("survey-preview-admin-email", "Sign in required", "Enter your admin email address and we will send a secure sign-in link.", "admin", false) }}
+  <div class="auth-gate" data-admin-only-gate hidden><div class="auth-gate__icon" aria-hidden="true">⛔</div><h2 class="auth-gate__title">Access restricted</h2><p class="auth-gate__body">This workspace is for group administrators only.</p></div>
+  <div class="auth-content" data-admin-content hidden data-admin-survey-preview><p>Loading survey preview…</p></div>
+</div></div>
