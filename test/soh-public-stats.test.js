@@ -36,6 +36,10 @@ test('homepage and evidence dashboard load real public aggregate statistics', fu
   assert.match(wreath, /Since <time datetime="\{\{ datetime \}\}">\{\{ note \}\}<\/time>/);
   assert.match(wreath, /launch-member-count__leaf" fill="#e9bd52" stroke="#9d7925"/);
   assert.match(wreath, /launch-member-count__stem" fill="#e9bd52" stroke="#9d7925"/);
+  assert.match(wreath, /style="position:relative; display:grid; flex:0 0 auto; width:/);
+  assert.match(wreath, /style="position:absolute; inset:0; width:100%; height:100%;/);
+  assert.match(home, /launch-evidence-wreaths" style="display:grid; grid-template-columns:repeat\(3, minmax\(0, 1fr\)\)/);
+  assert.match(home, /"5\.4rem", "1\.5rem"/);
   assert.match(css, /\.launch-member-count\s*\{[\s\S]*height: 8\.25rem;/);
   assert.match(dashboard, /data-public-stat="averageReportedSoh"/);
   assert.match(dashboard, /data-public-stat="serviceEventsLogged"/);
