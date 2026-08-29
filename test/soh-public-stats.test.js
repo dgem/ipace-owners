@@ -39,7 +39,9 @@ test('homepage and evidence dashboard load real public aggregate statistics', fu
   assert.match(wreath, /style="position:relative; display:grid; flex:0 0 auto; width:/);
   assert.match(wreath, /style="position:absolute; inset:0; width:100%; height:100%;/);
   assert.match(home, /launch-evidence-wreaths" style="display:grid; grid-template-columns:repeat\(3, minmax\(0, 1fr\)\)/);
-  assert.match(home, /"5\.4rem", "1\.5rem"/);
+  assert.match(home, /"5\.4rem"\) \}\}/);
+  assert.doesNotMatch(wreath, /font-size:\{\{ valueSize/);
+  assert.match(css, /\.launch-member-count__value\[data-count-size="four"\]\s*\{[\s\S]*font-size: 1\.5rem;/);
   assert.match(css, /\.launch-member-count\s*\{[\s\S]*height: 8\.25rem;/);
   assert.match(dashboard, /data-public-stat="averageReportedSoh"/);
   assert.match(dashboard, /data-public-stat="serviceEventsLogged"/);
