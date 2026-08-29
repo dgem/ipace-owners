@@ -1,4 +1,4 @@
-{% macro racingWreath(id, statKey, label, note, datetime, size, valueSize) %}
+{% macro racingWreath(id, statKey, label, note, datetime, size) %}
 <div class="launch-member-count-group" aria-label="{{ label }}" style="display:flex; flex:0 0 auto; flex-direction:column; gap:0.25rem; align-items:center;">
   <div class="launch-member-count" style="position:relative; display:grid; flex:0 0 auto; width:{{ size or '8.25rem' }}; height:{{ size or '8.25rem' }}; place-items:center;">
     <svg class="launch-member-count__laurels" viewBox="-4 -4 128 128" width="132" height="132" aria-hidden="true" style="position:absolute; inset:0; width:100%; height:100%; stroke-linecap:round; stroke-linejoin:round;">
@@ -23,7 +23,7 @@
       <use href="#{{ id }}-half" transform="translate(120 0) scale(-1 1)" />
     </svg>
     <span class="launch-member-count__content" style="position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; text-align:center; transform:translateY(-0.25rem);">
-      <strong class="launch-member-count__value" data-public-stat="{{ statKey }}" aria-live="polite" style="color:#f2ca6b; font-size:{{ valueSize or '2.35rem' }}; font-weight:800; line-height:1;">Loading</strong>
+      <strong class="launch-member-count__value" data-public-stat="{{ statKey }}" aria-live="polite" style="color:#f2ca6b; font-weight:800; line-height:1;">Loading</strong>
     </span>
   </div>
   <span class="launch-member-count__label" style="font-size:0.64rem; font-weight:800; color:#fff; letter-spacing:0.04em; line-height:1; text-align:center; text-transform:uppercase;">{{ label }}</span>
