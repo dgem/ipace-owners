@@ -1613,6 +1613,11 @@ textarea {
   margin-top: var(--space-2);
 }
 
+.survey-option-editor__name {
+  max-width: none;
+  margin-top: var(--space-2);
+}
+
 .survey-editor__title {
   display: block;
   width: 100%;
@@ -1776,6 +1781,44 @@ textarea {
   line-height: 1.55;
 }
 
+.survey-choice__name {
+  display: block;
+  color: var(--color-primary);
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.survey-choice__description {
+  display: block;
+  margin-top: var(--space-2);
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.survey-choice__description.is-collapsed {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.survey-choice__description.is-expanded {
+  display: block;
+}
+
+.survey-choice__more {
+  display: block;
+  margin: var(--space-2) 0 0 calc(1.3rem + 1.65rem + (var(--space-3) * 2));
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-accent);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
 .survey-choice__text {
   margin: var(--space-4) 0 0 calc(1.3rem + 1.65rem + (var(--space-3) * 2));
 }
@@ -1818,11 +1861,21 @@ textarea {
 
 .survey-result {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: start;
   gap: var(--space-3);
   padding: var(--space-3) 0;
   border-bottom: 1px solid var(--color-border);
+}
+
+.survey-result__name {
+  display: block;
+  color: var(--color-primary);
+}
+
+.survey-result__description {
+  margin-top: var(--space-1);
+  color: var(--color-text-muted);
 }
 
 .survey-results {
@@ -1891,6 +1944,10 @@ textarea {
 }
 
 @media (max-width: 39.99em) {
+  .survey-choice__more {
+    margin-left: 0;
+  }
+
   .survey-choice__text {
     margin-left: 0;
   }

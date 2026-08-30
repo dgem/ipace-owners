@@ -124,8 +124,14 @@ a single- or multiple-choice setting, inclusive whole-day start/end dates, and a
 visibility setting. Each survey also has an explicit `draft` or `published` status; drafts are
 visible only in the admin workspace and published surveys are eligible for member views. New
 surveys default to draft and today through six days later (seven inclusive whole
-days), while retaining editable dates. Description, CTA, and option text accept a safe Markdown
-subset (bold, emphasis, links, paragraphs, and bullet lists); raw HTML is displayed as text.
+days), while retaining editable dates. Description, CTA, and each option's longer description
+accept a safe Markdown subset (bold, emphasis, links, paragraphs, and bullet lists); raw HTML is
+displayed as text. Each option must also have a distinct, single-line plain-text name (maximum 120
+characters) used in aggregate results, alongside its Markdown description (maximum 2,000
+characters). Preserve and derive a sensible name from legacy label-only options when reading older
+documents. On the response and preview cards show the name first; descriptions that span multiple
+lines or overflow their visible space should be collapsed to two visible lines with an accessible
+`...more` / `Show less` control.
 Any number of options may offer an optional 250-character free-text explanation (for example,
 two distinct `Other` options); store text only when the member supplies it against the relevant
 selected option.
@@ -168,7 +174,7 @@ which are reference information rather than the primary starting point for admin
 Use Firestore `surveys/{surveyId}` documents and a `responses/{uid}` subcollection so a signed-in
 member has one replaceable response per survey. The member APIs must verify Firebase ID tokens
 server-side, accept responses only while the survey is live, validate option IDs and the selected
-cardinality, require an explanation for every selected text-enabled option, and never expose
+cardinality, accept an optional explanation for every selected text-enabled option, and never expose
 free-text responses in aggregate results. Return option counts and the signed-in member's own
 answer; display counts only when the administrator enabled results. In particular, never expose
 one member's written response to another member: free-text is retained for administrators to

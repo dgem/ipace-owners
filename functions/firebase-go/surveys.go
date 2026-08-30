@@ -14,11 +14,15 @@ import (
 const surveyOtherTextMax = 250
 const surveyDescriptionMax = 4000
 const surveyCallToActionMax = 1000
-const surveyOptionLabelMax = 2000
+const surveyOptionNameMax = 120
+const surveyOptionDescriptionMax = 2000
 
 type surveyOption struct {
-	ID         string `json:"id" firestore:"id"`
-	Label      string `json:"label" firestore:"label"`
+	ID          string `json:"id" firestore:"id"`
+	Name        string `json:"name" firestore:"name"`
+	Description string `json:"description" firestore:"description"`
+	// Label is retained only to read surveys created before options had separate names and descriptions.
+	Label      string `json:"label,omitempty" firestore:"label,omitempty"`
 	AllowsText bool   `json:"allowsText" firestore:"allowsText"`
 }
 type surveyRecord struct {
@@ -360,17 +364,40 @@ func validateSurvey(input surveyInput) (surveyRecord, error) {
 	seen := map[string]bool{}
 	for i, o := range input.Options {
 		o.ID = cleanString(o.ID, 40)
-		o.Label = cleanString(o.Label, surveyOptionLabelMax)
+		o.Name = cleanSurveyOptionName(o.Name)
+		o.Description = cleanString(o.Description, surveyOptionDescriptionMax)
+		o.Label = cleanString(o.Label, surveyOptionDescriptionMax)
+		if o.Description == "" {
+			o.Description = o.Label
+		}
+		if o.Name == "" {
+			o.Name = surveyOptionFallbackName(o.Description)
+		}
 		if o.ID == "" {
 			o.ID = fmt.Sprintf("option-%d", i+1)
 		}
-		if o.Label == "" || seen[o.ID] {
-			return r, fmt.Errorf("each option needs a unique ID and label")
+		if o.Name == "" || o.Description == "" || seen[o.ID] {
+			return r, fmt.Errorf("each option needs a unique ID, name and description")
 		}
+		o.Label = ""
 		seen[o.ID] = true
 		r.Options = append(r.Options, o)
 	}
 	return r, nil
+}
+
+func cleanSurveyOptionName(value string) string {
+	return cleanString(strings.Join(strings.Fields(value), " "), surveyOptionNameMax)
+}
+
+func surveyOptionFallbackName(description string) string {
+	for _, line := range strings.Split(description, "\n") {
+		line = cleanSurveyOptionName(strings.Trim(line, " -*"))
+		if line != "" {
+			return line
+		}
+	}
+	return ""
 }
 
 func deleteSurveyResponses(ctx context.Context, db *firestore.Client, surveyID string) error {

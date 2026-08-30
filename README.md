@@ -667,7 +667,10 @@ Cloud Firestore is the intended canonical source for structured owner data.
 Member survey administration and responses use `GET/POST/PUT/DELETE /api/admin/surveys`,
 `GET/POST /api/admin/survey-preview`, `GET /api/admin/survey-results`, `GET /api/member/surveys`, and `POST /api/member/survey-response`. All are authenticated with a
 Firebase ID token; the admin route additionally requires the administrator claim. Survey
-descriptions, CTAs, and option text support a safe Markdown subset; raw HTML is rendered as text.
+descriptions, CTAs, and option descriptions support a safe Markdown subset; raw HTML is rendered
+as text. Each option has a plain-text result name (up to 120 characters) and a separate Markdown
+description (up to 2,000 characters); the response UI initially collapses multi-line or overflowing
+descriptions behind an accessible “more” control.
 Each selected text-enabled option can carry its own 250-character member explanation, which is
 never included in aggregate results or disclosed to other members.
 The separate admin analysis page can review those free-text answers with consistently masked
