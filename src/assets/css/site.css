@@ -1829,6 +1829,7 @@ textarea {
 }
 
 .survey-choice__copy {
+  position: relative;
   min-width: 0;
   line-height: 1.55;
 }
@@ -1859,16 +1860,29 @@ textarea {
 }
 
 .survey-choice__more {
-  display: block;
-  margin: var(--space-2) 0 0;
-  padding: 0;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  padding-left: var(--space-5);
   border: 0;
-  background: transparent;
+  background: linear-gradient(90deg, transparent, var(--color-surface) var(--space-5));
   color: var(--color-accent);
   cursor: pointer;
   font: inherit;
   font-weight: 700;
   text-decoration: underline;
+}
+
+.survey-choice:has(input[name="survey"]:checked) .survey-choice__more {
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-accent) 6%, var(--color-surface)) var(--space-5));
+}
+
+.survey-choice__description.is-expanded + .survey-choice__more {
+  position: static;
+  display: block;
+  margin-top: var(--space-2);
+  padding-left: 0;
+  background: transparent;
 }
 
 .survey-choice__text {
