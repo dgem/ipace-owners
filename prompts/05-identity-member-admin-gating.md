@@ -79,11 +79,12 @@ server-side by Go Cloud Functions that validate Firebase ID tokens.
   - admin pages: `GET /api/admin-data`
 - Send the Firebase ID token in `Authorization: Bearer <token>`.
 - On 200: hide the gate, show content, populate data from response.
-- On 401: for a known signed-in member, force-refresh the Firebase ID token and retry once before
-  showing the login gate. For a genuinely signed-out user, show the login gate.
-- On a network failure or 5xx response, keep the protected content hidden but show a recoverable
-  sign-in-verification error with a `Try again` control; do not send the user back through the
-  magic-link flow.
+- On 401: for a known signed-in member or administrator, force-refresh the Firebase ID token and
+  retry once before showing the login gate. For a genuinely signed-out user, show the login gate.
+- On a network failure or 5xx response, keep protected member or administrator content hidden but
+  show a recoverable sign-in-verification error with a `Try again` control; do not send the user
+  back through the magic-link flow. Serialise both member and administrator verification so
+  duplicate lifecycle events cannot race each other.
 - On 403 for admin: show access-restricted gate.
 - Populate vehicle lists, join info, account preferences, admin stats, join table, and
   vehicle table from the API response.

@@ -41,6 +41,8 @@
   var adminRunId = 0;
   var memberVerification = null;
   var memberVerificationQueued = false;
+  var adminVerification = null;
+  var adminVerificationQueued = false;
 
   function setPendingState(container, title, body, retry) {
     var pending = container.querySelector('[data-auth-pending]');
@@ -382,6 +384,27 @@
     if (content) content.hidden = false;
    }
 
+  function showAdminOnlyGate(container) {
+    var gate = container.querySelector('[data-auth-login-gate]');
+    var adminOnlyGate = container.querySelector('[data-admin-only-gate]');
+    var content = container.querySelector('[data-admin-content]');
+    var pending = container.querySelector('[data-auth-pending]');
+    if (pending) pending.hidden = true;
+    if (gate) gate.hidden = true;
+    if (adminOnlyGate) adminOnlyGate.hidden = false;
+    if (content) content.hidden = true;
+  }
+
+  function showAdminError(container, message) {
+    var gate = container.querySelector('[data-auth-login-gate]');
+    var adminOnlyGate = container.querySelector('[data-admin-only-gate]');
+    var content = container.querySelector('[data-admin-content]');
+    if (gate) gate.hidden = true;
+    if (adminOnlyGate) adminOnlyGate.hidden = true;
+    if (content) content.hidden = true;
+    setPendingState(container, 'We could not confirm your sign-in', message || 'Check your connection and try again.', true);
+  }
+
   function populateAdminStats(container, data) {
     var statsEl = container.querySelector('[data-admin-stats]');
     if (!statsEl) return;
@@ -476,69 +499,69 @@
     tableEl.innerHTML = html;
    }
 
-  async function verifyAdminAuth() {
-    var runId = ++adminRunId;
-    var containers = document.querySelectorAll('[data-admin-container]');
-    containers.forEach(async function (container) {
-      try {
-        var res = await fetchWithIdentity('/api/admin-data');
-        if (runId !== adminRunId) return;
-
-         // 401 = not logged in → show login gate
-        if (res.status === 401) {
-          showAdminGate(container);
-          return;
-         }
-
-         // 403 = logged in but not admin → show admin-only gate
-        if (res.status === 403) {
-          var gate = container.querySelector('[data-auth-login-gate]');
-          var adminOnlyGate = container.querySelector('[data-admin-only-gate]');
-          var content = container.querySelector('[data-admin-content]');
-          var pending = container.querySelector('[data-auth-pending]');
-          if (pending) pending.hidden = true;
-          if (gate) gate.hidden = true;
-          if (adminOnlyGate) adminOnlyGate.hidden = false;
-          if (content) content.hidden = true;
-          return;
-         }
-
-        if (!res.ok) {
-          console.warn('[member-auth] Unexpected status for admin:', res.status);
-          showAdminGate(container);
-          return;
-         }
-
-        var data = await res.json();
-        hideAdminGate(container);
-
-         // Populate stats, tables, etc.
-        var statsContainer = container.querySelector('[data-stats-container]');
-        if (statsContainer) {
-          populateAdminStats(statsContainer, data);
-         }
-
-        var joinTableContainer = container.querySelector('[data-join-table-container]');
-        if (joinTableContainer && data.joinRecords) {
-          populateAdminJoinTable(joinTableContainer, data.joinRecords);
-         }
-
-        var vehicleTableContainer = container.querySelector('[data-vehicle-table-container]');
-        if (vehicleTableContainer && data.vehicleRecords) {
-          populateAdminVehicleTable(vehicleTableContainer, data.vehicleRecords);
-         }
-
-         // Expose raw data for other scripts
-        container.dataset.adminData = JSON.stringify(data);
-        document.dispatchEvent(new CustomEvent('admin:data', {
-          detail: { container: container, data: data },
-        }));
-       } catch (err) {
-      console.warn('[member-auth] Failed to verify admin auth:', err);
-      showAdminGate(container);
-     }
+  function adminDataRequest(forceRefresh) {
+    return getIdentityToken(forceRefresh).then(function (token) {
+      if (!token) return { noToken: true };
+      return fetch('/api/admin-data', { headers: { Authorization: 'Bearer ' + token } });
     });
-   }
+  }
+
+  function renderAdminData(container, data) {
+    hideAdminGate(container);
+    var statsContainer = container.querySelector('[data-stats-container]');
+    if (statsContainer) populateAdminStats(statsContainer, data);
+    var joinTableContainer = container.querySelector('[data-join-table-container]');
+    if (joinTableContainer && data.joinRecords) populateAdminJoinTable(joinTableContainer, data.joinRecords);
+    var vehicleTableContainer = container.querySelector('[data-vehicle-table-container]');
+    if (vehicleTableContainer && data.vehicleRecords) populateAdminVehicleTable(vehicleTableContainer, data.vehicleRecords);
+    container.dataset.adminData = JSON.stringify(data);
+    document.dispatchEvent(new CustomEvent('admin:data', { detail: { container: container, data: data } }));
+  }
+
+  function verifyAdminContainer(container, identity) {
+    if (!identity || !identity.uid) {
+      showAdminGate(container);
+      return Promise.resolve();
+    }
+    var expectedUID = identity.uid;
+    setPendingState(container, 'Checking sign-in...', 'One moment while we confirm your administrator session.', false);
+    return adminDataRequest(false).then(function (res) {
+      if (res.noToken) throw new Error('TOKEN_UNAVAILABLE');
+      if (res.status === 401 && window.ipaceIdentityUser && window.ipaceIdentityUser.uid === expectedUID) return adminDataRequest(true);
+      return res;
+    }).then(function (res) {
+      if (res.noToken) throw new Error('TOKEN_UNAVAILABLE');
+      if (!window.ipaceIdentityUser || window.ipaceIdentityUser.uid !== expectedUID) return;
+      if (res.status === 401) return showAdminGate(container);
+      if (res.status === 403) return showAdminOnlyGate(container);
+      if (!res.ok) throw new Error('SERVER_' + res.status);
+      return res.json().then(function (data) { renderAdminData(container, data); });
+    }).catch(function (err) {
+      if (!window.ipaceIdentityUser || window.ipaceIdentityUser.uid !== expectedUID) return;
+      console.warn('[member-auth] Failed to verify admin auth:', err);
+      showAdminError(container, err && err.message === 'TOKEN_UNAVAILABLE' ? 'Your sign-in is still being restored. Please try again.' : 'We could not reach the administrator service. Check your connection and try again.');
+    });
+  }
+
+  function verifyAdminAuth() {
+    if (adminVerification) {
+      adminVerificationQueued = true;
+      return adminVerification;
+    }
+    var runId = ++adminRunId;
+    adminVerification = waitForIdentity().then(function () {
+      var identity = window.ipaceIdentityUser;
+      if (runId !== adminRunId) return;
+      return Promise.all(Array.prototype.map.call(document.querySelectorAll('[data-admin-container]'), function (container) { return verifyAdminContainer(container, identity); }));
+    }).finally(function () {
+      adminVerification = null;
+      if (adminVerificationQueued) {
+        adminVerificationQueued = false;
+        verifyAdminAuth();
+      }
+    });
+    return adminVerification;
+  }
 
    // ── Init on DOM ready ────────────────────────────────────────────────────────
 
@@ -695,6 +718,8 @@
     if (!retry) return;
     var container = retry.closest('[data-auth-container]');
     if (container) verifyMemberAuth();
+    var adminContainer = retry.closest('[data-admin-container]');
+    if (adminContainer) verifyAdminAuth();
   });
 
 })();

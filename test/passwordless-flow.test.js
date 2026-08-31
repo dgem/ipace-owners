@@ -83,7 +83,9 @@ test('member data fetches include Identity bearer tokens', function () {
   assert.match(memberAuth, /function memberDataRequest/);
   assert.match(memberAuth, /fetch\('\/api\/member-data'/);
   assert.match(memberAuth, /memberDataRequest\(true\)/);
-  assert.match(memberAuth, /fetchWithIdentity\('\/api\/admin-data'\)/);
+  assert.match(memberAuth, /function adminDataRequest/);
+  assert.match(memberAuth, /fetch\('\/api\/admin-data'/);
+  assert.match(memberAuth, /adminDataRequest\(true\)/);
   assert.match(read('src/assets/js/identity.js'), /identity:ready/);
   assert.match(memberAuth, /addEventListener\('identity:ready'/);
   assert.doesNotMatch(read('src/assets/js/identity.js'), /window\.location\.reload/);
@@ -133,6 +135,8 @@ test('protected pages do not show login gates before auth verification completes
   assert.match(memberAuth, /function waitForIdentity/);
   assert.match(memberAuth, /window\.ipaceIdentityReadyPromise/);
   assert.match(memberAuth, /function showMemberError/);
+  assert.match(memberAuth, /function showAdminError/);
+  assert.match(memberAuth, /function verifyAdminAuth/);
   assert.match(memberAuth, /data-auth-retry/);
   assert.doesNotMatch(memberAuth, /1500/);
   assert.match(memberAuth, /document\.addEventListener\('identity:logout', initSoon\)/);
