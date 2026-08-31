@@ -422,6 +422,35 @@ async function checkMemberExport(viewport, screenshotName) {
 
 async function checkMemberAccountManagement(viewport, screenshotName) {
   const page = await browser.newPage({ viewport });
+  // The account script waits for Firebase's settled identity state before asking
+  // the protected endpoint for member data. Supply that state here so this test
+  // exercises the authenticated account, rather than the intentionally shown
+  // sign-in gate used when Firebase is unavailable in local visual builds.
+  await page.addInitScript(() => {
+    const user = {
+      uid: 'visual-member',
+      email: 'member@example.test',
+      metadata: {},
+      getIdToken: async () => 'visual-member-token'
+    };
+    const auth = {
+      currentUser: user,
+      setPersistence: async () => {},
+      isSignInWithEmailLink: () => false,
+      onIdTokenChanged: (listener) => {
+        Promise.resolve().then(() => listener(user));
+        return () => {};
+      }
+    };
+    const app = { auth: () => auth };
+    window.ipaceFirebaseConfig = { apiKey: 'visual-test' };
+    window.firebase = {
+      apps: [],
+      initializeApp: () => app,
+      app: () => app,
+      auth: { Auth: { Persistence: { LOCAL: 'LOCAL' } } }
+    };
+  });
   await page.route('**/api/member-data', async (route) => {
     await route.fulfill({ contentType: 'application/json', body: JSON.stringify({
       joinRecords: [{ createdAt: '2026-06-22T12:00:00Z', consents: { contact: true, anonymisedAnalysis: true, notLegalClaim: true }, membership: { relationship: 'current-owner-one' } }],
