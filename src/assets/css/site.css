@@ -1618,6 +1618,31 @@ textarea {
   margin-top: var(--space-2);
 }
 
+.survey-option-editor__detail-toggle {
+  margin-top: var(--space-4);
+}
+
+.survey-option-editor__text-prompt {
+  display: block;
+  margin-top: var(--space-4);
+}
+
+.survey-option-editor__text-prompt input {
+  width: 100%;
+  max-width: none;
+  margin-top: var(--space-2);
+}
+
+.survey-option-editor__text-prompt.is-disabled {
+  color: var(--color-text-muted);
+}
+
+.survey-option-editor__text-prompt input:disabled {
+  cursor: not-allowed;
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+}
+
 .survey-editor__title {
   display: block;
   width: 100%;

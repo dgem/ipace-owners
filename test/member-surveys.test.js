@@ -37,7 +37,9 @@ test('surveys support public Markdown copy, multiple text options, and seven-day
   assert.match(script, /optional, up to 250 characters/);
   assert.match(script, /function optionTextPrompt\(option\)/);
   assert.match(script, /Optional detail/);
-  assert.match(script, /Offer an optional short explanation/);
+  assert.match(script, /Offer a short detail response/);
+  assert.match(script, /function syncOptionTextPrompt\(row\)/);
+  assert.match(script, /prompt\.disabled = !enabled/);
   assert.match(script, /document\.addEventListener\('admin:data', start\)/);
   assert.match(script, /window\.setInterval\(load, 30000\)/);
 });
