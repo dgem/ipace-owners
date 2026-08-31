@@ -1699,6 +1699,33 @@ textarea {
   line-height: 1.65;
 }
 
+.survey-member-card__context {
+  color: var(--color-text-muted);
+}
+
+.survey-member-card__question,
+.survey-member-card__cta {
+  margin-top: var(--space-5);
+  padding: var(--space-4);
+  border-left: 4px solid var(--color-primary);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  background: var(--color-surface-muted);
+}
+
+.survey-member-card__cta {
+  border-left-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 7%, var(--color-surface));
+}
+
+.survey-member-card__question h3,
+.survey-member-card__cta h3 {
+  margin: 0 0 var(--space-2);
+  color: var(--color-primary);
+  font-size: var(--text-sm);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .survey-member-card__status {
   display: inline-block;
   margin: var(--space-4) 0 var(--space-6);
@@ -1808,7 +1835,7 @@ textarea {
 
 .survey-choice__more {
   display: block;
-  margin: var(--space-2) 0 0 calc(1.3rem + 1.65rem + (var(--space-3) * 2));
+  margin: var(--space-2) 0 0;
   padding: 0;
   border: 0;
   background: transparent;

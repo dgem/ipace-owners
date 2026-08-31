@@ -143,9 +143,10 @@ Never depend on frontend gating for data protection.
 `surveys/{surveyId}` stores the administrator-managed title, public Markdown description and CTA,
 optional prompt, option definitions, inclusive whole-day schedule, visibility setting, and
 timestamps. Each option has a plain-text, single-line result name and a separate public Markdown
-description; legacy label-only options must remain readable. Member cards show the name first and
-collapse a multi-line or overflowing description behind an accessible `...more` / `Show less`
-control. `surveys/{surveyId}/responses/{uid}` stores only that member's selected option IDs,
+description; legacy label-only options must remain readable. Text-enabled options also carry an
+administrator-configured optional-detail prompt, defaulting to `Optional detail`. Member cards show
+the name first and collapse only an actually overflowing description behind an accessible
+`...more` / `Show less` control. `surveys/{surveyId}/responses/{uid}` stores only that member's selected option IDs,
 an optional preferred option ID (which must be selected on a multiple-choice survey), a map of
 250-character explanations keyed by selected text-enabled option, and update timestamp.
 Aggregate survey APIs must never return free-text explanations.

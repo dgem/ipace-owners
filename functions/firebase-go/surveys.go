@@ -16,11 +16,13 @@ const surveyDescriptionMax = 4000
 const surveyCallToActionMax = 1000
 const surveyOptionNameMax = 120
 const surveyOptionDescriptionMax = 2000
+const surveyOptionTextPromptMax = 160
 
 type surveyOption struct {
 	ID          string `json:"id" firestore:"id"`
 	Name        string `json:"name" firestore:"name"`
 	Description string `json:"description" firestore:"description"`
+	TextPrompt  string `json:"textPrompt,omitempty" firestore:"textPrompt,omitempty"`
 	// Label is retained only to read surveys created before options had separate names and descriptions.
 	Label      string `json:"label,omitempty" firestore:"label,omitempty"`
 	AllowsText bool   `json:"allowsText" firestore:"allowsText"`
@@ -366,6 +368,7 @@ func validateSurvey(input surveyInput) (surveyRecord, error) {
 		o.ID = cleanString(o.ID, 40)
 		o.Name = cleanSurveyOptionName(o.Name)
 		o.Description = cleanString(o.Description, surveyOptionDescriptionMax)
+		o.TextPrompt = cleanString(o.TextPrompt, surveyOptionTextPromptMax)
 		o.Label = cleanString(o.Label, surveyOptionDescriptionMax)
 		if o.Description == "" {
 			o.Description = o.Label
@@ -380,6 +383,12 @@ func validateSurvey(input surveyInput) (surveyRecord, error) {
 			return r, fmt.Errorf("each option needs a unique ID, name and description")
 		}
 		o.Label = ""
+		if o.AllowsText && o.TextPrompt == "" {
+			o.TextPrompt = "Optional detail"
+		}
+		if !o.AllowsText {
+			o.TextPrompt = ""
+		}
 		seen[o.ID] = true
 		r.Options = append(r.Options, o)
 	}

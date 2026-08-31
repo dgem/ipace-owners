@@ -20,8 +20,8 @@ func TestValidateSurveyRequiresDatesAndOptions(t *testing.T) {
 }
 
 func TestValidateSurveyAllowsMarkdownFieldsAndMultipleTextOptions(t *testing.T) {
-	record, err := validateSurvey(surveyInput{Title: "Preferred outcomes", Description: "**Context**", CallToAction: "Choose all that apply", StartsOn: "2026-08-29", EndsOn: "2026-08-30", Options: []surveyOption{{Name: "Other A", Description: "**Other** A", AllowsText: true}, {Name: "Other B", Description: "Other B", AllowsText: true}}})
-	if err != nil || record.Status != "draft" || record.Description != "**Context**" || record.CallToAction != "Choose all that apply" || record.Options[0].Name != "Other A" || record.Options[0].Description != "**Other** A" || !record.Options[0].AllowsText || !record.Options[1].AllowsText {
+	record, err := validateSurvey(surveyInput{Title: "Preferred outcomes", Description: "**Context**", CallToAction: "Choose all that apply", StartsOn: "2026-08-29", EndsOn: "2026-08-30", Options: []surveyOption{{Name: "Other A", Description: "**Other** A", AllowsText: true, TextPrompt: "How should we address this?"}, {Name: "Other B", Description: "Other B", AllowsText: true}}})
+	if err != nil || record.Status != "draft" || record.Description != "**Context**" || record.CallToAction != "Choose all that apply" || record.Options[0].Name != "Other A" || record.Options[0].Description != "**Other** A" || record.Options[0].TextPrompt != "How should we address this?" || record.Options[1].TextPrompt != "Optional detail" || !record.Options[0].AllowsText || !record.Options[1].AllowsText {
 		t.Fatalf("valid markdown survey = %#v, %v", record, err)
 	}
 }

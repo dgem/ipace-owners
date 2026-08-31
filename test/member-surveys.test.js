@@ -26,6 +26,7 @@ test('surveys support public Markdown copy, multiple text options, and seven-day
   assert.match(admin, /data-survey-cta/);
   assert.match(script, /data-option-name/);
   assert.match(script, /data-option-description/);
+  assert.match(script, /data-option-text-prompt/);
   assert.match(script, /maxlength="2000"/);
   assert.match(script, /maxlength="120"/);
   assert.match(script, /function markdown\(v\)/);
@@ -34,6 +35,8 @@ test('surveys support public Markdown copy, multiple text options, and seven-day
   assert.match(script, /end\.setDate\(end\.getDate\(\) \+ 6\)/);
   assert.match(script, /textByOption/);
   assert.match(script, /optional, up to 250 characters/);
+  assert.match(script, /function optionTextPrompt\(option\)/);
+  assert.match(script, /Optional detail/);
   assert.match(script, /Offer an optional short explanation/);
   assert.match(script, /document\.addEventListener\('admin:data', start\)/);
   assert.match(script, /window\.setInterval\(load, 30000\)/);
@@ -60,6 +63,8 @@ test('member survey choices are structured as prominent selectable cards', funct
   assert.match(script, /survey-choice__number/);
   assert.match(script, /survey-choice__name/);
   assert.match(script, /survey-choice__description/);
+  assert.match(script, /survey-member-card__question/);
+  assert.match(script, /survey-member-card__cta/);
   assert.match(script, /Select every outcome you would support/);
   assert.match(script, /Make this my preferred outcome/);
   assert.match(script, /preferredOptionId/);
@@ -67,6 +72,7 @@ test('member survey choices are structured as prominent selectable cards', funct
   assert.match(css, /\.survey-choice:has\(input\[name="survey"\]:checked\)/);
   assert.match(css, /\.survey-member-card__title/);
   assert.match(css, /\.survey-choice__more/);
+  assert.match(css, /\.survey-member-card__question,/);
   assert.match(css, /\.survey-result__name/);
   assert.match(css, /\.survey-options legend\s*\{[\s\S]*padding: 0;/);
 });
