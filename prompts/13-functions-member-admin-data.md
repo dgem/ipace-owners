@@ -17,7 +17,10 @@ Go Cloud Functions. Do not rely on client-side gating for private data access.
 - For member pages, it fetches `GET /api/member-data`.
 - For admin pages, it fetches `GET /api/admin-data`.
 - Content is hidden by default and is revealed only after the relevant Function returns 200.
-- Login/admin gates remain visible for 401 or 403 responses.
+- The browser waits for Firebase identity resolution, including incoming magic-link completion,
+  before the first request. A signed-in member gets one forced token-refresh retry for an initial
+  401; network/service failures show a retryable verification error rather than the login gate.
+- Login/admin gates remain visible for a confirmed 401 or 403 response.
 - Firestore is canonical. Member/account pages should be served from a private generated
   JSON snapshot regenerated during signed-in Join, vehicle add/update, SoH, and service-event
   flows. Logged-out Join cannot generate a UID-keyed member snapshot before activation.

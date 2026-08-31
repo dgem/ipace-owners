@@ -26,8 +26,11 @@ server-side by Go Cloud Functions that validate Firebase ID tokens.
 
 ## identity.js
 
-- Initialise Firebase Auth defensively.
-- Complete `signInWithEmailLink` when the user opens a Firebase email link.
+- Initialise Firebase Auth defensively and expose one `window.ipaceIdentityReadyPromise` that
+  resolves only after persistence setup and any incoming email-link completion have finished.
+- Complete `signInWithEmailLink` when the user opens a Firebase email link before protected-page
+  verification starts; observe subsequent authentication/token changes through Firebase's token
+  listener.
 - Store and clear `ipaceEmailForSignIn` in `localStorage` for the email-link flow.
 - When Join sends a guest registration link, store the submitted email in
   `ipaceEmailForSignIn` so the clicked link can complete without asking again in the same
@@ -68,13 +71,19 @@ server-side by Go Cloud Functions that validate Firebase ID tokens.
 
 ## member-auth.js
 
-- On page load, find `[data-auth-container]` and `[data-admin-container]`.
+- On page load, find `[data-auth-container]` and `[data-admin-container]`, but wait for the shared
+  identity-ready promise before making a protected API request. Do not use a speculative timer that
+  sends an unauthenticated request while Firebase is still restoring a session.
 - Fetch:
   - member pages: `GET /api/member-data`
   - admin pages: `GET /api/admin-data`
 - Send the Firebase ID token in `Authorization: Bearer <token>`.
 - On 200: hide the gate, show content, populate data from response.
-- On 401: keep login gate visible.
+- On 401: for a known signed-in member, force-refresh the Firebase ID token and retry once before
+  showing the login gate. For a genuinely signed-out user, show the login gate.
+- On a network failure or 5xx response, keep the protected content hidden but show a recoverable
+  sign-in-verification error with a `Try again` control; do not send the user back through the
+  magic-link flow.
 - On 403 for admin: show access-restricted gate.
 - Populate vehicle lists, join info, account preferences, admin stats, join table, and
   vehicle table from the API response.

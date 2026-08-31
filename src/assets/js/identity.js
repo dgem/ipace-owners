@@ -13,15 +13,19 @@
 	var auth = null;
 	var adminUIRunId = 0;
 	var config = window.ipaceFirebaseConfig;
-	window.ipaceIdentityReady = !config;
+	var resolveIdentityReady;
+	var identityReadyPromise = new Promise(function (resolve) { resolveIdentityReady = resolve; });
+	window.ipaceIdentityReady = false;
+	window.ipaceIdentityReadyPromise = identityReadyPromise;
 	window.ipaceIdentityUser = null;
+	window.ipaceIdentityLinkCompleted = false;
 
 	if (config && window.firebase && window.firebase.initializeApp) {
 		app = window.firebase.apps && window.firebase.apps.length
 			? window.firebase.app()
 			: window.firebase.initializeApp(config);
 		auth = app.auth();
-		auth.setPersistence(window.firebase.auth.Auth.Persistence.LOCAL).catch(function (err) {
+		auth.persistenceReady = auth.setPersistence(window.firebase.auth.Auth.Persistence.LOCAL).catch(function (err) {
 			console.warn('[identity.js] Could not set Firebase persistence.', err);
 		});
 	} else if (config) {
@@ -95,8 +99,10 @@
 
 	function dispatchIdentityState(name, user) {
 		var normalised = normaliseUser(user);
+		var wasReady = window.ipaceIdentityReady;
 		window.ipaceIdentityReady = true;
 		window.ipaceIdentityUser = normalised;
+		if (!wasReady) resolveIdentityReady(normalised);
 		document.dispatchEvent(new CustomEvent(name, {
 			detail: { user: normalised }
 		}));
@@ -126,6 +132,7 @@
 			return auth.signInWithEmailLink(emailAddress, pendingEmailLinkUrl).then(function () {
 				window.localStorage.removeItem('ipaceEmailForSignIn');
 				pendingEmailLinkUrl = '';
+				window.ipaceIdentityLinkCompleted = true;
 				clearAuthQuery();
 				return true;
 			});
@@ -155,13 +162,14 @@
 		return auth.signInWithEmailLink(email, pendingEmailLinkUrl).then(function () {
 			window.localStorage.removeItem('ipaceEmailForSignIn');
 			pendingEmailLinkUrl = '';
+			window.ipaceIdentityLinkCompleted = true;
 			clearAuthQuery();
 			setMagicLinkStatus(form, 'Signed in. Loading your account...', 'info');
 			return true;
 		}).catch(function (err) {
 			console.warn('[identity.js] Email-link sign-in failed from form.', err);
 			setMagicLinkStatus(form, 'We could not finish sign-in with that link. Check the email address matches the one that received the link, or request a new sign-in link.', 'error');
-			return true;
+			return false;
 		}).finally(function () {
 			if (submitBtn) submitBtn.disabled = false;
 		});
@@ -257,9 +265,9 @@
 		return payload;
 	}
 
-	function getIdentityToken() {
+	function getIdentityToken(forceRefresh) {
 		if (!auth || !auth.currentUser) return Promise.resolve('');
-		return auth.currentUser.getIdToken().catch(function () { return ''; });
+		return auth.currentUser.getIdToken(!!forceRefresh).catch(function () { return ''; });
 	}
 
 	window.ipaceGetIdentityToken = getIdentityToken;
@@ -373,19 +381,22 @@
 	});
 
 	if (auth) {
-		completeEmailLinkIfNeeded().finally(function () {
-			auth.onAuthStateChanged(function (user) {
+		auth.persistenceReady.finally(function () {
+			return completeEmailLinkIfNeeded().then(function (completed) {
+				window.ipaceIdentityLinkCompleted = completed;
+			});
+		}).finally(function () {
+			auth.onIdTokenChanged(function (user) {
 				updateHeaderUI(user);
-				updateAdminUI(user).finally(function () {
-					dispatchIdentityState(window.ipaceIdentityReady ? (user ? 'identity:login' : 'identity:logout') : 'identity:ready', user);
+				dispatchIdentityState(window.ipaceIdentityReady ? (user ? 'identity:login' : 'identity:logout') : 'identity:ready', user);
+				updateAdminUI(user);
 
-					if (user) {
-						document.querySelectorAll('[data-registration-guest]').forEach(function (el) { el.hidden = true; });
-						document.querySelectorAll('[data-registration-signed-in]').forEach(function (el) { el.hidden = false; });
-						var redirect = document.body.dataset.authRedirectOnLogin;
-						if (redirect) window.location.href = redirect;
-					}
-				});
+				if (user) {
+					document.querySelectorAll('[data-registration-guest]').forEach(function (el) { el.hidden = true; });
+					document.querySelectorAll('[data-registration-signed-in]').forEach(function (el) { el.hidden = false; });
+					var redirect = document.body.dataset.authRedirectOnLogin;
+					if (redirect) window.location.href = redirect;
+				}
 			});
 		});
 	} else {
