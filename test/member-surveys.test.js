@@ -24,12 +24,24 @@ test('surveys support public Markdown copy, multiple text options, and seven-day
 
   assert.match(admin, /data-survey-description/);
   assert.match(admin, /data-survey-cta/);
+  assert.match(script, /data-option-name/);
+  assert.match(script, /data-option-description/);
+  assert.match(script, /data-option-text-prompt/);
   assert.match(script, /maxlength="2000"/);
+  assert.match(script, /maxlength="120"/);
   assert.match(script, /function markdown\(v\)/);
+  assert.match(script, /function optionName\(option\)/);
+  assert.match(script, /button\.textContent = 'More'/);
   assert.match(script, /end\.setDate\(end\.getDate\(\) \+ 6\)/);
   assert.match(script, /textByOption/);
   assert.match(script, /optional, up to 250 characters/);
-  assert.match(script, /Offer an optional short explanation/);
+  assert.match(script, /function optionTextPrompt\(option\)/);
+  assert.match(script, /function expandSelectedOptionDescriptions\(form\)/);
+  assert.match(script, /button\.textContent = expanded \? 'Show less' : 'More'/);
+  assert.match(script, /Optional detail/);
+  assert.match(script, /Offer a short detail response/);
+  assert.match(script, /function syncOptionTextPrompt\(row\)/);
+  assert.match(script, /prompt\.disabled = !enabled/);
   assert.match(script, /document\.addEventListener\('admin:data', start\)/);
   assert.match(script, /window\.setInterval\(load, 30000\)/);
 });
@@ -53,12 +65,20 @@ test('member survey choices are structured as prominent selectable cards', funct
   const css = fs.readFileSync(path.join(root, 'src/assets/css/site.css'), 'utf8');
 
   assert.match(script, /survey-choice__number/);
+  assert.match(script, /survey-choice__name/);
+  assert.match(script, /survey-choice__description/);
+  assert.match(script, /survey-member-card__question/);
+  assert.match(script, /survey-member-card__cta/);
   assert.match(script, /Select every outcome you would support/);
   assert.match(script, /Make this my preferred outcome/);
   assert.match(script, /preferredOptionId/);
   assert.match(script, /survey-results__header/);
   assert.match(css, /\.survey-choice:has\(input\[name="survey"\]:checked\)/);
   assert.match(css, /\.survey-member-card__title/);
+  assert.match(css, /\.survey-choice__more/);
+  assert.match(css, /position: absolute;/);
+  assert.match(css, /\.survey-member-card__question,/);
+  assert.match(css, /\.survey-result__name/);
   assert.match(css, /\.survey-options legend\s*\{[\s\S]*padding: 0;/);
 });
 
