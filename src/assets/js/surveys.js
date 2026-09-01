@@ -767,8 +767,6 @@
       if (started) return;
       started = true;
       load();
-      window.setInterval(load, 60000);
-      window.addEventListener("focus", load);
     }
     document.addEventListener("member:data", start);
   }
