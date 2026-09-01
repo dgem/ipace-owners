@@ -153,6 +153,20 @@ test("survey directory filters its date-ordered list and results follow the blin
   assert.match(response, /data-member-survey-response/);
 });
 
+test("editing a survey response does not poll and replace in-progress answers", function () {
+  const script = fs.readFileSync(
+    path.join(root, "src/assets/js/surveys.js"),
+    "utf8",
+  );
+  const responseSetup = script.slice(
+    script.indexOf("function setupResponse(root)"),
+    script.indexOf("function setupMemberList(root)"),
+  );
+
+  assert.doesNotMatch(responseSetup, /window\.setInterval/);
+  assert.doesNotMatch(responseSetup, /window\.addEventListener\(["']focus["']/);
+});
+
 test("survey analysis is an admin-only page with masked-response CSV download", function () {
   const admin = fs.readFileSync(
     path.join(root, "src/admin/surveys.njk"),
