@@ -1643,6 +1643,10 @@ textarea {
   color: var(--color-text-muted);
 }
 
+.survey-option-editor__remove {
+  margin-top: var(--space-4);
+}
+
 .survey-editor__title {
   display: block;
   width: 100%;

@@ -40,6 +40,8 @@ test('surveys support public Markdown copy, multiple text options, and seven-day
   assert.match(script, /button\.textContent = expanded \? 'Show less' : 'More'/);
   assert.match(script, /Optional detail/);
   assert.match(script, /Offer a short detail response/);
+  assert.match(script, /Additional detail <span>\(optional, up to 250 characters\)<\/span>/);
+  assert.match(script, /btn--danger btn--sm survey-option-editor__remove/);
   assert.match(script, /function syncOptionTextPrompt\(row\)/);
   assert.match(script, /prompt\.disabled = !enabled/);
   assert.match(script, /document\.addEventListener\('admin:data', start\)/);
