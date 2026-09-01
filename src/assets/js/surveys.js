@@ -207,7 +207,7 @@
           textID +
           '" data-option-text-id="' +
           esc(option.id) +
-          '" maxlength="250" rows="3" placeholder="Optional detail">' +
+          '" maxlength="250" rows="3" placeholder="enter your text here...">' +
           esc(text) +
           "</textarea></div>"
         : "") +
