@@ -68,7 +68,7 @@ test('member survey choices are structured as prominent selectable cards', funct
   assert.match(script, /survey-choice__name/);
   assert.match(script, /survey-choice__description/);
   assert.match(script, /survey-member-card__question/);
-  assert.match(script, /survey-member-card__cta/);
+  assert.match(script, /s\.callToAction \? inlineMarkdown\(s\.callToAction\) : 'Your question'/);
   assert.match(script, /Select every outcome you would support/);
   assert.match(script, /Make this my preferred outcome/);
   assert.match(script, /preferredOptionId/);
@@ -77,7 +77,7 @@ test('member survey choices are structured as prominent selectable cards', funct
   assert.match(css, /\.survey-member-card__title/);
   assert.match(css, /\.survey-choice__more/);
   assert.match(css, /position: absolute;/);
-  assert.match(css, /\.survey-member-card__question,/);
+  assert.match(css, /\.survey-member-card__question\s*\{/);
   assert.match(css, /\.survey-result__name/);
   assert.match(css, /\.survey-options legend\s*\{[\s\S]*padding: 0;/);
 });
