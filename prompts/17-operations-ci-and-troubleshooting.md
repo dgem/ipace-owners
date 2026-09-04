@@ -423,6 +423,10 @@ site-owned `/images/` paths; Freeform campaigns retain the generic hero.
 
 - Keep Node tests that assert smoke tests run in Firebase deploy workflows rather than a
   deployment-status workflow.
+- Browser JavaScript has no transpilation step. ESLint must reject trailing commas in
+  `src/assets/js/**` function calls and parameter lists, so ES2017-only comma syntax cannot pass
+  CI. Scope that rule to browser functions: do not make Node scripts/tests, object literals, or
+  array literals conform to an unnecessary legacy style.
 - Keep tests for preview URL extraction, preview authorized-domain updates, and Function
   environment generation.
 - Run `make lint`, `make build`, and `make test` after CI, deployment, or operational prompt

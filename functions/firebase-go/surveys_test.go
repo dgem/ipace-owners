@@ -20,8 +20,8 @@ func TestValidateSurveyRequiresDatesAndOptions(t *testing.T) {
 }
 
 func TestValidateSurveyAllowsMarkdownFieldsAndMultipleTextOptions(t *testing.T) {
-	record, err := validateSurvey(surveyInput{Title: "Preferred outcomes", Description: "**Context**", CallToAction: "Choose all that apply", StartsOn: "2026-08-29", EndsOn: "2026-08-30", Options: []surveyOption{{Name: "Other A", Description: "**Other** A", AllowsText: true, TextPrompt: "How should we address this?"}, {Name: "Other B", Description: "Other B", AllowsText: true}}})
-	if err != nil || record.Status != "draft" || record.Description != "**Context**" || record.CallToAction != "Choose all that apply" || record.Options[0].Name != "Other A" || record.Options[0].Description != "**Other** A" || record.Options[0].TextPrompt != "How should we address this?" || record.Options[1].TextPrompt != "Optional detail" || !record.Options[0].AllowsText || !record.Options[1].AllowsText {
+	record, err := validateSurvey(surveyInput{Title: "Preferred outcomes", Description: "**Context**", CallToAction: "Choose all that apply", StartsOn: "2026-08-29", EndsOn: "2026-08-30", Options: []surveyOption{{Name: "Other A", Description: "**Other** A", AllowsText: true, AllowsPreferred: true, TextPrompt: "How should we address this?"}, {Name: "Other B", Description: "Other B", AllowsText: true}}})
+	if err != nil || record.Status != "draft" || record.Description != "**Context**" || record.CallToAction != "Choose all that apply" || record.Options[0].Name != "Other A" || record.Options[0].Description != "**Other** A" || record.Options[0].TextPrompt != "How should we address this?" || record.Options[1].TextPrompt != "Optional detail" || !record.Options[0].AllowsText || !record.Options[1].AllowsText || !record.Options[0].AllowsPreferred || record.Options[1].AllowsPreferred {
 		t.Fatalf("valid markdown survey = %#v, %v", record, err)
 	}
 }
@@ -56,7 +56,7 @@ func TestSurveyResponseValidation(t *testing.T) {
 }
 
 func TestSurveyResponseStoresOnlyProvidedOptionalText(t *testing.T) {
-	s := surveyRecord{Multiple: true, Options: []surveyOption{{ID: "problem", Name: "Problem", AllowsText: true}, {ID: "something", Name: "Something", AllowsText: true}}}
+	s := surveyRecord{Multiple: true, Options: []surveyOption{{ID: "problem", Name: "Problem", AllowsText: true, AllowsPreferred: true}, {ID: "something", Name: "Something", AllowsText: true}}}
 	_, texts, _, err := validateSurveyResponse(s, surveyResponseInput{OptionIDs: []string{"problem", "something"}, TextByOption: map[string]string{"problem": "Battery fault"}})
 	if err != nil || len(texts) != 1 || texts["problem"] != "Battery fault" {
 		t.Fatalf("optional text response = %#v, %v", texts, err)
@@ -68,7 +68,7 @@ func TestSurveyResponseStoresOnlyProvidedOptionalText(t *testing.T) {
 }
 
 func TestSurveyResponsePreferredOptionMustBeSelectedOnMultipleChoice(t *testing.T) {
-	multiple := surveyRecord{Multiple: true, Options: []surveyOption{{ID: "first"}, {ID: "second"}}}
+	multiple := surveyRecord{Multiple: true, PreferredEligibilityConfigured: true, Options: []surveyOption{{ID: "first", AllowsPreferred: true}, {ID: "second"}}}
 	if _, _, _, err := validateSurveyResponse(multiple, surveyResponseInput{OptionIDs: []string{"first"}, PreferredOptionID: "second"}); err == nil {
 		t.Fatal("expected an unselected preferred option to be rejected")
 	}
@@ -76,16 +76,40 @@ func TestSurveyResponsePreferredOptionMustBeSelectedOnMultipleChoice(t *testing.
 	if _, _, _, err := validateSurveyResponse(single, surveyResponseInput{OptionIDs: []string{"first"}, PreferredOptionID: "first"}); err == nil {
 		t.Fatal("expected a preferred option on a single-choice survey to be rejected")
 	}
+	if _, _, _, err := validateSurveyResponse(multiple, surveyResponseInput{OptionIDs: []string{"second"}, PreferredOptionID: "second"}); err == nil {
+		t.Fatal("expected an option not marked as preferred-eligible to be rejected")
+	}
 }
 
-func TestAggregateSurveyResultsNeverSerialiseFreeText(t *testing.T) {
-	result := surveyResult{Counts: map[string]int{"option-1": 3}, PreferredCounts: map[string]int{"option-1": 2}, Total: 3}
+func TestSurveyResultsIgnorePreferredChoicesThatAreNoLongerEligible(t *testing.T) {
+	s := surveyRecord{Multiple: true, PreferredEligibilityConfigured: true, Options: []surveyOption{{ID: "eligible", AllowsPreferred: true}, {ID: "ineligible"}}}
+	if !surveyOptionAllowsPreferred(s, "eligible") || surveyOptionAllowsPreferred(s, "ineligible") || surveyOptionAllowsPreferred(s, "missing") {
+		t.Fatal("only explicitly eligible survey options may receive preferred counts")
+	}
+	if !surveyResponseAllowsPreferred(s, []string{"eligible"}, "eligible") || surveyResponseAllowsPreferred(s, []string{"ineligible"}, "eligible") {
+		t.Fatal("preferred result must be both eligible and selected")
+	}
+	if surveyResponseAllowsPreferred(surveyRecord{Options: []surveyOption{{ID: "eligible", AllowsPreferred: true}}}, []string{"eligible"}, "eligible") {
+		t.Fatal("single-choice survey results must not count a preferred option")
+	}
+
+	legacy := surveyRecord{Options: []surveyOption{{ID: "previously-allowed"}}}
+	if !surveyOptionAllowsPreferred(legacy, "previously-allowed") {
+		t.Fatal("existing surveys retain their previous preferred-option behaviour until saved")
+	}
+}
+
+func TestAggregateSurveyResultsExposeOnlyTextCounts(t *testing.T) {
+	result := surveyResult{Counts: map[string]int{"option-1": 3}, PreferredCounts: map[string]int{"option-1": 2}, TextCounts: map[string]int{"option-1": 1}, Total: 3}
 	encoded, err := json.Marshal(result)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if strings.Contains(string(encoded), "myTextByOption") || strings.Contains(string(encoded), "textByOption") {
 		t.Fatalf("aggregate survey result exposed free text: %s", encoded)
+	}
+	if !strings.Contains(string(encoded), `"textCounts":{"option-1":1}`) {
+		t.Fatalf("aggregate survey result omitted optional-detail count: %s", encoded)
 	}
 }
 

@@ -6,7 +6,10 @@ It is the current source of truth for the I-PACE Owners' Advocacy Group architec
 ## Current target architecture
 
 - **Static site:** Eleventy 3, Markdown/Nunjucks, custom CSS, no frontend framework.
-- **Frontend JavaScript:** vanilla IIFEs loaded with `defer`; no bundler.
+- **Frontend JavaScript:** vanilla IIFEs loaded with `defer`; no bundler or transpilation.
+  ESLint rejects dangling commas in browser function calls and parameter lists, which avoids the
+  ES2017 syntax incompatibility without imposing that browser restriction on Node tooling,
+  objects, or arrays.
 - **Public presentation mode:** `site.defaultMode` controls the deployed `launch` or `full`
   experience. Synchronous `site-mode.js` runs before CSS, accepts `?site-mode=launch|full`, and
   persists valid overrides in session storage. Templates use `data-site-mode-only`; full-only
