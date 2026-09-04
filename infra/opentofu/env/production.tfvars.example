@@ -59,6 +59,11 @@ manage_resend_domain  = true
 resend_domain         = "ipace-owners.org"
 resend_region         = "eu-west-1"
 
+# The production dashboard includes independent checks for the public homepage and
+# statistics API. Alerts are sent to this operational mailbox after a sustained failure.
+monitoring_enabled     = true
+monitoring_alert_email = "contact@ipace-owners.org"
+
 # The apex is canonical; Firebase Hosting redirects www after both domains validate.
 firebase_hosting_custom_domains = {
   "ipace-owners.org"     = {}

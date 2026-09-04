@@ -30,6 +30,10 @@ It is the current source of truth for the I-PACE Owners' Advocacy Group architec
 - **Infrastructure:** OpenTofu/Terraform under `infra/opentofu/`.
 - **CI/CD:** GitHub Actions with GCP Workload Identity Federation. PRs deploy to staging
   Firebase Hosting preview channels; `main` deploys to production.
+- **Production observability:** Cloud Monitoring owns an operations dashboard plus independent
+  European uptime checks of the public homepage and `/api/public-stats`. The dashboard also
+  charts the Gen 2 `Api` Cloud Run request rate. Sustained external failures create managed
+  alert incidents and, when an operational email recipient is configured, send email alerts.
 - **Domains/SSL:** Firebase Hosting managed SSL for `ipace-owners.org`; DNS remains at
   Fasthosts. OpenTofu owns Firebase custom-domain associations, reports the required DNS
   records and validation state, while the records are entered manually in Fasthosts.

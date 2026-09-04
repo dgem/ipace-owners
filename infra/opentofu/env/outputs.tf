@@ -33,6 +33,11 @@ output "firestore_data_protection" {
   value       = module.ipace_owners.firestore_data_protection
 }
 
+output "monitoring" {
+  description = "Operations dashboard, independent uptime checks, and alert-delivery configuration."
+  value       = module.ipace_owners.monitoring
+}
+
 output "firebase_web_app_id" {
   value = module.ipace_owners.firebase_web_app_id
 }
