@@ -226,7 +226,7 @@
     allowsPreferred,
     total,
     showDescription,
-    textCount,
+    textCount
   ) {
     var percentage = total ? Math.round((count / total) * 100) : 0;
     return (
@@ -521,7 +521,7 @@
               option.allowsPreferred || !analysis.survey.preferredEligibilityConfigured,
               analysis.total,
               true,
-              0,
+              0
             );
           })
           .join("") +
@@ -1018,7 +1018,7 @@
             o.allowsPreferred || !s.preferredEligibilityConfigured,
             result.total,
             false,
-            (result.textCounts && result.textCounts[o.id]) || 0,
+            (result.textCounts && result.textCounts[o.id]) || 0
           );
         })
         .join("") +
