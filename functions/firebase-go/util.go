@@ -27,6 +27,40 @@ var authTraceRE = regexp.MustCompile(`^IP-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$`)
 
 type authTraceContextKey struct{}
 
+type authorizationError struct {
+	status  int
+	message string
+	cause   error
+}
+
+func (err *authorizationError) Error() string {
+	return err.message
+}
+
+func (err *authorizationError) Unwrap() error {
+	return err.cause
+}
+
+func authorizationFailure(status int, message string, cause error) error {
+	return &authorizationError{status: status, message: message, cause: cause}
+}
+
+func authorizationStatus(err error) int {
+	var authorizationErr *authorizationError
+	if errors.As(err, &authorizationErr) {
+		return authorizationErr.status
+	}
+	return http.StatusUnauthorized
+}
+
+func authorizationMessage(err error) string {
+	var authorizationErr *authorizationError
+	if errors.As(err, &authorizationErr) {
+		return authorizationErr.message
+	}
+	return "Sign in required"
+}
+
 func authTraceCode(value string) string {
 	value = strings.ToUpper(strings.TrimSpace(value))
 	if !authTraceRE.MatchString(value) {
@@ -126,6 +160,14 @@ func rejectDisallowedOrigin(w http.ResponseWriter, r *http.Request) bool {
 	})
 	writeJSON(w, http.StatusForbidden, map[string]any{"error": "Origin not allowed"})
 	return true
+}
+
+func rejectMissingOrDisallowedOrigin(w http.ResponseWriter, r *http.Request) bool {
+	if r.Header.Get("Origin") == "" {
+		writeJSON(w, http.StatusForbidden, map[string]any{"error": "Origin required"})
+		return true
+	}
+	return rejectDisallowedOrigin(w, r)
 }
 
 func originAllowed(origin string) bool {
@@ -371,11 +413,11 @@ func requireUser(ctx context.Context, r *http.Request) (*firebaseUser, error) {
 	user, err := optionalUser(ctx, r)
 	if err != nil {
 		logAuthorizationDecision(r, "member", "invalid-token", http.StatusUnauthorized)
-		return nil, err
+		return nil, authorizationFailure(http.StatusUnauthorized, "Sign in required", err)
 	}
 	if user == nil || user.UID == "" {
 		logAuthorizationDecision(r, "member", "missing-token", http.StatusUnauthorized)
-		return nil, errors.New("sign in required")
+		return nil, authorizationFailure(http.StatusUnauthorized, "Sign in required", nil)
 	}
 	logAuthorizationDecision(r, "member", "allowed", http.StatusOK)
 	return user, nil
@@ -388,7 +430,7 @@ func requireAdmin(ctx context.Context, r *http.Request) (*firebaseUser, error) {
 	}
 	if !isAdmin(user) {
 		logAuthorizationDecision(r, "admin", "admin-claim-missing", http.StatusForbidden)
-		return nil, errors.New("admin role required")
+		return nil, authorizationFailure(http.StatusForbidden, "Admin role required", nil)
 	}
 	logAuthorizationDecision(r, "admin", "allowed", http.StatusOK)
 	return user, nil

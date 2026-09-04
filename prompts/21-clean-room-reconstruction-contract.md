@@ -154,8 +154,9 @@ authorization event for every decision so support can reconstruct the journey by
 
 Do not emit these authorization logs without a valid support code. The separate public
 `auth-diagnostics` endpoint accepts only bounded browser lifecycle events such as persistence,
-identity observer, magic-link completion, and gate verification; it must never accept email,
-tokens, URLs, exception strings, or arbitrary client data.
+identity observer, magic-link completion, and gate verification. It requires an allowed non-empty
+`Origin` and a header code exactly matching the body code; it must never accept email, tokens,
+URLs, exception strings, or arbitrary client data.
 
 ## Canonical Firestore and snapshot schemas
 

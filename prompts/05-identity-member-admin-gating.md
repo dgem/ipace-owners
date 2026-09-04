@@ -47,8 +47,9 @@ server-side by Go Cloud Functions that validate Firebase ID tokens.
   show the member the code and ask them to report it with the approximate time; do not show
   it during a successful sign-in.
 - Send only bounded lifecycle names and outcomes to `POST /api/auth-diagnostics` for magic-link
-  requesting/completion and member/admin verification. Never send an email address, Firebase
-  token, exception text, browser URL, or free-form diagnostic data in this telemetry.
+  requesting/completion and member/admin verification. Require both an allowed browser `Origin`
+  and an `X-Ipace-Auth-Trace` header exactly matching the body code. Never send an email address,
+  Firebase token, exception text, browser URL, or free-form diagnostic data in this telemetry.
 - Expose `window.ipaceGetIdentityToken()` so form/API code can attach
   `Authorization: Bearer <Firebase ID token>`.
 - Update header and mobile controls based on current user state.

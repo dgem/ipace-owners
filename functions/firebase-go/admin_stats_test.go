@@ -137,7 +137,7 @@ func TestAdminStatsRequiresAdministrator(t *testing.T) {
 	originalRequireAdmin := adminStatsRequireAdmin
 	t.Cleanup(func() { adminStatsRequireAdmin = originalRequireAdmin })
 	adminStatsRequireAdmin = func(context.Context, *http.Request) (*firebaseUser, error) {
-		return nil, errors.New("admin role required")
+		return nil, authorizationFailure(http.StatusForbidden, "Admin role required", errors.New("admin role required"))
 	}
 
 	req := httptest.NewRequest(http.MethodGet, "/api/admin/stats", nil)

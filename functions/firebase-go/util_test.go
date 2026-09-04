@@ -79,6 +79,31 @@ func TestAuthDiagnosticsRecordsOnlyBoundedPIIFreeLifecycleEvents(t *testing.T) {
 	if invalidRec.Code != http.StatusBadRequest {
 		t.Fatalf("invalid status = %d, want 400", invalidRec.Code)
 	}
+
+	missingOrigin := httptest.NewRequest(http.MethodPost, "/api/auth-diagnostics", strings.NewReader(`{"traceCode":"IP-ABCD-2345","stage":"email-link-completion","outcome":"failed"}`))
+	missingOrigin.Header.Set("X-Ipace-Auth-Trace", "IP-ABCD-2345")
+	missingOriginRec := httptest.NewRecorder()
+	AuthDiagnostics(missingOriginRec, missingOrigin)
+	if missingOriginRec.Code != http.StatusForbidden {
+		t.Fatalf("missing Origin status = %d, want 403", missingOriginRec.Code)
+	}
+
+	missingHeader := httptest.NewRequest(http.MethodPost, "/api/auth-diagnostics", strings.NewReader(`{"traceCode":"IP-ABCD-2345","stage":"email-link-completion","outcome":"failed"}`))
+	missingHeader.Header.Set("Origin", "https://ipace-owners.org")
+	missingHeaderRec := httptest.NewRecorder()
+	AuthDiagnostics(missingHeaderRec, missingHeader)
+	if missingHeaderRec.Code != http.StatusBadRequest {
+		t.Fatalf("missing trace header status = %d, want 400", missingHeaderRec.Code)
+	}
+
+	pii := httptest.NewRequest(http.MethodPost, "/api/auth-diagnostics", strings.NewReader(`{"traceCode":"IP-ABCD-2345","stage":"email-link-completion","outcome":"failed","email":"member@example.com"}`))
+	pii.Header.Set("Origin", "https://ipace-owners.org")
+	pii.Header.Set("X-Ipace-Auth-Trace", "IP-ABCD-2345")
+	piiRec := httptest.NewRecorder()
+	AuthDiagnostics(piiRec, pii)
+	if piiRec.Code != http.StatusBadRequest {
+		t.Fatalf("extra diagnostic field status = %d, want 400", piiRec.Code)
+	}
 }
 
 func TestEmailContinueURLUsesAllowedRequestOrigin(t *testing.T) {

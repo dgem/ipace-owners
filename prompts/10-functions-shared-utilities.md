@@ -35,6 +35,8 @@ Shared Go helpers own:
   without a support code.
 - Preserve a valid support code through a passwordless email-link `continueUrl` using the
   `authTrace` query key only; reject invalid values and never use it as authorization data.
+- `AuthDiagnostics` is browser-only telemetry: require a non-empty allowed `Origin` and a valid
+  `X-Ipace-Auth-Trace` that exactly matches its bounded JSON body before recording an event.
 - Keep origin checks reusable and call them before side effects in every public Function.
   Allowed Firebase preview origins must be scoped to the current Firebase/GCP project
   prefix, not every `web.app` or `firebaseapp.com` host.

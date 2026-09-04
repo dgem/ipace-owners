@@ -111,11 +111,7 @@ func AdminStats(w http.ResponseWriter, r *http.Request) {
 
 	_, err := adminStatsRequireAdmin(r.Context(), r)
 	if err != nil {
-		if bearerToken(r) == "" {
-			writeJSON(w, http.StatusUnauthorized, map[string]any{"error": "Sign in required"})
-		} else {
-			writeJSON(w, http.StatusForbidden, map[string]any{"error": "Admin role required"})
-		}
+		writeJSON(w, authorizationStatus(err), map[string]any{"error": authorizationMessage(err)})
 		return
 	}
 

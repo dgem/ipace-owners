@@ -272,7 +272,7 @@ func AuthDiagnostics(w http.ResponseWriter, r *http.Request) {
 	if cors(w, r) {
 		return
 	}
-	if rejectDisallowedOrigin(w, r) {
+	if rejectMissingOrDisallowedOrigin(w, r) {
 		return
 	}
 	if r.Method != http.MethodPost {
@@ -291,7 +291,7 @@ func AuthDiagnostics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	requestTrace := authTraceCode(r.Header.Get("X-Ipace-Auth-Trace"))
-	if requestTrace != "" && requestTrace != traceCode {
+	if requestTrace == "" || requestTrace != traceCode {
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "Invalid diagnostic event"})
 		return
 	}
@@ -652,11 +652,7 @@ func AdminData(w http.ResponseWriter, r *http.Request) {
 	}
 	_, err := requireAdmin(r.Context(), r)
 	if err != nil {
-		if bearerToken(r) == "" {
-			writeJSON(w, http.StatusUnauthorized, map[string]any{"error": "Sign in required"})
-		} else {
-			writeJSON(w, http.StatusForbidden, map[string]any{"error": "Admin role required"})
-		}
+		writeJSON(w, authorizationStatus(err), map[string]any{"error": authorizationMessage(err)})
 		return
 	}
 
