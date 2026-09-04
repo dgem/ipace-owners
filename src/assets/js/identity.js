@@ -233,7 +233,7 @@
 			window.localStorage.removeItem('ipaceEmailForSignIn');
 			window.ipaceReportAuthDiagnostic('email-link-completion', 'failed');
 			setAllMagicLinkStatuses(withAuthTrace('We could not finish sign-in with the remembered email. Enter the email address that received this link to try again.'), 'error');
-			window.location.href = window.location.href.lastIndexOf('?') !== -1 ? window.location.href.substring(0, window.location.href.lastIndexOf('?')) : window.location.href;
+			clearAuthQuery();
 			return false;
 		});
 	}
