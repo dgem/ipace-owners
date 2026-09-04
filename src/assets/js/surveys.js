@@ -269,25 +269,35 @@
     );
   }
 
-  function preferredOutcomeLeader(survey, preferredCounts) {
-    if (!survey.multiple) return null;
+  function surveyOutcomeLeader(survey, counts, preferredCounts) {
     var leader = null,
-      highestCount = 0,
       tied = false;
     survey.options.forEach(function (option) {
-      if (!option.allowsPreferred && survey.preferredEligibilityConfigured) return;
-      var count = preferredCounts[option.id] || 0;
-      if (count > highestCount) {
-        leader = option;
-        highestCount = count;
+      var votes = counts[option.id] || 0,
+        allowsPreferred =
+          survey.multiple &&
+          (option.allowsPreferred || !survey.preferredEligibilityConfigured),
+        preferred = allowsPreferred ? preferredCounts[option.id] || 0 : 0;
+      if (
+        !leader ||
+        votes > leader.votes ||
+        (votes === leader.votes && preferred > leader.preferred)
+      ) {
+        leader = {
+          option: option,
+          votes: votes,
+          preferred: preferred,
+          allowsPreferred: allowsPreferred,
+        };
         tied = false;
-      } else if (count > 0 && count === highestCount) {
+      } else if (
+        votes === leader.votes &&
+        preferred === leader.preferred
+      ) {
         tied = true;
       }
     });
-    return leader && highestCount > 0 && !tied
-      ? { option: leader, count: highestCount }
-      : null;
+    return leader && leader.votes > 0 && !tied ? leader : null;
   }
 
   function setupAdmin(root) {
@@ -970,7 +980,11 @@
     var s = result.survey,
       submitted = result.myOptionIds && result.myOptionIds.length,
       closed = s.endsOn < dateInputValue(new Date()),
-      preferredLeader = preferredOutcomeLeader(s, result.preferredCounts || {});
+      outcomeLeader = surveyOutcomeLeader(
+        s,
+        result.counts || {},
+        result.preferredCounts || {}
+      );
     if (!submitted && !closed)
       return (
         '<section class="dashboard-panel"><h2 class="dashboard-panel__title">Submit your response first</h2><p>Aggregate results become available after you have submitted your own response.</p><a class="btn btn--primary" href="/member/survey-response/?id=' +
@@ -997,13 +1011,19 @@
       " response" +
       (result.total === 1 ? "" : "s") +
       "</span></div>" +
-      (preferredLeader
-        ? '<aside class="survey-results__leader"><p>Currently most preferred outcome</p><strong>' +
-          esc(optionName(preferredLeader.option)) +
-          '</strong><span>Selected as preferred by ' +
-          preferredLeader.count +
+      (outcomeLeader
+        ? '<aside class="survey-results__leader"><p>Current leading outcome</p><strong>' +
+          esc(optionName(outcomeLeader.option)) +
+          '</strong><span>Chosen by ' +
+          outcomeLeader.votes +
           " member" +
-          (preferredLeader.count === 1 ? "" : "s") +
+          (outcomeLeader.votes === 1 ? "" : "s") +
+          (outcomeLeader.allowsPreferred
+            ? " and marked preferred by " +
+              outcomeLeader.preferred +
+              " member" +
+              (outcomeLeader.preferred === 1 ? "" : "s")
+            : "") +
           ".</span></aside>"
         : "") +
       s.options

@@ -173,9 +173,9 @@ to the overall results shown below” and aggregate-only results (do not repeat 
 or free text there). Present the aggregate in an election-results style: each outcome's short name,
 vote count, percentage and a prominent horizontal comparison bar; omit long option descriptions
 from the member result rows. For text-enabled options, display the aggregate number of optional
-details with a clear comment icon, but never reveal their content. The visual comparison may feature a `Currently most preferred outcome` callout only when one eligible
-option has a unique, non-zero lead in members' preferred selections; do not declare a leader on a
-tie or where nobody has selected a preferred option. The
+details with a clear comment icon, but never reveal their content. The visual comparison may feature one `Current leading outcome` callout: choose the option with the
+most votes, use preferred selections for eligible options as a tie-breaker, and state both measures in the callout. Do not declare a leader when that combined comparison
+is tied or nobody has voted. The
 server must withhold aggregate counts for an open survey until that member
 has submitted a response, preventing popularity-led voting; once a published survey is closed,
 results may be visible to every member if the administrator enabled them. Separate actions from

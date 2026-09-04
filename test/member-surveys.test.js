@@ -123,8 +123,10 @@ test("member survey choices are structured as prominent selectable cards", funct
   assert.match(script, /survey-results__header/);
   assert.match(script, /We have added your submission to the overall results shown below/);
   assert.match(script, /Overall results/);
-  assert.match(script, /Currently most preferred outcome/);
-  assert.match(script, /function preferredOutcomeLeader/);
+  assert.match(script, /Current leading outcome/);
+  assert.match(script, /function surveyOutcomeLeader\(survey, counts, preferredCounts\)/);
+  assert.match(script, /votes > leader\.votes/);
+  assert.match(script, /votes === leader\.votes && preferred > leader\.preferred/);
   assert.match(script, /Return to member dashboard/);
   assert.match(script, /Edit response/);
   assert.match(script, /survey-result--summary/);
