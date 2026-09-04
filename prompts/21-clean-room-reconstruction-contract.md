@@ -139,6 +139,24 @@ Reject invalid methods, malformed input, failed authentication, and unauthorized
 return generic success for Join honeypot submissions as specified in the feature prompts.
 Never depend on frontend gating for data protection.
 
+### Authorization trace contract
+
+The browser generates an opaque `IP-XXXX-XXXX` support code, persists it for the current
+sign-in journey, carries it through the passwordless email-link `continueUrl`, and sends it as
+`X-Ipace-Auth-Trace` on magic-link and authenticated API calls. It is diagnostic metadata only:
+it must never grant access. When the header is valid, the common server guards write a PII-free
+authorization event for every decision so support can reconstruct the journey by code.
+
+| Protected request class | Required role | Recorded decisions |
+|---|---|---|
+| Member reads, exports, survey actions and owned data writes | Firebase user | `allowed`, `missing-token`, `invalid-token` with route and 200/401 status |
+| Admin data, admin statistics, surveys, campaigns and publishing tools | Firebase admin claim | member decision plus admin `allowed` or `admin-claim-missing`, with route and 200/401/403 status |
+
+Do not emit these authorization logs without a valid support code. The separate public
+`auth-diagnostics` endpoint accepts only bounded browser lifecycle events such as persistence,
+identity observer, magic-link completion, and gate verification; it must never accept email,
+tokens, URLs, exception strings, or arbitrary client data.
+
 ## Canonical Firestore and snapshot schemas
 
 `surveys/{surveyId}` stores the administrator-managed title, public Markdown description and CTA,

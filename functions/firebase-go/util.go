@@ -25,6 +25,8 @@ var emailRE = regexp.MustCompile(`^[^\s@]+@[^\s@]+\.[^\s@]+$`)
 var vinRE = regexp.MustCompile(`^[A-HJ-NPR-Z0-9]{17}$`)
 var authTraceRE = regexp.MustCompile(`^IP-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$`)
 
+type authTraceContextKey struct{}
+
 func authTraceCode(value string) string {
 	value = strings.ToUpper(strings.TrimSpace(value))
 	if !authTraceRE.MatchString(value) {
@@ -46,6 +48,34 @@ func addAuthTrace(fields map[string]any, r *http.Request) map[string]any {
 		fields[key] = value
 	}
 	return fields
+}
+
+func contextWithAuthTrace(ctx context.Context, r *http.Request) context.Context {
+	traceCode := authTraceCode(r.Header.Get("X-Ipace-Auth-Trace"))
+	if traceCode == "" {
+		return ctx
+	}
+	return context.WithValue(ctx, authTraceContextKey{}, traceCode)
+}
+
+func authTraceFromContext(ctx context.Context) string {
+	traceCode, _ := ctx.Value(authTraceContextKey{}).(string)
+	return authTraceCode(traceCode)
+}
+
+func appendAuthTraceToContinueURL(continueURL string, traceCode string) string {
+	traceCode = authTraceCode(traceCode)
+	if traceCode == "" {
+		return continueURL
+	}
+	parsed, err := url.Parse(continueURL)
+	if err != nil {
+		return continueURL
+	}
+	query := parsed.Query()
+	query.Set("authTrace", traceCode)
+	parsed.RawQuery = query.Encode()
+	return parsed.String()
 }
 
 func jsonUnmarshal(data []byte, v any) error {
@@ -340,12 +370,41 @@ func optionalUser(ctx context.Context, r *http.Request) (*firebaseUser, error) {
 func requireUser(ctx context.Context, r *http.Request) (*firebaseUser, error) {
 	user, err := optionalUser(ctx, r)
 	if err != nil {
+		logAuthorizationDecision(r, "member", "invalid-token", http.StatusUnauthorized)
 		return nil, err
 	}
 	if user == nil || user.UID == "" {
+		logAuthorizationDecision(r, "member", "missing-token", http.StatusUnauthorized)
 		return nil, errors.New("sign in required")
 	}
+	logAuthorizationDecision(r, "member", "allowed", http.StatusOK)
 	return user, nil
+}
+
+func requireAdmin(ctx context.Context, r *http.Request) (*firebaseUser, error) {
+	user, err := requireUser(ctx, r)
+	if err != nil {
+		return nil, err
+	}
+	if !isAdmin(user) {
+		logAuthorizationDecision(r, "admin", "admin-claim-missing", http.StatusForbidden)
+		return nil, errors.New("admin role required")
+	}
+	logAuthorizationDecision(r, "admin", "allowed", http.StatusOK)
+	return user, nil
+}
+
+func logAuthorizationDecision(r *http.Request, requiredRole string, decision string, status int) {
+	if authTraceCode(r.Header.Get("X-Ipace-Auth-Trace")) == "" {
+		return
+	}
+	fields := addAuthTrace(map[string]any{
+		"route":        strings.TrimRight(r.URL.Path, "/"),
+		"requiredRole": requiredRole,
+		"decision":     decision,
+		"status":       status,
+	}, r)
+	logEvent("authorization", "info", "authorization decision", fields)
 }
 
 func userFromToken(ctx context.Context, client *auth.Client, token *auth.Token) *firebaseUser {

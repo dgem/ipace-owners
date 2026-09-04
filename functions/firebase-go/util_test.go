@@ -1,6 +1,7 @@
 package ipace
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -99,6 +100,22 @@ func TestEmailContinueURLFallsBackForDisallowedOrigin(t *testing.T) {
 
 	if got != "https://stage.ipace-owners.org/member/account/" {
 		t.Fatalf("continue URL = %q", got)
+	}
+}
+
+func TestEmailContinueURLCarriesOpaqueSupportTraceOnly(t *testing.T) {
+	continueURL := "https://ipace-owners.org/member/account/?existing=value"
+	if got := appendAuthTraceToContinueURL(continueURL, "ip-abcd-2345"); got != "https://ipace-owners.org/member/account/?authTrace=IP-ABCD-2345&existing=value" {
+		t.Fatalf("continue URL with trace = %q", got)
+	}
+	if got := appendAuthTraceToContinueURL(continueURL, "member@example.com"); got != continueURL {
+		t.Fatalf("continue URL with invalid trace = %q", got)
+	}
+
+	request := httptest.NewRequest(http.MethodPost, "/api/send-magic-link", nil)
+	request.Header.Set("X-Ipace-Auth-Trace", "IP-ABCD-2345")
+	if got := authTraceFromContext(contextWithAuthTrace(context.Background(), request)); got != "IP-ABCD-2345" {
+		t.Fatalf("trace from request context = %q", got)
 	}
 }
 

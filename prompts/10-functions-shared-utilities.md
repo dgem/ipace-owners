@@ -19,6 +19,7 @@ Shared Go helpers own:
 - Email fingerprinting.
 - VIN HMAC generation.
 - Firebase ID-token verification.
+- Opaque support-code propagation and trace-scoped authorization-decision logging.
 - Firestore and Cloud Storage client setup.
 - Private member/account JSON snapshot helpers.
 - Submission ID generation.
@@ -28,6 +29,12 @@ Shared Go helpers own:
 - Keep helpers dependency-light and idiomatic Go.
 - Do not add business-specific validation unless it is genuinely shared.
 - Do not log raw personal data, VINs, tokens, request bodies, or provider responses.
+- `requireUser` and `requireAdmin` are the authorization decision point. When a request has a
+  valid opaque `X-Ipace-Auth-Trace`, log exactly the route, required role, decision and status
+  for every allow or deny decision. Do not create uncorrelated authorization logs for requests
+  without a support code.
+- Preserve a valid support code through a passwordless email-link `continueUrl` using the
+  `authTrace` query key only; reject invalid values and never use it as authorization data.
 - Keep origin checks reusable and call them before side effects in every public Function.
   Allowed Firebase preview origins must be scoped to the current Firebase/GCP project
   prefix, not every `web.app` or `firebaseapp.com` host.
@@ -43,7 +50,8 @@ Shared Go helpers own:
 Update Go tests when utility behaviour changes. Coverage should include API routing,
 origins, Firebase preview-origin scoping, dynamic email-link continue URL derivation, JSON
 body parsing, email/date/enum/integer/decimal cleaning, HMAC/fingerprint behaviour, and auth
-claim handling.
+claim handling. Cover trace validation, continue-URL propagation, and member/admin allow and
+deny decision paths.
 
 ## Validation
 

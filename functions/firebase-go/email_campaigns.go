@@ -60,14 +60,8 @@ type campaignSendRequest struct {
 }
 
 var campaignAuthorize = func(ctx context.Context, r *http.Request) error {
-	user, err := requireUser(ctx, r)
-	if err != nil {
-		return err
-	}
-	if !isAdmin(user) {
-		return fmt.Errorf("admin role required")
-	}
-	return nil
+	_, err := requireAdmin(ctx, r)
+	return err
 }
 var campaignPreview = previewReengagementCampaign
 var campaignSend = sendReengagementCampaignBatch

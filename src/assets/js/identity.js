@@ -39,6 +39,21 @@
 
 	function authTraceCode() {
 		var storageKey = 'ipaceAuthTraceCode';
+		var traceFromLink = '';
+		try {
+			traceFromLink = new URLSearchParams(window.location.search).get('authTrace') || '';
+		} catch (err) {
+			console.warn('[identity.js] Could not read the sign-in support code from the email link.', err);
+			traceFromLink = '';
+		}
+		if (/^IP-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$/i.test(traceFromLink)) {
+			try {
+				window.sessionStorage.setItem(storageKey, traceFromLink.toUpperCase());
+			} catch (err) {
+				console.warn('[identity.js] Session storage unavailable for sign-in support code.', err);
+			}
+			return traceFromLink.toUpperCase();
+		}
 		try {
 			var existing = window.sessionStorage.getItem(storageKey);
 			if (existing) return existing;
@@ -55,6 +70,9 @@
 	window.ipaceAuthTraceCode = authTrace;
 	window.ipaceAuthTraceHeaders = function () {
 		return { 'X-Ipace-Auth-Trace': authTrace };
+	};
+	window.ipaceAuthHeaders = function (headers) {
+		return Object.assign({}, headers || {}, window.ipaceAuthTraceHeaders());
 	};
 	window.ipaceReportAuthDiagnostic = function (stage, outcome) {
 		if (!stage || !outcome || !window.fetch) return;
@@ -75,8 +93,11 @@
 			? window.firebase.app()
 			: window.firebase.initializeApp(config);
 		auth = app.auth();
-		auth.persistenceReady = auth.setPersistence(window.firebase.auth.Auth.Persistence.LOCAL).catch(function (err) {
+		auth.persistenceReady = auth.setPersistence(window.firebase.auth.Auth.Persistence.LOCAL).then(function () {
+			window.ipaceReportAuthDiagnostic('persistence', 'ready');
+		}, function (err) {
 			console.warn('[identity.js] Could not set Firebase persistence.', err);
+			window.ipaceReportAuthDiagnostic('persistence', 'failed');
 		});
 	} else if (config) {
 		console.warn('[identity.js] Firebase SDK not found. Header auth UI disabled.');
@@ -361,7 +382,7 @@
 
 				fetch('/api/send-magic-link', {
 					method: 'POST',
-					headers: { 'Content-Type': 'application/json', 'X-Ipace-Auth-Trace': authTrace },
+					headers: window.ipaceAuthHeaders({ 'Content-Type': 'application/json' }),
 					body: JSON.stringify({ email: email })
 				}).then(function (res) {
 					return res.json().catch(function () { return {}; }).then(function (data) {
@@ -403,7 +424,7 @@
 				return;
 			}
 
-			var headers = { 'Content-Type': 'application/json' };
+			var headers = window.ipaceAuthHeaders({ 'Content-Type': 'application/json' });
 			if (token) headers.Authorization = 'Bearer ' + token;
 
 			return fetch(endpoint, {
@@ -446,6 +467,7 @@
 			});
 		}).finally(function () {
 			auth.onIdTokenChanged(function (user) {
+				window.ipaceReportAuthDiagnostic('identity-observer', user ? 'signed-in' : 'signed-out');
 				updateHeaderUI(user);
 				dispatchIdentityState(window.ipaceIdentityReady ? (user ? 'identity:login' : 'identity:logout') : 'identity:ready', user);
 				updateAdminUI(user);

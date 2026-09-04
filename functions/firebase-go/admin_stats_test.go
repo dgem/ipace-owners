@@ -2,6 +2,7 @@ package ipace
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -133,14 +134,14 @@ func TestAdminStatsRequiresSignIn(t *testing.T) {
 }
 
 func TestAdminStatsRequiresAdministrator(t *testing.T) {
-	originalRequireUser, originalIsAdmin := adminStatsRequireUser, adminStatsIsAdmin
-	t.Cleanup(func() { adminStatsRequireUser, adminStatsIsAdmin = originalRequireUser, originalIsAdmin })
-	adminStatsRequireUser = func(context.Context, *http.Request) (*firebaseUser, error) {
-		return &firebaseUser{UID: "member"}, nil
+	originalRequireAdmin := adminStatsRequireAdmin
+	t.Cleanup(func() { adminStatsRequireAdmin = originalRequireAdmin })
+	adminStatsRequireAdmin = func(context.Context, *http.Request) (*firebaseUser, error) {
+		return nil, errors.New("admin role required")
 	}
-	adminStatsIsAdmin = func(*firebaseUser) bool { return false }
 
 	req := httptest.NewRequest(http.MethodGet, "/api/admin/stats", nil)
+	req.Header.Set("Authorization", "Bearer test-token")
 	res := httptest.NewRecorder()
 	AdminStats(res, req)
 	if res.Code != http.StatusForbidden {

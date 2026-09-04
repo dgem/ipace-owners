@@ -36,8 +36,25 @@ test('site UI uses Firebase passwordless magic-link forms', function () {
   assert.match(read('src/assets/js/identity.js'), /\/api\/send-magic-link/);
   assert.match(read('src/assets/js/identity.js'), /\/api\/auth-diagnostics/);
   assert.match(read('src/assets/js/identity.js'), /X-Ipace-Auth-Trace/);
+  assert.match(read('src/assets/js/identity.js'), /authTrace/);
+  assert.match(read('src/assets/js/identity.js'), /ipaceAuthHeaders/);
   assert.match(read('src/assets/js/identity.js'), /If this email address is registered/);
   assert.doesNotMatch(read('src/assets/js/identity.js'), /Check your email for a secure sign-in link/);
+});
+
+test('authenticated feature clients carry the opaque support trace header', function () {
+  [
+    'src/assets/js/member-auth.js',
+    'src/assets/js/member-dashboard.js',
+    'src/assets/js/member-export.js',
+    'src/assets/js/surveys.js',
+    'src/assets/js/admin-stats.js',
+    'src/assets/js/admin-campaign-summary.js',
+    'src/assets/js/email-campaigns.js',
+    'src/assets/js/instagram-campaigns.js'
+  ].forEach(function (file) {
+    assert.match(read(file), /ipaceAuthHeaders|authTraceHeaders/, file + ' should propagate support tracing');
+  });
 });
 
 test('Join completion does not offer vehicle submission until signed in', function () {
