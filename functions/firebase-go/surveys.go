@@ -70,6 +70,7 @@ type surveyResult struct {
 	SurveyRecord        surveyRecord      `json:"survey"`
 	Counts              map[string]int    `json:"counts"`
 	PreferredCounts     map[string]int    `json:"preferredCounts"`
+	TextCounts          map[string]int    `json:"textCounts"`
 	Total               int               `json:"total"`
 	MyOptionIDs         []string          `json:"myOptionIds,omitempty"`
 	MyTextByOption      map[string]string `json:"myTextByOption,omitempty"`
@@ -462,6 +463,7 @@ func MemberSurveys(w http.ResponseWriter, r *http.Request) {
 			if !memberMayViewSurveyResults(s, result) {
 				result.Counts = nil
 				result.PreferredCounts = nil
+				result.TextCounts = nil
 				result.Total = 0
 			}
 			out = append(out, result)
@@ -527,6 +529,7 @@ func SubmitSurveyResponse(w http.ResponseWriter, r *http.Request) {
 	if !memberMayViewSurveyResults(s, result) {
 		result.Counts = nil
 		result.PreferredCounts = nil
+		result.TextCounts = nil
 		result.Total = 0
 	}
 	writeJSON(w, 200, result)
@@ -621,7 +624,11 @@ func surveyIsClosed(s surveyRecord, now time.Time) bool {
 	return today.After(end)
 }
 func loadSurveyResult(ctx context.Context, db *firestore.Client, s surveyRecord, uid string) (surveyResult, error) {
-	r := surveyResult{SurveyRecord: s, Counts: map[string]int{}, PreferredCounts: map[string]int{}, CanRespond: surveyIsLive(s, surveyNow())}
+	r := surveyResult{SurveyRecord: s, Counts: map[string]int{}, PreferredCounts: map[string]int{}, TextCounts: map[string]int{}, CanRespond: surveyIsLive(s, surveyNow())}
+	allowsText := map[string]bool{}
+	for _, option := range s.Options {
+		allowsText[option.ID] = option.AllowsText
+	}
 	iter := db.Collection("surveys").Doc(s.ID).Collection("responses").Documents(ctx)
 	defer iter.Stop()
 	for {
@@ -641,6 +648,9 @@ func loadSurveyResult(ctx context.Context, db *firestore.Client, s surveyRecord,
 			r.Total++
 			for _, id := range x.OptionIDs {
 				r.Counts[id]++
+				if allowsText[id] && cleanString(x.TextByOption[id], surveyOtherTextMax) != "" {
+					r.TextCounts[id]++
+				}
 			}
 			preferredAllowed := surveyResponseAllowsPreferred(s, x.OptionIDs, x.PreferredOptionID)
 			if preferredAllowed {

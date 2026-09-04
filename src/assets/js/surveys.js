@@ -226,6 +226,7 @@
     allowsPreferred,
     total,
     showDescription,
+    textCount,
   ) {
     var percentage = total ? Math.round((count / total) * 100) : 0;
     return (
@@ -254,6 +255,15 @@
         ? '<span class="survey-result__preferred">' +
           preferredCount +
           " preferred</span>"
+        : "") +
+      (!showDescription && option.allowsText
+        ? '<span class="survey-result__comments" aria-label="' +
+          textCount +
+          " optional " +
+          (textCount === 1 ? "detail" : "details") +
+          '"><span aria-hidden="true">💬</span> ' +
+          textCount +
+          "</span>"
         : "") +
       "</strong></div>"
     );
@@ -509,6 +519,7 @@
               option.allowsPreferred || !analysis.survey.preferredEligibilityConfigured,
               analysis.total,
               true,
+              0,
             );
           })
           .join("") +
@@ -1005,6 +1016,7 @@
             o.allowsPreferred || !s.preferredEligibilityConfigured,
             result.total,
             false,
+            (result.textCounts && result.textCounts[o.id]) || 0,
           );
         })
         .join("") +

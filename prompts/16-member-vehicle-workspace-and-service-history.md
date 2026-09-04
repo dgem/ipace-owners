@@ -169,7 +169,8 @@ Keep results off the response form. After a successful first submission or amend
 to the overall results shown below” and aggregate-only results (do not repeat the member's choices
 or free text there). Present the aggregate in an election-results style: each outcome's short name,
 vote count, percentage and a prominent horizontal comparison bar; omit long option descriptions
-from the member result rows. The visual comparison may feature a `Currently most preferred outcome` callout only when one eligible
+from the member result rows. For text-enabled options, display the aggregate number of optional
+details with a clear comment icon, but never reveal their content. The visual comparison may feature a `Currently most preferred outcome` callout only when one eligible
 option has a unique, non-zero lead in members' preferred selections; do not declare a leader on a
 tie or where nobody has selected a preferred option. The
 server must withhold aggregate counts for an open survey until that member

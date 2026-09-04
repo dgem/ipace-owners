@@ -99,14 +99,17 @@ func TestSurveyResultsIgnorePreferredChoicesThatAreNoLongerEligible(t *testing.T
 	}
 }
 
-func TestAggregateSurveyResultsNeverSerialiseFreeText(t *testing.T) {
-	result := surveyResult{Counts: map[string]int{"option-1": 3}, PreferredCounts: map[string]int{"option-1": 2}, Total: 3}
+func TestAggregateSurveyResultsExposeOnlyTextCounts(t *testing.T) {
+	result := surveyResult{Counts: map[string]int{"option-1": 3}, PreferredCounts: map[string]int{"option-1": 2}, TextCounts: map[string]int{"option-1": 1}, Total: 3}
 	encoded, err := json.Marshal(result)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if strings.Contains(string(encoded), "myTextByOption") || strings.Contains(string(encoded), "textByOption") {
 		t.Fatalf("aggregate survey result exposed free text: %s", encoded)
+	}
+	if !strings.Contains(string(encoded), `"textCounts":{"option-1":1}`) {
+		t.Fatalf("aggregate survey result omitted optional-detail count: %s", encoded)
 	}
 }
 

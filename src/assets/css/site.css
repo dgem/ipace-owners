@@ -2028,6 +2028,12 @@ textarea {
   font-weight: 600;
 }
 
+.survey-result__comments {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
 .survey-result__bar {
   height: 0.875rem;
   margin-top: var(--space-3);
