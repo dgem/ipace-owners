@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -55,6 +56,24 @@ func writeAdminAuthorizationError(w http.ResponseWriter, err error) {
 	}
 	writeJSON(w, status, map[string]any{"error": message})
 }
+
+func writeMemberAuthorizationError(w http.ResponseWriter, err error) {
+	status := http.StatusUnauthorized
+	message := "Sign in required"
+	var authorizationErr *authorizationError
+	if errors.As(err, &authorizationErr) {
+		status = authorizationErr.status
+		message = authorizationErr.message
+	}
+	writeJSON(w, status, map[string]any{"error": message})
+}
+
+type authServiceUnavailableError struct {
+	cause error
+}
+
+func (err *authServiceUnavailableError) Error() string { return "sign-in verification unavailable" }
+func (err *authServiceUnavailableError) Unwrap() error { return err.cause }
 
 func authTraceCode(value string) string {
 	value = strings.ToUpper(strings.TrimSpace(value))
@@ -125,7 +144,17 @@ func decodeJSON(r *http.Request, v any) error {
 	}
 	dec := json.NewDecoder(r.Body)
 	dec.DisallowUnknownFields()
-	return dec.Decode(v)
+	if err := dec.Decode(v); err != nil {
+		return err
+	}
+	var extra any
+	if err := dec.Decode(&extra); err != io.EOF {
+		if err == nil {
+			return errors.New("unexpected trailing JSON value")
+		}
+		return err
+	}
+	return nil
 }
 
 func cors(w http.ResponseWriter, r *http.Request) bool {
@@ -395,7 +424,7 @@ func optionalUser(ctx context.Context, r *http.Request) (*firebaseUser, error) {
 	}
 	client, err := firebaseAuth(ctx)
 	if err != nil {
-		return nil, err
+		return nil, &authServiceUnavailableError{cause: err}
 	}
 	verified, err := client.VerifyIDToken(ctx, token)
 	if err != nil {
@@ -407,6 +436,11 @@ func optionalUser(ctx context.Context, r *http.Request) (*firebaseUser, error) {
 func requireUser(ctx context.Context, r *http.Request) (*firebaseUser, error) {
 	user, err := optionalUser(ctx, r)
 	if err != nil {
+		var unavailable *authServiceUnavailableError
+		if errors.As(err, &unavailable) {
+			logAuthorizationDecision(r, "member", "verification-unavailable", http.StatusServiceUnavailable)
+			return nil, authorizationFailure(http.StatusServiceUnavailable, "Sign-in verification is temporarily unavailable", err)
+		}
 		logAuthorizationDecision(r, "member", "invalid-token", http.StatusUnauthorized)
 		return nil, authorizationFailure(http.StatusUnauthorized, "Sign in required", err)
 	}

@@ -104,6 +104,15 @@ func TestAuthDiagnosticsRecordsOnlyBoundedPIIFreeLifecycleEvents(t *testing.T) {
 	if piiRec.Code != http.StatusBadRequest {
 		t.Fatalf("extra diagnostic field status = %d, want 400", piiRec.Code)
 	}
+
+	trailing := httptest.NewRequest(http.MethodPost, "/api/auth-diagnostics", strings.NewReader(`{"traceCode":"IP-ABCD-2345","stage":"email-link-completion","outcome":"failed"}{"email":"member@example.com"}`))
+	trailing.Header.Set("Origin", "https://ipace-owners.org")
+	trailing.Header.Set("X-Ipace-Auth-Trace", "IP-ABCD-2345")
+	trailingRec := httptest.NewRecorder()
+	AuthDiagnostics(trailingRec, trailing)
+	if trailingRec.Code != http.StatusBadRequest {
+		t.Fatalf("trailing diagnostic JSON status = %d, want 400", trailingRec.Code)
+	}
 }
 
 func TestEmailContinueURLUsesAllowedRequestOrigin(t *testing.T) {

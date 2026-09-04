@@ -450,7 +450,7 @@ func SubmitVehicleBasics(w http.ResponseWriter, r *http.Request) {
 
 	user, err := requireUser(r.Context(), r)
 	if err != nil {
-		writeJSON(w, http.StatusUnauthorized, map[string]any{"error": "Sign in required"})
+		writeMemberAuthorizationError(w, err)
 		return
 	}
 
@@ -627,7 +627,7 @@ func MemberData(w http.ResponseWriter, r *http.Request) {
 	}
 	user, err := requireUser(r.Context(), r)
 	if err != nil {
-		writeJSON(w, http.StatusUnauthorized, map[string]any{"error": "Sign in required"})
+		writeMemberAuthorizationError(w, err)
 		return
 	}
 	snapshot, err := loadMemberSnapshot(r.Context(), user.UID, user.Email)

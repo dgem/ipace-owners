@@ -45,6 +45,20 @@ func TestInstagramPreviewRequiresAdmin(t *testing.T) {
 	}
 }
 
+func TestInstagramPreviewPreservesInvalidTokenStatus(t *testing.T) {
+	original := instagramCampaignAuthorize
+	t.Cleanup(func() { instagramCampaignAuthorize = original })
+	instagramCampaignAuthorize = func(context.Context, *http.Request) error {
+		return authorizationFailure(http.StatusUnauthorized, "Sign in required", context.Canceled)
+	}
+	req := httptest.NewRequest(http.MethodPost, "/api/admin/instagram-preview", strings.NewReader(`{}`))
+	res := httptest.NewRecorder()
+	AdminInstagramPreview(res, req)
+	if res.Code != http.StatusUnauthorized {
+		t.Fatalf("status=%d body=%s", res.Code, res.Body.String())
+	}
+}
+
 func TestInstagramPreviewRejectsUnreviewedOrExternalMedia(t *testing.T) {
 	if _, err := previewInstagramCampaign(instagramDraftRequest{MediaPath: "/reel.mp4", Caption: "Hello"}); err == nil {
 		t.Fatal("expected unreviewed media to be rejected")
