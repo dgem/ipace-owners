@@ -218,13 +218,17 @@
       "</div>"
     );
   }
-  function resultMarkupOption(option, count, preferredCount, multiple, allowsPreferred) {
+  function resultMarkupOption(option, count, preferredCount, multiple, allowsPreferred, total) {
+    var percentage = total ? Math.round((count / total) * 100) : 0;
     return (
       '<div class="survey-result"><div><strong class="survey-result__name">' +
       esc(optionName(option)) +
       '</strong><div class="survey-markdown survey-result__description">' +
       markdown(optionDescription(option)) +
-      '</div></div><strong class="survey-result__count">' +
+      '</div><div class="survey-result__bar" aria-hidden="true"><span style="width:' +
+      percentage +
+      '%"></span></div>' +
+      '</div><strong class="survey-result__count">' +
       count +
       (multiple && allowsPreferred
         ? '<span class="survey-result__preferred">' +
@@ -233,6 +237,27 @@
         : "") +
       "</strong></div>"
     );
+  }
+
+  function preferredOutcomeLeader(survey, preferredCounts) {
+    if (!survey.multiple) return null;
+    var leader = null,
+      highestCount = 0,
+      tied = false;
+    survey.options.forEach(function (option) {
+      if (!option.allowsPreferred && survey.preferredEligibilityConfigured) return;
+      var count = preferredCounts[option.id] || 0;
+      if (count > highestCount) {
+        leader = option;
+        highestCount = count;
+        tied = false;
+      } else if (count > 0 && count === highestCount) {
+        tied = true;
+      }
+    });
+    return leader && highestCount > 0 && !tied
+      ? { option: leader, count: highestCount }
+      : null;
   }
 
   function setupAdmin(root) {
@@ -462,6 +487,7 @@
               preferred,
               analysis.survey.multiple,
               option.allowsPreferred || !analysis.survey.preferredEligibilityConfigured,
+              analysis.total,
             );
           })
           .join("") +
@@ -909,7 +935,8 @@
   function resultMarkup(result) {
     var s = result.survey,
       submitted = result.myOptionIds && result.myOptionIds.length,
-      closed = s.endsOn < dateInputValue(new Date());
+      closed = s.endsOn < dateInputValue(new Date()),
+      preferredLeader = preferredOutcomeLeader(s, result.preferredCounts || {});
     if (!submitted && !closed)
       return (
         '<section class="dashboard-panel"><h2 class="dashboard-panel__title">Submit your response first</h2><p>Aggregate results become available after you have submitted your own response.</p><a class="btn btn--primary" href="/member/survey-response/?id=' +
@@ -929,13 +956,22 @@
       esc(s.title) +
       '</h2><p class="survey-member-card__status">' +
       (submitted
-        ? "Thank you — your response is included below."
+        ? "We have added your submission to the overall results shown below."
         : "Results are now available to all members.") +
-      '</p><div class="survey-results"><div class="survey-results__header"><h3>Current results</h3><span>' +
+      '</p><div class="survey-results"><div class="survey-results__header"><h3>Overall results</h3><span>' +
       result.total +
       " response" +
       (result.total === 1 ? "" : "s") +
       "</span></div>" +
+      (preferredLeader
+        ? '<aside class="survey-results__leader"><p>Currently most preferred outcome</p><strong>' +
+          esc(optionName(preferredLeader.option)) +
+          '</strong><span>Selected as preferred by ' +
+          preferredLeader.count +
+          " member" +
+          (preferredLeader.count === 1 ? "" : "s") +
+          ".</span></aside>"
+        : "") +
       s.options
         .map(function (o) {
           var preferred =
@@ -946,14 +982,16 @@
             preferred,
             s.multiple,
             o.allowsPreferred || !s.preferredEligibilityConfigured,
+            result.total,
           );
         })
         .join("") +
       '</div><div class="cluster survey-results__actions">' +
+      '<a class="btn btn--primary" href="/member/account/">Return to member dashboard</a>' +
       (result.canRespond && submitted
         ? '<a class="btn btn--secondary" href="/member/survey-response/?id=' +
           encodeURIComponent(s.id) +
-          '">Edit your response</a>'
+          '">Edit response</a>'
         : "") +
       '<a class="btn btn--secondary" href="/member/surveys/?filter=closed">Closed surveys</a></div></article>'
     );

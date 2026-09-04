@@ -165,11 +165,17 @@ results when permitted. The separate response page must use large, numbered, car
 checkboxes/radio choices with a visibly selected state; it must not read as a wall of unstructured
 text.
 Keep results off the response form. After a successful first submission or amendment, redirect to
-`/member/survey-results/?id={surveyId}` with an explicit saved confirmation and the aggregate
-count-only results. The server must withhold aggregate counts for an open survey until that member
+`/member/survey-results/?id={surveyId}` with the clear confirmation “We have added your submission
+to the overall results shown below” and aggregate-only results (do not repeat the member's choices
+or free text there). Present the aggregate with option counts and a simple visual comparison. The
+visual comparison may feature a `Currently most preferred outcome` callout only when one eligible
+option has a unique, non-zero lead in members' preferred selections; do not declare a leader on a
+tie or where nobody has selected a preferred option. The
+server must withhold aggregate counts for an open survey until that member
 has submitted a response, preventing popularity-led voting; once a published survey is closed,
-results may be visible to every member if the administrator enabled them. Provide an `Edit your
-response` link back to the response page. `Past surveys` filters `/member/surveys/?filter=closed`;
+results may be visible to every member if the administrator enabled them. Separate actions from
+the results with generous whitespace: use a primary `Return to member dashboard` action first and
+an `Edit response` link back to the response page second. `Past surveys` filters `/member/surveys/?filter=closed`;
 it is not a separate route and must never point to a currently open survey.
 
 The admin dashboard places its actionable tool grid before campaign and member-statistics panels,
