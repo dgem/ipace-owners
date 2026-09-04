@@ -47,12 +47,20 @@
 			traceFromLink = '';
 		}
 		if (/^IP-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$/i.test(traceFromLink)) {
+			var traceCode = traceFromLink.toUpperCase();
 			try {
-				window.sessionStorage.setItem(storageKey, traceFromLink.toUpperCase());
+				window.sessionStorage.setItem(storageKey, traceCode);
 			} catch (err) {
 				console.warn('[identity.js] Session storage unavailable for sign-in support code.', err);
 			}
-			return traceFromLink.toUpperCase();
+			try {
+				var url = new URL(window.location.href);
+				url.searchParams.delete('authTrace');
+				window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash);
+			} catch (err) {
+				console.warn('[identity.js] Could not remove the sign-in support code from the address bar.', err);
+			}
+			return traceCode;
 		}
 		try {
 			var existing = window.sessionStorage.getItem(storageKey);

@@ -57,6 +57,13 @@ test('authenticated feature clients carry the opaque support trace header', func
   });
 });
 
+test('email-link support codes are removed from the browser address after storage', function () {
+  var identity = read('src/assets/js/identity.js');
+
+  assert.match(identity, /url\.searchParams\.delete\(['"]authTrace['"]\)/);
+  assert.match(identity, /window\.history\.replaceState/);
+});
+
 test('Join completion does not offer vehicle submission until signed in', function () {
   var join = read('src/join.njk') + read('src/_includes/partials/join-result.njk');
   var css = read('src/assets/css/site.css');
