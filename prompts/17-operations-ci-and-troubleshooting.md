@@ -399,6 +399,15 @@ site-owned `/images/` paths; Freeform campaigns retain the generic hero.
   Logs may include one-way email hashes, masked email addresses, previous Join counts,
   continue hosts, provider status summaries, and response diagnostics, but never raw
   addresses, full provider bodies, or action links.
+- For a reported `IP-XXXX-XXXX` support code, use Cloud Logging to filter the `authorization`
+  component by `jsonPayload.authTrace` (and the `auth-diagnostics`, `send-magic-link`, and
+  `firebase-email-link` components by the same field). The resulting timeline must show the
+  route, required role, decision, and status for each traced protected API request. Treat the
+  code as troubleshooting metadata, not a credential; it cannot authorize access by itself.
+- If a member cannot see a support code while reporting a clearly stale interface, ask them to
+  reload the site, then clear only `ipace-owners.org` website data if necessary. This signs them
+  out; they must request a fresh magic link afterwards. Never ask them to send the magic link,
+  a screenshot containing it, a Firebase token, or all of their browser data.
 
 ## Infrastructure Operations
 

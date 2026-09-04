@@ -4,6 +4,10 @@
 (function () {
   'use strict';
 
+  function authHeaders(headers) {
+    return window.ipaceAuthHeaders ? window.ipaceAuthHeaders(headers) : headers;
+  }
+
   function filenameFromResponse(response, format) {
     var disposition = response.headers.get('Content-Disposition') || '';
     var match = disposition.match(/filename="([^"]+)"/i);
@@ -29,7 +33,7 @@
       if (!token) throw new Error('Sign in again to export your data.');
       return fetch('/api/member-export?format=' + encodeURIComponent(format), {
         method: 'GET',
-        headers: { Authorization: 'Bearer ' + token },
+        headers: authHeaders({ Authorization: 'Bearer ' + token }),
         credentials: 'same-origin',
       });
     }).then(function (response) {

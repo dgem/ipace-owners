@@ -1,13 +1,20 @@
 (function () {
   'use strict';
 
+  function authHeaders(headers) {
+    return window.ipaceAuthHeaders ? window.ipaceAuthHeaders(headers) : headers;
+  }
+
   async function request(path, body) {
     var user = window.firebase && window.firebase.auth().currentUser;
     if (!user) throw new Error('Sign in as an administrator first.');
     var token = await user.getIdToken();
     var response = await fetch(path, {
       method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      headers: authHeaders({
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json'
+      }),
       body: JSON.stringify(body || {})
     });
     var data = await response.json();

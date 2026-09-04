@@ -44,6 +44,19 @@
   var adminVerification = null;
   var adminVerificationQueued = false;
 
+  function authTraceHeaders() {
+    return window.ipaceAuthTraceHeaders ? window.ipaceAuthTraceHeaders() : {};
+  }
+
+  function reportAuthDiagnostic(stage, outcome) {
+    if (window.ipaceReportAuthDiagnostic) window.ipaceReportAuthDiagnostic(stage, outcome);
+  }
+
+  function signInSupportMessage(message) {
+    if (!window.ipaceAuthTraceCode) return message;
+    return message + ' If you contact us, please quote sign-in code ' + window.ipaceAuthTraceCode + ' and the approximate time.';
+  }
+
   function setPendingState(container, title, body, retry) {
     var pending = container.querySelector('[data-auth-pending]');
     if (!pending) return;
@@ -79,7 +92,7 @@
     var content = container.querySelector('[data-auth-content]');
     if (gate) gate.hidden = true;
     if (content) content.hidden = true;
-    setPendingState(container, 'We could not confirm your sign-in', message || 'Check your connection and try again.', true);
+    setPendingState(container, 'We could not confirm your sign-in', signInSupportMessage(message || 'Check your connection and try again.'), true);
   }
 
   function escapeHtml(value) {
@@ -123,6 +136,7 @@
     return getIdentityToken(forceRefresh).then(function (token) {
       options = options || {};
       options.headers = options.headers || {};
+      Object.assign(options.headers, authTraceHeaders());
       if (token) {
         options.headers.Authorization = 'Bearer ' + token;
       }
@@ -294,7 +308,9 @@
   function memberDataRequest(forceRefresh) {
     return getIdentityToken(forceRefresh).then(function (token) {
       if (!token) return { noToken: true };
-      return fetch('/api/member-data', { headers: { Authorization: 'Bearer ' + token } });
+      var headers = authTraceHeaders();
+      headers.Authorization = 'Bearer ' + token;
+      return fetch('/api/member-data', { headers: headers });
     });
   }
 
@@ -315,16 +331,22 @@
       return Promise.resolve();
     }
     var expectedUID = identity.uid;
+    var tokenRetried = false;
     setPendingState(container, 'Checking sign-in...', 'One moment while we confirm your member session.', false);
     return memberDataRequest(false).then(function (res) {
       if (res.noToken) throw new Error('TOKEN_UNAVAILABLE');
-      if (res.status === 401 && window.ipaceIdentityUser && window.ipaceIdentityUser.uid === expectedUID) return memberDataRequest(true);
+      if (res.status === 401 && window.ipaceIdentityUser && window.ipaceIdentityUser.uid === expectedUID) {
+        tokenRetried = true;
+        reportAuthDiagnostic('member-verification', 'token-refresh-retry');
+        return memberDataRequest(true);
+      }
       return res;
     }).then(function (res) {
       if (res.noToken) throw new Error('TOKEN_UNAVAILABLE');
       if (!window.ipaceIdentityUser || window.ipaceIdentityUser.uid !== expectedUID) return;
       if (res.status === 401 || res.status === 403) {
-        showMemberGate(container);
+        reportAuthDiagnostic('member-verification', res.status === 401 && tokenRetried ? 'unauthorized-after-refresh' : 'access-rejected');
+        showMemberError(container, 'Your browser still has a sign-in session, but we could not verify it with the member service. Please try again.');
         return;
       }
       if (!res.ok) throw new Error('SERVER_' + res.status);
@@ -332,6 +354,7 @@
     }).catch(function (err) {
       if (!window.ipaceIdentityUser || window.ipaceIdentityUser.uid !== expectedUID) return;
       console.warn('[member-auth] Failed to verify auth:', err);
+      reportAuthDiagnostic('member-verification', err && err.message === 'TOKEN_UNAVAILABLE' ? 'token-unavailable' : 'failed');
       showMemberError(container, err && err.message === 'TOKEN_UNAVAILABLE' ? 'Your sign-in is still being restored. Please try again.' : 'We could not reach the member service. Check your connection and try again.');
     });
   }
@@ -402,7 +425,7 @@
     if (gate) gate.hidden = true;
     if (adminOnlyGate) adminOnlyGate.hidden = true;
     if (content) content.hidden = true;
-    setPendingState(container, 'We could not confirm your sign-in', message || 'Check your connection and try again.', true);
+    setPendingState(container, 'We could not confirm your sign-in', signInSupportMessage(message || 'Check your connection and try again.'), true);
   }
 
   function populateAdminStats(container, data) {
@@ -502,7 +525,9 @@
   function adminDataRequest(forceRefresh) {
     return getIdentityToken(forceRefresh).then(function (token) {
       if (!token) return { noToken: true };
-      return fetch('/api/admin-data', { headers: { Authorization: 'Bearer ' + token } });
+      var headers = authTraceHeaders();
+      headers.Authorization = 'Bearer ' + token;
+      return fetch('/api/admin-data', { headers: headers });
     });
   }
 
@@ -524,21 +549,33 @@
       return Promise.resolve();
     }
     var expectedUID = identity.uid;
+    var tokenRetried = false;
     setPendingState(container, 'Checking sign-in...', 'One moment while we confirm your administrator session.', false);
     return adminDataRequest(false).then(function (res) {
       if (res.noToken) throw new Error('TOKEN_UNAVAILABLE');
-      if (res.status === 401 && window.ipaceIdentityUser && window.ipaceIdentityUser.uid === expectedUID) return adminDataRequest(true);
+      if (res.status === 401 && window.ipaceIdentityUser && window.ipaceIdentityUser.uid === expectedUID) {
+        tokenRetried = true;
+        reportAuthDiagnostic('admin-verification', 'token-refresh-retry');
+        return adminDataRequest(true);
+      }
       return res;
     }).then(function (res) {
       if (res.noToken) throw new Error('TOKEN_UNAVAILABLE');
       if (!window.ipaceIdentityUser || window.ipaceIdentityUser.uid !== expectedUID) return;
-      if (res.status === 401) return showAdminGate(container);
-      if (res.status === 403) return showAdminOnlyGate(container);
+      if (res.status === 401) {
+        reportAuthDiagnostic('admin-verification', tokenRetried ? 'unauthorized-after-refresh' : 'access-rejected');
+        return showAdminError(container, 'Your browser still has a sign-in session, but we could not verify it with the administrator service. Please try again.');
+      }
+      if (res.status === 403) {
+        reportAuthDiagnostic('admin-verification', 'access-restricted');
+        return showAdminOnlyGate(container);
+      }
       if (!res.ok) throw new Error('SERVER_' + res.status);
       return res.json().then(function (data) { renderAdminData(container, data); });
     }).catch(function (err) {
       if (!window.ipaceIdentityUser || window.ipaceIdentityUser.uid !== expectedUID) return;
       console.warn('[member-auth] Failed to verify admin auth:', err);
+      reportAuthDiagnostic('admin-verification', err && err.message === 'TOKEN_UNAVAILABLE' ? 'token-unavailable' : 'failed');
       showAdminError(container, err && err.message === 'TOKEN_UNAVAILABLE' ? 'Your sign-in is still being restored. Please try again.' : 'We could not reach the administrator service. Check your connection and try again.');
     });
   }

@@ -93,7 +93,7 @@ func AdminSurveys(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := campaignAuthorize(r.Context(), r); err != nil {
-		writeJSON(w, 403, map[string]any{"error": "Admin role required"})
+		writeAdminAuthorizationError(w, err)
 		return
 	}
 	db, err := firestoreClient(r.Context())
@@ -181,7 +181,7 @@ func AdminSurveyResults(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := campaignAuthorize(r.Context(), r); err != nil {
-		writeJSON(w, http.StatusForbidden, map[string]any{"error": "Admin role required"})
+		writeAdminAuthorizationError(w, err)
 		return
 	}
 	id := cleanString(r.URL.Query().Get("id"), 160)
@@ -224,7 +224,7 @@ func AdminSurveyPreview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := campaignAuthorize(r.Context(), r); err != nil {
-		writeJSON(w, http.StatusForbidden, map[string]any{"error": "Admin role required"})
+		writeAdminAuthorizationError(w, err)
 		return
 	}
 	if r.Method != http.MethodGet && r.Method != http.MethodPost {

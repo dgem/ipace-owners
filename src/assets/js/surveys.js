@@ -1,5 +1,8 @@
 (function () {
   "use strict";
+  function authHeaders(headers) {
+    return window.ipaceAuthHeaders ? window.ipaceAuthHeaders(headers) : headers;
+  }
   function token() {
     var u = window.firebase && window.firebase.auth().currentUser;
     return u ? u.getIdToken() : Promise.reject(new Error("Sign in first."));
@@ -8,10 +11,10 @@
     return token().then(function (t) {
       return fetch(path, {
         method: method,
-        headers: {
+        headers: authHeaders({
           Authorization: "Bearer " + t,
           "Content-Type": "application/json",
-        },
+        }),
         body: body ? JSON.stringify(body) : undefined,
       }).then(function (r) {
         if (r.status === 204) return {};
@@ -413,7 +416,7 @@
             "/api/admin/survey-results?id=" +
               encodeURIComponent(id) +
               "&format=csv",
-            { headers: { Authorization: "Bearer " + value } },
+            { headers: authHeaders({ Authorization: "Bearer " + value }) },
           );
         })
         .then(function (response) {

@@ -77,6 +77,12 @@ type magicLinkRequest struct {
 	Name  string `json:"name"`
 }
 
+type authDiagnosticRequest struct {
+	TraceCode string `json:"traceCode"`
+	Stage     string `json:"stage"`
+	Outcome   string `json:"outcome"`
+}
+
 type contactRecord struct {
 	Name    string `json:"name,omitempty" firestore:"name,omitempty"`
 	Email   string `json:"email,omitempty" firestore:"email,omitempty"`

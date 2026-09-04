@@ -81,6 +81,10 @@ the retired hosting or Function platform.
 6. Private API calls include `Authorization: Bearer <Firebase ID token>`.
 7. Go Functions verify Firebase ID tokens server-side. Admin endpoints require an `admin`
    custom claim or a `roles` claim containing `admin`.
+8. The browser generates an opaque, session-scoped sign-in support code and sends it in
+   `X-Ipace-Auth-Trace` with passwordless and gate-verification requests. The API writes
+   structured, bounded lifecycle events keyed by that code, enabling support to correlate a
+   reported failure without logging an email address, token, UID, URL, or browser exception.
 
 OpenTofu reconciles the authoritative Firebase administrator emails through a tested Identity
 Platform API bridge. The shared module always includes `dan@kanzi.co.uk`, resolves email to the
@@ -105,6 +109,7 @@ header.
 | Route | Handler behind `Api` | Auth | Purpose |
 |---|---|---|---|
 | `POST /api/send-magic-link` | `SendMagicLink` | No | Request a passwordless sign-in email for an already registered member. |
+| `POST /api/auth-diagnostics` | `AuthDiagnostics` | No, same-origin | Record bounded, PII-free passwordless lifecycle events under the opaque browser-session support code. |
 | `POST /api/submit-join` | `SubmitJoin` | Optional | Save Join submission; send email link for guests. |
 | `POST /api/submit-vehicle-basics` | `SubmitVehicleBasics` | Member | Create or edit one owned vehicle basics record; creation may include an initial SoH reading. |
 | `POST /api/submit-soh` | `SubmitSOH` | Member | Create or edit an owned SoH reading after verifying vehicle ownership. |
