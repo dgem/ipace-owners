@@ -126,6 +126,8 @@ test("member survey choices are structured as prominent selectable cards", funct
   assert.match(script, /function preferredOutcomeLeader/);
   assert.match(script, /Return to member dashboard/);
   assert.match(script, /Edit response/);
+  assert.match(script, /survey-result--summary/);
+  assert.match(script, /vote" : "votes/);
   assert.match(css, /\.survey-choice:has\(input\[name="survey"\]:checked\)/);
   assert.match(css, /\.survey-member-card__title/);
   assert.match(css, /\.survey-choice__more/);
@@ -133,6 +135,7 @@ test("member survey choices are structured as prominent selectable cards", funct
   assert.match(css, /\.survey-member-card__question\s*\{/);
   assert.match(css, /\.survey-result__name/);
   assert.match(css, /\.survey-result__bar/);
+  assert.match(css, /\.survey-result--summary/);
   assert.match(css, /\.survey-results__actions/);
   assert.match(css, /\.survey-results__leader/);
   assert.match(css, /\.survey-options legend\s*\{[\s\S]*padding: 0;/);

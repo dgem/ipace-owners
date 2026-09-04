@@ -218,18 +218,38 @@
       "</div>"
     );
   }
-  function resultMarkupOption(option, count, preferredCount, multiple, allowsPreferred, total) {
+  function resultMarkupOption(
+    option,
+    count,
+    preferredCount,
+    multiple,
+    allowsPreferred,
+    total,
+    showDescription,
+  ) {
     var percentage = total ? Math.round((count / total) * 100) : 0;
     return (
-      '<div class="survey-result"><div><strong class="survey-result__name">' +
+      '<div class="survey-result' +
+      (showDescription ? "" : " survey-result--summary") +
+      '"><div><strong class="survey-result__name">' +
       esc(optionName(option)) +
-      '</strong><div class="survey-markdown survey-result__description">' +
-      markdown(optionDescription(option)) +
-      '</div><div class="survey-result__bar" aria-hidden="true"><span style="width:' +
+      '</strong>' +
+      (showDescription
+        ? '<div class="survey-markdown survey-result__description">' +
+          markdown(optionDescription(option)) +
+          "</div>"
+        : "") +
+      '<div class="survey-result__bar" aria-hidden="true"><span style="width:' +
       percentage +
       '%"></span></div>' +
       '</div><strong class="survey-result__count">' +
+      '<span class="survey-result__votes">' +
       count +
+      " " +
+      (count === 1 ? "vote" : "votes") +
+      " · " +
+      percentage +
+      "%</span>" +
       (multiple && allowsPreferred
         ? '<span class="survey-result__preferred">' +
           preferredCount +
@@ -488,6 +508,7 @@
               analysis.survey.multiple,
               option.allowsPreferred || !analysis.survey.preferredEligibilityConfigured,
               analysis.total,
+              true,
             );
           })
           .join("") +
@@ -983,6 +1004,7 @@
             s.multiple,
             o.allowsPreferred || !s.preferredEligibilityConfigured,
             result.total,
+            false,
           );
         })
         .join("") +
