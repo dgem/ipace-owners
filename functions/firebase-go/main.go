@@ -264,6 +264,8 @@ var authDiagnosticOutcomes = map[string]bool{
 	"signed-out":                 true,
 }
 
+const authDiagnosticsMaxBodyBytes = 1024
+
 // AuthDiagnostics records a deliberately small, PII-free lifecycle event for a
 // passwordless sign-in. It allows support to correlate a member-reported code
 // with Function logs without recording their email address, Firebase token, or
@@ -280,6 +282,7 @@ func AuthDiagnostics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	r.Body = http.MaxBytesReader(w, r.Body, authDiagnosticsMaxBodyBytes)
 	var req authDiagnosticRequest
 	if err := decodeJSON(r, &req); err != nil {
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "Invalid request body"})
