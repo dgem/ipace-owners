@@ -34,8 +34,10 @@ func TestSendMagicLinkSuppressesUnregisteredEmail(t *testing.T) {
 
 func TestSendMagicLinkSendsForRegisteredEmail(t *testing.T) {
 	sent := ""
-	restore := stubMagicLinkDependencies(t, 2, nil, false, nil, func(_ context.Context, email string, origin string) error {
+	trace := ""
+	restore := stubMagicLinkDependencies(t, 2, nil, false, nil, func(ctx context.Context, email string, origin string) error {
 		sent = email
+		trace = authTraceFromContext(ctx)
 		if origin != "https://ipace-owners.org" {
 			t.Fatalf("origin = %q, want request origin", origin)
 		}
@@ -45,6 +47,7 @@ func TestSendMagicLinkSendsForRegisteredEmail(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodPost, "/api/send-magic-link", strings.NewReader(`{"email":" DRIVER@example.com "}`))
 	req.Header.Set("Origin", "https://ipace-owners.org")
+	req.Header.Set("X-Ipace-Auth-Trace", "IP-ABCD-2345")
 	rec := httptest.NewRecorder()
 
 	SendMagicLink(rec, req)
@@ -54,6 +57,9 @@ func TestSendMagicLinkSendsForRegisteredEmail(t *testing.T) {
 	}
 	if sent != "driver@example.com" {
 		t.Fatalf("sent email = %q, want cleaned registered email", sent)
+	}
+	if trace != "IP-ABCD-2345" {
+		t.Fatalf("email-link trace = %q", trace)
 	}
 }
 

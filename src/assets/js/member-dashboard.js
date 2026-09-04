@@ -11,6 +11,10 @@
   var memberData = null;
   var serviceProviders = [];
 
+  function authHeaders(headers) {
+    return window.ipaceAuthHeaders ? window.ipaceAuthHeaders(headers) : headers;
+  }
+
   function escapeHtml(value) {
     return String(value == null ? '' : value)
       .replace(/&/g, '&amp;')
@@ -448,7 +452,14 @@
     if (confirmation !== 'DELETE') return;
     var endpoint = kind === 'soh' ? '/api/delete-soh' : '/api/delete-service-event';
     Promise.resolve(window.ipaceGetIdentityToken ? window.ipaceGetIdentityToken() : '').then(function (token) {
-      return fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify({ id: id, confirmation: confirmation }) });
+      return fetch(endpoint, {
+        method: 'POST',
+        headers: authHeaders({
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + token
+        }),
+        body: JSON.stringify({ id: id, confirmation: confirmation })
+      });
     }).then(function (response) {
       return response.json().catch(function () { return {}; }).then(function (data) {
         if (!response.ok || !data.ok) throw new Error(data.error || 'Could not delete record');
@@ -624,7 +635,10 @@
     Promise.resolve(window.ipaceGetIdentityToken ? window.ipaceGetIdentityToken() : '').then(function (token) {
       return fetch('/api/upsert-service-event', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        headers: authHeaders({
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + token
+        }),
         body: JSON.stringify(payload),
       });
     }).then(function (response) {

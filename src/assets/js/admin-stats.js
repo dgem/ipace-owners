@@ -14,6 +14,10 @@
   var API_ENDPOINT = '/api/admin/stats';
   var TABLE_ROWS_LIMIT = 200;
 
+  function authHeaders(headers) {
+    return window.ipaceAuthHeaders ? window.ipaceAuthHeaders(headers) : headers;
+  }
+
   // ── Helpers ───────────────────────────────────────────────────────────────
 
   function escapeHtml(value) {
@@ -36,7 +40,10 @@
       if (!token) throw new Error('Sign in as an administrator first.');
       var response = await window.fetch(API_ENDPOINT, {
         method: 'GET',
-        headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + token }
+        headers: authHeaders({
+          'Accept': 'application/json',
+          'Authorization': 'Bearer ' + token
+        })
       });
 
       if (!response.ok) {

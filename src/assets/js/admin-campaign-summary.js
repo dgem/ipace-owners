@@ -1,6 +1,10 @@
 (function () {
   'use strict';
 
+  function authHeaders(headers) {
+    return window.ipaceAuthHeaders ? window.ipaceAuthHeaders(headers) : headers;
+  }
+
   function number(value) {
     return new Intl.NumberFormat().format(value || 0);
   }
@@ -17,7 +21,10 @@
       var token = await user.getIdToken();
       var response = await fetch(root.getAttribute('data-summary-endpoint'), {
         method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+        headers: authHeaders({
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json'
+        }),
         body: '{}'
       });
       var data = await response.json();

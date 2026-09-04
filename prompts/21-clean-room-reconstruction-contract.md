@@ -95,6 +95,7 @@ change rather than assuming it exists.
 | Method and route | Authentication | Request/response contract |
 |---|---|---|
 | `POST /api/send-magic-link` | Public | JSON `email`, optional `name`; send only for a matching Join submission or existing Firebase Auth account and return enumeration-resistant `{ "ok": true }` for syntactically valid requests. |
+| `POST /api/auth-diagnostics` | Public, same-origin | JSON `traceCode`, bounded `stage`, and bounded `outcome`; accept only a valid opaque support code and never accept email, Firebase tokens, URLs, exception text, or free-form client diagnostics. |
 | `POST /api/submit-join` | Optional Firebase token | `name`, `email`, `country`, `relationship`, `skills[]`, `consent-contact`, `consent-not-legal`, `consent-data`, and `bot-field`; save the Join record and initiate guest activation. |
 | `POST /api/submit-vehicle-basics` | Member | Optional `id` for an owned edit; otherwise `vin`, `registration`, `country`, `modelYear`, `mileage`, `ownedSince`, `firstReg`, plus optional initial `soh`, `sohDate`, `sohMileage`, `sohSource`. |
 | `POST /api/submit-soh` | Member/vehicle owner | Optional `id` for an owned edit plus `vehicleId`, `soh`, `sohDate`, `sohMileage`, `sohSource`; maintain the vehicle compatibility value. |
@@ -137,6 +138,25 @@ into a GET URL; their no-JavaScript POST is a safe failure, not a form-encoded A
 Reject invalid methods, malformed input, failed authentication, and unauthorized ownership;
 return generic success for Join honeypot submissions as specified in the feature prompts.
 Never depend on frontend gating for data protection.
+
+### Authorization trace contract
+
+The browser generates an opaque `IP-XXXX-XXXX` support code, persists it for the current
+sign-in journey, carries it through the passwordless email-link `continueUrl`, and sends it as
+`X-Ipace-Auth-Trace` on magic-link and authenticated API calls. It is diagnostic metadata only:
+it must never grant access. When the header is valid, the common server guards write a PII-free
+authorization event for every decision so support can reconstruct the journey by code.
+
+| Protected request class | Required role | Recorded decisions |
+|---|---|---|
+| Member reads, exports, survey actions and owned data writes | Firebase user | `allowed`, `missing-token`, `invalid-token` with route and 200/401 status |
+| Admin data, admin statistics, surveys, campaigns and publishing tools | Firebase admin claim | member decision plus admin `allowed` or `admin-claim-missing`, with route and 200/401/403 status |
+
+Do not emit these authorization logs without a valid support code. The separate public
+`auth-diagnostics` endpoint accepts only bounded browser lifecycle events such as persistence,
+identity observer, magic-link completion, and gate verification. It requires an allowed non-empty
+`Origin` and a header code exactly matching the body code; it must never accept email, tokens,
+URLs, exception strings, or arbitrary client data.
 
 ## Canonical Firestore and snapshot schemas
 

@@ -39,6 +39,17 @@ server-side by Go Cloud Functions that validate Firebase ID tokens.
   rejected by Firebase, use the visible `[data-magic-link-form]` and
   `[data-magic-link-status]` UI to ask for the email address that received the link, then
   complete the pending link from that form submission.
+- Generate one opaque, session-scoped sign-in support code (for example `IP-ABCD-2345`).
+  It must contain no email address, token, UID, or other personal data. Attach it as
+  `X-Ipace-Auth-Trace` to every authenticated API request, magic-link request, and gate
+  verification. Carry a valid code through the passwordless email-link `continueUrl` so a
+  new tab or browser hand-off remains one support journey. On a recoverable sign-in failure,
+  show the member the code and ask them to report it with the approximate time; do not show
+  it during a successful sign-in.
+- Send only bounded lifecycle names and outcomes to `POST /api/auth-diagnostics` for magic-link
+  requesting/completion and member/admin verification. Require both an allowed browser `Origin`
+  and an `X-Ipace-Auth-Trace` header exactly matching the body code. Never send an email address,
+  Firebase token, exception text, browser URL, or free-form diagnostic data in this telemetry.
 - Expose `window.ipaceGetIdentityToken()` so form/API code can attach
   `Authorization: Bearer <Firebase ID token>`.
 - Update header and mobile controls based on current user state.
@@ -85,6 +96,11 @@ server-side by Go Cloud Functions that validate Firebase ID tokens.
   show a recoverable sign-in-verification error with a `Try again` control; do not send the user
   back through the magic-link flow. Serialise both member and administrator verification so
   duplicate lifecycle events cannot race each other.
+- If a known signed-in member receives a 401 even after the one forced token refresh, show the
+  recoverable verification error and `Try again` control rather than putting them back into the
+  magic-link gate. This avoids a transient token/session race becoming a sign-in loop. Include
+  the session support code in that error. Retain the distinct access-restricted UI for an
+  administrator receiving 403.
 - On 403 for admin: show access-restricted gate.
 - Populate vehicle lists, join info, account preferences, admin stats, join table, and
   vehicle table from the API response.
@@ -108,6 +124,24 @@ and admin role server-side.
 |---|---|---|
 | `MemberData` | Firebase user | Return the authenticated user's private snapshot. |
 | `AdminData` | Firebase admin custom claim | Return admin review data. |
+| `AuthDiagnostics` | Public, same-origin | Record bounded, PII-free passwordless lifecycle events keyed by the opaque support code. |
+
+### Authorization tracing matrix
+
+For a reported support code, Cloud Logging must show every authorization decision made by the
+server. The common guard writes the sanitized route, required role, decision, and HTTP status
+only when a valid `X-Ipace-Auth-Trace` is present; it must not log personal data, token data,
+request bodies, or free-form browser errors.
+
+| Request class | Required role | Central guard | Decisions recorded |
+|---|---|---|---|
+| Member reads, exports, survey responses, and member-owned writes | Firebase user | `requireUser` | `allowed`, `missing-token`, `invalid-token` (200/401) |
+| Admin data, statistics, survey management/results, campaigns, and publishing tools | Firebase admin claim | `requireAdmin` / `campaignAuthorize` | member decision followed by admin `allowed` or `admin-claim-missing` (200/401/403) |
+| Passwordless start and lifecycle diagnostics | No role; same-origin only | public handler + origin validation | lifecycle events only, never an authorization claim |
+
+The browser must also report bounded `persistence` and `identity-observer` lifecycle outcomes,
+alongside magic-link and gate verification outcomes. This makes it possible to reconstruct the
+journey around each authorization event without relying on client-side UI gating as security.
 
 Admin access is granted through Firebase Auth custom claims: `admin: true` or
 `roles: ["admin"]`.
