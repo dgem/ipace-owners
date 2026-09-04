@@ -139,7 +139,7 @@ test("member survey choices are structured as prominent selectable cards", funct
   assert.match(css, /\.survey-result__bar/);
   assert.match(css, /\.survey-result--summary/);
   assert.match(css, /\.survey-result__comments/);
-  assert.match(css, /\.survey-results__actions/);
+  assert.match(css, /\.survey-results__actions\s*\{[\s\S]*margin-top: var\(--space-10\);[\s\S]*border-top:/);
   assert.match(css, /\.survey-results__leader/);
   assert.match(css, /\.survey-options legend\s*\{[\s\S]*padding: 0;/);
 });
