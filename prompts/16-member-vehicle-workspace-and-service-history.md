@@ -132,6 +132,9 @@ characters). Preserve and derive a sensible name from legacy label-only options 
 documents. On the response and preview cards show the name first; descriptions that span multiple
 lines or overflow their visible space should be collapsed to two visible lines with an accessible
 `...more` / `Show less` control.
+Existing surveys without explicit preferred-eligibility configuration retain their prior behaviour:
+all options, including any newly added during an edit, initially appear preferred-eligible until
+the administrator saves the explicit configuration.
 Any number of options may offer an optional 250-character free-text explanation (for example,
 two distinct `Other` options); store text only when the member supplies it against the relevant
 selected option.
