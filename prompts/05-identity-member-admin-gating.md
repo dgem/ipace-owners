@@ -39,6 +39,14 @@ server-side by Go Cloud Functions that validate Firebase ID tokens.
   rejected by Firebase, use the visible `[data-magic-link-form]` and
   `[data-magic-link-status]` UI to ask for the email address that received the link, then
   complete the pending link from that form submission.
+- Generate one opaque, session-scoped sign-in support code (for example `IP-ABCD-2345`).
+  It must contain no email address, token, UID, or other personal data. Attach it as
+  `X-Ipace-Auth-Trace` to magic-link and gate-verification API requests. On a recoverable
+  sign-in failure, show the member the code and ask them to report it with the approximate
+  time; do not show it during a successful sign-in.
+- Send only bounded lifecycle names and outcomes to `POST /api/auth-diagnostics` for magic-link
+  requesting/completion and member/admin verification. Never send an email address, Firebase
+  token, exception text, browser URL, or free-form diagnostic data in this telemetry.
 - Expose `window.ipaceGetIdentityToken()` so form/API code can attach
   `Authorization: Bearer <Firebase ID token>`.
 - Update header and mobile controls based on current user state.
@@ -85,6 +93,11 @@ server-side by Go Cloud Functions that validate Firebase ID tokens.
   show a recoverable sign-in-verification error with a `Try again` control; do not send the user
   back through the magic-link flow. Serialise both member and administrator verification so
   duplicate lifecycle events cannot race each other.
+- If a known signed-in member receives a 401 even after the one forced token refresh, show the
+  recoverable verification error and `Try again` control rather than putting them back into the
+  magic-link gate. This avoids a transient token/session race becoming a sign-in loop. Include
+  the session support code in that error. Retain the distinct access-restricted UI for an
+  administrator receiving 403.
 - On 403 for admin: show access-restricted gate.
 - Populate vehicle lists, join info, account preferences, admin stats, join table, and
   vehicle table from the API response.
@@ -108,6 +121,7 @@ and admin role server-side.
 |---|---|---|
 | `MemberData` | Firebase user | Return the authenticated user's private snapshot. |
 | `AdminData` | Firebase admin custom claim | Return admin review data. |
+| `AuthDiagnostics` | Public, same-origin | Record bounded, PII-free passwordless lifecycle events keyed by the opaque support code. |
 
 Admin access is granted through Firebase Auth custom claims: `admin: true` or
 `roles: ["admin"]`.

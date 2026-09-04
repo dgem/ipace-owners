@@ -697,6 +697,9 @@ behind the single Go `Api` Cloud Function:
   the configured Firebase-default or Admin-SDK/Resend delivery path. This lets claim-managed
   staging administrators sign in even when preview data has no copied Join record, while the
   generic browser response continues to conceal registration state.
+- `auth-diagnostics` records only bounded passwordless lifecycle events under an opaque,
+  session-scoped support code. The code lets support correlate Function logs with a member
+  report without collecting their email address, Firebase token, browser URL, or exception text.
 - `submit-vehicle-basics` creates or edits an owned vehicle registration slice for signed-in users:
   VIN HMAC / final six characters, registration, country, model year, ownership dates,
   mileage, State of Health, measurement date, measurement mileage, and SoH source.

@@ -23,6 +23,30 @@ import (
 
 var emailRE = regexp.MustCompile(`^[^\s@]+@[^\s@]+\.[^\s@]+$`)
 var vinRE = regexp.MustCompile(`^[A-HJ-NPR-Z0-9]{17}$`)
+var authTraceRE = regexp.MustCompile(`^IP-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$`)
+
+func authTraceCode(value string) string {
+	value = strings.ToUpper(strings.TrimSpace(value))
+	if !authTraceRE.MatchString(value) {
+		return ""
+	}
+	return value
+}
+
+func authTraceFields(r *http.Request) map[string]any {
+	traceCode := authTraceCode(r.Header.Get("X-Ipace-Auth-Trace"))
+	if traceCode == "" {
+		return map[string]any{}
+	}
+	return map[string]any{"authTrace": traceCode}
+}
+
+func addAuthTrace(fields map[string]any, r *http.Request) map[string]any {
+	for key, value := range authTraceFields(r) {
+		fields[key] = value
+	}
+	return fields
+}
 
 func jsonUnmarshal(data []byte, v any) error {
 	return json.Unmarshal(data, v)
@@ -52,7 +76,7 @@ func cors(w http.ResponseWriter, r *http.Request) bool {
 		w.Header().Set("Vary", "Origin")
 	}
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Ipace-Auth-Trace")
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusNoContent)
 		return true

@@ -34,6 +34,8 @@ test('site UI uses Firebase passwordless magic-link forms', function () {
   assert.match(read('src/member/submit-vehicle-data.njk'), /authLoginGate\("vehicle-magic-email"/);
   assert.match(read('src/admin/review-queue.njk'), /authLoginGate\("admin-magic-email"/);
   assert.match(read('src/assets/js/identity.js'), /\/api\/send-magic-link/);
+  assert.match(read('src/assets/js/identity.js'), /\/api\/auth-diagnostics/);
+  assert.match(read('src/assets/js/identity.js'), /X-Ipace-Auth-Trace/);
   assert.match(read('src/assets/js/identity.js'), /If this email address is registered/);
   assert.doesNotMatch(read('src/assets/js/identity.js'), /Check your email for a secure sign-in link/);
 });
@@ -136,6 +138,9 @@ test('protected pages do not show login gates before auth verification completes
   assert.match(memberAuth, /window\.ipaceIdentityReadyPromise/);
   assert.match(memberAuth, /function showMemberError/);
   assert.match(memberAuth, /function showAdminError/);
+  assert.match(memberAuth, /function signInSupportMessage/);
+  assert.match(memberAuth, /unauthorized-after-refresh/);
+  assert.doesNotMatch(memberAuth, /res\.status === 401\) return showAdminGate/);
   assert.match(memberAuth, /function verifyAdminAuth/);
   assert.match(memberAuth, /data-auth-retry/);
   assert.doesNotMatch(memberAuth, /1500/);

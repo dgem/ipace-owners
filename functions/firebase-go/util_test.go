@@ -43,6 +43,41 @@ func TestCorsAdvertisesSupportedSurveyMethods(t *testing.T) {
 	if methods := response.Header().Get("Access-Control-Allow-Methods"); methods != "GET, POST, PUT, DELETE, OPTIONS" {
 		t.Fatalf("allowed methods = %q", methods)
 	}
+	if headers := response.Header().Get("Access-Control-Allow-Headers"); !strings.Contains(headers, "X-Ipace-Auth-Trace") {
+		t.Fatalf("allowed headers = %q, want auth trace header", headers)
+	}
+}
+
+func TestAuthTraceCodeAcceptsOnlyOpaqueSupportCodes(t *testing.T) {
+	if got := authTraceCode(" ip-abcd-2345 "); got != "IP-ABCD-2345" {
+		t.Fatalf("authTraceCode(valid) = %q", got)
+	}
+	for _, value := range []string{"", "IP-ABCD-234O", "member@example.com", "IP-ABCDE-2345"} {
+		if got := authTraceCode(value); got != "" {
+			t.Fatalf("authTraceCode(%q) = %q, want empty", value, got)
+		}
+	}
+}
+
+func TestAuthDiagnosticsRecordsOnlyBoundedPIIFreeLifecycleEvents(t *testing.T) {
+	req := httptest.NewRequest(http.MethodPost, "/api/auth-diagnostics", strings.NewReader(`{"traceCode":"IP-ABCD-2345","stage":"email-link-completion","outcome":"failed"}`))
+	req.Header.Set("Origin", "https://ipace-owners.org")
+	req.Header.Set("X-Ipace-Auth-Trace", "IP-ABCD-2345")
+	rec := httptest.NewRecorder()
+
+	AuthDiagnostics(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200", rec.Code)
+	}
+
+	invalid := httptest.NewRequest(http.MethodPost, "/api/auth-diagnostics", strings.NewReader(`{"traceCode":"IP-ABCD-2345","stage":"unknown","outcome":"failed"}`))
+	invalid.Header.Set("Origin", "https://ipace-owners.org")
+	invalidRec := httptest.NewRecorder()
+	AuthDiagnostics(invalidRec, invalid)
+	if invalidRec.Code != http.StatusBadRequest {
+		t.Fatalf("invalid status = %d, want 400", invalidRec.Code)
+	}
 }
 
 func TestEmailContinueURLUsesAllowedRequestOrigin(t *testing.T) {
