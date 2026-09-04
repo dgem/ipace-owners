@@ -151,6 +151,7 @@ test("survey directory filters its date-ordered list and results follow the blin
   assert.match(backend, /surveyIsPublished/);
   assert.match(script, /filter\s*===\s*["']closed["']/);
   assert.match(script, /survey-response\/\?id=/);
+  assert.match(script, /active\[0\]\.survey\.id/);
   assert.match(script, /survey-results\/\?id=/);
   assert.match(script, /window\.location\.assign/);
   assert.match(script, /!result\.canRespond/);

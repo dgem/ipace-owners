@@ -1015,7 +1015,11 @@
           : "are " + active.length + " open member surveys") +
         " waiting for your response.</p><ul>" +
         names +
-        '</ul><div class="cluster"><a class="btn btn--primary" href="/member/surveys/">Take the survey' +
+        '</ul><div class="cluster"><a class="btn btn--primary" href="' +
+        (active.length === 1
+          ? "/member/survey-response/?id=" + encodeURIComponent(active[0].survey.id)
+          : "/member/surveys/") +
+        '">Take the survey' +
         (active.length === 1 ? "" : "s") +
         "</a>" +
         historyAction +

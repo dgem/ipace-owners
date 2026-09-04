@@ -155,7 +155,9 @@ listing.
 On both member landing pages—`/member/dashboard/` and `/member/account/` (the destination of the
 signed-in `My Data` header action)—place a prominent, plain-language callout before the main
 workspace: when one or more surveys are open, name them and provide a primary `Take the survey`
-action plus a `Past surveys` action only when closed surveys exist. Refresh this summary after
+action plus a `Past surveys` action only when closed surveys exist. When exactly one survey is
+open, the primary action must link directly to its response page; with more than one, it may lead
+to the survey directory to avoid arbitrarily selecting one. Refresh this summary after
 member verification, every minute, and on focus. The member survey page is a date-ordered
 directory of every published survey, with All, Open, Upcoming, and Closed filters. Each item
 shows whether the member has submitted, and provides Submit/Edit only while open, and View
