@@ -82,12 +82,15 @@ func TestSurveyResponsePreferredOptionMustBeSelectedOnMultipleChoice(t *testing.
 }
 
 func TestSurveyResultsIgnorePreferredChoicesThatAreNoLongerEligible(t *testing.T) {
-	s := surveyRecord{PreferredEligibilityConfigured: true, Options: []surveyOption{{ID: "eligible", AllowsPreferred: true}, {ID: "ineligible"}}}
+	s := surveyRecord{Multiple: true, PreferredEligibilityConfigured: true, Options: []surveyOption{{ID: "eligible", AllowsPreferred: true}, {ID: "ineligible"}}}
 	if !surveyOptionAllowsPreferred(s, "eligible") || surveyOptionAllowsPreferred(s, "ineligible") || surveyOptionAllowsPreferred(s, "missing") {
 		t.Fatal("only explicitly eligible survey options may receive preferred counts")
 	}
 	if !surveyResponseAllowsPreferred(s, []string{"eligible"}, "eligible") || surveyResponseAllowsPreferred(s, []string{"ineligible"}, "eligible") {
 		t.Fatal("preferred result must be both eligible and selected")
+	}
+	if surveyResponseAllowsPreferred(surveyRecord{Options: []surveyOption{{ID: "eligible", AllowsPreferred: true}}}, []string{"eligible"}, "eligible") {
+		t.Fatal("single-choice survey results must not count a preferred option")
 	}
 
 	legacy := surveyRecord{Options: []surveyOption{{ID: "previously-allowed"}}}

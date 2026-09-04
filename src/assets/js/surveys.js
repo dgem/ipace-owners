@@ -522,7 +522,11 @@
           : "Select the outcome you would support") +
         '</legend><p class="form-hint">' +
         (s.multiple
-          ? "You can choose more than one option and optionally mark one as preferred."
+          ? s.options.some(function (option) {
+              return option.allowsPreferred || !s.preferredEligibilityConfigured;
+            })
+            ? "You can choose more than one option and may mark an eligible option as preferred."
+            : "You can choose more than one option."
           : "Choose one option.") +
         '</p><div data-survey-choice-list></div></fieldset><button class="btn btn--primary survey-options__submit" type="submit">Test response</button><p role="status" aria-live="polite"></p></form></article>';
       var form = root.querySelector("form"),

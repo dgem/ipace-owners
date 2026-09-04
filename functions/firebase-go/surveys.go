@@ -551,7 +551,7 @@ func surveyOptionAllowsPreferred(s surveyRecord, optionID string) bool {
 }
 
 func surveyResponseAllowsPreferred(s surveyRecord, optionIDs []string, preferredOptionID string) bool {
-	if !surveyOptionAllowsPreferred(s, preferredOptionID) {
+	if !s.Multiple || !surveyOptionAllowsPreferred(s, preferredOptionID) {
 		return false
 	}
 	for _, optionID := range optionIDs {
