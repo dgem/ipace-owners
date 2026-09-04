@@ -35,10 +35,12 @@ server-side by Go Cloud Functions that validate Firebase ID tokens.
 - When Join sends a guest registration link, store the submitted email in
   `ipaceEmailForSignIn` so the clicked link can complete without asking again in the same
   browser.
-- Do not use `window.prompt` for email-link completion. If the stored email is missing or
-  rejected by Firebase, use the visible `[data-magic-link-form]` and
-  `[data-magic-link-status]` UI to ask for the email address that received the link, then
-  complete the pending link from that form submission.
+- Do not use `window.prompt` for email-link completion. If the stored email is missing, use
+  the visible `[data-magic-link-form]` and `[data-magic-link-status]` UI to ask for the email
+  address that received the link, then complete the pending link from that form submission. If
+  Firebase rejects a link, clear only the pending link state and auth query parameters without
+  reloading; the same visible form must then request a fresh sign-in link rather than retrying
+  the rejected action code.
 - Generate one opaque, session-scoped sign-in support code (for example `IP-ABCD-2345`).
   It must contain no email address, token, UID, or other personal data. Attach it as
   `X-Ipace-Auth-Trace` to every authenticated API request, magic-link request, and gate
