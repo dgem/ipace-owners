@@ -13,9 +13,9 @@
         method: method,
         headers: authHeaders({
           Authorization: "Bearer " + t,
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         }),
-        body: body ? JSON.stringify(body) : undefined,
+        body: body ? JSON.stringify(body) : undefined
       }).then(function (r) {
         if (r.status === 204) return {};
         return r.json().then(function (d) {
@@ -34,7 +34,7 @@
     var html = esc(v);
     html = html.replace(
       /\[([^\]]+)\]\((https?:\/\/[A-Za-z0-9._~:/?#@!$&'()*+,;=%-]+)\)/g,
-      '<a href="$2" rel="noopener noreferrer" target="_blank">$1</a>',
+      '<a href="$2" rel="noopener noreferrer" target="_blank">$1</a>'
     );
     html = html.replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>");
     return html.replace(/\*([^*\n]+)\*/g, "<em>$1</em>");
@@ -71,7 +71,7 @@
   }
   function optionName(option) {
     var source = String(
-      (option && (option.name || optionDescription(option))) || "",
+      (option && (option.name || optionDescription(option))) || ""
     );
     var lines = source.replace(/\r\n?/g, "\n").split("\n");
     var first = "";
@@ -94,7 +94,7 @@
       sections.push(
         '<section class="survey-member-card__context">' +
           markdown(s.description) +
-          "</section>",
+          "</section>"
       );
     if (s.question || s.callToAction)
       sections.push(
@@ -402,7 +402,7 @@
           )
             request(
               "/api/admin/surveys?id=" + encodeURIComponent(s.id),
-              "DELETE",
+              "DELETE"
             )
               .then(load)
               .catch(function (e) {
@@ -454,9 +454,9 @@
             description: x.querySelector("[data-option-description]").value,
             allowsPreferred: x.querySelector("[data-option-preferred]").checked,
             allowsText: x.querySelector("[data-option-text]").checked,
-            textPrompt: x.querySelector("[data-option-text-prompt]").value,
+            textPrompt: x.querySelector("[data-option-text-prompt]").value
           };
-        }),
+        })
       };
       request("/api/admin/surveys", payload.id ? "PUT" : "POST", payload)
         .then(function () {
@@ -480,7 +480,7 @@
             "/api/admin/survey-results?id=" +
               encodeURIComponent(id) +
               "&format=csv",
-            { headers: authHeaders({ Authorization: "Bearer " + value }) },
+            { headers: authHeaders({ Authorization: "Bearer " + value }) }
           );
         })
         .then(function (response) {
@@ -594,7 +594,7 @@
       s.options.forEach(function (o, index) {
         choices.insertAdjacentHTML(
           "beforeend",
-          choiceMarkup(o, index, s.multiple, o.allowsPreferred || !s.preferredEligibilityConfigured, false, false, "", "preview-text-"),
+          choiceMarkup(o, index, s.multiple, o.allowsPreferred || !s.preferredEligibilityConfigured, false, false, "", "preview-text-")
         );
       });
       prepareOptionDescriptions(choices);
@@ -605,9 +605,9 @@
             field.closest(".survey-choice__text").hidden = !form.querySelector(
               'input[name="survey"][value="' +
                 field.getAttribute("data-option-text-id") +
-                '"]',
+                '"]'
             ).checked;
-          },
+          }
         );
         Array.prototype.forEach.call(
           form.querySelectorAll("[data-preferred-option]"),
@@ -617,7 +617,7 @@
             ).checked;
             field.closest(".survey-choice__preferred").hidden = !selected;
             if (!selected) field.checked = false;
-          },
+          }
         );
         if (
           event.target.matches("[data-preferred-option]") &&
@@ -627,7 +627,7 @@
             form.querySelectorAll("[data-preferred-option]"),
             function (field) {
               if (field !== event.target) field.checked = false;
-            },
+            }
           );
         expandSelectedOptionDescriptions(form);
       };
@@ -637,7 +637,7 @@
             form.querySelectorAll('input[name="survey"]:checked'),
             function (input) {
               return input.value;
-            },
+            }
           ),
           preferred = form.querySelector("[data-preferred-option]:checked"),
           textByOption = {};
@@ -652,8 +652,8 @@
             surveyId: s.id,
             optionIds: selected,
             preferredOptionId: preferred ? preferred.value : "",
-            textByOption: textByOption,
-          },
+            textByOption: textByOption
+          }
         )
           .then(function () {
             form.querySelector("[role=status]").textContent =
@@ -730,7 +730,7 @@
             (s.multiple
               ? "You can choose more than one option."
               : "Choose one option.") +
-            "</p><div data-survey-choice-list></div></fieldset>",
+            "</p><div data-survey-choice-list></div></fieldset>"
         );
         var choices = form.querySelector("[data-survey-choice-list]");
         s.options.forEach(function (o, index) {
@@ -757,7 +757,7 @@
             ((result.myOptionIds || []).length
               ? "Update your response"
               : "Submit your response") +
-            "</button>",
+            "</button>"
         );
         form.onchange = function (event) {
           Array.prototype.forEach.call(
@@ -767,9 +767,9 @@
                 !form.querySelector(
                   'input[name="survey"][value="' +
                     field.getAttribute("data-option-text-id") +
-                    '"]',
+                    '"]'
                 ).checked;
-            },
+            }
           );
           Array.prototype.forEach.call(
             form.querySelectorAll("[data-preferred-option]"),
@@ -780,7 +780,7 @@
               field.closest(".survey-choice__preferred").hidden =
                 !selectedOption;
               if (!selectedOption) field.checked = false;
-            },
+            }
           );
           if (
             event.target.matches("[data-preferred-option]") &&
@@ -790,7 +790,7 @@
               form.querySelectorAll("[data-preferred-option]"),
               function (field) {
                 if (field !== event.target) field.checked = false;
-              },
+              }
             );
           expandSelectedOptionDescriptions(form);
         };
@@ -800,7 +800,7 @@
               form.querySelectorAll('input[name="survey"]:checked'),
               function (input) {
                 return input.value;
-              },
+              }
             ),
             preferred = form.querySelector("[data-preferred-option]:checked"),
             textByOption = {};
@@ -814,11 +814,11 @@
             surveyId: s.id,
             optionIds: selected,
             preferredOptionId: preferred ? preferred.value : "",
-            textByOption: textByOption,
+            textByOption: textByOption
           })
             .then(function () {
               window.location.assign(
-                "/member/survey-results/?id=" + encodeURIComponent(s.id),
+                "/member/survey-results/?id=" + encodeURIComponent(s.id)
               );
             })
             .catch(function (err) {
@@ -856,7 +856,7 @@
         .slice()
         .sort(function (a, b) {
           return String(b.survey.startsOn).localeCompare(
-            String(a.survey.startsOn),
+            String(a.survey.startsOn)
           );
         })
         .filter(function (result) {
@@ -874,7 +874,7 @@
         ["all", "All surveys"],
         ["open", "Open"],
         ["upcoming", "Upcoming"],
-        ["closed", "Closed"],
+        ["closed", "Closed"]
       ]
         .map(function (item) {
           return (
@@ -897,7 +897,7 @@
           "beforeend",
           '<section class="dashboard-panel"><p>No ' +
             esc(filter === "all" ? "" : filter + " ") +
-            "surveys to show.</p></section>",
+            "surveys to show.</p></section>"
         );
         return;
       }
@@ -946,7 +946,7 @@
             (submitted ? "Response submitted" : "Not yet responded") +
             '</p></div><div class="cluster">' +
             actions +
-            "</div></article>",
+            "</div></article>"
         );
       });
     }
