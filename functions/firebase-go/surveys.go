@@ -24,8 +24,9 @@ type surveyOption struct {
 	Description string `json:"description" firestore:"description"`
 	TextPrompt  string `json:"textPrompt,omitempty" firestore:"textPrompt,omitempty"`
 	// Label is retained only to read surveys created before options had separate names and descriptions.
-	Label      string `json:"label,omitempty" firestore:"label,omitempty"`
-	AllowsText bool   `json:"allowsText" firestore:"allowsText"`
+	Label           string `json:"label,omitempty" firestore:"label,omitempty"`
+	AllowsText      bool   `json:"allowsText" firestore:"allowsText"`
+	AllowsPreferred bool   `json:"allowsPreferred" firestore:"allowsPreferred"`
 }
 type surveyRecord struct {
 	ID           string         `json:"id" firestore:"id"`
@@ -566,7 +567,7 @@ func validateSurveyResponse(s surveyRecord, input surveyResponseInput) ([]string
 	}
 	preferred := cleanString(input.PreferredOptionID, 40)
 	if preferred != "" {
-		if !s.Multiple || !seen[preferred] {
+		if !s.Multiple || !seen[preferred] || !allowed[preferred].AllowsPreferred {
 			return nil, nil, "", fmt.Errorf("choose one selected option as preferred, or leave it blank")
 		}
 	}

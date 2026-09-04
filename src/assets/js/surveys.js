@@ -187,7 +187,7 @@
       '</span><span class="survey-markdown survey-choice__description">' +
       markdown(description) +
       "</span></span></label>" +
-      (multiple
+      (multiple && option.allowsPreferred
         ? '<div class="survey-choice__preferred" ' +
           (selected ? "" : "hidden") +
           '><label><input type="checkbox" data-preferred-option value="' +
@@ -254,7 +254,9 @@
         esc(o ? optionName(o) : "") +
         '"></label><label class="form-label">Option description<textarea class="survey-option-editor__input" data-option-description aria-label="Option description" maxlength="2000" required rows="5" placeholder="Longer explanation for members. Markdown supported.">' +
         esc(optionDescription(o)) +
-        '</textarea></label><div class="cluster survey-option-editor__detail-toggle"><label><input data-option-text type="checkbox" ' +
+        '</textarea></label><div class="cluster survey-option-editor__preferred-toggle"><label><input data-option-preferred type="checkbox" ' +
+        (o && o.allowsPreferred ? "checked" : "") +
+        '> Allow members to mark this as their preferred option</label></div><div class="cluster survey-option-editor__detail-toggle"><label><input data-option-text type="checkbox" ' +
         (o && o.allowsText ? "checked" : "") +
         '> Offer a short detail response</label></div><label class="form-label survey-option-editor__text-prompt">Detail-response prompt<input data-option-text-prompt aria-label="Detail-response prompt" maxlength="160" type="text" placeholder="Optional detail" value="' +
         esc(o ? optionTextPrompt(o) : "") +
@@ -386,6 +388,7 @@
             id: x.querySelector("[data-option-id]").value,
             name: x.querySelector("[data-option-name]").value,
             description: x.querySelector("[data-option-description]").value,
+            allowsPreferred: x.querySelector("[data-option-preferred]").checked,
             allowsText: x.querySelector("[data-option-text]").checked,
             textPrompt: x.querySelector("[data-option-text-prompt]").value,
           };

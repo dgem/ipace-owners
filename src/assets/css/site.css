@@ -1618,6 +1618,7 @@ textarea {
   margin-top: var(--space-2);
 }
 
+.survey-option-editor__preferred-toggle,
 .survey-option-editor__detail-toggle {
   margin-top: var(--space-4);
 }

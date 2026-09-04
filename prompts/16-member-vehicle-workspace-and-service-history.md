@@ -135,10 +135,12 @@ lines or overflow their visible space should be collapsed to two visible lines w
 Any number of options may offer an optional 250-character free-text explanation (for example,
 two distinct `Other` options); store text only when the member supplies it against the relevant
 selected option.
-For multiple-choice surveys only, let a member optionally mark one of their selected options as
-their preferred outcome. Use a clearly labelled checkbox on each selected choice, keep at most one
-checked in the browser, and validate server-side that it is selected and that the survey is
-multiple-choice. Store its stable option ID and include separate aggregate preferred counts.
+For multiple-choice surveys only, let administrators explicitly mark each eligible option with
+an `Allow members to mark this as their preferred option` setting. A member may then optionally
+mark one selected eligible option as their preferred outcome. Use a clearly labelled checkbox only
+on selected eligible choices, keep at most one checked in the browser, and validate server-side
+that it is selected, eligible, and that the survey is multiple-choice. Store its stable option ID
+and include separate aggregate preferred counts.
 Link the implemented survey workspace from the protected Admin dashboard; do not leave it as an
 undiscoverable direct URL.
 

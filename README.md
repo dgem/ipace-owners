@@ -677,8 +677,9 @@ The separate admin analysis page can review those free-text answers with consist
 respondent emails and download a CSV restricted to that masked identifier, UTC submission time,
 selected option IDs, an optional preferred option ID, and text answers in `option-id: text` form; it never includes full emails, names, Firebase UIDs, or
 member/vehicle data.
-For a multiple-choice survey, a member may optionally mark exactly one selected option as their
-preferred outcome; aggregate preference counts are included with the normal option counts.
+For a multiple-choice survey, administrators choose which options are eligible to be marked as
+preferred. A member may optionally mark exactly one selected eligible option as their preferred
+outcome; aggregate preference counts are included with the normal option counts.
 Administrators can preview any draft in the member response layout and submit a validation-only
 test response; it is never stored or included in results. Drafts remain inaccessible through the
 member response API until explicitly published.
