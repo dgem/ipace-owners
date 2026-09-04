@@ -177,6 +177,7 @@ test('protected pages do not show login gates before auth verification completes
   assert.match(identity, /completePendingEmailLink/);
   assert.match(identity, /Enter the email address that received this link to finish signing in/);
   assert.match(identity, /auth\.signInWithEmailLink\(email, pendingEmailLinkUrl\)/);
+  assert.doesNotMatch(identity, /window\.location\.href = window\.location\.href\.lastIndexOf/);
   assert.doesNotMatch(identity, /window\.prompt/);
 });
 

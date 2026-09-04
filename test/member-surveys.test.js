@@ -60,7 +60,7 @@ test("surveys support public Markdown copy, multiple text options, and seven-day
   assert.match(script, /Offer a short detail response/);
   assert.match(script, /data-option-preferred/);
   assert.match(script, /Allow members to mark this as their preferred option/);
-  assert.match(script, /multiple && option\.allowsPreferred/);
+  assert.match(script, /preferredEligibilityConfigured/);
   assert.match(script, /multiple-choice surveys only/);
   assert.match(script, /esc\(optionTextPrompt\(option\)\)/);
   assert.match(script, /placeholder="Optional detail"/);

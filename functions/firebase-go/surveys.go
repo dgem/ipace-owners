@@ -29,19 +29,23 @@ type surveyOption struct {
 	AllowsPreferred bool   `json:"allowsPreferred" firestore:"allowsPreferred"`
 }
 type surveyRecord struct {
-	ID           string         `json:"id" firestore:"id"`
-	Title        string         `json:"title" firestore:"title"`
-	Description  string         `json:"description" firestore:"description"`
-	Question     string         `json:"question" firestore:"question"`
-	CallToAction string         `json:"callToAction" firestore:"callToAction"`
-	Status       string         `json:"status" firestore:"status"`
-	Multiple     bool           `json:"multiple" firestore:"multiple"`
-	StartsOn     string         `json:"startsOn" firestore:"startsOn"`
-	EndsOn       string         `json:"endsOn" firestore:"endsOn"`
-	ShowResults  bool           `json:"showResults" firestore:"showResults"`
-	Options      []surveyOption `json:"options" firestore:"options"`
-	CreatedAt    time.Time      `json:"createdAt" firestore:"createdAt"`
-	UpdatedAt    time.Time      `json:"updatedAt" firestore:"updatedAt"`
+	ID           string `json:"id" firestore:"id"`
+	Title        string `json:"title" firestore:"title"`
+	Description  string `json:"description" firestore:"description"`
+	Question     string `json:"question" firestore:"question"`
+	CallToAction string `json:"callToAction" firestore:"callToAction"`
+	Status       string `json:"status" firestore:"status"`
+	Multiple     bool   `json:"multiple" firestore:"multiple"`
+	StartsOn     string `json:"startsOn" firestore:"startsOn"`
+	EndsOn       string `json:"endsOn" firestore:"endsOn"`
+	ShowResults  bool   `json:"showResults" firestore:"showResults"`
+	// PreferredEligibilityConfigured distinguishes surveys created before option-level
+	// preferred eligibility was introduced. Those legacy surveys retain their
+	// previous behaviour until an admin saves them.
+	PreferredEligibilityConfigured bool           `json:"preferredEligibilityConfigured" firestore:"preferredEligibilityConfigured"`
+	Options                        []surveyOption `json:"options" firestore:"options"`
+	CreatedAt                      time.Time      `json:"createdAt" firestore:"createdAt"`
+	UpdatedAt                      time.Time      `json:"updatedAt" firestore:"updatedAt"`
 }
 type surveyInput struct {
 	ID           string         `json:"id"`
@@ -314,7 +318,7 @@ func loadAdminSurveyAnalysis(ctx context.Context, db *firestore.Client, survey s
 				item.TextResponses = append(item.TextResponses, id+": "+text)
 			}
 		}
-		if surveyOptionAllowsPreferred(survey.Options, response.PreferredOptionID) {
+		if surveyResponseAllowsPreferred(survey, response.OptionIDs, response.PreferredOptionID) {
 			item.PreferredOptionID = response.PreferredOptionID
 			analysis.PreferredCounts[response.PreferredOptionID]++
 		}
@@ -343,7 +347,7 @@ func safeCSVCell(value string) string {
 	return value
 }
 func validateSurvey(input surveyInput) (surveyRecord, error) {
-	r := surveyRecord{ID: cleanString(input.ID, 160), Title: cleanString(input.Title, 120), Description: cleanString(input.Description, surveyDescriptionMax), Question: cleanString(input.Question, 500), CallToAction: cleanString(input.CallToAction, surveyCallToActionMax), Status: cleanString(input.Status, 16), Multiple: input.Multiple, StartsOn: cleanString(input.StartsOn, 10), EndsOn: cleanString(input.EndsOn, 10), ShowResults: input.ShowResults}
+	r := surveyRecord{ID: cleanString(input.ID, 160), Title: cleanString(input.Title, 120), Description: cleanString(input.Description, surveyDescriptionMax), Question: cleanString(input.Question, 500), CallToAction: cleanString(input.CallToAction, surveyCallToActionMax), Status: cleanString(input.Status, 16), Multiple: input.Multiple, StartsOn: cleanString(input.StartsOn, 10), EndsOn: cleanString(input.EndsOn, 10), ShowResults: input.ShowResults, PreferredEligibilityConfigured: true}
 	if r.Title == "" {
 		return r, fmt.Errorf("title is required")
 	}
@@ -537,10 +541,22 @@ func surveyIsPublished(s surveyRecord) bool {
 	return s.Status != "draft"
 }
 
-func surveyOptionAllowsPreferred(options []surveyOption, optionID string) bool {
-	for _, option := range options {
+func surveyOptionAllowsPreferred(s surveyRecord, optionID string) bool {
+	for _, option := range s.Options {
 		if option.ID == optionID {
-			return option.AllowsPreferred
+			return !s.PreferredEligibilityConfigured || option.AllowsPreferred
+		}
+	}
+	return false
+}
+
+func surveyResponseAllowsPreferred(s surveyRecord, optionIDs []string, preferredOptionID string) bool {
+	if !surveyOptionAllowsPreferred(s, preferredOptionID) {
+		return false
+	}
+	for _, optionID := range optionIDs {
+		if optionID == preferredOptionID {
+			return true
 		}
 	}
 	return false
@@ -577,7 +593,7 @@ func validateSurveyResponse(s surveyRecord, input surveyResponseInput) ([]string
 	}
 	preferred := cleanString(input.PreferredOptionID, 40)
 	if preferred != "" {
-		if !s.Multiple || !seen[preferred] || !allowed[preferred].AllowsPreferred {
+		if !s.Multiple || !seen[preferred] || !surveyOptionAllowsPreferred(s, preferred) {
 			return nil, nil, "", fmt.Errorf("choose one selected eligible option as preferred, or leave it blank")
 		}
 	}
@@ -626,13 +642,14 @@ func loadSurveyResult(ctx context.Context, db *firestore.Client, s surveyRecord,
 			for _, id := range x.OptionIDs {
 				r.Counts[id]++
 			}
-			if surveyOptionAllowsPreferred(s.Options, x.PreferredOptionID) {
+			preferredAllowed := surveyResponseAllowsPreferred(s, x.OptionIDs, x.PreferredOptionID)
+			if preferredAllowed {
 				r.PreferredCounts[x.PreferredOptionID]++
 			}
 			if doc.Ref.ID == uid {
 				r.MyOptionIDs = x.OptionIDs
 				r.MyTextByOption = x.TextByOption
-				if surveyOptionAllowsPreferred(s.Options, x.PreferredOptionID) {
+				if preferredAllowed {
 					r.MyPreferredOptionID = x.PreferredOptionID
 				}
 			}

@@ -169,6 +169,7 @@
     option,
     index,
     multiple,
+    allowsPreferred,
     selected,
     preferred,
     text,
@@ -190,7 +191,7 @@
       '</span><span class="survey-markdown survey-choice__description">' +
       markdown(description) +
       "</span></span></label>" +
-      (multiple && option.allowsPreferred
+      (multiple && allowsPreferred
         ? '<div class="survey-choice__preferred" ' +
           (selected ? "" : "hidden") +
           '><label><input type="checkbox" data-preferred-option value="' +
@@ -217,7 +218,7 @@
       "</div>"
     );
   }
-  function resultMarkupOption(option, count, preferredCount, multiple) {
+  function resultMarkupOption(option, count, preferredCount, multiple, allowsPreferred) {
     return (
       '<div class="survey-result"><div><strong class="survey-result__name">' +
       esc(optionName(option)) +
@@ -225,7 +226,7 @@
       markdown(optionDescription(option)) +
       '</div></div><strong class="survey-result__count">' +
       count +
-      (multiple && option.allowsPreferred
+      (multiple && allowsPreferred
         ? '<span class="survey-result__preferred">' +
           preferredCount +
           " preferred</span>"
@@ -238,7 +239,8 @@
     var form = root.querySelector("[data-survey-editor]"),
       options = root.querySelector("[data-survey-options]"),
       status = root.querySelector("[data-survey-admin-status]"),
-      list = root.querySelector("[data-survey-admin-list]");
+      list = root.querySelector("[data-survey-admin-list]"),
+      legacyPreferredEligibility = false;
     function syncOptionTextPrompt(row) {
       var enabled = row.querySelector("[data-option-text]").checked,
         prompt = row.querySelector("[data-option-text-prompt]");
@@ -258,7 +260,7 @@
         '"></label><label class="form-label">Option description<textarea class="survey-option-editor__input" data-option-description aria-label="Option description" maxlength="2000" required rows="5" placeholder="Longer explanation for members. Markdown supported.">' +
         esc(optionDescription(o)) +
         '</textarea></label><div class="cluster survey-option-editor__preferred-toggle"><label><input data-option-preferred type="checkbox" ' +
-        (o && o.allowsPreferred ? "checked" : "") +
+        (o && (o.allowsPreferred || legacyPreferredEligibility) ? "checked" : "") +
         '> Allow members to mark this as their preferred option <span class="form-hint">(multiple-choice surveys only)</span></label></div><div class="cluster survey-option-editor__detail-toggle"><label><input data-option-text type="checkbox" ' +
         (o && o.allowsText ? "checked" : "") +
         '> Offer a short detail response</label></div><label class="form-label survey-option-editor__text-prompt">Detail-response prompt<input data-option-text-prompt aria-label="Detail-response prompt" maxlength="160" type="text" placeholder="Optional detail" value="' +
@@ -280,6 +282,7 @@
       form.reset();
       form.querySelector("[data-survey-id]").value = "";
       form.querySelector("[data-survey-status]").value = "draft";
+      legacyPreferredEligibility = false;
       form.querySelector("[data-survey-start]").value = dateInputValue(start);
       form.querySelector("[data-survey-end]").value = dateInputValue(end);
       options.innerHTML = "";
@@ -300,6 +303,7 @@
       form.querySelector("[data-survey-end]").value = s.endsOn;
       form.querySelector("[data-survey-multiple]").checked = s.multiple;
       form.querySelector("[data-survey-results]").checked = s.showResults;
+      legacyPreferredEligibility = !s.preferredEligibilityConfigured;
       options.innerHTML = "";
       s.options.forEach(add);
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -457,6 +461,7 @@
               (analysis.counts && analysis.counts[option.id]) || 0,
               preferred,
               analysis.survey.multiple,
+              option.allowsPreferred || !analysis.survey.preferredEligibilityConfigured,
             );
           })
           .join("") +
@@ -525,7 +530,7 @@
       s.options.forEach(function (o, index) {
         choices.insertAdjacentHTML(
           "beforeend",
-          choiceMarkup(o, index, s.multiple, false, false, "", "preview-text-"),
+          choiceMarkup(o, index, s.multiple, o.allowsPreferred || !s.preferredEligibilityConfigured, false, false, "", "preview-text-"),
         );
       });
       prepareOptionDescriptions(choices);
@@ -674,6 +679,7 @@
               o,
               index,
               s.multiple,
+              o.allowsPreferred || !s.preferredEligibilityConfigured,
               selected,
               preferred,
               text,
@@ -935,6 +941,7 @@
             (result.counts && result.counts[o.id]) || 0,
             preferred,
             s.multiple,
+            o.allowsPreferred || !s.preferredEligibilityConfigured,
           );
         })
         .join("") +
