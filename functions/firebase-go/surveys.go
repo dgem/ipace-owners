@@ -314,7 +314,7 @@ func loadAdminSurveyAnalysis(ctx context.Context, db *firestore.Client, survey s
 				item.TextResponses = append(item.TextResponses, id+": "+text)
 			}
 		}
-		if allowed[response.PreferredOptionID] {
+		if surveyOptionAllowsPreferred(survey.Options, response.PreferredOptionID) {
 			item.PreferredOptionID = response.PreferredOptionID
 			analysis.PreferredCounts[response.PreferredOptionID]++
 		}
@@ -536,6 +536,16 @@ func surveyIsPublished(s surveyRecord) bool {
 	// Surveys created before the status field existed remain visible rather than disappearing.
 	return s.Status != "draft"
 }
+
+func surveyOptionAllowsPreferred(options []surveyOption, optionID string) bool {
+	for _, option := range options {
+		if option.ID == optionID {
+			return option.AllowsPreferred
+		}
+	}
+	return false
+}
+
 func validateSurveyResponse(s surveyRecord, input surveyResponseInput) ([]string, map[string]string, string, error) {
 	allowed := map[string]surveyOption{}
 	for _, o := range s.Options {
@@ -568,7 +578,7 @@ func validateSurveyResponse(s surveyRecord, input surveyResponseInput) ([]string
 	preferred := cleanString(input.PreferredOptionID, 40)
 	if preferred != "" {
 		if !s.Multiple || !seen[preferred] || !allowed[preferred].AllowsPreferred {
-			return nil, nil, "", fmt.Errorf("choose one selected option as preferred, or leave it blank")
+			return nil, nil, "", fmt.Errorf("choose one selected eligible option as preferred, or leave it blank")
 		}
 	}
 	return ids, textByOption, preferred, nil
@@ -616,13 +626,15 @@ func loadSurveyResult(ctx context.Context, db *firestore.Client, s surveyRecord,
 			for _, id := range x.OptionIDs {
 				r.Counts[id]++
 			}
-			if x.PreferredOptionID != "" {
+			if surveyOptionAllowsPreferred(s.Options, x.PreferredOptionID) {
 				r.PreferredCounts[x.PreferredOptionID]++
 			}
 			if doc.Ref.ID == uid {
 				r.MyOptionIDs = x.OptionIDs
 				r.MyTextByOption = x.TextByOption
-				r.MyPreferredOptionID = x.PreferredOptionID
+				if surveyOptionAllowsPreferred(s.Options, x.PreferredOptionID) {
+					r.MyPreferredOptionID = x.PreferredOptionID
+				}
 			}
 		}
 	}

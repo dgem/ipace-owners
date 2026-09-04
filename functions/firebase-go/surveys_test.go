@@ -81,6 +81,13 @@ func TestSurveyResponsePreferredOptionMustBeSelectedOnMultipleChoice(t *testing.
 	}
 }
 
+func TestSurveyResultsIgnorePreferredChoicesThatAreNoLongerEligible(t *testing.T) {
+	s := surveyRecord{Options: []surveyOption{{ID: "eligible", AllowsPreferred: true}, {ID: "ineligible"}}}
+	if !surveyOptionAllowsPreferred(s.Options, "eligible") || surveyOptionAllowsPreferred(s.Options, "ineligible") || surveyOptionAllowsPreferred(s.Options, "missing") {
+		t.Fatal("only explicitly eligible survey options may receive preferred counts")
+	}
+}
+
 func TestAggregateSurveyResultsNeverSerialiseFreeText(t *testing.T) {
 	result := surveyResult{Counts: map[string]int{"option-1": 3}, PreferredCounts: map[string]int{"option-1": 2}, Total: 3}
 	encoded, err := json.Marshal(result)

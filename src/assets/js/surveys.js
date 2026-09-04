@@ -222,7 +222,7 @@
       markdown(optionDescription(option)) +
       '</div></div><strong class="survey-result__count">' +
       count +
-      (multiple
+      (multiple && option.allowsPreferred
         ? '<span class="survey-result__preferred">' +
           preferredCount +
           " preferred</span>"
@@ -256,7 +256,7 @@
         esc(optionDescription(o)) +
         '</textarea></label><div class="cluster survey-option-editor__preferred-toggle"><label><input data-option-preferred type="checkbox" ' +
         (o && o.allowsPreferred ? "checked" : "") +
-        '> Allow members to mark this as their preferred option</label></div><div class="cluster survey-option-editor__detail-toggle"><label><input data-option-text type="checkbox" ' +
+        '> Allow members to mark this as their preferred option <span class="form-hint">(multiple-choice surveys only)</span></label></div><div class="cluster survey-option-editor__detail-toggle"><label><input data-option-text type="checkbox" ' +
         (o && o.allowsText ? "checked" : "") +
         '> Offer a short detail response</label></div><label class="form-label survey-option-editor__text-prompt">Detail-response prompt<input data-option-text-prompt aria-label="Detail-response prompt" maxlength="160" type="text" placeholder="Optional detail" value="' +
         esc(o ? optionTextPrompt(o) : "") +
