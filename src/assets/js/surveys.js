@@ -102,7 +102,7 @@
           (s.callToAction ? inlineMarkdown(s.callToAction) : "Your question") +
           "</h3>" +
           (s.question ? markdown(s.question) : "") +
-          "</section>",
+          "</section>"
       );
     return sections.join("");
   }
@@ -122,7 +122,7 @@
           .closest(".survey-choice")
           .querySelector(".survey-choice__description");
         if (description) setDescriptionExpanded(description, true);
-      },
+      }
     );
   }
   function prepareOptionDescriptions(root) {
@@ -157,12 +157,12 @@
             event.stopPropagation();
             setDescriptionExpanded(
               description,
-              !description.classList.contains("is-expanded"),
+              !description.classList.contains("is-expanded")
             );
           };
           description.parentNode.appendChild(button);
         });
-      },
+      }
     );
   }
   function choiceMarkup(
@@ -173,7 +173,7 @@
     selected,
     preferred,
     text,
-    idPrefix,
+    idPrefix
   ) {
     var textID = idPrefix + esc(option.id),
       description = optionDescription(option);
@@ -397,7 +397,7 @@
         buttons[1].onclick = function () {
           if (
             confirm(
-              "Delete this survey? Existing responses will no longer be visible.",
+              "Delete this survey? Existing responses will no longer be visible."
             )
           )
             request(
@@ -613,7 +613,7 @@
           form.querySelectorAll("[data-preferred-option]"),
           function (field) {
             var selected = form.querySelector(
-              'input[name="survey"][value="' + field.value + '"]',
+              'input[name="survey"][value="' + field.value + '"]'
             ).checked;
             field.closest(".survey-choice__preferred").hidden = !selected;
             if (!selected) field.checked = false;
@@ -747,8 +747,8 @@
               selected,
               preferred,
               text,
-              "survey-text-",
-            ),
+              "survey-text-"
+            )
           );
         });
         form.insertAdjacentHTML(
@@ -775,7 +775,7 @@
             form.querySelectorAll("[data-preferred-option]"),
             function (field) {
               var selectedOption = form.querySelector(
-                'input[name="survey"][value="' + field.value + '"]',
+                'input[name="survey"][value="' + field.value + '"]'
               ).checked;
               field.closest(".survey-choice__preferred").hidden =
                 !selectedOption;
@@ -806,7 +806,7 @@
             textByOption = {};
           selected.forEach(function (id) {
             var field = form.querySelector(
-              '[data-option-text-id="' + id + '"]',
+              '[data-option-text-id="' + id + '"]'
             );
             if (field) textByOption[id] = field.value;
           });
