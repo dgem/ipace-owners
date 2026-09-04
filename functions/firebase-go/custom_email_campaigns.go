@@ -214,7 +214,7 @@ func adminCampaignRequestAllowed(w http.ResponseWriter, r *http.Request) bool {
 		return false
 	}
 	if err := campaignAuthorize(r.Context(), r); err != nil {
-		writeJSON(w, http.StatusForbidden, map[string]any{"error": "Admin role required"})
+		writeAdminAuthorizationError(w, err)
 		return false
 	}
 	return true

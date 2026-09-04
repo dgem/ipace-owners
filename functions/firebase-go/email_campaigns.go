@@ -80,7 +80,7 @@ func AdminReengagementPreview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := campaignAuthorize(r.Context(), r); err != nil {
-		writeJSON(w, http.StatusForbidden, map[string]any{"error": "Admin role required"})
+		writeAdminAuthorizationError(w, err)
 		return
 	}
 	summary, err := campaignPreview(r.Context())
@@ -101,7 +101,7 @@ func AdminReengagementSend(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := campaignAuthorize(r.Context(), r); err != nil {
-		writeJSON(w, http.StatusForbidden, map[string]any{"error": "Admin role required"})
+		writeAdminAuthorizationError(w, err)
 		return
 	}
 	var input campaignSendRequest
@@ -159,7 +159,7 @@ func adminCampaignPreviewHandler(w http.ResponseWriter, r *http.Request, logName
 		return
 	}
 	if err := campaignAuthorize(r.Context(), r); err != nil {
-		writeJSON(w, http.StatusForbidden, map[string]any{"error": "Admin role required"})
+		writeAdminAuthorizationError(w, err)
 		return
 	}
 	summary, err := preview(r.Context())
@@ -180,7 +180,7 @@ func adminCampaignSendHandler(w http.ResponseWriter, r *http.Request, send func(
 		return
 	}
 	if err := campaignAuthorize(r.Context(), r); err != nil {
-		writeJSON(w, http.StatusForbidden, map[string]any{"error": "Admin role required"})
+		writeAdminAuthorizationError(w, err)
 		return
 	}
 	var input campaignSendRequest

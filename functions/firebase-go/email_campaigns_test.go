@@ -36,6 +36,20 @@ func TestAdminReengagementPreviewRequiresAdmin(t *testing.T) {
 	}
 }
 
+func TestAdminReengagementPreviewReturns401ForInvalidToken(t *testing.T) {
+	original := campaignAuthorize
+	t.Cleanup(func() { campaignAuthorize = original })
+	campaignAuthorize = func(context.Context, *http.Request) error {
+		return authorizationFailure(http.StatusUnauthorized, "Sign in required", context.Canceled)
+	}
+	req := httptest.NewRequest(http.MethodPost, "/api/admin/reengagement-preview", strings.NewReader(`{}`))
+	res := httptest.NewRecorder()
+	AdminReengagementPreview(res, req)
+	if res.Code != http.StatusUnauthorized {
+		t.Fatalf("status=%d body=%s", res.Code, res.Body.String())
+	}
+}
+
 func TestAdminReengagementSendRejectsBadBodyBeforeSending(t *testing.T) {
 	originalAuth, originalSend := campaignAuthorize, campaignSend
 	t.Cleanup(func() { campaignAuthorize = originalAuth; campaignSend = originalSend })

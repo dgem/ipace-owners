@@ -652,7 +652,7 @@ func AdminData(w http.ResponseWriter, r *http.Request) {
 	}
 	_, err := requireAdmin(r.Context(), r)
 	if err != nil {
-		writeJSON(w, authorizationStatus(err), map[string]any{"error": authorizationMessage(err)})
+		writeAdminAuthorizationError(w, err)
 		return
 	}
 

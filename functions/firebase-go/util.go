@@ -45,20 +45,15 @@ func authorizationFailure(status int, message string, cause error) error {
 	return &authorizationError{status: status, message: message, cause: cause}
 }
 
-func authorizationStatus(err error) int {
+func writeAdminAuthorizationError(w http.ResponseWriter, err error) {
+	status := http.StatusForbidden
+	message := "Admin role required"
 	var authorizationErr *authorizationError
 	if errors.As(err, &authorizationErr) {
-		return authorizationErr.status
+		status = authorizationErr.status
+		message = authorizationErr.message
 	}
-	return http.StatusUnauthorized
-}
-
-func authorizationMessage(err error) string {
-	var authorizationErr *authorizationError
-	if errors.As(err, &authorizationErr) {
-		return authorizationErr.message
-	}
-	return "Sign in required"
+	writeJSON(w, status, map[string]any{"error": message})
 }
 
 func authTraceCode(value string) string {
