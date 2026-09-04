@@ -626,13 +626,14 @@ func loadSurveyResult(ctx context.Context, db *firestore.Client, s surveyRecord,
 			for _, id := range x.OptionIDs {
 				r.Counts[id]++
 			}
-			if surveyOptionAllowsPreferred(s.Options, x.PreferredOptionID) {
+			preferredAllowed := surveyOptionAllowsPreferred(s.Options, x.PreferredOptionID)
+			if preferredAllowed {
 				r.PreferredCounts[x.PreferredOptionID]++
 			}
 			if doc.Ref.ID == uid {
 				r.MyOptionIDs = x.OptionIDs
 				r.MyTextByOption = x.TextByOption
-				if surveyOptionAllowsPreferred(s.Options, x.PreferredOptionID) {
+				if preferredAllowed {
 					r.MyPreferredOptionID = x.PreferredOptionID
 				}
 			}
