@@ -260,7 +260,9 @@ channels, and deliberately reduced data-protection settings.
 
 OpenTofu must also enable Cloud Monitoring and support opt-in environment monitoring. Production
 enables a managed operations dashboard, multi-region five-minute HTTPS uptime checks for the homepage
-and `/api/public-stats`, and one sustained-failure alert policy per check. The dashboard displays
+and `/api/public-stats`, and one sustained-failure alert policy per check. Uptime metric filters must
+restrict `monitoring.googleapis.com/uptime_check/check_passed` to `resource.type="uptime_url"`; dashboard
+scorecard titles belong to their containing widgets. The dashboard displays
 both check results and the Gen 2 `Api` Cloud Run request rate. A notification channel is created
 only when `monitoring_alert_email` is non-empty; otherwise incidents remain visible in Monitoring
 without sending email. The production example identifies the agreed operational mailbox, while

@@ -21,7 +21,11 @@ test("production monitoring independently checks the public site and API", funct
   assert.match(monitoring, /path\s*=\s*"\/"/);
   assert.match(monitoring, /path\s*=\s*"\/api\/public-stats"/);
   assert.doesNotMatch(monitoring, /selected_regions\s*=/, 'Google requires at least three probe locations when selected_regions is set; omit it to use all available locations');
+  assert.match(monitoring, /resource\.type=\\"uptime_url\\"/, 'uptime metrics must be restricted to their uptime_url monitored resource');
   assert.match(monitoring, /resource "google_monitoring_dashboard" "operations"/);
+  assert.match(monitoring, /widget = \{\s+title = "Homepage uptime"\s+scorecard = \{/);
+  assert.match(monitoring, /widget = \{\s+title = "Public API uptime"\s+scorecard = \{/);
+  assert.doesNotMatch(monitoring, /scorecard = \{\s+title\s*=/, 'scorecard titles belong to the containing Monitoring widget');
   assert.match(monitoring, /run\.googleapis\.com\/request_count/);
   assert.match(monitoring, /local\.email_continue_host/);
   assert.doesNotMatch(monitoring, /monitoring_host/);

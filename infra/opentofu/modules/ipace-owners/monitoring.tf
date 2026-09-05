@@ -63,7 +63,7 @@ resource "google_monitoring_alert_policy" "uptime" {
     display_name = "Uptime check has failed for ten minutes"
 
     condition_threshold {
-      filter          = "metric.type=\"monitoring.googleapis.com/uptime_check/check_passed\" AND metric.label.\"check_id\"=\"${each.value.uptime_check_id}\""
+      filter          = "metric.type=\"monitoring.googleapis.com/uptime_check/check_passed\" AND metric.label.\"check_id\"=\"${each.value.uptime_check_id}\" AND resource.type=\"uptime_url\""
       comparison      = "COMPARISON_LT"
       threshold_value = 1
       duration        = "600s"
@@ -122,11 +122,11 @@ resource "google_monitoring_dashboard" "operations" {
           width  = 24
           height = 6
           widget = {
+            title = "Homepage uptime"
             scorecard = {
-              title = "Homepage uptime"
               timeSeriesQuery = {
                 timeSeriesFilter = {
-                  filter = "metric.type=\"monitoring.googleapis.com/uptime_check/check_passed\" AND metric.label.\"check_id\"=\"${google_monitoring_uptime_check_config.endpoint["homepage"].uptime_check_id}\""
+                  filter = "metric.type=\"monitoring.googleapis.com/uptime_check/check_passed\" AND metric.label.\"check_id\"=\"${google_monitoring_uptime_check_config.endpoint["homepage"].uptime_check_id}\" AND resource.type=\"uptime_url\""
                   aggregation = {
                     alignmentPeriod  = "300s"
                     perSeriesAligner = "ALIGN_FRACTION_TRUE"
@@ -142,11 +142,11 @@ resource "google_monitoring_dashboard" "operations" {
           width  = 24
           height = 6
           widget = {
+            title = "Public API uptime"
             scorecard = {
-              title = "Public API uptime"
               timeSeriesQuery = {
                 timeSeriesFilter = {
-                  filter = "metric.type=\"monitoring.googleapis.com/uptime_check/check_passed\" AND metric.label.\"check_id\"=\"${google_monitoring_uptime_check_config.endpoint["public_api"].uptime_check_id}\""
+                  filter = "metric.type=\"monitoring.googleapis.com/uptime_check/check_passed\" AND metric.label.\"check_id\"=\"${google_monitoring_uptime_check_config.endpoint["public_api"].uptime_check_id}\" AND resource.type=\"uptime_url\""
                   aggregation = {
                     alignmentPeriod  = "300s"
                     perSeriesAligner = "ALIGN_FRACTION_TRUE"
