@@ -115,7 +115,7 @@
       confirmInput.disabled = data.remaining < 1;
       sendButton.disabled = data.remaining < 1;
       confirmHint.textContent = data.remaining > 0 ? 'Type “SEND ' + data.eligible + '” exactly.' : 'This campaign run is complete.';
-      sendButton.textContent = data.remaining > 100 ? 'Send next 100 emails' : 'Send final ' + data.remaining + ' email' + (data.remaining === 1 ? '' : 's');
+      sendButton.textContent = data.remaining > 10 ? 'Send next 10 emails' : 'Send final ' + data.remaining + ' email' + (data.remaining === 1 ? '' : 's');
     }
 
     function campaignChanged() {
@@ -428,7 +428,7 @@
       confirmInput.disabled = remaining < 1;
       sendButton.disabled = remaining < 1;
       confirmHint.textContent = remaining > 0 ? 'Type “SEND ' + data.eligible + '” exactly. ' + remaining + ' remain.' : 'Everyone in this campaign has already been sent an email.';
-      sendButton.textContent = remaining > 100 ? 'Send next 100 emails' : 'Send final ' + remaining + ' email' + (remaining === 1 ? '' : 's');
+      sendButton.textContent = remaining > 10 ? 'Send next 10 emails' : 'Send final ' + remaining + ' email' + (remaining === 1 ? '' : 's');
     }
 
     previewButton.addEventListener('click', async function () {

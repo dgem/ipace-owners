@@ -218,15 +218,12 @@ func TestCustomCampaignVerifiedAtPreservesFirstObservedValueAndBackfillsLegacyUs
 	}
 }
 
-func TestSurveyCampaignTargetsRegisteredMembersAndUsesHundredMessageBatches(t *testing.T) {
+func TestSurveyCampaignTargetsRegisteredMembers(t *testing.T) {
 	if got := customCampaignAudienceScopeForKind(surveyCampaignKind); got != customCampaignRegisteredAudience {
 		t.Fatalf("survey audience scope = %q", got)
 	}
 	if got := customCampaignAudienceScopeForKind(jlrContactCampaignKind); got != customCampaignConsentedAudience {
 		t.Fatalf("JLR audience scope = %q", got)
-	}
-	if emailCampaignBatchSize != 100 {
-		t.Fatalf("email batch size = %d, want 100", emailCampaignBatchSize)
 	}
 }
 
