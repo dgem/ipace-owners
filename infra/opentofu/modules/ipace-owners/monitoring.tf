@@ -1,6 +1,5 @@
 locals {
   monitoring_enabled = var.monitoring_enabled
-  monitoring_host    = regex("^https?://([^/]+)", var.site_url)[0]
 }
 
 resource "google_monitoring_uptime_check_config" "endpoint" {
@@ -31,7 +30,7 @@ resource "google_monitoring_uptime_check_config" "endpoint" {
   monitored_resource {
     type = "uptime_url"
     labels = {
-      host       = local.monitoring_host
+      host       = local.email_continue_host
       project_id = var.project_id
     }
   }
@@ -45,7 +44,7 @@ resource "google_monitoring_notification_channel" "operator_email" {
   count = local.monitoring_enabled && var.monitoring_alert_email != "" ? 1 : 0
 
   project      = var.project_id
-  display_name = "I-PACE Owners production operations"
+  display_name = "I-PACE Owners ${var.environment} operations"
   type         = "email"
   labels = {
     email_address = var.monitoring_alert_email
@@ -93,7 +92,7 @@ resource "google_monitoring_alert_policy" "uptime" {
   notification_channels = google_monitoring_notification_channel.operator_email[*].name
 
   documentation {
-    content   = "Check the production Operations dashboard, then the serialized production deployment and Cloud Logging. The homepage and public statistics API are independently checked from Europe."
+    content   = "Check the ${var.environment} Operations dashboard, then the serialized ${var.environment} deployment and Cloud Logging. The homepage and public statistics API are independently checked from Europe."
     mime_type = "text/markdown"
   }
 }
@@ -103,7 +102,7 @@ resource "google_monitoring_dashboard" "operations" {
 
   project = var.project_id
   dashboard_json = jsonencode({
-    displayName = "I-PACE Owners production operations"
+    displayName = "I-PACE Owners ${var.environment} operations"
     mosaicLayout = {
       columns = 48
       tiles = [
@@ -114,7 +113,7 @@ resource "google_monitoring_dashboard" "operations" {
           height = 4
           widget = {
             text = {
-              content = "# Production operations\nIndependent checks cover the public homepage and statistics API. Cloud Run request rate is included to spot traffic or service changes.\n\nFor a member login report, use the supplied `IP-XXXX-XXXX` support code to filter the structured authorization trace in Cloud Logging."
+              content = "# ${title(var.environment)} operations\nIndependent checks cover the public homepage and statistics API. Cloud Run request rate is included to spot traffic or service changes.\n\nFor a member login report, use the supplied `IP-XXXX-XXXX` support code to filter the structured authorization trace in Cloud Logging."
               format  = "MARKDOWN"
             }
           }

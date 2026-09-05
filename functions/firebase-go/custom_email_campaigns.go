@@ -969,22 +969,18 @@ func loadCustomCampaignAudience(ctx context.Context) (customCampaignAudience, er
 	}
 	readingIter.Stop()
 
-	serviceFaultRecordCount := 0
-	serviceIter := db.Collection("serviceEvents").Documents(ctx)
-	for {
-		doc, err := serviceIter.Next()
-		if err == iterator.Done {
-			break
-		}
-		if err != nil {
-			return customCampaignAudience{}, err
-		}
-		var record serviceEventRecord
-		if doc.DataTo(&record) == nil && !recordDeleted(record.Review) {
-			serviceFaultRecordCount++
-		}
+	serviceFaultQuery := db.Collection("serviceEvents").Where("review.status", "!=", "deleted")
+	serviceFaultAggregation, err := serviceFaultQuery.
+		NewAggregationQuery().
+		WithCount("serviceFaultRecords").
+		Get(ctx)
+	if err != nil {
+		return customCampaignAudience{}, err
 	}
-	serviceIter.Stop()
+	serviceFaultRecordCount, ok := serviceFaultAggregation.Data()["serviceFaultRecords"].(int64)
+	if !ok || serviceFaultRecordCount < 0 {
+		return customCampaignAudience{}, fmt.Errorf("service-event count aggregation returned an invalid value")
+	}
 
 	verifiedAtByUID := map[string]time.Time{}
 	memberIter := db.Collection("members").Documents(ctx)
@@ -1035,7 +1031,7 @@ func loadCustomCampaignAudience(ctx context.Context) (customCampaignAudience, er
 		MembersVerified:          verifiedCount,
 		VehiclesRegisteredCount:  vehicleCount,
 		VehiclesSoHReadingsCount: readingCount,
-		ServiceFaultRecordsCount: serviceFaultRecordCount,
+		ServiceFaultRecordsCount: int(serviceFaultRecordCount),
 	}, nil
 }
 

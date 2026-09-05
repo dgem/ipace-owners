@@ -101,6 +101,8 @@ test('custom campaign editor provides history, Markdown preview, reruns and safe
   ]) {
     assert.match(campaignBackend, new RegExp('"' + field + '"'));
   }
+  assert.match(campaignBackend, /NewAggregationQuery\(\)\.\s*WithCount\("serviceFaultRecords"\)/);
+  assert.doesNotMatch(campaignBackend, /serviceIter := db\.Collection\("serviceEvents"\)\.Documents/);
   assert.match(page, /Create a member email campaign/);
   assert.match(page, /href="#campaign-tools" data-campaign-open-tab="freeform"/);
   assert.match(page, /data-custom-campaign-markdown/);

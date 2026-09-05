@@ -55,7 +55,7 @@ output "firestore_data_protection" {
 }
 
 output "monitoring" {
-  description = "Production operations dashboard, independent uptime checks, and alert-delivery configuration."
+  description = "Operations dashboard, independent uptime checks, and alert-delivery configuration for this environment."
   value = {
     enabled                 = local.monitoring_enabled
     dashboard_id            = try(google_monitoring_dashboard.operations[0].id, null)

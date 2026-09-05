@@ -34,5 +34,5 @@ test('the first member survey update has a purposeful hero image', function () {
   );
 
   assert.match(surveyUpdate, /heroImage: \/images\/september-survey-2026-hero\.jpg/);
-  assert.match(surveyUpdate, /heroImageAlt: .+/);
+  assert.match(surveyUpdate, /heroImageAlt:\s*["'][^"']+['"]/);
 });

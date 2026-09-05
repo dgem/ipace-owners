@@ -23,6 +23,9 @@ test("production monitoring independently checks the public site and API", funct
   assert.match(monitoring, /selected_regions\s*=\s*\["EUROPE"\]/);
   assert.match(monitoring, /resource "google_monitoring_dashboard" "operations"/);
   assert.match(monitoring, /run\.googleapis\.com\/request_count/);
+  assert.match(monitoring, /local\.email_continue_host/);
+  assert.doesNotMatch(monitoring, /monitoring_host/);
+  assert.match(monitoring, /\$\{var\.environment\} operations/);
   assert.match(variables, /variable "monitoring_enabled"/);
   assert.match(variables, /variable "monitoring_alert_email"/);
   assert.match(production, /monitoring_enabled\s*=\s*true/);
@@ -41,5 +44,6 @@ test("monitoring alerts are durable and only send email when a recipient is conf
   assert.match(monitoring, /duration\s*=\s*"600s"/);
   assert.match(monitoring, /auto_close\s*=\s*"1800s"/);
   assert.match(outputs, /output "monitoring"/);
+  assert.doesNotMatch(outputs, /Production operations/);
   assert.match(envOutputs, /output "monitoring"/);
 });
