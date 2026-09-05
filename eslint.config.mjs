@@ -18,6 +18,18 @@ export default [
       sourceType: 'script',
       globals: globals.browser,
     },
+    rules: {
+      'comma-dangle': [
+        'error',
+        {
+          arrays: 'ignore',
+          objects: 'ignore',
+          imports: 'ignore',
+          exports: 'ignore',
+          functions: 'never',
+        },
+      ],
+    },
   },
   {
     files: ['.eleventy.js', 'scripts/**/*.{js,cjs,mjs}', 'test/**/*.js'],

@@ -231,8 +231,10 @@
 		return signInWithEmailLink(email).catch(function (err) {
 			console.warn('[identity.js] Email-link sign-in failed.', err);
 			window.localStorage.removeItem('ipaceEmailForSignIn');
+			pendingEmailLinkUrl = '';
 			window.ipaceReportAuthDiagnostic('email-link-completion', 'failed');
-			setAllMagicLinkStatuses(withAuthTrace('We could not finish sign-in with the remembered email. Enter the email address that received this link to try again.'), 'error');
+			setAllMagicLinkStatuses(withAuthTrace('We could not finish sign-in with that link. Request a new sign-in link using the email address that received it.'), 'error');
+			clearAuthQuery();
 			return false;
 		});
 	}
@@ -252,8 +254,10 @@
 			return true;
 		}).catch(function (err) {
 			console.warn('[identity.js] Email-link sign-in failed from form.', err);
+			pendingEmailLinkUrl = '';
 			window.ipaceReportAuthDiagnostic('email-link-completion', 'failed');
-			setMagicLinkStatus(form, withAuthTrace('We could not finish sign-in with that link. Check the email address matches the one that received the link, or request a new sign-in link.'), 'error');
+			setMagicLinkStatus(form, withAuthTrace('We could not finish sign-in with that link. Request a new sign-in link using the email address that received it.'), 'error');
+			clearAuthQuery();
 			return false;
 		}).finally(function () {
 			if (submitBtn) submitBtn.disabled = false;

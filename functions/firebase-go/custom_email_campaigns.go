@@ -19,6 +19,7 @@ import (
 const (
 	customCampaignKind        = "custom-member"
 	jlrContactCampaignKind    = "jlr-contact"
+	surveyCampaignKind        = "survey-september-2026"
 	customCampaignMarkdownMax = 20000
 )
 
@@ -142,6 +143,7 @@ type customCampaignData struct {
 	MemberVehicles           string
 	VehiclesRegisteredCount  int
 	VehiclesSoHReadingsCount int
+	ServiceFaultRecordsCount int
 }
 
 type customCampaignAudience struct {
@@ -150,6 +152,7 @@ type customCampaignAudience struct {
 	MembersVerified          int
 	VehiclesRegisteredCount  int
 	VehiclesSoHReadingsCount int
+	ServiceFaultRecordsCount int
 }
 
 var (
@@ -295,12 +298,20 @@ func previewCustomCampaign(ctx context.Context, input customCampaignDraftRequest
 }
 
 func previewJLRContactCampaign(ctx context.Context) (customCampaignPreviewResponse, error) {
-	template, err := embeddedCampaignTemplate("jlr-contact")
+	return previewEmbeddedCustomCampaign(ctx, "jlr-contact", jlrContactCampaignKind)
+}
+
+func previewSurveyCampaign(ctx context.Context) (customCampaignPreviewResponse, error) {
+	return previewEmbeddedCustomCampaign(ctx, "survey-september-2026", surveyCampaignKind)
+}
+
+func previewEmbeddedCustomCampaign(ctx context.Context, templateName, campaignKind string) (customCampaignPreviewResponse, error) {
+	template, err := embeddedCampaignTemplate(templateName)
 	if err != nil {
 		return customCampaignPreviewResponse{}, err
 	}
-	if template.ID != "jlr-contact" || template.Audience != customCampaignKind {
-		return customCampaignPreviewResponse{}, fmt.Errorf("JLR contact template has an invalid audience")
+	if template.ID != campaignKind || template.Audience != customCampaignKind {
+		return customCampaignPreviewResponse{}, fmt.Errorf("%s template has an invalid audience", templateName)
 	}
 	return previewCustomCampaign(ctx, customCampaignDraftRequest{
 		CampaignID:   staticCustomCampaignID(template.ID),
@@ -309,16 +320,20 @@ func previewJLRContactCampaign(ctx context.Context) (customCampaignPreviewRespon
 		Markdown:     template.Markdown,
 		HeroImage:    template.HeroImage,
 		HeroImageAlt: template.HeroImageAlt,
-		Kind:         jlrContactCampaignKind,
+		Kind:         campaignKind,
 		CreateWithID: true,
 	})
 }
 
 func campaignDraftKind(input customCampaignDraftRequest) string {
-	if input.Kind == jlrContactCampaignKind {
-		return jlrContactCampaignKind
+	if isStaticCampaignKind(input.Kind) {
+		return input.Kind
 	}
 	return customCampaignKind
+}
+
+func isStaticCampaignKind(kind string) bool {
+	return kind == jlrContactCampaignKind || kind == surveyCampaignKind
 }
 
 func staticCustomCampaignID(templateID string) string {
@@ -342,7 +357,7 @@ func sameCustomCampaignDraft(record customCampaignRecord, input customCampaignDr
 // source Markdown is edited later. Its preview must show the version that recipients
 // received, including when everyone in the current audience has already been sent.
 func staticCampaignInputForStartedRecord(input customCampaignDraftRequest, record customCampaignRecord) (customCampaignDraftRequest, bool) {
-	if !input.CreateWithID || input.Kind != jlrContactCampaignKind || record.Kind != jlrContactCampaignKind {
+	if !input.CreateWithID || !isStaticCampaignKind(input.Kind) || input.Kind != record.Kind {
 		return input, false
 	}
 	input.Name = record.Name
@@ -363,7 +378,7 @@ func sendCustomCampaignBatch(ctx context.Context, input customCampaignSendReques
 		return customCampaignPreviewResponse{}, err
 	}
 	record, err := loadCustomCampaignRecord(ctx, db, strings.TrimSpace(input.CampaignID))
-	if err != nil || (record.Kind != customCampaignKind && record.Kind != jlrContactCampaignKind) {
+	if err != nil || (record.Kind != customCampaignKind && !isStaticCampaignKind(record.Kind)) {
 		return customCampaignPreviewResponse{}, fmt.Errorf("campaign draft was not found; preview again")
 	}
 	if err := validateCustomCampaignDraft(customCampaignDraftRequest{
@@ -525,6 +540,7 @@ func customCampaignSubstitutionData(audience customCampaignAudience, person cust
 		MemberVehicles:           string(vehicles),
 		VehiclesRegisteredCount:  audience.VehiclesRegisteredCount,
 		VehiclesSoHReadingsCount: audience.VehiclesSoHReadingsCount,
+		ServiceFaultRecordsCount: audience.ServiceFaultRecordsCount,
 	}
 }
 
@@ -559,6 +575,7 @@ func customCampaignValues(data customCampaignData) map[string]string {
 		"memberVehicles":           data.MemberVehicles,
 		"vehiclesRegisteredCount":  fmt.Sprint(data.VehiclesRegisteredCount),
 		"vehiclesSoHReadingsCount": fmt.Sprint(data.VehiclesSoHReadingsCount),
+		"serviceFaultRecordsCount": fmt.Sprint(data.ServiceFaultRecordsCount),
 	}
 }
 
@@ -952,6 +969,19 @@ func loadCustomCampaignAudience(ctx context.Context) (customCampaignAudience, er
 	}
 	readingIter.Stop()
 
+	serviceFaultQuery := db.Collection("serviceEvents").Where("review.status", "!=", "deleted")
+	serviceFaultAggregation, err := serviceFaultQuery.
+		NewAggregationQuery().
+		WithCount("serviceFaultRecords").
+		Get(ctx)
+	if err != nil {
+		return customCampaignAudience{}, err
+	}
+	serviceFaultRecordCount, ok := serviceFaultAggregation.Data()["serviceFaultRecords"].(int64)
+	if !ok || serviceFaultRecordCount < 0 {
+		return customCampaignAudience{}, fmt.Errorf("service-event count aggregation returned an invalid value")
+	}
+
 	verifiedAtByUID := map[string]time.Time{}
 	memberIter := db.Collection("members").Documents(ctx)
 	for {
@@ -1001,6 +1031,7 @@ func loadCustomCampaignAudience(ctx context.Context) (customCampaignAudience, er
 		MembersVerified:          verifiedCount,
 		VehiclesRegisteredCount:  vehicleCount,
 		VehiclesSoHReadingsCount: readingCount,
+		ServiceFaultRecordsCount: int(serviceFaultRecordCount),
 	}, nil
 }
 

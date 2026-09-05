@@ -143,7 +143,7 @@ async function checkCampaignControls(viewport, screenshotName) {
   const placeholders = [
     'membersJoined', 'membersVerified', 'memberFirstName', 'memberLastName', 'memberTittle',
     'memberTitle', 'memberJoined', 'memberVerified', 'memberVehicles',
-    'vehiclesRegisteredCount', 'vehiclesSoHReadingsCount'
+    'vehiclesRegisteredCount', 'vehiclesSoHReadingsCount', 'serviceFaultRecordsCount'
   ];
   await page.route('**/api/admin/email-campaign-history', (route) => route.fulfill({
     contentType: 'application/json',
@@ -192,6 +192,21 @@ async function checkCampaignControls(viewport, screenshotName) {
       }
     })
   }));
+  await page.route('**/api/admin/survey-campaign-preview', (route) => route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({
+      campaignId: 'survey-september-2026-staging-2026-09-05',
+      eligible: 412,
+      sent: 0,
+      batchSent: 0,
+      remaining: 412,
+      emailPreview: {
+        subject: 'Have your say before our September meeting with JLR',
+        html: '<!doctype html><html lang="en"><body><h1>Preferred outcomes — September meeting</h1><p>Our founding member will meet Jaguar Land Rover the day after this survey closes.</p></body></html>',
+        text: 'Preferred outcomes — September meeting\n\nOur founding member will meet Jaguar Land Rover the day after this survey closes.'
+      }
+    })
+  }));
   await page.route('**/api/admin/custom-campaign-preview', (route) => route.fulfill({
     contentType: 'application/json',
     body: JSON.stringify({
@@ -232,9 +247,9 @@ async function checkCampaignControls(viewport, screenshotName) {
   await page.evaluate(() => {
     window.firebase = { auth: () => ({ currentUser: { getIdToken: async () => 'visual-admin-token' } }) };
   });
-  assert.equal(await page.locator('[data-email-campaign]').count(), 4);
+  assert.equal(await page.locator('[data-email-campaign]').count(), 5);
   assert.equal(await page.locator('[data-custom-email-campaign]').count(), 1);
-  assert.equal(await page.locator('[data-custom-placeholder]').count(), 11);
+  assert.equal(await page.locator('[data-custom-placeholder]').count(), 12);
   if (viewport.width < 640) {
     assert.equal(await page.locator('[data-campaign-tab]').evaluateAll((tabs) => tabs.every((tab) => {
       const rect = tab.getBoundingClientRect();
@@ -250,6 +265,12 @@ async function checkCampaignControls(viewport, screenshotName) {
   await page.frameLocator('[data-campaign-panel="jlr-contact"] [data-campaign-email-html]').getByText('We have contact with Jaguar Land Rover').waitFor({ state: 'visible' });
   assert.equal(await page.locator('[data-campaign-panel="jlr-contact"] [data-campaign-send-button]').isDisabled(), false,
     'JLR Contact send controls must unlock only after preview');
+  await page.locator('[data-campaign-tab="september-survey"]').click();
+  assert.equal(await page.locator('[data-campaign-panel="september-survey"]').isVisible(), true);
+  await page.locator('[data-campaign-panel="september-survey"] [data-campaign-preview]').click();
+  await page.frameLocator('[data-campaign-panel="september-survey"] [data-campaign-email-html]').getByText('Preferred outcomes — September meeting').waitFor({ state: 'visible' });
+  assert.equal(await page.locator('[data-campaign-panel="september-survey"] [data-campaign-send-button]').isDisabled(), false,
+    'September Survey send controls must unlock only after preview');
   await page.locator('[data-campaign-open-tab="freeform"]').click();
   assert.equal(await page.locator('[data-campaign-tab="freeform"]').getAttribute('aria-selected'), 'true');
   assert.equal(await page.locator('[data-custom-campaign-markdown]').isVisible(), true);
@@ -273,11 +294,11 @@ async function checkCampaignControls(viewport, screenshotName) {
   await page.frameLocator('[data-custom-campaign-email-html]').locator('h1').waitFor({ state: 'visible' });
   assert.equal(await page.locator('[data-custom-campaign-send-button]').isDisabled(), false);
   const buttons = page.locator('[data-campaign-send-button]');
-  assert.equal(await buttons.count(), 4);
+  assert.equal(await buttons.count(), 5);
   for (let index = 0; index < await buttons.count(); index += 1) {
     const button = buttons.nth(index);
     const panelName = await button.locator('xpath=ancestor::*[@data-campaign-panel]').getAttribute('data-campaign-panel');
-    if (panelName === 'jlr-contact') continue;
+    if (panelName === 'jlr-contact' || panelName === 'september-survey') continue;
     await page.locator(`[data-campaign-tab="${panelName}"]`).focus();
     await page.keyboard.press('Enter');
     await button.scrollIntoViewIfNeeded();

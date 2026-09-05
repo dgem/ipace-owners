@@ -189,6 +189,7 @@
         'all-members-drive': 'Reach 1,000',
         'custom-member': 'Freeform',
         'jlr-contact': 'JLR Contact',
+        'survey-september-2026': 'September Survey',
         'member-referral': 'Find members',
         'registration-reminder': 'Registration reminder'
       };
@@ -302,6 +303,10 @@
         } else if (campaign.kind === 'jlr-contact') {
           specialisedTab = 'jlr-contact';
           specialisedActionLabel = 'Use JLR Contact tool';
+          specialisedActionTitle = 'This campaign retains its approved source-controlled copy and verified, consented audience.';
+        } else if (campaign.kind === 'survey-september-2026') {
+          specialisedTab = 'september-survey';
+          specialisedActionLabel = 'Use September Survey tool';
           specialisedActionTitle = 'This campaign retains its approved source-controlled copy and verified, consented audience.';
         }
         if (!canEditDraft) {

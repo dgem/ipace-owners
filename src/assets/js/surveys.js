@@ -13,9 +13,9 @@
         method: method,
         headers: authHeaders({
           Authorization: "Bearer " + t,
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         }),
-        body: body ? JSON.stringify(body) : undefined,
+        body: body ? JSON.stringify(body) : undefined
       }).then(function (r) {
         if (r.status === 204) return {};
         return r.json().then(function (d) {
@@ -34,7 +34,7 @@
     var html = esc(v);
     html = html.replace(
       /\[([^\]]+)\]\((https?:\/\/[A-Za-z0-9._~:/?#@!$&'()*+,;=%-]+)\)/g,
-      '<a href="$2" rel="noopener noreferrer" target="_blank">$1</a>',
+      '<a href="$2" rel="noopener noreferrer" target="_blank">$1</a>'
     );
     html = html.replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>");
     return html.replace(/\*([^*\n]+)\*/g, "<em>$1</em>");
@@ -71,7 +71,7 @@
   }
   function optionName(option) {
     var source = String(
-      (option && (option.name || optionDescription(option))) || "",
+      (option && (option.name || optionDescription(option))) || ""
     );
     var lines = source.replace(/\r\n?/g, "\n").split("\n");
     var first = "";
@@ -94,7 +94,7 @@
       sections.push(
         '<section class="survey-member-card__context">' +
           markdown(s.description) +
-          "</section>",
+          "</section>"
       );
     if (s.question || s.callToAction)
       sections.push(
@@ -102,7 +102,7 @@
           (s.callToAction ? inlineMarkdown(s.callToAction) : "Your question") +
           "</h3>" +
           (s.question ? markdown(s.question) : "") +
-          "</section>",
+          "</section>"
       );
     return sections.join("");
   }
@@ -122,7 +122,7 @@
           .closest(".survey-choice")
           .querySelector(".survey-choice__description");
         if (description) setDescriptionExpanded(description, true);
-      },
+      }
     );
   }
   function prepareOptionDescriptions(root) {
@@ -157,22 +157,23 @@
             event.stopPropagation();
             setDescriptionExpanded(
               description,
-              !description.classList.contains("is-expanded"),
+              !description.classList.contains("is-expanded")
             );
           };
           description.parentNode.appendChild(button);
         });
-      },
+      }
     );
   }
   function choiceMarkup(
     option,
     index,
     multiple,
+    allowsPreferred,
     selected,
     preferred,
     text,
-    idPrefix,
+    idPrefix
   ) {
     var textID = idPrefix + esc(option.id),
       description = optionDescription(option);
@@ -190,7 +191,7 @@
       '</span><span class="survey-markdown survey-choice__description">' +
       markdown(description) +
       "</span></span></label>" +
-      (multiple
+      (multiple && allowsPreferred
         ? '<div class="survey-choice__preferred" ' +
           (selected ? "" : "hidden") +
           '><label><input type="checkbox" data-preferred-option value="' +
@@ -217,28 +218,94 @@
       "</div>"
     );
   }
-  function resultMarkupOption(option, count, preferredCount, multiple) {
+  function resultMarkupOption(
+    option,
+    count,
+    preferredCount,
+    multiple,
+    allowsPreferred,
+    total,
+    showDescription,
+    textCount
+  ) {
+    var percentage = total ? Math.round((count / total) * 100) : 0;
     return (
-      '<div class="survey-result"><div><strong class="survey-result__name">' +
+      '<div class="survey-result' +
+      (showDescription ? "" : " survey-result--summary") +
+      '"><div><strong class="survey-result__name">' +
       esc(optionName(option)) +
-      '</strong><div class="survey-markdown survey-result__description">' +
-      markdown(optionDescription(option)) +
-      '</div></div><strong class="survey-result__count">' +
+      '</strong>' +
+      (showDescription
+        ? '<div class="survey-markdown survey-result__description">' +
+          markdown(optionDescription(option)) +
+          "</div>"
+        : "") +
+      '<div class="survey-result__bar" aria-hidden="true"><span style="width:' +
+      percentage +
+      '%"></span></div>' +
+      '</div><strong class="survey-result__count">' +
+      '<span class="survey-result__votes">' +
       count +
-      (multiple
+      " " +
+      (count === 1 ? "vote" : "votes") +
+      " · " +
+      percentage +
+      "%</span>" +
+      (multiple && allowsPreferred
         ? '<span class="survey-result__preferred">' +
           preferredCount +
           " preferred</span>"
         : "") +
+      (!showDescription && option.allowsText
+        ? '<span class="survey-result__comments" aria-label="' +
+          textCount +
+          " optional " +
+          (textCount === 1 ? "detail" : "details") +
+          '"><span aria-hidden="true">💬</span> ' +
+          textCount +
+          "</span>"
+        : "") +
       "</strong></div>"
     );
+  }
+
+  function surveyOutcomeLeader(survey, counts, preferredCounts) {
+    var leader = null,
+      tied = false;
+    survey.options.forEach(function (option) {
+      var votes = counts[option.id] || 0,
+        allowsPreferred =
+          survey.multiple &&
+          (option.allowsPreferred || !survey.preferredEligibilityConfigured),
+        preferred = allowsPreferred ? preferredCounts[option.id] || 0 : 0;
+      if (
+        !leader ||
+        votes > leader.votes ||
+        (votes === leader.votes && preferred > leader.preferred)
+      ) {
+        leader = {
+          option: option,
+          votes: votes,
+          preferred: preferred,
+          allowsPreferred: allowsPreferred,
+        };
+        tied = false;
+      } else if (
+        votes === leader.votes &&
+        preferred === leader.preferred
+      ) {
+        tied = true;
+      }
+    });
+    return leader && leader.votes > 0 && !tied ? leader : null;
   }
 
   function setupAdmin(root) {
     var form = root.querySelector("[data-survey-editor]"),
       options = root.querySelector("[data-survey-options]"),
       status = root.querySelector("[data-survey-admin-status]"),
-      list = root.querySelector("[data-survey-admin-list]");
+      list = root.querySelector("[data-survey-admin-list]"),
+      legacyPreferredEligibility = false;
     function syncOptionTextPrompt(row) {
       var enabled = row.querySelector("[data-option-text]").checked,
         prompt = row.querySelector("[data-option-text-prompt]");
@@ -257,7 +324,11 @@
         esc(o ? optionName(o) : "") +
         '"></label><label class="form-label">Option description<textarea class="survey-option-editor__input" data-option-description aria-label="Option description" maxlength="2000" required rows="5" placeholder="Longer explanation for members. Markdown supported.">' +
         esc(optionDescription(o)) +
-        '</textarea></label><div class="cluster survey-option-editor__detail-toggle"><label><input data-option-text type="checkbox" ' +
+        '</textarea></label><div class="cluster survey-option-editor__preferred-toggle"><label><input data-option-preferred type="checkbox" ' +
+        ((o && o.allowsPreferred) || legacyPreferredEligibility
+          ? "checked"
+          : "") +
+        '> Allow members to mark this as their preferred option <span class="form-hint">(multiple-choice surveys only)</span></label></div><div class="cluster survey-option-editor__detail-toggle"><label><input data-option-text type="checkbox" ' +
         (o && o.allowsText ? "checked" : "") +
         '> Offer a short detail response</label></div><label class="form-label survey-option-editor__text-prompt">Detail-response prompt<input data-option-text-prompt aria-label="Detail-response prompt" maxlength="160" type="text" placeholder="Optional detail" value="' +
         esc(o ? optionTextPrompt(o) : "") +
@@ -278,6 +349,7 @@
       form.reset();
       form.querySelector("[data-survey-id]").value = "";
       form.querySelector("[data-survey-status]").value = "draft";
+      legacyPreferredEligibility = false;
       form.querySelector("[data-survey-start]").value = dateInputValue(start);
       form.querySelector("[data-survey-end]").value = dateInputValue(end);
       options.innerHTML = "";
@@ -298,6 +370,7 @@
       form.querySelector("[data-survey-end]").value = s.endsOn;
       form.querySelector("[data-survey-multiple]").checked = s.multiple;
       form.querySelector("[data-survey-results]").checked = s.showResults;
+      legacyPreferredEligibility = !s.preferredEligibilityConfigured;
       options.innerHTML = "";
       s.options.forEach(add);
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -334,12 +407,12 @@
         buttons[1].onclick = function () {
           if (
             confirm(
-              "Delete this survey? Existing responses will no longer be visible.",
+              "Delete this survey? Existing responses will no longer be visible."
             )
           )
             request(
               "/api/admin/surveys?id=" + encodeURIComponent(s.id),
-              "DELETE",
+              "DELETE"
             )
               .then(load)
               .catch(function (e) {
@@ -389,10 +462,11 @@
             id: x.querySelector("[data-option-id]").value,
             name: x.querySelector("[data-option-name]").value,
             description: x.querySelector("[data-option-description]").value,
+            allowsPreferred: x.querySelector("[data-option-preferred]").checked,
             allowsText: x.querySelector("[data-option-text]").checked,
-            textPrompt: x.querySelector("[data-option-text-prompt]").value,
+            textPrompt: x.querySelector("[data-option-text-prompt]").value
           };
-        }),
+        })
       };
       request("/api/admin/surveys", payload.id ? "PUT" : "POST", payload)
         .then(function () {
@@ -416,7 +490,7 @@
             "/api/admin/survey-results?id=" +
               encodeURIComponent(id) +
               "&format=csv",
-            { headers: authHeaders({ Authorization: "Bearer " + value }) },
+            { headers: authHeaders({ Authorization: "Bearer " + value }) }
           );
         })
         .then(function (response) {
@@ -454,6 +528,10 @@
               (analysis.counts && analysis.counts[option.id]) || 0,
               preferred,
               analysis.survey.multiple,
+              option.allowsPreferred || !analysis.survey.preferredEligibilityConfigured,
+              analysis.total,
+              true,
+              0
             );
           })
           .join("") +
@@ -514,7 +592,11 @@
           : "Select the outcome you would support") +
         '</legend><p class="form-hint">' +
         (s.multiple
-          ? "You can choose more than one option and optionally mark one as preferred."
+          ? s.options.some(function (option) {
+              return option.allowsPreferred || !s.preferredEligibilityConfigured;
+            })
+            ? "You can choose more than one option and may mark an eligible option as preferred."
+            : "You can choose more than one option."
           : "Choose one option.") +
         '</p><div data-survey-choice-list></div></fieldset><button class="btn btn--primary survey-options__submit" type="submit">Test response</button><p role="status" aria-live="polite"></p></form></article>';
       var form = root.querySelector("form"),
@@ -522,7 +604,7 @@
       s.options.forEach(function (o, index) {
         choices.insertAdjacentHTML(
           "beforeend",
-          choiceMarkup(o, index, s.multiple, false, false, "", "preview-text-"),
+          choiceMarkup(o, index, s.multiple, o.allowsPreferred || !s.preferredEligibilityConfigured, false, false, "", "preview-text-")
         );
       });
       prepareOptionDescriptions(choices);
@@ -533,19 +615,19 @@
             field.closest(".survey-choice__text").hidden = !form.querySelector(
               'input[name="survey"][value="' +
                 field.getAttribute("data-option-text-id") +
-                '"]',
+                '"]'
             ).checked;
-          },
+          }
         );
         Array.prototype.forEach.call(
           form.querySelectorAll("[data-preferred-option]"),
           function (field) {
             var selected = form.querySelector(
-              'input[name="survey"][value="' + field.value + '"]',
+              'input[name="survey"][value="' + field.value + '"]'
             ).checked;
             field.closest(".survey-choice__preferred").hidden = !selected;
             if (!selected) field.checked = false;
-          },
+          }
         );
         if (
           event.target.matches("[data-preferred-option]") &&
@@ -555,7 +637,7 @@
             form.querySelectorAll("[data-preferred-option]"),
             function (field) {
               if (field !== event.target) field.checked = false;
-            },
+            }
           );
         expandSelectedOptionDescriptions(form);
       };
@@ -565,7 +647,7 @@
             form.querySelectorAll('input[name="survey"]:checked'),
             function (input) {
               return input.value;
-            },
+            }
           ),
           preferred = form.querySelector("[data-preferred-option]:checked"),
           textByOption = {};
@@ -580,8 +662,8 @@
             surveyId: s.id,
             optionIds: selected,
             preferredOptionId: preferred ? preferred.value : "",
-            textByOption: textByOption,
-          },
+            textByOption: textByOption
+          }
         )
           .then(function () {
             form.querySelector("[role=status]").textContent =
@@ -658,7 +740,7 @@
             (s.multiple
               ? "You can choose more than one option."
               : "Choose one option.") +
-            "</p><div data-survey-choice-list></div></fieldset>",
+            "</p><div data-survey-choice-list></div></fieldset>"
         );
         var choices = form.querySelector("[data-survey-choice-list]");
         s.options.forEach(function (o, index) {
@@ -671,11 +753,12 @@
               o,
               index,
               s.multiple,
+              o.allowsPreferred || !s.preferredEligibilityConfigured,
               selected,
               preferred,
               text,
-              "survey-text-",
-            ),
+              "survey-text-"
+            )
           );
         });
         form.insertAdjacentHTML(
@@ -684,7 +767,7 @@
             ((result.myOptionIds || []).length
               ? "Update your response"
               : "Submit your response") +
-            "</button>",
+            "</button>"
         );
         form.onchange = function (event) {
           Array.prototype.forEach.call(
@@ -694,20 +777,20 @@
                 !form.querySelector(
                   'input[name="survey"][value="' +
                     field.getAttribute("data-option-text-id") +
-                    '"]',
+                    '"]'
                 ).checked;
-            },
+            }
           );
           Array.prototype.forEach.call(
             form.querySelectorAll("[data-preferred-option]"),
             function (field) {
               var selectedOption = form.querySelector(
-                'input[name="survey"][value="' + field.value + '"]',
+                'input[name="survey"][value="' + field.value + '"]'
               ).checked;
               field.closest(".survey-choice__preferred").hidden =
                 !selectedOption;
               if (!selectedOption) field.checked = false;
-            },
+            }
           );
           if (
             event.target.matches("[data-preferred-option]") &&
@@ -717,7 +800,7 @@
               form.querySelectorAll("[data-preferred-option]"),
               function (field) {
                 if (field !== event.target) field.checked = false;
-              },
+              }
             );
           expandSelectedOptionDescriptions(form);
         };
@@ -727,13 +810,13 @@
               form.querySelectorAll('input[name="survey"]:checked'),
               function (input) {
                 return input.value;
-              },
+              }
             ),
             preferred = form.querySelector("[data-preferred-option]:checked"),
             textByOption = {};
           selected.forEach(function (id) {
             var field = form.querySelector(
-              '[data-option-text-id="' + id + '"]',
+              '[data-option-text-id="' + id + '"]'
             );
             if (field) textByOption[id] = field.value;
           });
@@ -741,11 +824,11 @@
             surveyId: s.id,
             optionIds: selected,
             preferredOptionId: preferred ? preferred.value : "",
-            textByOption: textByOption,
+            textByOption: textByOption
           })
             .then(function () {
               window.location.assign(
-                "/member/survey-results/?id=" + encodeURIComponent(s.id),
+                "/member/survey-results/?id=" + encodeURIComponent(s.id)
               );
             })
             .catch(function (err) {
@@ -783,7 +866,7 @@
         .slice()
         .sort(function (a, b) {
           return String(b.survey.startsOn).localeCompare(
-            String(a.survey.startsOn),
+            String(a.survey.startsOn)
           );
         })
         .filter(function (result) {
@@ -801,7 +884,7 @@
         ["all", "All surveys"],
         ["open", "Open"],
         ["upcoming", "Upcoming"],
-        ["closed", "Closed"],
+        ["closed", "Closed"]
       ]
         .map(function (item) {
           return (
@@ -824,7 +907,7 @@
           "beforeend",
           '<section class="dashboard-panel"><p>No ' +
             esc(filter === "all" ? "" : filter + " ") +
-            "surveys to show.</p></section>",
+            "surveys to show.</p></section>"
         );
         return;
       }
@@ -873,7 +956,7 @@
             (submitted ? "Response submitted" : "Not yet responded") +
             '</p></div><div class="cluster">' +
             actions +
-            "</div></article>",
+            "</div></article>"
         );
       });
     }
@@ -896,7 +979,12 @@
   function resultMarkup(result) {
     var s = result.survey,
       submitted = result.myOptionIds && result.myOptionIds.length,
-      closed = s.endsOn < dateInputValue(new Date());
+      closed = s.endsOn < dateInputValue(new Date()),
+      outcomeLeader = surveyOutcomeLeader(
+        s,
+        result.counts || {},
+        result.preferredCounts || {}
+      );
     if (!submitted && !closed)
       return (
         '<section class="dashboard-panel"><h2 class="dashboard-panel__title">Submit your response first</h2><p>Aggregate results become available after you have submitted your own response.</p><a class="btn btn--primary" href="/member/survey-response/?id=' +
@@ -916,13 +1004,28 @@
       esc(s.title) +
       '</h2><p class="survey-member-card__status">' +
       (submitted
-        ? "Thank you — your response is included below."
+        ? "We have added your submission to the overall results shown below."
         : "Results are now available to all members.") +
-      '</p><div class="survey-results"><div class="survey-results__header"><h3>Current results</h3><span>' +
+      '</p><div class="survey-results"><div class="survey-results__header"><h3>Overall results</h3><span>' +
       result.total +
       " response" +
       (result.total === 1 ? "" : "s") +
       "</span></div>" +
+      (outcomeLeader
+        ? '<aside class="survey-results__leader"><p>Current leading outcome</p><strong>' +
+          esc(optionName(outcomeLeader.option)) +
+          '</strong><span>Chosen by ' +
+          outcomeLeader.votes +
+          " member" +
+          (outcomeLeader.votes === 1 ? "" : "s") +
+          (outcomeLeader.allowsPreferred
+            ? " and marked preferred by " +
+              outcomeLeader.preferred +
+              " member" +
+              (outcomeLeader.preferred === 1 ? "" : "s")
+            : "") +
+          ".</span></aside>"
+        : "") +
       s.options
         .map(function (o) {
           var preferred =
@@ -932,14 +1035,19 @@
             (result.counts && result.counts[o.id]) || 0,
             preferred,
             s.multiple,
+            o.allowsPreferred || !s.preferredEligibilityConfigured,
+            result.total,
+            false,
+            (result.textCounts && result.textCounts[o.id]) || 0
           );
         })
         .join("") +
       '</div><div class="cluster survey-results__actions">' +
+      '<a class="btn btn--primary" href="/member/account/">Return to member dashboard</a>' +
       (result.canRespond && submitted
         ? '<a class="btn btn--secondary" href="/member/survey-response/?id=' +
           encodeURIComponent(s.id) +
-          '">Edit your response</a>'
+          '">Edit response</a>'
         : "") +
       '<a class="btn btn--secondary" href="/member/surveys/?filter=closed">Closed surveys</a></div></article>'
     );
@@ -1001,7 +1109,11 @@
           : "are " + active.length + " open member surveys") +
         " waiting for your response.</p><ul>" +
         names +
-        '</ul><div class="cluster"><a class="btn btn--primary" href="/member/surveys/">Take the survey' +
+        '</ul><div class="cluster"><a class="btn btn--primary" href="' +
+        (active.length === 1
+          ? "/member/survey-response/?id=" + encodeURIComponent(active[0].survey.id)
+          : "/member/surveys/") +
+        '">Take the survey' +
         (active.length === 1 ? "" : "s") +
         "</a>" +
         historyAction +

@@ -146,6 +146,7 @@ test('clean-room configuration and preservation-critical asset inventories stay 
     'public/favicon.png',
     'public/images/ipace-hero.png',
     'public/images/jlr-client-care-september-hero.png',
+    'public/images/september-survey-2026-hero.jpg',
     'public/images/ipace-owners-logo.svg',
     'public/images/ipace-owners-logo.png',
     'public/images/ipace-owners-qr.svg',

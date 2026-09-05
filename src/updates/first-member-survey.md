@@ -5,6 +5,8 @@ summary: "Our first member survey is open: tell us which outcomes you would supp
 layout: update.njk
 eyebrow: Member survey
 seoType: article
+heroImage: /images/september-survey-2026-hero.jpg
+heroImageAlt: "A dark-blue electric SUV travelling on the left of an oak-lined country road, with a clipboard and phone in the foreground."
 ---
 
 Our first member survey is now open. It asks which outcomes you would find acceptable for our

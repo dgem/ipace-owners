@@ -237,6 +237,18 @@ variable "resend_region" {
   default     = "eu-west-1"
 }
 
+variable "monitoring_enabled" {
+  description = "Whether to manage external uptime checks, an operations dashboard, and alerts for this environment."
+  type        = bool
+  default     = false
+}
+
+variable "monitoring_alert_email" {
+  description = "Optional email recipient for Monitoring alerts. Leave empty to create alerts without email notifications."
+  type        = string
+  default     = ""
+}
+
 variable "manage_github_actions" {
   description = "Whether this module should create/update GitHub Actions environments, variables and secrets."
   type        = bool

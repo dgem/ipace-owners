@@ -54,6 +54,17 @@ output "firestore_data_protection" {
   }
 }
 
+output "monitoring" {
+  description = "Operations dashboard, independent uptime checks, and alert-delivery configuration for this environment."
+  value = {
+    enabled                 = local.monitoring_enabled
+    dashboard_id            = try(google_monitoring_dashboard.operations[0].id, null)
+    homepage_uptime_check   = try(google_monitoring_uptime_check_config.endpoint["homepage"].uptime_check_id, null)
+    public_api_uptime_check = try(google_monitoring_uptime_check_config.endpoint["public_api"].uptime_check_id, null)
+    email_notifications     = length(google_monitoring_notification_channel.operator_email) == 1
+  }
+}
+
 output "firebase_web_app_id" {
   value = google_firebase_web_app.default.app_id
 }

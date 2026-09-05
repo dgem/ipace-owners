@@ -60,6 +60,15 @@ func TestAuthTraceCodeAcceptsOnlyOpaqueSupportCodes(t *testing.T) {
 	}
 }
 
+func TestAuthorizationRouteRetainsFunctionRoot(t *testing.T) {
+	if got := authorizationRoute("/"); got != "/" {
+		t.Fatalf("root authorization route = %q, want /", got)
+	}
+	if got := authorizationRoute("/api/member-data/"); got != "/api/member-data" {
+		t.Fatalf("authorization route = %q", got)
+	}
+}
+
 func TestAuthDiagnosticsRecordsOnlyBoundedPIIFreeLifecycleEvents(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/api/auth-diagnostics", strings.NewReader(`{"traceCode":"IP-ABCD-2345","stage":"email-link-completion","outcome":"failed"}`))
 	req.Header.Set("Origin", "https://ipace-owners.org")

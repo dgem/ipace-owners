@@ -470,12 +470,20 @@ func logAuthorizationDecision(r *http.Request, requiredRole string, decision str
 		return
 	}
 	fields := addAuthTrace(map[string]any{
-		"route":        strings.TrimRight(r.URL.Path, "/"),
+		"route":        authorizationRoute(r.URL.Path),
 		"requiredRole": requiredRole,
 		"decision":     decision,
 		"status":       status,
 	}, r)
 	logEvent("authorization", "info", "authorization decision", fields)
+}
+
+func authorizationRoute(path string) string {
+	route := strings.TrimRight(path, "/")
+	if route == "" {
+		return "/"
+	}
+	return route
 }
 
 func userFromToken(ctx context.Context, client *auth.Client, token *auth.Token) *firebaseUser {
