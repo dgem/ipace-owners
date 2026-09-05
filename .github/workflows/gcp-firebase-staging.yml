@@ -63,6 +63,8 @@ jobs:
     if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == github.repository_owner
     runs-on: ubuntu-latest
     environment: staging
+    outputs:
+      preview_url: ${{ steps.hosting.outputs.url }}
     concurrency:
       group: firebase-staging-deploy
       cancel-in-progress: false
@@ -226,6 +228,35 @@ jobs:
               issue_number: context.issue.number,
               body
             });
+
+  playwright-member-auth:
+    needs: deploy-preview
+    if: needs.deploy-preview.result == 'success' && vars.PLAYWRIGHT_AUTH_E2E_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    environment: staging
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: make ci-install
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify a member can complete passwordless sign-in
+        env:
+          E2E_BASE_URL: ${{ needs.deploy-preview.outputs.preview_url }}
+          E2E_RESEND_API_KEY: ${{ secrets.E2E_RESEND_API_KEY_STAGING }}
+          E2E_RESEND_INBOX: ${{ secrets.E2E_RESEND_INBOX_STAGING }}
+        run: make test-e2e-auth
 
   cleanup-merged-preview:
     if: github.event.action == 'closed' && github.event.pull_request.merged == true && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == github.repository_owner

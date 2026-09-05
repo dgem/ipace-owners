@@ -103,6 +103,18 @@ site-owned `/images/` paths; Freeform campaigns retain the generic hero.
   job runs deterministic Chrome checks at desktop and mobile viewports and uploads screenshots
   even on failure. Keep authenticated visual fixtures credential-free and assert geometry and
   visibility rather than relying only on pixel snapshots.
+- Keep a Playwright responsive suite separate from deterministic visual fixtures. It must run the
+  public homepage and signed-out member sign-in gate in Chromium, Firefox, WebKit, Android Chrome
+  and iPhone Safari profiles, check that navigation remains usable and no viewport has horizontal
+  overflow, and start the local Eleventy server automatically for local runs. The public workflow
+  runs this suite on every pull request and may upload diagnostics only for those public pages.
+- Add an opt-in staging-only Playwright passwordless journey after a successful same-repository
+  preview deployment. It requests a magic link for one dedicated, registered staging test member,
+  polls Resend's Receiving API, opens the short-lived link and proves protected account data is
+  available. Gate it on the staging environment variable `PLAYWRIGHT_AUTH_E2E_ENABLED` and use
+  `E2E_RESEND_INBOX_STAGING` plus a dedicated `E2E_RESEND_API_KEY_STAGING` as secrets. Never use a
+  real member account, log the inbox or action link, or retain an auth test trace, screenshot,
+  video or artifact. Keep the test disabled when its explicit staging configuration is absent.
 - Run a separate `Security` workflow on pull requests, pushes to `main`, a weekly Monday
   schedule, and manual dispatch. It must use job-scoped permissions and run CodeQL
   `security-extended` analysis for GitHub Actions, JavaScript/TypeScript, and Go; dependency
@@ -175,6 +187,9 @@ site-owned `/images/` paths; Freeform campaigns retain the generic hero.
   7. Run `make smoke` with `SMOKE_BASE_URL` set to the generated preview URL. The public-stats
      request must require the current schema and headline aggregate, causing an outdated
      stored snapshot to regenerate under the Function runtime identity.
+  8. When `PLAYWRIGHT_AUTH_E2E_ENABLED` is explicitly enabled, run the secret-backed member
+     magic-link Playwright journey against that exact generated URL after deployment. Do not run it
+     in read-only validation or for forks.
 - Keep Firebase CLI deployment JSON available for URL extraction and PR diagnostics. If a
   preview deployment fails, CI must print both Firebase CLI stderr and any JSON error payload;
   do not hide the actionable error behind shell redirection.
@@ -458,5 +473,8 @@ site-owned `/images/` paths; Freeform campaigns retain the generic hero.
   array literals conform to an unnecessary legacy style.
 - Keep tests for preview URL extraction, preview authorized-domain updates, and Function
   environment generation.
+- Keep Node contract tests that prove the browser matrix, local Playwright web-server setup and
+  magic-link safety controls remain configured, without requiring browser downloads or email
+  secrets in `make test`.
 - Run `make lint`, `make build`, and `make test` after CI, deployment, or operational prompt
   changes.
