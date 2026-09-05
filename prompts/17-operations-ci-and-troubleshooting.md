@@ -45,7 +45,7 @@ The same page provides custom verified-member campaigns. Preview validates an al
 draft, calculates the canonical-email-deduped intersection of verified Auth accounts and
 contact-consenting Join records, and renders branded HTML in a sandbox plus plain text. Sending
 loads the saved immutable content, rechecks the audience and `SEND <count>` confirmation, and
-uses the same ten-message hashed/idempotent batches. Parent campaign documents retain aggregate
+uses 100-message hashed/idempotent batches. Parent campaign documents retain aggregate
 eligible, sent, failed-attempt, remaining, batch and timestamp history. Write them as complete
 struct replacements; never pass a Go struct with Firestore `MergeAll`, which accepts map data
 only. Replacing the parent document must leave its hashed delivery subcollection intact so a

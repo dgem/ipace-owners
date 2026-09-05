@@ -21,6 +21,7 @@ const (
 	jlrContactCampaignKind    = "jlr-contact"
 	surveyCampaignKind        = "survey-september-2026"
 	customCampaignMarkdownMax = 20000
+	customCampaignBatchSize   = 100
 )
 
 var customCampaignPlaceholderRegexp = regexp.MustCompile(`\{\{\s*([A-Za-z][A-Za-z0-9]*)\s*\}\}`)
@@ -411,7 +412,7 @@ func sendCustomCampaignBatch(ctx context.Context, input customCampaignSendReques
 	batchSent := 0
 	for _, person := range audience.Recipients {
 		fingerprint := campaignEmailFingerprint(person.Email)
-		if sent[fingerprint] || batchSent >= emailCampaignBatchSize {
+		if sent[fingerprint] || batchSent >= customCampaignBatchSize {
 			continue
 		}
 		subject, htmlBody, text, err := renderCustomCampaignEmail(record, audience, person)
@@ -436,7 +437,7 @@ func sendCustomCampaignBatch(ctx context.Context, input customCampaignSendReques
 		}
 		sent[fingerprint] = true
 		batchSent++
-		if batchSent < emailCampaignBatchSize {
+		if batchSent < customCampaignBatchSize {
 			time.Sleep(250 * time.Millisecond)
 		}
 	}

@@ -505,7 +505,7 @@ disables sending rather than failing to calculate a preview.
 `POST /api/admin/custom-campaign-preview` validates and saves the draft, recalculates the
 canonical-email-deduped audience and renders sandboxed branded HTML plus plain text.
 `POST /api/admin/custom-campaign-send` reloads that immutable draft and uses the same exact-count
-confirmation, ten-message batches, Resend idempotency and hashed ledgers. History is returned by
+confirmation, 100-message batches, Resend idempotency and hashed ledgers. History is returned by
 `POST /api/admin/email-campaign-history`; none of these responses contain addresses.
 
 Custom Markdown supports only these literal substitutions: `{{membersJoined}}`,

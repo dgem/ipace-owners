@@ -54,7 +54,7 @@ date: Last Modified
         <button type="button" role="tab" id="campaign-tab-freeform" aria-controls="create-member-campaign" aria-selected="false" tabindex="-1" data-campaign-tab="freeform">Freeform</button>
       </div>
 
-    <section class="email-campaign-tabpanel" id="campaign-panel-jlr-contact" role="tabpanel" aria-labelledby="campaign-tab-jlr-contact" tabindex="0" data-campaign-panel="jlr-contact" data-email-campaign data-preview-endpoint="/api/admin/jlr-contact-preview" data-send-endpoint="/api/admin/custom-campaign-send" hidden>
+    <section class="email-campaign-tabpanel" id="campaign-panel-jlr-contact" role="tabpanel" aria-labelledby="campaign-tab-jlr-contact" tabindex="0" data-campaign-panel="jlr-contact" data-email-campaign data-preview-endpoint="/api/admin/jlr-contact-preview" data-send-endpoint="/api/admin/custom-campaign-send" data-batch-size="100" hidden>
       <div class="dashboard-panel__header"><div><p class="dashboard-panel__eyebrow">Email verified, consented members</p><h2 class="dashboard-panel__title">JLR Contact</h2></div></div>
       <p>This is the approved initial-contact update. It asks members to help reach 1,000, add their cars, and contribute SoH and service records before discussions resume. The source-controlled copy cannot be changed here.</p>
       <div class="email-campaign-step">
@@ -78,7 +78,7 @@ date: Last Modified
       <p data-campaign-status role="status" aria-live="polite">No email has been sent.</p>
     </section>
 
-    <section class="email-campaign-tabpanel" id="campaign-panel-september-survey" role="tabpanel" aria-labelledby="campaign-tab-september-survey" tabindex="0" data-campaign-panel="september-survey" data-email-campaign data-preview-endpoint="/api/admin/survey-campaign-preview" data-send-endpoint="/api/admin/custom-campaign-send" hidden>
+    <section class="email-campaign-tabpanel" id="campaign-panel-september-survey" role="tabpanel" aria-labelledby="campaign-tab-september-survey" tabindex="0" data-campaign-panel="september-survey" data-email-campaign data-preview-endpoint="/api/admin/survey-campaign-preview" data-send-endpoint="/api/admin/custom-campaign-send" data-batch-size="100" hidden>
       <div class="dashboard-panel__header"><div><p class="dashboard-panel__eyebrow">Email verified, consented members</p><h2 class="dashboard-panel__title">Preferred outcomes — September meeting</h2></div></div>
       <p>This source-controlled invitation asks members to complete the September survey before the founding-member meeting with JLR. It includes the current evidence totals and a reminder to register their car, State of Health and service or fault experience.</p>
       <div class="email-campaign-step">
@@ -102,7 +102,7 @@ date: Last Modified
       <p data-campaign-status role="status" aria-live="polite">No email has been sent.</p>
     </section>
 
-    <section class="email-campaign-tabpanel email-campaign-composer" id="create-member-campaign" role="tabpanel" aria-labelledby="campaign-tab-freeform" tabindex="0" data-campaign-panel="freeform" data-custom-email-campaign hidden>
+    <section class="email-campaign-tabpanel email-campaign-composer" id="create-member-campaign" role="tabpanel" aria-labelledby="campaign-tab-freeform" tabindex="0" data-campaign-panel="freeform" data-custom-email-campaign data-batch-size="100" hidden>
       <div class="dashboard-panel__header"><div><p class="dashboard-panel__eyebrow">New campaign</p><h2 class="dashboard-panel__title">Create a member email campaign</h2></div></div>
       <p>Write Markdown for verified members who have consented to contact. Preview saves the draft and renders the exact branded HTML and plain-text alternatives. Sent campaigns remain immutable.</p>
 
@@ -140,7 +140,7 @@ date: Last Modified
 
       <div data-custom-campaign-summary class="stack" aria-live="polite"></div>
       <form data-custom-campaign-send class="stack email-campaign-step">
-        <div><p class="dashboard-panel__eyebrow">Confirmed delivery</p><h3>Send this saved campaign</h3><p>Preview recalculates the audience without revealing addresses. Sending requires the exact current count and proceeds in resumable batches of 10. Editing after preview disables delivery until the updated draft is previewed again.</p></div>
+        <div><p class="dashboard-panel__eyebrow">Confirmed delivery</p><h3>Send this saved campaign</h3><p>Preview recalculates the audience without revealing addresses. Sending requires the exact current count and proceeds in resumable batches of 100. Editing after preview disables delivery until the updated draft is previewed again.</p></div>
         <div class="form-group email-campaign-confirmation"><label for="custom-campaign-confirm">Type the exact confirmation shown below</label><input id="custom-campaign-confirm" type="text" data-custom-campaign-confirm autocomplete="off" disabled><p class="form-hint" data-custom-campaign-confirm-hint>Save and preview the campaign first.</p></div>
         <button type="submit" class="btn btn--danger" data-custom-campaign-send-button disabled>Send emails</button>
       </form>

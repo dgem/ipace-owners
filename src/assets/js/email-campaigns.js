@@ -28,6 +28,11 @@
     return Number.isNaN(date.getTime()) ? '—' : date.toLocaleString();
   }
 
+  function configuredBatchSize(element, fallback) {
+    var value = Number.parseInt(element.getAttribute('data-batch-size'), 10);
+    return Number.isFinite(value) && value > 0 ? value : fallback;
+  }
+
   var selectCampaignTab = function () {};
 
   function initialiseCampaignTabs() {
@@ -104,6 +109,7 @@
     var sourceId = '';
     var current = null;
     var historyLoaded = false;
+    var batchSize = configuredBatchSize(root, 100);
 
     function setDeliveryState(data) {
       current = data;
@@ -115,7 +121,7 @@
       confirmInput.disabled = data.remaining < 1;
       sendButton.disabled = data.remaining < 1;
       confirmHint.textContent = data.remaining > 0 ? 'Type “SEND ' + data.eligible + '” exactly.' : 'This campaign run is complete.';
-      sendButton.textContent = data.remaining > 10 ? 'Send next 10 emails' : 'Send final ' + data.remaining + ' email' + (data.remaining === 1 ? '' : 's');
+      sendButton.textContent = data.remaining > batchSize ? 'Send next ' + batchSize + ' emails' : 'Send final ' + data.remaining + ' email' + (data.remaining === 1 ? '' : 's');
     }
 
     function campaignChanged() {
@@ -413,6 +419,7 @@
     var emailText = root.querySelector('[data-campaign-email-text]');
     var status = root.querySelector('[data-campaign-status]');
     var current = null;
+    var batchSize = configuredBatchSize(root, 10);
 
     function render(data) {
       current = data;
@@ -428,7 +435,7 @@
       confirmInput.disabled = remaining < 1;
       sendButton.disabled = remaining < 1;
       confirmHint.textContent = remaining > 0 ? 'Type “SEND ' + data.eligible + '” exactly. ' + remaining + ' remain.' : 'Everyone in this campaign has already been sent an email.';
-      sendButton.textContent = remaining > 10 ? 'Send next 10 emails' : 'Send final ' + remaining + ' email' + (remaining === 1 ? '' : 's');
+      sendButton.textContent = remaining > batchSize ? 'Send next ' + batchSize + ' emails' : 'Send final ' + remaining + ' email' + (remaining === 1 ? '' : 's');
     }
 
     previewButton.addEventListener('click', async function () {

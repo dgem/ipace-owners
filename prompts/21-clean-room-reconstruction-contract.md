@@ -118,7 +118,7 @@ change rather than assuming it exists.
 | `POST /api/admin/survey-campaign-preview` | Admin claim | Load the fixed September survey invitation, calculate the verified consented audience, and return the exact branded preview. |
 | `POST /api/admin/email-campaign-history` | Admin claim | Return parent campaign records and aggregate hashed-ledger delivery counts, including inferred legacy runs and cached Resend delivery outcomes, without addresses. |
 | `POST /api/admin/custom-campaign-preview` | Admin claim | Validate/save a named subject and Markdown draft, calculate the verified consented audience, and return representative branded HTML/plain-text output. |
-| `POST /api/admin/custom-campaign-send` | Admin claim | Load immutable saved content, recheck the audience and exact `SEND <count>` confirmation, then send at most ten idempotent messages. |
+| `POST /api/admin/custom-campaign-send` | Admin claim | Load immutable saved content, recheck the audience and exact `SEND <count>` confirmation, then send at most 100 idempotent messages. |
 | `POST /api/admin/instagram-preview` | Admin claim | Validate a site-relative MP4/MOV path, caption and explicit full-media review; return the deterministic confirmation without a provider side effect. |
 | `POST /api/admin/instagram-campaign-history` | Admin claim | List named drafts and immutable publication records, refreshing cached provider insights when available. |
 | `POST /api/admin/campaign-summary` | Admin claim | Aggregate reconciled Resend email outcomes and Instagram publication/insight totals; report Facebook as manual unless Page Insights is connected. |

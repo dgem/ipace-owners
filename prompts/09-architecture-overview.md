@@ -139,7 +139,7 @@ header.
 | `POST /api/admin/survey-campaign-preview` | `AdminSurveyCampaignPreview` | Admin | Load the fixed September survey invitation, calculate the verified, consented audience, and return the exact branded preview. |
 | `POST /api/admin/email-campaign-history` | `AdminEmailCampaignHistory` | Admin | Return campaign metadata and aggregate delivery history without recipient addresses. |
 | `POST /api/admin/custom-campaign-preview` | `AdminCustomCampaignPreview` | Admin | Validate and persist a custom Markdown draft, calculate the verified consented audience, and return personalised HTML/plain-text previews. |
-| `POST /api/admin/custom-campaign-send` | `AdminCustomCampaignSend` | Admin | Recheck the saved draft and audience, require exact confirmation, and send the next idempotent batch of at most ten. |
+| `POST /api/admin/custom-campaign-send` | `AdminCustomCampaignSend` | Admin | Recheck the saved draft and audience, require exact confirmation, and send the next idempotent batch of at most 100. |
 | `POST /api/admin/instagram-preview` | `AdminInstagramPreview` | Admin | Validate and preview an administrator-reviewed, chat-prepared Reel path and caption without publishing. |
 | `POST /api/admin/instagram-campaign-history` | `AdminInstagramCampaignHistory` | Admin | List saved drafts and publication records and refresh cached provider insights when available. |
 | `POST /api/admin/campaign-summary` | `AdminCampaignSummary` | Admin | Aggregate email delivery, Instagram publication/insight, and Facebook integration-availability totals for the Admin home. |
