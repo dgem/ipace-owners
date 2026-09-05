@@ -434,3 +434,9 @@ using identity fields only for text redaction. Return a private/no-store CSV of 
 across all members. Include structured fields and redacted provider name/title/description;
 omit identity columns, provider postcodes and raw timestamps. See prompt 16 for the precise
 redaction and analysis contract. No extra infrastructure or stored export objects are needed.
+- Run Playwright public responsive checks on every pull request with Chromium, Firefox, WebKit,
+  Android Chrome and iPhone Safari profiles. A separate staging-only, opt-in Playwright journey
+  runs after preview deployment: it requests a passwordless link for a dedicated registered test
+  member, retrieves it through Resend Receiving, and verifies the protected account page. Pass the
+  preview URL as `E2E_BASE_URL`; gate it on `PLAYWRIGHT_AUTH_E2E_ENABLED` and never retain or print
+  authentication links, inbox addresses, screenshots, traces or video.
