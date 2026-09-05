@@ -205,6 +205,28 @@ func TestCustomCampaignVerifiedAtPreservesFirstObservedValueAndBackfillsLegacyUs
 	}
 }
 
+func TestSurveyCampaignTargetsRegisteredMembersAndUsesHundredMessageBatches(t *testing.T) {
+	if got := customCampaignAudienceScopeForKind(surveyCampaignKind); got != customCampaignRegisteredAudience {
+		t.Fatalf("survey audience scope = %q", got)
+	}
+	if got := customCampaignAudienceScopeForKind(jlrContactCampaignKind); got != customCampaignConsentedAudience {
+		t.Fatalf("JLR audience scope = %q", got)
+	}
+	if emailCampaignBatchSize != 100 {
+		t.Fatalf("email batch size = %d, want 100", emailCampaignBatchSize)
+	}
+}
+
+func TestCustomCampaignJoinedAtUsesAuthCreationTime(t *testing.T) {
+	created := time.Date(2026, time.September, 5, 12, 0, 0, 0, time.UTC)
+	if got := customCampaignJoinedAt(&auth.UserMetadata{CreationTimestamp: created.UnixMilli()}); !got.Equal(created) {
+		t.Fatalf("joined time = %v, want %v", got, created)
+	}
+	if got := customCampaignJoinedAt(nil); !got.IsZero() {
+		t.Fatalf("nil metadata joined time = %v", got)
+	}
+}
+
 func TestCustomCampaignStatusIsAuditableAcrossRunStates(t *testing.T) {
 	if got := customCampaignStatus(10, 0); got != "draft" {
 		t.Fatalf("draft status = %q", got)

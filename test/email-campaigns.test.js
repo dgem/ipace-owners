@@ -14,7 +14,7 @@ test('admin email campaign page is gated and describes bounded sending', functio
   assert.match(page, /data-admin-container/);
   assert.match(page, /data-admin-content hidden/);
   assert.match(page, /without revealing addresses/i);
-  assert.match(page, /batches of 10/i);
+  assert.match(page, /batches of 100/i);
   assert.match(page, /Send registration reminder emails/);
   assert.match(page, /What each recipient will receive/);
   assert.doesNotMatch(page, /data-campaign-send hidden/);
@@ -144,6 +144,10 @@ test('custom campaign editor provides history, Markdown preview, reruns and safe
   assert.match(specialisedCampaignBackend, /func AdminJLRContactPreview/);
   assert.match(specialisedCampaignBackend, /func AdminSurveyCampaignPreview/);
   assert.match(campaignBackend, /survey-september-2026/);
+  assert.match(campaignBackend, /customCampaignRegisteredAudience/);
+  assert.match(campaignBackend, /kind == surveyCampaignKind/);
+  assert.match(specialisedCampaignBackend, /const emailCampaignBatchSize = 100/);
+  assert.match(page, /All registered members/);
   assert.doesNotMatch(page, /Campaign library/);
   assert.match(script, /campaignTypeLabel\(campaign\.kind\) \+ ' · ' \+ campaign\.campaignId/);
   assert.doesNotMatch(script, /innerHTML\s*=/);

@@ -109,16 +109,16 @@ change rather than assuming it exists.
 | `GET /api/admin-data` | Admin claim | Return Join and vehicle review records. |
 | `GET /api/admin/stats` | Admin claim | Return the consent-filtered homepage counters alongside private all-record member, vehicle, SoH, and service-event statistics with `Cache-Control: private, no-store`; canonical emails are deduplicated at the first Join before the daily Join trend and country rows are calculated. Derive country from the Join, one unambiguous vehicle country, or a strict UK registration, otherwise use `Unknown` (including conflicting vehicle countries). Magic-link-verified accounts have a separate daily line chart, and no per-vehicle evidence is returned. |
 | `POST /api/admin/reengagement-preview` | Admin claim | Return aggregate counts for consented Join submitters who have not registered. |
-| `POST /api/admin/reengagement-send` | Admin claim | Require the campaign ID, exact eligible count and typed confirmation; recheck registrations and send the next batch of at most ten. |
+| `POST /api/admin/reengagement-send` | Admin claim | Require the campaign ID, exact eligible count and typed confirmation; recheck registrations and send the next batch of at most 100. |
 | `POST /api/admin/member-referral-preview` | Admin claim | Preview aggregate counts and exact copy for registered accounts with matching contact consent. |
-| `POST /api/admin/member-referral-send` | Admin claim | Confirm and send the next batch of at most ten referral emails with the same idempotent ledger safeguards. |
+| `POST /api/admin/member-referral-send` | Admin claim | Confirm and send the next batch of at most 100 referral emails with the same idempotent ledger safeguards. |
 | `POST /api/admin/all-members-drive-preview` | Admin claim | Preview the deduplicated, contact-consenting audience across verified and unverified Join records and the exact recruitment email. |
-| `POST /api/admin/all-members-drive-send` | Admin claim | Confirm and send the next batch of at most ten all-member recruitment emails with hashed idempotent delivery records. |
+| `POST /api/admin/all-members-drive-send` | Admin claim | Confirm and send the next batch of at most 100 all-member recruitment emails with hashed idempotent delivery records. |
 | `POST /api/admin/jlr-contact-preview` | Admin claim | Load the fixed JLR Contact Markdown source, calculate the verified consented audience, and return the exact branded preview. |
-| `POST /api/admin/survey-campaign-preview` | Admin claim | Load the fixed September survey invitation, calculate the verified consented audience, and return the exact branded preview. |
+| `POST /api/admin/survey-campaign-preview` | Admin claim | Load the fixed September survey invitation, calculate every enabled registered member account with an email address, and return the exact branded preview. |
 | `POST /api/admin/email-campaign-history` | Admin claim | Return parent campaign records and aggregate hashed-ledger delivery counts, including inferred legacy runs and cached Resend delivery outcomes, without addresses. |
 | `POST /api/admin/custom-campaign-preview` | Admin claim | Validate/save a named subject and Markdown draft, calculate the verified consented audience, and return representative branded HTML/plain-text output. |
-| `POST /api/admin/custom-campaign-send` | Admin claim | Load immutable saved content, recheck the audience and exact `SEND <count>` confirmation, then send at most ten idempotent messages. |
+| `POST /api/admin/custom-campaign-send` | Admin claim | Load immutable saved content, recheck the audience and exact `SEND <count>` confirmation, then send at most 100 idempotent messages. |
 | `POST /api/admin/instagram-preview` | Admin claim | Validate a site-relative MP4/MOV path, caption and explicit full-media review; return the deterministic confirmation without a provider side effect. |
 | `POST /api/admin/instagram-campaign-history` | Admin claim | List named drafts and immutable publication records, refreshing cached provider insights when available. |
 | `POST /api/admin/campaign-summary` | Admin claim | Aggregate reconciled Resend email outcomes and Instagram publication/insight totals; report Facebook as manual unless Page Insights is connected. |
@@ -295,7 +295,7 @@ forms explicitly use POST even when JavaScript intercepts them.
   contact-consenting Join records deduped by canonical email. Preview the exact thanks/progress,
   formal-Jaguar-approach about members' shared concerns, a request for Jaguar to engage
   constructively on options for everyone, and the cited vehicle-population and sharing message before enabling the same
-  confirmed, resumable ten-message delivery controls. Lead the subject with thanks for joining;
+  confirmed, resumable 100-message delivery controls. Lead the subject with thanks for joining;
   thank recipients for their support and describe the 17 July launch as less than two weeks ago.
 - Provide custom verified-member campaigns with server-validated Markdown, sandboxed branded HTML
   preview, plain-text preview, click-to-insert allowlisted substitutions, resumable confirmed

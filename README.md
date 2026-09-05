@@ -495,7 +495,9 @@ after previewing its unchanged saved content; editing it creates a new run and p
 original delivery ledger.
 
 Administrators can create ad-hoc custom campaigns for verified Firebase accounts with matching
-contact-consenting Join records. Every static campaign is source-controlled Markdown under
+contact-consenting Join records. The September Survey invitation is the deliberate exception: it
+targets every enabled registered Firebase account with an email address, so the group-wide poll
+reaches all members. Every static campaign is source-controlled Markdown under
 `functions/firebase-go/email-templates/` and is selected server-side through its dedicated tab;
 the JLR Contact tab uses `POST /api/admin/jlr-contact-preview`, and the September Survey tab uses
 `POST /api/admin/survey-campaign-preview`. Static copy cannot be edited in the browser.
@@ -505,7 +507,7 @@ disables sending rather than failing to calculate a preview.
 `POST /api/admin/custom-campaign-preview` validates and saves the draft, recalculates the
 canonical-email-deduped audience and renders sandboxed branded HTML plus plain text.
 `POST /api/admin/custom-campaign-send` reloads that immutable draft and uses the same exact-count
-confirmation, ten-message batches, Resend idempotency and hashed ledgers. History is returned by
+confirmation, 100-message batches, Resend idempotency and hashed ledgers. History is returned by
 `POST /api/admin/email-campaign-history`; none of these responses contain addresses.
 
 Custom Markdown supports only these literal substitutions: `{{membersJoined}}`,

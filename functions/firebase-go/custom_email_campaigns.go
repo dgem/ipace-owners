@@ -23,6 +23,13 @@ const (
 	customCampaignMarkdownMax = 20000
 )
 
+type customCampaignAudienceScope string
+
+const (
+	customCampaignConsentedAudience  customCampaignAudienceScope = "consented-join-members"
+	customCampaignRegisteredAudience customCampaignAudienceScope = "registered-members"
+)
+
 var customCampaignPlaceholderRegexp = regexp.MustCompile(`\{\{\s*([A-Za-z][A-Za-z0-9]*)\s*\}\}`)
 var customCampaignIDRegexp = regexp.MustCompile(`^[a-zA-Z0-9_-]{1,160}$`)
 
@@ -231,7 +238,7 @@ func previewCustomCampaign(ctx context.Context, input customCampaignDraftRequest
 	if err := validateCustomCampaignDraft(input); err != nil {
 		return customCampaignPreviewResponse{}, err
 	}
-	audience, err := loadCustomCampaignAudience(ctx)
+	audience, err := loadCustomCampaignAudience(ctx, customCampaignAudienceScopeForKind(campaignDraftKind(input)))
 	if err != nil {
 		return customCampaignPreviewResponse{}, err
 	}
@@ -336,6 +343,16 @@ func isStaticCampaignKind(kind string) bool {
 	return kind == jlrContactCampaignKind || kind == surveyCampaignKind
 }
 
+// The September survey is a group-wide member poll, so it deliberately reaches every
+// registered Firebase Auth account with an email address. Other custom campaigns retain
+// the narrower, contact-consenting Join audience.
+func customCampaignAudienceScopeForKind(kind string) customCampaignAudienceScope {
+	if kind == surveyCampaignKind {
+		return customCampaignRegisteredAudience
+	}
+	return customCampaignConsentedAudience
+}
+
 func staticCustomCampaignID(templateID string) string {
 	environment := "production"
 	if strings.Contains(strings.ToLower(projectID()), "staging") {
@@ -389,7 +406,7 @@ func sendCustomCampaignBatch(ctx context.Context, input customCampaignSendReques
 	}); err != nil {
 		return customCampaignPreviewResponse{}, fmt.Errorf("saved campaign is invalid; preview again")
 	}
-	audience, err := loadCustomCampaignAudience(ctx)
+	audience, err := loadCustomCampaignAudience(ctx, customCampaignAudienceScopeForKind(record.Kind))
 	if err != nil {
 		return customCampaignPreviewResponse{}, err
 	}
@@ -870,7 +887,7 @@ func saveCustomCampaignRecord(ctx context.Context, document customCampaignDocume
 	return err
 }
 
-func loadCustomCampaignAudience(ctx context.Context) (customCampaignAudience, error) {
+func loadCustomCampaignAudience(ctx context.Context, scope customCampaignAudienceScope) (customCampaignAudience, error) {
 	db, err := firestoreClient(ctx)
 	if err != nil {
 		return customCampaignAudience{}, err
@@ -879,13 +896,15 @@ func loadCustomCampaignAudience(ctx context.Context) (customCampaignAudience, er
 	if err != nil {
 		return customCampaignAudience{}, err
 	}
-	joins, err := loadCampaignJoins(ctx, db)
-	if err != nil {
-		return customCampaignAudience{}, err
-	}
 	joinByEmail := map[string]campaignRecipient{}
-	for _, person := range joins {
-		joinByEmail[canonicalCampaignEmail(person.Email)] = person
+	if scope == customCampaignConsentedAudience {
+		joins, err := loadCampaignJoins(ctx, db)
+		if err != nil {
+			return customCampaignAudience{}, err
+		}
+		for _, person := range joins {
+			joinByEmail[canonicalCampaignEmail(person.Email)] = person
+		}
 	}
 
 	accounts := map[string]*auth.ExportedUserRecord{}
@@ -900,15 +919,15 @@ func loadCustomCampaignAudience(ctx context.Context) (customCampaignAudience, er
 			return customCampaignAudience{}, err
 		}
 		key := canonicalCampaignEmail(user.Email)
-		if key == "" {
+		if key == "" || user.Disabled {
 			continue
 		}
-		if user.EmailVerified {
-			if _, exists := accounts[key]; !exists {
+		if _, exists := accounts[key]; !exists {
+			if user.EmailVerified {
 				verifiedCount++
 			}
-			accounts[key] = user
 		}
+		accounts[key] = user
 	}
 
 	vehiclesByUID := map[string][]customCampaignVehicle{}
@@ -969,8 +988,10 @@ func loadCustomCampaignAudience(ctx context.Context) (customCampaignAudience, er
 	}
 	readingIter.Stop()
 
-	serviceFaultQuery := db.Collection("serviceEvents").Where("review.status", "!=", "deleted")
-	serviceFaultAggregation, err := serviceFaultQuery.
+	// This total is a content statistic for the email template. Count the collection
+	// directly so that a missing or legacy review.status field cannot prevent the
+	// campaign audience from being calculated.
+	serviceFaultAggregation, err := db.Collection("serviceEvents").
 		NewAggregationQuery().
 		WithCount("serviceFaultRecords").
 		Get(ctx)
@@ -1003,20 +1024,26 @@ func loadCustomCampaignAudience(ctx context.Context) (customCampaignAudience, er
 
 	recipients := []customCampaignRecipient{}
 	verificationBackfills := map[string]time.Time{}
-	for key, person := range joinByEmail {
-		account := accounts[key]
-		if account == nil {
+	for key, account := range accounts {
+		person, joined := joinByEmail[key]
+		if scope == customCampaignConsentedAudience && !joined {
 			continue
 		}
 		verifiedAt, inferred := customCampaignVerifiedAt(verifiedAtByUID[account.UID], account.UserMetadata)
 		if inferred {
 			verificationBackfills[account.UID] = verifiedAt
 		}
+		name := strings.TrimSpace(account.DisplayName)
+		joinedAt := customCampaignJoinedAt(account.UserMetadata)
+		if joined {
+			name = person.Name
+			joinedAt = person.CreatedAt
+		}
 		recipients = append(recipients, customCampaignRecipient{
 			UID:        account.UID,
 			Email:      strings.ToLower(strings.TrimSpace(account.Email)),
-			Name:       person.Name,
-			JoinedAt:   person.CreatedAt,
+			Name:       name,
+			JoinedAt:   joinedAt,
 			VerifiedAt: verifiedAt,
 			Vehicles:   vehiclesByUID[account.UID],
 		})
@@ -1025,14 +1052,25 @@ func loadCustomCampaignAudience(ctx context.Context) (customCampaignAudience, er
 		return customCampaignAudience{}, err
 	}
 	sort.Slice(recipients, func(i, j int) bool { return recipients[i].Email < recipients[j].Email })
+	membersJoined := len(joinByEmail)
+	if scope == customCampaignRegisteredAudience {
+		membersJoined = len(accounts)
+	}
 	return customCampaignAudience{
 		Recipients:               recipients,
-		MembersJoined:            len(joinByEmail),
+		MembersJoined:            membersJoined,
 		MembersVerified:          verifiedCount,
 		VehiclesRegisteredCount:  vehicleCount,
 		VehiclesSoHReadingsCount: readingCount,
 		ServiceFaultRecordsCount: int(serviceFaultRecordCount),
 	}, nil
+}
+
+func customCampaignJoinedAt(metadata *auth.UserMetadata) time.Time {
+	if metadata == nil || metadata.CreationTimestamp <= 0 {
+		return time.Time{}
+	}
+	return time.UnixMilli(metadata.CreationTimestamp).UTC()
 }
 
 func customCampaignVerifiedAt(stored time.Time, metadata *auth.UserMetadata) (time.Time, bool) {

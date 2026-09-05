@@ -79,7 +79,7 @@ date: Last Modified
     </section>
 
     <section class="email-campaign-tabpanel" id="campaign-panel-september-survey" role="tabpanel" aria-labelledby="campaign-tab-september-survey" tabindex="0" data-campaign-panel="september-survey" data-email-campaign data-preview-endpoint="/api/admin/survey-campaign-preview" data-send-endpoint="/api/admin/custom-campaign-send" hidden>
-      <div class="dashboard-panel__header"><div><p class="dashboard-panel__eyebrow">Email verified, consented members</p><h2 class="dashboard-panel__title">Preferred outcomes — September meeting</h2></div></div>
+      <div class="dashboard-panel__header"><div><p class="dashboard-panel__eyebrow">All registered members</p><h2 class="dashboard-panel__title">Preferred outcomes — September meeting</h2></div></div>
       <p>This source-controlled invitation asks members to complete the September survey before the founding-member meeting with JLR. It includes the current evidence totals and a reminder to register their car, State of Health and service or fault experience.</p>
       <div class="email-campaign-step">
         <p class="dashboard-panel__eyebrow">Step 1</p>
@@ -140,7 +140,7 @@ date: Last Modified
 
       <div data-custom-campaign-summary class="stack" aria-live="polite"></div>
       <form data-custom-campaign-send class="stack email-campaign-step">
-        <div><p class="dashboard-panel__eyebrow">Confirmed delivery</p><h3>Send this saved campaign</h3><p>Preview recalculates the audience without revealing addresses. Sending requires the exact current count and proceeds in resumable batches of 10. Editing after preview disables delivery until the updated draft is previewed again.</p></div>
+        <div><p class="dashboard-panel__eyebrow">Confirmed delivery</p><h3>Send this saved campaign</h3><p>Preview recalculates the audience without revealing addresses. Sending requires the exact current count and proceeds in resumable batches of 100. Editing after preview disables delivery until the updated draft is previewed again.</p></div>
         <div class="form-group email-campaign-confirmation"><label for="custom-campaign-confirm">Type the exact confirmation shown below</label><input id="custom-campaign-confirm" type="text" data-custom-campaign-confirm autocomplete="off" disabled><p class="form-hint" data-custom-campaign-confirm-hint>Save and preview the campaign first.</p></div>
         <button type="submit" class="btn btn--danger" data-custom-campaign-send-button disabled>Send emails</button>
       </form>

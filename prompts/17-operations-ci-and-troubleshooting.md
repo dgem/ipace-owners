@@ -14,7 +14,7 @@ The `/admin/email-campaigns/` Join re-engagement control uses the CLI's consent 
 suppression boundary. Preview exposes aggregate counts and the exact HTML delivery in a sandboxed
 iframe, with the plain-text alternative available on demand and a safe link placeholder, but no
 recipient data. Send controls stay visible but disabled until the preview succeeds. Sending
-requires the current campaign ID, exact audience count, and `SEND <count>` confirmation; each request sends at most ten messages
+requires the current campaign ID, exact audience count, and `SEND <count>` confirmation; each request sends at most 100 messages
 and records a hashed Firestore delivery ledger with Resend idempotency keys. Re-preview between
 batches and stop to investigate any provider or ledger error.
 
@@ -37,7 +37,7 @@ earlier, reports the live joined total, explains the formal approach to Jaguar a
 shared concerns and asks Jaguar to engage constructively on options for everyone, links the cited
 I-PACE population source, and asks recipients to recruit by sharing. Its subject must lead with
 thanks for joining before the 1,000-member CTA. Do not require Auth
-registration for this audience. Apply the same preview, exact count confirmation, ten-message
+registration for this audience. Apply the same preview, exact count confirmation, 100-message
 batch, hashed delivery ledger and provider-idempotency controls.
 
 The same page provides custom verified-member campaigns. Preview validates an allowlisted
@@ -45,13 +45,18 @@ The same page provides custom verified-member campaigns. Preview validates an al
 draft, calculates the canonical-email-deduped intersection of verified Auth accounts and
 contact-consenting Join records, and renders branded HTML in a sandbox plus plain text. Sending
 loads the saved immutable content, rechecks the audience and `SEND <count>` confirmation, and
-uses the same ten-message hashed/idempotent batches. Parent campaign documents retain aggregate
+uses the same 100-message hashed/idempotent batches. Parent campaign documents retain aggregate
 eligible, sent, failed-attempt, remaining, batch and timestamp history. Write them as complete
 struct replacements; never pass a Go struct with Firestore `MergeAll`, which accepts map data
 only. Replacing the parent document must leave its hashed delivery subcollection intact so a
 post-delivery summary retry cannot resend recipients. “Tweak and rerun” clones
 content into a new run; never edit a run after delivery starts. History may infer old specialised
 runs from legacy delivery-only subcollections, where only the sent count is recoverable.
+
+The fixed September Survey invitation is a group-wide member poll rather than an ad-hoc contact
+campaign. Its audience is every enabled Firebase Auth account with an email address, regardless
+of whether a legacy Join record can be matched; use the Auth creation time and display name where
+that Join data is unavailable. This deliberate exception must remain scoped to the survey tool.
 Refreshing history must reconcile stored Resend IDs with the paginated sent-email API, cache
 provider checks for five minutes, and aggregate delivered, awaiting-delivery, opened, clicked,
 delayed, bounced, suppressed, complained, provider-failed and combined-undeliverable outcomes

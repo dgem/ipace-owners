@@ -22,7 +22,10 @@ import (
 	"google.golang.org/api/iterator"
 )
 
-const emailCampaignBatchSize = 10
+// Keep delivery below Resend's per-second limit while making larger member campaigns
+// practical to run from the admin tools. At the 250 ms inter-message delay, a batch of
+// 100 completes in about 25 seconds.
+const emailCampaignBatchSize = 100
 
 type campaignRecipient struct {
 	Name      string

@@ -130,16 +130,16 @@ header.
 | `GET /api/admin-data` | `AdminData` | Admin | Return review data for administrators. |
 | `GET /api/admin/stats` | `AdminStats` | Admin | Return public consent-filtered homepage counters alongside private all-record member, vehicle, SoH, and service-event statistics with `Cache-Control: private, no-store`; canonical emails are deduplicated at the first Join before the daily Join trend and country rows are calculated. Derive country from the Join, one unambiguous vehicle country, or a strict UK registration, otherwise use `Unknown` (including conflicting vehicle countries). Magic-link-verified accounts have a separate daily line chart, and no per-vehicle evidence is returned. |
 | `POST /api/admin/reengagement-preview` | `AdminReengagementPreview` | Admin | Return aggregate counts for the consented, unsigned-in Join audience. |
-| `POST /api/admin/reengagement-send` | `AdminReengagementSend` | Admin | Confirm and send the next resumable batch of at most ten reminders. |
+| `POST /api/admin/reengagement-send` | `AdminReengagementSend` | Admin | Confirm and send the next resumable batch of at most 100 reminders. |
 | `POST /api/admin/member-referral-preview` | `AdminMemberReferralPreview` | Admin | Preview the consented registered-member referral audience and exact campaign copy. |
-| `POST /api/admin/member-referral-send` | `AdminMemberReferralSend` | Admin | Confirm and send the next resumable batch of at most ten referral emails. |
+| `POST /api/admin/member-referral-send` | `AdminMemberReferralSend` | Admin | Confirm and send the next resumable batch of at most 100 referral emails. |
 | `POST /api/admin/all-members-drive-preview` | `AdminAllMembersDrivePreview` | Admin | Preview the contact-consenting, canonical-email-deduplicated audience across verified and unverified Join records. |
-| `POST /api/admin/all-members-drive-send` | `AdminAllMembersDriveSend` | Admin | Confirm and send the next resumable batch of at most ten all-member recruitment emails. |
+| `POST /api/admin/all-members-drive-send` | `AdminAllMembersDriveSend` | Admin | Confirm and send the next resumable batch of at most 100 all-member recruitment emails. |
 | `POST /api/admin/jlr-contact-preview` | `AdminJLRContactPreview` | Admin | Load the fixed JLR Contact Markdown source, calculate the verified, consented audience, and return the exact branded preview. |
-| `POST /api/admin/survey-campaign-preview` | `AdminSurveyCampaignPreview` | Admin | Load the fixed September survey invitation, calculate the verified, consented audience, and return the exact branded preview. |
+| `POST /api/admin/survey-campaign-preview` | `AdminSurveyCampaignPreview` | Admin | Load the fixed September survey invitation, calculate every enabled registered member account with an email address, and return the exact branded preview. |
 | `POST /api/admin/email-campaign-history` | `AdminEmailCampaignHistory` | Admin | Return campaign metadata and aggregate delivery history without recipient addresses. |
 | `POST /api/admin/custom-campaign-preview` | `AdminCustomCampaignPreview` | Admin | Validate and persist a custom Markdown draft, calculate the verified consented audience, and return personalised HTML/plain-text previews. |
-| `POST /api/admin/custom-campaign-send` | `AdminCustomCampaignSend` | Admin | Recheck the saved draft and audience, require exact confirmation, and send the next idempotent batch of at most ten. |
+| `POST /api/admin/custom-campaign-send` | `AdminCustomCampaignSend` | Admin | Recheck the saved draft and audience, require exact confirmation, and send the next idempotent batch of at most 100. |
 | `POST /api/admin/instagram-preview` | `AdminInstagramPreview` | Admin | Validate and preview an administrator-reviewed, chat-prepared Reel path and caption without publishing. |
 | `POST /api/admin/instagram-campaign-history` | `AdminInstagramCampaignHistory` | Admin | List saved drafts and publication records and refresh cached provider insights when available. |
 | `POST /api/admin/campaign-summary` | `AdminCampaignSummary` | Admin | Aggregate email delivery, Instagram publication/insight, and Facebook integration-availability totals for the Admin home. |
@@ -359,7 +359,9 @@ sheet and chart format without exposing member data.
   Drafts may be reopened, and partial custom runs may continue only after re-previewing the exact
   unchanged saved content; editing a run with deliveries must create a new sourced run.
 - Custom campaigns target the canonical-email intersection of contact-consenting Join records
-  and verified Firebase accounts. Available literal `{{name}}` substitutions are
+  and verified Firebase accounts. The fixed September Survey invitation is the deliberate
+  exception: it targets every enabled Firebase Auth account with an email address, falling back
+  to Auth metadata where a legacy Join record is unavailable. Available literal `{{name}}` substitutions are
   `membersJoined`, `membersVerified`, `memberFirstName`, `memberLastName`, `memberTittle`
   (plus corrected alias `memberTitle`), `memberJoined`, `memberVerified`, `memberVehicles`,
   `vehiclesRegisteredCount`, `vehiclesSoHReadingsCount`, and `serviceFaultRecordsCount`. Reject other
