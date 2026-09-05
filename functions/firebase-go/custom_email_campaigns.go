@@ -143,6 +143,7 @@ type customCampaignData struct {
 	MemberVehicles           string
 	VehiclesRegisteredCount  int
 	VehiclesSoHReadingsCount int
+	ServiceFaultRecordsCount int
 }
 
 type customCampaignAudience struct {
@@ -151,6 +152,7 @@ type customCampaignAudience struct {
 	MembersVerified          int
 	VehiclesRegisteredCount  int
 	VehiclesSoHReadingsCount int
+	ServiceFaultRecordsCount int
 }
 
 var (
@@ -538,6 +540,7 @@ func customCampaignSubstitutionData(audience customCampaignAudience, person cust
 		MemberVehicles:           string(vehicles),
 		VehiclesRegisteredCount:  audience.VehiclesRegisteredCount,
 		VehiclesSoHReadingsCount: audience.VehiclesSoHReadingsCount,
+		ServiceFaultRecordsCount: audience.ServiceFaultRecordsCount,
 	}
 }
 
@@ -572,6 +575,7 @@ func customCampaignValues(data customCampaignData) map[string]string {
 		"memberVehicles":           data.MemberVehicles,
 		"vehiclesRegisteredCount":  fmt.Sprint(data.VehiclesRegisteredCount),
 		"vehiclesSoHReadingsCount": fmt.Sprint(data.VehiclesSoHReadingsCount),
+		"serviceFaultRecordsCount": fmt.Sprint(data.ServiceFaultRecordsCount),
 	}
 }
 
@@ -965,6 +969,23 @@ func loadCustomCampaignAudience(ctx context.Context) (customCampaignAudience, er
 	}
 	readingIter.Stop()
 
+	serviceFaultRecordCount := 0
+	serviceIter := db.Collection("serviceEvents").Documents(ctx)
+	for {
+		doc, err := serviceIter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return customCampaignAudience{}, err
+		}
+		var record serviceEventRecord
+		if doc.DataTo(&record) == nil && !recordDeleted(record.Review) {
+			serviceFaultRecordCount++
+		}
+	}
+	serviceIter.Stop()
+
 	verifiedAtByUID := map[string]time.Time{}
 	memberIter := db.Collection("members").Documents(ctx)
 	for {
@@ -1014,6 +1035,7 @@ func loadCustomCampaignAudience(ctx context.Context) (customCampaignAudience, er
 		MembersVerified:          verifiedCount,
 		VehiclesRegisteredCount:  vehicleCount,
 		VehiclesSoHReadingsCount: readingCount,
+		ServiceFaultRecordsCount: serviceFaultRecordCount,
 	}, nil
 }
 

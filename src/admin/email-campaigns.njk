@@ -118,7 +118,7 @@ date: Last Modified
           <div class="form-group">
             <span class="form-label">Insert a substitution</span>
             <div class="cluster email-campaign-placeholders" data-custom-campaign-placeholders aria-label="Available substitutions">
-              {% for placeholder in ["membersJoined", "membersVerified", "memberFirstName", "memberLastName", "memberTittle", "memberTitle", "memberJoined", "memberVerified", "memberVehicles", "vehiclesRegisteredCount", "vehiclesSoHReadingsCount"] %}
+              {% for placeholder in ["membersJoined", "membersVerified", "memberFirstName", "memberLastName", "memberTittle", "memberTitle", "memberJoined", "memberVerified", "memberVehicles", "vehiclesRegisteredCount", "vehiclesSoHReadingsCount", "serviceFaultRecordsCount"] %}
                 <button type="button" class="email-campaign-placeholder" data-custom-placeholder="{{ placeholder }}">&#123;&#123;{{ placeholder }}&#125;&#125;</button>
               {% endfor %}
             </div>

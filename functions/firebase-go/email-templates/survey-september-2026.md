@@ -24,7 +24,7 @@ The choices are:
 
 ## Help make the evidence harder to ignore
 
-We now have **1,299 members** (about 1.3K), **568 cars registered**, **96 State of Health readings** and **135 service and fault records**. That is a strong start, but the evidence becomes much more persuasive as more owners add their experience.
+We now have **{{membersJoined}} members**, **{{vehiclesRegisteredCount}} cars registered**, **{{vehiclesSoHReadingsCount}} State of Health readings** and **{{serviceFaultRecordsCount}} service and fault records**. That is a strong start, but the evidence becomes much more persuasive as more owners add their experience.
 
 Our next milestones are **1,500 members** and **1,000+ cars registered**, with more battery-health and service records. At **3,000 members**, we would represent roughly 10% of I-PACE owners. Reaching 3,000 members with 3,000 cars recorded would give JLR data that is very difficult to dismiss.
 

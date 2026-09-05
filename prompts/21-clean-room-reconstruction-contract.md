@@ -304,7 +304,8 @@ forms explicitly use POST even when JavaScript intercepts them.
   member totals by canonical email. Support `membersJoined`, `membersVerified`, `memberFirstName`,
   `memberLastName`, the requested `memberTittle` spelling and `memberTitle` alias, `memberJoined`,
   `memberVerified`, private-member `memberVehicles` JSON, `vehiclesRegisteredCount`, and
-  `vehiclesSoHReadingsCount`; reject arbitrary Go-template actions and unsafe link schemes.
+  `vehiclesSoHReadingsCount`, and `serviceFaultRecordsCount`; reject arbitrary Go-template actions and
+  unsafe link schemes.
 - Reconcile hashed email delivery records against Resend's paginated sent-email API when an
   administrator refreshes campaign data. Cache checks for five minutes and surface delivered,
   awaiting-delivery, opened, clicked, delayed, bounced, suppressed, complained, provider-failed

@@ -50,6 +50,7 @@ func TestCustomCampaignSubstitutionsRenderEveryDocumentedValue(t *testing.T) {
 		MembersVerified:          399,
 		VehiclesRegisteredCount:  287,
 		VehiclesSoHReadingsCount: 634,
+		ServiceFaultRecordsCount: 91,
 	}
 	person := customCampaignRecipient{
 		Name:       "Dr Jane Driver",
@@ -72,6 +73,7 @@ func TestCustomCampaignSubstitutionsRenderEveryDocumentedValue(t *testing.T) {
 		"{{memberVehicles}}",
 		"{{vehiclesRegisteredCount}}",
 		"{{vehiclesSoHReadingsCount}}",
+		"{{serviceFaultRecordsCount}}",
 	}, "|")
 	got, err := applyCustomCampaignSubstitutions(template, data)
 	if err != nil {
@@ -79,7 +81,7 @@ func TestCustomCampaignSubstitutionsRenderEveryDocumentedValue(t *testing.T) {
 	}
 	for _, expected := range []string{
 		"412", "399", "Jane", "Driver", "Dr", "17 July 2026", "18 July 2026",
-		`"registration":"IPACE"`, `"sohReadingsCount":3`, "287", "634",
+		`"registration":"IPACE"`, `"sohReadingsCount":3`, "287", "634", "91",
 	} {
 		if !strings.Contains(got, expected) {
 			t.Fatalf("rendered substitutions missing %q: %s", expected, got)

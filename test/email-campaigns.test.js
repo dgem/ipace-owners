@@ -96,7 +96,8 @@ test('custom campaign editor provides history, Markdown preview, reruns and safe
     'memberVerified',
     'memberVehicles',
     'vehiclesRegisteredCount',
-    'vehiclesSoHReadingsCount'
+    'vehiclesSoHReadingsCount',
+    'serviceFaultRecordsCount'
   ]) {
     assert.match(campaignBackend, new RegExp('"' + field + '"'));
   }

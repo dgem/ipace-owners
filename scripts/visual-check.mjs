@@ -143,7 +143,7 @@ async function checkCampaignControls(viewport, screenshotName) {
   const placeholders = [
     'membersJoined', 'membersVerified', 'memberFirstName', 'memberLastName', 'memberTittle',
     'memberTitle', 'memberJoined', 'memberVerified', 'memberVehicles',
-    'vehiclesRegisteredCount', 'vehiclesSoHReadingsCount'
+    'vehiclesRegisteredCount', 'vehiclesSoHReadingsCount', 'serviceFaultRecordsCount'
   ];
   await page.route('**/api/admin/email-campaign-history', (route) => route.fulfill({
     contentType: 'application/json',
@@ -249,7 +249,7 @@ async function checkCampaignControls(viewport, screenshotName) {
   });
   assert.equal(await page.locator('[data-email-campaign]').count(), 5);
   assert.equal(await page.locator('[data-custom-email-campaign]').count(), 1);
-  assert.equal(await page.locator('[data-custom-placeholder]').count(), 11);
+  assert.equal(await page.locator('[data-custom-placeholder]').count(), 12);
   if (viewport.width < 640) {
     assert.equal(await page.locator('[data-campaign-tab]').evaluateAll((tabs) => tabs.every((tab) => {
       const rect = tab.getBoundingClientRect();

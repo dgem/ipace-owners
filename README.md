@@ -511,7 +511,8 @@ confirmation, ten-message batches, Resend idempotency and hashed ledgers. Histor
 Custom Markdown supports only these literal substitutions: `{{membersJoined}}`,
 `{{membersVerified}}`, `{{memberFirstName}}`, `{{memberLastName}}`, `{{memberTittle}}` (and the
 correctly spelled alias `{{memberTitle}}`), `{{memberJoined}}`, `{{memberVerified}}`,
-`{{memberVehicles}}`, `{{vehiclesRegisteredCount}}`, and `{{vehiclesSoHReadingsCount}}`.
+`{{memberVehicles}}`, `{{vehiclesRegisteredCount}}`, `{{vehiclesSoHReadingsCount}}`, and
+`{{serviceFaultRecordsCount}}`.
 `memberVehicles` is private per-recipient JSON containing non-VIN car fields and SoH reading
 counts. Arbitrary Go-template actions and unsafe link schemes are rejected server-side.
 

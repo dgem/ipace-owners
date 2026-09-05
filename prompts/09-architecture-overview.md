@@ -359,7 +359,8 @@ sheet and chart format without exposing member data.
   and verified Firebase accounts. Available literal `{{name}}` substitutions are
   `membersJoined`, `membersVerified`, `memberFirstName`, `memberLastName`, `memberTittle`
   (plus corrected alias `memberTitle`), `memberJoined`, `memberVerified`, `memberVehicles`,
-  `vehiclesRegisteredCount`, and `vehiclesSoHReadingsCount`. Reject other template actions.
+  `vehiclesRegisteredCount`, `vehiclesSoHReadingsCount`, and `serviceFaultRecordsCount`. Reject other
+  template actions.
   `memberVehicles` is JSON containing only the member's non-VIN vehicle fields and per-vehicle
   SoH reading count. Persist the first observed verified timestamp on the private member record;
   legacy values backfilled from Firebase Auth metadata are marked inferred.
