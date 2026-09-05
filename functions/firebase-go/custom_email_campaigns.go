@@ -19,6 +19,7 @@ import (
 const (
 	customCampaignKind        = "custom-member"
 	jlrContactCampaignKind    = "jlr-contact"
+	surveyCampaignKind        = "survey-september-2026"
 	customCampaignMarkdownMax = 20000
 )
 
@@ -295,12 +296,20 @@ func previewCustomCampaign(ctx context.Context, input customCampaignDraftRequest
 }
 
 func previewJLRContactCampaign(ctx context.Context) (customCampaignPreviewResponse, error) {
-	template, err := embeddedCampaignTemplate("jlr-contact")
+	return previewEmbeddedCustomCampaign(ctx, "jlr-contact", jlrContactCampaignKind)
+}
+
+func previewSurveyCampaign(ctx context.Context) (customCampaignPreviewResponse, error) {
+	return previewEmbeddedCustomCampaign(ctx, "survey-september-2026", surveyCampaignKind)
+}
+
+func previewEmbeddedCustomCampaign(ctx context.Context, templateName, campaignKind string) (customCampaignPreviewResponse, error) {
+	template, err := embeddedCampaignTemplate(templateName)
 	if err != nil {
 		return customCampaignPreviewResponse{}, err
 	}
-	if template.ID != "jlr-contact" || template.Audience != customCampaignKind {
-		return customCampaignPreviewResponse{}, fmt.Errorf("JLR contact template has an invalid audience")
+	if template.ID != campaignKind || template.Audience != customCampaignKind {
+		return customCampaignPreviewResponse{}, fmt.Errorf("%s template has an invalid audience", templateName)
 	}
 	return previewCustomCampaign(ctx, customCampaignDraftRequest{
 		CampaignID:   staticCustomCampaignID(template.ID),
@@ -309,14 +318,14 @@ func previewJLRContactCampaign(ctx context.Context) (customCampaignPreviewRespon
 		Markdown:     template.Markdown,
 		HeroImage:    template.HeroImage,
 		HeroImageAlt: template.HeroImageAlt,
-		Kind:         jlrContactCampaignKind,
+		Kind:         campaignKind,
 		CreateWithID: true,
 	})
 }
 
 func campaignDraftKind(input customCampaignDraftRequest) string {
-	if input.Kind == jlrContactCampaignKind {
-		return jlrContactCampaignKind
+	if input.Kind == jlrContactCampaignKind || input.Kind == surveyCampaignKind {
+		return input.Kind
 	}
 	return customCampaignKind
 }

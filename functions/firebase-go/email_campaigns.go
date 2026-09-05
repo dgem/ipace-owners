@@ -70,6 +70,7 @@ var memberReferralSend = sendMemberReferralCampaignBatch
 var allMembersDrivePreview = previewAllMembersDriveCampaign
 var allMembersDriveSend = sendAllMembersDriveCampaignBatch
 var jlrContactPreview = previewJLRContactCampaign
+var surveyCampaignPreview = previewSurveyCampaign
 
 func AdminReengagementPreview(w http.ResponseWriter, r *http.Request) {
 	if cors(w, r) || rejectDisallowedOrigin(w, r) {
@@ -135,6 +136,10 @@ func AdminAllMembersDriveSend(w http.ResponseWriter, r *http.Request) {
 
 func AdminJLRContactPreview(w http.ResponseWriter, r *http.Request) {
 	adminCustomCampaignPreviewHandler(w, r, "admin-jlr-contact-preview", jlrContactPreview)
+}
+
+func AdminSurveyCampaignPreview(w http.ResponseWriter, r *http.Request) {
+	adminCustomCampaignPreviewHandler(w, r, "admin-survey-campaign-preview", surveyCampaignPreview)
 }
 
 func adminCustomCampaignPreviewHandler(w http.ResponseWriter, r *http.Request, logName string, preview func(context.Context) (customCampaignPreviewResponse, error)) {

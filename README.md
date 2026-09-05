@@ -482,7 +482,7 @@ Legacy runs that predate parent records are recovered from those delivery ledger
 possible. “Tweak and rerun” copies an old subject and Markdown into a new run rather than
 changing its audit history. Campaign history is presented before the campaign tools, with a
 direct create-new shortcut. A compact page header links to history and the tools, while
-registration reminders, member referrals, Reach 1,000, JLR Contact,
+registration reminders, member referrals, Reach 1,000, JLR Contact, September Survey,
 and Freeform campaigns share one keyboard-operable tabbed panel. Create, continue and rerun
 actions select the relevant tab automatically. Safety guidance appears beside the relevant
 confirmation controls instead of as a persistent page-level warning.
@@ -497,9 +497,9 @@ original delivery ledger.
 Administrators can create ad-hoc custom campaigns for verified Firebase accounts with matching
 contact-consenting Join records. Every static campaign is source-controlled Markdown under
 `functions/firebase-go/email-templates/` and is selected server-side through its dedicated tab;
-the JLR Contact tab uses `POST /api/admin/jlr-contact-preview`. Static copy cannot be edited in
-the browser.
-Once a static JLR batch has started, its saved copy remains immutable even if the source
+the JLR Contact tab uses `POST /api/admin/jlr-contact-preview`, and the September Survey tab uses
+`POST /api/admin/survey-campaign-preview`. Static copy cannot be edited in the browser.
+Once a static campaign batch has started, its saved copy remains immutable even if the source
 Markdown changes later: its preview shows the saved version and an exhausted audience simply
 disables sending rather than failing to calculate a preview.
 `POST /api/admin/custom-campaign-preview` validates and saves the draft, recalculates the

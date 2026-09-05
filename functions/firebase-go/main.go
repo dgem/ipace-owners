@@ -110,6 +110,8 @@ func Api(w http.ResponseWriter, r *http.Request) {
 		AdminAllMembersDriveSend(w, r)
 	case "/api/admin/jlr-contact-preview":
 		AdminJLRContactPreview(w, r)
+	case "/api/admin/survey-campaign-preview":
+		AdminSurveyCampaignPreview(w, r)
 	case "/api/admin/email-campaign-history":
 		AdminEmailCampaignHistory(w, r)
 	case "/api/admin/custom-campaign-preview":

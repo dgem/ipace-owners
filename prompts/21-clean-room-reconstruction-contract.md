@@ -33,7 +33,7 @@ The generated public route surface must include:
 
 - `/`, `/about/`, `/faq/`, `/join/`, `/contact/`, `/privacy/`, `/terms/`,
   `/methodology/`, `/evidence-dashboard/`, and `/updates/`;
-- dated or named update pages generated from `src/updates/`;
+- dated or named update pages generated from `src/updates/`; every new update includes a relevant, accessible hero image and alt text so it reads as a considered editorial page rather than an unadorned notice;
 - `/member/dashboard/`, `/member/account/`, `/member/submit-vehicle-data/`,
   `/member/surveys/`, `/member/survey-response/`, and `/member/survey-results/`;
 - `/admin/`, `/admin/review-queue/`, `/admin/outreach/`, `/admin/email-campaigns/`, and
@@ -115,6 +115,7 @@ change rather than assuming it exists.
 | `POST /api/admin/all-members-drive-preview` | Admin claim | Preview the deduplicated, contact-consenting audience across verified and unverified Join records and the exact recruitment email. |
 | `POST /api/admin/all-members-drive-send` | Admin claim | Confirm and send the next batch of at most ten all-member recruitment emails with hashed idempotent delivery records. |
 | `POST /api/admin/jlr-contact-preview` | Admin claim | Load the fixed JLR Contact Markdown source, calculate the verified consented audience, and return the exact branded preview. |
+| `POST /api/admin/survey-campaign-preview` | Admin claim | Load the fixed September survey invitation, calculate the verified consented audience, and return the exact branded preview. |
 | `POST /api/admin/email-campaign-history` | Admin claim | Return parent campaign records and aggregate hashed-ledger delivery counts, including inferred legacy runs and cached Resend delivery outcomes, without addresses. |
 | `POST /api/admin/custom-campaign-preview` | Admin claim | Validate/save a named subject and Markdown draft, calculate the verified consented audience, and return representative branded HTML/plain-text output. |
 | `POST /api/admin/custom-campaign-send` | Admin claim | Load immutable saved content, recheck the audience and exact `SEND <count>` confirmation, then send at most ten idempotent messages. |
@@ -328,6 +329,7 @@ the repository or an artifact archive:
 - `public/favicon.png`;
 - `public/images/ipace-hero.png`;
 - `public/images/jlr-client-care-september-hero.png`;
+- `public/images/september-survey-2026-hero.jpg`;
 - `public/images/ipace-owners-logo.svg` and `public/images/ipace-owners-logo.png`;
 - `public/images/ipace-owners-qr.svg`;
 - `public/images/ipace-owners-card-front.svg` and

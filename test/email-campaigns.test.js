@@ -116,10 +116,12 @@ test('custom campaign editor provides history, Markdown preview, reruns and safe
   assert.match(page, /data-campaign-tab="referral"/);
   assert.match(page, /data-campaign-tab="member-drive"/);
   assert.match(page, /data-campaign-tab="jlr-contact"[^>]*>JLR Contact/);
+  assert.match(page, /data-campaign-tab="september-survey"[^>]*>September Survey/);
   assert.match(page, /data-campaign-tab="freeform"/);
   assert.match(page, /role="tabpanel"[^>]+data-campaign-panel="registration"/);
   assert.match(page, /role="tabpanel"[^>]+data-campaign-panel="referral"/);
   assert.match(page, /role="tabpanel"[^>]+data-campaign-panel="jlr-contact"/);
+  assert.match(page, /role="tabpanel"[^>]+data-campaign-panel="september-survey"/);
   assert.match(page, /role="tabpanel"[^>]+data-campaign-panel="freeform"/);
   assert.match(script, /\/api\/admin\/email-campaign-history/);
   assert.match(script, /\/api\/admin\/custom-campaign-preview/);
@@ -135,7 +137,10 @@ test('custom campaign editor provides history, Markdown preview, reruns and safe
   assert.match(script, /event\.key === 'ArrowLeft'/);
   assert.match(script, /selectCampaignTab\('freeform'\)/);
   assert.match(page, /data-preview-endpoint="\/api\/admin\/jlr-contact-preview"/);
+  assert.match(page, /data-preview-endpoint="\/api\/admin\/survey-campaign-preview"/);
   assert.match(specialisedCampaignBackend, /func AdminJLRContactPreview/);
+  assert.match(specialisedCampaignBackend, /func AdminSurveyCampaignPreview/);
+  assert.match(campaignBackend, /survey-september-2026/);
   assert.doesNotMatch(page, /Campaign library/);
   assert.match(script, /campaignTypeLabel\(campaign\.kind\) \+ ' · ' \+ campaign\.campaignId/);
   assert.doesNotMatch(script, /innerHTML\s*=/);
