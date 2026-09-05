@@ -144,10 +144,10 @@ test('custom campaign editor provides history, Markdown preview, reruns and safe
   assert.match(specialisedCampaignBackend, /func AdminJLRContactPreview/);
   assert.match(specialisedCampaignBackend, /func AdminSurveyCampaignPreview/);
   assert.match(campaignBackend, /survey-september-2026/);
-  assert.match(campaignBackend, /customCampaignRegisteredAudience/);
-  assert.match(campaignBackend, /kind == surveyCampaignKind/);
+  assert.match(campaignBackend, /loadCampaignJoins\(ctx, db\)/);
+  assert.match(campaignBackend, /for key, person := range joinByEmail/);
   assert.match(specialisedCampaignBackend, /const emailCampaignBatchSize = 10/);
-  assert.match(page, /All registered members/);
+  assert.match(page, /Members who opted in to group communications/);
   assert.doesNotMatch(page, /Campaign library/);
   assert.match(script, /campaignTypeLabel\(campaign\.kind\) \+ ' · ' \+ campaign\.campaignId/);
   assert.doesNotMatch(script, /innerHTML\s*=/);

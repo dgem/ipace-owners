@@ -307,7 +307,7 @@
         } else if (campaign.kind === 'survey-september-2026') {
           specialisedTab = 'september-survey';
           specialisedActionLabel = 'Use September Survey tool';
-          specialisedActionTitle = 'This campaign retains its approved source-controlled copy and all registered-member audience.';
+          specialisedActionTitle = 'This campaign retains its approved source-controlled copy and communication-consented member audience.';
         }
         if (!canEditDraft) {
           var rerunButton = document.createElement('button');
@@ -354,7 +354,7 @@
       event.preventDefault();
       var button = root.querySelector('[data-custom-campaign-preview]');
       button.disabled = true;
-      status.textContent = 'Calculating the campaign audience and rendering a personalised preview…';
+      status.textContent = 'Calculating the verified, consented audience and rendering a personalised preview…';
       try {
         var data = await request('/api/admin/custom-campaign-preview', {
           campaignId: draftId,

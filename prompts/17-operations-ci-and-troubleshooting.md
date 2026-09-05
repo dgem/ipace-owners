@@ -53,10 +53,9 @@ post-delivery summary retry cannot resend recipients. “Tweak and rerun” clon
 content into a new run; never edit a run after delivery starts. History may infer old specialised
 runs from legacy delivery-only subcollections, where only the sent count is recoverable.
 
-The fixed September Survey invitation is a group-wide member poll rather than an ad-hoc contact
-campaign. Its audience is every enabled Firebase Auth account with an email address, regardless
-of whether a legacy Join record can be matched; use the Auth creation time and display name where
-that Join data is unavailable. This deliberate exception must remain scoped to the survey tool.
+The fixed September Survey invitation is a group-wide member poll, but it uses the same
+communication-consented registered-member audience as every other member campaign. Poll relevance
+never overrides a member's recorded contact choice.
 Refreshing history must reconcile stored Resend IDs with the paginated sent-email API, cache
 provider checks for five minutes, and aggregate delivered, awaiting-delivery, opened, clicked,
 delayed, bounced, suppressed, complained, provider-failed and combined-undeliverable outcomes
