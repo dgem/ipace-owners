@@ -145,9 +145,10 @@ test('custom campaign editor provides history, Markdown preview, reruns and safe
   assert.match(specialisedCampaignBackend, /func AdminSurveyCampaignPreview/);
   assert.match(campaignBackend, /survey-september-2026/);
   assert.match(campaignBackend, /loadCampaignJoins\(ctx, db\)/);
-  assert.match(campaignBackend, /for key, person := range joinByEmail/);
+  assert.match(campaignBackend, /customCampaignConsentedJoinAudience/);
+  assert.match(campaignBackend, /account == nil && scope == customCampaignVerifiedConsentedAudience/);
   assert.match(specialisedCampaignBackend, /const emailCampaignBatchSize = 10/);
-  assert.match(page, /Members who opted in to group communications/);
+  assert.match(page, /All members who opted in to group communications/);
   assert.doesNotMatch(page, /Campaign library/);
   assert.match(script, /campaignTypeLabel\(campaign\.kind\) \+ ' · ' \+ campaign\.campaignId/);
   assert.doesNotMatch(script, /innerHTML\s*=/);

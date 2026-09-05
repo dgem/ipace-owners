@@ -307,7 +307,7 @@
         } else if (campaign.kind === 'survey-september-2026') {
           specialisedTab = 'september-survey';
           specialisedActionLabel = 'Use September Survey tool';
-          specialisedActionTitle = 'This campaign retains its approved source-controlled copy and communication-consented member audience.';
+          specialisedActionTitle = 'This campaign retains its approved source-controlled copy and all communication-consented member registrations.';
         }
         if (!canEditDraft) {
           var rerunButton = document.createElement('button');
