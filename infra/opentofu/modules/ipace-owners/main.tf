@@ -52,6 +52,7 @@ resource "google_project_service" "required" {
     "iam.googleapis.com",
     "iamcredentials.googleapis.com",
     "identitytoolkit.googleapis.com",
+    "monitoring.googleapis.com",
     "aiplatform.googleapis.com",
     "run.googleapis.com",
     "secretmanager.googleapis.com",

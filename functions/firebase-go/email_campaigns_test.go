@@ -36,6 +36,20 @@ func TestAdminReengagementPreviewRequiresAdmin(t *testing.T) {
 	}
 }
 
+func TestAdminReengagementPreviewReturns401ForInvalidToken(t *testing.T) {
+	original := campaignAuthorize
+	t.Cleanup(func() { campaignAuthorize = original })
+	campaignAuthorize = func(context.Context, *http.Request) error {
+		return authorizationFailure(http.StatusUnauthorized, "Sign in required", context.Canceled)
+	}
+	req := httptest.NewRequest(http.MethodPost, "/api/admin/reengagement-preview", strings.NewReader(`{}`))
+	res := httptest.NewRecorder()
+	AdminReengagementPreview(res, req)
+	if res.Code != http.StatusUnauthorized {
+		t.Fatalf("status=%d body=%s", res.Code, res.Body.String())
+	}
+}
+
 func TestAdminReengagementSendRejectsBadBodyBeforeSending(t *testing.T) {
 	originalAuth, originalSend := campaignAuthorize, campaignSend
 	t.Cleanup(func() { campaignAuthorize = originalAuth; campaignSend = originalSend })
@@ -79,6 +93,35 @@ func TestEmbeddedJLRContactCampaignHasRequiredDeliveryMetadata(t *testing.T) {
 	}
 }
 
+func TestEmbeddedSeptemberSurveyCampaignHasSurveyAndEvidenceCTA(t *testing.T) {
+	template, err := embeddedCampaignTemplate("survey-september-2026")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if template.ID != surveyCampaignKind || template.Audience != customCampaignKind {
+		t.Fatalf("unexpected campaign routing metadata: %#v", template)
+	}
+	if template.HeroImage != "/images/september-survey-2026-hero.jpg" || strings.TrimSpace(template.HeroImageAlt) == "" {
+		t.Fatalf("survey campaign must provide an email-safe hero image: %#v", template)
+	}
+	for _, expected := range []string{
+		"{{memberFirstName}}",
+		"survey_a2371fc4a6efb138c8ac117b156d5d3f",
+		"Full HV Replacement",
+		"{{membersJoined}} members",
+		"{{vehiclesRegisteredCount}} cars registered",
+		"{{vehiclesSoHReadingsCount}} State of Health readings",
+		"{{serviceFaultRecordsCount}} service and fault records",
+		"1,000+ cars registered",
+		"3,000 members",
+		"My Data",
+	} {
+		if !strings.Contains(template.Markdown, expected) {
+			t.Fatalf("survey campaign is missing %q", expected)
+		}
+	}
+}
+
 func TestJLRContactCampaignUsesItsHolidayHeroImage(t *testing.T) {
 	_, htmlBody, _, err := renderCustomCampaignEmail(customCampaignRecord{
 		Kind:         jlrContactCampaignKind,
@@ -103,6 +146,7 @@ func TestAllCampaignsUseMarkdownSources(t *testing.T) {
 		"member-referral":       "member-referral",
 		"all-members-drive":     "reach-1000",
 		"jlr-contact":           "jlr-contact",
+		"survey-september-2026": "survey-september-2026",
 	} {
 		template, err := embeddedCampaignTemplate(fileName)
 		if err != nil {
@@ -123,6 +167,26 @@ func TestAdminJLRContactPreviewRequiresAdmin(t *testing.T) {
 	AdminJLRContactPreview(res, req)
 	if res.Code != http.StatusForbidden {
 		t.Fatalf("status=%d body=%s", res.Code, res.Body.String())
+	}
+}
+
+func TestAdminSurveyCampaignPreviewRequiresAdmin(t *testing.T) {
+	original := campaignAuthorize
+	t.Cleanup(func() { campaignAuthorize = original })
+	campaignAuthorize = func(context.Context, *http.Request) error { return context.Canceled }
+	req := httptest.NewRequest(http.MethodPost, "/api/admin/survey-campaign-preview", strings.NewReader(`{}`))
+	res := httptest.NewRecorder()
+	AdminSurveyCampaignPreview(res, req)
+	if res.Code != http.StatusForbidden {
+		t.Fatalf("status=%d body=%s", res.Code, res.Body.String())
+	}
+}
+
+func TestCampaignDraftKindPreservesStaticCampaignKinds(t *testing.T) {
+	for _, kind := range []string{jlrContactCampaignKind, surveyCampaignKind} {
+		if got := campaignDraftKind(customCampaignDraftRequest{Kind: kind}); got != kind {
+			t.Fatalf("campaignDraftKind(%q) = %q", kind, got)
+		}
 	}
 }
 

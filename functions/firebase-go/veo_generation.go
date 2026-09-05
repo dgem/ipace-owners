@@ -123,7 +123,7 @@ func AdminInstagramGenerate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := veoAuthorize(r.Context(), r); err != nil {
-		writeJSON(w, http.StatusForbidden, map[string]any{"error": "Admin role required"})
+		writeAdminAuthorizationError(w, err)
 		return
 	}
 	r.Body = http.MaxBytesReader(w, r.Body, 32*1024)
@@ -188,7 +188,7 @@ func AdminInstagramGenerationStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := veoAuthorize(r.Context(), r); err != nil {
-		writeJSON(w, http.StatusForbidden, map[string]any{"error": "Admin role required"})
+		writeAdminAuthorizationError(w, err)
 		return
 	}
 	var input veoStatusRequest

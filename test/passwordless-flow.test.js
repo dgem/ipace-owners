@@ -34,8 +34,34 @@ test('site UI uses Firebase passwordless magic-link forms', function () {
   assert.match(read('src/member/submit-vehicle-data.njk'), /authLoginGate\("vehicle-magic-email"/);
   assert.match(read('src/admin/review-queue.njk'), /authLoginGate\("admin-magic-email"/);
   assert.match(read('src/assets/js/identity.js'), /\/api\/send-magic-link/);
+  assert.match(read('src/assets/js/identity.js'), /\/api\/auth-diagnostics/);
+  assert.match(read('src/assets/js/identity.js'), /X-Ipace-Auth-Trace/);
+  assert.match(read('src/assets/js/identity.js'), /authTrace/);
+  assert.match(read('src/assets/js/identity.js'), /ipaceAuthHeaders/);
   assert.match(read('src/assets/js/identity.js'), /If this email address is registered/);
   assert.doesNotMatch(read('src/assets/js/identity.js'), /Check your email for a secure sign-in link/);
+});
+
+test('authenticated feature clients carry the opaque support trace header', function () {
+  [
+    'src/assets/js/member-auth.js',
+    'src/assets/js/member-dashboard.js',
+    'src/assets/js/member-export.js',
+    'src/assets/js/surveys.js',
+    'src/assets/js/admin-stats.js',
+    'src/assets/js/admin-campaign-summary.js',
+    'src/assets/js/email-campaigns.js',
+    'src/assets/js/instagram-campaigns.js'
+  ].forEach(function (file) {
+    assert.match(read(file), /ipaceAuthHeaders|authTraceHeaders/, file + ' should propagate support tracing');
+  });
+});
+
+test('email-link support codes are removed from the browser address after storage', function () {
+  var identity = read('src/assets/js/identity.js');
+
+  assert.match(identity, /url\.searchParams\.delete\(['"]authTrace['"]\)/);
+  assert.match(identity, /window\.history\.replaceState/);
 });
 
 test('Join completion does not offer vehicle submission until signed in', function () {
@@ -80,8 +106,12 @@ test('member data fetches include Identity bearer tokens', function () {
 
   assert.match(memberAuth, /function fetchWithIdentity/);
   assert.match(memberAuth, /headers\.Authorization = 'Bearer ' \+ token/);
-  assert.match(memberAuth, /fetchWithIdentity\('\/api\/member-data'\)/);
-  assert.match(memberAuth, /fetchWithIdentity\('\/api\/admin-data'\)/);
+  assert.match(memberAuth, /function memberDataRequest/);
+  assert.match(memberAuth, /fetch\('\/api\/member-data'/);
+  assert.match(memberAuth, /memberDataRequest\(true\)/);
+  assert.match(memberAuth, /function adminDataRequest/);
+  assert.match(memberAuth, /fetch\('\/api\/admin-data'/);
+  assert.match(memberAuth, /adminDataRequest\(true\)/);
   assert.match(read('src/assets/js/identity.js'), /identity:ready/);
   assert.match(memberAuth, /addEventListener\('identity:ready'/);
   assert.doesNotMatch(read('src/assets/js/identity.js'), /window\.location\.reload/);
@@ -119,15 +149,25 @@ test('protected pages do not show login gates before auth verification completes
 
   assert.match(loginGate, /data-auth-pending/);
   assert.match(loginGate, /data-auth-login-gate hidden/);
+  assert.match(loginGate, /data-auth-retry hidden/);
 
   var memberAuth = read('src/assets/js/member-auth.js');
   var identity = read('src/assets/js/identity.js');
 
-  assert.match(identity, /window\.ipaceIdentityReady = !config/);
+  assert.match(identity, /window\.ipaceIdentityReadyPromise = identityReadyPromise/);
   assert.match(identity, /window\.ipaceIdentityReady = true/);
+  assert.match(identity, /auth\.onIdTokenChanged/);
   assert.match(memberAuth, /document\.addEventListener\('identity:ready', initSoon\)/);
-  assert.match(memberAuth, /window\.ipaceIdentityReady/);
-  assert.match(memberAuth, /setTimeout\(function \(\) \{/);
+  assert.match(memberAuth, /function waitForIdentity/);
+  assert.match(memberAuth, /window\.ipaceIdentityReadyPromise/);
+  assert.match(memberAuth, /function showMemberError/);
+  assert.match(memberAuth, /function showAdminError/);
+  assert.match(memberAuth, /function signInSupportMessage/);
+  assert.match(memberAuth, /unauthorized-after-refresh/);
+  assert.doesNotMatch(memberAuth, /res\.status === 401\) return showAdminGate/);
+  assert.match(memberAuth, /function verifyAdminAuth/);
+  assert.match(memberAuth, /data-auth-retry/);
+  assert.doesNotMatch(memberAuth, /1500/);
   assert.match(memberAuth, /document\.addEventListener\('identity:logout', initSoon\)/);
   assert.match(memberAuth, /var authRunId = 0/);
   assert.match(memberAuth, /if \(runId !== authRunId\) return/);
@@ -137,6 +177,9 @@ test('protected pages do not show login gates before auth verification completes
   assert.match(identity, /completePendingEmailLink/);
   assert.match(identity, /Enter the email address that received this link to finish signing in/);
   assert.match(identity, /auth\.signInWithEmailLink\(email, pendingEmailLinkUrl\)/);
+  assert.match(identity, /pendingEmailLinkUrl = '';/);
+  assert.match(identity, /Request a new sign-in link using the email address that received it/);
+  assert.doesNotMatch(identity, /window\.location\.href = window\.location\.href\.lastIndexOf/);
   assert.doesNotMatch(identity, /window\.prompt/);
 });
 

@@ -33,7 +33,7 @@ The generated public route surface must include:
 
 - `/`, `/about/`, `/faq/`, `/join/`, `/contact/`, `/privacy/`, `/terms/`,
   `/methodology/`, `/evidence-dashboard/`, and `/updates/`;
-- dated or named update pages generated from `src/updates/`;
+- dated or named update pages generated from `src/updates/`; every new update includes a relevant, accessible hero image and alt text so it reads as a considered editorial page rather than an unadorned notice;
 - `/member/dashboard/`, `/member/account/`, `/member/submit-vehicle-data/`,
   `/member/surveys/`, `/member/survey-response/`, and `/member/survey-results/`;
 - `/admin/`, `/admin/review-queue/`, `/admin/outreach/`, `/admin/email-campaigns/`, and
@@ -95,6 +95,7 @@ change rather than assuming it exists.
 | Method and route | Authentication | Request/response contract |
 |---|---|---|
 | `POST /api/send-magic-link` | Public | JSON `email`, optional `name`; send only for a matching Join submission or existing Firebase Auth account and return enumeration-resistant `{ "ok": true }` for syntactically valid requests. |
+| `POST /api/auth-diagnostics` | Public, same-origin | JSON `traceCode`, bounded `stage`, and bounded `outcome`; accept only a valid opaque support code and never accept email, Firebase tokens, URLs, exception text, or free-form client diagnostics. |
 | `POST /api/submit-join` | Optional Firebase token | `name`, `email`, `country`, `relationship`, `skills[]`, `consent-contact`, `consent-not-legal`, `consent-data`, and `bot-field`; save the Join record and initiate guest activation. |
 | `POST /api/submit-vehicle-basics` | Member | Optional `id` for an owned edit; otherwise `vin`, `registration`, `country`, `modelYear`, `mileage`, `ownedSince`, `firstReg`, plus optional initial `soh`, `sohDate`, `sohMileage`, `sohSource`. |
 | `POST /api/submit-soh` | Member/vehicle owner | Optional `id` for an owned edit plus `vehicleId`, `soh`, `sohDate`, `sohMileage`, `sohSource`; maintain the vehicle compatibility value. |
@@ -114,6 +115,7 @@ change rather than assuming it exists.
 | `POST /api/admin/all-members-drive-preview` | Admin claim | Preview the deduplicated, contact-consenting audience across verified and unverified Join records and the exact recruitment email. |
 | `POST /api/admin/all-members-drive-send` | Admin claim | Confirm and send the next batch of at most ten all-member recruitment emails with hashed idempotent delivery records. |
 | `POST /api/admin/jlr-contact-preview` | Admin claim | Load the fixed JLR Contact Markdown source, calculate the verified consented audience, and return the exact branded preview. |
+| `POST /api/admin/survey-campaign-preview` | Admin claim | Load the fixed September survey invitation, calculate the verified consented audience, and return the exact branded preview. |
 | `POST /api/admin/email-campaign-history` | Admin claim | Return parent campaign records and aggregate hashed-ledger delivery counts, including inferred legacy runs and cached Resend delivery outcomes, without addresses. |
 | `POST /api/admin/custom-campaign-preview` | Admin claim | Validate/save a named subject and Markdown draft, calculate the verified consented audience, and return representative branded HTML/plain-text output. |
 | `POST /api/admin/custom-campaign-send` | Admin claim | Load immutable saved content, recheck the audience and exact `SEND <count>` confirmation, then send at most ten idempotent messages. |
@@ -138,12 +140,36 @@ Reject invalid methods, malformed input, failed authentication, and unauthorized
 return generic success for Join honeypot submissions as specified in the feature prompts.
 Never depend on frontend gating for data protection.
 
+### Authorization trace contract
+
+The browser generates an opaque `IP-XXXX-XXXX` support code, persists it for the current
+sign-in journey, carries it through the passwordless email-link `continueUrl`, and sends it as
+`X-Ipace-Auth-Trace` on magic-link and authenticated API calls. It is diagnostic metadata only:
+it must never grant access. When the header is valid, the common server guards write a PII-free
+authorization event for every decision so support can reconstruct the journey by code.
+
+| Protected request class | Required role | Recorded decisions |
+|---|---|---|
+| Member reads, exports, survey actions and owned data writes | Firebase user | `allowed`, `missing-token`, `invalid-token` with route and 200/401 status |
+| Admin data, admin statistics, surveys, campaigns and publishing tools | Firebase admin claim | member decision plus admin `allowed` or `admin-claim-missing`, with route and 200/401/403 status |
+
+Do not emit these authorization logs without a valid support code. The separate public
+`auth-diagnostics` endpoint accepts only bounded browser lifecycle events such as persistence,
+identity observer, magic-link completion, and gate verification. It requires an allowed non-empty
+`Origin` and a header code exactly matching the body code; it must never accept email, tokens,
+URLs, exception strings, or arbitrary client data.
+
 ## Canonical Firestore and snapshot schemas
 
 `surveys/{surveyId}` stores the administrator-managed title, public Markdown description and CTA,
 optional prompt, option definitions, inclusive whole-day schedule, visibility setting, and
-timestamps. `surveys/{surveyId}/responses/{uid}` stores only that member's selected option IDs,
-an optional preferred option ID (which must be selected on a multiple-choice survey), a map of
+timestamps. Each option has a plain-text, single-line result name and a separate public Markdown
+description; legacy label-only options must remain readable. Text-enabled options also carry an
+administrator-configured optional-detail prompt, defaulting to `Optional detail`. Member cards show
+the name first and collapse only an actually overflowing description behind an accessible
+`...more` / `Show less` control. `surveys/{surveyId}/responses/{uid}` stores only that member's selected option IDs,
+an optional preferred option ID (which must be selected and explicitly preferred-eligible on a
+multiple-choice survey), a map of
 250-character explanations keyed by selected text-enabled option, and update timestamp.
 Aggregate survey APIs must never return free-text explanations.
 
@@ -230,6 +256,16 @@ production-only Firestore delete protection, PITR, destroy prevention, and retai
 backups. Staging uses its own project/database, `auth.stage.ipace-owners.org`, preview
 channels, and deliberately reduced data-protection settings.
 
+OpenTofu must also enable Cloud Monitoring and support opt-in environment monitoring. Production
+enables a managed operations dashboard, European five-minute HTTPS uptime checks for the homepage
+and `/api/public-stats`, and one sustained-failure alert policy per check. The dashboard displays
+both check results and the Gen 2 `Api` Cloud Run request rate. A notification channel is created
+only when `monitoring_alert_email` is non-empty; otherwise incidents remain visible in Monitoring
+without sending email. The production example identifies the agreed operational mailbox, while
+staging leaves monitoring disabled unless it is deliberately being tested. Document that a failed
+deployment smoke test does not roll back a completed Hosting release automatically, and that
+recovery uses Firebase Hosting release history followed by dashboard and smoke-test verification.
+
 Firebase Hosting must reproduce the CSP and the `X-Frame-Options`,
 `X-Content-Type-Options`, `Referrer-Policy`, and `Permissions-Policy` headers described by
 the security prompts, plus immutable one-year caching for `/assets/**`. Passwordless login
@@ -269,7 +305,8 @@ forms explicitly use POST even when JavaScript intercepts them.
   member totals by canonical email. Support `membersJoined`, `membersVerified`, `memberFirstName`,
   `memberLastName`, the requested `memberTittle` spelling and `memberTitle` alias, `memberJoined`,
   `memberVerified`, private-member `memberVehicles` JSON, `vehiclesRegisteredCount`, and
-  `vehiclesSoHReadingsCount`; reject arbitrary Go-template actions and unsafe link schemes.
+  `vehiclesSoHReadingsCount`, and `serviceFaultRecordsCount`; reject arbitrary Go-template actions and
+  unsafe link schemes.
 - Reconcile hashed email delivery records against Resend's paginated sent-email API when an
   administrator refreshes campaign data. Cache checks for five minutes and surface delivered,
   awaiting-delivery, opened, clicked, delayed, bounced, suppressed, complained, provider-failed
@@ -294,6 +331,7 @@ the repository or an artifact archive:
 - `public/favicon.png`;
 - `public/images/ipace-hero.png`;
 - `public/images/jlr-client-care-september-hero.png`;
+- `public/images/september-survey-2026-hero.jpg`;
 - `public/images/ipace-owners-logo.svg` and `public/images/ipace-owners-logo.png`;
 - `public/images/ipace-owners-qr.svg`;
 - `public/images/ipace-owners-card-front.svg` and

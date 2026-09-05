@@ -124,15 +124,26 @@ a single- or multiple-choice setting, inclusive whole-day start/end dates, and a
 visibility setting. Each survey also has an explicit `draft` or `published` status; drafts are
 visible only in the admin workspace and published surveys are eligible for member views. New
 surveys default to draft and today through six days later (seven inclusive whole
-days), while retaining editable dates. Description, CTA, and option text accept a safe Markdown
-subset (bold, emphasis, links, paragraphs, and bullet lists); raw HTML is displayed as text.
+days), while retaining editable dates. Description, CTA, and each option's longer description
+accept a safe Markdown subset (bold, emphasis, links, paragraphs, and bullet lists); raw HTML is
+displayed as text. Each option must also have a distinct, single-line plain-text name (maximum 120
+characters) used in aggregate results, alongside its Markdown description (maximum 2,000
+characters). Preserve and derive a sensible name from legacy label-only options when reading older
+documents. On the response and preview cards show the name first; descriptions that span multiple
+lines or overflow their visible space should be collapsed to two visible lines with an accessible
+`...more` / `Show less` control.
+Existing surveys without explicit preferred-eligibility configuration retain their prior behaviour:
+all options, including any newly added during an edit, initially appear preferred-eligible until
+the administrator saves the explicit configuration.
 Any number of options may offer an optional 250-character free-text explanation (for example,
 two distinct `Other` options); store text only when the member supplies it against the relevant
 selected option.
-For multiple-choice surveys only, let a member optionally mark one of their selected options as
-their preferred outcome. Use a clearly labelled checkbox on each selected choice, keep at most one
-checked in the browser, and validate server-side that it is selected and that the survey is
-multiple-choice. Store its stable option ID and include separate aggregate preferred counts.
+For multiple-choice surveys only, let administrators explicitly mark each eligible option with
+an `Allow members to mark this as their preferred option` setting. A member may then optionally
+mark one selected eligible option as their preferred outcome. Use a clearly labelled checkbox only
+on selected eligible choices, keep at most one checked in the browser, and validate server-side
+that it is selected, eligible, and that the survey is multiple-choice. Store its stable option ID
+and include separate aggregate preferred counts.
 Link the implemented survey workspace from the protected Admin dashboard; do not leave it as an
 undiscoverable direct URL.
 
@@ -147,7 +158,9 @@ listing.
 On both member landing pages—`/member/dashboard/` and `/member/account/` (the destination of the
 signed-in `My Data` header action)—place a prominent, plain-language callout before the main
 workspace: when one or more surveys are open, name them and provide a primary `Take the survey`
-action plus a `Past surveys` action only when closed surveys exist. Refresh this summary after
+action plus a `Past surveys` action only when closed surveys exist. When exactly one survey is
+open, the primary action must link directly to its response page; with more than one, it may lead
+to the survey directory to avoid arbitrarily selecting one. Refresh this summary after
 member verification, every minute, and on focus. The member survey page is a date-ordered
 directory of every published survey, with All, Open, Upcoming, and Closed filters. Each item
 shows whether the member has submitted, and provides Submit/Edit only while open, and View
@@ -155,11 +168,19 @@ results when permitted. The separate response page must use large, numbered, car
 checkboxes/radio choices with a visibly selected state; it must not read as a wall of unstructured
 text.
 Keep results off the response form. After a successful first submission or amendment, redirect to
-`/member/survey-results/?id={surveyId}` with an explicit saved confirmation and the aggregate
-count-only results. The server must withhold aggregate counts for an open survey until that member
+`/member/survey-results/?id={surveyId}` with the clear confirmation “We have added your submission
+to the overall results shown below” and aggregate-only results (do not repeat the member's choices
+or free text there). Present the aggregate in an election-results style: each outcome's short name,
+vote count, percentage and a prominent horizontal comparison bar; omit long option descriptions
+from the member result rows. For text-enabled options, display the aggregate number of optional
+details with a clear comment icon, but never reveal their content. The visual comparison may feature one `Current leading outcome` callout: choose the option with the
+most votes, use preferred selections for eligible options as a tie-breaker, and state both measures in the callout. Do not declare a leader when that combined comparison
+is tied or nobody has voted. The
+server must withhold aggregate counts for an open survey until that member
 has submitted a response, preventing popularity-led voting; once a published survey is closed,
-results may be visible to every member if the administrator enabled them. Provide an `Edit your
-response` link back to the response page. `Past surveys` filters `/member/surveys/?filter=closed`;
+results may be visible to every member if the administrator enabled them. Separate actions from
+the results with generous whitespace: use a primary `Return to member dashboard` action first and
+an `Edit response` link back to the response page second. `Past surveys` filters `/member/surveys/?filter=closed`;
 it is not a separate route and must never point to a currently open survey.
 
 The admin dashboard places its actionable tool grid before campaign and member-statistics panels,
@@ -168,7 +189,7 @@ which are reference information rather than the primary starting point for admin
 Use Firestore `surveys/{surveyId}` documents and a `responses/{uid}` subcollection so a signed-in
 member has one replaceable response per survey. The member APIs must verify Firebase ID tokens
 server-side, accept responses only while the survey is live, validate option IDs and the selected
-cardinality, require an explanation for every selected text-enabled option, and never expose
+cardinality, accept an optional explanation for every selected text-enabled option, and never expose
 free-text responses in aggregate results. Return option counts and the signed-in member's own
 answer; display counts only when the administrator enabled results. In particular, never expose
 one member's written response to another member: free-text is retained for administrators to

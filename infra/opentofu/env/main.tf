@@ -40,5 +40,7 @@ module "ipace_owners" {
   manage_resend_domain                 = var.manage_resend_domain
   resend_domain                        = var.resend_domain
   resend_region                        = var.resend_region
+  monitoring_enabled                   = var.monitoring_enabled
+  monitoring_alert_email               = var.monitoring_alert_email
   manage_github_actions                = var.manage_github_actions
 }

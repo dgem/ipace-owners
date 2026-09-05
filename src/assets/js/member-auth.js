@@ -39,6 +39,35 @@
   // ── Member auth ──────────────────────────────────────────────────────────────
   var authRunId = 0;
   var adminRunId = 0;
+  var memberVerification = null;
+  var memberVerificationQueued = false;
+  var adminVerification = null;
+  var adminVerificationQueued = false;
+
+  function authTraceHeaders() {
+    return window.ipaceAuthTraceHeaders ? window.ipaceAuthTraceHeaders() : {};
+  }
+
+  function reportAuthDiagnostic(stage, outcome) {
+    if (window.ipaceReportAuthDiagnostic) window.ipaceReportAuthDiagnostic(stage, outcome);
+  }
+
+  function signInSupportMessage(message) {
+    if (!window.ipaceAuthTraceCode) return message;
+    return message + ' If you contact us, please quote sign-in code ' + window.ipaceAuthTraceCode + ' and the approximate time.';
+  }
+
+  function setPendingState(container, title, body, retry) {
+    var pending = container.querySelector('[data-auth-pending]');
+    if (!pending) return;
+    var titleEl = pending.querySelector('[data-auth-pending-title]');
+    var bodyEl = pending.querySelector('[data-auth-pending-body]');
+    var retryButton = pending.querySelector('[data-auth-retry]');
+    if (titleEl) titleEl.textContent = title;
+    if (bodyEl) bodyEl.textContent = body;
+    if (retryButton) retryButton.hidden = !retry;
+    pending.hidden = false;
+  }
 
   function showMemberGate(container) {
     var gate = container.querySelector('[data-auth-login-gate]');
@@ -56,6 +85,14 @@
     if (pending) pending.hidden = true;
     if (gate) gate.hidden = true;
     if (content) content.hidden = false;
+  }
+
+  function showMemberError(container, message) {
+    var gate = container.querySelector('[data-auth-login-gate]');
+    var content = container.querySelector('[data-auth-content]');
+    if (gate) gate.hidden = true;
+    if (content) content.hidden = true;
+    setPendingState(container, 'We could not confirm your sign-in', signInSupportMessage(message || 'Check your connection and try again.'), true);
   }
 
   function escapeHtml(value) {
@@ -90,15 +127,16 @@
     return labels[value] || String(value || '').replace(/-/g, ' ');
   }
 
-  function getIdentityToken() {
-    if (window.ipaceGetIdentityToken) return window.ipaceGetIdentityToken();
+  function getIdentityToken(forceRefresh) {
+    if (window.ipaceGetIdentityToken) return window.ipaceGetIdentityToken(!!forceRefresh);
     return Promise.resolve('');
   }
 
-  function fetchWithIdentity(url, options) {
-    return getIdentityToken().then(function (token) {
+  function fetchWithIdentity(url, options, forceRefresh) {
+    return getIdentityToken(forceRefresh).then(function (token) {
       options = options || {};
       options.headers = options.headers || {};
+      Object.assign(options.headers, authTraceHeaders());
       if (token) {
         options.headers.Authorization = 'Bearer ' + token;
       }
@@ -262,51 +300,84 @@
     });
   }
 
-  async function verifyMemberAuth() {
-    var runId = ++authRunId;
-    var containers = document.querySelectorAll('[data-auth-container]');
-    containers.forEach(async function (container) {
-      try {
-        var res = await fetchWithIdentity('/api/member-data');
-        if (runId !== authRunId) return;
-        if (res.status === 401 || res.status === 403) {
-          showMemberGate(container);
-          return;
-         }
+  function waitForIdentity() {
+    if (window.ipaceIdentityReadyPromise) return window.ipaceIdentityReadyPromise;
+    return Promise.resolve(window.ipaceIdentityUser);
+  }
 
-        if (!res.ok) {
-          console.warn('[member-auth] Unexpected status:', res.status);
-          showMemberGate(container);
-          return;
-         }
-
-        var data = await res.json();
-        hideMemberGate(container);
-
-        // Populate vehicle records
-        var vehicleContainer = container.querySelector('[data-vehicle-container]');
-        if (vehicleContainer && data.vehicleRecords) {
-          populateVehicleRecords(vehicleContainer, data.vehicleRecords, data.batteryReadings || []);
-        }
-
-        var joinContainer = container.querySelector('[data-join-container]');
-        if (joinContainer && data.joinRecords) {
-          populateJoinInfo(joinContainer, data.joinRecords);
-        }
-
-        populatePreferences(container, data.joinRecords || []);
-
-        // Expose raw data for other scripts to consume
-        container.dataset.memberData = JSON.stringify(data);
-        document.dispatchEvent(new CustomEvent('member:data', {
-          detail: { container: container, data: data },
-        }));
-       } catch (err) {
-      console.warn('[member-auth] Failed to verify auth:', err);
-      showMemberGate(container);
-     }
+  function memberDataRequest(forceRefresh) {
+    return getIdentityToken(forceRefresh).then(function (token) {
+      if (!token) return { noToken: true };
+      var headers = authTraceHeaders();
+      headers.Authorization = 'Bearer ' + token;
+      return fetch('/api/member-data', { headers: headers });
     });
-   }
+  }
+
+  function renderMemberData(container, data) {
+    hideMemberGate(container);
+    var vehicleContainer = container.querySelector('[data-vehicle-container]');
+    if (vehicleContainer && data.vehicleRecords) populateVehicleRecords(vehicleContainer, data.vehicleRecords, data.batteryReadings || []);
+    var joinContainer = container.querySelector('[data-join-container]');
+    if (joinContainer && data.joinRecords) populateJoinInfo(joinContainer, data.joinRecords);
+    populatePreferences(container, data.joinRecords || []);
+    container.dataset.memberData = JSON.stringify(data);
+    document.dispatchEvent(new CustomEvent('member:data', { detail: { container: container, data: data } }));
+  }
+
+  function verifyMemberContainer(container, identity) {
+    if (!identity || !identity.uid) {
+      showMemberGate(container);
+      return Promise.resolve();
+    }
+    var expectedUID = identity.uid;
+    var tokenRetried = false;
+    setPendingState(container, 'Checking sign-in...', 'One moment while we confirm your member session.', false);
+    return memberDataRequest(false).then(function (res) {
+      if (res.noToken) throw new Error('TOKEN_UNAVAILABLE');
+      if (res.status === 401 && window.ipaceIdentityUser && window.ipaceIdentityUser.uid === expectedUID) {
+        tokenRetried = true;
+        reportAuthDiagnostic('member-verification', 'token-refresh-retry');
+        return memberDataRequest(true);
+      }
+      return res;
+    }).then(function (res) {
+      if (res.noToken) throw new Error('TOKEN_UNAVAILABLE');
+      if (!window.ipaceIdentityUser || window.ipaceIdentityUser.uid !== expectedUID) return;
+      if (res.status === 401 || res.status === 403) {
+        reportAuthDiagnostic('member-verification', res.status === 401 && tokenRetried ? 'unauthorized-after-refresh' : 'access-rejected');
+        showMemberError(container, 'Your browser still has a sign-in session, but we could not verify it with the member service. Please try again.');
+        return;
+      }
+      if (!res.ok) throw new Error('SERVER_' + res.status);
+      return res.json().then(function (data) { renderMemberData(container, data); });
+    }).catch(function (err) {
+      if (!window.ipaceIdentityUser || window.ipaceIdentityUser.uid !== expectedUID) return;
+      console.warn('[member-auth] Failed to verify auth:', err);
+      reportAuthDiagnostic('member-verification', err && err.message === 'TOKEN_UNAVAILABLE' ? 'token-unavailable' : 'failed');
+      showMemberError(container, err && err.message === 'TOKEN_UNAVAILABLE' ? 'Your sign-in is still being restored. Please try again.' : 'We could not reach the member service. Check your connection and try again.');
+    });
+  }
+
+  function verifyMemberAuth() {
+    if (memberVerification) {
+      memberVerificationQueued = true;
+      return memberVerification;
+    }
+    var runId = ++authRunId;
+    memberVerification = waitForIdentity().then(function () {
+      var identity = window.ipaceIdentityUser;
+      if (runId !== authRunId) return;
+      return Promise.all(Array.prototype.map.call(document.querySelectorAll('[data-auth-container]'), function (container) { return verifyMemberContainer(container, identity); }));
+    }).finally(function () {
+      memberVerification = null;
+      if (memberVerificationQueued) {
+        memberVerificationQueued = false;
+        verifyMemberAuth();
+      }
+    });
+    return memberVerification;
+  }
 
   window.ipaceRefreshMemberData = verifyMemberAuth;
 
@@ -335,6 +406,27 @@
     if (adminOnlyGate) adminOnlyGate.hidden = true;
     if (content) content.hidden = false;
    }
+
+  function showAdminOnlyGate(container) {
+    var gate = container.querySelector('[data-auth-login-gate]');
+    var adminOnlyGate = container.querySelector('[data-admin-only-gate]');
+    var content = container.querySelector('[data-admin-content]');
+    var pending = container.querySelector('[data-auth-pending]');
+    if (pending) pending.hidden = true;
+    if (gate) gate.hidden = true;
+    if (adminOnlyGate) adminOnlyGate.hidden = false;
+    if (content) content.hidden = true;
+  }
+
+  function showAdminError(container, message) {
+    var gate = container.querySelector('[data-auth-login-gate]');
+    var adminOnlyGate = container.querySelector('[data-admin-only-gate]');
+    var content = container.querySelector('[data-admin-content]');
+    if (gate) gate.hidden = true;
+    if (adminOnlyGate) adminOnlyGate.hidden = true;
+    if (content) content.hidden = true;
+    setPendingState(container, 'We could not confirm your sign-in', signInSupportMessage(message || 'Check your connection and try again.'), true);
+  }
 
   function populateAdminStats(container, data) {
     var statsEl = container.querySelector('[data-admin-stats]');
@@ -430,69 +522,83 @@
     tableEl.innerHTML = html;
    }
 
-  async function verifyAdminAuth() {
-    var runId = ++adminRunId;
-    var containers = document.querySelectorAll('[data-admin-container]');
-    containers.forEach(async function (container) {
-      try {
-        var res = await fetchWithIdentity('/api/admin-data');
-        if (runId !== adminRunId) return;
-
-         // 401 = not logged in → show login gate
-        if (res.status === 401) {
-          showAdminGate(container);
-          return;
-         }
-
-         // 403 = logged in but not admin → show admin-only gate
-        if (res.status === 403) {
-          var gate = container.querySelector('[data-auth-login-gate]');
-          var adminOnlyGate = container.querySelector('[data-admin-only-gate]');
-          var content = container.querySelector('[data-admin-content]');
-          var pending = container.querySelector('[data-auth-pending]');
-          if (pending) pending.hidden = true;
-          if (gate) gate.hidden = true;
-          if (adminOnlyGate) adminOnlyGate.hidden = false;
-          if (content) content.hidden = true;
-          return;
-         }
-
-        if (!res.ok) {
-          console.warn('[member-auth] Unexpected status for admin:', res.status);
-          showAdminGate(container);
-          return;
-         }
-
-        var data = await res.json();
-        hideAdminGate(container);
-
-         // Populate stats, tables, etc.
-        var statsContainer = container.querySelector('[data-stats-container]');
-        if (statsContainer) {
-          populateAdminStats(statsContainer, data);
-         }
-
-        var joinTableContainer = container.querySelector('[data-join-table-container]');
-        if (joinTableContainer && data.joinRecords) {
-          populateAdminJoinTable(joinTableContainer, data.joinRecords);
-         }
-
-        var vehicleTableContainer = container.querySelector('[data-vehicle-table-container]');
-        if (vehicleTableContainer && data.vehicleRecords) {
-          populateAdminVehicleTable(vehicleTableContainer, data.vehicleRecords);
-         }
-
-         // Expose raw data for other scripts
-        container.dataset.adminData = JSON.stringify(data);
-        document.dispatchEvent(new CustomEvent('admin:data', {
-          detail: { container: container, data: data },
-        }));
-       } catch (err) {
-      console.warn('[member-auth] Failed to verify admin auth:', err);
-      showAdminGate(container);
-     }
+  function adminDataRequest(forceRefresh) {
+    return getIdentityToken(forceRefresh).then(function (token) {
+      if (!token) return { noToken: true };
+      var headers = authTraceHeaders();
+      headers.Authorization = 'Bearer ' + token;
+      return fetch('/api/admin-data', { headers: headers });
     });
-   }
+  }
+
+  function renderAdminData(container, data) {
+    hideAdminGate(container);
+    var statsContainer = container.querySelector('[data-stats-container]');
+    if (statsContainer) populateAdminStats(statsContainer, data);
+    var joinTableContainer = container.querySelector('[data-join-table-container]');
+    if (joinTableContainer && data.joinRecords) populateAdminJoinTable(joinTableContainer, data.joinRecords);
+    var vehicleTableContainer = container.querySelector('[data-vehicle-table-container]');
+    if (vehicleTableContainer && data.vehicleRecords) populateAdminVehicleTable(vehicleTableContainer, data.vehicleRecords);
+    container.dataset.adminData = JSON.stringify(data);
+    document.dispatchEvent(new CustomEvent('admin:data', { detail: { container: container, data: data } }));
+  }
+
+  function verifyAdminContainer(container, identity) {
+    if (!identity || !identity.uid) {
+      showAdminGate(container);
+      return Promise.resolve();
+    }
+    var expectedUID = identity.uid;
+    var tokenRetried = false;
+    setPendingState(container, 'Checking sign-in...', 'One moment while we confirm your administrator session.', false);
+    return adminDataRequest(false).then(function (res) {
+      if (res.noToken) throw new Error('TOKEN_UNAVAILABLE');
+      if (res.status === 401 && window.ipaceIdentityUser && window.ipaceIdentityUser.uid === expectedUID) {
+        tokenRetried = true;
+        reportAuthDiagnostic('admin-verification', 'token-refresh-retry');
+        return adminDataRequest(true);
+      }
+      return res;
+    }).then(function (res) {
+      if (res.noToken) throw new Error('TOKEN_UNAVAILABLE');
+      if (!window.ipaceIdentityUser || window.ipaceIdentityUser.uid !== expectedUID) return;
+      if (res.status === 401) {
+        reportAuthDiagnostic('admin-verification', tokenRetried ? 'unauthorized-after-refresh' : 'access-rejected');
+        return showAdminError(container, 'Your browser still has a sign-in session, but we could not verify it with the administrator service. Please try again.');
+      }
+      if (res.status === 403) {
+        reportAuthDiagnostic('admin-verification', 'access-restricted');
+        return showAdminOnlyGate(container);
+      }
+      if (!res.ok) throw new Error('SERVER_' + res.status);
+      return res.json().then(function (data) { renderAdminData(container, data); });
+    }).catch(function (err) {
+      if (!window.ipaceIdentityUser || window.ipaceIdentityUser.uid !== expectedUID) return;
+      console.warn('[member-auth] Failed to verify admin auth:', err);
+      reportAuthDiagnostic('admin-verification', err && err.message === 'TOKEN_UNAVAILABLE' ? 'token-unavailable' : 'failed');
+      showAdminError(container, err && err.message === 'TOKEN_UNAVAILABLE' ? 'Your sign-in is still being restored. Please try again.' : 'We could not reach the administrator service. Check your connection and try again.');
+    });
+  }
+
+  function verifyAdminAuth() {
+    if (adminVerification) {
+      adminVerificationQueued = true;
+      return adminVerification;
+    }
+    var runId = ++adminRunId;
+    adminVerification = waitForIdentity().then(function () {
+      var identity = window.ipaceIdentityUser;
+      if (runId !== adminRunId) return;
+      return Promise.all(Array.prototype.map.call(document.querySelectorAll('[data-admin-container]'), function (container) { return verifyAdminContainer(container, identity); }));
+    }).finally(function () {
+      adminVerification = null;
+      if (adminVerificationQueued) {
+        adminVerificationQueued = false;
+        verifyAdminAuth();
+      }
+    });
+    return adminVerification;
+  }
 
    // ── Init on DOM ready ────────────────────────────────────────────────────────
 
@@ -501,12 +607,15 @@
       verifyMemberAuth();
      }
     if (document.querySelectorAll('[data-admin-container]').length > 0) {
-      verifyAdminAuth();
+      waitForIdentity().then(function () { verifyAdminAuth(); });
      }
    }
 
+  var initScheduled = false;
   function initSoon() {
-    window.setTimeout(init, 0);
+    if (initScheduled) return;
+    initScheduled = true;
+    Promise.resolve().then(function () { initScheduled = false; init(); });
   }
 
   document.addEventListener('submit', function (event) {
@@ -630,19 +739,7 @@
     }).finally(function () { button.disabled = false; });
   });
 
-  function initWhenIdentityReady() {
-    if (window.ipaceIdentityReady) {
-      initSoon();
-      return;
-    }
-
-    // If the auth adapter never emits init, do not leave gated pages stuck
-    // in their pending state. The server check will show the login gate if no
-    // token is available.
-    window.setTimeout(function () {
-      if (!window.ipaceIdentityReady) init();
-    }, 1500);
-  }
+  function initWhenIdentityReady() { initSoon(); }
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initWhenIdentityReady);
@@ -653,5 +750,13 @@
   document.addEventListener('identity:ready', initSoon);
   document.addEventListener('identity:login', initSoon);
   document.addEventListener('identity:logout', initSoon);
+  document.addEventListener('click', function (event) {
+    var retry = event.target.closest('[data-auth-retry]');
+    if (!retry) return;
+    var container = retry.closest('[data-auth-container]');
+    if (container) verifyMemberAuth();
+    var adminContainer = retry.closest('[data-admin-container]');
+    if (adminContainer) verifyAdminAuth();
+  });
 
 })();

@@ -1,6 +1,7 @@
 package ipace
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -43,6 +44,93 @@ func TestCorsAdvertisesSupportedSurveyMethods(t *testing.T) {
 	if methods := response.Header().Get("Access-Control-Allow-Methods"); methods != "GET, POST, PUT, DELETE, OPTIONS" {
 		t.Fatalf("allowed methods = %q", methods)
 	}
+	if headers := response.Header().Get("Access-Control-Allow-Headers"); !strings.Contains(headers, "X-Ipace-Auth-Trace") {
+		t.Fatalf("allowed headers = %q, want auth trace header", headers)
+	}
+}
+
+func TestAuthTraceCodeAcceptsOnlyOpaqueSupportCodes(t *testing.T) {
+	if got := authTraceCode(" ip-abcd-2345 "); got != "IP-ABCD-2345" {
+		t.Fatalf("authTraceCode(valid) = %q", got)
+	}
+	for _, value := range []string{"", "IP-ABCD-234O", "member@example.com", "IP-ABCDE-2345"} {
+		if got := authTraceCode(value); got != "" {
+			t.Fatalf("authTraceCode(%q) = %q, want empty", value, got)
+		}
+	}
+}
+
+func TestAuthorizationRouteRetainsFunctionRoot(t *testing.T) {
+	if got := authorizationRoute("/"); got != "/" {
+		t.Fatalf("root authorization route = %q, want /", got)
+	}
+	if got := authorizationRoute("/api/member-data/"); got != "/api/member-data" {
+		t.Fatalf("authorization route = %q", got)
+	}
+}
+
+func TestAuthDiagnosticsRecordsOnlyBoundedPIIFreeLifecycleEvents(t *testing.T) {
+	req := httptest.NewRequest(http.MethodPost, "/api/auth-diagnostics", strings.NewReader(`{"traceCode":"IP-ABCD-2345","stage":"email-link-completion","outcome":"failed"}`))
+	req.Header.Set("Origin", "https://ipace-owners.org")
+	req.Header.Set("X-Ipace-Auth-Trace", "IP-ABCD-2345")
+	rec := httptest.NewRecorder()
+
+	AuthDiagnostics(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200", rec.Code)
+	}
+
+	invalid := httptest.NewRequest(http.MethodPost, "/api/auth-diagnostics", strings.NewReader(`{"traceCode":"IP-ABCD-2345","stage":"unknown","outcome":"failed"}`))
+	invalid.Header.Set("Origin", "https://ipace-owners.org")
+	invalidRec := httptest.NewRecorder()
+	AuthDiagnostics(invalidRec, invalid)
+	if invalidRec.Code != http.StatusBadRequest {
+		t.Fatalf("invalid status = %d, want 400", invalidRec.Code)
+	}
+
+	missingOrigin := httptest.NewRequest(http.MethodPost, "/api/auth-diagnostics", strings.NewReader(`{"traceCode":"IP-ABCD-2345","stage":"email-link-completion","outcome":"failed"}`))
+	missingOrigin.Header.Set("X-Ipace-Auth-Trace", "IP-ABCD-2345")
+	missingOriginRec := httptest.NewRecorder()
+	AuthDiagnostics(missingOriginRec, missingOrigin)
+	if missingOriginRec.Code != http.StatusForbidden {
+		t.Fatalf("missing Origin status = %d, want 403", missingOriginRec.Code)
+	}
+
+	missingHeader := httptest.NewRequest(http.MethodPost, "/api/auth-diagnostics", strings.NewReader(`{"traceCode":"IP-ABCD-2345","stage":"email-link-completion","outcome":"failed"}`))
+	missingHeader.Header.Set("Origin", "https://ipace-owners.org")
+	missingHeaderRec := httptest.NewRecorder()
+	AuthDiagnostics(missingHeaderRec, missingHeader)
+	if missingHeaderRec.Code != http.StatusBadRequest {
+		t.Fatalf("missing trace header status = %d, want 400", missingHeaderRec.Code)
+	}
+
+	pii := httptest.NewRequest(http.MethodPost, "/api/auth-diagnostics", strings.NewReader(`{"traceCode":"IP-ABCD-2345","stage":"email-link-completion","outcome":"failed","email":"member@example.com"}`))
+	pii.Header.Set("Origin", "https://ipace-owners.org")
+	pii.Header.Set("X-Ipace-Auth-Trace", "IP-ABCD-2345")
+	piiRec := httptest.NewRecorder()
+	AuthDiagnostics(piiRec, pii)
+	if piiRec.Code != http.StatusBadRequest {
+		t.Fatalf("extra diagnostic field status = %d, want 400", piiRec.Code)
+	}
+
+	trailing := httptest.NewRequest(http.MethodPost, "/api/auth-diagnostics", strings.NewReader(`{"traceCode":"IP-ABCD-2345","stage":"email-link-completion","outcome":"failed"}{"email":"member@example.com"}`))
+	trailing.Header.Set("Origin", "https://ipace-owners.org")
+	trailing.Header.Set("X-Ipace-Auth-Trace", "IP-ABCD-2345")
+	trailingRec := httptest.NewRecorder()
+	AuthDiagnostics(trailingRec, trailing)
+	if trailingRec.Code != http.StatusBadRequest {
+		t.Fatalf("trailing diagnostic JSON status = %d, want 400", trailingRec.Code)
+	}
+
+	overlong := httptest.NewRequest(http.MethodPost, "/api/auth-diagnostics", strings.NewReader(`{"traceCode":"IP-ABCD-2345","stage":"email-link-completion","outcome":"failed","padding":"`+strings.Repeat("x", authDiagnosticsMaxBodyBytes)+`"}`))
+	overlong.Header.Set("Origin", "https://ipace-owners.org")
+	overlong.Header.Set("X-Ipace-Auth-Trace", "IP-ABCD-2345")
+	overlongRec := httptest.NewRecorder()
+	AuthDiagnostics(overlongRec, overlong)
+	if overlongRec.Code != http.StatusBadRequest {
+		t.Fatalf("oversized diagnostic status = %d, want 400", overlongRec.Code)
+	}
 }
 
 func TestEmailContinueURLUsesAllowedRequestOrigin(t *testing.T) {
@@ -64,6 +152,22 @@ func TestEmailContinueURLFallsBackForDisallowedOrigin(t *testing.T) {
 
 	if got != "https://stage.ipace-owners.org/member/account/" {
 		t.Fatalf("continue URL = %q", got)
+	}
+}
+
+func TestEmailContinueURLCarriesOpaqueSupportTraceOnly(t *testing.T) {
+	continueURL := "https://ipace-owners.org/member/account/?existing=value"
+	if got := appendAuthTraceToContinueURL(continueURL, "ip-abcd-2345"); got != "https://ipace-owners.org/member/account/?authTrace=IP-ABCD-2345&existing=value" {
+		t.Fatalf("continue URL with trace = %q", got)
+	}
+	if got := appendAuthTraceToContinueURL(continueURL, "member@example.com"); got != continueURL {
+		t.Fatalf("continue URL with invalid trace = %q", got)
+	}
+
+	request := httptest.NewRequest(http.MethodPost, "/api/send-magic-link", nil)
+	request.Header.Set("X-Ipace-Auth-Trace", "IP-ABCD-2345")
+	if got := authTraceFromContext(contextWithAuthTrace(context.Background(), request)); got != "IP-ABCD-2345" {
+		t.Fatalf("trace from request context = %q", got)
 	}
 }
 

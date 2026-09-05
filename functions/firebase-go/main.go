@@ -48,6 +48,7 @@ var sohSourceValues = []string{"dealer-report", "diagnostic-app", "service-paper
 
 func init() {
 	functions.HTTP("Api", Api)
+	functions.HTTP("AuthDiagnostics", AuthDiagnostics)
 	functions.HTTP("SendMagicLink", SendMagicLink)
 	functions.HTTP("SubmitJoin", SubmitJoin)
 	functions.HTTP("SubmitVehicleBasics", SubmitVehicleBasics)
@@ -71,6 +72,8 @@ func Api(w http.ResponseWriter, r *http.Request) {
 	switch strings.TrimRight(r.URL.Path, "/") {
 	case "/api/send-magic-link":
 		SendMagicLink(w, r)
+	case "/api/auth-diagnostics":
+		AuthDiagnostics(w, r)
 	case "/api/submit-join":
 		SubmitJoin(w, r)
 	case "/api/submit-vehicle-basics":
@@ -107,6 +110,8 @@ func Api(w http.ResponseWriter, r *http.Request) {
 		AdminAllMembersDriveSend(w, r)
 	case "/api/admin/jlr-contact-preview":
 		AdminJLRContactPreview(w, r)
+	case "/api/admin/survey-campaign-preview":
+		AdminSurveyCampaignPreview(w, r)
 	case "/api/admin/email-campaign-history":
 		AdminEmailCampaignHistory(w, r)
 	case "/api/admin/custom-campaign-preview":
@@ -190,7 +195,7 @@ func SendMagicLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fields := emailLogFields(email)
+	fields := addAuthTrace(emailLogFields(email), r)
 	fields["origin"] = r.Header.Get("Origin")
 
 	joinCount, joinErr := joinSubmissionCount(r.Context(), emailFingerprint(email))
@@ -222,18 +227,86 @@ func SendMagicLink(w http.ResponseWriter, r *http.Request) {
 	fields["registrationSource"] = registrationSource
 	logEvent("send-magic-link", "info", "firebase email link handoff starting", fields)
 
-	if err := sendFirebaseEmailLink(r.Context(), email, r.Header.Get("Origin")); err != nil {
-		fields := emailLogFields(email)
+	if err := sendFirebaseEmailLink(contextWithAuthTrace(r.Context(), r), email, r.Header.Get("Origin")); err != nil {
+		fields := addAuthTrace(emailLogFields(email), r)
 		fields["origin"] = r.Header.Get("Origin")
 		fields["error"] = err.Error()
 		logEvent("send-magic-link", "warn", "firebase email link handoff failed", fields)
 	} else {
-		fields := emailLogFields(email)
+		fields := addAuthTrace(emailLogFields(email), r)
 		fields["origin"] = r.Header.Get("Origin")
 		logEvent("send-magic-link", "info", "firebase email link handoff accepted", fields)
 	}
 
 	// Do not expose whether Firebase Auth recognised the account.
+	writeJSON(w, http.StatusOK, map[string]any{"ok": true})
+}
+
+var authDiagnosticStages = map[string]bool{
+	"magic-link-request":    true,
+	"email-link-completion": true,
+	"persistence":           true,
+	"identity-observer":     true,
+	"member-verification":   true,
+	"admin-verification":    true,
+}
+
+var authDiagnosticOutcomes = map[string]bool{
+	"started":                    true,
+	"accepted":                   true,
+	"completed":                  true,
+	"failed":                     true,
+	"token-refresh-retry":        true,
+	"unauthorized-after-refresh": true,
+	"access-rejected":            true,
+	"access-restricted":          true,
+	"token-unavailable":          true,
+	"ready":                      true,
+	"signed-in":                  true,
+	"signed-out":                 true,
+}
+
+const authDiagnosticsMaxBodyBytes = 1024
+
+// AuthDiagnostics records a deliberately small, PII-free lifecycle event for a
+// passwordless sign-in. It allows support to correlate a member-reported code
+// with Function logs without recording their email address, Firebase token, or
+// browser error text.
+func AuthDiagnostics(w http.ResponseWriter, r *http.Request) {
+	if cors(w, r) {
+		return
+	}
+	if rejectMissingOrDisallowedOrigin(w, r) {
+		return
+	}
+	if r.Method != http.MethodPost {
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"error": "Method Not Allowed"})
+		return
+	}
+
+	r.Body = http.MaxBytesReader(w, r.Body, authDiagnosticsMaxBodyBytes)
+	var req authDiagnosticRequest
+	if err := decodeJSON(r, &req); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "Invalid request body"})
+		return
+	}
+	traceCode := authTraceCode(req.TraceCode)
+	if traceCode == "" || !authDiagnosticStages[req.Stage] || !authDiagnosticOutcomes[req.Outcome] {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "Invalid diagnostic event"})
+		return
+	}
+	requestTrace := authTraceCode(r.Header.Get("X-Ipace-Auth-Trace"))
+	if requestTrace == "" || requestTrace != traceCode {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "Invalid diagnostic event"})
+		return
+	}
+
+	logEvent("auth-diagnostics", "info", "passwordless sign-in lifecycle", map[string]any{
+		"authTrace": traceCode,
+		"stage":     req.Stage,
+		"outcome":   req.Outcome,
+		"origin":    r.Header.Get("Origin"),
+	})
 	writeJSON(w, http.StatusOK, map[string]any{"ok": true})
 }
 
@@ -317,7 +390,7 @@ func SubmitJoin(w http.ResponseWriter, r *http.Request) {
 		fields := emailLogFields(email)
 		fields["origin"] = r.Header.Get("Origin")
 		logEvent("submit-join", "info", "firebase email link handoff starting", fields)
-		if err := sendFirebaseEmailLink(r.Context(), email, r.Header.Get("Origin")); err != nil {
+		if err := sendFirebaseEmailLink(contextWithAuthTrace(r.Context(), r), email, r.Header.Get("Origin")); err != nil {
 			magicLinkSent = false
 			fields := emailLogFields(email)
 			fields["origin"] = r.Header.Get("Origin")
@@ -382,7 +455,7 @@ func SubmitVehicleBasics(w http.ResponseWriter, r *http.Request) {
 
 	user, err := requireUser(r.Context(), r)
 	if err != nil {
-		writeJSON(w, http.StatusUnauthorized, map[string]any{"error": "Sign in required"})
+		writeMemberAuthorizationError(w, err)
 		return
 	}
 
@@ -559,12 +632,12 @@ func MemberData(w http.ResponseWriter, r *http.Request) {
 	}
 	user, err := requireUser(r.Context(), r)
 	if err != nil {
-		writeJSON(w, http.StatusUnauthorized, map[string]any{"error": "Sign in required"})
+		writeMemberAuthorizationError(w, err)
 		return
 	}
 	snapshot, err := loadMemberSnapshot(r.Context(), user.UID, user.Email)
 	if err != nil {
-		logEvent("member-data", "error", "snapshot load failed", map[string]any{"uid": user.UID, "error": err.Error()})
+		logEvent("member-data", "error", "snapshot load failed", addAuthTrace(map[string]any{"uid": user.UID, "error": err.Error()}, r))
 		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Could not load member data"})
 		return
 	}
@@ -582,27 +655,26 @@ func AdminData(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"error": "Method Not Allowed"})
 		return
 	}
-	user, err := requireUser(r.Context(), r)
+	_, err := requireAdmin(r.Context(), r)
 	if err != nil {
-		writeJSON(w, http.StatusUnauthorized, map[string]any{"error": "Sign in required"})
-		return
-	}
-	if !isAdmin(user) {
-		writeJSON(w, http.StatusForbidden, map[string]any{"error": "Admin role required"})
+		writeAdminAuthorizationError(w, err)
 		return
 	}
 
 	db, err := firestoreClient(r.Context())
 	if err != nil {
+		logEvent("admin-data", "error", "data store connection failed", addAuthTrace(map[string]any{"error": err.Error()}, r))
 		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Could not connect to data store"})
 		return
 	}
 	data := adminData{JoinRecords: []joinRecord{}, VehicleRecords: []vehicleRecord{}}
 	if err := readCollection(r.Context(), db.Collection("joinSubmissions").OrderBy("createdAt", firestore.Desc), &data.JoinRecords); err != nil {
+		logEvent("admin-data", "error", "join records load failed", addAuthTrace(map[string]any{"error": err.Error()}, r))
 		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Could not load join submissions"})
 		return
 	}
 	if err := readCollection(r.Context(), db.Collection("vehicles").OrderBy("createdAt", firestore.Desc), &data.VehicleRecords); err != nil {
+		logEvent("admin-data", "error", "vehicle records load failed", addAuthTrace(map[string]any{"error": err.Error()}, r))
 		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Could not load vehicle submissions"})
 		return
 	}
@@ -616,7 +688,7 @@ func sendFirebaseEmailLinkRequest(ctx context.Context, email string, origin stri
 	if apiKey == "" {
 		return fmt.Errorf("FIREBASE_WEB_API_KEY is not configured")
 	}
-	continueURL := emailContinueURLForOrigin(origin)
+	continueURL := appendAuthTraceToContinueURL(emailContinueURLForOrigin(origin), authTraceFromContext(ctx))
 	linkDomain := os.Getenv("FIREBASE_EMAIL_LINK_DOMAIN")
 	if linkDomain == "" {
 		linkDomain = firebaseEmailLinkDomainForContinueURL(continueURL)

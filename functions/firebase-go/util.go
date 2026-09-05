@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -23,6 +24,107 @@ import (
 
 var emailRE = regexp.MustCompile(`^[^\s@]+@[^\s@]+\.[^\s@]+$`)
 var vinRE = regexp.MustCompile(`^[A-HJ-NPR-Z0-9]{17}$`)
+var authTraceRE = regexp.MustCompile(`^IP-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$`)
+
+type authTraceContextKey struct{}
+
+type authorizationError struct {
+	status  int
+	message string
+	cause   error
+}
+
+func (err *authorizationError) Error() string {
+	return err.message
+}
+
+func (err *authorizationError) Unwrap() error {
+	return err.cause
+}
+
+func authorizationFailure(status int, message string, cause error) error {
+	return &authorizationError{status: status, message: message, cause: cause}
+}
+
+func writeAdminAuthorizationError(w http.ResponseWriter, err error) {
+	status := http.StatusForbidden
+	message := "Admin role required"
+	var authorizationErr *authorizationError
+	if errors.As(err, &authorizationErr) {
+		status = authorizationErr.status
+		message = authorizationErr.message
+	}
+	writeJSON(w, status, map[string]any{"error": message})
+}
+
+func writeMemberAuthorizationError(w http.ResponseWriter, err error) {
+	status := http.StatusUnauthorized
+	message := "Sign in required"
+	var authorizationErr *authorizationError
+	if errors.As(err, &authorizationErr) {
+		status = authorizationErr.status
+		message = authorizationErr.message
+	}
+	writeJSON(w, status, map[string]any{"error": message})
+}
+
+type authServiceUnavailableError struct {
+	cause error
+}
+
+func (err *authServiceUnavailableError) Error() string { return "sign-in verification unavailable" }
+func (err *authServiceUnavailableError) Unwrap() error { return err.cause }
+
+func authTraceCode(value string) string {
+	value = strings.ToUpper(strings.TrimSpace(value))
+	if !authTraceRE.MatchString(value) {
+		return ""
+	}
+	return value
+}
+
+func authTraceFields(r *http.Request) map[string]any {
+	traceCode := authTraceCode(r.Header.Get("X-Ipace-Auth-Trace"))
+	if traceCode == "" {
+		return map[string]any{}
+	}
+	return map[string]any{"authTrace": traceCode}
+}
+
+func addAuthTrace(fields map[string]any, r *http.Request) map[string]any {
+	for key, value := range authTraceFields(r) {
+		fields[key] = value
+	}
+	return fields
+}
+
+func contextWithAuthTrace(ctx context.Context, r *http.Request) context.Context {
+	traceCode := authTraceCode(r.Header.Get("X-Ipace-Auth-Trace"))
+	if traceCode == "" {
+		return ctx
+	}
+	return context.WithValue(ctx, authTraceContextKey{}, traceCode)
+}
+
+func authTraceFromContext(ctx context.Context) string {
+	traceCode, _ := ctx.Value(authTraceContextKey{}).(string)
+	return authTraceCode(traceCode)
+}
+
+func appendAuthTraceToContinueURL(continueURL string, traceCode string) string {
+	traceCode = authTraceCode(traceCode)
+	if traceCode == "" {
+		return continueURL
+	}
+	parsed, err := url.Parse(continueURL)
+	if err != nil {
+		return continueURL
+	}
+	query := parsed.Query()
+	query.Set("authTrace", traceCode)
+	parsed.RawQuery = query.Encode()
+	return parsed.String()
+}
 
 func jsonUnmarshal(data []byte, v any) error {
 	return json.Unmarshal(data, v)
@@ -42,7 +144,17 @@ func decodeJSON(r *http.Request, v any) error {
 	}
 	dec := json.NewDecoder(r.Body)
 	dec.DisallowUnknownFields()
-	return dec.Decode(v)
+	if err := dec.Decode(v); err != nil {
+		return err
+	}
+	var extra any
+	if err := dec.Decode(&extra); err != io.EOF {
+		if err == nil {
+			return errors.New("unexpected trailing JSON value")
+		}
+		return err
+	}
+	return nil
 }
 
 func cors(w http.ResponseWriter, r *http.Request) bool {
@@ -52,7 +164,7 @@ func cors(w http.ResponseWriter, r *http.Request) bool {
 		w.Header().Set("Vary", "Origin")
 	}
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Ipace-Auth-Trace")
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusNoContent)
 		return true
@@ -72,6 +184,14 @@ func rejectDisallowedOrigin(w http.ResponseWriter, r *http.Request) bool {
 	})
 	writeJSON(w, http.StatusForbidden, map[string]any{"error": "Origin not allowed"})
 	return true
+}
+
+func rejectMissingOrDisallowedOrigin(w http.ResponseWriter, r *http.Request) bool {
+	if r.Header.Get("Origin") == "" {
+		writeJSON(w, http.StatusForbidden, map[string]any{"error": "Origin required"})
+		return true
+	}
+	return rejectDisallowedOrigin(w, r)
 }
 
 func originAllowed(origin string) bool {
@@ -304,7 +424,7 @@ func optionalUser(ctx context.Context, r *http.Request) (*firebaseUser, error) {
 	}
 	client, err := firebaseAuth(ctx)
 	if err != nil {
-		return nil, err
+		return nil, &authServiceUnavailableError{cause: err}
 	}
 	verified, err := client.VerifyIDToken(ctx, token)
 	if err != nil {
@@ -316,12 +436,54 @@ func optionalUser(ctx context.Context, r *http.Request) (*firebaseUser, error) {
 func requireUser(ctx context.Context, r *http.Request) (*firebaseUser, error) {
 	user, err := optionalUser(ctx, r)
 	if err != nil {
-		return nil, err
+		var unavailable *authServiceUnavailableError
+		if errors.As(err, &unavailable) {
+			logAuthorizationDecision(r, "member", "verification-unavailable", http.StatusServiceUnavailable)
+			return nil, authorizationFailure(http.StatusServiceUnavailable, "Sign-in verification is temporarily unavailable", err)
+		}
+		logAuthorizationDecision(r, "member", "invalid-token", http.StatusUnauthorized)
+		return nil, authorizationFailure(http.StatusUnauthorized, "Sign in required", err)
 	}
 	if user == nil || user.UID == "" {
-		return nil, errors.New("sign in required")
+		logAuthorizationDecision(r, "member", "missing-token", http.StatusUnauthorized)
+		return nil, authorizationFailure(http.StatusUnauthorized, "Sign in required", nil)
 	}
+	logAuthorizationDecision(r, "member", "allowed", http.StatusOK)
 	return user, nil
+}
+
+func requireAdmin(ctx context.Context, r *http.Request) (*firebaseUser, error) {
+	user, err := requireUser(ctx, r)
+	if err != nil {
+		return nil, err
+	}
+	if !isAdmin(user) {
+		logAuthorizationDecision(r, "admin", "admin-claim-missing", http.StatusForbidden)
+		return nil, authorizationFailure(http.StatusForbidden, "Admin role required", nil)
+	}
+	logAuthorizationDecision(r, "admin", "allowed", http.StatusOK)
+	return user, nil
+}
+
+func logAuthorizationDecision(r *http.Request, requiredRole string, decision string, status int) {
+	if authTraceCode(r.Header.Get("X-Ipace-Auth-Trace")) == "" {
+		return
+	}
+	fields := addAuthTrace(map[string]any{
+		"route":        authorizationRoute(r.URL.Path),
+		"requiredRole": requiredRole,
+		"decision":     decision,
+		"status":       status,
+	}, r)
+	logEvent("authorization", "info", "authorization decision", fields)
+}
+
+func authorizationRoute(path string) string {
+	route := strings.TrimRight(path, "/")
+	if route == "" {
+		return "/"
+	}
+	return route
 }
 
 func userFromToken(ctx context.Context, client *auth.Client, token *auth.Token) *firebaseUser {

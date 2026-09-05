@@ -1,7 +1,8 @@
 {% macro authLoginGate(inputId, title, body, sessionLabel = "member", showJoinLink = true) %}
   <div class="auth-gate" data-auth-pending>
-    <h2 class="auth-gate__title">Checking sign-in...</h2>
-    <p class="auth-gate__body">One moment while we confirm your {{ sessionLabel }} session.</p>
+    <h2 class="auth-gate__title" data-auth-pending-title>Checking sign-in...</h2>
+    <p class="auth-gate__body" data-auth-pending-body>One moment while we confirm your {{ sessionLabel }} session.</p>
+    <button class="btn btn--secondary" type="button" data-auth-retry hidden>Try again</button>
   </div>
 
   <div class="auth-gate" data-auth-login-gate hidden>

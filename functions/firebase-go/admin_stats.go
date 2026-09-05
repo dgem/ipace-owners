@@ -93,8 +93,7 @@ type timelineBucket struct {
 	Count int    `json:"count"`
 }
 
-var adminStatsRequireUser = requireUser
-var adminStatsIsAdmin = isAdmin
+var adminStatsRequireAdmin = requireAdmin
 var ukRegistrationRE = regexp.MustCompile(`^[A-Z]{2}[0-9]{2}[A-Z]{3}$`)
 
 // AdminStats serves aggregate statistics for the admin dashboard.
@@ -110,13 +109,9 @@ func AdminStats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := adminStatsRequireUser(r.Context(), r)
+	_, err := adminStatsRequireAdmin(r.Context(), r)
 	if err != nil {
-		writeJSON(w, http.StatusUnauthorized, map[string]any{"error": "Sign in required"})
-		return
-	}
-	if !adminStatsIsAdmin(user) {
-		writeJSON(w, http.StatusForbidden, map[string]any{"error": "Admin role required"})
+		writeAdminAuthorizationError(w, err)
 		return
 	}
 

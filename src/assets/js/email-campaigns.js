@@ -1,13 +1,20 @@
 (function () {
   'use strict';
 
+  function authHeaders(headers) {
+    return window.ipaceAuthHeaders ? window.ipaceAuthHeaders(headers) : headers;
+  }
+
   async function request(path, body) {
     var user = window.firebase && window.firebase.auth().currentUser;
     if (!user) throw new Error('Sign in as an administrator first.');
     var token = await user.getIdToken();
     var response = await fetch(path, {
       method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      headers: authHeaders({
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json'
+      }),
       body: JSON.stringify(body || {})
     });
     var data = await response.json();
@@ -182,6 +189,7 @@
         'all-members-drive': 'Reach 1,000',
         'custom-member': 'Freeform',
         'jlr-contact': 'JLR Contact',
+        'survey-september-2026': 'September Survey',
         'member-referral': 'Find members',
         'registration-reminder': 'Registration reminder'
       };
@@ -295,6 +303,10 @@
         } else if (campaign.kind === 'jlr-contact') {
           specialisedTab = 'jlr-contact';
           specialisedActionLabel = 'Use JLR Contact tool';
+          specialisedActionTitle = 'This campaign retains its approved source-controlled copy and verified, consented audience.';
+        } else if (campaign.kind === 'survey-september-2026') {
+          specialisedTab = 'september-survey';
+          specialisedActionLabel = 'Use September Survey tool';
           specialisedActionTitle = 'This campaign retains its approved source-controlled copy and verified, consented audience.';
         }
         if (!canEditDraft) {

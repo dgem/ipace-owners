@@ -13,16 +13,99 @@
 	var auth = null;
 	var adminUIRunId = 0;
 	var config = window.ipaceFirebaseConfig;
-	window.ipaceIdentityReady = !config;
+	var resolveIdentityReady;
+	var identityReadyPromise = new Promise(function (resolve) { resolveIdentityReady = resolve; });
+	window.ipaceIdentityReady = false;
+	window.ipaceIdentityReadyPromise = identityReadyPromise;
 	window.ipaceIdentityUser = null;
+	window.ipaceIdentityLinkCompleted = false;
+
+	function createAuthTraceCode() {
+		var alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+		var values = new Uint32Array(8);
+		var code = '';
+		if (window.crypto && window.crypto.getRandomValues) {
+			window.crypto.getRandomValues(values);
+		} else {
+			for (var fallbackIndex = 0; fallbackIndex < values.length; fallbackIndex += 1) {
+				values[fallbackIndex] = Math.floor(Math.random() * 0xffffffff);
+			}
+		}
+		for (var index = 0; index < values.length; index += 1) {
+			code += alphabet.charAt(values[index] % alphabet.length);
+		}
+		return 'IP-' + code.slice(0, 4) + '-' + code.slice(4);
+	}
+
+	function authTraceCode() {
+		var storageKey = 'ipaceAuthTraceCode';
+		var traceFromLink = '';
+		try {
+			traceFromLink = new URLSearchParams(window.location.search).get('authTrace') || '';
+		} catch (err) {
+			console.warn('[identity.js] Could not read the sign-in support code from the email link.', err);
+			traceFromLink = '';
+		}
+		if (/^IP-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$/i.test(traceFromLink)) {
+			var traceCode = traceFromLink.toUpperCase();
+			try {
+				window.sessionStorage.setItem(storageKey, traceCode);
+			} catch (err) {
+				console.warn('[identity.js] Session storage unavailable for sign-in support code.', err);
+			}
+			try {
+				var url = new URL(window.location.href);
+				url.searchParams.delete('authTrace');
+				window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash);
+			} catch (err) {
+				console.warn('[identity.js] Could not remove the sign-in support code from the address bar.', err);
+			}
+			return traceCode;
+		}
+		try {
+			var existing = window.sessionStorage.getItem(storageKey);
+			if (existing) return existing;
+			var generated = createAuthTraceCode();
+			window.sessionStorage.setItem(storageKey, generated);
+			return generated;
+		} catch (err) {
+			console.warn('[identity.js] Session storage unavailable for sign-in support code.', err);
+			return createAuthTraceCode();
+		}
+	}
+
+	var authTrace = authTraceCode();
+	window.ipaceAuthTraceCode = authTrace;
+	window.ipaceAuthTraceHeaders = function () {
+		return { 'X-Ipace-Auth-Trace': authTrace };
+	};
+	window.ipaceAuthHeaders = function (headers) {
+		return Object.assign({}, headers || {}, window.ipaceAuthTraceHeaders());
+	};
+	window.ipaceReportAuthDiagnostic = function (stage, outcome) {
+		if (!stage || !outcome || !window.fetch) return;
+		window.fetch('/api/auth-diagnostics', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json', 'X-Ipace-Auth-Trace': authTrace },
+			body: JSON.stringify({ traceCode: authTrace, stage: stage, outcome: outcome }),
+			keepalive: true
+		}).catch(function () {});
+	};
+
+	function withAuthTrace(message) {
+		return message + ' If you contact us, please quote sign-in code ' + authTrace + ' and the approximate time.';
+	}
 
 	if (config && window.firebase && window.firebase.initializeApp) {
 		app = window.firebase.apps && window.firebase.apps.length
 			? window.firebase.app()
 			: window.firebase.initializeApp(config);
 		auth = app.auth();
-		auth.setPersistence(window.firebase.auth.Auth.Persistence.LOCAL).catch(function (err) {
+		auth.persistenceReady = auth.setPersistence(window.firebase.auth.Auth.Persistence.LOCAL).then(function () {
+			window.ipaceReportAuthDiagnostic('persistence', 'ready');
+		}, function (err) {
 			console.warn('[identity.js] Could not set Firebase persistence.', err);
+			window.ipaceReportAuthDiagnostic('persistence', 'failed');
 		});
 	} else if (config) {
 		console.warn('[identity.js] Firebase SDK not found. Header auth UI disabled.');
@@ -95,8 +178,10 @@
 
 	function dispatchIdentityState(name, user) {
 		var normalised = normaliseUser(user);
+		var wasReady = window.ipaceIdentityReady;
 		window.ipaceIdentityReady = true;
 		window.ipaceIdentityUser = normalised;
+		if (!wasReady) resolveIdentityReady(normalised);
 		document.dispatchEvent(new CustomEvent(name, {
 			detail: { user: normalised }
 		}));
@@ -123,10 +208,13 @@
 		var email = window.localStorage.getItem('ipaceEmailForSignIn') || '';
 
 		function signInWithEmailLink(emailAddress) {
+			window.ipaceReportAuthDiagnostic('email-link-completion', 'started');
 			return auth.signInWithEmailLink(emailAddress, pendingEmailLinkUrl).then(function () {
 				window.localStorage.removeItem('ipaceEmailForSignIn');
 				pendingEmailLinkUrl = '';
+				window.ipaceIdentityLinkCompleted = true;
 				clearAuthQuery();
+				window.ipaceReportAuthDiagnostic('email-link-completion', 'completed');
 				return true;
 			});
 		}
@@ -143,7 +231,10 @@
 		return signInWithEmailLink(email).catch(function (err) {
 			console.warn('[identity.js] Email-link sign-in failed.', err);
 			window.localStorage.removeItem('ipaceEmailForSignIn');
-			setAllMagicLinkStatuses('We could not finish sign-in with the remembered email. Enter the email address that received this link to try again.', 'error');
+			pendingEmailLinkUrl = '';
+			window.ipaceReportAuthDiagnostic('email-link-completion', 'failed');
+			setAllMagicLinkStatuses(withAuthTrace('We could not finish sign-in with that link. Request a new sign-in link using the email address that received it.'), 'error');
+			clearAuthQuery();
 			return false;
 		});
 	}
@@ -152,16 +243,22 @@
 		if (!auth || !pendingEmailLinkUrl) return Promise.resolve(false);
 		if (submitBtn) submitBtn.disabled = true;
 		setMagicLinkStatus(form, 'Completing sign-in...', 'info');
+		window.ipaceReportAuthDiagnostic('email-link-completion', 'started');
 		return auth.signInWithEmailLink(email, pendingEmailLinkUrl).then(function () {
 			window.localStorage.removeItem('ipaceEmailForSignIn');
 			pendingEmailLinkUrl = '';
+			window.ipaceIdentityLinkCompleted = true;
 			clearAuthQuery();
+			window.ipaceReportAuthDiagnostic('email-link-completion', 'completed');
 			setMagicLinkStatus(form, 'Signed in. Loading your account...', 'info');
 			return true;
 		}).catch(function (err) {
 			console.warn('[identity.js] Email-link sign-in failed from form.', err);
-			setMagicLinkStatus(form, 'We could not finish sign-in with that link. Check the email address matches the one that received the link, or request a new sign-in link.', 'error');
-			return true;
+			pendingEmailLinkUrl = '';
+			window.ipaceReportAuthDiagnostic('email-link-completion', 'failed');
+			setMagicLinkStatus(form, withAuthTrace('We could not finish sign-in with that link. Request a new sign-in link using the email address that received it.'), 'error');
+			clearAuthQuery();
+			return false;
 		}).finally(function () {
 			if (submitBtn) submitBtn.disabled = false;
 		});
@@ -257,9 +354,9 @@
 		return payload;
 	}
 
-	function getIdentityToken() {
+	function getIdentityToken(forceRefresh) {
 		if (!auth || !auth.currentUser) return Promise.resolve('');
-		return auth.currentUser.getIdToken().catch(function () { return ''; });
+		return auth.currentUser.getIdToken(!!forceRefresh).catch(function () { return ''; });
 	}
 
 	window.ipaceGetIdentityToken = getIdentityToken;
@@ -293,21 +390,24 @@
 				if (submitBtn) submitBtn.disabled = true;
 				setMagicLinkStatus(form, 'Checking registration and requesting a sign-in link...', 'info');
 				window.localStorage.setItem('ipaceEmailForSignIn', email);
+				window.ipaceReportAuthDiagnostic('magic-link-request', 'started');
 
 				fetch('/api/send-magic-link', {
 					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
+					headers: window.ipaceAuthHeaders({ 'Content-Type': 'application/json' }),
 					body: JSON.stringify({ email: email })
 				}).then(function (res) {
 					return res.json().catch(function () { return {}; }).then(function (data) {
 						if (!res.ok || !data.ok) {
 							throw new Error(data && data.error ? data.error : 'Could not send sign-in link');
 						}
+						window.ipaceReportAuthDiagnostic('magic-link-request', 'accepted');
 						setMagicLinkStatus(form, 'If this email address is registered, a secure sign-in link will be sent. You can return here after opening it.', 'info');
 					});
 				}).catch(function (err) {
 					console.warn('[identity.js] Magic link request failed.', err);
-					setMagicLinkStatus(form, 'We could not send a sign-in link right now. Please try again or contact us.', 'error');
+					window.ipaceReportAuthDiagnostic('magic-link-request', 'failed');
+					setMagicLinkStatus(form, withAuthTrace('We could not send a sign-in link right now. Please try again or contact us.'), 'error');
 				}).finally(function () {
 					if (submitBtn) submitBtn.disabled = false;
 				});
@@ -336,7 +436,7 @@
 				return;
 			}
 
-			var headers = { 'Content-Type': 'application/json' };
+			var headers = window.ipaceAuthHeaders({ 'Content-Type': 'application/json' });
 			if (token) headers.Authorization = 'Bearer ' + token;
 
 			return fetch(endpoint, {
@@ -373,19 +473,23 @@
 	});
 
 	if (auth) {
-		completeEmailLinkIfNeeded().finally(function () {
-			auth.onAuthStateChanged(function (user) {
+		auth.persistenceReady.finally(function () {
+			return completeEmailLinkIfNeeded().then(function (completed) {
+				window.ipaceIdentityLinkCompleted = completed;
+			});
+		}).finally(function () {
+			auth.onIdTokenChanged(function (user) {
+				window.ipaceReportAuthDiagnostic('identity-observer', user ? 'signed-in' : 'signed-out');
 				updateHeaderUI(user);
-				updateAdminUI(user).finally(function () {
-					dispatchIdentityState(window.ipaceIdentityReady ? (user ? 'identity:login' : 'identity:logout') : 'identity:ready', user);
+				dispatchIdentityState(window.ipaceIdentityReady ? (user ? 'identity:login' : 'identity:logout') : 'identity:ready', user);
+				updateAdminUI(user);
 
-					if (user) {
-						document.querySelectorAll('[data-registration-guest]').forEach(function (el) { el.hidden = true; });
-						document.querySelectorAll('[data-registration-signed-in]').forEach(function (el) { el.hidden = false; });
-						var redirect = document.body.dataset.authRedirectOnLogin;
-						if (redirect) window.location.href = redirect;
-					}
-				});
+				if (user) {
+					document.querySelectorAll('[data-registration-guest]').forEach(function (el) { el.hidden = true; });
+					document.querySelectorAll('[data-registration-signed-in]').forEach(function (el) { el.hidden = false; });
+					var redirect = document.body.dataset.authRedirectOnLogin;
+					if (redirect) window.location.href = redirect;
+				}
 			});
 		});
 	} else {

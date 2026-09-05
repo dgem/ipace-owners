@@ -230,6 +230,30 @@ site-owned `/images/` paths; Freeform campaigns retain the generic hero.
 - Run `make smoke` directly in the production workflow after Hosting deploy with
   `SMOKE_BASE_URL=https://ipace-owners.org`.
 
+## Production Monitoring and Recovery
+
+- Manage the production operations dashboard, external uptime checks, notification channel,
+  and alert policies in OpenTofu; do not create one-off console-only checks or alerts. Monitoring
+  is opt-in per environment so staging remains quiet by default.
+- The production baseline independently checks `https://ipace-owners.org/` and
+  `https://ipace-owners.org/api/public-stats` from Europe every five minutes. The latter catches
+  Hosting rewrite and public `Api` failures which a static homepage check cannot see. A policy
+  opens after ten minutes of continued failure and auto-closes after thirty minutes without a
+  signal; this deliberately avoids waking operators for a single transient probe failure.
+- Set `monitoring_alert_email` to a real operational mailbox before applying production so the
+  managed notification channel can deliver incidents. Leaving it empty keeps the dashboard and
+  incidents but sends no email. Do not configure an individual member address without their
+  agreement.
+- Investigate an availability alert in this order: the dashboard’s check result, the serialized
+  production deployment run and smoke result, then Cloud Logging for the `Api` Cloud Run/Function
+  revision. Firebase Hosting serves the prior release until a new release is complete; an
+  unsuccessful smoke test does not automatically roll back a completed release. Roll back the
+  Hosting release in Firebase Hosting release history after confirming the previous release is
+  healthy, then use the dashboard and smoke test to confirm recovery.
+- The dashboard’s request-rate chart is scoped to the Gen 2 `Api` service in the configured
+  region. It is operational context, not a privacy analytics product: do not enable Firebase
+  Hosting request logging merely to populate it, as that has separate privacy and cost review.
+
 ## Human-controlled Facebook outreach
 
 - Provide an admin-only `/admin/outreach/` workspace for generating user-initiated Facebook
@@ -399,6 +423,15 @@ site-owned `/images/` paths; Freeform campaigns retain the generic hero.
   Logs may include one-way email hashes, masked email addresses, previous Join counts,
   continue hosts, provider status summaries, and response diagnostics, but never raw
   addresses, full provider bodies, or action links.
+- For a reported `IP-XXXX-XXXX` support code, use Cloud Logging to filter the `authorization`
+  component by `jsonPayload.authTrace` (and the `auth-diagnostics`, `send-magic-link`, and
+  `firebase-email-link` components by the same field). The resulting timeline must show the
+  route, required role, decision, and status for each traced protected API request. Treat the
+  code as troubleshooting metadata, not a credential; it cannot authorize access by itself.
+- If a member cannot see a support code while reporting a clearly stale interface, ask them to
+  reload the site, then clear only `ipace-owners.org` website data if necessary. This signs them
+  out; they must request a fresh magic link afterwards. Never ask them to send the magic link,
+  a screenshot containing it, a Firebase token, or all of their browser data.
 
 ## Infrastructure Operations
 
@@ -414,6 +447,10 @@ site-owned `/images/` paths; Freeform campaigns retain the generic hero.
 
 - Keep Node tests that assert smoke tests run in Firebase deploy workflows rather than a
   deployment-status workflow.
+- Browser JavaScript has no transpilation step. ESLint must reject trailing commas in
+  `src/assets/js/**` function calls and parameter lists, so ES2017-only comma syntax cannot pass
+  CI. Scope that rule to browser functions: do not make Node scripts/tests, object literals, or
+  array literals conform to an unnecessary legacy style.
 - Keep tests for preview URL extraction, preview authorized-domain updates, and Function
   environment generation.
 - Run `make lint`, `make build`, and `make test` after CI, deployment, or operational prompt

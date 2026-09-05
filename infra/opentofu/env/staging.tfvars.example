@@ -62,6 +62,9 @@ manage_resend_domain = true
 resend_domain        = "stage.ipace-owners.org"
 resend_region        = "eu-west-1"
 
+# Leave staging quiet by default. Enable only when actively testing Monitoring changes.
+monitoring_enabled = false
+
 # Apply once, then add every output DNS record at Fasthosts.
 firebase_hosting_custom_domains = {
   "stage.ipace-owners.org" = {}

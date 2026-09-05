@@ -113,7 +113,7 @@ func AdminInstagramPreview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := instagramCampaignAuthorize(r.Context(), r); err != nil {
-		writeJSON(w, http.StatusForbidden, map[string]any{"error": "Admin role required"})
+		writeAdminAuthorizationError(w, err)
 		return
 	}
 	var input instagramDraftRequest
@@ -159,7 +159,7 @@ func AdminInstagramPublish(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := instagramCampaignAuthorize(r.Context(), r); err != nil {
-		writeJSON(w, http.StatusForbidden, map[string]any{"error": "Admin role required"})
+		writeAdminAuthorizationError(w, err)
 		return
 	}
 	var input instagramPublishRequest
