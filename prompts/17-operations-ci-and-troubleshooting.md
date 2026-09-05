@@ -53,9 +53,10 @@ post-delivery summary retry cannot resend recipients. “Tweak and rerun” clon
 content into a new run; never edit a run after delivery starts. History may infer old specialised
 runs from legacy delivery-only subcollections, where only the sent count is recoverable.
 
-The fixed September Survey invitation is a group-wide member poll, but it uses the same
-communication-consented registered-member audience as every other member campaign. Poll relevance
-never overrides a member's recorded contact choice.
+The fixed September Survey invitation is a group-wide member poll. It may reach every
+communication-consented Join registration, including members who have not completed magic-link
+sign-in; it must never reach a member without recorded contact consent. This is the widest
+permitted member-email audience.
 Refreshing history must reconcile stored Resend IDs with the paginated sent-email API, cache
 provider checks for five minutes, and aggregate delivered, awaiting-delivery, opened, clicked,
 delayed, bounced, suppressed, complained, provider-failed and combined-undeliverable outcomes
