@@ -38,6 +38,7 @@ var customCampaignPlaceholders = []string{
 	"memberVehicles",
 	"vehiclesRegisteredCount",
 	"vehiclesSoHReadingsCount",
+	"serviceFaultRecordsCount",
 }
 
 type customCampaignDraftRequest struct {

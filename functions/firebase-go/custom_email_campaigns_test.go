@@ -92,6 +92,19 @@ func TestCustomCampaignSubstitutionsRenderEveryDocumentedValue(t *testing.T) {
 	}
 }
 
+func TestCustomCampaignAllowsEveryDocumentedPlaceholder(t *testing.T) {
+	for _, placeholder := range customCampaignPlaceholders {
+		input := customCampaignDraftRequest{
+			Name:     "Placeholder check",
+			Subject:  "{{" + placeholder + "}}",
+			Markdown: "{{" + placeholder + "}}",
+		}
+		if err := validateCustomCampaignDraft(input); err != nil {
+			t.Fatalf("documented placeholder %q rejected: %v", placeholder, err)
+		}
+	}
+}
+
 func TestValidateCustomCampaignDraftRejectsUnknownActionsAndUnsafeLinks(t *testing.T) {
 	valid := customCampaignDraftRequest{
 		Name:     "Member update",
