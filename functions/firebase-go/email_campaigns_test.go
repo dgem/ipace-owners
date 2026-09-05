@@ -120,6 +120,13 @@ func TestEmbeddedSeptemberSurveyCampaignHasSurveyAndEvidenceCTA(t *testing.T) {
 			t.Fatalf("survey campaign is missing %q", expected)
 		}
 	}
+	if err := validateCustomCampaignDraft(customCampaignDraftRequest{
+		Name:     template.Name,
+		Subject:  template.Subject,
+		Markdown: template.Markdown,
+	}); err != nil {
+		t.Fatalf("survey campaign template failed custom-campaign validation: %v", err)
+	}
 }
 
 func TestJLRContactCampaignUsesItsHolidayHeroImage(t *testing.T) {
