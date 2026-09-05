@@ -265,7 +265,8 @@ restrict `monitoring.googleapis.com/uptime_check/check_passed` to `resource.type
 scorecard titles belong to their containing widgets. The dashboard displays
 both check results and the Gen 2 `Api` Cloud Run request rate. A notification channel is created
 only when `monitoring_alert_email` is non-empty; otherwise incidents remain visible in Monitoring
-without sending email. The production example identifies the agreed operational mailbox, while
+without sending email. Do not configure `notification_rate_limit` on these metric-threshold alerts:
+Cloud Monitoring permits that setting only for log-based alert policies. The production example identifies the agreed operational mailbox, while
 staging leaves monitoring disabled unless it is deliberately being tested. Document that a failed
 deployment smoke test does not roll back a completed Hosting release automatically, and that
 recovery uses Firebase Hosting release history followed by dashboard and smoke-test verification.

@@ -81,10 +81,6 @@ resource "google_monitoring_alert_policy" "uptime" {
 
   alert_strategy {
     auto_close = "1800s"
-
-    notification_rate_limit {
-      period = "300s"
-    }
   }
 
   notification_channels = google_monitoring_notification_channel.operator_email[*].name

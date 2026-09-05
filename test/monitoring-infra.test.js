@@ -47,6 +47,7 @@ test("monitoring alerts are durable and only send email when a recipient is conf
   assert.match(monitoring, /resource "google_monitoring_alert_policy" "uptime"/);
   assert.match(monitoring, /duration\s*=\s*"600s"/);
   assert.match(monitoring, /auto_close\s*=\s*"1800s"/);
+  assert.doesNotMatch(monitoring, /notification_rate_limit/, 'metric-threshold uptime alerts cannot set a notification rate limit');
   assert.match(outputs, /output "monitoring"/);
   assert.doesNotMatch(outputs, /Production operations/);
   assert.match(envOutputs, /output "monitoring"/);
