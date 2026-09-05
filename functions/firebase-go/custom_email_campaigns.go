@@ -324,10 +324,14 @@ func previewEmbeddedCustomCampaign(ctx context.Context, templateName, campaignKi
 }
 
 func campaignDraftKind(input customCampaignDraftRequest) string {
-	if input.Kind == jlrContactCampaignKind || input.Kind == surveyCampaignKind {
+	if isStaticCampaignKind(input.Kind) {
 		return input.Kind
 	}
 	return customCampaignKind
+}
+
+func isStaticCampaignKind(kind string) bool {
+	return kind == jlrContactCampaignKind || kind == surveyCampaignKind
 }
 
 func staticCustomCampaignID(templateID string) string {
@@ -351,7 +355,7 @@ func sameCustomCampaignDraft(record customCampaignRecord, input customCampaignDr
 // source Markdown is edited later. Its preview must show the version that recipients
 // received, including when everyone in the current audience has already been sent.
 func staticCampaignInputForStartedRecord(input customCampaignDraftRequest, record customCampaignRecord) (customCampaignDraftRequest, bool) {
-	if !input.CreateWithID || input.Kind != jlrContactCampaignKind || record.Kind != jlrContactCampaignKind {
+	if !input.CreateWithID || !isStaticCampaignKind(input.Kind) || input.Kind != record.Kind {
 		return input, false
 	}
 	input.Name = record.Name
@@ -372,7 +376,7 @@ func sendCustomCampaignBatch(ctx context.Context, input customCampaignSendReques
 		return customCampaignPreviewResponse{}, err
 	}
 	record, err := loadCustomCampaignRecord(ctx, db, strings.TrimSpace(input.CampaignID))
-	if err != nil || (record.Kind != customCampaignKind && record.Kind != jlrContactCampaignKind) {
+	if err != nil || (record.Kind != customCampaignKind && !isStaticCampaignKind(record.Kind)) {
 		return customCampaignPreviewResponse{}, fmt.Errorf("campaign draft was not found; preview again")
 	}
 	if err := validateCustomCampaignDraft(customCampaignDraftRequest{
