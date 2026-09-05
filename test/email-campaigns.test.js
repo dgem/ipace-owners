@@ -40,10 +40,11 @@ test('admin index is a gated dashboard of implemented tools', function () {
   assert.match(dashboard, />Review Queue<\/a>/);
   assert.match(dashboard, />Facebook Assistant<\/a>/);
   assert.match(dashboard, />Email Campaigns<\/a>/);
+  assert.match(dashboard, />Marketing Messages<\/a>/);
   assert.match(dashboard, />Instagram Campaigns<\/a>/);
   assert.match(dashboard, />Member Surveys<\/a>/);
-  assert.equal((dashboard.match(/class="admin-tool-logo"/g) || []).length, 5);
-  assert.equal((dashboard.match(/class="btn btn--primary" href="\/admin\//g) || []).length, 5);
+  assert.equal((dashboard.match(/class="admin-tool-logo"/g) || []).length, 6);
+  assert.equal((dashboard.match(/class="btn btn--primary" href="\/admin\//g) || []).length, 6);
   assert.match(dashboard, /not linked prematurely/);
   assert.match(dashboard, /admin-dashboard-tools/);
   assert.match(dashboard, /admin-dashboard-insights/);

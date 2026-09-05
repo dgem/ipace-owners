@@ -1,0 +1,44 @@
+---
+layout: base.njk
+title: Marketing Messages
+description: "Admin-only consented-member marketing broadcasts."
+noindex: true
+permalink: /admin/marketing-messages/
+marketingMessages: true
+adminNavigation: true
+adminBreadcrumb: Marketing messages
+eleventyExcludeFromCollections: true
+date: Last Modified
+---
+
+{% from "partials/auth-login-gate.njk" import authLoginGate %}
+
+<div class="page-header page-header--compact"><div class="container"><h1 class="page-header__title">Marketing messages</h1></div></div>
+<div class="section section--sm"><div class="container"><div data-admin-container>
+  {{ authLoginGate("marketing-message-magic-email", "Sign in required", "Enter your admin email address and we will send a secure sign-in link.", "admin", false) }}
+  <div class="auth-gate" data-admin-only-gate hidden><div class="auth-gate__icon" aria-hidden="true">⛔</div><h2 class="auth-gate__title">Access restricted</h2><p class="auth-gate__body">This workspace is for group administrators only.</p></div>
+  <div class="auth-content" data-admin-content hidden>
+    <section class="dashboard-panel" data-marketing-message>
+      <div class="dashboard-panel__header"><div><p class="dashboard-panel__eyebrow">Resend Broadcasts</p><h2 class="dashboard-panel__title">Write and send a member update</h2></div></div>
+      <p class="dashboard-panel__lede">Every send uses the current set of members who consented to group communications. Preview first; nothing is emailed until you confirm the exact audience.</p>
+      <form data-marketing-message-form class="stack">
+        <div class="form-group"><label for="marketing-message-name">Internal message name</label><input id="marketing-message-name" data-marketing-message-name required maxlength="160" autocomplete="off" placeholder="September member update"></div>
+        <div class="form-group"><label for="marketing-message-subject">Email subject</label><input id="marketing-message-subject" data-marketing-message-subject required maxlength="200" autocomplete="off"></div>
+        <div class="form-group"><label for="marketing-message-markdown">Message</label><textarea id="marketing-message-markdown" data-marketing-message-markdown required maxlength="20000" rows="14" aria-describedby="marketing-message-hint"></textarea><p class="form-hint" id="marketing-message-hint">Markdown is supported. Use <code>{% raw %}{{firstName}}{% endraw %}</code> for a first-name greeting. The unsubscribe link is included automatically and cannot be removed.</p></div>
+        <button type="submit" class="btn btn--primary">Preview consented audience</button>
+      </form>
+      <p data-marketing-message-status role="status" aria-live="polite"></p>
+      <section class="email-preview stack" data-marketing-message-preview-panel hidden aria-labelledby="marketing-message-preview-title">
+        <div><p class="dashboard-panel__eyebrow">Preview</p><h3 id="marketing-message-preview-title">What members will receive</h3></div>
+        <p data-marketing-message-audience></p><p><strong>Subject:</strong> <span data-marketing-message-subject-preview></span></p>
+        <div class="email-preview__viewport"><iframe data-marketing-message-html title="Rendered marketing email preview" sandbox></iframe></div>
+        <details class="email-preview__plain"><summary>View plain-text alternative</summary><pre data-marketing-message-text></pre></details>
+      </section>
+      <form data-marketing-message-send class="stack email-campaign-step" hidden>
+        <div><p class="dashboard-panel__eyebrow">Confirm send</p><h3>Send the broadcast</h3><p>Resend creates recipient-specific unsubscribe links and handles future unsubscribe requests.</p></div>
+        <div class="form-group email-campaign-confirmation"><label for="marketing-message-confirm">Type the exact confirmation shown below</label><input id="marketing-message-confirm" data-marketing-message-confirm autocomplete="off"><p class="form-hint" data-marketing-message-confirm-hint></p></div>
+        <button type="submit" class="btn btn--danger">Send marketing message</button>
+      </form>
+    </section>
+  </div>
+</div></div></div>

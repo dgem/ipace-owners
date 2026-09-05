@@ -35,8 +35,6 @@ resource "google_monitoring_uptime_check_config" "endpoint" {
     }
   }
 
-  selected_regions = ["EUROPE"]
-
   depends_on = [google_project_service.required]
 }
 
@@ -65,7 +63,7 @@ resource "google_monitoring_alert_policy" "uptime" {
     display_name = "Uptime check has failed for ten minutes"
 
     condition_threshold {
-      filter          = "metric.type=\"monitoring.googleapis.com/uptime_check/check_passed\" AND metric.label.\"check_id\"=\"${each.value.uptime_check_id}\""
+      filter          = "metric.type=\"monitoring.googleapis.com/uptime_check/check_passed\" AND metric.label.\"check_id\"=\"${each.value.uptime_check_id}\" AND resource.type=\"uptime_url\""
       comparison      = "COMPARISON_LT"
       threshold_value = 1
       duration        = "600s"
@@ -83,16 +81,12 @@ resource "google_monitoring_alert_policy" "uptime" {
 
   alert_strategy {
     auto_close = "1800s"
-
-    notification_rate_limit {
-      period = "300s"
-    }
   }
 
   notification_channels = google_monitoring_notification_channel.operator_email[*].name
 
   documentation {
-    content   = "Check the ${var.environment} Operations dashboard, then the serialized ${var.environment} deployment and Cloud Logging. The homepage and public statistics API are independently checked from Europe."
+    content   = "Check the ${var.environment} Operations dashboard, then the serialized ${var.environment} deployment and Cloud Logging. The homepage and public statistics API are independently checked from Google's available uptime-check locations."
     mime_type = "text/markdown"
   }
 }
@@ -124,11 +118,11 @@ resource "google_monitoring_dashboard" "operations" {
           width  = 24
           height = 6
           widget = {
+            title = "Homepage uptime"
             scorecard = {
-              title = "Homepage uptime"
               timeSeriesQuery = {
                 timeSeriesFilter = {
-                  filter = "metric.type=\"monitoring.googleapis.com/uptime_check/check_passed\" AND metric.label.\"check_id\"=\"${google_monitoring_uptime_check_config.endpoint["homepage"].uptime_check_id}\""
+                  filter = "metric.type=\"monitoring.googleapis.com/uptime_check/check_passed\" AND metric.label.\"check_id\"=\"${google_monitoring_uptime_check_config.endpoint["homepage"].uptime_check_id}\" AND resource.type=\"uptime_url\""
                   aggregation = {
                     alignmentPeriod  = "300s"
                     perSeriesAligner = "ALIGN_FRACTION_TRUE"
@@ -144,11 +138,11 @@ resource "google_monitoring_dashboard" "operations" {
           width  = 24
           height = 6
           widget = {
+            title = "Public API uptime"
             scorecard = {
-              title = "Public API uptime"
               timeSeriesQuery = {
                 timeSeriesFilter = {
-                  filter = "metric.type=\"monitoring.googleapis.com/uptime_check/check_passed\" AND metric.label.\"check_id\"=\"${google_monitoring_uptime_check_config.endpoint["public_api"].uptime_check_id}\""
+                  filter = "metric.type=\"monitoring.googleapis.com/uptime_check/check_passed\" AND metric.label.\"check_id\"=\"${google_monitoring_uptime_check_config.endpoint["public_api"].uptime_check_id}\" AND resource.type=\"uptime_url\""
                   aggregation = {
                     alignmentPeriod  = "300s"
                     perSeriesAligner = "ALIGN_FRACTION_TRUE"

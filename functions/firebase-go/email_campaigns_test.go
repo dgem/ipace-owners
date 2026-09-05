@@ -107,6 +107,8 @@ func TestEmbeddedSeptemberSurveyCampaignHasSurveyAndEvidenceCTA(t *testing.T) {
 	for _, expected := range []string{
 		"{{memberFirstName}}",
 		"survey_a2371fc4a6efb138c8ac117b156d5d3f",
+		"Have your say — tell us what you need",
+		"{.button}",
 		"Full HV Replacement",
 		"{{membersJoined}} members",
 		"{{vehiclesRegisteredCount}} cars registered",
@@ -126,6 +128,9 @@ func TestEmbeddedSeptemberSurveyCampaignHasSurveyAndEvidenceCTA(t *testing.T) {
 		Markdown: template.Markdown,
 	}); err != nil {
 		t.Fatalf("survey campaign template failed custom-campaign validation: %v", err)
+	}
+	if html := markdownToEmailHTML(template.Markdown); !strings.Contains(html, `border-radius:999px`) || !strings.Contains(html, `Have your say — tell us what you need`) {
+		t.Fatalf("survey campaign must render its response action as a prominent pill button: %q", html)
 	}
 }
 

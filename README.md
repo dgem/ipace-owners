@@ -356,9 +356,10 @@ GitHub Actions environment settings automatically.
 ### Production monitoring and recovery
 
 Production Monitoring is managed by the same OpenTofu environment. The baseline dashboard has
-independent European uptime checks for the public homepage and `/api/public-stats`, plus an API
-request-rate chart. The second check covers the Hosting rewrite and public Function path, not just
-the static site. A sustained ten-minute failure opens an incident; an email is sent only when
+independent multi-region uptime checks for the public homepage and `/api/public-stats`, plus an API
+request-rate chart. Uptime alert and dashboard queries are explicitly restricted to the `uptime_url`
+resource type. The second check covers the Hosting rewrite and public Function path, not just the
+static site. A sustained ten-minute failure opens an incident; an email is sent only when
 `monitoring_alert_email` is configured. The production example uses `contact@ipace-owners.org`;
 change it to the agreed operational mailbox before applying if needed.
 
@@ -409,6 +410,14 @@ Firebase's built-in passwordless email-link sign-in body is not one of the confi
 Identity Platform templates. The custom sender domain and Hosting action-link domain still
 apply, but fully branded magic-link copy requires generating the action link server-side and
 sending it through a separately selected transactional email provider.
+
+### Marketing messages
+
+`/admin/marketing-messages/` is the purpose-built path for group-wide marketing updates. It is deliberately separate from the older resumable transactional campaigns. Before sending, an administrator sees the current number of canonical-email-deduplicated Join records that opted in to group communications and must type the exact `SEND <count>` confirmation. The preview has no Resend side effect.
+
+On confirmation, the Function creates a fresh Resend Segment from that live consented audience and immediately creates the Broadcast. This avoids a long-lived copied mailing list going stale: a future send always reads Firestore consent again. Only a member's email address and split name are sent to Resend; no vehicle, survey, evidence, or Firebase identity data is transferred. The message may use `{{firstName}}`, rendered as Resend's built-in first-name property, and every HTML/plain-text message adds Resend's recipient-specific unsubscribe link.
+
+The browser uses `POST /api/admin/marketing-message-preview` for the no-side-effect validation and preview, then `POST /api/admin/marketing-message-send` only after the audience count is rechecked and the exact confirmation has been supplied. Both routes require the server-verified Firebase admin claim.
 
 ### Join re-engagement campaign
 
@@ -875,6 +884,7 @@ Plain vanilla JavaScript, no bundler. The current modules are:
 - `instagram-campaigns.js` — admin-only asynchronous Veo generation, full-media review, and
   durable draft/history, insight display, and exact-confirmation Instagram publishing
 - `admin-campaign-summary.js` — admin-only email, Instagram, and Facebook capability summary
+- `marketing-messages.js` — admin-only Resend Broadcast preview and exact-confirmation delivery
 - `public-stats.js` — homepage and evidence-dashboard aggregate rendering
 - `site-mode.js` — launch/full presentation selection
 

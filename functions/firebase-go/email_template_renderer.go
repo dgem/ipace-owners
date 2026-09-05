@@ -19,9 +19,10 @@ var (
 		"email-templates/campaign-reengagement.md",
 		"email-templates/member-referral.md",
 		"email-templates/all-members-drive.md"))
-	markdownLinkRegexp     = regexp.MustCompile(`\[([^\]]+)\]\(([^)]+)\)`)
-	markdownStrongRegexp   = regexp.MustCompile(`\*\*([^*\n]+)\*\*`)
-	markdownEmphasisRegexp = regexp.MustCompile(`\*([^*\n]+)\*`)
+	markdownActionLinkRegexp = regexp.MustCompile(`^\[([^\]]+)\]\(([^)]+)\)\{\.button\}$`)
+	markdownLinkRegexp       = regexp.MustCompile(`\[([^\]]+)\]\(([^)]+)\)`)
+	markdownStrongRegexp     = regexp.MustCompile(`\*\*([^*\n]+)\*\*`)
+	markdownEmphasisRegexp   = regexp.MustCompile(`\*([^*\n]+)\*`)
 )
 
 type campaignTemplateSource struct {
@@ -140,6 +141,11 @@ func markdownToEmailHTML(markdown string) string {
 			sections = append(sections, `<h2 style="margin:24px 0 12px;color:#12324a;font-size:22px;line-height:1.3;">`+renderInlineMarkdown(text)+`</h2>`)
 			continue
 		}
+		if match := markdownActionLinkRegexp.FindStringSubmatch(line); len(match) == 3 {
+			flushParagraph()
+			sections = append(sections, `<p style="margin:0 0 22px;"><a href="`+html.EscapeString(strings.TrimSpace(match[2]))+`" style="display:inline-block;padding:13px 20px;border-radius:999px;background:#0f766e;color:#ffffff;text-decoration:none;font-size:16px;line-height:1.2;font-weight:700;">`+renderInlineEmphasis(strings.TrimSpace(match[1]))+`</a></p>`)
+			continue
+		}
 		paragraph = append(paragraph, line)
 	}
 	flushParagraph()
@@ -153,7 +159,8 @@ func markdownToPlainText(markdown string) string {
 	if trimmed == "" {
 		return ""
 	}
-	converted := markdownLinkRegexp.ReplaceAllString(trimmed, "$1: $2")
+	converted := markdownActionLinkRegexp.ReplaceAllString(trimmed, "$1: $2")
+	converted = markdownLinkRegexp.ReplaceAllString(converted, "$1: $2")
 	converted = markdownStrongRegexp.ReplaceAllString(converted, "$1")
 	converted = markdownEmphasisRegexp.ReplaceAllString(converted, "$1")
 	converted = strings.ReplaceAll(converted, "\n### ", "\n")

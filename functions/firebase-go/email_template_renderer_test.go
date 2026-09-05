@@ -39,3 +39,23 @@ func TestMarkdownToPlainTextRemovesEmphasisMarkers(t *testing.T) {
 		t.Fatalf("markdownToPlainText() = %q, want %q", rendered, expected)
 	}
 }
+
+func TestMarkdownActionLinkRendersAnEmailSafePillAndPlainTextFallback(t *testing.T) {
+	markdown := "[Have your say — tell us what you need](https://ipace-owners.org/member/survey-response/?id=survey_example){.button}"
+	html := markdownToEmailHTML(markdown)
+	for _, expected := range []string{
+		`href="https://ipace-owners.org/member/survey-response/?id=survey_example"`,
+		`border-radius:999px`,
+		`background:#0f766e`,
+		`Have your say — tell us what you need`,
+	} {
+		if !strings.Contains(html, expected) {
+			t.Fatalf("markdownToEmailHTML() = %q, want fragment %q", html, expected)
+		}
+	}
+
+	plain := markdownToPlainText(markdown)
+	if strings.Contains(plain, "{.button}") || !strings.Contains(plain, "Have your say — tell us what you need: https://ipace-owners.org/member/survey-response/?id=survey_example") {
+		t.Fatalf("markdownToPlainText() = %q, want a clean action-link fallback", plain)
+	}
+}

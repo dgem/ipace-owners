@@ -34,7 +34,8 @@ It is the current source of truth for the I-PACE Owners' Advocacy Group architec
 - **CI/CD:** GitHub Actions with GCP Workload Identity Federation. PRs deploy to staging
   Firebase Hosting preview channels; `main` deploys to production.
 - **Production observability:** Cloud Monitoring owns an operations dashboard plus independent
-  European uptime checks of the public homepage and `/api/public-stats`. The dashboard also
+  multi-region uptime checks of the public homepage and `/api/public-stats`, with uptime metrics
+  restricted to the `uptime_url` resource type. The dashboard also
   charts the Gen 2 `Api` Cloud Run request rate. Sustained external failures create managed
   alert incidents and, when an operational email recipient is configured, send email alerts.
 - **Domains/SSL:** Firebase Hosting managed SSL for `ipace-owners.org`; DNS remains at
@@ -137,6 +138,8 @@ header.
 | `POST /api/admin/all-members-drive-send` | `AdminAllMembersDriveSend` | Admin | Confirm and send the next resumable batch of at most ten all-member recruitment emails. |
 | `POST /api/admin/jlr-contact-preview` | `AdminJLRContactPreview` | Admin | Load the fixed JLR Contact Markdown source, calculate the verified, consented audience, and return the exact branded preview. |
 | `POST /api/admin/survey-campaign-preview` | `AdminSurveyCampaignPreview` | Admin | Load the fixed September survey invitation, calculate every communication-consented Join registration (including members who have not completed magic-link sign-in), and return the exact branded preview. |
+| `POST /api/admin/marketing-message-preview` | `AdminMarketingMessagePreview` | Admin | Validate an administrator-authored Markdown marketing message, calculate the canonical-email-deduplicated Join audience who consented to group communications, and return a sandboxable rendered preview and exact send confirmation without contacting Resend. |
+| `POST /api/admin/marketing-message-send` | `AdminMarketingMessageSend` | Admin | Recalculate that consented audience and, only after the exact confirmation and unchanged count, create a newly synchronised Resend Segment and Broadcast. Only name and email are transferred; the message always includes Resend's per-recipient unsubscribe placeholder. |
 | `POST /api/admin/email-campaign-history` | `AdminEmailCampaignHistory` | Admin | Return campaign metadata and aggregate delivery history without recipient addresses. |
 | `POST /api/admin/custom-campaign-preview` | `AdminCustomCampaignPreview` | Admin | Validate and persist a custom Markdown draft, calculate the verified consented audience, and return personalised HTML/plain-text previews. |
 | `POST /api/admin/custom-campaign-send` | `AdminCustomCampaignSend` | Admin | Recheck the saved draft and audience, require exact confirmation, and send the next idempotent batch of at most ten. |
@@ -340,9 +343,11 @@ sheet and chart format without exposing member data.
 - Custom magic-link, Join re-engagement and member-referral messages share one responsive
   inline-styled HTML shell with the established text masthead, hero image and pill-shaped action
   buttons. Do not insert the site logo image into transactional or campaign email templates.
-  Campaign prose is maintained as embedded `email-templates/*.md.tmpl` Go templates and rendered
-  into both escaped HTML and plain text; mandatory consent/unsubscribe footers remain structural
-  composition data rather than editable campaign Markdown.
+  Campaign prose is maintained as embedded `email-templates/*.md` Go templates and rendered
+  into both escaped HTML and plain text. A standalone Markdown link suffixed with `{.button}` is an
+  email-safe, pill-shaped primary action, while the plain-text version remains a normal labelled URL;
+  mandatory consent/unsubscribe footers remain structural composition data rather than editable
+  campaign Markdown.
 - Admin campaign preview responses return that exact generated HTML with placeholder-only private
   links. The browser renders it in a sandboxed `srcdoc` iframe and keeps the plain-text alternative
   available in a disclosure, without exposing recipient data.

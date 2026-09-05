@@ -118,6 +118,10 @@ func Api(w http.ResponseWriter, r *http.Request) {
 		AdminCustomCampaignPreview(w, r)
 	case "/api/admin/custom-campaign-send":
 		AdminCustomCampaignSend(w, r)
+	case "/api/admin/marketing-message-preview":
+		AdminMarketingMessagePreview(w, r)
+	case "/api/admin/marketing-message-send":
+		AdminMarketingMessageSend(w, r)
 	case "/api/admin/instagram-preview":
 		AdminInstagramPreview(w, r)
 	case "/api/admin/instagram-publish":
