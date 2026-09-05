@@ -12,7 +12,7 @@ Our founding member will meet Jaguar Land Rover **the day after this survey clos
 
 The **Preferred outcomes — September meeting** survey is open from **4 to 23 September 2026**. You can choose more than one outcome.
 
-[Take the survey](https://ipace-owners.org/member/survey-response/?id=survey_a2371fc4a6efb138c8ac117b156d5d3f)
+[Have your say — tell us what you need](https://ipace-owners.org/member/survey-response/?id=survey_a2371fc4a6efb138c8ac117b156d5d3f){.button}
 
 The choices are:
 

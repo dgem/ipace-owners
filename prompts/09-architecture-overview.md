@@ -343,9 +343,11 @@ sheet and chart format without exposing member data.
 - Custom magic-link, Join re-engagement and member-referral messages share one responsive
   inline-styled HTML shell with the established text masthead, hero image and pill-shaped action
   buttons. Do not insert the site logo image into transactional or campaign email templates.
-  Campaign prose is maintained as embedded `email-templates/*.md.tmpl` Go templates and rendered
-  into both escaped HTML and plain text; mandatory consent/unsubscribe footers remain structural
-  composition data rather than editable campaign Markdown.
+  Campaign prose is maintained as embedded `email-templates/*.md` Go templates and rendered
+  into both escaped HTML and plain text. A standalone Markdown link suffixed with `{.button}` is an
+  email-safe, pill-shaped primary action, while the plain-text version remains a normal labelled URL;
+  mandatory consent/unsubscribe footers remain structural composition data rather than editable
+  campaign Markdown.
 - Admin campaign preview responses return that exact generated HTML with placeholder-only private
   links. The browser renders it in a sandboxed `srcdoc` iframe and keeps the plain-text alternative
   available in a disclosure, without exposing recipient data.
