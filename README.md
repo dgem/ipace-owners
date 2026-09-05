@@ -142,6 +142,30 @@ make test
 For layout, navigation, responsive, or visibility changes, keep `make dev` running in another
 terminal and run `make test-visual`. Inspect the screenshots written to `visual-artifacts/`.
 
+Playwright adds real browser coverage for the public responsive journeys:
+
+```bash
+make test-e2e-responsive
+```
+
+It starts Eleventy locally and runs Chromium, Firefox, WebKit, Android Chrome and iPhone Safari
+profiles. The dedicated CI workflow runs it on every pull request.
+
+The passwordless member journey is a separate, opt-in staging test because it sends a real,
+short-lived email link. It needs a Resend receiving inbox belonging to a registered staging-only
+member; never use a real member account. Configure `E2E_BASE_URL`, `E2E_RESEND_API_KEY` and
+`E2E_RESEND_INBOX`, then run:
+
+```bash
+make test-e2e-auth
+```
+
+CI only runs that journey after a same-repository staging preview deploy when the staging
+environment variable `PLAYWRIGHT_AUTH_E2E_ENABLED` is `true` and the
+`E2E_RESEND_INBOX_STAGING` and dedicated `E2E_RESEND_API_KEY_STAGING` secrets are configured.
+The auth project deliberately records no trace, screenshot or video, and never prints the magic
+link or inbox address.
+
 Runs the Node test suite for form wiring, auth UI behaviour, deployment configuration, and
 the Go Cloud Function tests. They can also be run separately:
 

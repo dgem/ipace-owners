@@ -299,6 +299,12 @@ sheet and chart format without exposing member data.
   Cloud Run functions, and current runtime-compatible action majors. Deploy Cloud Function runtime
   environment variables from an env vars file rather than comma-separated `--set-env-vars`,
   because values such as `ALLOWED_ORIGINS` contain commas.
+- Run Playwright public responsive checks on every pull request with Chromium, Firefox, WebKit,
+  Android Chrome and iPhone Safari profiles. A separate staging-only, opt-in Playwright journey
+  runs after the preview deploy: it requests a passwordless link for a dedicated registered test
+  member, retrieves it through Resend Receiving, and verifies the protected account page. Pass the
+  generated preview URL as `E2E_BASE_URL`; gate the job on `PLAYWRIGHT_AUTH_E2E_ENABLED` and do not
+  retain or print authentication links, inbox addresses, screenshots, traces or video.
 - Pin third-party Actions to immutable commit SHAs and serialize both staging and production
   deployment jobs without cancellation. Deployment smoke tests must require the current
   public-statistics schema so outdated snapshots regenerate under the Function runtime
