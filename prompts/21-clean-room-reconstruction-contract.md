@@ -37,7 +37,7 @@ The generated public route surface must include:
 - `/member/dashboard/`, `/member/account/`, `/member/submit-vehicle-data/`,
   `/member/surveys/`, `/member/survey-response/`, and `/member/survey-results/`;
 - `/admin/`, `/admin/review-queue/`, `/admin/outreach/`, `/admin/email-campaigns/`, and
-  `/admin/instagram-campaigns/`, `/admin/surveys/`, `/admin/survey-preview/`, and `/admin/survey-results/`;
+  `/admin/instagram-campaigns/`, `/admin/marketing-messages/`, `/admin/surveys/`, `/admin/survey-preview/`, and `/admin/survey-results/`;
 - permanent redirects from `/account/**` and `/submit-vehicle-data/**` to their member
   equivalents;
 - a generated 404 page, clean URLs, trailing slashes, and a final Hosting fallback to
@@ -116,6 +116,8 @@ change rather than assuming it exists.
 | `POST /api/admin/all-members-drive-send` | Admin claim | Confirm and send the next batch of at most ten all-member recruitment emails with hashed idempotent delivery records. |
 | `POST /api/admin/jlr-contact-preview` | Admin claim | Load the fixed JLR Contact Markdown source, calculate the verified consented audience, and return the exact branded preview. |
 | `POST /api/admin/survey-campaign-preview` | Admin claim | Load the fixed September survey invitation, calculate every communication-consented Join registration (including members who have not completed magic-link sign-in), and return the exact branded preview. |
+| `POST /api/admin/marketing-message-preview` | Admin claim | Validate Markdown, recalculate the canonical Join audience that consented to communications, and render a sandboxable preview with no provider side effect. |
+| `POST /api/admin/marketing-message-send` | Admin claim | Recheck that consented audience and exact `SEND <count>` confirmation, then create a fresh Resend Segment and immediately send a Broadcast with only contact name/email and a mandatory Resend unsubscribe placeholder. |
 | `POST /api/admin/email-campaign-history` | Admin claim | Return parent campaign records and aggregate hashed-ledger delivery counts, including inferred legacy runs and cached Resend delivery outcomes, without addresses. |
 | `POST /api/admin/custom-campaign-preview` | Admin claim | Validate/save a named subject and Markdown draft, calculate the verified consented audience, and return representative branded HTML/plain-text output. |
 | `POST /api/admin/custom-campaign-send` | Admin claim | Load immutable saved content, recheck the audience and exact `SEND <count>` confirmation, then send at most ten idempotent messages. |

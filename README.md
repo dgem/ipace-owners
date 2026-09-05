@@ -410,6 +410,14 @@ Identity Platform templates. The custom sender domain and Hosting action-link do
 apply, but fully branded magic-link copy requires generating the action link server-side and
 sending it through a separately selected transactional email provider.
 
+### Marketing messages
+
+`/admin/marketing-messages/` is the purpose-built path for group-wide marketing updates. It is deliberately separate from the older resumable transactional campaigns. Before sending, an administrator sees the current number of canonical-email-deduplicated Join records that opted in to group communications and must type the exact `SEND <count>` confirmation. The preview has no Resend side effect.
+
+On confirmation, the Function creates a fresh Resend Segment from that live consented audience and immediately creates the Broadcast. This avoids a long-lived copied mailing list going stale: a future send always reads Firestore consent again. Only a member's email address and split name are sent to Resend; no vehicle, survey, evidence, or Firebase identity data is transferred. The message may use `{{firstName}}`, rendered as Resend's built-in first-name property, and every HTML/plain-text message adds Resend's recipient-specific unsubscribe link.
+
+The browser uses `POST /api/admin/marketing-message-preview` for the no-side-effect validation and preview, then `POST /api/admin/marketing-message-send` only after the audience count is rechecked and the exact confirmation has been supplied. Both routes require the server-verified Firebase admin claim.
+
 ### Join re-engagement campaign
 
 `functions/firebase-go/cmd/reengagement` is an operator-only command for reminding people who
@@ -875,6 +883,7 @@ Plain vanilla JavaScript, no bundler. The current modules are:
 - `instagram-campaigns.js` — admin-only asynchronous Veo generation, full-media review, and
   durable draft/history, insight display, and exact-confirmation Instagram publishing
 - `admin-campaign-summary.js` — admin-only email, Instagram, and Facebook capability summary
+- `marketing-messages.js` — admin-only Resend Broadcast preview and exact-confirmation delivery
 - `public-stats.js` — homepage and evidence-dashboard aggregate rendering
 - `site-mode.js` — launch/full presentation selection
 
