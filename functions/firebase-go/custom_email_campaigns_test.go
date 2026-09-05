@@ -50,6 +50,7 @@ func TestCustomCampaignSubstitutionsRenderEveryDocumentedValue(t *testing.T) {
 		MembersVerified:          399,
 		VehiclesRegisteredCount:  287,
 		VehiclesSoHReadingsCount: 634,
+		ServiceFaultRecordsCount: 91,
 	}
 	person := customCampaignRecipient{
 		Name:       "Dr Jane Driver",
@@ -72,6 +73,7 @@ func TestCustomCampaignSubstitutionsRenderEveryDocumentedValue(t *testing.T) {
 		"{{memberVehicles}}",
 		"{{vehiclesRegisteredCount}}",
 		"{{vehiclesSoHReadingsCount}}",
+		"{{serviceFaultRecordsCount}}",
 	}, "|")
 	got, err := applyCustomCampaignSubstitutions(template, data)
 	if err != nil {
@@ -79,7 +81,7 @@ func TestCustomCampaignSubstitutionsRenderEveryDocumentedValue(t *testing.T) {
 	}
 	for _, expected := range []string{
 		"412", "399", "Jane", "Driver", "Dr", "17 July 2026", "18 July 2026",
-		`"registration":"IPACE"`, `"sohReadingsCount":3`, "287", "634",
+		`"registration":"IPACE"`, `"sohReadingsCount":3`, "287", "634", "91",
 	} {
 		if !strings.Contains(got, expected) {
 			t.Fatalf("rendered substitutions missing %q: %s", expected, got)
@@ -239,32 +241,42 @@ func TestSentCustomCampaignCanOnlyBePreviewedUnchanged(t *testing.T) {
 	}
 }
 
-func TestStartedJLRCampaignRetainsSavedCopyWhenTemplateChanges(t *testing.T) {
-	record := customCampaignRecord{
-		Kind:         jlrContactCampaignKind,
-		Name:         "JLR meeting update",
-		Subject:      "We have contact",
-		Markdown:     "Saved body",
-		HeroImage:    "/images/saved-hero.png",
-		HeroImageAlt: "Saved hero",
-		Sent:         2,
-	}
-	changed := customCampaignDraftRequest{
-		Kind:         jlrContactCampaignKind,
-		CreateWithID: true,
-		Name:         "Changed JLR update",
-		Subject:      "Changed subject",
-		Markdown:     "Changed body",
-		HeroImage:    "/images/changed-hero.png",
-		HeroImageAlt: "Changed hero",
-	}
+func TestStartedStaticCampaignRetainsSavedCopyWhenTemplateChanges(t *testing.T) {
+	for _, kind := range []string{jlrContactCampaignKind, surveyCampaignKind} {
+		record := customCampaignRecord{
+			Kind:         kind,
+			Name:         "Saved campaign",
+			Subject:      "Saved subject",
+			Markdown:     "Saved body",
+			HeroImage:    "/images/saved-hero.png",
+			HeroImageAlt: "Saved hero",
+			Sent:         2,
+		}
+		changed := customCampaignDraftRequest{
+			Kind:         kind,
+			CreateWithID: true,
+			Name:         "Changed campaign",
+			Subject:      "Changed subject",
+			Markdown:     "Changed body",
+			HeroImage:    "/images/changed-hero.png",
+			HeroImageAlt: "Changed hero",
+		}
 
-	got, reused := staticCampaignInputForStartedRecord(changed, record)
-	if !reused {
-		t.Fatal("started JLR campaign did not reuse its saved copy")
+		got, reused := staticCampaignInputForStartedRecord(changed, record)
+		if !reused {
+			t.Fatalf("started %s campaign did not reuse its saved copy", kind)
+		}
+		if !sameCustomCampaignDraft(record, got) {
+			t.Fatalf("started %s campaign preview did not retain saved copy: %#v", kind, got)
+		}
 	}
-	if !sameCustomCampaignDraft(record, got) {
-		t.Fatalf("started JLR campaign preview did not retain saved copy: %#v", got)
+}
+
+func TestStaticCampaignKindsAreValidCampaignRecordsForSending(t *testing.T) {
+	for _, kind := range []string{jlrContactCampaignKind, surveyCampaignKind} {
+		if !isStaticCampaignKind(kind) {
+			t.Fatalf("static campaign kind %q was not accepted for sending", kind)
+		}
 	}
 }
 

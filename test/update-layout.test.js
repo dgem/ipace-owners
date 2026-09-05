@@ -26,3 +26,13 @@ test('the update layout keeps article context and optional heroes together', fun
   assert.match(layout, /update-article/);
   assert.match(layout, /{% if heroImage %}/);
 });
+
+test('the first member survey update has a purposeful hero image', function () {
+  var surveyUpdate = fs.readFileSync(
+    path.join(updatesDirectory, 'first-member-survey.md'),
+    'utf8'
+  );
+
+  assert.match(surveyUpdate, /heroImage: \/images\/september-survey-2026-hero\.jpg/);
+  assert.match(surveyUpdate, /heroImageAlt:\s*["'][^"']+['"]/);
+});

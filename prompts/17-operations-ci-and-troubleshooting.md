@@ -230,6 +230,30 @@ site-owned `/images/` paths; Freeform campaigns retain the generic hero.
 - Run `make smoke` directly in the production workflow after Hosting deploy with
   `SMOKE_BASE_URL=https://ipace-owners.org`.
 
+## Production Monitoring and Recovery
+
+- Manage the production operations dashboard, external uptime checks, notification channel,
+  and alert policies in OpenTofu; do not create one-off console-only checks or alerts. Monitoring
+  is opt-in per environment so staging remains quiet by default.
+- The production baseline independently checks `https://ipace-owners.org/` and
+  `https://ipace-owners.org/api/public-stats` from Europe every five minutes. The latter catches
+  Hosting rewrite and public `Api` failures which a static homepage check cannot see. A policy
+  opens after ten minutes of continued failure and auto-closes after thirty minutes without a
+  signal; this deliberately avoids waking operators for a single transient probe failure.
+- Set `monitoring_alert_email` to a real operational mailbox before applying production so the
+  managed notification channel can deliver incidents. Leaving it empty keeps the dashboard and
+  incidents but sends no email. Do not configure an individual member address without their
+  agreement.
+- Investigate an availability alert in this order: the dashboard’s check result, the serialized
+  production deployment run and smoke result, then Cloud Logging for the `Api` Cloud Run/Function
+  revision. Firebase Hosting serves the prior release until a new release is complete; an
+  unsuccessful smoke test does not automatically roll back a completed release. Roll back the
+  Hosting release in Firebase Hosting release history after confirming the previous release is
+  healthy, then use the dashboard and smoke test to confirm recovery.
+- The dashboard’s request-rate chart is scoped to the Gen 2 `Api` service in the configured
+  region. It is operational context, not a privacy analytics product: do not enable Firebase
+  Hosting request logging merely to populate it, as that has separate privacy and cost review.
+
 ## Human-controlled Facebook outreach
 
 - Provide an admin-only `/admin/outreach/` workspace for generating user-initiated Facebook

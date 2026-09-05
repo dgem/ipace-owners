@@ -33,7 +33,7 @@ The generated public route surface must include:
 
 - `/`, `/about/`, `/faq/`, `/join/`, `/contact/`, `/privacy/`, `/terms/`,
   `/methodology/`, `/evidence-dashboard/`, and `/updates/`;
-- dated or named update pages generated from `src/updates/`;
+- dated or named update pages generated from `src/updates/`; every new update includes a relevant, accessible hero image and alt text so it reads as a considered editorial page rather than an unadorned notice;
 - `/member/dashboard/`, `/member/account/`, `/member/submit-vehicle-data/`,
   `/member/surveys/`, `/member/survey-response/`, and `/member/survey-results/`;
 - `/admin/`, `/admin/review-queue/`, `/admin/outreach/`, `/admin/email-campaigns/`, and
@@ -115,6 +115,7 @@ change rather than assuming it exists.
 | `POST /api/admin/all-members-drive-preview` | Admin claim | Preview the deduplicated, contact-consenting audience across verified and unverified Join records and the exact recruitment email. |
 | `POST /api/admin/all-members-drive-send` | Admin claim | Confirm and send the next batch of at most ten all-member recruitment emails with hashed idempotent delivery records. |
 | `POST /api/admin/jlr-contact-preview` | Admin claim | Load the fixed JLR Contact Markdown source, calculate the verified consented audience, and return the exact branded preview. |
+| `POST /api/admin/survey-campaign-preview` | Admin claim | Load the fixed September survey invitation, calculate the verified consented audience, and return the exact branded preview. |
 | `POST /api/admin/email-campaign-history` | Admin claim | Return parent campaign records and aggregate hashed-ledger delivery counts, including inferred legacy runs and cached Resend delivery outcomes, without addresses. |
 | `POST /api/admin/custom-campaign-preview` | Admin claim | Validate/save a named subject and Markdown draft, calculate the verified consented audience, and return representative branded HTML/plain-text output. |
 | `POST /api/admin/custom-campaign-send` | Admin claim | Load immutable saved content, recheck the audience and exact `SEND <count>` confirmation, then send at most ten idempotent messages. |
@@ -255,6 +256,16 @@ production-only Firestore delete protection, PITR, destroy prevention, and retai
 backups. Staging uses its own project/database, `auth.stage.ipace-owners.org`, preview
 channels, and deliberately reduced data-protection settings.
 
+OpenTofu must also enable Cloud Monitoring and support opt-in environment monitoring. Production
+enables a managed operations dashboard, European five-minute HTTPS uptime checks for the homepage
+and `/api/public-stats`, and one sustained-failure alert policy per check. The dashboard displays
+both check results and the Gen 2 `Api` Cloud Run request rate. A notification channel is created
+only when `monitoring_alert_email` is non-empty; otherwise incidents remain visible in Monitoring
+without sending email. The production example identifies the agreed operational mailbox, while
+staging leaves monitoring disabled unless it is deliberately being tested. Document that a failed
+deployment smoke test does not roll back a completed Hosting release automatically, and that
+recovery uses Firebase Hosting release history followed by dashboard and smoke-test verification.
+
 Firebase Hosting must reproduce the CSP and the `X-Frame-Options`,
 `X-Content-Type-Options`, `Referrer-Policy`, and `Permissions-Policy` headers described by
 the security prompts, plus immutable one-year caching for `/assets/**`. Passwordless login
@@ -294,7 +305,8 @@ forms explicitly use POST even when JavaScript intercepts them.
   member totals by canonical email. Support `membersJoined`, `membersVerified`, `memberFirstName`,
   `memberLastName`, the requested `memberTittle` spelling and `memberTitle` alias, `memberJoined`,
   `memberVerified`, private-member `memberVehicles` JSON, `vehiclesRegisteredCount`, and
-  `vehiclesSoHReadingsCount`; reject arbitrary Go-template actions and unsafe link schemes.
+  `vehiclesSoHReadingsCount`, and `serviceFaultRecordsCount`; reject arbitrary Go-template actions and
+  unsafe link schemes.
 - Reconcile hashed email delivery records against Resend's paginated sent-email API when an
   administrator refreshes campaign data. Cache checks for five minutes and surface delivered,
   awaiting-delivery, opened, clicked, delayed, bounced, suppressed, complained, provider-failed
@@ -319,6 +331,7 @@ the repository or an artifact archive:
 - `public/favicon.png`;
 - `public/images/ipace-hero.png`;
 - `public/images/jlr-client-care-september-hero.png`;
+- `public/images/september-survey-2026-hero.jpg`;
 - `public/images/ipace-owners-logo.svg` and `public/images/ipace-owners-logo.png`;
 - `public/images/ipace-owners-qr.svg`;
 - `public/images/ipace-owners-card-front.svg` and

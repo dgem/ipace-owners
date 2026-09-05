@@ -33,6 +33,10 @@ It is the current source of truth for the I-PACE Owners' Advocacy Group architec
 - **Infrastructure:** OpenTofu/Terraform under `infra/opentofu/`.
 - **CI/CD:** GitHub Actions with GCP Workload Identity Federation. PRs deploy to staging
   Firebase Hosting preview channels; `main` deploys to production.
+- **Production observability:** Cloud Monitoring owns an operations dashboard plus independent
+  European uptime checks of the public homepage and `/api/public-stats`. The dashboard also
+  charts the Gen 2 `Api` Cloud Run request rate. Sustained external failures create managed
+  alert incidents and, when an operational email recipient is configured, send email alerts.
 - **Domains/SSL:** Firebase Hosting managed SSL for `ipace-owners.org`; DNS remains at
   Fasthosts. OpenTofu owns Firebase custom-domain associations, reports the required DNS
   records and validation state, while the records are entered manually in Fasthosts.
@@ -132,6 +136,7 @@ header.
 | `POST /api/admin/all-members-drive-preview` | `AdminAllMembersDrivePreview` | Admin | Preview the contact-consenting, canonical-email-deduplicated audience across verified and unverified Join records. |
 | `POST /api/admin/all-members-drive-send` | `AdminAllMembersDriveSend` | Admin | Confirm and send the next resumable batch of at most ten all-member recruitment emails. |
 | `POST /api/admin/jlr-contact-preview` | `AdminJLRContactPreview` | Admin | Load the fixed JLR Contact Markdown source, calculate the verified, consented audience, and return the exact branded preview. |
+| `POST /api/admin/survey-campaign-preview` | `AdminSurveyCampaignPreview` | Admin | Load the fixed September survey invitation, calculate the verified, consented audience, and return the exact branded preview. |
 | `POST /api/admin/email-campaign-history` | `AdminEmailCampaignHistory` | Admin | Return campaign metadata and aggregate delivery history without recipient addresses. |
 | `POST /api/admin/custom-campaign-preview` | `AdminCustomCampaignPreview` | Admin | Validate and persist a custom Markdown draft, calculate the verified consented audience, and return personalised HTML/plain-text previews. |
 | `POST /api/admin/custom-campaign-send` | `AdminCustomCampaignSend` | Admin | Recheck the saved draft and audience, require exact confirmation, and send the next idempotent batch of at most ten. |
@@ -357,7 +362,8 @@ sheet and chart format without exposing member data.
   and verified Firebase accounts. Available literal `{{name}}` substitutions are
   `membersJoined`, `membersVerified`, `memberFirstName`, `memberLastName`, `memberTittle`
   (plus corrected alias `memberTitle`), `memberJoined`, `memberVerified`, `memberVehicles`,
-  `vehiclesRegisteredCount`, and `vehiclesSoHReadingsCount`. Reject other template actions.
+  `vehiclesRegisteredCount`, `vehiclesSoHReadingsCount`, and `serviceFaultRecordsCount`. Reject other
+  template actions.
   `memberVehicles` is JSON containing only the member's non-VIN vehicle fields and per-vehicle
   SoH reading count. Persist the first observed verified timestamp on the private member record;
   legacy values backfilled from Firebase Auth metadata are marked inferred.
