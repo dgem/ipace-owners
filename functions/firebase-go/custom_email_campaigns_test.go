@@ -105,6 +105,15 @@ func TestCustomCampaignAllowsEveryDocumentedPlaceholder(t *testing.T) {
 	}
 }
 
+func TestSurveyCampaignUsesTheWidestCommunicationConsentedAudience(t *testing.T) {
+	if got := customCampaignAudienceScopeForKind(surveyCampaignKind); got != customCampaignConsentedJoinAudience {
+		t.Fatalf("survey audience scope = %q", got)
+	}
+	if got := customCampaignAudienceScopeForKind(jlrContactCampaignKind); got != customCampaignVerifiedConsentedAudience {
+		t.Fatalf("JLR audience scope = %q", got)
+	}
+}
+
 func TestValidateCustomCampaignDraftRejectsUnknownActionsAndUnsafeLinks(t *testing.T) {
 	valid := customCampaignDraftRequest{
 		Name:     "Member update",

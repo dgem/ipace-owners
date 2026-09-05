@@ -23,6 +23,13 @@ const (
 	customCampaignMarkdownMax = 20000
 )
 
+type customCampaignAudienceScope string
+
+const (
+	customCampaignVerifiedConsentedAudience customCampaignAudienceScope = "verified-consented-members"
+	customCampaignConsentedJoinAudience     customCampaignAudienceScope = "consented-join-members"
+)
+
 var customCampaignPlaceholderRegexp = regexp.MustCompile(`\{\{\s*([A-Za-z][A-Za-z0-9]*)\s*\}\}`)
 var customCampaignIDRegexp = regexp.MustCompile(`^[a-zA-Z0-9_-]{1,160}$`)
 
@@ -232,7 +239,7 @@ func previewCustomCampaign(ctx context.Context, input customCampaignDraftRequest
 	if err := validateCustomCampaignDraft(input); err != nil {
 		return customCampaignPreviewResponse{}, err
 	}
-	audience, err := loadCustomCampaignAudience(ctx)
+	audience, err := loadCustomCampaignAudience(ctx, customCampaignAudienceScopeForKind(campaignDraftKind(input)))
 	if err != nil {
 		return customCampaignPreviewResponse{}, err
 	}
@@ -337,6 +344,16 @@ func isStaticCampaignKind(kind string) bool {
 	return kind == jlrContactCampaignKind || kind == surveyCampaignKind
 }
 
+// A survey invitation can go to every member who opted in to group communications
+// during registration, including members who have not yet completed magic-link sign-in.
+// Other custom campaigns remain limited to verified, communication-consented members.
+func customCampaignAudienceScopeForKind(kind string) customCampaignAudienceScope {
+	if kind == surveyCampaignKind {
+		return customCampaignConsentedJoinAudience
+	}
+	return customCampaignVerifiedConsentedAudience
+}
+
 func staticCustomCampaignID(templateID string) string {
 	environment := "production"
 	if strings.Contains(strings.ToLower(projectID()), "staging") {
@@ -390,7 +407,7 @@ func sendCustomCampaignBatch(ctx context.Context, input customCampaignSendReques
 	}); err != nil {
 		return customCampaignPreviewResponse{}, fmt.Errorf("saved campaign is invalid; preview again")
 	}
-	audience, err := loadCustomCampaignAudience(ctx)
+	audience, err := loadCustomCampaignAudience(ctx, customCampaignAudienceScopeForKind(record.Kind))
 	if err != nil {
 		return customCampaignPreviewResponse{}, err
 	}
@@ -871,7 +888,7 @@ func saveCustomCampaignRecord(ctx context.Context, document customCampaignDocume
 	return err
 }
 
-func loadCustomCampaignAudience(ctx context.Context) (customCampaignAudience, error) {
+func loadCustomCampaignAudience(ctx context.Context, scope customCampaignAudienceScope) (customCampaignAudience, error) {
 	db, err := firestoreClient(ctx)
 	if err != nil {
 		return customCampaignAudience{}, err
@@ -891,7 +908,6 @@ func loadCustomCampaignAudience(ctx context.Context) (customCampaignAudience, er
 
 	accounts := map[string]*auth.ExportedUserRecord{}
 	userIter := authClient.Users(ctx, "")
-	verifiedCount := 0
 	for {
 		user, err := userIter.Next()
 		if err == iterator.Done {
@@ -906,7 +922,6 @@ func loadCustomCampaignAudience(ctx context.Context) (customCampaignAudience, er
 		}
 		if user.EmailVerified {
 			if _, exists := accounts[key]; !exists {
-				verifiedCount++
 			}
 			accounts[key] = user
 		}
@@ -1004,23 +1019,29 @@ func loadCustomCampaignAudience(ctx context.Context) (customCampaignAudience, er
 
 	recipients := []customCampaignRecipient{}
 	verificationBackfills := map[string]time.Time{}
+	verifiedCount := 0
 	for key, person := range joinByEmail {
 		account := accounts[key]
-		if account == nil {
+		if account == nil && scope == customCampaignVerifiedConsentedAudience {
 			continue
 		}
-		verifiedAt, inferred := customCampaignVerifiedAt(verifiedAtByUID[account.UID], account.UserMetadata)
-		if inferred {
-			verificationBackfills[account.UID] = verifiedAt
+		recipient := customCampaignRecipient{
+			Email:    person.Email,
+			Name:     person.Name,
+			JoinedAt: person.CreatedAt,
 		}
-		recipients = append(recipients, customCampaignRecipient{
-			UID:        account.UID,
-			Email:      strings.ToLower(strings.TrimSpace(account.Email)),
-			Name:       person.Name,
-			JoinedAt:   person.CreatedAt,
-			VerifiedAt: verifiedAt,
-			Vehicles:   vehiclesByUID[account.UID],
-		})
+		if account != nil {
+			verifiedAt, inferred := customCampaignVerifiedAt(verifiedAtByUID[account.UID], account.UserMetadata)
+			if inferred {
+				verificationBackfills[account.UID] = verifiedAt
+			}
+			recipient.UID = account.UID
+			recipient.Email = strings.ToLower(strings.TrimSpace(account.Email))
+			recipient.VerifiedAt = verifiedAt
+			recipient.Vehicles = vehiclesByUID[account.UID]
+			verifiedCount++
+		}
+		recipients = append(recipients, recipient)
 	}
 	if err := persistCampaignVerificationBackfills(ctx, db, verificationBackfills); err != nil {
 		return customCampaignAudience{}, err

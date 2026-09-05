@@ -136,7 +136,7 @@ header.
 | `POST /api/admin/all-members-drive-preview` | `AdminAllMembersDrivePreview` | Admin | Preview the contact-consenting, canonical-email-deduplicated audience across verified and unverified Join records. |
 | `POST /api/admin/all-members-drive-send` | `AdminAllMembersDriveSend` | Admin | Confirm and send the next resumable batch of at most ten all-member recruitment emails. |
 | `POST /api/admin/jlr-contact-preview` | `AdminJLRContactPreview` | Admin | Load the fixed JLR Contact Markdown source, calculate the verified, consented audience, and return the exact branded preview. |
-| `POST /api/admin/survey-campaign-preview` | `AdminSurveyCampaignPreview` | Admin | Load the fixed September survey invitation, calculate the verified communication-consented member audience, and return the exact branded preview. |
+| `POST /api/admin/survey-campaign-preview` | `AdminSurveyCampaignPreview` | Admin | Load the fixed September survey invitation, calculate every communication-consented Join registration (including members who have not completed magic-link sign-in), and return the exact branded preview. |
 | `POST /api/admin/email-campaign-history` | `AdminEmailCampaignHistory` | Admin | Return campaign metadata and aggregate delivery history without recipient addresses. |
 | `POST /api/admin/custom-campaign-preview` | `AdminCustomCampaignPreview` | Admin | Validate and persist a custom Markdown draft, calculate the verified consented audience, and return personalised HTML/plain-text previews. |
 | `POST /api/admin/custom-campaign-send` | `AdminCustomCampaignSend` | Admin | Recheck the saved draft and audience, require exact confirmation, and send the next idempotent batch of at most ten. |
@@ -358,8 +358,10 @@ sheet and chart format without exposing member data.
   preview/send confirmation it explains rather than using a visually dominant page-level warning.
   Drafts may be reopened, and partial custom runs may continue only after re-previewing the exact
   unchanged saved content; editing a run with deliveries must create a new sourced run.
-- Custom campaigns, including fixed survey invitations, target the canonical-email intersection
-  of contact-consenting Join records and verified Firebase accounts. Available literal `{{name}}` substitutions are
+- Custom campaigns target the canonical-email intersection of contact-consenting Join records and
+  verified Firebase accounts. Fixed survey invitations instead use every contact-consenting Join
+  registration, including members who have not completed magic-link sign-in; no email campaign may
+  include a member without recorded contact consent. Available literal `{{name}}` substitutions are
   `membersJoined`, `membersVerified`, `memberFirstName`, `memberLastName`, `memberTittle`
   (plus corrected alias `memberTitle`), `memberJoined`, `memberVerified`, `memberVehicles`,
   `vehiclesRegisteredCount`, `vehiclesSoHReadingsCount`, and `serviceFaultRecordsCount`. Reject other
