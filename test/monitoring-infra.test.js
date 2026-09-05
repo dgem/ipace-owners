@@ -20,7 +20,7 @@ test("production monitoring independently checks the public site and API", funct
   assert.match(monitoring, /resource "google_monitoring_uptime_check_config" "endpoint"/);
   assert.match(monitoring, /path\s*=\s*"\/"/);
   assert.match(monitoring, /path\s*=\s*"\/api\/public-stats"/);
-  assert.match(monitoring, /selected_regions\s*=\s*\["EUROPE"\]/);
+  assert.doesNotMatch(monitoring, /selected_regions\s*=/, 'Google requires at least three probe locations when selected_regions is set; omit it to use all available locations');
   assert.match(monitoring, /resource "google_monitoring_dashboard" "operations"/);
   assert.match(monitoring, /run\.googleapis\.com\/request_count/);
   assert.match(monitoring, /local\.email_continue_host/);

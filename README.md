@@ -356,7 +356,7 @@ GitHub Actions environment settings automatically.
 ### Production monitoring and recovery
 
 Production Monitoring is managed by the same OpenTofu environment. The baseline dashboard has
-independent European uptime checks for the public homepage and `/api/public-stats`, plus an API
+independent multi-region uptime checks for the public homepage and `/api/public-stats`, plus an API
 request-rate chart. The second check covers the Hosting rewrite and public Function path, not just
 the static site. A sustained ten-minute failure opens an incident; an email is sent only when
 `monitoring_alert_email` is configured. The production example uses `contact@ipace-owners.org`;

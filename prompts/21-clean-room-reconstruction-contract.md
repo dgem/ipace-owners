@@ -259,7 +259,7 @@ backups. Staging uses its own project/database, `auth.stage.ipace-owners.org`, p
 channels, and deliberately reduced data-protection settings.
 
 OpenTofu must also enable Cloud Monitoring and support opt-in environment monitoring. Production
-enables a managed operations dashboard, European five-minute HTTPS uptime checks for the homepage
+enables a managed operations dashboard, multi-region five-minute HTTPS uptime checks for the homepage
 and `/api/public-stats`, and one sustained-failure alert policy per check. The dashboard displays
 both check results and the Gen 2 `Api` Cloud Run request rate. A notification channel is created
 only when `monitoring_alert_email` is non-empty; otherwise incidents remain visible in Monitoring

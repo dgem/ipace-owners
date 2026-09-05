@@ -35,8 +35,6 @@ resource "google_monitoring_uptime_check_config" "endpoint" {
     }
   }
 
-  selected_regions = ["EUROPE"]
-
   depends_on = [google_project_service.required]
 }
 
@@ -92,7 +90,7 @@ resource "google_monitoring_alert_policy" "uptime" {
   notification_channels = google_monitoring_notification_channel.operator_email[*].name
 
   documentation {
-    content   = "Check the ${var.environment} Operations dashboard, then the serialized ${var.environment} deployment and Cloud Logging. The homepage and public statistics API are independently checked from Europe."
+    content   = "Check the ${var.environment} Operations dashboard, then the serialized ${var.environment} deployment and Cloud Logging. The homepage and public statistics API are independently checked from Google's available uptime-check locations."
     mime_type = "text/markdown"
   }
 }
