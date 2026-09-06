@@ -47,7 +47,7 @@ test('every admin page uses the compact Admin breadcrumb pattern', function () {
     'index.njk': 'Dashboard',
     'review-queue.njk': 'Review queue',
     'outreach.njk': 'Facebook outreach',
-    'email-campaigns.njk': 'Email campaigns',
+    'email-campaigns.njk': 'Registration reminders',
     'instagram-campaigns.njk': 'Instagram campaigns',
     'surveys.njk': 'Surveys'
   };

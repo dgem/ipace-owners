@@ -100,28 +100,12 @@ func Api(w http.ResponseWriter, r *http.Request) {
 		AdminReengagementPreview(w, r)
 	case "/api/admin/reengagement-send":
 		AdminReengagementSend(w, r)
-	case "/api/admin/member-referral-preview":
-		AdminMemberReferralPreview(w, r)
-	case "/api/admin/member-referral-send":
-		AdminMemberReferralSend(w, r)
-	case "/api/admin/all-members-drive-preview":
-		AdminAllMembersDrivePreview(w, r)
-	case "/api/admin/all-members-drive-send":
-		AdminAllMembersDriveSend(w, r)
-	case "/api/admin/jlr-contact-preview":
-		AdminJLRContactPreview(w, r)
-	case "/api/admin/survey-campaign-preview":
-		AdminSurveyCampaignPreview(w, r)
-	case "/api/admin/email-campaign-history":
-		AdminEmailCampaignHistory(w, r)
-	case "/api/admin/custom-campaign-preview":
-		AdminCustomCampaignPreview(w, r)
-	case "/api/admin/custom-campaign-send":
-		AdminCustomCampaignSend(w, r)
 	case "/api/admin/marketing-message-preview":
 		AdminMarketingMessagePreview(w, r)
 	case "/api/admin/marketing-message-send":
 		AdminMarketingMessageSend(w, r)
+	case "/api/admin/marketing-message-templates":
+		AdminMarketingMessageTemplates(w, r)
 	case "/api/admin/instagram-preview":
 		AdminInstagramPreview(w, r)
 	case "/api/admin/instagram-publish":
