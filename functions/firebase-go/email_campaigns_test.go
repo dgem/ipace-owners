@@ -106,7 +106,7 @@ func TestEmbeddedSeptemberSurveyCampaignHasSurveyAndEvidenceCTA(t *testing.T) {
 	}
 	for _, expected := range []string{
 		"{{memberFirstName}}",
-		"survey_a2371fc4a6efb138c8ac117b156d5d3f",
+		"survey_38447815d17b0e954a4edbca1b9600c9",
 		"Have your say — tell us what you need",
 		"{.button}",
 		"Full HV Replacement",
