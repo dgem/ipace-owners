@@ -110,17 +110,9 @@ change rather than assuming it exists.
 | `GET /api/admin/stats` | Admin claim | Return the consent-filtered homepage counters alongside private all-record member, vehicle, SoH, and service-event statistics with `Cache-Control: private, no-store`; canonical emails are deduplicated at the first Join before the daily Join trend and country rows are calculated. Derive country from the Join, one unambiguous vehicle country, or a strict UK registration, otherwise use `Unknown` (including conflicting vehicle countries). Magic-link-verified accounts have a separate daily line chart, and no per-vehicle evidence is returned. |
 | `POST /api/admin/reengagement-preview` | Admin claim | Return aggregate counts for consented Join submitters who have not registered. |
 | `POST /api/admin/reengagement-send` | Admin claim | Require the campaign ID, exact eligible count and typed confirmation; recheck registrations and send the next batch of at most ten. |
-| `POST /api/admin/member-referral-preview` | Admin claim | Preview aggregate counts and exact copy for registered accounts with matching contact consent. |
-| `POST /api/admin/member-referral-send` | Admin claim | Confirm and send the next batch of at most ten referral emails with the same idempotent ledger safeguards. |
-| `POST /api/admin/all-members-drive-preview` | Admin claim | Preview the deduplicated, contact-consenting audience across verified and unverified Join records and the exact recruitment email. |
-| `POST /api/admin/all-members-drive-send` | Admin claim | Confirm and send the next batch of at most ten all-member recruitment emails with hashed idempotent delivery records. |
-| `POST /api/admin/jlr-contact-preview` | Admin claim | Load the fixed JLR Contact Markdown source, calculate the verified consented audience, and return the exact branded preview. |
-| `POST /api/admin/survey-campaign-preview` | Admin claim | Load the fixed September survey invitation, calculate every communication-consented Join registration (including members who have not completed magic-link sign-in), and return the exact branded preview. |
-| `POST /api/admin/marketing-message-preview` | Admin claim | Validate Markdown, recalculate the canonical Join audience that consented to communications, and render a sandboxable preview with no provider side effect. |
+| `POST /api/admin/marketing-message-templates` | Admin claim | Load source-controlled broadcast templates for the September survey, JLR meeting update, member referral and group growth, filling aggregate evidence values server-side. |
+| `POST /api/admin/marketing-message-preview` | Admin claim | Validate prepared or custom Markdown, recalculate the canonical Join audience that consented to communications, and render a sandboxable preview with no provider side effect. |
 | `POST /api/admin/marketing-message-send` | Admin claim | Recheck that consented audience and exact `SEND <count>` confirmation, then create a fresh Resend Segment and immediately send a Broadcast with only contact name/email and a mandatory Resend unsubscribe placeholder. |
-| `POST /api/admin/email-campaign-history` | Admin claim | Return parent campaign records and aggregate hashed-ledger delivery counts, including inferred legacy runs and cached Resend delivery outcomes, without addresses. |
-| `POST /api/admin/custom-campaign-preview` | Admin claim | Validate/save a named subject and Markdown draft, calculate the verified consented audience, and return representative branded HTML/plain-text output. |
-| `POST /api/admin/custom-campaign-send` | Admin claim | Load immutable saved content, recheck the audience and exact `SEND <count>` confirmation, then send at most ten idempotent messages. |
 | `POST /api/admin/instagram-preview` | Admin claim | Validate a site-relative MP4/MOV path, caption and explicit full-media review; return the deterministic confirmation without a provider side effect. |
 | `POST /api/admin/instagram-campaign-history` | Admin claim | List named drafts and immutable publication records, refreshing cached provider insights when available. |
 | `POST /api/admin/campaign-summary` | Admin claim | Aggregate reconciled Resend email outcomes and Instagram publication/insight totals; report Facebook as manual unless Page Insights is connected. |
@@ -296,29 +288,15 @@ forms explicitly use POST even when JavaScript intercepts them.
   with an owner Join CTA and prefill the same text in platform composers where supported;
   LinkedIn and Instagram retain the visible copy because their web share flows cannot reliably
   prefill it.
-- Provide a specialised all-joined-member recruitment tool that includes verified and unverified
-  contact-consenting Join records deduped by canonical email. Preview the exact thanks/progress,
-  formal-Jaguar-approach about members' shared concerns, a request for Jaguar to engage
-  constructively on options for everyone, and the cited vehicle-population and sharing message before enabling the same
-  confirmed, resumable ten-message delivery controls. Lead the subject with thanks for joining;
-  thank recipients for their support and describe the 17 July launch as less than two weeks ago.
-- Provide custom verified-member campaigns with server-validated Markdown, sandboxed branded HTML
-  preview, plain-text preview, click-to-insert allowlisted substitutions, resumable confirmed
-  batches, aggregate history, and clone-to-rerun behaviour. Present history before the
-  new-campaign composer, include a direct create-new shortcut, and place safety guidance beside
-  confirmation controls rather than in a persistent warning banner. Dedupe joined and verified
-  member totals by canonical email. Support `membersJoined`, `membersVerified`, `memberFirstName`,
-  `memberLastName`, the requested `memberTittle` spelling and `memberTitle` alias, `memberJoined`,
-  `memberVerified`, private-member `memberVehicles` JSON, `vehiclesRegisteredCount`, and
-  `vehiclesSoHReadingsCount`, and `serviceFaultRecordsCount`; reject arbitrary Go-template actions and
-  unsafe link schemes.
-- Reconcile hashed email delivery records against Resend's paginated sent-email API when an
-  administrator refreshes campaign data. Cache checks for five minutes and surface delivered,
-  awaiting-delivery, opened, clicked, delayed, bounced, suppressed, complained, provider-failed
-  and combined undeliverable totals in campaign history and the Admin overview. Store no provider
-  recipient addresses and degrade to cached feedback when Resend is temporarily unavailable.
-  Reopen drafts and continue partial custom runs only with unchanged saved content; an edit after
-  any delivery creates a new run linked to the original.
+- Move every consented group-wide campaign to Resend Broadcasts in Marketing Messages: the
+  September survey, JLR meeting update, member referral, evidence-growth message and newly
+  composed messages. Use one canonical-email-deduplicated Join audience made only of people who
+  consented to communications, including registrations that have not completed magic-link sign-in.
+  Load source-controlled templates and public evidence totals server-side, render a sandboxed
+  preview with no provider effect, and require `SEND <count>` before creating a fresh Resend
+  segment and broadcast. Send only contact name/email to Resend and ensure its unsubscribe link is
+  mandatory. The registration reminder remains the sole legacy batch workflow because it must mint
+  a unique private Firebase sign-in link for each recipient.
 - Provide an admin-only Instagram campaign page following the same preview-before-side-effect
   interaction. Chat prepares the post; a human reviews the complete final media; the server
   validates the exact site-relative media path and caption; and an exact typed confirmation

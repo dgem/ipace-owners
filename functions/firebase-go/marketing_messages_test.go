@@ -27,6 +27,59 @@ func TestMarketingMessagePreviewUsesConsentedAudienceAndPersonalisation(t *testi
 	}
 }
 
+func TestMarketingMessageTemplatesMoveSeptemberSurveyToBroadcasts(t *testing.T) {
+	originalStats, originalAudience := marketingMessageStats, marketingMessageAudience
+	t.Cleanup(func() {
+		marketingMessageStats = originalStats
+		marketingMessageAudience = originalAudience
+	})
+	marketingMessageStats = func(context.Context) (publicStatsSnapshot, error) {
+		return publicStatsSnapshot{JoinedOwners: 1299, VehiclesRegistered: 568, SOHReadings: 96, ServiceEventsLogged: 135}, nil
+	}
+	marketingMessageAudience = func(context.Context) ([]campaignRecipient, error) {
+		return []campaignRecipient{{Email: "jane@example.com"}}, nil
+	}
+	templates, err := marketingMessageTemplates(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(templates) != 4 {
+		t.Fatalf("template count = %d, want 4", len(templates))
+	}
+	var survey marketingMessageTemplate
+	for _, template := range templates {
+		if template.ID == "survey-september-2026" {
+			survey = template
+		}
+	}
+	if survey.ID == "" {
+		t.Fatal("September survey template is missing")
+	}
+	for _, expected := range []string{
+		"{{firstName}}",
+		"survey_a2371fc4a6efb138c8ac117b156d5d3f",
+		"Have your say — tell us what you need",
+		"1299 members",
+		"568 cars registered",
+		"96 State of Health readings",
+		"135 service and fault records",
+	} {
+		if !strings.Contains(survey.Markdown, expected) {
+			t.Fatalf("survey template is missing %q", expected)
+		}
+	}
+	if survey.HeroImage != "/images/september-survey-2026-hero.jpg" {
+		t.Fatalf("survey hero = %q", survey.HeroImage)
+	}
+	preview, err := previewMarketingMessage(context.Background(), marketingMessageRequest{TemplateID: survey.ID})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(preview.HTML, "https://ipace-owners.org/images/september-survey-2026-hero.jpg") {
+		t.Fatalf("template preview omitted hero: %s", preview.HTML)
+	}
+}
+
 func TestValidateMarketingMessageRestrictsPersonalisation(t *testing.T) {
 	valid := marketingMessageRequest{Name: "September update", Subject: "Hello", Markdown: "Hello {{firstName}}"}
 	if err := validateMarketingMessage(valid); err != nil {

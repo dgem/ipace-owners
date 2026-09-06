@@ -18,17 +18,14 @@ requires the current campaign ID, exact audience count, and `SEND <count>` confi
 and records a hashed Firestore delivery ledger with Resend idempotency keys. Re-preview between
 batches and stop to investigate any provider or ledger error.
 
-The separate member-referral campaign targets only Firebase accounts with a matching
-contact-consenting Join record. Its live copy reports progress to 1,000 and the exact doubled
-total if every current owner finds one more. Include monochrome actions for Facebook, X,
-Bluesky, LinkedIn, Instagram, WhatsApp, and email; Instagram links to the group's
-`@ipaceowners` profile because it has no reliable web share composer. Display a ready-to-copy
-“I-PACE owners are stronger together” suggested post with a direct Join CTA, and prefill it in
-share URLs where the platform supports composer text. Apply the same preview,
-confirmation, batch, registration
-recheck, and hashed-ledger controls as registration reminders. Keep the embedded Markdown prose
-editable: regression tests protect complete template-field substitution, shared email chrome,
-destinations and delivery safeguards without pinning editorial sentences or chosen numeric fields.
+All group-wide messages use `/admin/marketing-messages/` and a Resend Broadcast, never the
+resumable reminder batches. Prepared source-controlled templates cover the September survey, JLR
+meeting update, finding more owners and growing the evidence base. They always target the
+canonical-email-deduplicated Join audience that consented to communications, including people who
+have not completed magic-link sign-in. Load the template and public evidence totals server-side,
+preview without a provider side effect, then require the current `SEND <count>` confirmation.
+Resend creates the fresh segment and recipient unsubscribe link. Registration reminders remain
+separate because every recipient needs a newly minted private sign-in link.
 
 The `Reach 1,000` campaign targets all contact-consenting Join records, whether their Firebase
 email sign-in was completed or not, deduped by canonical email. Its embedded Markdown thanks

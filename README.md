@@ -413,11 +413,11 @@ sending it through a separately selected transactional email provider.
 
 ### Marketing messages
 
-`/admin/marketing-messages/` is the purpose-built path for group-wide marketing updates. It is deliberately separate from the older resumable transactional campaigns. Before sending, an administrator sees the current number of canonical-email-deduplicated Join records that opted in to group communications and must type the exact `SEND <count>` confirmation. The preview has no Resend side effect.
+`/admin/marketing-messages/` is the single purpose-built path for group-wide marketing updates. It includes source-controlled prepared campaigns for the September survey, JLR meeting update, member referral and evidence-growth drive, plus a blank message for new copy. The prior per-recipient versions are no longer routable from the admin API, so group-wide sends cannot accidentally bypass Resend's provider-managed unsubscribe behaviour. Before sending, an administrator sees the current number of canonical-email-deduplicated Join records that opted in to group communications and must type the exact `SEND <count>` confirmation. The preview has no Resend side effect.
 
 On confirmation, the Function creates a fresh Resend Segment from that live consented audience and immediately creates the Broadcast. This avoids a long-lived copied mailing list going stale: a future send always reads Firestore consent again. Only a member's email address and split name are sent to Resend; no vehicle, survey, evidence, or Firebase identity data is transferred. The message may use `{{firstName}}`, rendered as Resend's built-in first-name property, and every HTML/plain-text message adds Resend's recipient-specific unsubscribe link.
 
-The browser uses `POST /api/admin/marketing-message-preview` for the no-side-effect validation and preview, then `POST /api/admin/marketing-message-send` only after the audience count is rechecked and the exact confirmation has been supplied. Both routes require the server-verified Firebase admin claim.
+Prepared templates are loaded through `POST /api/admin/marketing-message-templates`; their live public evidence totals are filled server-side and `{{firstName}}` becomes Resend's built-in contact property. Approved template images are resolved server-side too. Editing loaded copy turns it into a new message, while retaining the same consented audience and unsubscribe protection. The browser uses `POST /api/admin/marketing-message-preview` for the no-side-effect validation and preview, then `POST /api/admin/marketing-message-send` only after the audience count is rechecked and the exact confirmation has been supplied. All three routes require the server-verified Firebase admin claim.
 
 ### Join re-engagement campaign
 
@@ -430,7 +430,8 @@ case- and punctuation-insensitive display name. Dry run is the default and does 
 links or contact Resend:
 
 Administrators can run this same narrowly scoped campaign from `/admin/email-campaigns/`, whose
-controls are implemented by `email-campaigns.js`.
+controls are implemented by `email-campaigns.js`. It is intentionally the only remaining legacy
+email workspace because every recipient needs a newly minted, private sign-in link.
 The page returns aggregate counts rather than addresses and renders the exact HTML delivery
 inside a sandboxed preview, with a safe placeholder in place of the private sign-in link. Its
 plain-text alternative remains available in a disclosure below the visual preview. The page keeps
@@ -443,90 +444,14 @@ The browser calls `POST /api/admin/reengagement-preview` to recalculate the audi
 `POST /api/admin/reengagement-send` to deliver one confirmed batch. Both routes require a
 server-verified Firebase admin claim.
 
-The same page provides a separate member-referral campaign through
-`POST /api/admin/member-referral-preview` and `POST /api/admin/member-referral-send`. Its
-audience is the intersection of Firebase-registered accounts and contact-consenting Join
-records. The friendly template shows the current owner total, distance from the 1,000-owner
-stretch goal, and the doubled total if every current owner finds one more. It includes
-monochrome share actions for Facebook, X, Bluesky, LinkedIn, Instagram, WhatsApp, and email;
-Instagram opens the group's `@ipaceowners` profile because it has no reliable web share
-composer. The email displays a ready-to-copy “I-PACE owners are stronger together” post with a
-clear owner Join CTA. Share destinations receive that text where their web composers support it;
-the visible copy remains available for LinkedIn and Instagram.
-
-The `Reach 1,000` campaign uses `POST /api/admin/all-members-drive-preview` and
-`POST /api/admin/all-members-drive-send`. It targets every canonical-email-deduplicated Join
-record with contact consent, regardless of whether the Firebase sign-in link was completed.
-Its editable Markdown thanks members, reports the current joined total, explains the formal
-approach to Jaguar about members' shared concerns, asks Jaguar to engage constructively on
-options for everyone, cites the approximate I-PACE population, and asks recipients to share the
-group. It retains the same exact confirmation, batches of ten, hashed delivery ledger, and
-provider idempotency safeguards.
-
-All browser-managed campaign emails use the same responsive, inline-styled HTML shell as the
-custom magic-link email, retaining its compact text masthead, hero image and prominent
-pill-shaped actions without inserting the site logo into transactional mail. Their editable prose
-lives in embedded Go templates under `functions/firebase-go/email-templates/*.md.tmpl`; the
-Function renders one Markdown source to both escaped HTML and a plain-text alternative. Keep
-consent/unsubscribe wording in the shared email composition code so it cannot be accidentally
-removed during routine copy edits.
-Staging delivery deliberately uses `https://ipace-owners.org` for durable public email imagery:
-`stage.ipace-owners.org` is an email-sending domain and does not serve Hosting assets.
-
-The campaign workspace also records previous specialised and custom campaign runs. Each
-Firestore parent record contains the campaign name/copy, lifecycle status, eligible, sent,
-remaining and failed-attempt totals, batch count and timestamps; hashed delivery
-subdocuments remain the recipient-level idempotency ledger. Campaign parent records are
-complete struct replacements because Firestore `MergeAll` accepts map data only; replacing a
-parent does not remove its delivery subcollection, so summary-write retries remain safe.
-When an administrator refreshes campaign history, the Function reconciles stored Resend IDs
-against the provider's paginated sent-email feed and caches the check for five minutes.
-History and the Admin overview show delivered, awaiting-delivery, opened, clicked, delayed,
-bounced, suppressed, complained, provider-failed and combined-undeliverable totals. Campaign
-history keeps its primary delivery totals visible and places the complete set (including zeroes)
-behind an expandable “more metrics” pill. Only the
-provider ID, normalised status and update time are retained on hashed delivery documents;
-provider recipient addresses are ignored and never returned to the browser.
-Legacy runs that predate parent records are recovered from those delivery ledgers where
-possible. “Tweak and rerun” copies an old subject and Markdown into a new run rather than
-changing its audit history. Campaign history is presented before the campaign tools, with a
-direct create-new shortcut. A compact page header links to history and the tools, while
-registration reminders, member referrals, Reach 1,000, JLR Contact, September Survey,
-and Freeform campaigns share one keyboard-operable tabbed panel. Create, continue and rerun
-actions select the relevant tab automatically. Safety guidance appears beside the relevant
-confirmation controls instead of as a persistent page-level warning.
-Registration reminders remain on their specialised tool because they require an unverified
-audience and a fresh private sign-in link; the custom editor must not silently retarget them to
-verified members. Every non-reminder run that retains its saved subject and Markdown, including
-historical JLR updates, can be tweaked into a new Freeform run. An unsent editable draft instead
-offers “Edit draft”. Draft and partially sent custom runs can be reopened from history. A partial run can continue only
-after previewing its unchanged saved content; editing it creates a new run and preserves the
-original delivery ledger.
-
-Administrators can create ad-hoc custom campaigns for verified Firebase accounts with matching
-contact-consenting Join records. The September Survey invitation is the widest member-email
-audience: every contact-consenting registration, whether or not the member completed magic-link
-sign-in. Group-wide relevance never overrides a member's contact choice. Every static campaign is
-source-controlled Markdown under
-`functions/firebase-go/email-templates/` and is selected server-side through its dedicated tab;
-the JLR Contact tab uses `POST /api/admin/jlr-contact-preview`, and the September Survey tab uses
-`POST /api/admin/survey-campaign-preview`. Static copy cannot be edited in the browser.
-Once a static campaign batch has started, its saved copy remains immutable even if the source
-Markdown changes later: its preview shows the saved version and an exhausted audience simply
-disables sending rather than failing to calculate a preview.
-`POST /api/admin/custom-campaign-preview` validates and saves the draft, recalculates the
-canonical-email-deduped audience and renders sandboxed branded HTML plus plain text.
-`POST /api/admin/custom-campaign-send` reloads that immutable draft and uses the same exact-count
-confirmation, ten-message batches, Resend idempotency and hashed ledgers. History is returned by
-`POST /api/admin/email-campaign-history`; none of these responses contain addresses.
-
-Custom Markdown supports only these literal substitutions: `{{membersJoined}}`,
-`{{membersVerified}}`, `{{memberFirstName}}`, `{{memberLastName}}`, `{{memberTittle}}` (and the
-correctly spelled alias `{{memberTitle}}`), `{{memberJoined}}`, `{{memberVerified}}`,
-`{{memberVehicles}}`, `{{vehiclesRegisteredCount}}`, `{{vehiclesSoHReadingsCount}}`, and
-`{{serviceFaultRecordsCount}}`.
-`memberVehicles` is private per-recipient JSON containing non-VIN car fields and SoH reading
-counts. Arbitrary Go-template actions and unsafe link schemes are rejected server-side.
+The former member-referral, group-growth, JLR Contact, September Survey and Freeform campaign
+controls have moved to Marketing Messages. All now use the same canonical-email-deduplicated,
+communication-consented Join audience, regardless of whether a member has completed magic-link
+sign-in. Group-wide relevance never overrides a member's contact choice. The source Markdown
+continues to live in `functions/firebase-go/email-templates/`, which keeps the campaign copy,
+approved hero image and email preview in sync. Staging delivery deliberately uses
+`https://ipace-owners.org` for durable public email imagery: `stage.ipace-owners.org` is an
+email-sending domain and does not serve Hosting assets.
 
 ### Instagram campaign publishing
 
