@@ -42,6 +42,9 @@ func TestMarketingMessageBatchUsesOpaqueUnsubscribeTokens(t *testing.T) {
 	if message := marketingMessageBatchMessage(100, 12); !strings.Contains(message, "12 remain") {
 		t.Fatalf("batch continuation message = %q", message)
 	}
+	if got := renderMarketingMessageMarkdown("Hello {{firstName}}", campaignRecipient{Email: "noname@example.com"}); got != "Hello member" {
+		t.Fatalf("missing-name personalisation = %q", got)
+	}
 }
 
 func TestMarketingMessageUnsubscribeGETRequiresConfirmation(t *testing.T) {
