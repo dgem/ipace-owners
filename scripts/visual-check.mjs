@@ -732,7 +732,7 @@ async function checkMarketingMessages(viewport, screenshotName) {
     name: 'September 2026 — Preferred outcomes survey',
     description: 'Invite every consented member to the September preferred-outcomes survey.',
     subject: 'Have your say before our September meeting with JLR',
-    markdown: 'Hi {{firstName}},\n\n[Have your say — tell us what you need](https://ipace-owners.org/member/survey-response/?id=survey_a2371fc4a6efb138c8ac117b156d5d3f){.button}'
+    markdown: 'Hi {{firstName}},\n\n[Have your say — tell us what you need](https://ipace-owners.org/member/survey-response/?id=survey_38447815d17b0e954a4edbca1b9600c9){.button}'
   };
   await page.route('**/api/admin/marketing-message-templates', (route) => route.fulfill({
     contentType: 'application/json',
