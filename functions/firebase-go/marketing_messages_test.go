@@ -39,11 +39,35 @@ func TestMarketingMessageBatchUsesOpaqueUnsubscribeTokens(t *testing.T) {
 	if !strings.Contains(url, "campaign=marketing_123") || !strings.Contains(url, "token="+token) {
 		t.Fatalf("unsubscribe URL = %q", url)
 	}
-	if message := marketingMessageBatchMessage(100, 12); !strings.Contains(message, "12 remain") {
+	if message := marketingMessageBatchMessage(100, 0, 12); !strings.Contains(message, "12 remain") {
 		t.Fatalf("batch continuation message = %q", message)
+	}
+	if message := marketingMessageBatchMessage(99, 1, 0); !strings.Contains(message, "excluded from automatic retries") {
+		t.Fatalf("failed-recipient message = %q", message)
 	}
 	if got := renderMarketingMessageMarkdown("Hello {{firstName}}", campaignRecipient{Email: "noname@example.com"}); got != "Hello member" {
 		t.Fatalf("missing-name personalisation = %q", got)
+	}
+}
+
+func TestMarketingMessageCampaignIDIsStableForIdenticalContent(t *testing.T) {
+	input := marketingMessageRequest{TemplateID: "survey-september-2026", Name: "September survey", Subject: "Have your say", Markdown: "Hi {{firstName}}"}
+	first := marketingMessageCampaignID(input)
+	if first == "" || first != marketingMessageCampaignID(input) {
+		t.Fatalf("campaign ID is not stable: %q", first)
+	}
+	input.Markdown += " now"
+	if first == marketingMessageCampaignID(input) {
+		t.Fatal("campaign ID did not change when the message changed")
+	}
+	statuses := map[string]string{
+		campaignEmailFingerprint("sent@example.com"):   "sent",
+		campaignEmailFingerprint("failed@example.com"): "failed",
+		campaignEmailFingerprint("held@example.com"):   "attempting",
+	}
+	sent, failed := countMarketingMessageDeliveries([]campaignRecipient{{Email: "sent@example.com"}, {Email: "failed@example.com"}, {Email: "held@example.com"}}, statuses)
+	if sent != 1 || failed != 2 {
+		t.Fatalf("delivery count = %d sent, %d failed; want 1, 2", sent, failed)
 	}
 }
 
