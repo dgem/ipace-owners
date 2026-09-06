@@ -184,6 +184,9 @@
         root.querySelector('[data-marketing-message-audience]').textContent = error.data.eligible + ' members currently consent to group communications.';
         root.querySelector('[data-marketing-message-confirm-hint]').textContent = 'The audience changed. Type “' + error.data.confirmation + '” to confirm the updated count.';
       }
+      if (error.message.indexOf('earlier provider failure without a recipient ledger entry') !== -1) {
+        loadDeliveries();
+      }
       status.textContent = error.message;
     }).finally(function () {
       sending = false;

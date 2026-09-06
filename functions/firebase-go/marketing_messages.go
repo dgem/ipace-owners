@@ -561,7 +561,12 @@ func marketingUnsubscribeURL(campaignID, token string) string {
 func sendMarketingMessagePayload(ctx context.Context, email, subject, htmlBody, text, campaignID, unsubscribeURL string) (string, error) {
 	payload := map[string]any{
 		"from": strings.TrimSpace(os.Getenv("RESEND_FROM")), "to": []string{email}, "subject": subject,
-		"html": htmlBody, "text": text, "tags": []map[string]string{{"name": "category", "value": marketingMessageKind}},
+		"html": htmlBody,
+		"text": text,
+		"tags": []map[string]string{
+			{"name": "category", "value": marketingMessageKind},
+			{"name": "campaign_id", "value": campaignID},
+		},
 		"headers": map[string]string{"List-Unsubscribe": "<" + unsubscribeURL + ">", "List-Unsubscribe-Post": "List-Unsubscribe=One-Click"},
 	}
 	if reply := strings.TrimSpace(os.Getenv("RESEND_REPLY_TO")); reply != "" {

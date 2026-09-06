@@ -24,8 +24,12 @@ meeting update, finding more owners and growing the evidence base. They always t
 canonical-email-deduplicated Join audience that consented to communications, including people who
 have not completed magic-link sign-in. Load the template and public evidence totals server-side,
 preview without a provider side effect, then require the current `SEND <count>` confirmation.
-Resend creates the fresh segment and recipient unsubscribe link. Registration reminders remain
-separate because every recipient needs a newly minted private sign-in link.
+Each direct message is first claimed in a hashed Firestore delivery ledger, then submitted to
+Resend with both a provider idempotency key and a `campaign_id` tag. `attempting` and failed
+claims are never replayed automatically: the admin delivery disclosure shows masked recipients
+for reconciliation, while a missing ledger entry after a provider failure blocks the campaign
+until it has been reconciled. Registration reminders remain separate because every recipient
+needs a newly minted private sign-in link.
 
 The `Reach 1,000` campaign targets all contact-consenting Join records, whether their Firebase
 email sign-in was completed or not, deduped by canonical email. Its embedded Markdown thanks

@@ -813,7 +813,7 @@ Plain vanilla JavaScript, no bundler. The current modules are:
 - `instagram-campaigns.js` — admin-only asynchronous Veo generation, full-media review, and
   durable draft/history, insight display, and exact-confirmation Instagram publishing
 - `admin-campaign-summary.js` — admin-only email, Instagram, and Facebook capability summary
-- `marketing-messages.js` — admin-only marketing-message preview and exact-confirmation, resumable batch delivery
+- `marketing-messages.js` — admin-only marketing-message preview, masked delivery ledger, and exact-confirmation resumable batch delivery
 - `public-stats.js` — homepage and evidence-dashboard aggregate rendering
 - `site-mode.js` — launch/full presentation selection
 
