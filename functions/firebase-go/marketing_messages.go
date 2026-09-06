@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"html"
 	"io"
 	"net/http"
 	"os"
@@ -488,7 +489,7 @@ func marketingUnsubscribeResponse(w http.ResponseWriter, r *http.Request, status
 }
 
 func htmlEscape(value string) string {
-	return strings.NewReplacer("&", "&amp;", "<", "&lt;", ">", "&gt;", `"`, "&quot;").Replace(value)
+	return html.EscapeString(value)
 }
 
 // marketingMessageTemplates provides the group-wide messages that used to be
