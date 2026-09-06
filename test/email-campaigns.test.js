@@ -26,7 +26,7 @@ test('registration reminders retain only the transactional fresh-link workflow',
   assert.match(reminderScript, /expectedEligible: current\.eligible/);
 });
 
-test('marketing messages provides the migrated prepared broadcast campaigns', function () {
+test('marketing messages provides resumable prepared campaigns', function () {
   for (const template of [
     'survey-september-2026',
     'jlr-contact',
@@ -39,6 +39,8 @@ test('marketing messages provides the migrated prepared broadcast campaigns', fu
   assert.match(marketingPage, /source-controlled copy/);
   assert.match(marketingScript, /\/api\/admin\/marketing-message-templates/);
   assert.match(marketingScript, /templateId: templateID\.value/);
+  assert.match(marketingScript, /campaignId: campaignID\.value/);
+  assert.match(marketingPage, /batches of up to 100 emails/);
   assert.match(marketingPage, /Editing the copied content/);
   assert.match(marketingScript, /getIdToken\(\)/);
   assert.match(marketingScript, /data\.eligible/);

@@ -106,6 +106,8 @@ func Api(w http.ResponseWriter, r *http.Request) {
 		AdminMarketingMessageSend(w, r)
 	case "/api/admin/marketing-message-templates":
 		AdminMarketingMessageTemplates(w, r)
+	case "/api/email-unsubscribe":
+		MarketingMessageUnsubscribe(w, r)
 	case "/api/admin/instagram-preview":
 		AdminInstagramPreview(w, r)
 	case "/api/admin/instagram-publish":

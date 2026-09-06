@@ -18,7 +18,7 @@ requires the current campaign ID, exact audience count, and `SEND <count>` confi
 and records a hashed Firestore delivery ledger with Resend idempotency keys. Re-preview between
 batches and stop to investigate any provider or ledger error.
 
-All group-wide messages use `/admin/marketing-messages/` and a Resend Broadcast, never the
+All group-wide messages use `/admin/marketing-messages/` and resumable direct Resend email batches, never the
 resumable reminder batches. Prepared source-controlled templates cover the September survey, JLR
 meeting update, finding more owners and growing the evidence base. They always target the
 canonical-email-deduplicated Join audience that consented to communications, including people who

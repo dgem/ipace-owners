@@ -1,7 +1,7 @@
 ---
 layout: base.njk
 title: Marketing Messages
-description: "Admin-only consented-member marketing broadcasts."
+description: "Admin-only consented-member marketing email batches."
 noindex: true
 permalink: /admin/marketing-messages/
 marketingMessages: true
@@ -19,11 +19,12 @@ date: Last Modified
   <div class="auth-gate" data-admin-only-gate hidden><div class="auth-gate__icon" aria-hidden="true">⛔</div><h2 class="auth-gate__title">Access restricted</h2><p class="auth-gate__body">This workspace is for group administrators only.</p></div>
   <div class="auth-content" data-admin-content hidden>
     <section class="dashboard-panel" data-marketing-message>
-      <div class="dashboard-panel__header"><div><p class="dashboard-panel__eyebrow">Resend Broadcasts</p><h2 class="dashboard-panel__title">Send a consented-member update</h2></div></div>
-      <p class="dashboard-panel__lede">Choose a prepared campaign or write a new message. Every send uses the current set of members who consented to group communications. Preview first; nothing is emailed until you confirm the exact audience.</p>
+      <div class="dashboard-panel__header"><div><p class="dashboard-panel__eyebrow">Member communications</p><h2 class="dashboard-panel__title">Send a consented-member update</h2></div></div>
+      <p class="dashboard-panel__lede">Choose a prepared campaign or write a new message. Every send uses the current set of members who consented to group communications. Preview first, then send in resumable batches of up to 100 emails.</p>
       <form data-marketing-message-form class="stack">
         <div class="form-group"><label for="marketing-message-template">Prepared campaign</label><select id="marketing-message-template" data-marketing-message-template><option value="">Start a new message</option><option value="survey-september-2026">September survey invitation</option><option value="jlr-contact">JLR meeting update</option><option value="find-members">Find more I-PACE owners</option><option value="reach-1000">Grow the group and evidence</option></select><p class="form-hint">Prepared campaigns use source-controlled copy and, where available, the approved email image. Editing the copied content turns it into a new message.</p></div>
         <input type="hidden" data-marketing-message-template-id value="">
+        <input type="hidden" data-marketing-message-campaign-id value="">
         <div class="form-group"><label for="marketing-message-name">Internal message name</label><input id="marketing-message-name" data-marketing-message-name required maxlength="160" autocomplete="off" placeholder="September member update"></div>
         <div class="form-group"><label for="marketing-message-subject">Email subject</label><input id="marketing-message-subject" data-marketing-message-subject required maxlength="200" autocomplete="off"></div>
         <div class="form-group"><label for="marketing-message-markdown">Message</label><textarea id="marketing-message-markdown" data-marketing-message-markdown required maxlength="20000" rows="14" aria-describedby="marketing-message-hint"></textarea><p class="form-hint" id="marketing-message-hint">Markdown is supported. Use <code>{% raw %}{{firstName}}{% endraw %}</code> for a first-name greeting. The unsubscribe link is included automatically and cannot be removed.</p></div>
@@ -37,9 +38,9 @@ date: Last Modified
         <details class="email-preview__plain"><summary>View plain-text alternative</summary><pre data-marketing-message-text></pre></details>
       </section>
       <form data-marketing-message-send class="stack email-campaign-step" hidden>
-        <div><p class="dashboard-panel__eyebrow">Confirm send</p><h3>Send the broadcast</h3><p>Resend creates recipient-specific unsubscribe links and handles future unsubscribe requests.</p></div>
+        <div><p class="dashboard-panel__eyebrow">Confirm send</p><h3>Send the next email batch</h3><p>Each recipient gets a personal unsubscribe link. Delivery is recorded so repeating this step safely continues with the next unsent members.</p></div>
         <div class="form-group email-campaign-confirmation"><label for="marketing-message-confirm">Type the exact confirmation shown below</label><input id="marketing-message-confirm" data-marketing-message-confirm autocomplete="off"><p class="form-hint" data-marketing-message-confirm-hint></p></div>
-        <button type="submit" class="btn btn--danger">Send marketing message</button>
+        <button type="submit" class="btn btn--danger" data-marketing-message-send-button>Send next 100 emails</button>
       </form>
     </section>
   </div>

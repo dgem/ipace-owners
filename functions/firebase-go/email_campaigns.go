@@ -541,7 +541,7 @@ func loadCampaignJoins(ctx context.Context, db *firestore.Client) ([]campaignRec
 		}
 		email := strings.ToLower(strings.TrimSpace(row.Contact.Email))
 		name := strings.TrimSpace(row.Contact.Name)
-		if email == "" || name == "" || !row.Consents.Contact {
+		if email == "" || !row.Consents.Contact {
 			continue
 		}
 		key := canonicalCampaignEmail(email)

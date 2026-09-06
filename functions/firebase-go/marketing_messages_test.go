@@ -2,6 +2,8 @@ package ipace
 
 import (
 	"context"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 )
@@ -19,11 +21,39 @@ func TestMarketingMessagePreviewUsesConsentedAudienceAndPersonalisation(t *testi
 	if preview.Eligible != 2 || preview.Confirmation != "SEND 2" {
 		t.Fatalf("unexpected preview: %#v", preview)
 	}
-	if !strings.Contains(preview.HTML, "{{{contact.first_name|member}}}") || !strings.Contains(preview.HTML, "{{{RESEND_UNSUBSCRIBE_URL}}}") {
-		t.Fatalf("missing Resend substitutions: %s", preview.HTML)
+	if !strings.Contains(preview.HTML, "Hello Jane") || !strings.Contains(preview.HTML, "/api/email-unsubscribe?campaign=preview") {
+		t.Fatalf("missing direct-send personalisation or unsubscribe link: %s", preview.HTML)
 	}
-	if !strings.Contains(preview.Text, "{{{RESEND_UNSUBSCRIBE_URL}}}") {
-		t.Fatalf("missing plain-text unsubscribe: %s", preview.Text)
+	if !strings.Contains(preview.Text, "/api/email-unsubscribe?campaign=preview") {
+		t.Fatalf("missing plain-text unsubscribe link: %s", preview.Text)
+	}
+}
+
+func TestMarketingMessageBatchUsesOpaqueUnsubscribeTokens(t *testing.T) {
+	token := "unsubscribe_0123456789abcdef"
+	hash := marketingUnsubscribeTokenHash(token)
+	if hash == token || len(hash) != 64 {
+		t.Fatalf("unsubscribe token hash = %q", hash)
+	}
+	url := marketingUnsubscribeURL("marketing_123", token)
+	if !strings.Contains(url, "campaign=marketing_123") || !strings.Contains(url, "token="+token) {
+		t.Fatalf("unsubscribe URL = %q", url)
+	}
+	if message := marketingMessageBatchMessage(100, 12); !strings.Contains(message, "12 remain") {
+		t.Fatalf("batch continuation message = %q", message)
+	}
+}
+
+func TestMarketingMessageUnsubscribeGETRequiresConfirmation(t *testing.T) {
+	request := httptest.NewRequest(http.MethodGet, "/api/email-unsubscribe?campaign=marketing_123&token=unsubscribe_0123456789abcdef", nil)
+	response := httptest.NewRecorder()
+	MarketingMessageUnsubscribe(response, request)
+	if response.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", response.Code, http.StatusOK)
+	}
+	body := response.Body.String()
+	if !strings.Contains(body, "Stop group emails?") || !strings.Contains(body, "method=\"post\"") {
+		t.Fatalf("missing unsubscribe confirmation: %s", body)
 	}
 }
 

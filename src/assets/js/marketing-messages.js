@@ -8,6 +8,7 @@
   var sendForm = root.querySelector('[data-marketing-message-send]');
   var templateSelect = root.querySelector('[data-marketing-message-template]');
   var templateID = root.querySelector('[data-marketing-message-template-id]');
+  var campaignID = root.querySelector('[data-marketing-message-campaign-id]');
   var name = root.querySelector('[data-marketing-message-name]');
   var subject = root.querySelector('[data-marketing-message-subject]');
   var markdown = root.querySelector('[data-marketing-message-markdown]');
@@ -17,6 +18,13 @@
   var current;
   var templates;
   var loadingTemplate = false;
+
+  function newCampaignID() {
+    if (window.crypto && window.crypto.randomUUID) return 'marketing_' + window.crypto.randomUUID().replace(/-/g, '');
+    return 'marketing_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+  }
+
+  campaignID.value = newCampaignID();
 
   function authHeaders(base) {
     return window.ipaceAuthHeaders ? window.ipaceAuthHeaders(base) : base;
@@ -41,6 +49,7 @@
 
   function payload() {
     return {
+      campaignId: campaignID.value,
       templateId: templateID.value,
       name: name.value,
       subject: subject.value,
@@ -52,6 +61,7 @@
 
   function invalidate() {
     current = null;
+    campaignID.value = newCampaignID();
     confirm.value = '';
     preview.hidden = true;
     sendForm.hidden = true;
@@ -109,13 +119,14 @@
     status.textContent = 'Calculating the current consented audience…';
     request('/api/admin/marketing-message-preview', payload()).then(function (data) {
       current = data;
+      campaignID.value = data.campaignId || campaignID.value;
       preview.hidden = false;
       sendForm.hidden = false;
       root.querySelector('[data-marketing-message-audience]').textContent = data.eligible + ' members currently consent to group communications.';
       root.querySelector('[data-marketing-message-subject-preview]').textContent = data.subject;
       root.querySelector('[data-marketing-message-html]').srcdoc = data.html;
       root.querySelector('[data-marketing-message-text]').textContent = data.text;
-      root.querySelector('[data-marketing-message-confirm-hint]').textContent = 'Type “' + data.confirmation + '” exactly to send.';
+      root.querySelector('[data-marketing-message-confirm-hint]').textContent = 'Type “' + data.confirmation + '” exactly to send the next batch.';
       status.textContent = data.notice;
     }).catch(function (error) {
       status.textContent = error.message;
@@ -125,10 +136,16 @@
   sendForm.addEventListener('submit', function (event) {
     event.preventDefault();
     if (!current) return;
-    status.textContent = 'Creating the consented audience and handing the broadcast to Resend…';
+    status.textContent = 'Sending the next batch of up to 100 consented members…';
     request('/api/admin/marketing-message-send', payload()).then(function (data) {
-      sendForm.hidden = true;
-      status.textContent = data.message + ' Broadcast ID: ' + data.broadcastId + '.';
+      current.eligible = data.eligible;
+      campaignID.value = data.campaignId;
+      confirm.value = '';
+      status.textContent = data.message;
+      root.querySelector('[data-marketing-message-audience]').textContent = data.sent + ' of ' + data.eligible + ' consented members emailed. ' + data.remaining + ' remain.';
+      if (data.remaining === 0) {
+        sendForm.hidden = true;
+      }
     }).catch(function (error) {
       status.textContent = error.message;
     });
