@@ -110,9 +110,10 @@ change rather than assuming it exists.
 | `GET /api/admin/stats` | Admin claim | Return the consent-filtered homepage counters alongside private all-record member, vehicle, SoH, and service-event statistics with `Cache-Control: private, no-store`; canonical emails are deduplicated at the first Join before the daily Join trend and country rows are calculated. Derive country from the Join, one unambiguous vehicle country, or a strict UK registration, otherwise use `Unknown` (including conflicting vehicle countries). Magic-link-verified accounts have a separate daily line chart, and no per-vehicle evidence is returned. |
 | `POST /api/admin/reengagement-preview` | Admin claim | Return aggregate counts for consented Join submitters who have not registered. |
 | `POST /api/admin/reengagement-send` | Admin claim | Require the campaign ID, exact eligible count and typed confirmation; recheck registrations and send the next batch of at most ten. |
-| `POST /api/admin/marketing-message-templates` | Admin claim | Load source-controlled broadcast templates for the September survey, JLR meeting update, member referral and group growth, filling aggregate evidence values server-side. |
+| `POST /api/admin/marketing-message-templates` | Admin claim | Load source-controlled marketing-message templates for the September survey, JLR meeting update, member referral and group growth, filling aggregate evidence values server-side. |
 | `POST /api/admin/marketing-message-preview` | Admin claim | Validate prepared or custom Markdown, recalculate the canonical Join audience that consented to communications, and render a sandboxable preview with no provider side effect. |
-| `POST /api/admin/marketing-message-send` | Admin claim | Recheck that consented audience and exact `SEND <count>` confirmation, then create a fresh Resend Segment and immediately send a Broadcast with only contact name/email and a mandatory Resend unsubscribe placeholder. |
+| `POST /api/admin/marketing-message-send` | Admin claim | Recheck that consented audience and exact `SEND <count>` confirmation, then send the next resumable batch of at most 100 individual emails. The Firestore delivery ledger makes retries idempotent; each email has an opaque, recipient-specific unsubscribe link. |
+| `GET/POST /api/email-unsubscribe` | Public signed link | Display or confirm withdrawal of communications consent through an opaque per-delivery token, without exposing an email address or requiring sign-in. |
 | `POST /api/admin/instagram-preview` | Admin claim | Validate a site-relative MP4/MOV path, caption and explicit full-media review; return the deterministic confirmation without a provider side effect. |
 | `POST /api/admin/instagram-campaign-history` | Admin claim | List named drafts and immutable publication records, refreshing cached provider insights when available. |
 | `POST /api/admin/campaign-summary` | Admin claim | Aggregate reconciled Resend email outcomes and Instagram publication/insight totals; report Facebook as manual unless Page Insights is connected. |
@@ -288,13 +289,13 @@ forms explicitly use POST even when JavaScript intercepts them.
   with an owner Join CTA and prefill the same text in platform composers where supported;
   LinkedIn and Instagram retain the visible copy because their web share flows cannot reliably
   prefill it.
-- Move every consented group-wide campaign to Resend Broadcasts in Marketing Messages: the
+- Move every consented group-wide campaign to Marketing Messages: the
   September survey, JLR meeting update, member referral, evidence-growth message and newly
   composed messages. Use one canonical-email-deduplicated Join audience made only of people who
   consented to communications, including registrations that have not completed magic-link sign-in.
   Load source-controlled templates and public evidence totals server-side, render a sandboxed
   preview with no provider effect, and require `SEND <count>` before creating a fresh Resend
-  segment and broadcast. Send only contact name/email to Resend and ensure its unsubscribe link is
+  direct-email batch ledger. Send only contact name/email to Resend and ensure the application's unsubscribe link is
   mandatory. The registration reminder remains the sole legacy batch workflow because it must mint
   a unique private Firebase sign-in link for each recipient.
 - Provide an admin-only Instagram campaign page following the same preview-before-side-effect
