@@ -51,7 +51,7 @@ func TestMarketingMessageBatchUsesOpaqueUnsubscribeTokens(t *testing.T) {
 }
 
 func TestMarketingMessageCampaignIDIsStableForIdenticalContent(t *testing.T) {
-	input := marketingMessageRequest{TemplateID: "survey-september-2026", Name: "September survey", Subject: "Have your say", Markdown: "Hi {{firstName}}"}
+	input := marketingMessageRequest{Name: "September survey", Subject: "Have your say", Markdown: "Hi {{firstName}}"}
 	first := marketingMessageCampaignID(input)
 	if first == "" || first != marketingMessageCampaignID(input) {
 		t.Fatalf("campaign ID is not stable: %q", first)
@@ -59,6 +59,12 @@ func TestMarketingMessageCampaignIDIsStableForIdenticalContent(t *testing.T) {
 	input.Markdown += " now"
 	if first == marketingMessageCampaignID(input) {
 		t.Fatal("campaign ID did not change when the message changed")
+	}
+	prepared := marketingMessageRequest{TemplateID: "survey-september-2026", Name: "September survey", Subject: "Have your say", Markdown: "1299 members"}
+	preparedID := marketingMessageCampaignID(prepared)
+	prepared.Markdown = "1300 members"
+	if preparedID != marketingMessageCampaignID(prepared) {
+		t.Fatal("prepared campaign ID changed with live aggregate values")
 	}
 	statuses := map[string]string{
 		campaignEmailFingerprint("sent@example.com"):   "sent",

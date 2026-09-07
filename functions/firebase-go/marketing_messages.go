@@ -414,10 +414,24 @@ func findMatchingMarketingMessageRecord(ctx context.Context, db *firestore.Clien
 		if record.CampaignID == "" {
 			record.CampaignID = doc.Ref.ID
 		}
-		if record.Name == strings.TrimSpace(input.Name) && record.Subject == strings.TrimSpace(input.Subject) && record.Markdown == input.Markdown && record.TemplateID == strings.TrimSpace(input.TemplateID) {
+		if marketingMessageRecordsMatch(record, input) {
 			return record, nil
 		}
 	}
+}
+
+func marketingMessageRecordsMatch(record marketingMessageRecord, input marketingMessageRequest) bool {
+	if strings.TrimSpace(input.TemplateID) != "" {
+		// Prepared templates can contain live aggregate values. Those values must
+		// not turn a later preview of the same campaign into a fresh mailing.
+		return record.TemplateID == strings.TrimSpace(input.TemplateID) &&
+			record.Name == strings.TrimSpace(input.Name) &&
+			record.Subject == strings.TrimSpace(input.Subject)
+	}
+	return record.Name == strings.TrimSpace(input.Name) &&
+		record.Subject == strings.TrimSpace(input.Subject) &&
+		record.Markdown == input.Markdown &&
+		record.TemplateID == ""
 }
 
 // A started message keeps its original time boundary. New registrations can be
@@ -541,14 +555,25 @@ func marketingMessageBatchMessage(batchSent, batchFailed, remaining int) string 
 }
 
 func marketingMessageCampaignID(input marketingMessageRequest) string {
-	content := strings.Join([]string{
-		strings.TrimSpace(input.TemplateID),
+	content := marketingMessageCampaignContent(input)
+	sum := sha256.Sum256([]byte(content))
+	return "marketing_" + hex.EncodeToString(sum[:])[:24]
+}
+
+func marketingMessageCampaignContent(input marketingMessageRequest) string {
+	if templateID := strings.TrimSpace(input.TemplateID); templateID != "" {
+		if template, ok := marketingMessageTemplateSource(templateID); ok {
+			// Use source-controlled template content rather than the rendered copy,
+			// whose evidence totals change between previews.
+			return strings.Join([]string{"template", template.ID, template.Name, template.Subject, template.Markdown}, "\x00")
+		}
+	}
+	return strings.Join([]string{
+		"custom",
 		strings.TrimSpace(input.Name),
 		strings.TrimSpace(input.Subject),
 		input.Markdown,
 	}, "\x00")
-	sum := sha256.Sum256([]byte(content))
-	return "marketing_" + hex.EncodeToString(sum[:])[:24]
 }
 func marketingUnsubscribeTokenHash(token string) string {
 	sum := sha256.Sum256([]byte(token))

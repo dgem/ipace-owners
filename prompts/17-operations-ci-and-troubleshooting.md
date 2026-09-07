@@ -31,6 +31,11 @@ for reconciliation, while a missing ledger entry after a provider failure blocks
 until it has been reconciled. Registration reminders remain separate because every recipient
 needs a newly minted private sign-in link.
 
+Prepared marketing templates use their stable source-controlled template identity for that
+campaign ID, rather than their rendered evidence totals. A changed public counter must therefore
+not cause another copy of an already-started template to be sent. Give a materially new prepared
+message a new template ID; a custom message is identified by its complete copy.
+
 The `Reach 1,000` campaign targets all contact-consenting Join records, whether their Firebase
 email sign-in was completed or not, deduped by canonical email. Its embedded Markdown thanks
 members for joining and supporting the group, says it launched on 17 July less than two weeks
