@@ -33,8 +33,10 @@ needs a newly minted private sign-in link.
 
 Prepared marketing templates use their stable source-controlled template identity for that
 campaign ID, rather than their rendered evidence totals. A changed public counter must therefore
-not cause another copy of an already-started template to be sent. Give a materially new prepared
-message a new template ID; a custom message is identified by its complete copy.
+not cause another copy of an already-started template to be sent. When legacy browser-generated
+campaign IDs exist for the same prepared template, union every matching delivery ledger before
+sending; a recipient recorded in any one of them is ineligible for another copy. Give a materially
+new prepared message a new template ID; a custom message is identified by its complete copy.
 
 The `Reach 1,000` campaign targets all contact-consenting Join records, whether their Firebase
 email sign-in was completed or not, deduped by canonical email. Its embedded Markdown thanks

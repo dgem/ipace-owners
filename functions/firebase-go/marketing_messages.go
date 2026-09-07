@@ -303,14 +303,25 @@ func sendMarketingMessageBatch(ctx context.Context, input marketingMessageReques
 	if err != nil {
 		return marketingMessageSent{}, err
 	}
-	audience = marketingMessageCampaignAudience(record, audience)
-	deliveries, err := loadMarketingMessageDeliveries(ctx, db, record.CampaignID)
+	related, err := matchingMarketingMessageRecords(ctx, db, input)
 	if err != nil {
 		return marketingMessageSent{}, err
 	}
-	_, recordedFailures := countMarketingMessageDeliveries(audience, deliveries)
-	if record.Failed > recordedFailures {
-		return marketingMessageSent{}, fmt.Errorf("this campaign has an earlier provider failure without a recipient ledger entry; review the delivery record and reconcile it before sending again")
+	if !containsMarketingMessageRecord(related, record.CampaignID) {
+		related = append(related, record)
+	}
+	deliveries := map[string]string{}
+	for _, relatedRecord := range related {
+		audience = marketingMessageCampaignAudience(relatedRecord, audience)
+		relatedDeliveries, err := loadMarketingMessageDeliveries(ctx, db, relatedRecord.CampaignID)
+		if err != nil {
+			return marketingMessageSent{}, err
+		}
+		_, recordedFailures := countMarketingMessageDeliveries(audience, relatedDeliveries)
+		if relatedRecord.Failed > recordedFailures {
+			return marketingMessageSent{}, fmt.Errorf("this campaign has an earlier provider failure without a recipient ledger entry; review the delivery record and reconcile it before sending again")
+		}
+		mergeMarketingMessageDeliveries(deliveries, relatedDeliveries)
 	}
 	batchSent := 0
 	batchFailed := 0
@@ -372,7 +383,7 @@ func loadOrCreateMarketingMessageRecord(ctx context.Context, db *firestore.Clien
 	snapshot, err := doc.Get(ctx)
 	if err == nil {
 		var record marketingMessageRecord
-		if err := snapshot.DataTo(&record); err != nil || record.Kind != marketingMessageKind || record.Name != strings.TrimSpace(input.Name) || record.Subject != strings.TrimSpace(input.Subject) || record.Markdown != input.Markdown || record.TemplateID != strings.TrimSpace(input.TemplateID) {
+		if err := snapshot.DataTo(&record); err != nil || record.Kind != marketingMessageKind || !marketingMessageRecordsMatch(record, input) {
 			return marketingMessageRecord{}, fmt.Errorf("campaign changed; preview again")
 		}
 		return record, nil
@@ -383,10 +394,10 @@ func loadOrCreateMarketingMessageRecord(ctx context.Context, db *firestore.Clien
 	// Earlier versions generated a browser-side campaign ID. Reuse a matching
 	// legacy record rather than starting the same content again and risking a
 	// third message to recipients already recorded there.
-	if legacy, err := findMatchingMarketingMessageRecord(ctx, db, input); err != nil {
+	if legacy, err := matchingMarketingMessageRecords(ctx, db, input); err != nil {
 		return marketingMessageRecord{}, err
-	} else if legacy.CampaignID != "" {
-		return legacy, nil
+	} else if len(legacy) > 0 {
+		return legacy[0], nil
 	}
 	now := time.Now().UTC()
 	record := marketingMessageRecord{CampaignID: id, Kind: marketingMessageKind, TemplateID: strings.TrimSpace(input.TemplateID), Name: strings.TrimSpace(input.Name), Subject: strings.TrimSpace(input.Subject), Markdown: input.Markdown, Eligible: eligible, Remaining: eligible, Status: "draft", CreatedAt: now, UpdatedAt: now}
@@ -396,16 +407,23 @@ func loadOrCreateMarketingMessageRecord(ctx context.Context, db *firestore.Clien
 	return record, nil
 }
 
-func findMatchingMarketingMessageRecord(ctx context.Context, db *firestore.Client, input marketingMessageRequest) (marketingMessageRecord, error) {
+func matchingMarketingMessageRecords(ctx context.Context, db *firestore.Client, input marketingMessageRequest) ([]marketingMessageRecord, error) {
 	iter := db.Collection("emailCampaigns").Where("kind", "==", marketingMessageKind).Documents(ctx)
 	defer iter.Stop()
+	result := []marketingMessageRecord{}
 	for {
 		doc, err := iter.Next()
 		if err == iterator.Done {
-			return marketingMessageRecord{}, nil
+			sort.Slice(result, func(i, j int) bool {
+				if result[i].CreatedAt.Equal(result[j].CreatedAt) {
+					return result[i].CampaignID < result[j].CampaignID
+				}
+				return result[i].CreatedAt.Before(result[j].CreatedAt)
+			})
+			return result, nil
 		}
 		if err != nil {
-			return marketingMessageRecord{}, err
+			return nil, err
 		}
 		var record marketingMessageRecord
 		if err := doc.DataTo(&record); err != nil {
@@ -415,9 +433,18 @@ func findMatchingMarketingMessageRecord(ctx context.Context, db *firestore.Clien
 			record.CampaignID = doc.Ref.ID
 		}
 		if marketingMessageRecordsMatch(record, input) {
-			return record, nil
+			result = append(result, record)
 		}
 	}
+}
+
+func containsMarketingMessageRecord(records []marketingMessageRecord, campaignID string) bool {
+	for _, record := range records {
+		if record.CampaignID == campaignID {
+			return true
+		}
+	}
+	return false
 }
 
 func marketingMessageRecordsMatch(record marketingMessageRecord, input marketingMessageRequest) bool {
@@ -468,6 +495,27 @@ func loadMarketingMessageDeliveries(ctx context.Context, db *firestore.Client, i
 		if err := doc.DataTo(&delivery); err == nil && delivery.Status != "" {
 			result[doc.Ref.ID] = delivery.Status
 		}
+	}
+}
+
+func mergeMarketingMessageDeliveries(destination, source map[string]string) {
+	for fingerprint, sourceStatus := range source {
+		if marketingMessageDeliveryStatusPriority(sourceStatus) > marketingMessageDeliveryStatusPriority(destination[fingerprint]) {
+			destination[fingerprint] = sourceStatus
+		}
+	}
+}
+
+func marketingMessageDeliveryStatusPriority(status string) int {
+	switch status {
+	case "sent":
+		return 3
+	case "failed":
+		return 2
+	case "attempting":
+		return 1
+	default:
+		return 0
 	}
 }
 

@@ -66,6 +66,15 @@ func TestMarketingMessageCampaignIDIsStableForIdenticalContent(t *testing.T) {
 	if preparedID != marketingMessageCampaignID(prepared) {
 		t.Fatal("prepared campaign ID changed with live aggregate values")
 	}
+	legacyPrepared := marketingMessageRecord{TemplateID: prepared.TemplateID, Name: prepared.Name, Subject: prepared.Subject, Markdown: "1299 members"}
+	if !marketingMessageRecordsMatch(legacyPrepared, prepared) {
+		t.Fatal("prepared campaign did not match its legacy rendered copy")
+	}
+	merged := map[string]string{"sent": "sent", "failed": "failed"}
+	mergeMarketingMessageDeliveries(merged, map[string]string{"sent": "attempting", "failed": "sent", "new": "attempting"})
+	if merged["sent"] != "sent" || merged["failed"] != "sent" || merged["new"] != "attempting" {
+		t.Fatalf("merged delivery states = %#v", merged)
+	}
 	statuses := map[string]string{
 		campaignEmailFingerprint("sent@example.com"):   "sent",
 		campaignEmailFingerprint("failed@example.com"): "failed",
