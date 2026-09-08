@@ -127,6 +127,15 @@ func TestMarketingMessageCampaignIDIsStableForIdenticalContent(t *testing.T) {
 	if failures := countRecordedMarketingMessageFailures(statuses); failures != 2 {
 		t.Fatalf("recorded delivery failures = %d, want 2", failures)
 	}
+	// Legacy campaign records may have an aggregate provider-failure count
+	// from before recipient ledgers existed. That cannot identify someone to
+	// suppress, so it must not block the ledger-backed continuation.
+	if unrecorded := legacyUnrecordedMarketingMessageFailures(5, statuses); unrecorded != 3 {
+		t.Fatalf("unrecorded legacy failures = %d, want 3", unrecorded)
+	}
+	if unrecorded := legacyUnrecordedMarketingMessageFailures(1, statuses); unrecorded != 0 {
+		t.Fatalf("unrecorded legacy failures must not be negative, got %d", unrecorded)
+	}
 }
 
 func TestMarketingAudienceIncludesLegacyVerifiedMembersAndHonoursOptOuts(t *testing.T) {

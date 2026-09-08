@@ -28,8 +28,9 @@ preview without a provider side effect, then require the current `SEND <count>` 
 Each direct message is first claimed in a hashed Firestore delivery ledger, then submitted to
 Resend with both a provider idempotency key and a `campaign_id` tag. `attempting` and failed
 claims are never replayed automatically: the admin delivery disclosure shows masked recipients
-for reconciliation, while a missing ledger entry after a provider failure blocks the campaign
-until it has been reconciled. Registration reminders remain separate because every recipient
+for reconciliation. A missing ledger entry from a pre-ledger aggregate provider failure has no
+recipient identity, so it is logged as an operator warning but cannot block the campaign.
+Registration reminders remain separate because every recipient
 needs a newly minted private sign-in link.
 
 Prepared marketing templates use their stable source-controlled template identity for that

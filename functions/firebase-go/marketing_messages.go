@@ -498,8 +498,17 @@ func sendMarketingMessageBatch(ctx context.Context, input marketingMessageReques
 		if err != nil {
 			return marketingMessageSent{}, err
 		}
-		if relatedRecord.Failed > countRecordedMarketingMessageFailures(relatedDeliveries) {
-			return marketingMessageSent{}, fmt.Errorf("this campaign has an earlier provider failure without a recipient ledger entry; review the delivery record and reconcile it before sending again")
+		if unrecordedFailures := legacyUnrecordedMarketingMessageFailures(relatedRecord.Failed, relatedDeliveries); unrecordedFailures > 0 {
+			// Older campaign versions counted provider failures on the parent
+			// record before a recipient delivery ledger existed. Those aggregate
+			// counters cannot identify a recipient to suppress safely. The
+			// per-recipient ledger is therefore the idempotency authority: retain
+			// an aggregate warning for operators, but continue with recipients
+			// that have no recorded delivery.
+			logEvent("admin-marketing-message-send", "warn", "continuing after legacy unrecorded provider failures", map[string]any{
+				"campaignId":         relatedRecord.CampaignID,
+				"unrecordedFailures": unrecordedFailures,
+			})
 		}
 		mergeMarketingMessageDeliveries(deliveries, relatedDeliveries)
 	}
@@ -670,6 +679,13 @@ func countRecordedMarketingMessageFailures(deliveries map[string]string) int {
 		}
 	}
 	return failed
+}
+
+// legacyUnrecordedMarketingMessageFailures identifies aggregate counters left
+// by the pre-ledger sender. It is diagnostic only: without a recipient record,
+// there is nothing safe or useful to retry or suppress.
+func legacyUnrecordedMarketingMessageFailures(aggregateFailures int, deliveries map[string]string) int {
+	return max(0, aggregateFailures-countRecordedMarketingMessageFailures(deliveries))
 }
 
 func mergeMarketingMessageDeliveries(destination, source map[string]string) {
