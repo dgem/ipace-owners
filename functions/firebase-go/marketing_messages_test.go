@@ -90,6 +90,9 @@ func TestMarketingMessageCampaignIDIsStableForIdenticalContent(t *testing.T) {
 	if sent != 1 || failed != 2 {
 		t.Fatalf("delivery count = %d sent, %d failed; want 1, 2", sent, failed)
 	}
+	if failures := countRecordedMarketingMessageFailures(statuses); failures != 2 {
+		t.Fatalf("recorded delivery failures = %d, want 2", failures)
+	}
 }
 
 func TestMarketingMessageUnsubscribeGETRequiresConfirmation(t *testing.T) {
