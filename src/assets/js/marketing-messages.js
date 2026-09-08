@@ -171,7 +171,7 @@
       campaignID.value = data.campaignId || campaignID.value;
       preview.hidden = false;
       sendForm.hidden = false;
-      root.querySelector('[data-marketing-message-audience]').textContent = data.eligible + ' members currently consent to group communications.';
+      root.querySelector('[data-marketing-message-audience]').textContent = data.eligible + ' registered members are currently eligible for group communications.';
       root.querySelector('[data-marketing-message-subject-preview]').textContent = data.subject;
       root.querySelector('[data-marketing-message-html]').srcdoc = data.html;
       root.querySelector('[data-marketing-message-text]').textContent = data.text;
@@ -202,7 +202,7 @@
       if (error.status === 409 && error.data && error.data.eligible) {
         current.eligible = error.data.eligible;
         confirm.value = '';
-        root.querySelector('[data-marketing-message-audience]').textContent = error.data.eligible + ' members currently consent to group communications.';
+        root.querySelector('[data-marketing-message-audience]').textContent = error.data.eligible + ' registered members are currently eligible for group communications.';
         root.querySelector('[data-marketing-message-confirm-hint]').textContent = 'The audience changed. Type “' + error.data.confirmation + '” to confirm the updated count.';
       }
       if (error.message.indexOf('earlier provider failure without a recipient ledger entry') !== -1) {

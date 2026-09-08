@@ -111,10 +111,10 @@ change rather than assuming it exists.
 | `POST /api/admin/reengagement-preview` | Admin claim | Return aggregate counts for consented Join submitters who have not registered. |
 | `POST /api/admin/reengagement-send` | Admin claim | Require the campaign ID, exact eligible count and typed confirmation; recheck registrations and send the next batch of at most ten. |
 | `POST /api/admin/marketing-message-templates` | Admin claim | Load source-controlled marketing-message templates for the September survey, JLR meeting update, member referral and group growth, filling aggregate evidence values server-side. |
-| `POST /api/admin/marketing-message-preview` | Admin claim | Validate prepared or custom Markdown, recalculate the canonical Join audience that consented to communications, and render a sandboxable preview with no provider side effect. |
-| `POST /api/admin/marketing-message-send` | Admin claim | Recheck that consented audience and exact `SEND <count>` confirmation, then reserve each recipient before sending the next batch of at most 100 individual emails. Each continuation considers every currently consented member, while the recipient ledger skips anyone already recorded for the same campaign. The ledger treats `attempting` and failed deliveries as non-retryable until manual reconciliation, preventing timeout/502 duplicates. Prepared templates are identified by stable source content rather than changing rendered aggregate values, and all matching legacy ledgers are unioned before sending. Each email has an opaque, recipient-specific unsubscribe link. |
+| `POST /api/admin/marketing-message-preview` | Admin claim | Validate prepared or custom Markdown, recalculate the canonical member audience from verified historic Firebase Auth accounts and modern Join registrations, excluding explicit withdrawals, and render a sandboxable preview with no provider side effect. |
+| `POST /api/admin/marketing-message-send` | Admin claim | Recheck that member audience and exact `SEND <count>` confirmation, then reserve each recipient before sending the next batch of at most 100 individual emails. Each continuation considers every currently eligible member, while the recipient ledger skips anyone already recorded for the same campaign. The ledger treats `attempting` and failed deliveries as non-retryable until manual reconciliation, preventing timeout/502 duplicates. Prepared templates are identified by stable source content rather than changing rendered aggregate values, and all matching legacy ledgers are unioned before sending. Each email has an opaque, recipient-specific unsubscribe link. |
 | `POST /api/admin/marketing-message-deliveries` | Admin claim | Return the masked, recipient-deduplicated union of matching legacy and current delivery ledgers for a marketing message, including attempted, sent and failed states. |
-| `GET/POST /api/email-unsubscribe` | Public signed link | Display or confirm withdrawal of communications consent through an opaque per-delivery token, without exposing an email address or requiring sign-in. |
+| `GET/POST /api/email-unsubscribe` | Public signed link | Display or confirm withdrawal of communications consent through an opaque per-delivery token, recording it in the hashed communications-preference registry even for historic accounts without a Join record; never expose an email address or require sign-in. |
 | `POST /api/admin/instagram-preview` | Admin claim | Validate a site-relative MP4/MOV path, caption and explicit full-media review; return the deterministic confirmation without a provider side effect. |
 | `POST /api/admin/instagram-campaign-history` | Admin claim | List named drafts and immutable publication records, refreshing cached provider insights when available. |
 | `POST /api/admin/campaign-summary` | Admin claim | Aggregate reconciled Resend email outcomes and Instagram publication/insight totals; report Facebook as manual unless Page Insights is connected. |
@@ -290,10 +290,12 @@ forms explicitly use POST even when JavaScript intercepts them.
   with an owner Join CTA and prefill the same text in platform composers where supported;
   LinkedIn and Instagram retain the visible copy because their web share flows cannot reliably
   prefill it.
-- Move every consented group-wide campaign to Marketing Messages: the
-  September survey, JLR meeting update, member referral, evidence-growth message and newly
-  composed messages. Use one canonical-email-deduplicated Join audience made only of people who
-  consented to communications, including registrations that have not completed magic-link sign-in.
+- Move every group-wide campaign to Marketing Messages: the September survey, JLR meeting
+  update, member referral, evidence-growth message and newly composed messages. Use one
+  canonical-email-deduplicated member audience made of verified historic Firebase Auth accounts
+  (whose membership flow required contact consent) and modern Join registrations, including
+  registrations that have not completed magic-link sign-in. Explicit withdrawals recorded through
+  Join preferences or unsubscribe must always win.
   Load source-controlled templates and public evidence totals server-side, render a sandboxed
   preview with no provider effect, and require `SEND <count>` before creating a fresh Resend
   direct-email batch ledger. Send only contact name/email to Resend and ensure the application's unsubscribe link is

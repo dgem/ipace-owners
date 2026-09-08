@@ -95,6 +95,29 @@ func TestMarketingMessageCampaignIDIsStableForIdenticalContent(t *testing.T) {
 	}
 }
 
+func TestMarketingAudienceIncludesLegacyVerifiedMembersAndHonoursOptOuts(t *testing.T) {
+	joins := map[string]marketingJoinConsent{
+		"current@example.com":   {Recipient: campaignRecipient{Name: "Current Member", Email: "current@example.com"}, Contact: true},
+		"opted-out@example.com": {Contact: false},
+	}
+	legacy := []campaignRecipient{
+		{Name: "Current Account", Email: "current@example.com"},
+		{Name: "Legacy Member", Email: "legacy@example.com"},
+		{Name: "Opted Out", Email: "opted-out@example.com"},
+		{Name: "Preference Opt Out", Email: "preference@example.com"},
+	}
+	preferences := map[string]communicationsConsentRecord{
+		emailFingerprint("preference@example.com"): {Contact: false, Source: "unsubscribe"},
+	}
+	audience := marketingAudienceFromSources(joins, legacy, preferences)
+	if len(audience) != 2 {
+		t.Fatalf("audience = %#v, want current and legacy members", audience)
+	}
+	if audience[0].Email != "current@example.com" || audience[1].Email != "legacy@example.com" {
+		t.Fatalf("audience = %#v, want sorted current and legacy members", audience)
+	}
+}
+
 func TestMarketingMessageUnsubscribeGETRequiresConfirmation(t *testing.T) {
 	request := httptest.NewRequest(http.MethodGet, "/api/email-unsubscribe?campaign=marketing_123&token=unsubscribe_0123456789abcdef", nil)
 	response := httptest.NewRecorder()
