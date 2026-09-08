@@ -415,9 +415,11 @@ sending it through a separately selected transactional email provider.
 
 `/admin/marketing-messages/` is the single purpose-built path for group-wide marketing updates. It includes source-controlled prepared campaigns for the September survey, JLR meeting update, member referral and evidence-growth drive, plus a blank message for new copy. The prior per-recipient versions are no longer routable from the admin API, so group-wide sends cannot accidentally bypass Resend's provider-managed unsubscribe behaviour. Before sending, an administrator sees the current number of canonical-email-deduplicated Join records that opted in to group communications and must type the exact `SEND <count>` confirmation. The preview has no Resend side effect.
 
-On confirmation, the Function reads the live consented audience and sends the message through Resend's normal email API in resumable batches of 100. This avoids a long-lived copied mailing list and Resend Broadcast contact-plan charges: every batch rechecks Firestore consent, records each delivery idempotently, and can safely continue after interruption. Only a member's email address and first name are sent to Resend; no vehicle, survey, evidence, or Firebase identity data is transferred. The message may use `{{firstName}}`; every email includes an opaque, recipient-specific unsubscribe link that updates the member's communications consent without requiring sign-in.
+On confirmation, the Function reads the live consented audience and sends the message through Resend's normal email API in resumable batches of 100. Before calling Resend, it atomically reserves each recipient in Firestore; an `attempting` or failed record is never retried automatically, including after a provider timeout or 502. This prevents a whole batch — or an uncertain recipient — being replayed. The admin UI shows the masked delivery ledger so an operator can reconcile failures before deciding on any manual follow-up. Only a member's email address and first name are sent to Resend; no vehicle, survey, evidence, or Firebase identity data is transferred. The message may use `{{firstName}}`; every email includes an opaque, recipient-specific unsubscribe link that updates the member's communications consent without requiring sign-in.
 
 `GET` and `POST /api/email-unsubscribe` are intentionally public signed-link endpoints: the GET presents a confirmation page so link scanners cannot silently opt people out, while a direct list-unsubscribe POST performs the same withdrawal. Neither response reveals the recipient email.
+
+`POST /api/admin/marketing-message-deliveries` is the admin-only, masked delivery-ledger view used to reconcile attempted or failed recipients before any manual follow-up.
 
 Prepared templates are loaded through `POST /api/admin/marketing-message-templates`; their live public evidence totals are filled server-side and `{{firstName}}` is rendered for each individual recipient. Approved template images are resolved server-side too. Editing loaded copy turns it into a new message, while retaining the same consented audience and unsubscribe protection. The browser uses `POST /api/admin/marketing-message-preview` for the no-side-effect validation and preview, then `POST /api/admin/marketing-message-send` only after the audience count is rechecked and the exact confirmation has been supplied. All three routes require the server-verified Firebase admin claim.
 
@@ -811,7 +813,7 @@ Plain vanilla JavaScript, no bundler. The current modules are:
 - `instagram-campaigns.js` — admin-only asynchronous Veo generation, full-media review, and
   durable draft/history, insight display, and exact-confirmation Instagram publishing
 - `admin-campaign-summary.js` — admin-only email, Instagram, and Facebook capability summary
-- `marketing-messages.js` — admin-only marketing-message preview and exact-confirmation, resumable batch delivery
+- `marketing-messages.js` — admin-only marketing-message preview, masked delivery ledger, and exact-confirmation resumable batch delivery
 - `public-stats.js` — homepage and evidence-dashboard aggregate rendering
 - `site-mode.js` — launch/full presentation selection
 

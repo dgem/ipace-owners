@@ -28,7 +28,7 @@ We now have **{{membersJoined}} members**, **{{vehiclesRegisteredCount}} cars re
 
 Our next milestones are **1,500 members** and **1,000+ cars registered**, with more battery-health and service records. At **3,000 members**, we would represent roughly 10% of I-PACE owners. Reaching 3,000 members with 3,000 cars recorded would give JLR data that is very difficult to dismiss.
 
-Please add what you can to [My Data](https://ipace-owners.org/member/dashboard/): your car, any State of Health readings, and your recall, service or fault experience. Each contribution strengthens the anonymised evidence we can take to JLR.
+**Make your experience count.** Take a moment to add your car, any State of Health readings, and your recall, service or fault experience in [My Data](https://ipace-owners.org/member/dashboard/). Every record adds weight to the anonymised evidence we take to JLR.
 
 Thank you for helping us make the meeting count.
 

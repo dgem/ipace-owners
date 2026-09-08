@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -61,12 +62,25 @@ type marketingMessagePreview struct {
 }
 
 type marketingMessageSent struct {
+	CampaignID  string `json:"campaignId"`
+	Eligible    int    `json:"eligible"`
+	Sent        int    `json:"sent"`
+	Failed      int    `json:"failed"`
+	BatchSent   int    `json:"batchSent"`
+	BatchFailed int    `json:"batchFailed"`
+	Remaining   int    `json:"remaining"`
+	Message     string `json:"message"`
+}
+
+type marketingMessageDeliveryRequest struct {
 	CampaignID string `json:"campaignId"`
-	Eligible   int    `json:"eligible"`
-	Sent       int    `json:"sent"`
-	BatchSent  int    `json:"batchSent"`
-	Remaining  int    `json:"remaining"`
-	Message    string `json:"message"`
+}
+type marketingMessageDelivery struct {
+	MaskedRecipient string    `json:"maskedRecipient"`
+	Status          string    `json:"status"`
+	ResendID        string    `json:"resendId,omitempty"`
+	AttemptedAt     time.Time `json:"attemptedAt,omitempty"`
+	SentAt          time.Time `json:"sentAt,omitempty"`
 }
 
 type marketingMessageRecord struct {
@@ -144,12 +158,12 @@ func AdminMarketingMessageSend(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Could not calculate the consented audience"})
 		return
 	}
-	if input.ExpectedEligible != len(audience) {
-		writeJSON(w, http.StatusConflict, map[string]any{"error": "The consented audience changed; preview again before sending."})
+	if input.Confirmation != fmt.Sprintf("SEND %d", len(audience)) {
+		writeJSON(w, http.StatusConflict, map[string]any{"error": "Confirmation did not match; no message was sent.", "eligible": len(audience), "confirmation": fmt.Sprintf("SEND %d", len(audience))})
 		return
 	}
-	if input.Confirmation != fmt.Sprintf("SEND %d", len(audience)) {
-		writeJSON(w, http.StatusConflict, map[string]any{"error": "Confirmation did not match; no message was sent."})
+	if input.ExpectedEligible != len(audience) {
+		writeJSON(w, http.StatusConflict, map[string]any{"error": fmt.Sprintf("The consented audience changed from %d to %d. No emails were sent; review and confirm the new count.", input.ExpectedEligible, len(audience)), "eligible": len(audience), "confirmation": fmt.Sprintf("SEND %d", len(audience))})
 		return
 	}
 	sent, err := sendMarketingMessageBatch(r.Context(), input, audience)
@@ -160,6 +174,32 @@ func AdminMarketingMessageSend(w http.ResponseWriter, r *http.Request) {
 	}
 	logEvent("admin-marketing-message-send", "info", "batch sent", map[string]any{"eligible": len(audience), "campaignId": sent.CampaignID, "batchSent": sent.BatchSent})
 	writeJSON(w, http.StatusOK, sent)
+}
+
+func AdminMarketingMessageDeliveries(w http.ResponseWriter, r *http.Request) {
+	if !adminMarketingMessageRequestAllowed(w, r) {
+		return
+	}
+	var input marketingMessageDeliveryRequest
+	if err := decodeJSON(r, &input); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "Invalid request body"})
+		return
+	}
+	if !customCampaignIDRegexp.MatchString(strings.TrimSpace(input.CampaignID)) {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "Campaign ID is invalid"})
+		return
+	}
+	db, err := firestoreClient(r.Context())
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Could not load delivery records"})
+		return
+	}
+	deliveries, err := marketingMessageDeliveryList(r.Context(), db, input.CampaignID)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Could not load delivery records"})
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"deliveries": deliveries})
 }
 
 func adminMarketingMessageRequestAllowed(w http.ResponseWriter, r *http.Request) bool {
@@ -196,7 +236,7 @@ func previewMarketingMessage(ctx context.Context, input marketingMessageRequest)
 	}
 	markdown := renderMarketingMessageMarkdown(input.Markdown, previewRecipient)
 	previewUnsubscribeURL := "https://ipace-owners.org/api/email-unsubscribe?campaign=preview&token=preview-token"
-	return marketingMessagePreview{CampaignID: strings.TrimSpace(input.CampaignID), Eligible: len(audience), Subject: strings.TrimSpace(input.Subject), HTML: marketingMessageHTML(markdown, input.TemplateID, previewUnsubscribeURL), Text: marketingMessageText(markdown, previewUnsubscribeURL), Confirmation: fmt.Sprintf("SEND %d", len(audience)), Notice: fmt.Sprintf("Only members who opted in to group communications are included. Emails are sent in resumable batches of %d; previewing never sends email.", marketingMessageBatchSize)}, nil
+	return marketingMessagePreview{CampaignID: marketingMessageCampaignID(input), Eligible: len(audience), Subject: strings.TrimSpace(input.Subject), HTML: marketingMessageHTML(markdown, input.TemplateID, previewUnsubscribeURL), Text: marketingMessageText(markdown, previewUnsubscribeURL), Confirmation: fmt.Sprintf("SEND %d", len(audience)), Notice: fmt.Sprintf("Only members who opted in to group communications are included. Emails are sent in resumable batches of %d; previewing never sends email.", marketingMessageBatchSize)}, nil
 }
 
 func validateMarketingMessage(input marketingMessageRequest) error {
@@ -255,9 +295,6 @@ func sendMarketingMessageBatch(ctx context.Context, input marketingMessageReques
 	if !resendEmailConfigured() {
 		return marketingMessageSent{}, fmt.Errorf("email delivery is not configured")
 	}
-	if !customCampaignIDRegexp.MatchString(strings.TrimSpace(input.CampaignID)) {
-		return marketingMessageSent{}, fmt.Errorf("campaign ID is invalid; preview again")
-	}
 	db, err := firestoreClient(ctx)
 	if err != nil {
 		return marketingMessageSent{}, err
@@ -266,40 +303,69 @@ func sendMarketingMessageBatch(ctx context.Context, input marketingMessageReques
 	if err != nil {
 		return marketingMessageSent{}, err
 	}
-	sent, err := loadSentFingerprints(ctx, db, record.CampaignID)
+	related, err := matchingMarketingMessageRecords(ctx, db, input)
 	if err != nil {
 		return marketingMessageSent{}, err
 	}
+	if !containsMarketingMessageRecord(related, record.CampaignID) {
+		related = append(related, record)
+	}
+	deliveries := map[string]string{}
+	for _, relatedRecord := range related {
+		audience = marketingMessageCampaignAudience(relatedRecord, audience)
+		relatedDeliveries, err := loadMarketingMessageDeliveries(ctx, db, relatedRecord.CampaignID)
+		if err != nil {
+			return marketingMessageSent{}, err
+		}
+		_, recordedFailures := countMarketingMessageDeliveries(audience, relatedDeliveries)
+		if relatedRecord.Failed > recordedFailures {
+			return marketingMessageSent{}, fmt.Errorf("this campaign has an earlier provider failure without a recipient ledger entry; review the delivery record and reconcile it before sending again")
+		}
+		mergeMarketingMessageDeliveries(deliveries, relatedDeliveries)
+	}
 	batchSent := 0
+	batchFailed := 0
 	for _, person := range audience {
 		fingerprint := campaignEmailFingerprint(person.Email)
-		if sent[fingerprint] || batchSent >= marketingMessageBatchSize {
+		if deliveries[fingerprint] != "" || batchSent+batchFailed >= marketingMessageBatchSize {
 			continue
 		}
 		token := submissionID("unsubscribe")
 		unsubscribeURL := marketingUnsubscribeURL(record.CampaignID, token)
+		delivery := db.Collection("emailCampaigns").Doc(record.CampaignID).Collection("deliveries").Doc(fingerprint)
+		if _, err := delivery.Create(ctx, map[string]any{"status": "attempting", "attemptedAt": firestore.ServerTimestamp, "emailHash": emailFingerprint(person.Email), "unsubscribeTokenHash": marketingUnsubscribeTokenHash(token)}); err != nil {
+			if status.Code(err) == codes.AlreadyExists {
+				deliveries[fingerprint] = "attempting"
+				continue
+			}
+			return marketingMessageSent{}, fmt.Errorf("could not reserve a recipient safely; no further emails were sent")
+		}
+		deliveries[fingerprint] = "attempting"
 		markdown := renderMarketingMessageMarkdown(record.Markdown, person)
 		htmlBody := marketingMessageHTML(markdown, record.TemplateID, unsubscribeURL)
 		textBody := marketingMessageText(markdown, unsubscribeURL)
 		resendID, err := sendMarketingMessagePayload(ctx, person.Email, record.Subject, htmlBody, textBody, record.CampaignID, unsubscribeURL)
 		if err != nil {
-			_, _ = db.Collection("emailCampaigns").Doc(record.CampaignID).Set(ctx, map[string]any{"failed": firestore.Increment(1), "updatedAt": time.Now().UTC()}, firestore.MergeAll)
-			return marketingMessageSent{}, fmt.Errorf("email provider rejected a message; retry the batch")
+			_, _ = delivery.Set(ctx, map[string]any{"status": "failed", "failedAt": firestore.ServerTimestamp, "failure": "provider error"}, firestore.MergeAll)
+			deliveries[fingerprint] = "failed"
+			batchFailed++
+			continue
 		}
-		_, err = db.Collection("emailCampaigns").Doc(record.CampaignID).Collection("deliveries").Doc(fingerprint).Set(ctx, map[string]any{"status": "sent", "resendId": resendID, "sentAt": firestore.ServerTimestamp, "emailHash": emailFingerprint(person.Email), "unsubscribeTokenHash": marketingUnsubscribeTokenHash(token)})
+		_, err = delivery.Set(ctx, map[string]any{"status": "sent", "resendId": resendID, "sentAt": firestore.ServerTimestamp}, firestore.MergeAll)
 		if err != nil {
-			return marketingMessageSent{}, fmt.Errorf("email sent but campaign ledger update failed; retry safely")
+			return marketingMessageSent{}, fmt.Errorf("email delivery is recorded as attempted but its final status could not be saved; it will not be retried automatically")
 		}
-		sent[fingerprint] = true
+		deliveries[fingerprint] = "sent"
 		batchSent++
-		if batchSent < marketingMessageBatchSize {
+		if batchSent+batchFailed < marketingMessageBatchSize {
 			time.Sleep(250 * time.Millisecond)
 		}
 	}
-	sentCount := countMarketingMessageSent(audience, sent)
+	sentCount, failedCount := countMarketingMessageDeliveries(audience, deliveries)
 	record.Sent = sentCount
-	record.Remaining = max(0, len(audience)-sentCount)
-	record.Status = customCampaignStatus(len(audience), sentCount)
+	record.Failed = failedCount
+	record.Remaining = max(0, len(audience)-sentCount-failedCount)
+	record.Status = marketingMessageStatus(record.Remaining)
 	record.BatchCount++
 	record.UpdatedAt = time.Now().UTC()
 	if batchSent > 0 {
@@ -308,25 +374,30 @@ func sendMarketingMessageBatch(ctx context.Context, input marketingMessageReques
 	if _, err := db.Collection("emailCampaigns").Doc(record.CampaignID).Set(ctx, record); err != nil {
 		return marketingMessageSent{}, err
 	}
-	return marketingMessageSent{CampaignID: record.CampaignID, Eligible: len(audience), Sent: sentCount, BatchSent: batchSent, Remaining: record.Remaining, Message: marketingMessageBatchMessage(batchSent, record.Remaining)}, nil
+	return marketingMessageSent{CampaignID: record.CampaignID, Eligible: len(audience), Sent: sentCount, Failed: failedCount, BatchSent: batchSent, BatchFailed: batchFailed, Remaining: record.Remaining, Message: marketingMessageBatchMessage(batchSent, batchFailed, record.Remaining)}, nil
 }
 
 func loadOrCreateMarketingMessageRecord(ctx context.Context, db *firestore.Client, input marketingMessageRequest, eligible int) (marketingMessageRecord, error) {
-	id := strings.TrimSpace(input.CampaignID)
+	id := marketingMessageCampaignID(input)
 	doc := db.Collection("emailCampaigns").Doc(id)
 	snapshot, err := doc.Get(ctx)
 	if err == nil {
 		var record marketingMessageRecord
-		if err := snapshot.DataTo(&record); err != nil || record.Kind != marketingMessageKind || record.Name != strings.TrimSpace(input.Name) || record.Subject != strings.TrimSpace(input.Subject) || record.Markdown != input.Markdown || record.TemplateID != strings.TrimSpace(input.TemplateID) {
+		if err := snapshot.DataTo(&record); err != nil || record.Kind != marketingMessageKind || !marketingMessageRecordsMatch(record, input) {
 			return marketingMessageRecord{}, fmt.Errorf("campaign changed; preview again")
-		}
-		if record.Eligible != eligible {
-			return marketingMessageRecord{}, fmt.Errorf("The consented audience changed; preview again before sending.")
 		}
 		return record, nil
 	}
 	if status.Code(err) != codes.NotFound {
 		return marketingMessageRecord{}, err
+	}
+	// Earlier versions generated a browser-side campaign ID. Reuse a matching
+	// legacy record rather than starting the same content again and risking a
+	// third message to recipients already recorded there.
+	if legacy, err := matchingMarketingMessageRecords(ctx, db, input); err != nil {
+		return marketingMessageRecord{}, err
+	} else if len(legacy) > 0 {
+		return legacy[0], nil
 	}
 	now := time.Now().UTC()
 	record := marketingMessageRecord{CampaignID: id, Kind: marketingMessageKind, TemplateID: strings.TrimSpace(input.TemplateID), Name: strings.TrimSpace(input.Name), Subject: strings.TrimSpace(input.Subject), Markdown: input.Markdown, Eligible: eligible, Remaining: eligible, Status: "draft", CreatedAt: now, UpdatedAt: now}
@@ -336,20 +407,221 @@ func loadOrCreateMarketingMessageRecord(ctx context.Context, db *firestore.Clien
 	return record, nil
 }
 
-func countMarketingMessageSent(audience []campaignRecipient, sent map[string]bool) int {
-	count := 0
-	for _, person := range audience {
-		if sent[campaignEmailFingerprint(person.Email)] {
-			count++
+func matchingMarketingMessageRecords(ctx context.Context, db *firestore.Client, input marketingMessageRequest) ([]marketingMessageRecord, error) {
+	iter := db.Collection("emailCampaigns").Where("kind", "==", marketingMessageKind).Documents(ctx)
+	defer iter.Stop()
+	result := []marketingMessageRecord{}
+	for {
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			sort.Slice(result, func(i, j int) bool {
+				if result[i].CreatedAt.Equal(result[j].CreatedAt) {
+					return result[i].CampaignID < result[j].CampaignID
+				}
+				return result[i].CreatedAt.Before(result[j].CreatedAt)
+			})
+			return result, nil
+		}
+		if err != nil {
+			return nil, err
+		}
+		var record marketingMessageRecord
+		if err := doc.DataTo(&record); err != nil {
+			continue
+		}
+		if record.CampaignID == "" {
+			record.CampaignID = doc.Ref.ID
+		}
+		if marketingMessageRecordsMatch(record, input) {
+			result = append(result, record)
 		}
 	}
-	return count
 }
-func marketingMessageBatchMessage(batchSent, remaining int) string {
+
+func containsMarketingMessageRecord(records []marketingMessageRecord, campaignID string) bool {
+	for _, record := range records {
+		if record.CampaignID == campaignID {
+			return true
+		}
+	}
+	return false
+}
+
+func marketingMessageRecordsMatch(record marketingMessageRecord, input marketingMessageRequest) bool {
+	if strings.TrimSpace(input.TemplateID) != "" {
+		// Prepared templates can contain live aggregate values. Those values must
+		// not turn a later preview of the same campaign into a fresh mailing.
+		return record.TemplateID == strings.TrimSpace(input.TemplateID) &&
+			record.Name == strings.TrimSpace(input.Name) &&
+			record.Subject == strings.TrimSpace(input.Subject)
+	}
+	return record.Name == strings.TrimSpace(input.Name) &&
+		record.Subject == strings.TrimSpace(input.Subject) &&
+		record.Markdown == input.Markdown &&
+		record.TemplateID == ""
+}
+
+// A started message keeps its original time boundary. New registrations can be
+// included in the next campaign, but cannot silently enter one the administrator
+// already confirmed.
+func marketingMessageCampaignAudience(record marketingMessageRecord, audience []campaignRecipient) []campaignRecipient {
+	if record.CreatedAt.IsZero() {
+		return audience
+	}
+	result := make([]campaignRecipient, 0, len(audience))
+	for _, person := range audience {
+		if !person.CreatedAt.After(record.CreatedAt) {
+			result = append(result, person)
+		}
+	}
+	return result
+}
+
+func loadMarketingMessageDeliveries(ctx context.Context, db *firestore.Client, id string) (map[string]string, error) {
+	result := map[string]string{}
+	iter := db.Collection("emailCampaigns").Doc(id).Collection("deliveries").Documents(ctx)
+	defer iter.Stop()
+	for {
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			return result, nil
+		}
+		if err != nil {
+			return nil, err
+		}
+		var delivery struct {
+			Status string `firestore:"status"`
+		}
+		if err := doc.DataTo(&delivery); err == nil && delivery.Status != "" {
+			result[doc.Ref.ID] = delivery.Status
+		}
+	}
+}
+
+func mergeMarketingMessageDeliveries(destination, source map[string]string) {
+	for fingerprint, sourceStatus := range source {
+		if marketingMessageDeliveryStatusPriority(sourceStatus) > marketingMessageDeliveryStatusPriority(destination[fingerprint]) {
+			destination[fingerprint] = sourceStatus
+		}
+	}
+}
+
+func marketingMessageDeliveryStatusPriority(status string) int {
+	switch status {
+	case "sent":
+		return 3
+	case "failed":
+		return 2
+	case "attempting":
+		return 1
+	default:
+		return 0
+	}
+}
+
+func marketingMessageDeliveryList(ctx context.Context, db *firestore.Client, id string) ([]marketingMessageDelivery, error) {
+	emailByHash := map[string]string{}
+	joins := db.Collection("joinSubmissions").Documents(ctx)
+	for {
+		doc, err := joins.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			joins.Stop()
+			return nil, err
+		}
+		var join struct {
+			UserEmailHash string `firestore:"userEmailHash"`
+			Contact       struct {
+				Email string `firestore:"email"`
+			} `firestore:"contact"`
+		}
+		if doc.DataTo(&join) == nil && join.UserEmailHash != "" && join.Contact.Email != "" {
+			emailByHash[join.UserEmailHash] = join.Contact.Email
+		}
+	}
+	joins.Stop()
+	result := []marketingMessageDelivery{}
+	iter := db.Collection("emailCampaigns").Doc(id).Collection("deliveries").Documents(ctx)
+	defer iter.Stop()
+	for {
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		var row struct {
+			Status      string    `firestore:"status"`
+			ResendID    string    `firestore:"resendId"`
+			EmailHash   string    `firestore:"emailHash"`
+			AttemptedAt time.Time `firestore:"attemptedAt"`
+			SentAt      time.Time `firestore:"sentAt"`
+		}
+		if doc.DataTo(&row) != nil {
+			continue
+		}
+		result = append(result, marketingMessageDelivery{MaskedRecipient: maskedEmail(emailByHash[row.EmailHash]), Status: row.Status, ResendID: row.ResendID, AttemptedAt: row.AttemptedAt, SentAt: row.SentAt})
+	}
+	sort.Slice(result, func(i, j int) bool { return result[i].MaskedRecipient < result[j].MaskedRecipient })
+	return result, nil
+}
+
+func countMarketingMessageDeliveries(audience []campaignRecipient, deliveries map[string]string) (int, int) {
+	sent, failed := 0, 0
+	for _, person := range audience {
+		switch deliveries[campaignEmailFingerprint(person.Email)] {
+		case "sent":
+			sent++
+		case "failed", "attempting":
+			failed++
+		}
+	}
+	return sent, failed
+}
+
+func marketingMessageStatus(remaining int) string {
 	if remaining == 0 {
+		return "complete"
+	}
+	return "sending"
+}
+
+func marketingMessageBatchMessage(batchSent, batchFailed, remaining int) string {
+	if remaining == 0 {
+		if batchFailed > 0 {
+			return fmt.Sprintf("The campaign is complete: %d email(s) were sent and %d failed or were left as attempted. Failed recipients are deliberately excluded from automatic retries.", batchSent, batchFailed)
+		}
 		return "All consented members have now been emailed."
 	}
+	if batchFailed > 0 {
+		return fmt.Sprintf("Sent %d email(s); %d recipient(s) failed and will not be retried automatically. %d remain; confirm again to send the next batch of up to %d.", batchSent, batchFailed, remaining, marketingMessageBatchSize)
+	}
 	return fmt.Sprintf("Sent %d email(s). %d remain; confirm again to send the next batch of up to %d.", batchSent, remaining, marketingMessageBatchSize)
+}
+
+func marketingMessageCampaignID(input marketingMessageRequest) string {
+	content := marketingMessageCampaignContent(input)
+	sum := sha256.Sum256([]byte(content))
+	return "marketing_" + hex.EncodeToString(sum[:])[:24]
+}
+
+func marketingMessageCampaignContent(input marketingMessageRequest) string {
+	if templateID := strings.TrimSpace(input.TemplateID); templateID != "" {
+		if template, ok := marketingMessageTemplateSource(templateID); ok {
+			// Use source-controlled template content rather than the rendered copy,
+			// whose evidence totals change between previews.
+			return strings.Join([]string{"template", template.ID, template.Name, template.Subject, template.Markdown}, "\x00")
+		}
+	}
+	return strings.Join([]string{
+		"custom",
+		strings.TrimSpace(input.Name),
+		strings.TrimSpace(input.Subject),
+		input.Markdown,
+	}, "\x00")
 }
 func marketingUnsubscribeTokenHash(token string) string {
 	sum := sha256.Sum256([]byte(token))
@@ -362,7 +634,12 @@ func marketingUnsubscribeURL(campaignID, token string) string {
 func sendMarketingMessagePayload(ctx context.Context, email, subject, htmlBody, text, campaignID, unsubscribeURL string) (string, error) {
 	payload := map[string]any{
 		"from": strings.TrimSpace(os.Getenv("RESEND_FROM")), "to": []string{email}, "subject": subject,
-		"html": htmlBody, "text": text, "tags": []map[string]string{{"name": "category", "value": marketingMessageKind}},
+		"html": htmlBody,
+		"text": text,
+		"tags": []map[string]string{
+			{"name": "category", "value": marketingMessageKind},
+			{"name": "campaign_id", "value": campaignID},
+		},
 		"headers": map[string]string{"List-Unsubscribe": "<" + unsubscribeURL + ">", "List-Unsubscribe-Post": "List-Unsubscribe=One-Click"},
 	}
 	if reply := strings.TrimSpace(os.Getenv("RESEND_REPLY_TO")); reply != "" {

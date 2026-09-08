@@ -15,9 +15,14 @@
   var confirm = root.querySelector('[data-marketing-message-confirm]');
   var status = root.querySelector('[data-marketing-message-status]');
   var preview = root.querySelector('[data-marketing-message-preview-panel]');
+  var sendButton = root.querySelector('[data-marketing-message-send-button]');
+  var deliveries = root.querySelector('[data-marketing-message-deliveries]');
+  var deliverySummary = root.querySelector('[data-marketing-message-delivery-summary]');
+  var deliveryList = root.querySelector('[data-marketing-message-delivery-list]');
   var current;
   var templates;
   var loadingTemplate = false;
+  var sending = false;
 
   function newCampaignID() {
     if (window.crypto && window.crypto.randomUUID) return 'marketing_' + window.crypto.randomUUID().replace(/-/g, '');
@@ -41,7 +46,12 @@
       });
     }).then(function (response) {
       return response.json().then(function (data) {
-        if (!response.ok) throw new Error(data.error || 'Request failed.');
+        if (!response.ok) {
+          var error = new Error(data.error || 'Request failed.');
+          error.status = response.status;
+          error.data = data;
+          throw error;
+        }
         return data;
       });
     });
@@ -59,12 +69,45 @@
     };
   }
 
+  function loadDeliveries() {
+    if (!campaignID.value) return;
+    request('/api/admin/marketing-message-deliveries', {campaignId: campaignID.value}).then(function (data) {
+      var items = data.deliveries || [];
+      var sent = items.filter(function (item) { return item.status === 'sent'; }).length;
+      var held = items.length - sent;
+      deliveries.hidden = false;
+      deliverySummary.textContent = 'Campaign history: ' + sent + ' recipient(s) were sent previously. The date below is the original send time, not the time you opened this page.' + (held ? ' ' + held + ' recipient(s) are held for review and will not be retried automatically.' : '');
+      while (deliveryList.firstChild) deliveryList.removeChild(deliveryList.firstChild);
+      items.forEach(function (item) {
+        var entry = document.createElement('li');
+        entry.textContent = (item.maskedRecipient || 'Unknown recipient') + ' — ' + deliveryStatusLabel(item) + (item.resendId ? ' (' + item.resendId + ')' : '');
+        deliveryList.appendChild(entry);
+      });
+    }).catch(function (error) {
+      status.textContent = error.message;
+    });
+  }
+
+  function deliveryStatusLabel(item) {
+    if (item.status === 'sent') return 'already sent on ' + deliveryTimestamp(item.sentAt);
+    if (item.status === 'failed') return 'delivery problem — held for review';
+    if (item.status === 'attempting') return 'delivery status uncertain — held for review';
+    return 'held for review';
+  }
+
+  function deliveryTimestamp(value) {
+    var timestamp = new Date(value);
+    if (isNaN(timestamp.getTime())) return 'an earlier date';
+    return timestamp.toLocaleString('en-GB', {dateStyle: 'medium', timeStyle: 'short'});
+  }
+
   function invalidate() {
     current = null;
     campaignID.value = newCampaignID();
     confirm.value = '';
     preview.hidden = true;
     sendForm.hidden = true;
+    deliveries.hidden = true;
   }
 
   function editedMessage() {
@@ -135,19 +178,34 @@
 
   sendForm.addEventListener('submit', function (event) {
     event.preventDefault();
-    if (!current) return;
+    if (!current || sending) return;
+    sending = true;
+    sendButton.disabled = true;
     status.textContent = 'Sending the next batch of up to 100 consented members…';
     request('/api/admin/marketing-message-send', payload()).then(function (data) {
       current.eligible = data.eligible;
       campaignID.value = data.campaignId;
       confirm.value = '';
-      status.textContent = data.message;
-      root.querySelector('[data-marketing-message-audience]').textContent = data.sent + ' of ' + data.eligible + ' consented members emailed. ' + data.remaining + ' remain.';
+      status.textContent = 'Batch complete: ' + data.batchSent + ' new email(s) sent' + (data.batchFailed ? ', and ' + data.batchFailed + ' held for review' : '') + '. ' + data.remaining + ' recipient(s) remain.';
+      root.querySelector('[data-marketing-message-audience]').textContent = 'Campaign progress: ' + data.sent + ' already sent, ' + data.failed + ' held for review, and ' + data.remaining + ' remaining out of ' + data.eligible + ' consented members.';
+      loadDeliveries();
       if (data.remaining === 0) {
         sendForm.hidden = true;
       }
     }).catch(function (error) {
+      if (error.status === 409 && error.data && error.data.eligible) {
+        current.eligible = error.data.eligible;
+        confirm.value = '';
+        root.querySelector('[data-marketing-message-audience]').textContent = error.data.eligible + ' members currently consent to group communications.';
+        root.querySelector('[data-marketing-message-confirm-hint]').textContent = 'The audience changed. Type “' + error.data.confirmation + '” to confirm the updated count.';
+      }
+      if (error.message.indexOf('earlier provider failure without a recipient ledger entry') !== -1) {
+        loadDeliveries();
+      }
       status.textContent = error.message;
+    }).finally(function () {
+      sending = false;
+      sendButton.disabled = false;
     });
   });
 }());
