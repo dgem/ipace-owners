@@ -82,7 +82,7 @@
       var sent = items.filter(function (item) { return item.status === 'sent'; }).length;
       var held = items.length - sent;
       deliveries.hidden = false;
-      deliverySummary.textContent = 'Campaign history: ' + sent + ' recipient(s) were sent previously. The date below is the original send time, not the time you opened this page.' + (held ? ' ' + held + ' recipient(s) are held for review and will not be retried automatically.' : '');
+      deliverySummary.textContent = 'Campaign history: ' + sent + ' recipient(s) sent. Sent recipients appear first, followed by ' + held + ' held for review. Dates are the original delivery times, not the time you opened this page.';
       while (deliveryList.firstChild) deliveryList.removeChild(deliveryList.firstChild);
       items.forEach(function (item) {
         var entry = document.createElement('li');
@@ -95,7 +95,7 @@
   }
 
   function deliveryStatusLabel(item) {
-    if (item.status === 'sent') return 'already sent on ' + deliveryTimestamp(item.sentAt);
+    if (item.status === 'sent') return 'sent on ' + deliveryTimestamp(item.sentAt);
     if (item.status === 'failed') return 'delivery problem — held for review';
     if (item.status === 'attempting') return 'delivery status uncertain — held for review';
     return 'held for review';
@@ -171,7 +171,7 @@
       campaignID.value = data.campaignId || campaignID.value;
       preview.hidden = false;
       sendForm.hidden = false;
-      root.querySelector('[data-marketing-message-audience]').textContent = data.eligible + ' members currently consent to group communications.';
+      root.querySelector('[data-marketing-message-audience]').textContent = data.eligible + ' registered members are currently eligible for group communications.';
       root.querySelector('[data-marketing-message-subject-preview]').textContent = data.subject;
       root.querySelector('[data-marketing-message-html]').srcdoc = data.html;
       root.querySelector('[data-marketing-message-text]').textContent = data.text;
@@ -202,7 +202,7 @@
       if (error.status === 409 && error.data && error.data.eligible) {
         current.eligible = error.data.eligible;
         confirm.value = '';
-        root.querySelector('[data-marketing-message-audience]').textContent = error.data.eligible + ' members currently consent to group communications.';
+        root.querySelector('[data-marketing-message-audience]').textContent = error.data.eligible + ' registered members are currently eligible for group communications.';
         root.querySelector('[data-marketing-message-confirm-hint]').textContent = 'The audience changed. Type “' + error.data.confirmation + '” to confirm the updated count.';
       }
       if (error.message.indexOf('earlier provider failure without a recipient ledger entry') !== -1) {

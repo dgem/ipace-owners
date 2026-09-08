@@ -18,15 +18,17 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
+	"firebase.google.com/go/v4/auth"
 	"google.golang.org/api/iterator"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 const (
-	marketingMessageMarkdownMax = 20000
-	marketingMessageBatchSize   = 100
-	marketingMessageKind        = "marketing-message"
+	marketingMessageMarkdownMax     = 20000
+	marketingMessageBatchSize       = 100
+	marketingMessageKind            = "marketing-message"
+	communicationsConsentCollection = "communicationsConsents"
 )
 
 var marketingMessagePlaceholderRegexp = regexp.MustCompile(`\{\{[^}]+\}\}`)
@@ -105,6 +107,17 @@ type marketingMessageRecord struct {
 	LastSentAt time.Time `firestore:"lastSentAt,omitempty"`
 }
 
+type marketingJoinConsent struct {
+	Recipient campaignRecipient
+	Contact   bool
+}
+
+type communicationsConsentRecord struct {
+	Contact   bool      `firestore:"contact"`
+	Source    string    `firestore:"source"`
+	UpdatedAt time.Time `firestore:"updatedAt"`
+}
+
 var marketingMessageAudience = loadMarketingMessageAudience
 var marketingMessageStats = buildPublicStatsSnapshot
 
@@ -172,12 +185,31 @@ func AdminMarketingMessageSend(w http.ResponseWriter, r *http.Request) {
 	}
 	sent, err := sendMarketingMessageBatch(r.Context(), input, audience)
 	if err != nil {
-		logEvent("admin-marketing-message-send", "error", "batch failed", map[string]any{"error": err.Error()})
+		logEvent("admin-marketing-message-send", "error", "batch failed", addAuthTrace(map[string]any{
+			"campaignId": marketingMessageCampaignID(input),
+			"eligible":   len(audience),
+			"error":      err.Error(),
+		}, r))
 		writeJSON(w, http.StatusBadGateway, map[string]any{"error": err.Error()})
 		return
 	}
-	logEvent("admin-marketing-message-send", "info", "batch sent", map[string]any{"eligible": len(audience), "campaignId": sent.CampaignID, "batchSent": sent.BatchSent})
+	logEvent("admin-marketing-message-send", "info", "batch completed", addAuthTrace(marketingMessageBatchLogFields(sent), r))
 	writeJSON(w, http.StatusOK, sent)
+}
+
+// marketingMessageBatchLogFields deliberately contains only aggregate delivery
+// information. Recipient addresses and provider message IDs belong in the
+// admin-only delivery ledger, never the shared Cloud log stream.
+func marketingMessageBatchLogFields(sent marketingMessageSent) map[string]any {
+	return map[string]any{
+		"campaignId":  sent.CampaignID,
+		"eligible":    sent.Eligible,
+		"batchSent":   sent.BatchSent,
+		"batchFailed": sent.BatchFailed,
+		"sent":        sent.Sent,
+		"failed":      sent.Failed,
+		"remaining":   sent.Remaining,
+	}
 }
 
 func AdminMarketingMessageDeliveries(w http.ResponseWriter, r *http.Request) {
@@ -253,7 +285,7 @@ func previewMarketingMessage(ctx context.Context, input marketingMessageRequest)
 	}
 	markdown := renderMarketingMessageMarkdown(input.Markdown, previewRecipient)
 	previewUnsubscribeURL := "https://ipace-owners.org/api/email-unsubscribe?campaign=preview&token=preview-token"
-	return marketingMessagePreview{CampaignID: marketingMessageCampaignID(input), Eligible: len(audience), Subject: strings.TrimSpace(input.Subject), HTML: marketingMessageHTML(markdown, input.TemplateID, previewUnsubscribeURL), Text: marketingMessageText(markdown, previewUnsubscribeURL), Confirmation: fmt.Sprintf("SEND %d", len(audience)), Notice: fmt.Sprintf("Only members who opted in to group communications are included. Emails are sent in resumable batches of %d; previewing never sends email.", marketingMessageBatchSize)}, nil
+	return marketingMessagePreview{CampaignID: marketingMessageCampaignID(input), Eligible: len(audience), Subject: strings.TrimSpace(input.Subject), HTML: marketingMessageHTML(markdown, input.TemplateID, previewUnsubscribeURL), Text: marketingMessageText(markdown, previewUnsubscribeURL), Confirmation: fmt.Sprintf("SEND %d", len(audience)), Notice: fmt.Sprintf("All registered members are included unless they have opted out of group communications. Emails are sent in resumable batches of %d; previewing never sends email.", marketingMessageBatchSize)}, nil
 }
 
 func validateMarketingMessage(input marketingMessageRequest) error {
@@ -285,8 +317,141 @@ func loadMarketingMessageAudience(ctx context.Context) ([]campaignRecipient, err
 	if err != nil {
 		return nil, err
 	}
-	// loadCampaignJoins is the canonical, consent-only Join audience. It does not require an account sign-in.
-	return loadCampaignJoins(ctx, db)
+	joins, err := loadMarketingJoinConsents(ctx, db)
+	if err != nil {
+		return nil, err
+	}
+	preferences, err := loadCommunicationsConsentRecords(ctx, db)
+	if err != nil {
+		return nil, err
+	}
+	authClient, err := firebaseAuth(ctx)
+	if err != nil {
+		return nil, err
+	}
+	legacyAccounts, err := loadVerifiedMarketingAccounts(ctx, authClient)
+	if err != nil {
+		return nil, err
+	}
+	return marketingAudienceFromSources(joins, legacyAccounts, preferences), nil
+}
+
+// Marketing reaches the complete member population. Current Join records provide
+// recorded consent, while historic verified Firebase Auth accounts were created only
+// through the former required-contact-consent membership journey. An explicit
+// withdrawal in either source always wins.
+func marketingAudienceFromSources(joins map[string]marketingJoinConsent, legacyAccounts []campaignRecipient, preferences map[string]communicationsConsentRecord) []campaignRecipient {
+	result := map[string]campaignRecipient{}
+	for key, join := range joins {
+		if !join.Contact || !marketingRecipientContactAllowed(join.Recipient.Email, preferences) {
+			continue
+		}
+		result[key] = join.Recipient
+	}
+	for _, account := range legacyAccounts {
+		key := canonicalCampaignEmail(account.Email)
+		if key == "" || !marketingRecipientContactAllowed(account.Email, preferences) {
+			continue
+		}
+		if join, exists := joins[key]; exists {
+			if !join.Contact || !marketingRecipientContactAllowed(join.Recipient.Email, preferences) {
+				continue
+			}
+			continue
+		}
+		if _, exists := result[key]; !exists {
+			result[key] = account
+		}
+	}
+	audience := make([]campaignRecipient, 0, len(result))
+	for _, person := range result {
+		audience = append(audience, person)
+	}
+	sort.Slice(audience, func(i, j int) bool { return audience[i].Email < audience[j].Email })
+	return audience
+}
+
+func marketingRecipientContactAllowed(email string, preferences map[string]communicationsConsentRecord) bool {
+	preference, exists := preferences[emailFingerprint(strings.TrimSpace(email))]
+	return !exists || preference.Contact
+}
+
+func loadMarketingJoinConsents(ctx context.Context, db *firestore.Client) (map[string]marketingJoinConsent, error) {
+	result := map[string]marketingJoinConsent{}
+	iter := db.Collection("joinSubmissions").Documents(ctx)
+	defer iter.Stop()
+	for {
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			return result, nil
+		}
+		if err != nil {
+			return nil, err
+		}
+		var row joinRecord
+		if err := doc.DataTo(&row); err != nil {
+			return nil, err
+		}
+		email := strings.ToLower(strings.TrimSpace(row.Contact.Email))
+		key := canonicalCampaignEmail(email)
+		if key == "" {
+			continue
+		}
+		existing, exists := result[key]
+		if !row.Consents.Contact {
+			result[key] = marketingJoinConsent{Contact: false}
+			continue
+		}
+		if exists && !existing.Contact {
+			continue
+		}
+		if !exists || row.CreatedAt.Before(existing.Recipient.CreatedAt) {
+			result[key] = marketingJoinConsent{Recipient: campaignRecipient{Name: strings.TrimSpace(row.Contact.Name), Email: email, CreatedAt: row.CreatedAt}, Contact: true}
+		}
+	}
+}
+
+func loadCommunicationsConsentRecords(ctx context.Context, db *firestore.Client) (map[string]communicationsConsentRecord, error) {
+	result := map[string]communicationsConsentRecord{}
+	iter := db.Collection(communicationsConsentCollection).Documents(ctx)
+	defer iter.Stop()
+	for {
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			return result, nil
+		}
+		if err != nil {
+			return nil, err
+		}
+		var record communicationsConsentRecord
+		if err := doc.DataTo(&record); err != nil {
+			return nil, err
+		}
+		result[doc.Ref.ID] = record
+	}
+}
+
+func loadVerifiedMarketingAccounts(ctx context.Context, client *auth.Client) ([]campaignRecipient, error) {
+	result := []campaignRecipient{}
+	iter := client.Users(ctx, "")
+	for {
+		user, err := iter.Next()
+		if err == iterator.Done {
+			return result, nil
+		}
+		if err != nil {
+			return nil, err
+		}
+		email := strings.ToLower(strings.TrimSpace(user.Email))
+		if email == "" || !user.EmailVerified {
+			continue
+		}
+		createdAt := time.Time{}
+		if user.UserMetadata != nil && user.UserMetadata.CreationTimestamp > 0 {
+			createdAt = time.UnixMilli(user.UserMetadata.CreationTimestamp).UTC()
+		}
+		result = append(result, campaignRecipient{Name: strings.TrimSpace(user.DisplayName), Email: email, CreatedAt: createdAt})
+	}
 }
 
 func renderMarketingMessageMarkdown(markdown string, person campaignRecipient) string {
@@ -593,8 +758,40 @@ func marketingMessageDeliveryListForRecords(ctx context.Context, db *firestore.C
 	for _, delivery := range byEmailHash {
 		result = append(result, delivery)
 	}
-	sort.Slice(result, func(i, j int) bool { return result[i].MaskedRecipient < result[j].MaskedRecipient })
+	sortMarketingMessageDeliveriesForDisplay(result)
 	return result, nil
+}
+
+// sortMarketingMessageDeliveriesForDisplay puts completed sends ahead of entries
+// held for review. Within each group, the most recent activity is the useful
+// operator view; recipient ordering is only a stable final tie-breaker.
+func sortMarketingMessageDeliveriesForDisplay(deliveries []marketingMessageDelivery) {
+	sort.Slice(deliveries, func(i, j int) bool {
+		left, right := marketingMessageDeliveryDisplayPriority(deliveries[i].Status), marketingMessageDeliveryDisplayPriority(deliveries[j].Status)
+		if left != right {
+			return left < right
+		}
+		leftTime := marketingMessageDeliveryActivityAt(deliveries[i])
+		rightTime := marketingMessageDeliveryActivityAt(deliveries[j])
+		if !leftTime.Equal(rightTime) {
+			return leftTime.After(rightTime)
+		}
+		return deliveries[i].MaskedRecipient < deliveries[j].MaskedRecipient
+	})
+}
+
+func marketingMessageDeliveryDisplayPriority(status string) int {
+	if status == "sent" {
+		return 0
+	}
+	return 1
+}
+
+func marketingMessageDeliveryActivityAt(delivery marketingMessageDelivery) time.Time {
+	if !delivery.SentAt.IsZero() {
+		return delivery.SentAt
+	}
+	return delivery.AttemptedAt
 }
 
 func shouldReplaceMarketingMessageDelivery(existing, candidate marketingMessageDelivery) bool {
@@ -760,7 +957,6 @@ func MarketingMessageUnsubscribe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	joinIter := db.Collection("joinSubmissions").Where("userEmailHash", "==", delivery.EmailHash).Documents(r.Context())
-	updated := 0
 	for {
 		join, err := joinIter.Next()
 		if err == iterator.Done {
@@ -776,11 +972,10 @@ func MarketingMessageUnsubscribe(w http.ResponseWriter, r *http.Request) {
 			marketingUnsubscribeResponse(w, r, http.StatusServiceUnavailable, "We could not update your preferences. Please try again shortly.")
 			return
 		}
-		updated++
 	}
 	joinIter.Stop()
-	if updated == 0 {
-		marketingUnsubscribeResponse(w, r, http.StatusNotFound, "This unsubscribe link is invalid or has expired.")
+	if _, err := db.Collection(communicationsConsentCollection).Doc(delivery.EmailHash).Set(r.Context(), map[string]any{"contact": false, "source": "unsubscribe", "updatedAt": time.Now().UTC()}, firestore.MergeAll); err != nil {
+		marketingUnsubscribeResponse(w, r, http.StatusServiceUnavailable, "We could not update your preferences. Please try again shortly.")
 		return
 	}
 	logEvent("marketing-message-unsubscribe", "info", "communications consent withdrawn", map[string]any{"campaignId": campaignID, "emailHash": delivery.EmailHash})

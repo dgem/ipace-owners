@@ -45,15 +45,15 @@ func UpdateMemberPreferences(w http.ResponseWriter, r *http.Request) {
 		})
 		count++
 	}
-	if count == 0 {
-		writeJSON(w, http.StatusNotFound, map[string]any{"error": "Membership record not found"})
-		return
-	}
+	consentRef := db.Collection(communicationsConsentCollection).Doc(emailFingerprint(user.Email))
+	batch.Set(consentRef, map[string]any{"contact": *req.Contact, "source": "member-preferences", "updatedAt": time.Now().UTC()}, firestore.MergeAll)
 	if _, err := batch.Commit(r.Context()); err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Could not update preferences"})
 		return
 	}
-	regenerateMemberAndPublicSnapshots(r, user.UID, user.Email)
+	if count > 0 {
+		regenerateMemberAndPublicSnapshots(r, user.UID, user.Email)
+	}
 	writeJSON(w, http.StatusOK, map[string]any{"ok": true})
 }
 

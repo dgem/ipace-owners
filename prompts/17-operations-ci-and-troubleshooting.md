@@ -21,8 +21,9 @@ batches and stop to investigate any provider or ledger error.
 All group-wide messages use `/admin/marketing-messages/` and resumable direct Resend email batches, never the
 resumable reminder batches. Prepared source-controlled templates cover the September survey, JLR
 meeting update, finding more owners and growing the evidence base. They always target the
-canonical-email-deduplicated Join audience that consented to communications, including people who
-have not completed magic-link sign-in. Load the template and public evidence totals server-side,
+canonical-email-deduplicated member audience: verified historic Firebase Auth accounts (whose
+membership flow required contact consent) and modern Join registrations, excluding explicit
+withdrawals. Load the template and public evidence totals server-side,
 preview without a provider side effect, then require the current `SEND <count>` confirmation.
 Each direct message is first claimed in a hashed Firestore delivery ledger, then submitted to
 Resend with both a provider idempotency key and a `campaign_id` tag. `attempting` and failed
@@ -34,8 +35,8 @@ needs a newly minted private sign-in link.
 Prepared marketing templates use their stable source-controlled template identity for that
 campaign ID, rather than their rendered evidence totals. A changed public counter must therefore
 not cause another copy of an already-started template to be sent. Each continuation uses the
-current communications-consented audience, so a member who joins or opts in after an earlier
-batch can still receive the campaign. When legacy browser-generated campaign IDs exist for the
+current eligible audience, so a member who joins, completes historic verification, or opts in after
+an earlier batch can still receive the campaign. When legacy browser-generated campaign IDs exist for the
 same prepared template, union every matching delivery ledger before sending; a recipient recorded
 in any one of them is ineligible for another copy. Give a materially
 new prepared message a new template ID; a custom message is identified by its complete copy. The
@@ -65,10 +66,10 @@ post-delivery summary retry cannot resend recipients. “Tweak and rerun” clon
 content into a new run; never edit a run after delivery starts. History may infer old specialised
 runs from legacy delivery-only subcollections, where only the sent count is recoverable.
 
-The fixed September Survey invitation is a group-wide member poll. It may reach every
-communication-consented Join registration, including members who have not completed magic-link
-sign-in; it must never reach a member without recorded contact consent. This is the widest
-permitted member-email audience.
+The fixed September Survey invitation is a group-wide member poll. It may reach every verified
+historic member account and every modern Join registration, including members who have not
+completed magic-link sign-in; an explicit withdrawal through account preferences or the email
+unsubscribe flow always excludes the member. This is the widest permitted member-email audience.
 Refreshing history must reconcile stored Resend IDs with the paginated sent-email API, cache
 provider checks for five minutes, and aggregate delivered, awaiting-delivery, opened, clicked,
 delayed, bounced, suppressed, complained, provider-failed and combined-undeliverable outcomes

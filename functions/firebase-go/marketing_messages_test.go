@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestMarketingMessagePreviewUsesConsentedAudienceAndPersonalisation(t *testing.T) {
@@ -47,6 +48,39 @@ func TestMarketingMessageBatchUsesOpaqueUnsubscribeTokens(t *testing.T) {
 	}
 	if got := renderMarketingMessageMarkdown("Hello {{firstName}}", campaignRecipient{Email: "noname@example.com"}); got != "Hello member" {
 		t.Fatalf("missing-name personalisation = %q", got)
+	}
+}
+
+func TestMarketingMessageBatchLogFieldsAreAggregateOnly(t *testing.T) {
+	fields := marketingMessageBatchLogFields(marketingMessageSent{
+		CampaignID:  "marketing_123",
+		Eligible:    1300,
+		BatchSent:   100,
+		BatchFailed: 1,
+		Sent:        400,
+		Failed:      2,
+		Remaining:   898,
+	})
+	if fields["campaignId"] != "marketing_123" || fields["eligible"] != 1300 || fields["batchSent"] != 100 || fields["batchFailed"] != 1 || fields["sent"] != 400 || fields["failed"] != 2 || fields["remaining"] != 898 {
+		t.Fatalf("unexpected batch log fields: %#v", fields)
+	}
+	if len(fields) != 7 {
+		t.Fatalf("batch log fields must not contain recipient data: %#v", fields)
+	}
+}
+
+func TestMarketingMessageDeliveryDisplayOrdersSentBeforeHeld(t *testing.T) {
+	deliveries := []marketingMessageDelivery{
+		{MaskedRecipient: "z***@example.com", Status: "failed", AttemptedAt: time.Date(2026, 9, 8, 10, 0, 0, 0, time.UTC)},
+		{MaskedRecipient: "a***@example.com", Status: "sent", SentAt: time.Date(2026, 9, 8, 9, 0, 0, 0, time.UTC)},
+		{MaskedRecipient: "b***@example.com", Status: "sent", SentAt: time.Date(2026, 9, 8, 11, 0, 0, 0, time.UTC)},
+		{MaskedRecipient: "c***@example.com", Status: "attempting", AttemptedAt: time.Date(2026, 9, 8, 12, 0, 0, 0, time.UTC)},
+	}
+	sortMarketingMessageDeliveriesForDisplay(deliveries)
+	got := []string{deliveries[0].MaskedRecipient, deliveries[1].MaskedRecipient, deliveries[2].MaskedRecipient, deliveries[3].MaskedRecipient}
+	want := []string{"b***@example.com", "a***@example.com", "c***@example.com", "z***@example.com"}
+	if strings.Join(got, ",") != strings.Join(want, ",") {
+		t.Fatalf("display order = %#v, want %#v", got, want)
 	}
 }
 
@@ -92,6 +126,29 @@ func TestMarketingMessageCampaignIDIsStableForIdenticalContent(t *testing.T) {
 	}
 	if failures := countRecordedMarketingMessageFailures(statuses); failures != 2 {
 		t.Fatalf("recorded delivery failures = %d, want 2", failures)
+	}
+}
+
+func TestMarketingAudienceIncludesLegacyVerifiedMembersAndHonoursOptOuts(t *testing.T) {
+	joins := map[string]marketingJoinConsent{
+		"current@example.com":   {Recipient: campaignRecipient{Name: "Current Member", Email: "current@example.com"}, Contact: true},
+		"opted-out@example.com": {Contact: false},
+	}
+	legacy := []campaignRecipient{
+		{Name: "Current Account", Email: "current@example.com"},
+		{Name: "Legacy Member", Email: "legacy@example.com"},
+		{Name: "Opted Out", Email: "opted-out@example.com"},
+		{Name: "Preference Opt Out", Email: "preference@example.com"},
+	}
+	preferences := map[string]communicationsConsentRecord{
+		emailFingerprint("preference@example.com"): {Contact: false, Source: "unsubscribe"},
+	}
+	audience := marketingAudienceFromSources(joins, legacy, preferences)
+	if len(audience) != 2 {
+		t.Fatalf("audience = %#v, want current and legacy members", audience)
+	}
+	if audience[0].Email != "current@example.com" || audience[1].Email != "legacy@example.com" {
+		t.Fatalf("audience = %#v, want sorted current and legacy members", audience)
 	}
 }
 

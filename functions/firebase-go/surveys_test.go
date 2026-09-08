@@ -19,6 +19,19 @@ func TestValidateSurveyRequiresDatesAndOptions(t *testing.T) {
 	}
 }
 
+func TestSurveyAuditEventFieldsExcludeResponseContent(t *testing.T) {
+	fields := map[string]any{"responseCount": 12}
+	request := httptest.NewRequest("GET", "/api/member/surveys", nil)
+	request.Header.Set("X-Ipace-Auth-Trace", "IP-ABCD-2345")
+	event := surveyEventFields(request, "survey_example", fields)
+	if event["surveyId"] != "survey_example" || event["responseCount"] != 12 || event["authTrace"] != "IP-ABCD-2345" || len(event) != 3 {
+		t.Fatalf("survey audit fields = %#v", event)
+	}
+	if len(fields) != 1 {
+		t.Fatalf("caller fields were changed: %#v", fields)
+	}
+}
+
 func TestValidateSurveyAllowsMarkdownFieldsAndMultipleTextOptions(t *testing.T) {
 	record, err := validateSurvey(surveyInput{Title: "Preferred outcomes", Description: "**Context**", CallToAction: "Choose all that apply", StartsOn: "2026-08-29", EndsOn: "2026-08-30", Options: []surveyOption{{Name: "Other A", Description: "**Other** A", AllowsText: true, AllowsPreferred: true, TextPrompt: "How should we address this?"}, {Name: "Other B", Description: "Other B", AllowsText: true}}})
 	if err != nil || record.Status != "draft" || record.Description != "**Context**" || record.CallToAction != "Choose all that apply" || record.Options[0].Name != "Other A" || record.Options[0].Description != "**Other** A" || record.Options[0].TextPrompt != "How should we address this?" || record.Options[1].TextPrompt != "Optional detail" || !record.Options[0].AllowsText || !record.Options[1].AllowsText || !record.Options[0].AllowsPreferred || record.Options[1].AllowsPreferred {

@@ -413,11 +413,15 @@ sending it through a separately selected transactional email provider.
 
 ### Marketing messages
 
-`/admin/marketing-messages/` is the single purpose-built path for group-wide marketing updates. It includes source-controlled prepared campaigns for the September survey, JLR meeting update, member referral and evidence-growth drive, plus a blank message for new copy. The prior per-recipient versions are no longer routable from the admin API, so group-wide sends cannot accidentally bypass Resend's provider-managed unsubscribe behaviour. Before sending, an administrator sees the current number of canonical-email-deduplicated Join records that opted in to group communications and must type the exact `SEND <count>` confirmation. The preview has no Resend side effect.
+`/admin/marketing-messages/` is the single purpose-built path for group-wide marketing updates. It includes source-controlled prepared campaigns for the September survey, JLR meeting update, member referral and evidence-growth drive, plus a blank message for new copy. The prior per-recipient versions are no longer routable from the admin API, so group-wide sends cannot accidentally bypass Resend's provider-managed unsubscribe behaviour. Before sending, an administrator sees the current number of canonical-email-deduplicated registered members and must type the exact `SEND <count>` confirmation. The preview has no Resend side effect. Each send attempt writes a privacy-safe Cloud log event with its campaign ID and aggregate delivery counts (accepted, held/failed and remaining), plus the administrator's auth trace code when supplied; recipient addresses and provider message IDs are kept out of Cloud Logging.
 
-On confirmation, the Function reads the live consented audience and sends the message through Resend's normal email API in resumable batches of 100. Every continuation rechecks that live audience: members who consent after an earlier batch are eligible, while the recipient ledger skips anyone already recorded for the same prepared message. Before calling Resend, it atomically reserves each recipient in Firestore; an `attempting` or failed record is never retried automatically, including after a provider timeout or 502. This prevents a whole batch — or an uncertain recipient — being replayed. The admin UI shows the masked delivery ledger so an operator can reconcile failures before deciding on any manual follow-up. Only a member's email address and first name are sent to Resend; no vehicle, survey, evidence, or Firebase identity data is transferred. The message may use `{{firstName}}`; every email includes an opaque, recipient-specific unsubscribe link that updates the member's communications consent without requiring sign-in.
+On confirmation, the Function reads the live audience of verified historic Firebase Auth accounts and modern Join registrations, deduplicated by canonical email, then sends the message through Resend's normal email API in resumable batches of 100. All historic accounts were created through a required-contact-consent membership flow; an explicit withdrawal in a Join record, member preferences, or the email unsubscribe link overrides that historic consent. Every continuation rechecks that live audience while the recipient ledger skips anyone already recorded for the same prepared message. Before calling Resend, it atomically reserves each recipient in Firestore; an `attempting` or failed record is never retried automatically, including after a provider timeout or 502. This prevents a whole batch — or an uncertain recipient — being replayed. The admin UI shows the masked delivery ledger so an operator can reconcile failures before deciding on any manual follow-up. Only a member's email address and first name are sent to Resend; no vehicle, survey, evidence, or Firebase identity data is transferred. The message may use `{{firstName}}`; every email includes an opaque, recipient-specific unsubscribe link that updates the member's communications consent without requiring sign-in.
 
 `GET` and `POST /api/email-unsubscribe` are intentionally public signed-link endpoints: the GET presents a confirmation page so link scanners cannot silently opt people out, while a direct list-unsubscribe POST performs the same withdrawal. Neither response reveals the recipient email.
+
+### Survey operational audit
+
+Survey activity is logged as privacy-safe Cloud Logging events. This records survey ID, action, safe aggregate response counts where relevant, and a supplied support trace code: member survey-list views, response creation or amendment, rejected submissions, and administrator create/edit/delete, preview, analysis and CSV-export actions. It never records selected options, optional free text, member IDs, email addresses, or CSV contents.
 
 `POST /api/admin/marketing-message-deliveries` is the admin-only, masked delivery-ledger view used to reconcile attempted or failed recipients before any manual follow-up.
 
@@ -449,9 +453,10 @@ The browser calls `POST /api/admin/reengagement-preview` to recalculate the audi
 server-verified Firebase admin claim.
 
 The former member-referral, group-growth, JLR Contact, September Survey and Freeform campaign
-controls have moved to Marketing Messages. All now use the same canonical-email-deduplicated,
-communication-consented Join audience, regardless of whether a member has completed magic-link
-sign-in. Group-wide relevance never overrides a member's contact choice. The source Markdown
+controls have moved to Marketing Messages. All now use the same canonical-email-deduplicated
+member audience: verified historic Firebase Auth accounts plus modern Join registrations,
+regardless of whether a member has completed magic-link sign-in. Group-wide relevance never
+overrides an explicit contact withdrawal. The source Markdown
 continues to live in `functions/firebase-go/email-templates/`, which keeps the campaign copy,
 approved hero image and email preview in sync. Staging delivery deliberately uses
 `https://ipace-owners.org` for durable public email imagery: `stage.ipace-owners.org` is an
