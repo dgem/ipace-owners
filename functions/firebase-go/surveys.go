@@ -4,9 +4,13 @@ import (
 	"cloud.google.com/go/firestore"
 	"context"
 	"encoding/csv"
+	firebaseauth "firebase.google.com/go/v4/auth"
 	"fmt"
 	"google.golang.org/api/iterator"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -17,6 +21,7 @@ const surveyCallToActionMax = 1000
 const surveyOptionNameMax = 120
 const surveyOptionDescriptionMax = 2000
 const surveyOptionTextPromptMax = 160
+const adminSurveyResponsePageSize = 50
 
 type surveyOption struct {
 	ID          string `json:"id" firestore:"id"`
@@ -77,6 +82,22 @@ type surveyResult struct {
 	MyPreferredOptionID string            `json:"myPreferredOptionId,omitempty"`
 	CanRespond          bool              `json:"canRespond"`
 }
+
+// surveyAggregate contains only counts. It is stored separately from the
+// editable survey template so an edit cannot overwrite live response totals.
+type surveyAggregate struct {
+	Counts          map[string]int `firestore:"counts"`
+	PreferredCounts map[string]int `firestore:"preferredCounts"`
+	TextCounts      map[string]int `firestore:"textCounts"`
+	Total           int            `firestore:"total"`
+	UpdatedAt       time.Time      `firestore:"updatedAt"`
+}
+type surveyResponseRecord struct {
+	OptionIDs         []string          `firestore:"optionIds"`
+	TextByOption      map[string]string `firestore:"textByOption"`
+	PreferredOptionID string            `firestore:"preferredOptionId"`
+	UpdatedAt         time.Time         `firestore:"updatedAt"`
+}
 type adminSurveyResponse struct {
 	Respondent        string    `json:"respondent"`
 	OptionIDs         []string  `json:"optionIds"`
@@ -84,12 +105,18 @@ type adminSurveyResponse struct {
 	PreferredOptionID string    `json:"preferredOptionId,omitempty"`
 	UpdatedAt         time.Time `json:"updatedAt"`
 }
+type storedSurveyResponse struct {
+	UID      string
+	Response surveyResponseRecord
+}
 type adminSurveyAnalysis struct {
 	Survey          surveyRecord          `json:"survey"`
 	Counts          map[string]int        `json:"counts"`
 	PreferredCounts map[string]int        `json:"preferredCounts"`
 	Total           int                   `json:"total"`
 	Responses       []adminSurveyResponse `json:"responses"`
+	ResponsesOffset int                   `json:"responsesOffset"`
+	HasMore         bool                  `json:"hasMore"`
 }
 
 var surveyNow = time.Now
@@ -153,7 +180,16 @@ func AdminSurveys(w http.ResponseWriter, r *http.Request) {
 			record.CreatedAt = existing.CreatedAt
 		}
 		record.UpdatedAt = now
-		if _, e = db.Collection("surveys").Doc(record.ID).Set(r.Context(), record); e != nil {
+		surveyRef := db.Collection("surveys").Doc(record.ID)
+		if r.Method == http.MethodPut {
+			batch := db.Batch()
+			batch.Set(surveyRef, record)
+			batch.Delete(surveyAggregateRef(db, record.ID))
+			_, e = batch.Commit(r.Context())
+		} else {
+			_, e = surveyRef.Set(r.Context(), record)
+		}
+		if e != nil {
 			writeJSON(w, 500, map[string]any{"error": "Could not save survey"})
 			return
 		}
@@ -171,6 +207,10 @@ func AdminSurveys(w http.ResponseWriter, r *http.Request) {
 		}
 		if e := deleteSurveyResponses(r.Context(), db, id); e != nil {
 			writeJSON(w, 500, map[string]any{"error": "Could not delete survey responses"})
+			return
+		}
+		if _, e := surveyAggregateRef(db, id).Delete(r.Context()); e != nil {
+			writeJSON(w, 500, map[string]any{"error": "Could not delete survey results"})
 			return
 		}
 		if _, e := db.Collection("surveys").Doc(id).Delete(r.Context()); e != nil {
@@ -216,7 +256,17 @@ func AdminSurveyResults(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Could not load survey"})
 		return
 	}
-	analysis, err := loadAdminSurveyAnalysis(r.Context(), db, survey)
+	offset, err := surveyResponseOffset(r.URL.Query().Get("offset"))
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "Invalid response page"})
+		return
+	}
+	pageSize := adminSurveyResponsePageSize
+	if r.URL.Query().Get("format") == "csv" {
+		pageSize = 0
+		offset = 0
+	}
+	analysis, err := loadAdminSurveyAnalysis(r.Context(), db, survey, offset, pageSize)
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Could not load survey responses"})
 		return
@@ -284,59 +334,111 @@ func AdminSurveyPreview(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{"valid": true})
 }
 
-func loadAdminSurveyAnalysis(ctx context.Context, db *firestore.Client, survey surveyRecord) (adminSurveyAnalysis, error) {
-	analysis := adminSurveyAnalysis{Survey: survey, Counts: map[string]int{}, PreferredCounts: map[string]int{}, Responses: []adminSurveyResponse{}}
+func surveyResponseOffset(value string) (int, error) {
+	if strings.TrimSpace(value) == "" {
+		return 0, nil
+	}
+	offset, err := strconv.Atoi(value)
+	if err != nil || offset < 0 || offset > 100000 {
+		return 0, fmt.Errorf("invalid response offset")
+	}
+	return offset, nil
+}
+
+// loadAdminSurveyAnalysis scans response records for the aggregate, but only
+// resolves and returns a bounded page of respondent details. Firebase Auth
+// lookups are batched rather than made serially for every survey response.
+func loadAdminSurveyAnalysis(ctx context.Context, db *firestore.Client, survey surveyRecord, offset, pageSize int) (adminSurveyAnalysis, error) {
+	aggregate, err := loadSurveyResult(ctx, db, survey, "")
+	if err != nil {
+		return adminSurveyAnalysis{}, err
+	}
+	analysis := adminSurveyAnalysis{Survey: survey, Counts: aggregate.Counts, PreferredCounts: aggregate.PreferredCounts, Total: aggregate.Total, Responses: []adminSurveyResponse{}, ResponsesOffset: offset}
 	allowed := map[string]bool{}
 	for _, option := range survey.Options {
 		allowed[option.ID] = true
 	}
-	client, err := firebaseAuth(ctx)
-	if err != nil {
-		return analysis, err
+	query := db.Collection("surveys").Doc(survey.ID).Collection("responses").OrderBy("updatedAt", firestore.Desc)
+	if offset > 0 {
+		query = query.Offset(offset)
 	}
-	iter := db.Collection("surveys").Doc(survey.ID).Collection("responses").OrderBy("updatedAt", firestore.Desc).Documents(ctx)
+	if pageSize > 0 {
+		query = query.Limit(pageSize + 1)
+	}
+	iter := query.Documents(ctx)
 	defer iter.Stop()
+	responses := []storedSurveyResponse{}
 	for {
 		doc, err := iter.Next()
 		if err == iterator.Done {
-			return analysis, nil
+			break
 		}
 		if err != nil {
 			return analysis, err
 		}
-		var response struct {
-			OptionIDs         []string          `firestore:"optionIds"`
-			TextByOption      map[string]string `firestore:"textByOption"`
-			PreferredOptionID string            `firestore:"preferredOptionId"`
-			UpdatedAt         time.Time         `firestore:"updatedAt"`
-		}
-		if err := doc.DataTo(&response); err != nil {
+		var response storedSurveyResponse
+		response.UID = doc.Ref.ID
+		if err := doc.DataTo(&response.Response); err != nil {
 			return analysis, err
 		}
-		respondent := "Email unavailable"
-		if user, err := client.GetUser(ctx, doc.Ref.ID); err == nil {
-			if masked := maskedEmail(user.Email); masked != "" {
-				respondent = masked
-			}
+		responses = append(responses, response)
+	}
+	if pageSize > 0 && len(responses) > pageSize {
+		analysis.HasMore = true
+		responses = responses[:pageSize]
+	}
+	respondents, err := maskedSurveyRespondents(ctx, responses)
+	if err != nil {
+		return analysis, err
+	}
+	for _, response := range responses {
+		item := adminSurveyResponse{Respondent: respondents[response.UID], UpdatedAt: response.Response.UpdatedAt}
+		if item.Respondent == "" {
+			item.Respondent = "Email unavailable"
 		}
-		item := adminSurveyResponse{Respondent: respondent, UpdatedAt: response.UpdatedAt}
-		for _, id := range response.OptionIDs {
+		for _, id := range response.Response.OptionIDs {
 			if !allowed[id] {
 				continue
 			}
-			analysis.Counts[id]++
 			item.OptionIDs = append(item.OptionIDs, id)
-			if text := cleanString(response.TextByOption[id], surveyOtherTextMax); text != "" {
+			if text := cleanString(response.Response.TextByOption[id], surveyOtherTextMax); text != "" {
 				item.TextResponses = append(item.TextResponses, id+": "+text)
 			}
 		}
-		if surveyResponseAllowsPreferred(survey, response.OptionIDs, response.PreferredOptionID) {
-			item.PreferredOptionID = response.PreferredOptionID
-			analysis.PreferredCounts[response.PreferredOptionID]++
+		if surveyResponseAllowsPreferred(survey, response.Response.OptionIDs, response.Response.PreferredOptionID) {
+			item.PreferredOptionID = response.Response.PreferredOptionID
 		}
-		analysis.Total++
 		analysis.Responses = append(analysis.Responses, item)
 	}
+	return analysis, nil
+}
+
+func maskedSurveyRespondents(ctx context.Context, responses []storedSurveyResponse) (map[string]string, error) {
+	result := map[string]string{}
+	if len(responses) == 0 {
+		return result, nil
+	}
+	client, err := firebaseAuth(ctx)
+	if err != nil {
+		return nil, err
+	}
+	for start := 0; start < len(responses); start += 100 {
+		end := min(start+100, len(responses))
+		identifiers := make([]firebaseauth.UserIdentifier, 0, end-start)
+		for _, response := range responses[start:end] {
+			identifiers = append(identifiers, firebaseauth.UIDIdentifier{UID: response.UID})
+		}
+		users, err := client.GetUsers(ctx, identifiers)
+		if err != nil {
+			return nil, err
+		}
+		for _, user := range users.Users {
+			if masked := maskedEmail(user.Email); masked != "" {
+				result[user.UID] = masked
+			}
+		}
+	}
+	return result, nil
 }
 
 func writeAdminSurveyCSV(w http.ResponseWriter, id string, analysis adminSurveyAnalysis) {
@@ -535,13 +637,14 @@ func SubmitSurveyResponse(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	responseRef := db.Collection("surveys").Doc(s.ID).Collection("responses").Doc(u.UID)
-	_, existingResponseErr := responseRef.Get(r.Context())
-	if _, e = responseRef.Set(r.Context(), map[string]any{"optionIds": ids, "textByOption": textByOption, "preferredOptionId": preferredOptionID, "updatedAt": surveyNow().UTC()}); e != nil {
+	response := surveyResponseRecord{OptionIDs: ids, TextByOption: textByOption, PreferredOptionID: preferredOptionID, UpdatedAt: surveyNow().UTC()}
+	created, e := saveSurveyResponse(r.Context(), db, s, responseRef, response)
+	if e != nil {
 		writeJSON(w, 500, map[string]any{"error": "Could not save response"})
 		return
 	}
 	action := "member-survey-response-created"
-	if existingResponseErr == nil {
+	if !created {
 		action = "member-survey-response-updated"
 	}
 	logSurveyEvent(r, action, s.ID, nil)
@@ -665,46 +768,163 @@ func surveyIsClosed(s surveyRecord, now time.Time) bool {
 	return today.After(end)
 }
 func loadSurveyResult(ctx context.Context, db *firestore.Client, s surveyRecord, uid string) (surveyResult, error) {
-	r := surveyResult{SurveyRecord: s, Counts: map[string]int{}, PreferredCounts: map[string]int{}, TextCounts: map[string]int{}, CanRespond: surveyIsLive(s, surveyNow())}
+	aggregate, err := ensureSurveyAggregate(ctx, db, s)
+	if err != nil {
+		return surveyResult{}, err
+	}
+	r := surveyResult{SurveyRecord: s, Counts: aggregate.Counts, PreferredCounts: aggregate.PreferredCounts, TextCounts: aggregate.TextCounts, Total: aggregate.Total, CanRespond: surveyIsLive(s, surveyNow())}
+	if uid == "" {
+		return r, nil
+	}
+	snapshot, err := db.Collection("surveys").Doc(s.ID).Collection("responses").Doc(uid).Get(ctx)
+	if isFirestoreNotFound(err) {
+		return r, nil
+	}
+	if err != nil {
+		return surveyResult{}, err
+	}
+	var response surveyResponseRecord
+	if err := snapshot.DataTo(&response); err != nil {
+		return surveyResult{}, err
+	}
+	r.MyOptionIDs = response.OptionIDs
+	r.MyTextByOption = response.TextByOption
+	if surveyResponseAllowsPreferred(s, response.OptionIDs, response.PreferredOptionID) {
+		r.MyPreferredOptionID = response.PreferredOptionID
+	}
+	return r, nil
+}
+
+func surveyAggregateRef(db *firestore.Client, surveyID string) *firestore.DocumentRef {
+	return db.Collection("surveys").Doc(surveyID).Collection("metadata").Doc("aggregate")
+}
+
+func isFirestoreNotFound(err error) bool {
+	return status.Code(err) == codes.NotFound
+}
+
+// ensureSurveyAggregate upgrades older surveys lazily. The first request after
+// this feature scans legacy responses once; every later results request reads
+// only the count-only aggregate plus the requesting member's own response.
+func ensureSurveyAggregate(ctx context.Context, db *firestore.Client, s surveyRecord) (surveyAggregate, error) {
+	ref := surveyAggregateRef(db, s.ID)
+	snapshot, err := ref.Get(ctx)
+	if err == nil {
+		return decodeSurveyAggregate(snapshot)
+	}
+	if !isFirestoreNotFound(err) {
+		return surveyAggregate{}, err
+	}
+	aggregate, err := surveyAggregateFromResponses(ctx, db, s)
+	if err != nil {
+		return surveyAggregate{}, err
+	}
+	if _, err := ref.Create(ctx, aggregate); err == nil {
+		return aggregate, nil
+	}
+	snapshot, err = ref.Get(ctx)
+	if err != nil {
+		return surveyAggregate{}, err
+	}
+	return decodeSurveyAggregate(snapshot)
+}
+
+func decodeSurveyAggregate(snapshot *firestore.DocumentSnapshot) (surveyAggregate, error) {
+	var aggregate surveyAggregate
+	if err := snapshot.DataTo(&aggregate); err != nil {
+		return surveyAggregate{}, err
+	}
+	return normaliseSurveyAggregate(aggregate), nil
+}
+
+func normaliseSurveyAggregate(aggregate surveyAggregate) surveyAggregate {
+	if aggregate.Counts == nil {
+		aggregate.Counts = map[string]int{}
+	}
+	if aggregate.PreferredCounts == nil {
+		aggregate.PreferredCounts = map[string]int{}
+	}
+	if aggregate.TextCounts == nil {
+		aggregate.TextCounts = map[string]int{}
+	}
+	return aggregate
+}
+
+func surveyAggregateFromResponses(ctx context.Context, db *firestore.Client, s surveyRecord) (surveyAggregate, error) {
+	aggregate := normaliseSurveyAggregate(surveyAggregate{})
+	iter := db.Collection("surveys").Doc(s.ID).Collection("responses").Documents(ctx)
+	defer iter.Stop()
+	for {
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return surveyAggregate{}, err
+		}
+		var response surveyResponseRecord
+		if err := doc.DataTo(&response); err != nil {
+			return surveyAggregate{}, err
+		}
+		applySurveyResponseDelta(&aggregate, s, surveyResponseRecord{}, response)
+	}
+	aggregate.UpdatedAt = surveyNow().UTC()
+	return aggregate, nil
+}
+
+func saveSurveyResponse(ctx context.Context, db *firestore.Client, s surveyRecord, responseRef *firestore.DocumentRef, response surveyResponseRecord) (bool, error) {
+	if _, err := ensureSurveyAggregate(ctx, db, s); err != nil {
+		return false, err
+	}
+	created := false
+	err := db.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		snapshots, err := tx.GetAll([]*firestore.DocumentRef{responseRef, surveyAggregateRef(db, s.ID)})
+		if err != nil && !isFirestoreNotFound(err) {
+			return err
+		}
+		var previous surveyResponseRecord
+		created = !snapshots[0].Exists()
+		if snapshots[0].Exists() {
+			if err := snapshots[0].DataTo(&previous); err != nil {
+				return err
+			}
+		}
+		aggregate, err := decodeSurveyAggregate(snapshots[1])
+		if err != nil {
+			return err
+		}
+		applySurveyResponseDelta(&aggregate, s, previous, response)
+		aggregate.UpdatedAt = response.UpdatedAt
+		if err := tx.Set(responseRef, response); err != nil {
+			return err
+		}
+		return tx.Set(surveyAggregateRef(db, s.ID), aggregate)
+	})
+	return created, err
+}
+
+func applySurveyResponseDelta(aggregate *surveyAggregate, s surveyRecord, previous, next surveyResponseRecord) {
+	*aggregate = normaliseSurveyAggregate(*aggregate)
+	applySurveyResponseCounts(aggregate, s, previous, -1)
+	applySurveyResponseCounts(aggregate, s, next, 1)
+}
+
+func applySurveyResponseCounts(aggregate *surveyAggregate, s surveyRecord, response surveyResponseRecord, delta int) {
+	if len(response.OptionIDs) == 0 {
+		return
+	}
+	aggregate.Total += delta
 	allowsText := map[string]bool{}
 	for _, option := range s.Options {
 		allowsText[option.ID] = option.AllowsText
 	}
-	iter := db.Collection("surveys").Doc(s.ID).Collection("responses").Documents(ctx)
-	defer iter.Stop()
-	for {
-		doc, e := iter.Next()
-		if e == iterator.Done {
-			break
-		}
-		if e != nil {
-			return r, e
-		}
-		var x struct {
-			OptionIDs         []string          `firestore:"optionIds"`
-			TextByOption      map[string]string `firestore:"textByOption"`
-			PreferredOptionID string            `firestore:"preferredOptionId"`
-		}
-		if doc.DataTo(&x) == nil {
-			r.Total++
-			for _, id := range x.OptionIDs {
-				r.Counts[id]++
-				if allowsText[id] && cleanString(x.TextByOption[id], surveyOtherTextMax) != "" {
-					r.TextCounts[id]++
-				}
-			}
-			preferredAllowed := surveyResponseAllowsPreferred(s, x.OptionIDs, x.PreferredOptionID)
-			if preferredAllowed {
-				r.PreferredCounts[x.PreferredOptionID]++
-			}
-			if doc.Ref.ID == uid {
-				r.MyOptionIDs = x.OptionIDs
-				r.MyTextByOption = x.TextByOption
-				if preferredAllowed {
-					r.MyPreferredOptionID = x.PreferredOptionID
-				}
-			}
+	for _, id := range response.OptionIDs {
+		aggregate.Counts[id] += delta
+		if allowsText[id] && cleanString(response.TextByOption[id], surveyOtherTextMax) != "" {
+			aggregate.TextCounts[id] += delta
 		}
 	}
-	return r, nil
+	if surveyResponseAllowsPreferred(s, response.OptionIDs, response.PreferredOptionID) {
+		aggregate.PreferredCounts[response.PreferredOptionID] += delta
+	}
 }

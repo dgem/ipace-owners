@@ -128,6 +128,7 @@ header.
 | `POST /api/delete-service-event` | `DeleteServiceEvent` | Member | Soft-delete an owned service/fault record after typed confirmation. |
 | `GET /api/member-data` | `MemberData` | Member | Return the signed-in user's generated snapshot. |
 | `GET /api/member-export?format=csv\|xlsx` | `MemberExport` | Member | Download that snapshot as separate CSV datasets in a ZIP or a formatted Excel workbook. |
+| `GET /api/admin/authorize` | `AdminAuthorize` | Admin | Verify an admin page gate without returning admin review records. |
 | `GET /api/admin-data` | `AdminData` | Admin | Return review data for administrators. |
 | `GET /api/admin/stats` | `AdminStats` | Admin | Return public consent-filtered homepage counters alongside private all-record member, vehicle, SoH, and service-event statistics with `Cache-Control: private, no-store`; canonical emails are deduplicated at the first Join before the daily Join trend and country rows are calculated. Derive country from the Join, one unambiguous vehicle country, or a strict UK registration, otherwise use `Unknown` (including conflicting vehicle countries). Magic-link-verified accounts have a separate daily line chart, and no per-vehicle evidence is returned. |
 | `POST /api/admin/reengagement-preview` | `AdminReengagementPreview` | Admin | Return aggregate counts for the consented, unsigned-in Join audience. |
@@ -142,9 +143,9 @@ header.
 | `POST /api/admin/campaign-summary` | `AdminCampaignSummary` | Admin | Aggregate email delivery, Instagram publication/insight, and Facebook integration-availability totals for the Admin home. |
 | `GET/POST/PUT/DELETE /api/admin/surveys` | `AdminSurveys` | Admin | Create, edit, list, and remove timed member surveys; safely audit create/edit/delete operations with survey ID and support trace only. |
 | `GET/POST /api/admin/survey-preview` | `AdminSurveyPreview` | Admin | Load a survey regardless of publication status and validate a non-persisted test response; safely audit preview viewing and validation only. |
-| `GET /api/admin/survey-results` | `AdminSurveyResults` | Admin | Return aggregate and individual survey responses for manual analysis, including optional preferred-option counts; `format=csv` exports masked, PII-minimised rows. Audit analysis views and CSV downloads only with the response total. |
-| `GET /api/member/surveys` | `MemberSurveys` | Member | List surveys, the member's own response, and permitted aggregate counts; audit only published/results-visible totals. |
-| `POST /api/member/survey-response` | `SubmitSurveyResponse` | Member | Validate and save the member's one replaceable survey response. Audit creation, amendment and safe rejection reason only, never response content. |
+| `GET /api/admin/survey-results` | `AdminSurveyResults` | Admin | Return count-only aggregate results plus a paginated, masked individual-response page for manual analysis; `format=csv` exports PII-minimised rows. Audit analysis views and CSV downloads only with the response total. |
+| `GET /api/member/surveys` | `MemberSurveys` | Member | List surveys, the member's own response, and permitted count-only aggregate results. Existing aggregates are backfilled once; normal reads are constant-time per survey. |
+| `POST /api/member/survey-response` | `SubmitSurveyResponse` | Member | Validate and save one replaceable response while live, atomically updating the count-only aggregate. Audit creation, amendment and safe rejection reason only, never response content. |
 | `POST /api/admin/instagram-publish` | `AdminInstagramPublish` | Admin | Revalidate the exact draft and confirmation, process the Reel through Meta, and publish it immediately. |
 | `POST /api/admin/instagram-generate` | `AdminInstagramGenerate` | Admin | Idempotently start the explicitly confirmed, billable eight-second Veo generation operation. |
 | `POST /api/admin/instagram-generation-status` | `AdminInstagramGenerationStatus` | Admin | Poll and advance the job into the seven-second continuation, promote the 15-second master, and issue a short-lived review path. |

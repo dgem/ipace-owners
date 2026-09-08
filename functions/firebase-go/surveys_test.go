@@ -8,6 +8,54 @@ import (
 	"time"
 )
 
+func TestSurveyResponseOffset(t *testing.T) {
+	for _, test := range []struct {
+		value string
+		want  int
+	}{
+		{"", 0},
+		{"0", 0},
+		{"50", 50},
+		{"100000", 100000},
+	} {
+		got, err := surveyResponseOffset(test.value)
+		if err != nil || got != test.want {
+			t.Fatalf("surveyResponseOffset(%q) = %d, %v; want %d, nil", test.value, got, err, test.want)
+		}
+	}
+	for _, value := range []string{"-1", "100001", "nope"} {
+		if _, err := surveyResponseOffset(value); err == nil {
+			t.Fatalf("surveyResponseOffset(%q) accepted invalid value", value)
+		}
+	}
+}
+
+func TestSurveyAggregateTracksCreatedAndAmendedResponses(t *testing.T) {
+	survey := surveyRecord{
+		Multiple:                       true,
+		PreferredEligibilityConfigured: true,
+		Options: []surveyOption{
+			{ID: "replacement", AllowsText: true, AllowsPreferred: true},
+			{ID: "buyback", AllowsPreferred: true},
+		},
+	}
+	aggregate := surveyAggregate{}
+	first := surveyResponseRecord{
+		OptionIDs:         []string{"replacement"},
+		TextByOption:      map[string]string{"replacement": "Include mobility support"},
+		PreferredOptionID: "replacement",
+	}
+	applySurveyResponseDelta(&aggregate, survey, surveyResponseRecord{}, first)
+	if aggregate.Total != 1 || aggregate.Counts["replacement"] != 1 || aggregate.TextCounts["replacement"] != 1 || aggregate.PreferredCounts["replacement"] != 1 {
+		t.Fatalf("created aggregate = %#v", aggregate)
+	}
+	updated := surveyResponseRecord{OptionIDs: []string{"buyback"}, PreferredOptionID: "buyback"}
+	applySurveyResponseDelta(&aggregate, survey, first, updated)
+	if aggregate.Total != 1 || aggregate.Counts["replacement"] != 0 || aggregate.TextCounts["replacement"] != 0 || aggregate.PreferredCounts["replacement"] != 0 || aggregate.Counts["buyback"] != 1 || aggregate.PreferredCounts["buyback"] != 1 {
+		t.Fatalf("amended aggregate = %#v", aggregate)
+	}
+}
+
 func TestValidateSurveyRequiresDatesAndOptions(t *testing.T) {
 	_, err := validateSurvey(surveyInput{Title: "Preferred outcomes", Question: "Choose", StartsOn: "2026-08-30", EndsOn: "2026-08-29", Options: []surveyOption{{Name: "A", Description: "A"}, {Name: "B", Description: "B"}}})
 	if err == nil {

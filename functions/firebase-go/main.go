@@ -61,6 +61,7 @@ func init() {
 	functions.HTTP("MemberData", MemberData)
 	functions.HTTP("MemberExport", MemberExport)
 	functions.HTTP("AdminData", AdminData)
+	functions.HTTP("AdminAuthorize", AdminAuthorize)
 	functions.HTTP("PublicStats", PublicStats)
 	functions.HTTP("AdminStats", AdminStats)
 	functions.HTTP("AdminSurveys", AdminSurveys)
@@ -96,6 +97,8 @@ func Api(w http.ResponseWriter, r *http.Request) {
 		MemberExport(w, r)
 	case "/api/admin-data":
 		AdminData(w, r)
+	case "/api/admin/authorize":
+		AdminAuthorize(w, r)
 	case "/api/admin/reengagement-preview":
 		AdminReengagementPreview(w, r)
 	case "/api/admin/reengagement-send":
@@ -611,6 +614,9 @@ func dateIsFuture(value string, now time.Time) bool {
 	return parsed.After(today)
 }
 
+var memberDataRequireUser = requireUser
+var memberDataLoadSnapshot = loadMemberSnapshot
+
 func MemberData(w http.ResponseWriter, r *http.Request) {
 	if cors(w, r) {
 		return
@@ -618,22 +624,46 @@ func MemberData(w http.ResponseWriter, r *http.Request) {
 	if rejectDisallowedOrigin(w, r) {
 		return
 	}
+	w.Header().Set("Cache-Control", "private, no-store")
 	if r.Method != http.MethodGet {
 		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"error": "Method Not Allowed"})
 		return
 	}
-	user, err := requireUser(r.Context(), r)
+	user, err := memberDataRequireUser(r.Context(), r)
 	if err != nil {
 		writeMemberAuthorizationError(w, err)
 		return
 	}
-	snapshot, err := loadMemberSnapshot(r.Context(), user.UID, user.Email)
+	snapshot, err := memberDataLoadSnapshot(r.Context(), user.UID, user.Email)
 	if err != nil {
-		logEvent("member-data", "error", "snapshot load failed", addAuthTrace(map[string]any{"uid": user.UID, "error": err.Error()}, r))
+		logEvent("member-data", "error", "snapshot load failed", addAuthTrace(map[string]any{"error": err.Error()}, r))
 		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Could not load member data"})
 		return
 	}
 	writeJSON(w, http.StatusOK, snapshot)
+}
+
+var adminGateRequireAdmin = requireAdmin
+
+// AdminAuthorize is the minimal server-verified gate used by admin pages that
+// do not need review-queue records. It deliberately returns no member data.
+func AdminAuthorize(w http.ResponseWriter, r *http.Request) {
+	if cors(w, r) {
+		return
+	}
+	if rejectDisallowedOrigin(w, r) {
+		return
+	}
+	w.Header().Set("Cache-Control", "private, no-store")
+	if r.Method != http.MethodGet {
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"error": "Method Not Allowed"})
+		return
+	}
+	if _, err := adminGateRequireAdmin(r.Context(), r); err != nil {
+		writeAdminAuthorizationError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]bool{"authorized": true})
 }
 
 func AdminData(w http.ResponseWriter, r *http.Request) {
@@ -643,6 +673,7 @@ func AdminData(w http.ResponseWriter, r *http.Request) {
 	if rejectDisallowedOrigin(w, r) {
 		return
 	}
+	w.Header().Set("Cache-Control", "private, no-store")
 	if r.Method != http.MethodGet {
 		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"error": "Method Not Allowed"})
 		return
