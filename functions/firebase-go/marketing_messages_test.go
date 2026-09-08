@@ -50,6 +50,24 @@ func TestMarketingMessageBatchUsesOpaqueUnsubscribeTokens(t *testing.T) {
 	}
 }
 
+func TestMarketingMessageBatchLogFieldsAreAggregateOnly(t *testing.T) {
+	fields := marketingMessageBatchLogFields(marketingMessageSent{
+		CampaignID:  "marketing_123",
+		Eligible:    1300,
+		BatchSent:   100,
+		BatchFailed: 1,
+		Sent:        400,
+		Failed:      2,
+		Remaining:   898,
+	})
+	if fields["campaignId"] != "marketing_123" || fields["eligible"] != 1300 || fields["batchSent"] != 100 || fields["batchFailed"] != 1 || fields["sent"] != 400 || fields["failed"] != 2 || fields["remaining"] != 898 {
+		t.Fatalf("unexpected batch log fields: %#v", fields)
+	}
+	if len(fields) != 7 {
+		t.Fatalf("batch log fields must not contain recipient data: %#v", fields)
+	}
+}
+
 func TestMarketingMessageCampaignIDIsStableForIdenticalContent(t *testing.T) {
 	input := marketingMessageRequest{Name: "September survey", Subject: "Have your say", Markdown: "Hi {{firstName}}"}
 	first := marketingMessageCampaignID(input)

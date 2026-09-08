@@ -185,12 +185,31 @@ func AdminMarketingMessageSend(w http.ResponseWriter, r *http.Request) {
 	}
 	sent, err := sendMarketingMessageBatch(r.Context(), input, audience)
 	if err != nil {
-		logEvent("admin-marketing-message-send", "error", "batch failed", map[string]any{"error": err.Error()})
+		logEvent("admin-marketing-message-send", "error", "batch failed", addAuthTrace(map[string]any{
+			"campaignId": marketingMessageCampaignID(input),
+			"eligible":   len(audience),
+			"error":      err.Error(),
+		}, r))
 		writeJSON(w, http.StatusBadGateway, map[string]any{"error": err.Error()})
 		return
 	}
-	logEvent("admin-marketing-message-send", "info", "batch sent", map[string]any{"eligible": len(audience), "campaignId": sent.CampaignID, "batchSent": sent.BatchSent})
+	logEvent("admin-marketing-message-send", "info", "batch completed", addAuthTrace(marketingMessageBatchLogFields(sent), r))
 	writeJSON(w, http.StatusOK, sent)
+}
+
+// marketingMessageBatchLogFields deliberately contains only aggregate delivery
+// information. Recipient addresses and provider message IDs belong in the
+// admin-only delivery ledger, never the shared Cloud log stream.
+func marketingMessageBatchLogFields(sent marketingMessageSent) map[string]any {
+	return map[string]any{
+		"campaignId":  sent.CampaignID,
+		"eligible":    sent.Eligible,
+		"batchSent":   sent.BatchSent,
+		"batchFailed": sent.BatchFailed,
+		"sent":        sent.Sent,
+		"failed":      sent.Failed,
+		"remaining":   sent.Remaining,
+	}
 }
 
 func AdminMarketingMessageDeliveries(w http.ResponseWriter, r *http.Request) {

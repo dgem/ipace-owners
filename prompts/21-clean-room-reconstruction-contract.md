@@ -298,8 +298,9 @@ forms explicitly use POST even when JavaScript intercepts them.
   Join preferences or unsubscribe must always win.
   Load source-controlled templates and public evidence totals server-side, render a sandboxed
   preview with no provider effect, and require `SEND <count>` before creating a fresh Resend
-  direct-email batch ledger. Send only contact name/email to Resend and ensure the application's unsubscribe link is
-  mandatory. The registration reminder remains the sole legacy batch workflow because it must mint
+  direct-email batch ledger. Log a privacy-safe aggregate outcome for every send attempt, including campaign ID,
+  accepted, held/failed and remaining counts, and any supplied auth trace; never log recipient or provider IDs.
+  Send only contact name/email to Resend and ensure the application's unsubscribe link is mandatory. The registration reminder remains the sole legacy batch workflow because it must mint
   a unique private Firebase sign-in link for each recipient.
 - Provide an admin-only Instagram campaign page following the same preview-before-side-effect
   interaction. Chat prepares the post; a human reviews the complete final media; the server
