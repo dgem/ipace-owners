@@ -71,7 +71,13 @@
 
   function loadDeliveries() {
     if (!campaignID.value) return;
-    request('/api/admin/marketing-message-deliveries', {campaignId: campaignID.value}).then(function (data) {
+    request('/api/admin/marketing-message-deliveries', {
+      campaignId: campaignID.value,
+      templateId: templateID.value,
+      name: name.value,
+      subject: subject.value,
+      markdown: markdown.value
+    }).then(function (data) {
       var items = data.deliveries || [];
       var sent = items.filter(function (item) { return item.status === 'sent'; }).length;
       var held = items.length - sent;
