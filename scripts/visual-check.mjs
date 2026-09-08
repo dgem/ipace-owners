@@ -756,7 +756,7 @@ async function checkMarketingMessages(viewport, screenshotName) {
     window.firebase = { auth: () => ({ currentUser: { getIdToken: async () => 'visual-admin-token' } }) };
   });
   await page.locator('[data-marketing-message-template]').selectOption('survey-september-2026');
-  await page.locator('[data-marketing-message-name]').waitFor({ state: 'visible' });
+  await page.waitForFunction((expectedName) => document.querySelector('[data-marketing-message-name]').value === expectedName, survey.name);
   assert.equal(await page.locator('[data-marketing-message-name]').inputValue(), survey.name);
   await page.locator('[data-marketing-message-form]').evaluate((form) => form.requestSubmit());
   await page.frameLocator('[data-marketing-message-html]').getByText('September survey').waitFor({ state: 'visible' });
