@@ -329,13 +329,11 @@ func sendMarketingMessageBatch(ctx context.Context, input marketingMessageReques
 	}
 	deliveries := map[string]string{}
 	for _, relatedRecord := range related {
-		audience = marketingMessageCampaignAudience(relatedRecord, audience)
 		relatedDeliveries, err := loadMarketingMessageDeliveries(ctx, db, relatedRecord.CampaignID)
 		if err != nil {
 			return marketingMessageSent{}, err
 		}
-		_, recordedFailures := countMarketingMessageDeliveries(audience, relatedDeliveries)
-		if relatedRecord.Failed > recordedFailures {
+		if relatedRecord.Failed > countRecordedMarketingMessageFailures(relatedDeliveries) {
 			return marketingMessageSent{}, fmt.Errorf("this campaign has an earlier provider failure without a recipient ledger entry; review the delivery record and reconcile it before sending again")
 		}
 		mergeMarketingMessageDeliveries(deliveries, relatedDeliveries)
@@ -478,22 +476,6 @@ func marketingMessageRecordsMatch(record marketingMessageRecord, input marketing
 		record.TemplateID == ""
 }
 
-// A started message keeps its original time boundary. New registrations can be
-// included in the next campaign, but cannot silently enter one the administrator
-// already confirmed.
-func marketingMessageCampaignAudience(record marketingMessageRecord, audience []campaignRecipient) []campaignRecipient {
-	if record.CreatedAt.IsZero() {
-		return audience
-	}
-	result := make([]campaignRecipient, 0, len(audience))
-	for _, person := range audience {
-		if !person.CreatedAt.After(record.CreatedAt) {
-			result = append(result, person)
-		}
-	}
-	return result
-}
-
 func loadMarketingMessageDeliveries(ctx context.Context, db *firestore.Client, id string) (map[string]string, error) {
 	result := map[string]string{}
 	iter := db.Collection("emailCampaigns").Doc(id).Collection("deliveries").Documents(ctx)
@@ -513,6 +495,16 @@ func loadMarketingMessageDeliveries(ctx context.Context, db *firestore.Client, i
 			result[doc.Ref.ID] = delivery.Status
 		}
 	}
+}
+
+func countRecordedMarketingMessageFailures(deliveries map[string]string) int {
+	failed := 0
+	for _, status := range deliveries {
+		if status == "failed" || status == "attempting" {
+			failed++
+		}
+	}
+	return failed
 }
 
 func mergeMarketingMessageDeliveries(destination, source map[string]string) {
