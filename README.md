@@ -423,6 +423,11 @@ On confirmation, the Function reads the live audience of verified historic Fireb
 
 Survey activity is logged as privacy-safe Cloud Logging events. This records survey ID, action, safe aggregate response counts where relevant, and a supplied support trace code: member survey-list views, response creation or amendment, rejected submissions, and administrator create/edit/delete, preview, analysis and CSV-export actions. It never records selected options, optional free text, member IDs, email addresses, or CSV contents.
 
+Member survey results use a private, count-only aggregate document maintained atomically with every
+response or amendment. It contains option, preferred-option and optional-detail counts only—never
+member identity or free text. Existing surveys are backfilled once on their first results request;
+after that, a member result read needs only this aggregate and that member's own response.
+
 `POST /api/admin/marketing-message-deliveries` is the admin-only, masked delivery-ledger view used to reconcile attempted or failed recipients before any manual follow-up.
 
 Prepared templates are loaded through `POST /api/admin/marketing-message-templates`; their live public evidence totals are filled server-side and `{{firstName}}` is rendered for each individual recipient. Approved template images are resolved server-side too. Editing loaded copy turns it into a new message, while retaining the same consented audience and unsubscribe protection. The browser uses `POST /api/admin/marketing-message-preview` for the no-side-effect validation and preview, then `POST /api/admin/marketing-message-send` only after the audience count is rechecked and the exact confirmation has been supplied. All three routes require the server-verified Firebase admin claim.
@@ -684,7 +689,7 @@ behind the single Go `Api` Cloud Function:
   it from private snapshots and consent-filtered public aggregates. Deleting a vehicle also
   soft-deletes its dependent SoH and service records.
 - `member-data` returns only the authenticated member's generated private snapshot after
-  Firebase ID-token verification.
+  Firebase ID-token verification, with `Cache-Control: private, no-store`.
 - `member-export` returns that same member's data as either a ZIP of separate CSV datasets
   or a formatted Excel workbook with summary charts. Exports omit internal identity and
   hash fields, neutralise spreadsheet formulas, and are served with private no-store headers.
@@ -692,7 +697,9 @@ behind the single Go `Api` Cloud Function:
   member data. Regenerate it after workbook-layout changes with
   `cd functions/firebase-go && GENERATE_MEMBER_EXPORT_SAMPLE=1 go test ./... -run '^TestGeneratePublicSampleWorkbook$' -count=1`.
 - `admin-data` returns Join and vehicle review records only when the Firebase token carries
-  an accepted admin claim.
+  an accepted admin claim. It is used only by the Review Queue; other admin pages use the
+  minimal `admin/authorize` gate, which verifies the claim without returning review data. Both
+  responses are private and non-cacheable.
 - `public-stats` serves a cacheable aggregate snapshot. Its registered-member headline is
   refreshed from the complete paginated Firebase Auth user list; vehicle, SoH, and
   service/fault record counts remain consent-filtered and exclude records marked out of

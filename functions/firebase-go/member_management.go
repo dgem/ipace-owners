@@ -195,7 +195,7 @@ func confirmedDeleteRequest(w http.ResponseWriter, r *http.Request) (deleteReque
 
 func regenerateMemberAndPublicSnapshots(r *http.Request, uid, email string) {
 	if err := regenerateMemberSnapshot(r.Context(), uid, email); err != nil {
-		logEvent("member-data-management", "warn", "member snapshot regeneration failed", map[string]any{"uid": uid, "error": err.Error()})
+		logEvent("member-data-management", "warn", "member snapshot regeneration failed", map[string]any{"error": err.Error()})
 	}
 	if err := regeneratePublicStatsSnapshot(r.Context()); err != nil {
 		logEvent("member-data-management", "warn", "public snapshot regeneration failed", map[string]any{"error": err.Error()})

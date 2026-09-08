@@ -483,6 +483,9 @@
   }
   function setupAdminResults(root) {
     var started = false;
+    var loadedResponses = [];
+    var nextResponseOffset = 0;
+    var moreResponses = false;
     function download(id) {
       token()
         .then(function (value) {
@@ -508,7 +511,14 @@
           root.querySelector("[role=status]").textContent = error.message;
         });
     }
-    function render(analysis) {
+    function render(analysis, append) {
+      var incomingResponses = analysis.responses || [];
+      loadedResponses = append
+        ? loadedResponses.concat(incomingResponses)
+        : incomingResponses;
+      nextResponseOffset = analysis.responsesOffset + incomingResponses.length;
+      moreResponses = analysis.hasMore;
+      analysis.responses = loadedResponses;
       root.innerHTML =
         '<article class="dashboard-panel"><div class="dashboard-panel__header"><div><p class="dashboard-panel__eyebrow">Admin-only analysis</p><h2 class="dashboard-panel__title">' +
         esc(analysis.survey.title) +
@@ -553,20 +563,38 @@
             );
           })
           .join("") +
-        '</tbody></table></div><p class="form-hint" role="status" aria-live="polite"></p></article>';
+        '</tbody></table></div><p class="form-hint">Showing ' +
+        loadedResponses.length +
+        " of " +
+        analysis.total +
+        ' submissions.</p>' +
+        (moreResponses
+          ? '<button class="btn btn--secondary" type="button" data-survey-load-more>Load next 50 submissions</button>'
+          : "") +
+        '<p class="form-hint" role="status" aria-live="polite"></p></article>';
       root.querySelector("[data-survey-download]").onclick = function () {
         download(analysis.survey.id);
       };
+      var loadMore = root.querySelector("[data-survey-load-more]");
+      if (loadMore) {
+        loadMore.onclick = function () {
+          load(nextResponseOffset, true);
+        };
+      }
     }
-    function load() {
+    function load(offset, append) {
       var id = new URLSearchParams(window.location.search).get("id");
       if (!id) {
         root.innerHTML =
           '<section class="dashboard-panel"><h2 class="dashboard-panel__title">Choose a survey</h2><a class="btn btn--primary" href="/admin/surveys/">Back to surveys</a></section>';
         return;
       }
-      request("/api/admin/survey-results?id=" + encodeURIComponent(id), "GET")
-        .then(render)
+      var url = "/api/admin/survey-results?id=" + encodeURIComponent(id);
+      if (offset) url += "&offset=" + encodeURIComponent(offset);
+      request(url, "GET")
+        .then(function (analysis) {
+          render(analysis, append);
+        })
         .catch(function (error) {
           root.textContent = error.message;
         });
@@ -574,7 +602,7 @@
     function start() {
       if (started) return;
       started = true;
-      load();
+      load(0, false);
     }
     document.addEventListener("admin:data", start);
   }
