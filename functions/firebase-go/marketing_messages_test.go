@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestMarketingMessagePreviewUsesConsentedAudienceAndPersonalisation(t *testing.T) {
@@ -65,6 +66,21 @@ func TestMarketingMessageBatchLogFieldsAreAggregateOnly(t *testing.T) {
 	}
 	if len(fields) != 7 {
 		t.Fatalf("batch log fields must not contain recipient data: %#v", fields)
+	}
+}
+
+func TestMarketingMessageDeliveryDisplayOrdersSentBeforeHeld(t *testing.T) {
+	deliveries := []marketingMessageDelivery{
+		{MaskedRecipient: "z***@example.com", Status: "failed", AttemptedAt: time.Date(2026, 9, 8, 10, 0, 0, 0, time.UTC)},
+		{MaskedRecipient: "a***@example.com", Status: "sent", SentAt: time.Date(2026, 9, 8, 9, 0, 0, 0, time.UTC)},
+		{MaskedRecipient: "b***@example.com", Status: "sent", SentAt: time.Date(2026, 9, 8, 11, 0, 0, 0, time.UTC)},
+		{MaskedRecipient: "c***@example.com", Status: "attempting", AttemptedAt: time.Date(2026, 9, 8, 12, 0, 0, 0, time.UTC)},
+	}
+	sortMarketingMessageDeliveriesForDisplay(deliveries)
+	got := []string{deliveries[0].MaskedRecipient, deliveries[1].MaskedRecipient, deliveries[2].MaskedRecipient, deliveries[3].MaskedRecipient}
+	want := []string{"b***@example.com", "a***@example.com", "c***@example.com", "z***@example.com"}
+	if strings.Join(got, ",") != strings.Join(want, ",") {
+		t.Fatalf("display order = %#v, want %#v", got, want)
 	}
 }
 

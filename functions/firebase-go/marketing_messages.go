@@ -758,8 +758,40 @@ func marketingMessageDeliveryListForRecords(ctx context.Context, db *firestore.C
 	for _, delivery := range byEmailHash {
 		result = append(result, delivery)
 	}
-	sort.Slice(result, func(i, j int) bool { return result[i].MaskedRecipient < result[j].MaskedRecipient })
+	sortMarketingMessageDeliveriesForDisplay(result)
 	return result, nil
+}
+
+// sortMarketingMessageDeliveriesForDisplay puts completed sends ahead of entries
+// held for review. Within each group, the most recent activity is the useful
+// operator view; recipient ordering is only a stable final tie-breaker.
+func sortMarketingMessageDeliveriesForDisplay(deliveries []marketingMessageDelivery) {
+	sort.Slice(deliveries, func(i, j int) bool {
+		left, right := marketingMessageDeliveryDisplayPriority(deliveries[i].Status), marketingMessageDeliveryDisplayPriority(deliveries[j].Status)
+		if left != right {
+			return left < right
+		}
+		leftTime := marketingMessageDeliveryActivityAt(deliveries[i])
+		rightTime := marketingMessageDeliveryActivityAt(deliveries[j])
+		if !leftTime.Equal(rightTime) {
+			return leftTime.After(rightTime)
+		}
+		return deliveries[i].MaskedRecipient < deliveries[j].MaskedRecipient
+	})
+}
+
+func marketingMessageDeliveryDisplayPriority(status string) int {
+	if status == "sent" {
+		return 0
+	}
+	return 1
+}
+
+func marketingMessageDeliveryActivityAt(delivery marketingMessageDelivery) time.Time {
+	if !delivery.SentAt.IsZero() {
+		return delivery.SentAt
+	}
+	return delivery.AttemptedAt
 }
 
 func shouldReplaceMarketingMessageDelivery(existing, candidate marketingMessageDelivery) bool {

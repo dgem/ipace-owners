@@ -82,7 +82,7 @@
       var sent = items.filter(function (item) { return item.status === 'sent'; }).length;
       var held = items.length - sent;
       deliveries.hidden = false;
-      deliverySummary.textContent = 'Campaign history: ' + sent + ' recipient(s) were sent previously. The date below is the original send time, not the time you opened this page.' + (held ? ' ' + held + ' recipient(s) are held for review and will not be retried automatically.' : '');
+      deliverySummary.textContent = 'Campaign history: ' + sent + ' recipient(s) sent. Sent recipients appear first, followed by ' + held + ' held for review. Dates are the original delivery times, not the time you opened this page.';
       while (deliveryList.firstChild) deliveryList.removeChild(deliveryList.firstChild);
       items.forEach(function (item) {
         var entry = document.createElement('li');
@@ -95,7 +95,7 @@
   }
 
   function deliveryStatusLabel(item) {
-    if (item.status === 'sent') return 'already sent on ' + deliveryTimestamp(item.sentAt);
+    if (item.status === 'sent') return 'sent on ' + deliveryTimestamp(item.sentAt);
     if (item.status === 'failed') return 'delivery problem — held for review';
     if (item.status === 'attempting') return 'delivery status uncertain — held for review';
     return 'held for review';

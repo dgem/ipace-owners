@@ -43,7 +43,8 @@ test('marketing messages provides resumable prepared campaigns', function () {
   assert.match(marketingPage, /batches of up to 100 emails/);
   assert.match(marketingScript, /\/api\/admin\/marketing-message-deliveries/);
   assert.match(marketingScript, /templateId: templateID\.value/);
-  assert.match(marketingScript, /already sent on/);
+  assert.match(marketingScript, /Sent recipients appear first/);
+  assert.match(marketingScript, /sent on/);
   assert.match(marketingScript, /Batch complete:/);
   assert.match(marketingPage, /Campaign delivery history/);
   assert.match(marketingScript, /sendButton\.disabled = true/);
