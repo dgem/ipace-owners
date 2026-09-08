@@ -73,17 +73,32 @@
     if (!campaignID.value) return;
     request('/api/admin/marketing-message-deliveries', {campaignId: campaignID.value}).then(function (data) {
       var items = data.deliveries || [];
+      var sent = items.filter(function (item) { return item.status === 'sent'; }).length;
+      var held = items.length - sent;
       deliveries.hidden = false;
-      deliverySummary.textContent = items.length + ' recipient delivery record(s). Failed or attempted records are held back from automatic retries.';
+      deliverySummary.textContent = 'Campaign history: ' + sent + ' recipient(s) were sent previously. The date below is the original send time, not the time you opened this page.' + (held ? ' ' + held + ' recipient(s) are held for review and will not be retried automatically.' : '');
       while (deliveryList.firstChild) deliveryList.removeChild(deliveryList.firstChild);
       items.forEach(function (item) {
         var entry = document.createElement('li');
-        entry.textContent = (item.maskedRecipient || 'Unknown recipient') + ' — ' + item.status + (item.resendId ? ' (' + item.resendId + ')' : '');
+        entry.textContent = (item.maskedRecipient || 'Unknown recipient') + ' — ' + deliveryStatusLabel(item) + (item.resendId ? ' (' + item.resendId + ')' : '');
         deliveryList.appendChild(entry);
       });
     }).catch(function (error) {
       status.textContent = error.message;
     });
+  }
+
+  function deliveryStatusLabel(item) {
+    if (item.status === 'sent') return 'already sent on ' + deliveryTimestamp(item.sentAt);
+    if (item.status === 'failed') return 'delivery problem — held for review';
+    if (item.status === 'attempting') return 'delivery status uncertain — held for review';
+    return 'held for review';
+  }
+
+  function deliveryTimestamp(value) {
+    var timestamp = new Date(value);
+    if (isNaN(timestamp.getTime())) return 'an earlier date';
+    return timestamp.toLocaleString('en-GB', {dateStyle: 'medium', timeStyle: 'short'});
   }
 
   function invalidate() {
@@ -171,8 +186,8 @@
       current.eligible = data.eligible;
       campaignID.value = data.campaignId;
       confirm.value = '';
-      status.textContent = data.message;
-      root.querySelector('[data-marketing-message-audience]').textContent = data.sent + ' sent, ' + data.failed + ' not retried after a delivery problem, and ' + data.remaining + ' remaining out of ' + data.eligible + ' consented members.';
+      status.textContent = 'Batch complete: ' + data.batchSent + ' new email(s) sent' + (data.batchFailed ? ', and ' + data.batchFailed + ' held for review' : '') + '. ' + data.remaining + ' recipient(s) remain.';
+      root.querySelector('[data-marketing-message-audience]').textContent = 'Campaign progress: ' + data.sent + ' already sent, ' + data.failed + ' held for review, and ' + data.remaining + ' remaining out of ' + data.eligible + ' consented members.';
       loadDeliveries();
       if (data.remaining === 0) {
         sendForm.hidden = true;
