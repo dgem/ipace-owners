@@ -74,6 +74,10 @@ type marketingMessageSent struct {
 
 type marketingMessageDeliveryRequest struct {
 	CampaignID string `json:"campaignId"`
+	TemplateID string `json:"templateId"`
+	Name       string `json:"name"`
+	Subject    string `json:"subject"`
+	Markdown   string `json:"markdown"`
 }
 type marketingMessageDelivery struct {
 	MaskedRecipient string    `json:"maskedRecipient"`
@@ -194,7 +198,20 @@ func AdminMarketingMessageDeliveries(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Could not load delivery records"})
 		return
 	}
-	deliveries, err := marketingMessageDeliveryList(r.Context(), db, input.CampaignID)
+	records, err := matchingMarketingMessageRecords(r.Context(), db, marketingMessageRequest{
+		TemplateID: input.TemplateID,
+		Name:       input.Name,
+		Subject:    input.Subject,
+		Markdown:   input.Markdown,
+	})
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Could not load delivery records"})
+		return
+	}
+	if !containsMarketingMessageRecord(records, input.CampaignID) {
+		records = append(records, marketingMessageRecord{CampaignID: input.CampaignID})
+	}
+	deliveries, err := marketingMessageDeliveryListForRecords(r.Context(), db, records)
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Could not load delivery records"})
 		return
@@ -519,7 +536,7 @@ func marketingMessageDeliveryStatusPriority(status string) int {
 	}
 }
 
-func marketingMessageDeliveryList(ctx context.Context, db *firestore.Client, id string) ([]marketingMessageDelivery, error) {
+func marketingMessageDeliveryListForRecords(ctx context.Context, db *firestore.Client, records []marketingMessageRecord) ([]marketingMessageDelivery, error) {
 	emailByHash := map[string]string{}
 	joins := db.Collection("joinSubmissions").Documents(ctx)
 	for {
@@ -542,31 +559,59 @@ func marketingMessageDeliveryList(ctx context.Context, db *firestore.Client, id 
 		}
 	}
 	joins.Stop()
-	result := []marketingMessageDelivery{}
-	iter := db.Collection("emailCampaigns").Doc(id).Collection("deliveries").Documents(ctx)
-	defer iter.Stop()
-	for {
-		doc, err := iter.Next()
-		if err == iterator.Done {
-			break
-		}
-		if err != nil {
-			return nil, err
-		}
-		var row struct {
-			Status      string    `firestore:"status"`
-			ResendID    string    `firestore:"resendId"`
-			EmailHash   string    `firestore:"emailHash"`
-			AttemptedAt time.Time `firestore:"attemptedAt"`
-			SentAt      time.Time `firestore:"sentAt"`
-		}
-		if doc.DataTo(&row) != nil {
+	byEmailHash := map[string]marketingMessageDelivery{}
+	seenCampaigns := map[string]bool{}
+	for _, record := range records {
+		if record.CampaignID == "" || seenCampaigns[record.CampaignID] {
 			continue
 		}
-		result = append(result, marketingMessageDelivery{MaskedRecipient: maskedEmail(emailByHash[row.EmailHash]), Status: row.Status, ResendID: row.ResendID, AttemptedAt: row.AttemptedAt, SentAt: row.SentAt})
+		seenCampaigns[record.CampaignID] = true
+		iter := db.Collection("emailCampaigns").Doc(record.CampaignID).Collection("deliveries").Documents(ctx)
+		for {
+			doc, err := iter.Next()
+			if err == iterator.Done {
+				break
+			}
+			if err != nil {
+				iter.Stop()
+				return nil, err
+			}
+			var row struct {
+				Status      string    `firestore:"status"`
+				ResendID    string    `firestore:"resendId"`
+				EmailHash   string    `firestore:"emailHash"`
+				AttemptedAt time.Time `firestore:"attemptedAt"`
+				SentAt      time.Time `firestore:"sentAt"`
+			}
+			if doc.DataTo(&row) != nil || row.Status == "" {
+				continue
+			}
+			key := row.EmailHash
+			if key == "" {
+				key = doc.Ref.ID
+			}
+			candidate := marketingMessageDelivery{MaskedRecipient: maskedEmail(emailByHash[row.EmailHash]), Status: row.Status, ResendID: row.ResendID, AttemptedAt: row.AttemptedAt, SentAt: row.SentAt}
+			if existing, ok := byEmailHash[key]; !ok || shouldReplaceMarketingMessageDelivery(existing, candidate) {
+				byEmailHash[key] = candidate
+			}
+		}
+		iter.Stop()
+	}
+	result := make([]marketingMessageDelivery, 0, len(byEmailHash))
+	for _, delivery := range byEmailHash {
+		result = append(result, delivery)
 	}
 	sort.Slice(result, func(i, j int) bool { return result[i].MaskedRecipient < result[j].MaskedRecipient })
 	return result, nil
+}
+
+func shouldReplaceMarketingMessageDelivery(existing, candidate marketingMessageDelivery) bool {
+	existingPriority := marketingMessageDeliveryStatusPriority(existing.Status)
+	candidatePriority := marketingMessageDeliveryStatusPriority(candidate.Status)
+	if candidatePriority != existingPriority {
+		return candidatePriority > existingPriority
+	}
+	return candidate.SentAt.After(existing.SentAt) || candidate.AttemptedAt.After(existing.AttemptedAt)
 }
 
 func countMarketingMessageDeliveries(audience []campaignRecipient, deliveries map[string]string) (int, int) {

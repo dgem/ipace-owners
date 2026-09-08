@@ -75,6 +75,12 @@ func TestMarketingMessageCampaignIDIsStableForIdenticalContent(t *testing.T) {
 	if merged["sent"] != "sent" || merged["failed"] != "sent" || merged["new"] != "attempting" {
 		t.Fatalf("merged delivery states = %#v", merged)
 	}
+	if !shouldReplaceMarketingMessageDelivery(marketingMessageDelivery{Status: "attempting"}, marketingMessageDelivery{Status: "sent"}) {
+		t.Fatal("sent delivery did not replace an uncertain legacy delivery")
+	}
+	if shouldReplaceMarketingMessageDelivery(marketingMessageDelivery{Status: "sent"}, marketingMessageDelivery{Status: "failed"}) {
+		t.Fatal("failed delivery replaced a sent delivery")
+	}
 	statuses := map[string]string{
 		campaignEmailFingerprint("sent@example.com"):   "sent",
 		campaignEmailFingerprint("failed@example.com"): "failed",
