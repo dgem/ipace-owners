@@ -157,6 +157,11 @@ func AdminSurveys(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, 500, map[string]any{"error": "Could not save survey"})
 			return
 		}
+		action := "admin-survey-created"
+		if r.Method == http.MethodPut {
+			action = "admin-survey-updated"
+		}
+		logSurveyEvent(r, action, record.ID, map[string]any{"status": record.Status})
 		writeJSON(w, 200, record)
 	case http.MethodDelete:
 		id := cleanString(r.URL.Query().Get("id"), 160)
@@ -172,6 +177,7 @@ func AdminSurveys(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, 500, map[string]any{"error": "Could not delete survey"})
 			return
 		}
+		logSurveyEvent(r, "admin-survey-deleted", id, nil)
 		w.WriteHeader(http.StatusNoContent)
 	default:
 		writeJSON(w, 405, map[string]any{"error": "Method Not Allowed"})
@@ -216,9 +222,11 @@ func AdminSurveyResults(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if r.URL.Query().Get("format") == "csv" {
+		logSurveyEvent(r, "admin-survey-csv-downloaded", id, map[string]any{"responseCount": analysis.Total})
 		writeAdminSurveyCSV(w, id, analysis)
 		return
 	}
+	logSurveyEvent(r, "admin-survey-analysis-viewed", id, map[string]any{"responseCount": analysis.Total})
 	w.Header().Set("Cache-Control", "private, no-store")
 	writeJSON(w, http.StatusOK, analysis)
 }
@@ -258,6 +266,7 @@ func AdminSurveyPreview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if r.Method == http.MethodGet {
+		logSurveyEvent(r, "admin-survey-preview-viewed", id, nil)
 		writeJSON(w, http.StatusOK, survey)
 		return
 	}
@@ -267,9 +276,11 @@ func AdminSurveyPreview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if _, _, _, err := validateSurveyResponse(survey, input); err != nil {
+		logSurveyEvent(r, "admin-survey-preview-rejected", id, map[string]any{"reason": "validation"})
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": err.Error()})
 		return
 	}
+	logSurveyEvent(r, "admin-survey-preview-validated", id, nil)
 	writeJSON(w, http.StatusOK, map[string]any{"valid": true})
 }
 
@@ -455,6 +466,7 @@ func MemberSurveys(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	out := []surveyResult{}
+	resultsVisible := 0
 	for _, s := range surveys {
 		if !surveyIsPublished(s) {
 			continue
@@ -465,10 +477,13 @@ func MemberSurveys(w http.ResponseWriter, r *http.Request) {
 				result.PreferredCounts = nil
 				result.TextCounts = nil
 				result.Total = 0
+			} else {
+				resultsVisible++
 			}
 			out = append(out, result)
 		}
 	}
+	logSurveyEvent(r, "member-survey-list-viewed", "", map[string]any{"publishedCount": len(out), "resultsVisibleCount": resultsVisible})
 	writeJSON(w, 200, map[string]any{"surveys": out})
 }
 func SubmitSurveyResponse(w http.ResponseWriter, r *http.Request) {
@@ -509,18 +524,27 @@ func SubmitSurveyResponse(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !surveyIsLive(s, surveyNow()) {
+		logSurveyEvent(r, "member-survey-response-rejected", s.ID, map[string]any{"reason": "not-live"})
 		writeJSON(w, 409, map[string]any{"error": "This survey is not currently open"})
 		return
 	}
 	ids, textByOption, preferredOptionID, e := validateSurveyResponse(s, input)
 	if e != nil {
+		logSurveyEvent(r, "member-survey-response-rejected", s.ID, map[string]any{"reason": "validation"})
 		writeJSON(w, 400, map[string]any{"error": e.Error()})
 		return
 	}
-	if _, e = db.Collection("surveys").Doc(s.ID).Collection("responses").Doc(u.UID).Set(r.Context(), map[string]any{"optionIds": ids, "textByOption": textByOption, "preferredOptionId": preferredOptionID, "updatedAt": surveyNow().UTC()}); e != nil {
+	responseRef := db.Collection("surveys").Doc(s.ID).Collection("responses").Doc(u.UID)
+	_, existingResponseErr := responseRef.Get(r.Context())
+	if _, e = responseRef.Set(r.Context(), map[string]any{"optionIds": ids, "textByOption": textByOption, "preferredOptionId": preferredOptionID, "updatedAt": surveyNow().UTC()}); e != nil {
 		writeJSON(w, 500, map[string]any{"error": "Could not save response"})
 		return
 	}
+	action := "member-survey-response-created"
+	if existingResponseErr == nil {
+		action = "member-survey-response-updated"
+	}
+	logSurveyEvent(r, action, s.ID, nil)
 	result, e := loadSurveyResult(r.Context(), db, s, u.UID)
 	if e != nil {
 		writeJSON(w, 500, map[string]any{"error": "Could not load results"})
@@ -533,6 +557,23 @@ func SubmitSurveyResponse(w http.ResponseWriter, r *http.Request) {
 		result.Total = 0
 	}
 	writeJSON(w, 200, result)
+}
+
+// logSurveyEvent records only operational metadata. Survey selections, free text,
+// member identities, and administrative CSV contents must never enter Cloud Logging.
+func logSurveyEvent(r *http.Request, action, surveyID string, fields map[string]any) {
+	logEvent("survey", "info", action, surveyEventFields(r, surveyID, fields))
+}
+
+func surveyEventFields(r *http.Request, surveyID string, fields map[string]any) map[string]any {
+	result := map[string]any{}
+	for key, value := range fields {
+		result[key] = value
+	}
+	if surveyID != "" {
+		result["surveyId"] = surveyID
+	}
+	return addAuthTrace(result, r)
 }
 
 func memberMayViewSurveyResults(s surveyRecord, result surveyResult) bool {

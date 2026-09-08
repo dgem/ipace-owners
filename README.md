@@ -419,6 +419,10 @@ On confirmation, the Function reads the live audience of verified historic Fireb
 
 `GET` and `POST /api/email-unsubscribe` are intentionally public signed-link endpoints: the GET presents a confirmation page so link scanners cannot silently opt people out, while a direct list-unsubscribe POST performs the same withdrawal. Neither response reveals the recipient email.
 
+### Survey operational audit
+
+Survey activity is logged as privacy-safe Cloud Logging events. This records survey ID, action, safe aggregate response counts where relevant, and a supplied support trace code: member survey-list views, response creation or amendment, rejected submissions, and administrator create/edit/delete, preview, analysis and CSV-export actions. It never records selected options, optional free text, member IDs, email addresses, or CSV contents.
+
 `POST /api/admin/marketing-message-deliveries` is the admin-only, masked delivery-ledger view used to reconcile attempted or failed recipients before any manual follow-up.
 
 Prepared templates are loaded through `POST /api/admin/marketing-message-templates`; their live public evidence totals are filled server-side and `{{firstName}}` is rendered for each individual recipient. Approved template images are resolved server-side too. Editing loaded copy turns it into a new message, while retaining the same consented audience and unsubscribe protection. The browser uses `POST /api/admin/marketing-message-preview` for the no-side-effect validation and preview, then `POST /api/admin/marketing-message-send` only after the audience count is rechecked and the exact confirmation has been supplied. All three routes require the server-verified Firebase admin claim.

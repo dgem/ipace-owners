@@ -118,11 +118,11 @@ change rather than assuming it exists.
 | `POST /api/admin/instagram-preview` | Admin claim | Validate a site-relative MP4/MOV path, caption and explicit full-media review; return the deterministic confirmation without a provider side effect. |
 | `POST /api/admin/instagram-campaign-history` | Admin claim | List named drafts and immutable publication records, refreshing cached provider insights when available. |
 | `POST /api/admin/campaign-summary` | Admin claim | Aggregate reconciled Resend email outcomes and Instagram publication/insight totals; report Facebook as manual unless Page Insights is connected. |
-| `GET/POST/PUT/DELETE /api/admin/surveys` | Admin claim | Manage timed single- or multiple-choice member surveys. |
-| `GET/POST /api/admin/survey-preview` | Admin claim | Load drafts or published surveys for a member-layout preview; POST validates but never saves a test response. |
-| `GET /api/admin/survey-results` | Admin claim | Return admin-only aggregate and individual survey answers; CSV export contains only masked email, UTC time, selected/preferred option IDs and free text in `option-id: text` form. |
-| `GET /api/member/surveys` | Member | Return survey state, the member's own response, and allowed aggregate counts. |
-| `POST /api/member/survey-response` | Member | Save one validated replaceable response while a survey is live. |
+| `GET/POST/PUT/DELETE /api/admin/surveys` | Admin claim | Manage timed single- or multiple-choice member surveys and emit a privacy-safe create/edit/delete audit event with survey ID and supplied support trace only. |
+| `GET/POST /api/admin/survey-preview` | Admin claim | Load drafts or published surveys for a member-layout preview; POST validates but never saves a test response. Audit preview views and validation without recording test choices. |
+| `GET /api/admin/survey-results` | Admin claim | Return admin-only aggregate and individual survey answers; CSV export contains only masked email, UTC time, selected/preferred option IDs and free text in `option-id: text` form. Audit analysis and CSV access with response total only. |
+| `GET /api/member/surveys` | Member | Return survey state, the member's own response, and allowed aggregate counts; audit only published/results-visible counts. |
+| `POST /api/member/survey-response` | Member | Save one validated replaceable response while a survey is live. Audit creation, amendment and safe rejection reason, but never selections, free text or identity. |
 | `POST /api/admin/instagram-publish` | Admin claim | Revalidate the unchanged preview and exact confirmation, then create, process and publish one organic Reel through Meta. |
 | `POST /api/admin/instagram-generate` | Admin claim | Reserve an idempotent job and start one billable eight-second 9:16 Veo operation after exact `GENERATE VIDEO` confirmation. |
 | `POST /api/admin/instagram-generation-status` | Admin claim | Poll the Vertex operation, start the supported seven-second video continuation, promote the resulting 15-second master, and return an expiring delivery path. |
