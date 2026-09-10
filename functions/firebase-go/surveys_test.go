@@ -1,7 +1,11 @@
 package ipace
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
+	"firebase.google.com/go/v4/auth"
+	"fmt"
 	"net/http/httptest"
 	"strings"
 	"testing"
@@ -177,5 +181,64 @@ func TestSurveyIsLiveOnBothWholeDayBoundaries(t *testing.T) {
 	}
 	if surveyIsLive(s, time.Date(2026, 8, 31, 0, 0, 0, 0, time.UTC)) {
 		t.Fatal("expected survey to close after its end date")
+	}
+}
+
+func TestSurveyRespondentsUseBatchesAndMatchUnorderedUsers(t *testing.T) {
+	for _, count := range []int{0, 1, 100, 101, 250} {
+		t.Run(fmt.Sprint(count), func(t *testing.T) {
+			ids := make([]string, count)
+			responses := make([]adminSurveyResponse, count)
+			for i := range ids {
+				ids[i] = fmt.Sprintf("user-%d", i)
+			}
+			calls := 0
+			err := populateSurveyRespondents(context.Background(), ids, responses, func(_ context.Context, identifiers []auth.UserIdentifier) (*auth.GetUsersResult, error) {
+				calls++
+				if len(identifiers) > 100 || len(identifiers) == 0 {
+					t.Fatalf("invalid batch size %d", len(identifiers))
+				}
+				result := &auth.GetUsersResult{}
+				for i := len(identifiers) - 1; i >= 0; i-- {
+					uid := identifiers[i].(auth.UIDIdentifier).UID
+					// Deleted users and users without an email retain the safe fallback.
+					if uid == "user-0" {
+						continue
+					}
+					var index int
+					fmt.Sscanf(uid, "user-%d", &index)
+					email := fmt.Sprintf("%c%s@example.org", 'a'+index%26, uid)
+					if uid == "user-1" {
+						email = ""
+					}
+					result.Users = append(result.Users, &auth.UserRecord{UserInfo: &auth.UserInfo{UID: uid, Email: email}})
+				}
+				return result, nil
+			})
+			if err != nil || calls != (count+99)/100 {
+				t.Fatalf("calls=%d err=%v", calls, err)
+			}
+			for i, response := range responses {
+				want := maskedEmail(fmt.Sprintf("%c%s@example.org", 'a'+i%26, ids[i]))
+				if i < 2 {
+					want = "Email unavailable"
+				}
+				if response.Respondent != want {
+					t.Fatalf("response %d: got %q want %q", i, response.Respondent, want)
+				}
+			}
+		})
+	}
+}
+
+func TestSurveyRespondentsStopOnLookupFailure(t *testing.T) {
+	failure := errors.New("lookup unavailable")
+	calls := 0
+	err := populateSurveyRespondents(context.Background(), make([]string, 101), make([]adminSurveyResponse, 101), func(context.Context, []auth.UserIdentifier) (*auth.GetUsersResult, error) {
+		calls++
+		return nil, failure
+	})
+	if !errors.Is(err, failure) || calls != 1 {
+		t.Fatalf("calls=%d err=%v", calls, err)
 	}
 }

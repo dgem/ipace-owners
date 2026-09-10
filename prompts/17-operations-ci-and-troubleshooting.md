@@ -126,6 +126,12 @@ site-owned `/images/` paths; Freeform campaigns retain the generic hero.
   tool is already current, prefer narrow pinned `overrides` for patched transitive releases
   over downgrading the direct tool. Regenerate `package-lock.json`, require a zero-result
   full npm audit, and exercise the affected build or deployment CLI before pushing.
+- The September 2026 audit repair pins `markdownlint-cli2 > smol-toml` to 1.8.0 because
+  the current linter pins affected 1.7.0. Refresh compatible js-yaml 3.x/4.x and other
+  security patch resolutions in the lockfile. The blocking npm audit remains high severity;
+  report residual moderate Firebase CLI advisories explicitly rather than applying npm
+  audit's suggested downgrade to an obsolete Firebase CLI. Broader cross-major transitive
+  migrations require compatibility checks for the CLI consumers.
 - After a Firebase Hosting PR preview passes its smoke test, run a blocking passive OWASP ZAP
   baseline scan against that preview. Use a versioned ZAP container, disable issue creation,
   retain the report as an Actions artifact, and keep reviewed platform/CDN findings in the
