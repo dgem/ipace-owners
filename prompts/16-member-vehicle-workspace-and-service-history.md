@@ -201,6 +201,13 @@ only that masked respondent, UTC submission time, selected option IDs, the optio
 option ID and text responses in `option-id: text` form—never
 a full email address, name, Firebase UID, or member/vehicle data. Neutralise spreadsheet formula
 characters in the CSV's user-controlled cells before exporting them.
+Resolve respondent emails for admin analysis and CSV exports using Firebase Auth batch lookups
+of at most 100 UIDs, never one serial request per response. Match returned users by UID because
+batch results are unordered; deleted users and empty emails display “Email unavailable”.
+Abort with the existing generic load error if a batch lookup fails. Keep UIDs and full emails
+out of the returned analysis and CSV. This prevents export latency growing by one network
+round trip per respondent.
+
 Register `/api/admin/surveys`, `/api/admin/survey-preview`, `/api/admin/survey-results`, `/api/member/surveys`, and `/api/member/survey-response` through
 the shared `Api` function. Test survey definition validation, response validation, and inclusive
 date boundaries, including the PII-safe CSV fields. Delete a survey's response subcollection before deleting its parent document.

@@ -4,6 +4,7 @@ import (
 	"cloud.google.com/go/firestore"
 	"context"
 	"encoding/csv"
+	"firebase.google.com/go/v4/auth"
 	"fmt"
 	"google.golang.org/api/iterator"
 	"net/http"
@@ -294,12 +295,13 @@ func loadAdminSurveyAnalysis(ctx context.Context, db *firestore.Client, survey s
 	if err != nil {
 		return analysis, err
 	}
+	var respondentIDs []string
 	iter := db.Collection("surveys").Doc(survey.ID).Collection("responses").OrderBy("updatedAt", firestore.Desc).Documents(ctx)
 	defer iter.Stop()
 	for {
 		doc, err := iter.Next()
 		if err == iterator.Done {
-			return analysis, nil
+			break
 		}
 		if err != nil {
 			return analysis, err
@@ -313,13 +315,8 @@ func loadAdminSurveyAnalysis(ctx context.Context, db *firestore.Client, survey s
 		if err := doc.DataTo(&response); err != nil {
 			return analysis, err
 		}
-		respondent := "Email unavailable"
-		if user, err := client.GetUser(ctx, doc.Ref.ID); err == nil {
-			if masked := maskedEmail(user.Email); masked != "" {
-				respondent = masked
-			}
-		}
-		item := adminSurveyResponse{Respondent: respondent, UpdatedAt: response.UpdatedAt}
+		respondentIDs = append(respondentIDs, doc.Ref.ID)
+		item := adminSurveyResponse{Respondent: "Email unavailable", UpdatedAt: response.UpdatedAt}
 		for _, id := range response.OptionIDs {
 			if !allowed[id] {
 				continue
@@ -337,6 +334,37 @@ func loadAdminSurveyAnalysis(ctx context.Context, db *firestore.Client, survey s
 		analysis.Total++
 		analysis.Responses = append(analysis.Responses, item)
 	}
+	if err := populateSurveyRespondents(ctx, respondentIDs, analysis.Responses, client.GetUsers); err != nil {
+		return analysis, err
+	}
+	return analysis, nil
+}
+
+// Firebase permits at most 100 identifiers per lookup and returns users unordered.
+// Keep identifiers local: only masked emails may enter the analysis or CSV.
+func populateSurveyRespondents(ctx context.Context, ids []string, responses []adminSurveyResponse, getUsers func(context.Context, []auth.UserIdentifier) (*auth.GetUsersResult, error)) error {
+	for start := 0; start < len(ids); start += 100 {
+		end := min(start+100, len(ids))
+		identifiers := make([]auth.UserIdentifier, 0, end-start)
+		for _, id := range ids[start:end] {
+			identifiers = append(identifiers, auth.UIDIdentifier{UID: id})
+		}
+		result, err := getUsers(ctx, identifiers)
+		if err != nil {
+			return err
+		}
+		masked := make(map[string]string, len(result.Users))
+		for _, user := range result.Users {
+			masked[user.UID] = maskedEmail(user.Email)
+		}
+		for i := start; i < end; i++ {
+			responses[i].Respondent = "Email unavailable"
+			if email := masked[ids[i]]; email != "" {
+				responses[i].Respondent = email
+			}
+		}
+	}
+	return nil
 }
 
 func writeAdminSurveyCSV(w http.ResponseWriter, id string, analysis adminSurveyAnalysis) {
