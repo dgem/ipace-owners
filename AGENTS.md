@@ -257,7 +257,7 @@ Examples:
   is not persisted yet.
 - Evidence uploads are not implemented (placeholder message shown).
 - Admin review queue can read server-side data for admins, but review status updates,
-  exports, and moderation actions are not yet implemented.
+  review-queue exports, and moderation actions are not yet implemented.
 - Privacy policy is a placeholder — review required before broader evidence data collection.
 - Public evidence statistics cover registered cars and SoH history; later evidence metrics
   remain unavailable until their form slices are implemented.

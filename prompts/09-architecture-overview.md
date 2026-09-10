@@ -386,3 +386,13 @@ Keep these related prompts aligned when the architecture changes:
 - `17-operations-ci-and-troubleshooting.md`
 - `20-instagram-campaign-publishing.md`
 - `21-clean-room-reconstruction-contract.md`
+
+## Private admin service export
+
+`GET /api/admin/service-export` is routed through `Api`, guarded by server-side
+Firebase admin authorization, and used by `admin-service-export.js` on the Admin dashboard.
+Read `serviceEvents`, `joinSubmissions`, and `vehicles` in collection scans, using identity
+fields only for text redaction. Return a private/no-store CSV of non-deleted service records
+across all members. Include structured fields and redacted provider name/title/description;
+omit identity columns, provider postcodes and raw timestamps. See prompt 16 for the precise
+redaction and analysis contract. No extra infrastructure or stored export objects are needed.

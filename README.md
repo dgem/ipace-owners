@@ -785,7 +785,7 @@ The following features are **not yet implemented** in this version:
 - **Evidence document uploads** — A placeholder message explains what will be supported.
   Requires Cloud Storage for files plus Firestore metadata and Functions integration.
 - **Admin review workflow** — The review queue can read server-side data for admins, but
-  review status updates, exports, and moderation actions are not yet implemented.
+  review status updates, review-queue exports, and moderation actions are not yet implemented.
 - **Legal/privacy review** — The plain-English pages reflect the live service, but still
   require human legal/privacy review before broader collection or a change in organisational
   structure.
@@ -936,3 +936,18 @@ Common types:
 Content and code are copyright the I-PACE Owners' Advocacy Group contributors. Manufacturer
 and vehicle names are used descriptively; the site does not use Jaguar/JLR logos or badges as
 group branding. Committed vehicle artwork is original or generated for this project.
+
+### Private admin service CSV
+
+The Admin dashboard Service Event Summary offers `Download service CSV` through
+`GET /api/admin/service-export`. `admin-service-export.js` sends a Firebase token; the
+server requires an admin claim. Export every non-deleted service record across members,
+including records outside public consent-filtered aggregates. Output structured service
+fields, provider name, title and description. Redact known member names, email addresses,
+internal IDs, vehicle registrations/VIN fragments/hashes, and common email, phone, VIN, UK
+registration/postcode and URL patterns from text. Dates use months and mileage uses
+5,000-mile bands. This CSV supports private admin analysis; automated text redaction is
+not a guarantee of anonymity. Never export member/vehicle identifier columns or provider
+postcodes. Read service events, joins and vehicles once per request; no per-user Auth calls.
+Responses are private/no-store, spreadsheet formula-safe, and audit logs contain only counts.
+The download prevents duplicate clicks and reports failures or a 60-second timeout.

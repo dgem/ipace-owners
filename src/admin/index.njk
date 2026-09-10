@@ -107,7 +107,12 @@ date: Last Modified
                 </div>
               </section>
               <section aria-labelledby="service-section-title">
-                <h3 id="service-section-title">Service Event Summary</h3>
+                <div class="dashboard-panel__header">
+                  <div><h3 id="service-section-title">Service Event Summary</h3>
+                  <p class="form-hint">Download all non-deleted service and fault records for private analysis, including provider names, titles and descriptions. Known personal details are redacted; identifying context may remain. Dates use months and mileage uses 5,000-mile bands.</p></div>
+                  <button class="btn btn--secondary" type="button" data-service-export>Download service CSV</button>
+                </div>
+                <p class="form-hint" role="status" data-service-export-status></p>
                 <div class="table-wrapper">
                   <table class="data-table" data-service-event-aggregates>
                     <thead>
@@ -195,7 +200,7 @@ date: Last Modified
 
         <section class="dashboard-panel admin-dashboard-planned" aria-labelledby="planned-admin-title">
           <div class="dashboard-panel__header"><div><p class="dashboard-panel__eyebrow">Planned</p><h2 class="dashboard-panel__title" id="planned-admin-title">Future administration areas</h2></div></div>
-          <p>Submission triage, evidence files, public-stat controls, exports, member management, and settings will appear here when their server-side workflows are implemented. They are not linked prematurely.</p>
+          <p>Submission triage, evidence files, public-stat controls, further exports, member management, and settings will appear here when their server-side workflows are implemented. They are not linked prematurely.</p>
         </section>
       </div>
     </div>
