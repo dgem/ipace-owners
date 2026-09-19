@@ -190,8 +190,8 @@ func TestMarketingMessageTemplatesMoveSeptemberSurveyToBroadcasts(t *testing.T) 
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(templates) != 4 {
-		t.Fatalf("template count = %d, want 4", len(templates))
+	if len(templates) != 5 {
+		t.Fatalf("template count = %d, want 5", len(templates))
 	}
 	var survey marketingMessageTemplate
 	for _, template := range templates {

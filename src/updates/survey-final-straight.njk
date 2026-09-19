@@ -1,0 +1,50 @@
+---
+title: "The final straight: add your voice before 24 September"
+date: 2026-09-19
+summary: "With 540 survey responses and less than a week until our JLR meeting, there is still time to add your voice and vehicle history."
+description: "The September member survey closes on 23 September, ahead of our 24 September meeting with JLR."
+layout: update.njk
+eyebrow: Member survey · Final week
+seoType: article
+surveyParticipation: true
+heroImage: /images/september-survey-reminder-2026-hero.jpg
+heroImageAlt: "Two right-hand-drive I-PACE-style cars travelling together in the left-hand lane through the British countryside."
+---
+{% from "partials/racing-wreath.njk" import racingWreath %}
+<p class="lead">Our meeting with Jaguar Land Rover on <strong>24 September</strong> is less than a week away. We’re on the final straight, and your voice can still help shape what we take into the room.</p>
+
+<p>As of {{ surveyReminder.asOf }}, <strong>{{ surveyReminder.responses }} members have submitted the survey</strong>. Thank you to everyone who has answered. If you haven’t yet, please add your experience before the survey closes on <strong>23 September 2026</strong>.</p>
+
+<section class="survey-reminder-counters" aria-label="Our participation and evidence">
+  <div data-survey-participation>
+    {{ racingWreath("reminder-responses", false, "Survey responses", surveyReminder.asOf, false, "8.25rem", surveyReminder.responses) }}
+  </div>
+  <div data-public-stats data-public-stats-retain-fallback class="survey-reminder-counters__evidence">
+    {{ racingWreath("reminder-members", "joinedOwners", "Owners joined", surveyReminder.asOf, false, "8.25rem", surveyReminder.members) }}
+    {{ racingWreath("reminder-vehicles", "vehiclesRegistered", "Cars recorded", surveyReminder.asOf, false, "8.25rem", surveyReminder.vehicles) }}
+    {{ racingWreath("reminder-soh", "sohReadings", "Battery-health readings", surveyReminder.asOf, false, "8.25rem", surveyReminder.soh) }}
+    {{ racingWreath("reminder-service", "serviceEventsLogged", "Service & fault records", surveyReminder.asOf, false, "8.25rem", surveyReminder.service) }}
+  </div>
+</section>
+<p class="form-hint">Counters refresh when available. The dated figures above are our publication snapshot. Evidence totals are the group’s published, consent-filtered figures.</p>
+
+<p><a class="btn btn--primary survey-reminder-pill" href="{{ surveyReminder.surveyURL }}">Add my voice — take the survey</a></p>
+
+<h2>The meeting is close. Every response matters.</h2>
+<p>There are different views on the best way forward: a full HV replacement, a fair buy-back, fair compensation, or other concerns. Every response helps us understand where owners agree and where the discussion needs more work. This is about giving those experiences a clearer voice at the meeting.</p>
+<p>You can select every outcome you would support and, if you wish, mark an eligible option as your preferred outcome. Sign in with your member email to take part. Results stay hidden until you submit, so your answer is your own. You can edit your response while the survey remains open.</p>
+
+<h2>Your vehicle history adds weight</h2>
+<p>At publication, {{ surveyReminder.members }} owners had joined and recorded {{ surveyReminder.vehicles }} cars, {{ surveyReminder.soh }} battery-health readings and {{ surveyReminder.service }} service and fault records. Those histories help explain what recalls, repeated repairs and long waits for parts mean in practice.</p>
+<p>If you have a missing service visit, a fault, a repair or a battery-health reading to add, now is a useful time to record it.</p>
+<p><a class="btn btn--secondary survey-reminder-pill" href="/member/dashboard/">Add my vehicle history</a></p>
+
+<h2>Help another owner add their voice</h2>
+<p>Share this update with another I-PACE owner. The more experiences we hear, the better prepared we will be.</p>
+<ul class="social-share" role="list" aria-label="Share this survey update">
+  <li><a class="social-share__link" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fipace-owners.org%2Fupdates%2Fsurvey-final-straight%2F" target="_blank" rel="noopener noreferrer">Facebook</a></li>
+  <li><a class="social-share__link" href="https://wa.me/?text=I-PACE%20owners%3A%20add%20your%20voice%20before%20the%2024%20September%20JLR%20meeting.%20https%3A%2F%2Fipace-owners.org%2Fupdates%2Fsurvey-final-straight%2F" target="_blank" rel="noopener noreferrer">WhatsApp</a></li>
+  <li><a class="social-share__link" href="https://twitter.com/intent/tweet?text=I-PACE%20owners%3A%20add%20your%20voice%20before%20the%2024%20September%20JLR%20meeting&amp;url=https%3A%2F%2Fipace-owners.org%2Fupdates%2Fsurvey-final-straight%2F" target="_blank" rel="noopener noreferrer">X</a></li>
+  <li><a class="social-share__link" href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fipace-owners.org%2Fupdates%2Fsurvey-final-straight%2F" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
+</ul>
+<p>Thank you for helping us make the meeting count.</p>

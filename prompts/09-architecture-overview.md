@@ -150,6 +150,16 @@ header.
 | `POST /api/admin/instagram-generation-status` | `AdminInstagramGenerationStatus` | Admin | Poll and advance the job into the seven-second continuation, promote the 15-second master, and issue a short-lived review path. |
 | `GET/HEAD /api/instagram-media/**` | `InstagramGeneratedMedia` | Expiring bearer path | Range-stream a private completed master after constant-time token and expiry validation. |
 | `GET /api/public-stats` | `PublicStats` | No | Return the generated anonymised aggregate snapshot. |
+| `GET /api/survey-participation` | `SurveyParticipation` | No | Return only the fixed published September survey response total; cache for 60 seconds, never expose answers or identities. |
+
+The prepared `survey-reminder-september-2026` marketing campaign narrows the consented member
+audience to nonrespondents, using response document IDs and batched Auth email lookup. Resolve
+live response and evidence variables and recheck eligibility at preview and each batch; preserve
+the template's stable campaign identity and existing delivery suppression. It is available only
+18–23 September 2026 UTC while the survey remains published and live. The matching dated public
+update uses participation/public-stat counters with explicit fallbacks, shared laurel styling,
+an email-friendly JPEG hero and public social-share links. See prompts 04 and 17 for content
+and operational details.
 
 Templates and client JavaScript use `/api/*`; Firebase Hosting rewrites `/api/**` to the
 single Go `Api` Function, which dispatches to handler functions in process. `make

@@ -2,6 +2,15 @@
 
 Create or refine the public content pages for the I-PACE Owners' Advocacy Group.
 
+Preserve `/updates/survey-final-straight/`, dated 19 September 2026, preparing members for
+the 24 September JLR meeting and the survey's 23 September close. Its publication snapshot is
+540 responses, 1,477 owners, 721 cars, 130 battery-health readings and 182 service/fault records.
+Use `src/_data/surveyReminder.json` for dated fallbacks, then refresh laurel counters through
+public stats and the participation-only endpoint without revealing vote choices. Keep the dated
+body copy explicit, pill links to the survey and vehicle workspace, and four public social shares.
+The matching hero shows two RHD I-PACE-style cars in the left lane of a British countryside
+road. Reuse the compressed email-safe JPEG; keep key copy and numbers as accessible text.
+
 ## Goal
 
 The public site should explain the group clearly, invite owners to participate, and establish a constructive evidence-led posture without overstating legal status or data certainty.

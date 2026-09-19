@@ -820,6 +820,18 @@ Plain vanilla JavaScript, no bundler. The current modules are:
 - `admin-campaign-summary.js` — admin-only email, Instagram, and Facebook capability summary
 - `marketing-messages.js` — admin-only marketing-message preview, masked delivery ledger, and exact-confirmation resumable batch delivery
 - `public-stats.js` — homepage and evidence-dashboard aggregate rendering
+- `survey-participation.js` — public September survey participation count, retaining the dated fallback when unavailable
+
+The `survey-reminder-september-2026` marketing template targets consented members who have
+not submitted the September survey. Preview and each send batch recalculate that audience
+and substitute live survey, membership and vehicle-history counts. Its source copy is locked
+in the admin form to preserve targeting. Sending is restricted to 18–23 September 2026 UTC
+while the published survey is live. Existing exact-count confirmation and delivery deduplication apply.
+The matching `/updates/survey-final-straight/` page retains dated 19 September figures when
+live counts are unavailable. `GET /api/survey-participation` exposes only the fixed survey's
+response total, with 60-second public caching; it never exposes answers or respondent details.
+Both include public social-share links. The email hero is a 1120×630 baseline RGB JPEG
+(under 250 KiB), served over HTTPS with responsive sizing and descriptive alternative text.
 - `site-mode.js` — launch/full presentation selection
 
 ### Adding pages

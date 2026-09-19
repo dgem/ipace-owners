@@ -3,6 +3,8 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
+import { execFileSync } from 'node:child_process';
 import { chromium } from 'playwright-core';
 
 const baseURL = (process.env.VISUAL_BASE_URL || 'http://127.0.0.1:8080').replace(/\/$/, '');
@@ -765,10 +767,10 @@ async function checkPublicEvidenceCounters(url, viewport, screenshotName, showMe
   await page.close();
 }
 
-async function checkMarketingMessages(viewport, screenshotName) {
+async function checkMarketingMessages(viewport, screenshotName, reminder = false) {
   const page = await browser.newPage({ viewport });
   const survey = {
-    id: 'survey-september-2026',
+    id: reminder ? 'survey-reminder-september-2026' : 'survey-september-2026',
     name: 'September 2026 — Preferred outcomes survey',
     description: 'Invite every consented member to the September preferred-outcomes survey.',
     subject: 'Have your say before our September meeting with JLR',
@@ -795,18 +797,76 @@ async function checkMarketingMessages(viewport, screenshotName) {
   await page.evaluate(() => {
     window.firebase = { auth: () => ({ currentUser: { getIdToken: async () => 'visual-admin-token' } }) };
   });
-  await page.locator('[data-marketing-message-template]').selectOption('survey-september-2026');
+  await page.locator('[data-marketing-message-template]').selectOption(survey.id);
   await page.waitForFunction((expectedName) => document.querySelector('[data-marketing-message-name]').value === expectedName, survey.name);
   assert.equal(await page.locator('[data-marketing-message-name]').inputValue(), survey.name);
+  assert.equal(await page.locator('[data-marketing-message-markdown]').evaluate((field) => field.readOnly), reminder);
   await page.locator('[data-marketing-message-form]').evaluate((form) => form.requestSubmit());
   await page.frameLocator('[data-marketing-message-html]').getByText('September survey').waitFor({ state: 'visible' });
   assert.equal(await page.locator('[data-marketing-message-send]').isVisible(), true);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
+  if (reminder) {
+    assert.match(await page.locator('[data-marketing-message-audience]').textContent(), /have not yet answered/);
+    await page.locator('[data-marketing-message-template]').selectOption('');
+    assert.equal(await page.locator('[data-marketing-message-markdown]').evaluate((field) => field.readOnly), false);
+    assert.equal(await page.locator('[data-marketing-message-send]').isVisible(), false);
+  }
   await page.close();
 }
 
+async function checkSurveyReminder() {
+  const fixtureDir = fs.mkdtempSync(path.join(os.tmpdir(), 'survey-reminder-'));
+  const fixturePath = path.join(fixtureDir, 'email.html');
+  try {
+    execFileSync('go', ['test', '-count=1', '-run', '^TestRenderSurveyReminderEmailFixture$', '.'], {
+      cwd: 'functions/firebase-go', env: { ...process.env, SURVEY_REMINDER_PREVIEW: fixturePath }
+    });
+    const html = fs.readFileSync(fixturePath, 'utf8');
+    assert.ok(fs.statSync('public/images/september-survey-reminder-2026-hero.jpg').size < 250 * 1024);
+    for (const width of [800, 390]) {
+      for (const blocked of [false, true]) {
+        const page = await browser.newPage({ viewport: { width, height: 900 } });
+        await page.route('https://ipace-owners.org/images/**', (route) => blocked
+          ? route.abort()
+          : route.fulfill({ path: path.join('public/images', path.basename(new URL(route.request().url()).pathname)) }));
+        await page.setContent(html, { waitUntil: 'networkidle' });
+        assert.equal(await page.getByText('540', { exact: true }).isVisible(), true);
+        assert.equal(await page.locator('a[href*="sharer"], a[href*="wa.me"], a[href*="twitter.com/intent"], a[href*="linkedin.com/sharing"]').count(), 4);
+        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
+        if (!blocked) {
+          assert.deepEqual(await page.locator('img').evaluate((img) => [img.naturalWidth, img.naturalHeight]), [1120, 630]);
+        }
+        await page.screenshot({ path: path.join(outputDir, `survey-reminder-email-${width}${blocked ? '-images-blocked' : ''}.png`), fullPage: true });
+        await page.close();
+      }
+    }
+    for (const width of [1440, 390]) {
+      for (const offline of [false, true]) {
+        const page = await browser.newPage({ viewport: { width, height: 1000 } });
+        await page.route('**/api/public-stats*', (route) => offline ? route.abort() : route.fulfill({
+          json: { joinedOwners: 1477, vehiclesRegistered: 721, sohReadings: 130, serviceEventsLogged: 182 }
+        }));
+        await page.route('**/api/survey-participation', (route) => offline ? route.abort() : route.fulfill({ json: { responses: 541 } }));
+        await page.goto(baseURL + '/updates/survey-final-straight/', { waitUntil: 'networkidle' });
+        assert.equal(await page.locator('[data-survey-participation] strong').textContent(), offline ? '540' : '541');
+        assert.equal(await page.locator('[data-public-stat="joinedOwners"]').textContent(), offline ? '1477' : '1,477');
+        assert.equal(await page.locator('.survey-reminder-pill').first().evaluate((link) => getComputedStyle(link).borderRadius), '999px');
+        assert.equal(await page.locator('.prose .social-share__link').first().evaluate((link) => getComputedStyle(link).color), 'rgb(15, 118, 110)');
+        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
+        await page.screenshot({ path: path.join(outputDir, `survey-reminder-update-${width}${offline ? '-fallback' : ''}.png`), fullPage: true });
+        await page.close();
+      }
+    }
+  } finally {
+    fs.rmSync(fixtureDir, { recursive: true, force: true });
+  }
+}
+
 try {
+  await checkSurveyReminder();
+  await checkMarketingMessages({ width: 1440, height: 1100 }, 'admin-survey-reminder-desktop.png', true);
+  await checkMarketingMessages({ width: 390, height: 844 }, 'admin-survey-reminder-mobile.png', true);
   await checkDesktopAdminHeader();
   await checkMobileAdminDrawer();
   await checkAdminDashboard();

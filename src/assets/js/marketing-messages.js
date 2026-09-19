@@ -134,6 +134,7 @@
 
   function applyTemplate(id) {
     if (!id) {
+      [name, subject, markdown].forEach(function (field) { field.readOnly = false; });
       templateID.value = '';
       invalidate();
       return;
@@ -144,6 +145,7 @@
       if (!selected) throw new Error('That prepared campaign is unavailable.');
       loadingTemplate = true;
       templateID.value = selected.id;
+      [name, subject, markdown].forEach(function (field) { field.readOnly = selected.id === 'survey-reminder-september-2026'; });
       name.value = selected.name;
       subject.value = selected.subject;
       markdown.value = selected.markdown;
@@ -154,6 +156,8 @@
       loadingTemplate = false;
       templateSelect.value = '';
       templateID.value = '';
+      [name, subject, markdown].forEach(function (field) { field.readOnly = false; field.value = ''; });
+      invalidate();
       status.textContent = error.message;
     });
   }
@@ -171,7 +175,7 @@
       campaignID.value = data.campaignId || campaignID.value;
       preview.hidden = false;
       sendForm.hidden = false;
-      root.querySelector('[data-marketing-message-audience]').textContent = data.eligible + ' registered members are currently eligible for group communications.';
+      root.querySelector('[data-marketing-message-audience]').textContent = data.eligible + (templateID.value === 'survey-reminder-september-2026' ? ' members have not yet answered and are eligible for this reminder.' : ' registered members are currently eligible for group communications.');
       root.querySelector('[data-marketing-message-subject-preview]').textContent = data.subject;
       root.querySelector('[data-marketing-message-html]').srcdoc = data.html;
       root.querySelector('[data-marketing-message-text]').textContent = data.text;
@@ -199,10 +203,10 @@
         sendForm.hidden = true;
       }
     }).catch(function (error) {
-      if (error.status === 409 && error.data && error.data.eligible) {
+      if (error.status === 409 && error.data && typeof error.data.eligible === 'number') {
         current.eligible = error.data.eligible;
         confirm.value = '';
-        root.querySelector('[data-marketing-message-audience]').textContent = error.data.eligible + ' registered members are currently eligible for group communications.';
+        root.querySelector('[data-marketing-message-audience]').textContent = error.data.eligible + (templateID.value === 'survey-reminder-september-2026' ? ' members have not yet answered and are eligible for this reminder.' : ' registered members are currently eligible for group communications.');
         root.querySelector('[data-marketing-message-confirm-hint]').textContent = 'The audience changed. Type “' + error.data.confirmation + '” to confirm the updated count.';
       }
       if (error.message.indexOf('earlier provider failure without a recipient ledger entry') !== -1) {

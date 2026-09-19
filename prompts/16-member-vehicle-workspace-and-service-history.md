@@ -1,5 +1,11 @@
 # Member Vehicle Workspace and Service History Prompt
 
+The September reminder may publish the aggregate participation total through
+`GET /api/survey-participation`, fixed to the published September survey. This does not relax
+the blind-voting rule: answer choices and outcome totals remain gated until submission.
+The final-week marketing campaign excludes respondents using response document IDs and Auth
+email lookup; it must not read answer content or expose respondent identities in previews.
+
 Use this prompt when changing the signed-in member dashboard, SoH history presentation, or
 service/fault records.
 

@@ -1,5 +1,19 @@
 # Clean-room Reconstruction Contract
 
+Preserve the 19 September 2026 update at `/updates/survey-final-straight/`, its dated fallback
+data in `src/_data/surveyReminder.json`, and browser module `survey-participation.js`. Preserve
+`public/images/september-survey-reminder-2026-hero.jpg` (1120×630 baseline RGB JPEG under 250 KiB)
+and `public/images/racing-laurel-email.png` (transparent raster of the shared wreath); include
+these source assets in external repository backups. The source-controlled marketing template
+`survey-reminder-september-2026.md` uses live variable substitution, five accessible laurel
+counters, pill links and Facebook/WhatsApp/X/LinkedIn public shares. Its source copy stays
+read-only in the admin form and is resolved again server-side. Preview and each batch exclude
+survey respondents from the consented member audience, fail closed on lookup errors, and
+enforce the published/live survey plus 18–23 September UTC sending window. Keep stable campaign
+identity, ledger deduplication and exact current-count confirmation when counters or eligibility
+change. No preview or test may send email. Desktop/mobile checkpoints cover the public update,
+the rendered email, and the email with images blocked.
+
 Use this terminal prompt as the final acceptance contract when recreating the repository from the
 numbered prompts and `AGENTS.md`. It defines precedence, the minimum product surface, and the
 information that must be preserved outside source control.
@@ -129,6 +143,7 @@ change rather than assuming it exists.
 | `POST /api/admin/instagram-generation-status` | Admin claim | Poll the Vertex operation, start the supported seven-second video continuation, promote the resulting 15-second master, and return an expiring delivery path. |
 | `GET/HEAD /api/instagram-media/**` | Expiring bearer path | Validate a constant-time token hash and expiry, then range-stream the private master without exposing its GCS URI. |
 | `GET /api/public-stats` | Public | Return the anonymised aggregate schema below with five-minute public caching and last-valid-snapshot fallback. |
+| `GET /api/survey-participation` | Public | Return `{responses, generatedAt}` for the fixed published September survey only, with 60-second caching; errors are generic 503/no-store and query parameters cannot select another survey. |
 
 The implemented API decoder accepts strict JSON bodies and rejects unknown fields. Shared
 login forms still declare `method="POST"` so a JavaScript failure cannot leak email addresses
