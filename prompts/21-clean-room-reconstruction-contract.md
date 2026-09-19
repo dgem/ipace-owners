@@ -376,6 +376,10 @@ with centred text before a deliberately small centred button rather than a full-
 Include a 490 × 874 Firefox responsive-design checkpoint so the intermediate mobile breakpoint
 cannot regress into a clipped horizontal layout.
 
+Member workbook exports use worksheet filters and explicit row banding instead of
+Excelize structured tables while GO-2026-6452 has no fixed release; preserve data, charts
+and frozen headers. See prompt 17 for the audit mitigation.
+
 ## Dependency, infrastructure, and CI contract
 
 - Use the current production-supported versions mandated by `AGENTS.md`, then generate and

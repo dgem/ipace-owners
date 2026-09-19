@@ -958,3 +958,7 @@ not a guarantee of anonymity. Never export member/vehicle identifier columns or 
 postcodes. Read service events, joins and vehicles once per request; no per-user Auth calls.
 Responses are private/no-store, spreadsheet formula-safe, and audit logs contain only counts.
 The download prevents duplicate clicks and reports failures or a 60-second timeout.
+
+Member Excel exports use worksheet filters and explicit alternating row fills (not
+structured tables) to avoid Excelize’s GO-2026-6452 shared-string-reader path. Data,
+charts and frozen headers are preserved; the security audit remains enabled.

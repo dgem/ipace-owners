@@ -480,3 +480,13 @@ site-owned `/images/` paths; Freeform campaigns retain the generic hero.
   environment generation.
 - Run `make lint`, `make build`, and `make test` after CI, deployment, or operational prompt
   changes.
+
+## Excel export shared-string audit mitigation
+
+GO-2026-6452 flags Excelize shared-string readers, including `AddTable`; the September
+2026 Go advisory lists no fixed version. Generate member exports using worksheet
+`AutoFilter` and explicit alternating row fills instead of structured tables. Preserve
+exported cells, five sheets, frozen headings, formula safety and charts. Do not suppress
+govulncheck or introduce spreadsheet import paths. Recheck the advisory before restoring
+structured tables. The archived fictional sample workbook remains a representative layout
+reference; its table parts are not used as an input when creating exports.
