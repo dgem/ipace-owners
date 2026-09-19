@@ -423,6 +423,11 @@ On confirmation, the Function reads the live audience of verified historic Fireb
 
 Survey activity is logged as privacy-safe Cloud Logging events. This records survey ID, action, safe aggregate response counts where relevant, and a supplied support trace code: member survey-list views, response creation or amendment, rejected submissions, and administrator create/edit/delete, preview, analysis and CSV-export actions. It never records selected options, optional free text, member IDs, email addresses, or CSV contents.
 
+Member survey results use a private, count-only aggregate document maintained atomically with every
+response or amendment. It contains option, preferred-option and optional-detail counts only—never
+member identity or free text. Existing surveys are backfilled once on their first results request;
+after that, a member result read needs only this aggregate and that member's own response.
+
 `POST /api/admin/marketing-message-deliveries` is the admin-only, masked delivery-ledger view used to reconcile attempted or failed recipients before any manual follow-up.
 
 Prepared templates are loaded through `POST /api/admin/marketing-message-templates`; their live public evidence totals are filled server-side and `{{firstName}}` is rendered for each individual recipient. Approved template images are resolved server-side too. Editing loaded copy turns it into a new message, while retaining the same consented audience and unsubscribe protection. The browser uses `POST /api/admin/marketing-message-preview` for the no-side-effect validation and preview, then `POST /api/admin/marketing-message-send` only after the audience count is rechecked and the exact confirmation has been supplied. All three routes require the server-verified Firebase admin claim.
@@ -684,7 +689,7 @@ behind the single Go `Api` Cloud Function:
   it from private snapshots and consent-filtered public aggregates. Deleting a vehicle also
   soft-deletes its dependent SoH and service records.
 - `member-data` returns only the authenticated member's generated private snapshot after
-  Firebase ID-token verification.
+  Firebase ID-token verification, with `Cache-Control: private, no-store`.
 - `member-export` returns that same member's data as either a ZIP of separate CSV datasets
   or a formatted Excel workbook with summary charts. Exports omit internal identity and
   hash fields, neutralise spreadsheet formulas, and are served with private no-store headers.
@@ -692,7 +697,9 @@ behind the single Go `Api` Cloud Function:
   member data. Regenerate it after workbook-layout changes with
   `cd functions/firebase-go && GENERATE_MEMBER_EXPORT_SAMPLE=1 go test ./... -run '^TestGeneratePublicSampleWorkbook$' -count=1`.
 - `admin-data` returns Join and vehicle review records only when the Firebase token carries
-  an accepted admin claim.
+  an accepted admin claim. It is used only by the Review Queue; other admin pages use the
+  minimal `admin/authorize` gate, which verifies the claim without returning review data. Both
+  responses are private and non-cacheable.
 - `public-stats` serves a cacheable aggregate snapshot. Its registered-member headline is
   refreshed from the complete paginated Firebase Auth user list; vehicle, SoH, and
   service/fault record counts remain consent-filtered and exclude records marked out of
@@ -785,7 +792,7 @@ The following features are **not yet implemented** in this version:
 - **Evidence document uploads** — A placeholder message explains what will be supported.
   Requires Cloud Storage for files plus Firestore metadata and Functions integration.
 - **Admin review workflow** — The review queue can read server-side data for admins, but
-  review status updates, exports, and moderation actions are not yet implemented.
+  review status updates, review-queue exports, and moderation actions are not yet implemented.
 - **Legal/privacy review** — The plain-English pages reflect the live service, but still
   require human legal/privacy review before broader collection or a change in organisational
   structure.
@@ -820,6 +827,22 @@ Plain vanilla JavaScript, no bundler. The current modules are:
 - `admin-campaign-summary.js` — admin-only email, Instagram, and Facebook capability summary
 - `marketing-messages.js` — admin-only marketing-message preview, masked delivery ledger, and exact-confirmation resumable batch delivery
 - `public-stats.js` — homepage and evidence-dashboard aggregate rendering
+- `survey-participation.js` — public September survey participation count, retaining the dated fallback when unavailable
+
+The `survey-reminder-september-2026` marketing template targets consented members who have
+not submitted the September survey. Preview and each send batch recalculate that audience
+and substitute live survey, membership and vehicle-history counts. Its source copy is locked
+in the admin form to preserve targeting. Sending is restricted to 18–23 September 2026 UTC
+while the published survey is live. Existing exact-count confirmation and delivery deduplication apply.
+The matching `/updates/survey-final-straight/` page retains dated 19 September figures when
+live counts are unavailable. `GET /api/survey-participation` exposes only the fixed survey's
+response total, with 60-second public caching; it never exposes answers or respondent details.
+If that production survey ID does not exist in an environment (as in staging), the admin
+preview returns `previewOnly: true` with the clearly labelled 19 September publication figures,
+no calculated audience and no send confirmation. The UI hides sending, and the send endpoint
+still rejects the missing survey. Permission and connectivity failures remain errors.
+Both include public social-share links. The email hero is a 1120×630 baseline RGB JPEG
+(under 250 KiB), served over HTTPS with responsive sizing and descriptive alternative text.
 - `site-mode.js` — launch/full presentation selection
 
 ### Adding pages
@@ -936,3 +959,22 @@ Common types:
 Content and code are copyright the I-PACE Owners' Advocacy Group contributors. Manufacturer
 and vehicle names are used descriptively; the site does not use Jaguar/JLR logos or badges as
 group branding. Committed vehicle artwork is original or generated for this project.
+
+### Private admin service CSV
+
+The Admin dashboard Service Event Summary offers `Download service CSV` through
+`GET /api/admin/service-export`. `admin-service-export.js` sends a Firebase token; the
+server requires an admin claim. Export every non-deleted service record across members,
+including records outside public consent-filtered aggregates. Output structured service
+fields, provider name, title and description. Redact known member names, email addresses,
+internal IDs, vehicle registrations/VIN fragments/hashes, and common email, phone, VIN, UK
+registration/postcode and URL patterns from text. Dates use months and mileage uses
+5,000-mile bands. This CSV supports private admin analysis; automated text redaction is
+not a guarantee of anonymity. Never export member/vehicle identifier columns or provider
+postcodes. Read service events, joins and vehicles once per request; no per-user Auth calls.
+Responses are private/no-store, spreadsheet formula-safe, and audit logs contain only counts.
+The download prevents duplicate clicks and reports failures or a 60-second timeout.
+
+Member Excel exports use worksheet filters and explicit alternating row fills (not
+structured tables) to avoid Excelize’s GO-2026-6452 shared-string-reader path. Data,
+charts and frozen headers are preserved; the security audit remains enabled.

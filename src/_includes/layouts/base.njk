@@ -111,6 +111,7 @@
   <script src="/assets/js/member-auth.js" defer></script>
   <script src="/assets/js/member-dashboard.js" defer></script>
   <script src="/assets/js/public-stats.js" defer></script>
+  {% if surveyParticipation %}<script src="/assets/js/survey-participation.js" defer></script>{% endif %}
   {% if multiStepForm %}
   <script src="/assets/js/multistep-form.js" defer></script>
   {% endif %}
@@ -132,6 +133,7 @@
   {% if adminDashboard %}
   <script src="/assets/js/admin-campaign-summary.js" defer></script>
   <script src="/assets/js/admin-stats.js" defer></script>
+  <script src="/assets/js/admin-service-export.js" defer></script>
   {% endif %}
   {% if memberExport %}
   <script src="/assets/js/member-export.js" defer></script>

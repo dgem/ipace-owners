@@ -1,5 +1,11 @@
 # Member Vehicle Workspace and Service History Prompt
 
+The September reminder may publish the aggregate participation total through
+`GET /api/survey-participation`, fixed to the published September survey. This does not relax
+the blind-voting rule: answer choices and outcome totals remain gated until submission.
+The final-week marketing campaign excludes respondents using response document IDs and Auth
+email lookup; it must not read answer content or expose respondent identities in previews.
+
 Use this prompt when changing the signed-in member dashboard, SoH history presentation, or
 service/fault records.
 
@@ -201,6 +207,10 @@ only that masked respondent, UTC submission time, selected option IDs, the optio
 option ID and text responses in `option-id: text` form—never
 a full email address, name, Firebase UID, or member/vehicle data. Neutralise spreadsheet formula
 characters in the CSV's user-controlled cells before exporting them.
+Admin analysis pages return up to 50 individual responses with offset-based pagination and
+count-only totals from the private cached aggregate. CSV export ignores pagination and
+returns all responses. Materialise aggregates atomically with response writes and amendments;
+backfill legacy surveys lazily once.
 Resolve respondent emails for admin analysis and CSV exports using Firebase Auth batch lookups
 of at most 100 UIDs, never one serial request per response. Match returned users by UID because
 batch results are unordered; deleted users and empty emails display “Email unavailable”.
@@ -211,3 +221,39 @@ round trip per respondent.
 Register `/api/admin/surveys`, `/api/admin/survey-preview`, `/api/admin/survey-results`, `/api/member/surveys`, and `/api/member/survey-response` through
 the shared `Api` function. Test survey definition validation, response validation, and inclusive
 date boundaries, including the PII-safe CSV fields. Delete a survey's response subcollection before deleting its parent document.
+
+## Private all-member service analysis CSV
+
+Add `Download service CSV` beside Service Event Summary on the admin dashboard, using
+`GET /api/admin/service-export` and `admin-service-export.js`. Require a verified admin
+server-side and include all non-deleted service records, irrespective of public-analysis
+consent; this is private operational analysis, not a public evidence release. The user
+requires free-text title/description and provider name for analysis, so retain those fields
+with automated redaction rather than omitting them. Do not present a sharing workflow.
+
+CSV columns: event_type, event_month, mileage_band_miles, status, campaigns,
+authorised_service_provider, final_fix_month, days_to_final_fix, courtesy_vehicle_offered,
+courtesy_vehicle_provided, parts_delay, goodwill_payment, miles_driven_whilst_faulty_band,
+warranty_cover, dispute_status, service_provider_name, title, description, privacy_review.
+The final column identifies private admin analysis with automated redaction. Dates are
+reduced to month; mileage uses 5,000-mile bands; resolution days are calculated from valid
+event/fix dates. Missing values stay blank, and invalid stored enums are excluded. Omit
+member/vehicle/event IDs, contact columns, registrations, VIN fragments/hashes, provider
+postcodes, and creation/update timestamps. Filter deletion status and deletion timestamps.
+
+Load service events, joins and vehicles in three collection scans, never one Auth lookup per
+member. Use known names (including name components of at least three characters), emails,
+internal identifiers, registrations, VIN fragments and hashes only as a text-redaction
+dictionary. Redact common email, URL, phone, full VIN and UK registration/postcode patterns;
+handle registration spacing variants. Redact provider names too if they contain matching
+personal details. Automated redaction may over-redact and cannot guarantee contextual
+anonymity; keep this limitation in the private admin UI. Fail the export if any source
+collection cannot be read. Never log text, dictionary contents, identifiers or CSV data.
+
+Neutralise spreadsheet formulas in every output cell. Return private/no-store CSV attachment
+headers, a header-only CSV for no records, and deterministic ordering by exported values.
+Disable duplicate clicks, show preparing/success/error states, and apply a 60-second browser
+timeout covering both authentication and download. Append the download link to the document
+and release its blob URL after the browser starts downloading. Test access denial, source
+failure, redaction, preserved narrative/provider fields, multiple members, deletion, empty
+exports, formula safety and frontend recovery. Add desktop/mobile visual checkpoints.

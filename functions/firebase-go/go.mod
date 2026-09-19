@@ -4,12 +4,12 @@ go 1.26.6
 
 require (
 	cloud.google.com/go/firestore v1.25.0
-	cloud.google.com/go/storage v1.66.0
+	cloud.google.com/go/storage v1.67.1
 	firebase.google.com/go/v4 v4.21.0
 	github.com/GoogleCloudPlatform/functions-framework-go v1.9.2
 	github.com/xuri/excelize/v2 v2.11.0
-	golang.org/x/oauth2 v0.36.0
-	google.golang.org/api v0.296.0
+	golang.org/x/oauth2 v0.37.0
+	google.golang.org/api v0.297.0
 	google.golang.org/grpc v1.83.2
 )
 

@@ -1,5 +1,29 @@
 # Clean-room Reconstruction Contract
 
+Preserve the 19 September 2026 update at `/updates/survey-final-straight/`, its dated fallback
+data in `src/_data/surveyReminder.json`, and browser module `survey-participation.js`. Preserve
+`public/images/september-survey-reminder-2026-hero.jpg` (1120×630 baseline RGB JPEG under 250 KiB)
+and `public/images/racing-laurel-email.png` (transparent raster of the shared wreath); include
+these source assets in external repository backups. The source-controlled marketing template
+`survey-reminder-september-2026.md` uses live variable substitution, five accessible laurel
+counters, pill links and Facebook/WhatsApp/X/LinkedIn public shares. Its source copy stays
+read-only in the admin form and is resolved again server-side. Preview and each batch exclude
+survey respondents from the consented member audience, fail closed on lookup errors, and
+enforce the published/live survey plus 18–23 September UTC sending window. Keep stable campaign
+identity, ledger deduplication and exact current-count confirmation when counters or eligibility
+change. No preview or test may send email. Desktop/mobile checkpoints cover the public update,
+the rendered email, and the email with images blocked.
+
+If the fixed survey document is absent (notably in staging with independently generated IDs),
+the admin marketing preview must still render a clearly labelled layout-only preview using all
+five dated publication counts. Its API response sets `previewOnly: true`, no confirmation and
+no calculated audience. Hide send controls, block synthetic submits, and independently reject
+sending server-side. Do not turn permission/network failures into layout previews or read
+production member data from staging. Cover this state at desktop/mobile widths and test the
+missing-document error through the real reminder loader, not just a successful state mock.
+Admin preview iframes use the current deployment's site images; delivered emails retain
+absolute production HTTPS image URLs, allowing new assets to be reviewed before release.
+
 Use this terminal prompt as the final acceptance contract when recreating the repository from the
 numbered prompts and `AGENTS.md`. It defines precedence, the minimum product surface, and the
 information that must be preserved outside source control.
@@ -106,6 +130,7 @@ change rather than assuming it exists.
 | `POST /api/delete-service-event` | Member/event owner | `id`, `confirmation: "DELETE"`; soft-delete a service/fault record. |
 | `GET /api/member-data` | Member | Return only that UID's private member snapshot. |
 | `GET /api/member-export?format=csv\|xlsx` | Member | Return a private no-store ZIP of four CSV datasets or a formatted five-sheet Excel workbook built from only that UID's snapshot; omit internal IDs/hashes and neutralise spreadsheet formulas. |
+| `GET /api/admin/authorize` | Admin claim | Verify access to an admin page and return only `{ "authorized": true }` with `Cache-Control: private, no-store`; never use the review-data route as a generic gate. |
 | `GET /api/admin-data` | Admin claim | Return Join and vehicle review records. |
 | `GET /api/admin/stats` | Admin claim | Return the consent-filtered homepage counters alongside private all-record member, vehicle, SoH, and service-event statistics with `Cache-Control: private, no-store`; canonical emails are deduplicated at the first Join before the daily Join trend and country rows are calculated. Derive country from the Join, one unambiguous vehicle country, or a strict UK registration, otherwise use `Unknown` (including conflicting vehicle countries). Magic-link-verified accounts have a separate daily line chart, and no per-vehicle evidence is returned. |
 | `POST /api/admin/reengagement-preview` | Admin claim | Return aggregate counts for consented Join submitters who have not registered. |
@@ -120,14 +145,16 @@ change rather than assuming it exists.
 | `POST /api/admin/campaign-summary` | Admin claim | Aggregate reconciled Resend email outcomes and Instagram publication/insight totals; report Facebook as manual unless Page Insights is connected. |
 | `GET/POST/PUT/DELETE /api/admin/surveys` | Admin claim | Manage timed single- or multiple-choice member surveys and emit a privacy-safe create/edit/delete audit event with survey ID and supplied support trace only. |
 | `GET/POST /api/admin/survey-preview` | Admin claim | Load drafts or published surveys for a member-layout preview; POST validates but never saves a test response. Audit preview views and validation without recording test choices. |
-| `GET /api/admin/survey-results` | Admin claim | Return admin-only aggregate and individual survey answers; CSV export contains only masked email, UTC time, selected/preferred option IDs and free text in `option-id: text` form. Resolve masked emails in Firebase Auth batches of at most 100 UIDs, matching unordered results by UID; fail the request on lookup errors. Audit analysis and CSV access with response total only. |
-| `GET /api/member/surveys` | Member | Return survey state, the member's own response, and allowed aggregate counts; audit only published/results-visible counts. |
-| `POST /api/member/survey-response` | Member | Save one validated replaceable response while a survey is live. Audit creation, amendment and safe rejection reason, but never selections, free text or identity. |
+| `GET /api/admin/service-export` | Admin claim | Private all-member service CSV with structured fields and automatically redacted provider names, titles and descriptions. Exclude deleted records and identifier columns; month dates, 5,000-mile bands, formula-safe cells, no-store responses, counts-only audit. Read serviceEvents/joins/vehicles in batches; fail if any read fails. Private analysis, not guaranteed narrative anonymity; prompt 16 defines columns/redaction and browser timeout. |
+| `GET /api/admin/survey-results` | Admin claim | Return count-only aggregate results plus a paginated admin-only individual-response page; CSV export contains only masked email, UTC time, selected/preferred option IDs and free text in `option-id: text` form. Export every response for CSV regardless of page offset. Resolve masked emails in Firebase Auth batches of at most 100 UIDs, matching unordered results by UID; fail on lookup errors. Audit analysis and CSV access with response total only. |
+| `GET /api/member/surveys` | Member | Return survey state, the member’s own response, and allowed counts from a private count-only aggregate document. |
+| `POST /api/member/survey-response` | Member | Save one validated replaceable response while live and atomically update the private count-only aggregate. Audit creation, amendment and safe rejection reason, but never selections, free text or identity. |
 | `POST /api/admin/instagram-publish` | Admin claim | Revalidate the unchanged preview and exact confirmation, then create, process and publish one organic Reel through Meta. |
 | `POST /api/admin/instagram-generate` | Admin claim | Reserve an idempotent job and start one billable eight-second 9:16 Veo operation after exact `GENERATE VIDEO` confirmation. |
 | `POST /api/admin/instagram-generation-status` | Admin claim | Poll the Vertex operation, start the supported seven-second video continuation, promote the resulting 15-second master, and return an expiring delivery path. |
 | `GET/HEAD /api/instagram-media/**` | Expiring bearer path | Validate a constant-time token hash and expiry, then range-stream the private master without exposing its GCS URI. |
 | `GET /api/public-stats` | Public | Return the anonymised aggregate schema below with five-minute public caching and last-valid-snapshot fallback. |
+| `GET /api/survey-participation` | Public | Return `{responses, generatedAt}` for the fixed published September survey only, with 60-second caching; errors are generic 503/no-store and query parameters cannot select another survey. |
 
 The implemented API decoder accepts strict JSON bodies and rejects unknown fields. Shared
 login forms still declare `method="POST"` so a JavaScript failure cannot leak email addresses
@@ -373,6 +400,10 @@ Keep the nudge text and action together as one compact vertical subsection at ev
 with centred text before a deliberately small centred button rather than a full-width action.
 Include a 490 × 874 Firefox responsive-design checkpoint so the intermediate mobile breakpoint
 cannot regress into a clipped horizontal layout.
+
+Member workbook exports use worksheet filters and explicit row banding instead of
+Excelize structured tables while GO-2026-6452 has no fixed release; preserve data, charts
+and frozen headers. See prompt 17 for the audit mitigation.
 
 ## Dependency, infrastructure, and CI contract
 

@@ -937,6 +937,53 @@ a.site-context-nav__section:focus-visible {
   text-align: center;
 }
 
+.survey-reminder-counters {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-6);
+  padding: var(--space-6);
+  margin-block: var(--space-6);
+  background: var(--color-primary);
+  border-radius: var(--radius-lg);
+}
+
+.survey-reminder-counters__evidence {
+  display: contents;
+}
+
+.survey-reminder-counters .launch-member-count__value {
+  font-size: 1.8rem;
+}
+
+@media (max-width: 40rem) {
+  .survey-reminder-counters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-6) var(--space-2);
+    padding: var(--space-4) var(--space-2);
+  }
+
+  .survey-reminder-counters > [data-survey-participation] {
+    grid-column: 1 / -1;
+  }
+}
+
+.btn.survey-reminder-pill {
+  border-radius: 999px;
+}
+
+.prose .social-share__link {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.prose .social-share__link:hover {
+  color: var(--color-primary);
+  background: var(--color-bg);
+  border-color: var(--color-primary);
+}
+
 .launch-evidence-wreaths {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

@@ -28,7 +28,8 @@
  *
  * This script:
  * 1. Finds [data-auth-container] or [data-admin-container].
- * 2. Fetches the appropriate Firebase/GCP API (member-data or admin-data).
+ * 2. Fetches the appropriate Firebase/GCP API (member-data, the minimal
+ *    admin-authorize gate, or admin-data only for the review queue).
  * 3. On 200: hides the gate, shows content, and populates data.
  * 4. On 401/403: keeps the gate visible (login required).
  */
@@ -531,6 +532,22 @@
     });
   }
 
+  function adminAuthorizationRequest(forceRefresh) {
+    return getIdentityToken(forceRefresh).then(function (token) {
+      if (!token) return { noToken: true };
+      var headers = authTraceHeaders();
+      headers.Authorization = 'Bearer ' + token;
+      return fetch('/api/admin/authorize', { headers: headers });
+    });
+  }
+
+  function adminVerificationRequest(container, forceRefresh) {
+    if (container.hasAttribute('data-admin-data-required')) {
+      return adminDataRequest(forceRefresh);
+    }
+    return adminAuthorizationRequest(forceRefresh);
+  }
+
   function renderAdminData(container, data) {
     hideAdminGate(container);
     var statsContainer = container.querySelector('[data-stats-container]');
@@ -551,12 +568,12 @@
     var expectedUID = identity.uid;
     var tokenRetried = false;
     setPendingState(container, 'Checking sign-in...', 'One moment while we confirm your administrator session.', false);
-    return adminDataRequest(false).then(function (res) {
+    return adminVerificationRequest(container, false).then(function (res) {
       if (res.noToken) throw new Error('TOKEN_UNAVAILABLE');
       if (res.status === 401 && window.ipaceIdentityUser && window.ipaceIdentityUser.uid === expectedUID) {
         tokenRetried = true;
         reportAuthDiagnostic('admin-verification', 'token-refresh-retry');
-        return adminDataRequest(true);
+        return adminVerificationRequest(container, true);
       }
       return res;
     }).then(function (res) {

@@ -27,7 +27,10 @@ Potential future Go Functions or handler extensions:
   of anonymised aggregate statistics after review changes.
 - Evidence upload Functions: authenticated upload URL generation, file metadata creation,
   server-side validation, and admin review workflows.
-- Export Functions: admin-only CSV/JSON exports with explicit audit logging.
+- Further export Functions: admin-only CSV/JSON exports with explicit audit logging.
+  Private all-member service CSV export is implemented at `/api/admin/service-export`,
+  with automatically redacted provider names and narrative text; prompt 16 defines its
+  scope and limitations. Survey CSV and member-owned CSV/Excel exports also already exist.
 
 ## Evidence Upload Rules
 
