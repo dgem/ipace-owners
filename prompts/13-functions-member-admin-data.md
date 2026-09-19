@@ -15,7 +15,9 @@ Go Cloud Functions. Do not rely on client-side gating for private data access.
 
 - `member-auth.js` loads on pages with `[data-auth-container]` or `[data-admin-container]`.
 - For member pages, it fetches `GET /api/member-data`.
-- For admin pages, it fetches `GET /api/admin-data`.
+- For the Review Queue, it fetches `GET /api/admin-data`.
+- Other admin pages fetch `GET /api/admin/authorize`, a minimal successful response of
+  `{ "authorized": true }` that proves the Firebase admin claim without returning review data.
 - Content is hidden by default and is revealed only after the relevant Function returns 200.
 - The browser waits for Firebase identity resolution, including incoming magic-link completion,
   before the first request. A signed-in member or administrator gets one forced token-refresh retry
@@ -32,6 +34,7 @@ Go Cloud Functions. Do not rely on client-side gating for private data access.
 
 - Requires a valid Firebase ID token.
 - Returns only the authenticated user's own private member/account snapshot.
+- Sets `Cache-Control: private, no-store` so browser and intermediary caches never retain it.
 - The snapshot may include Join information, zero or more vehicles, append-only SoH readings,
   and editable service/fault records.
 - Do not serve member snapshots from public static files. Return them only after
@@ -54,9 +57,17 @@ Member responses may include:
 - Returns 401 for unauthenticated users.
 - Returns 403 for authenticated non-admin users.
 - Reads Firestore review records.
+- Sets `Cache-Control: private, no-store` because review data contains member PII.
 - Returns Join and vehicle-basics records for review. The current admin response does not
   return the `members`, battery-reading, or service-event collections.
 - Admin responses may include review state and `userEmailHash`.
+
+## AdminAuthorize
+
+- Requires the same valid Firebase ID token and accepted admin claim as `AdminData`.
+- Returns only `{ "authorized": true }`, with `Cache-Control: private, no-store`.
+- Use it for every admin page except the Review Queue. Frontend gating must never be used as
+  the data-access control; individual admin APIs still verify the claim themselves.
 
 ## Browser rendering
 

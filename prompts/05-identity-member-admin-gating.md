@@ -89,7 +89,9 @@ server-side by Go Cloud Functions that validate Firebase ID tokens.
   sends an unauthenticated request while Firebase is still restoring a session.
 - Fetch:
   - member pages: `GET /api/member-data`
-  - admin pages: `GET /api/admin-data`
+  - the Review Queue only: `GET /api/admin-data`
+  - other admin pages: `GET /api/admin/authorize`, which returns only
+    `{ "authorized": true }` after server-side claim verification.
 - Send the Firebase ID token in `Authorization: Bearer <token>`.
 - On 200: hide the gate, show content, populate data from response.
 - On 401: for a known signed-in member or administrator, force-refresh the Firebase ID token and
@@ -124,8 +126,9 @@ and admin role server-side.
 
 | Function | Auth Required | Purpose |
 |---|---|---|
-| `MemberData` | Firebase user | Return the authenticated user's private snapshot. |
-| `AdminData` | Firebase admin custom claim | Return admin review data. |
+| `MemberData` | Firebase user | Return the authenticated user's private snapshot with private no-store caching. |
+| `AdminAuthorize` | Firebase admin custom claim | Verify an admin page gate without returning review data. |
+| `AdminData` | Firebase admin custom claim | Return review data for the Review Queue only. |
 | `AuthDiagnostics` | Public, same-origin | Record bounded, PII-free passwordless lifecycle events keyed by the opaque support code. |
 
 ### Authorization tracing matrix

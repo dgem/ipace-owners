@@ -216,11 +216,16 @@ test("survey analysis is an admin-only page with masked-response CSV download", 
   assert.match(analysis, /data-admin-survey-results/);
   assert.match(analysis, /data-admin-container/);
   assert.match(script, /format=csv/);
+  assert.match(script, /Load next 50 submissions/);
+  assert.match(script, /responsesOffset/);
+  assert.match(script, /hasMore/);
   assert.match(script, /Selected option IDs/);
   assert.match(script, /textResponses/);
   assert.match(script, /survey-result__count/);
   assert.match(backend, /func AdminSurveyResults/);
   assert.match(backend, /func AdminSurveyPreview/);
+  assert.match(backend, /const adminSurveyResponsePageSize = 50/);
+  assert.match(backend, /func maskedSurveyRespondents/);
   assert.match(backend, /maskedEmail/);
   assert.match(backend, /preferredOptionId/);
 });

@@ -207,6 +207,10 @@ only that masked respondent, UTC submission time, selected option IDs, the optio
 option ID and text responses in `option-id: text` form—never
 a full email address, name, Firebase UID, or member/vehicle data. Neutralise spreadsheet formula
 characters in the CSV's user-controlled cells before exporting them.
+Admin analysis pages return up to 50 individual responses with offset-based pagination and
+count-only totals from the private cached aggregate. CSV export ignores pagination and
+returns all responses. Materialise aggregates atomically with response writes and amendments;
+backfill legacy surveys lazily once.
 Resolve respondent emails for admin analysis and CSV exports using Firebase Auth batch lookups
 of at most 100 UIDs, never one serial request per response. Match returned users by UID because
 batch results are unordered; deleted users and empty emails display “Email unavailable”.
