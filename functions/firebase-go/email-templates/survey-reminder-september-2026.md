@@ -14,19 +14,19 @@ Our meeting with **Jaguar Land Rover on 24 September** is now **less than a week
 
 We have received **{{surveyResponses}} survey responses so far**. If you have not yet submitted yours, please take a few minutes to help shape the outcomes we put to JLR.
 
+[Add my voice — take the survey](https://ipace-owners.org/member/survey-response/?id=survey_38447815d17b0e954a4edbca1b9600c9){.button}
+
 [[responses:{{surveyResponses}}]]
 [[members:{{membersJoined}}]]
 [[vehicles:{{vehiclesRegisteredCount}}]]
 [[soh:{{vehiclesSoHReadingsCount}}]]
 [[service:{{serviceFaultRecordsCount}}]]
 
-[Add my voice — take the survey](https://ipace-owners.org/member/survey-response/?id=survey_38447815d17b0e954a4edbca1b9600c9){.button}
-
 The survey closes on **23 September 2026**. Sign in with your member email, select every outcome you would support, and mark a preferred option if you wish. Results remain hidden until you submit, so your answer is your own.
 
 ## Different views. A stronger shared case.
 
-Whether you support a full HV replacement, a fair buy-back, fair compensation or another concern, your experience matters. This is our chance to arrive with a clearer picture of what owners need.
+Whether you support a full HV replacement, a fair buy-back, fair compensation or another concern, your voice matters. This is our chance to arrive with a clearer picture of what owners need.
 
 Alongside our **{{membersJoined}} owners joined**, members have recorded **{{vehiclesRegisteredCount}} cars**, **{{vehiclesSoHReadingsCount}} battery-health readings** and **{{serviceFaultRecordsCount}} service and fault records**. That vehicle history helps explain the real effects of repairs, recalls and time off the road.
 
