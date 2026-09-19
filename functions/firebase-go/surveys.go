@@ -345,8 +345,8 @@ func surveyResponseOffset(value string) (int, error) {
 	return offset, nil
 }
 
-// loadAdminSurveyAnalysis scans response records for the aggregate, but only
-// resolves and returns a bounded page of respondent details. Firebase Auth
+// loadAdminSurveyAnalysis uses the cached aggregate and resolves only a bounded
+// page of respondent details (or all responses for CSV export). Firebase Auth
 // lookups are batched rather than made serially for every survey response.
 func loadAdminSurveyAnalysis(ctx context.Context, db *firestore.Client, survey surveyRecord, offset, pageSize int) (adminSurveyAnalysis, error) {
 	aggregate, err := loadSurveyResult(ctx, db, survey, "")
@@ -422,23 +422,46 @@ func maskedSurveyRespondents(ctx context.Context, responses []storedSurveyRespon
 	if err != nil {
 		return nil, err
 	}
-	for start := 0; start < len(responses); start += 100 {
-		end := min(start+100, len(responses))
+	ids := make([]string, len(responses))
+	masked := make([]adminSurveyResponse, len(responses))
+	for i, response := range responses {
+		ids[i] = response.UID
+	}
+	if err := populateSurveyRespondents(ctx, ids, masked, client.GetUsers); err != nil {
+		return nil, err
+	}
+	for i, response := range responses {
+		result[response.UID] = masked[i].Respondent
+	}
+
+	return result, nil
+}
+
+// Firebase permits at most 100 identifiers per lookup and returns users unordered.
+// Keep identifiers local: only masked emails may enter the analysis or CSV.
+func populateSurveyRespondents(ctx context.Context, ids []string, responses []adminSurveyResponse, getUsers func(context.Context, []firebaseauth.UserIdentifier) (*firebaseauth.GetUsersResult, error)) error {
+	for start := 0; start < len(ids); start += 100 {
+		end := min(start+100, len(ids))
 		identifiers := make([]firebaseauth.UserIdentifier, 0, end-start)
-		for _, response := range responses[start:end] {
-			identifiers = append(identifiers, firebaseauth.UIDIdentifier{UID: response.UID})
+		for _, id := range ids[start:end] {
+			identifiers = append(identifiers, firebaseauth.UIDIdentifier{UID: id})
 		}
-		users, err := client.GetUsers(ctx, identifiers)
+		result, err := getUsers(ctx, identifiers)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		for _, user := range users.Users {
-			if masked := maskedEmail(user.Email); masked != "" {
-				result[user.UID] = masked
+		masked := make(map[string]string, len(result.Users))
+		for _, user := range result.Users {
+			masked[user.UID] = maskedEmail(user.Email)
+		}
+		for i := start; i < end; i++ {
+			responses[i].Respondent = "Email unavailable"
+			if email := masked[ids[i]]; email != "" {
+				responses[i].Respondent = email
 			}
 		}
 	}
-	return result, nil
+	return nil
 }
 
 func writeAdminSurveyCSV(w http.ResponseWriter, id string, analysis adminSurveyAnalysis) {

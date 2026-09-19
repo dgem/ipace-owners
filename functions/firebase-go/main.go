@@ -137,6 +137,8 @@ func Api(w http.ResponseWriter, r *http.Request) {
 		SubmitSurveyResponse(w, r)
 	case "/api/public-stats":
 		PublicStats(w, r)
+	case "/api/admin/service-export":
+		AdminServiceExport(w, r)
 	case "/api/admin/stats":
 		AdminStats(w, r)
 	default:

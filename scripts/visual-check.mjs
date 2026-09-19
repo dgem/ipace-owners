@@ -402,6 +402,46 @@ async function checkAdminDashboard() {
   await page.close();
 }
 
+async function checkServiceExport(viewport, suffix) {
+  const page = await browser.newPage({ viewport, acceptDownloads: true });
+  let completeExport;
+  await page.route('**/api/admin/service-export', async (route) => {
+    assert.equal(route.request().headers().authorization, 'Bearer visual-admin-token');
+    await new Promise((resolve) => { completeExport = resolve; });
+    await route.fulfill({ contentType: 'text/csv', body: 'event_type,title\nrepair,Battery repair\n' });
+  });
+  await page.goto(baseURL + '/admin/', { waitUntil: 'networkidle' });
+  await revealAdminState(page);
+  await page.evaluate(() => {
+    window.ipaceGetIdentityToken = async () => 'visual-admin-token';
+    const rows = document.querySelector('[data-service-event-aggregates] tbody');
+    rows.innerHTML = '<tr><td>Repair</td><td>42</td><td>2</td><td>18</td><td>90</td></tr>';
+  });
+  const section = page.locator('[aria-labelledby="service-section-title"]');
+  await section.scrollIntoViewIfNeeded();
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
+  await page.screenshot({ path: path.join(outputDir, 'service-export-idle-' + suffix + '.png') });
+  await page.locator('[data-service-export]').click();
+  await page.waitForFunction(() => document.querySelector('[data-service-export-status]').textContent === 'Preparing service CSV…');
+  while (!completeExport) await new Promise((resolve) => setTimeout(resolve, 10));
+  assert.equal(await page.locator('[data-service-export]').isDisabled(), true);
+  await page.screenshot({ path: path.join(outputDir, 'service-export-preparing-' + suffix + '.png') });
+  const downloaded = page.waitForEvent('download');
+  completeExport();
+  const download = await downloaded;
+  assert.equal(download.suggestedFilename(), 'ipace-service-data-redacted.csv');
+  await page.waitForFunction(() => !document.querySelector('[data-service-export]').disabled);
+  assert.match(await page.locator('[data-service-export-status]').textContent(), /downloaded/);
+  await page.screenshot({ path: path.join(outputDir, 'service-export-success-' + suffix + '.png') });
+  await page.unroute('**/api/admin/service-export');
+  await page.route('**/api/admin/service-export', (route) => route.fulfill({ status: 403, contentType: 'application/json', body: '{}' }));
+  await page.locator('[data-service-export]').click();
+  await page.waitForFunction(() => document.querySelector('[data-service-export-status]').textContent.includes('Could not export'));
+  assert.equal(await page.locator('[data-service-export]').isDisabled(), false);
+  await page.screenshot({ path: path.join(outputDir, 'service-export-error-' + suffix + '.png') });
+  await page.close();
+}
+
 async function checkInstagramCampaigns(viewport, screenshotName) {
   const page = await browser.newPage({ viewport });
   await page.route('**/api/admin/instagram-campaign-history', (route) => route.fulfill({
@@ -770,6 +810,8 @@ try {
   await checkDesktopAdminHeader();
   await checkMobileAdminDrawer();
   await checkAdminDashboard();
+  await checkServiceExport({ width: 1440, height: 1000 }, 'desktop');
+  await checkServiceExport({ width: 390, height: 844 }, 'mobile');
   await checkCampaignControls({ width: 1440, height: 1100 }, 'admin-email-campaigns-desktop.png');
   await checkCampaignControls({ width: 390, height: 844 }, 'admin-email-campaigns-mobile.png');
   await checkMarketingMessages({ width: 1440, height: 1100 }, 'admin-marketing-messages-desktop.png');
