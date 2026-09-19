@@ -174,12 +174,15 @@
       current = data;
       campaignID.value = data.campaignId || campaignID.value;
       preview.hidden = false;
-      sendForm.hidden = false;
-      root.querySelector('[data-marketing-message-audience]').textContent = data.eligible + (templateID.value === 'survey-reminder-september-2026' ? ' members have not yet answered and are eligible for this reminder.' : ' registered members are currently eligible for group communications.');
+      sendForm.hidden = !!data.previewOnly;
+      confirm.value = '';
+      root.querySelector('[data-marketing-message-audience]').textContent = data.previewOnly ? 'Layout preview only — audience unavailable; sending disabled.' : data.eligible + (templateID.value === 'survey-reminder-september-2026' ? ' members have not yet answered and are eligible for this reminder.' : ' registered members are currently eligible for group communications.');
       root.querySelector('[data-marketing-message-subject-preview]').textContent = data.subject;
-      root.querySelector('[data-marketing-message-html]').srcdoc = data.html;
+      // Review this deployment's assets before they exist on the production host.
+      // Delivered email HTML continues to use the server's absolute HTTPS URLs.
+      root.querySelector('[data-marketing-message-html]').srcdoc = data.html.replace(/https:\/\/ipace-owners\.org\/images\//g, window.location.origin + '/images/');
       root.querySelector('[data-marketing-message-text]').textContent = data.text;
-      root.querySelector('[data-marketing-message-confirm-hint]').textContent = 'Type “' + data.confirmation + '” exactly to send the next batch.';
+      root.querySelector('[data-marketing-message-confirm-hint]').textContent = data.previewOnly ? '' : 'Type “' + data.confirmation + '” exactly to send the next batch.';
       status.textContent = data.notice;
     }).catch(function (error) {
       status.textContent = error.message;
@@ -188,7 +191,7 @@
 
   sendForm.addEventListener('submit', function (event) {
     event.preventDefault();
-    if (!current || sending) return;
+    if (!current || current.previewOnly || sending) return;
     sending = true;
     sendButton.disabled = true;
     status.textContent = 'Sending the next batch of up to 100 consented members…';

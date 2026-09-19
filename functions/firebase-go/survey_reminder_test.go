@@ -9,6 +9,9 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func reminderTestState() surveyReminderState {
@@ -57,6 +60,58 @@ func TestSurveyReminderPreviewSubstitutesCountsAndTargetsNonrespondents(t *testi
 	}
 	if !strings.Contains(preview.Notice, "not submitted") {
 		t.Fatal("targeting not explained")
+	}
+}
+
+func TestSurveyReminderMissingSurveyAllowsLayoutPreviewButNeverSending(t *testing.T) {
+	setupReminderTest(t)
+	oldSurvey, oldAuth := marketingReminderSurvey, campaignAuthorize
+	t.Cleanup(func() { marketingReminderSurvey, campaignAuthorize = oldSurvey, oldAuth })
+	marketingSurveyReminderState = loadSurveyReminderState
+	marketingReminderSurvey = func(context.Context) (surveyRecord, error) {
+		return surveyRecord{}, status.Error(codes.NotFound, "missing staging document")
+	}
+	marketingMessageAudience = func(context.Context) ([]campaignRecipient, error) {
+		t.Fatal("layout preview must not calculate or widen the audience")
+		return nil, nil
+	}
+	marketingMessageStats = func(context.Context) (publicStatsSnapshot, error) {
+		t.Fatal("layout preview must not mix staging and publication counts")
+		return publicStatsSnapshot{}, nil
+	}
+	preview, err := previewMarketingMessage(context.Background(), marketingMessageRequest{TemplateID: " " + surveyReminderTemplateID + " "})
+	if err != nil || !preview.PreviewOnly || preview.Eligible != 0 || preview.Confirmation != "" {
+		t.Fatalf("missing-survey preview: %+v, %v", preview, err)
+	}
+	for _, value := range []string{"Layout preview only", "19 September 2026", "540", "1477", "721", "130", "182", "sending is disabled"} {
+		if !strings.Contains(preview.HTML, value) || !strings.Contains(preview.Text, value) {
+			t.Errorf("missing %q from dated preview", value)
+		}
+	}
+	if strings.Contains(preview.HTML, "{{") || strings.Contains(preview.HTML, "[[") {
+		t.Fatal("unresolved layout-preview tokens")
+	}
+	campaignAuthorize = func(context.Context, *http.Request) error { return nil }
+	w := httptest.NewRecorder()
+	AdminMarketingMessageSend(w, httptest.NewRequest("POST", "/api/admin/marketing-message-send", strings.NewReader(`{"templateId":"survey-reminder-september-2026","confirmation":"SEND 0","expectedEligible":0}`)))
+	if w.Code != http.StatusBadRequest || !strings.Contains(w.Body.String(), "not available in this environment") {
+		t.Fatalf("missing survey must reject send: %d %s", w.Code, w.Body)
+	}
+}
+
+func TestSurveyReminderLookupFailureDoesNotBecomeLayoutPreview(t *testing.T) {
+	setupReminderTest(t)
+	old := marketingReminderSurvey
+	t.Cleanup(func() { marketingReminderSurvey = old })
+	marketingSurveyReminderState = loadSurveyReminderState
+	for _, code := range []codes.Code{codes.PermissionDenied, codes.Unavailable, codes.DeadlineExceeded} {
+		marketingReminderSurvey = func(context.Context) (surveyRecord, error) {
+			return surveyRecord{}, status.Error(code, "private diagnostic")
+		}
+		preview, err := previewMarketingMessage(context.Background(), marketingMessageRequest{TemplateID: surveyReminderTemplateID})
+		if err == nil || preview.PreviewOnly || strings.Contains(err.Error(), "private diagnostic") {
+			t.Fatalf("lookup %v was masked or leaked: %+v %v", code, preview, err)
+		}
 	}
 }
 

@@ -14,6 +14,16 @@ identity, ledger deduplication and exact current-count confirmation when counter
 change. No preview or test may send email. Desktop/mobile checkpoints cover the public update,
 the rendered email, and the email with images blocked.
 
+If the fixed survey document is absent (notably in staging with independently generated IDs),
+the admin marketing preview must still render a clearly labelled layout-only preview using all
+five dated publication counts. Its API response sets `previewOnly: true`, no confirmation and
+no calculated audience. Hide send controls, block synthetic submits, and independently reject
+sending server-side. Do not turn permission/network failures into layout previews or read
+production member data from staging. Cover this state at desktop/mobile widths and test the
+missing-document error through the real reminder loader, not just a successful state mock.
+Admin preview iframes use the current deployment's site images; delivered emails retain
+absolute production HTTPS image URLs, allowing new assets to be reviewed before release.
+
 Use this terminal prompt as the final acceptance contract when recreating the repository from the
 numbered prompts and `AGENTS.md`. It defines precedence, the minimum product surface, and the
 information that must be preserved outside source control.

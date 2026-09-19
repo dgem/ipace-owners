@@ -837,6 +837,10 @@ while the published survey is live. Existing exact-count confirmation and delive
 The matching `/updates/survey-final-straight/` page retains dated 19 September figures when
 live counts are unavailable. `GET /api/survey-participation` exposes only the fixed survey's
 response total, with 60-second public caching; it never exposes answers or respondent details.
+If that production survey ID does not exist in an environment (as in staging), the admin
+preview returns `previewOnly: true` with the clearly labelled 19 September publication figures,
+no calculated audience and no send confirmation. The UI hides sending, and the send endpoint
+still rejects the missing survey. Permission and connectivity failures remain errors.
 Both include public social-share links. The email hero is a 1120×630 baseline RGB JPEG
 (under 250 KiB), served over HTTPS with responsive sizing and descriptive alternative text.
 - `site-mode.js` — launch/full presentation selection

@@ -767,7 +767,7 @@ async function checkPublicEvidenceCounters(url, viewport, screenshotName, showMe
   await page.close();
 }
 
-async function checkMarketingMessages(viewport, screenshotName, reminder = false) {
+async function checkMarketingMessages(viewport, screenshotName, reminder = false, previewOnly = false) {
   const page = await browser.newPage({ viewport });
   const survey = {
     id: reminder ? 'survey-reminder-september-2026' : 'survey-september-2026',
@@ -783,12 +783,13 @@ async function checkMarketingMessages(viewport, screenshotName, reminder = false
   await page.route('**/api/admin/marketing-message-preview', (route) => route.fulfill({
     contentType: 'application/json',
     body: JSON.stringify({
-      eligible: 412,
+      previewOnly,
+      eligible: previewOnly ? 0 : 412,
       subject: survey.subject,
-      html: '<!doctype html><html><body><h1>September survey</h1></body></html>',
+      html: '<!doctype html><html><body><h1>September survey</h1>' + (previewOnly ? '<img src="https://ipace-owners.org/images/september-survey-reminder-2026-hero.jpg" alt="Campaign hero" style="max-width:100%">' : '') + '</body></html>',
       text: 'September survey',
-      confirmation: 'SEND 412',
-      notice: 'Only members who opted in to group communications are included.'
+      confirmation: previewOnly ? '' : 'SEND 412',
+      notice: previewOnly ? 'Layout preview only: survey missing in this environment. Dated figures; sending disabled.' : 'Only members who opted in to group communications are included.'
     })
   }));
   await page.goto(baseURL + '/admin/marketing-messages/', { waitUntil: 'networkidle' });
@@ -803,10 +804,20 @@ async function checkMarketingMessages(viewport, screenshotName, reminder = false
   assert.equal(await page.locator('[data-marketing-message-markdown]').evaluate((field) => field.readOnly), reminder);
   await page.locator('[data-marketing-message-form]').evaluate((form) => form.requestSubmit());
   await page.frameLocator('[data-marketing-message-html]').getByText('September survey').waitFor({ state: 'visible' });
-  assert.equal(await page.locator('[data-marketing-message-send]').isVisible(), true);
+  assert.equal(await page.locator('[data-marketing-message-send]').isVisible(), !previewOnly);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
-  if (reminder) {
+  if (previewOnly) {
+    await page.waitForLoadState('networkidle');
+    assert.equal(await page.frameLocator('[data-marketing-message-html]').locator('img').evaluate((img) => img.naturalWidth), 1120);
+    assert.equal(await page.frameLocator('[data-marketing-message-html]').locator('img').getAttribute('src'), baseURL + '/images/september-survey-reminder-2026-hero.jpg');
+    assert.match(await page.locator('[data-marketing-message-audience]').textContent(), /sending disabled/);
+    let sends = 0;
+    await page.route('**/api/admin/marketing-message-send', (route) => { sends += 1; return route.abort(); });
+    await page.locator('[data-marketing-message-send]').evaluate((form) => form.dispatchEvent(new Event('submit', { cancelable: true })));
+    assert.equal(sends, 0, 'layout previews cannot invoke sending, even via a synthetic submit');
+  }
+  if (reminder && !previewOnly) {
     assert.match(await page.locator('[data-marketing-message-audience]').textContent(), /have not yet answered/);
     await page.locator('[data-marketing-message-template]').selectOption('');
     assert.equal(await page.locator('[data-marketing-message-markdown]').evaluate((field) => field.readOnly), false);
@@ -865,6 +876,8 @@ async function checkSurveyReminder() {
 
 try {
   await checkSurveyReminder();
+  await checkMarketingMessages({ width: 1440, height: 1100 }, 'admin-survey-layout-only-desktop.png', true, true);
+  await checkMarketingMessages({ width: 390, height: 844 }, 'admin-survey-layout-only-mobile.png', true, true);
   await checkMarketingMessages({ width: 1440, height: 1100 }, 'admin-survey-reminder-desktop.png', true);
   await checkMarketingMessages({ width: 390, height: 844 }, 'admin-survey-reminder-mobile.png', true);
   await checkDesktopAdminHeader();

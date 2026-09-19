@@ -2,6 +2,7 @@ package ipace
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -14,6 +15,8 @@ import (
 const surveyReminderTemplateID = "survey-reminder-september-2026"
 const septemberSurveyID = "survey_38447815d17b0e954a4edbca1b9600c9"
 
+var errSeptemberSurveyMissing = errors.New("The September survey is not available in this environment")
+
 type surveyReminderState struct {
 	Survey           surveyRecord
 	Responses        int
@@ -21,24 +24,40 @@ type surveyReminderState struct {
 }
 
 var marketingSurveyReminderState = loadSurveyReminderState
+var marketingReminderSurvey = loadReminderSurvey
 var marketingReminderNow = time.Now
+
+func loadReminderSurvey(ctx context.Context) (surveyRecord, error) {
+	var survey surveyRecord
+	db, err := firestoreClient(ctx)
+	if err != nil {
+		return survey, err
+	}
+	doc, err := db.Collection("surveys").Doc(septemberSurveyID).Get(ctx)
+	if err != nil {
+		return survey, err
+	}
+	err = doc.DataTo(&survey)
+	return survey, err
+}
 
 // Load document IDs only; never read or expose members' answers for targeting.
 func loadSurveyReminderState(ctx context.Context) (surveyReminderState, error) {
 	state := surveyReminderState{RespondentEmails: map[string]bool{}}
-	db, err := firestoreClient(ctx)
+	var err error
+	state.Survey, err = marketingReminderSurvey(ctx)
 	if err != nil {
-		return state, err
-	}
-	doc, err := db.Collection("surveys").Doc(septemberSurveyID).Get(ctx)
-	if err != nil {
-		return state, err
-	}
-	if err := doc.DataTo(&state.Survey); err != nil {
+		if isFirestoreNotFound(err) {
+			return state, errSeptemberSurveyMissing
+		}
 		return state, err
 	}
 	if !surveyIsPublished(state.Survey) {
 		return state, fmt.Errorf("September survey is not published")
+	}
+	db, err := firestoreClient(ctx)
+	if err != nil {
+		return state, err
 	}
 	iter := db.Collection("surveys").Doc(septemberSurveyID).Collection("responses").Select().Documents(ctx)
 	defer iter.Stop()
@@ -110,6 +129,9 @@ func surveyReminderNonrespondents(audience []campaignRecipient, respondents map[
 func resolvedSurveyReminder(ctx context.Context, input marketingMessageRequest) (marketingMessageRequest, error) {
 	state, err := marketingSurveyReminderState(ctx)
 	if err != nil {
+		if errors.Is(err, errSeptemberSurveyMissing) {
+			return input, err
+		}
 		return input, fmt.Errorf("Could not load the September survey response count")
 	}
 	if !surveyReminderIsTimely(state, marketingReminderNow()) {
@@ -126,4 +148,23 @@ func resolvedSurveyReminder(ctx context.Context, input marketingMessageRequest) 
 	input.Name, input.Subject = source.Name, source.Subject
 	input.Markdown = strings.ReplaceAll(marketingTemplateMarkdown(source.Markdown, stats), "{{surveyResponses}}", strconv.Itoa(state.Responses))
 	return input, nil
+}
+
+// A missing environment-local survey permits design review only. This path is
+// never used by sending or by audience calculation, and reads no member data.
+func surveyReminderLayoutPreview(input marketingMessageRequest) (marketingMessagePreview, error) {
+	source, ok := marketingMessageTemplateSource(surveyReminderTemplateID)
+	if !ok {
+		return marketingMessagePreview{}, fmt.Errorf("Survey reminder template is unavailable")
+	}
+	stats := publicStatsSnapshot{JoinedOwners: 1477, VehiclesRegistered: 721, SOHReadings: 130, ServiceEventsLogged: 182}
+	markdown := strings.ReplaceAll(marketingTemplateMarkdown(source.Markdown, stats), "{{surveyResponses}}", "540")
+	notice := "Layout preview only: the September survey is not available in this environment. All figures are the dated 19 September 2026 snapshot, not live counts. No audience has been calculated and sending is disabled."
+	markdown = "**" + notice + "**\n\n" + renderMarketingMessageMarkdown(markdown, campaignRecipient{Name: "Preview Member"})
+	const unsubscribeURL = "https://ipace-owners.org/api/email-unsubscribe?campaign=preview&token=preview-token"
+	return marketingMessagePreview{
+		CampaignID: marketingMessageCampaignID(input), PreviewOnly: true, Subject: source.Subject,
+		HTML: marketingMessageHTML(markdown, surveyReminderTemplateID, unsubscribeURL),
+		Text: marketingMessageText(markdown, unsubscribeURL), Notice: notice,
+	}, nil
 }

@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"html"
 	"io"
@@ -54,6 +55,7 @@ type marketingMessageTemplate struct {
 }
 
 type marketingMessagePreview struct {
+	PreviewOnly  bool   `json:"previewOnly,omitempty"`
 	CampaignID   string `json:"campaignId"`
 	Eligible     int    `json:"eligible"`
 	Subject      string `json:"subject"`
@@ -279,6 +281,9 @@ func previewMarketingMessage(ctx context.Context, input marketingMessageRequest)
 	var err error
 	input, err = resolvedMarketingMessage(ctx, input)
 	if err != nil {
+		if input.TemplateID == surveyReminderTemplateID && errors.Is(err, errSeptemberSurveyMissing) {
+			return surveyReminderLayoutPreview(input)
+		}
 		return marketingMessagePreview{}, err
 	}
 	if err := validateMarketingMessage(input); err != nil {

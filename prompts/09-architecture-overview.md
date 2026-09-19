@@ -162,6 +162,11 @@ update uses participation/public-stat counters with explicit fallbacks, shared l
 an email-friendly JPEG hero and public social-share links. See prompts 04 and 17 for content
 and operational details.
 
+When the fixed September survey is absent from an environment, marketing preview may return
+`previewOnly: true` with explicitly dated publication counts, no audience and no confirmation.
+This design-review response is never a send authorization: both UI and server block sending,
+and other lookup errors remain failures. Staging uses separate survey IDs and private data.
+
 Templates and client JavaScript use `/api/*`; Firebase Hosting rewrites `/api/**` to the
 single Go `Api` Function, which dispatches to handler functions in process. `make
 deploy-functions` deploys only `Api`; do not re-expand deployment to one Cloud Function per

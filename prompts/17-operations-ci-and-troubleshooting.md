@@ -46,6 +46,18 @@ plain-text counters. Use the 1120×630 baseline RGB JPEG hero under 250 KiB, an 
 URL, width attribute, responsive inline styles and descriptive alt text. Include Facebook,
 WhatsApp, X and LinkedIn shares of the public update, with no recipient or sign-in token.
 
+Staging surveys have independently generated IDs; do not assume the production September
+survey document exists there or copy private production responses into staging. Only a missing
+survey document enables a labelled layout-only preview with the dated 19 September figures
+(540 responses, 1,477 owners, 721 cars, 130 SoH readings and 182 service/fault records).
+Return `previewOnly: true`, no confirmation and no calculated audience; hide send controls and
+reject synthetic submits. The send endpoint must independently reject the missing survey.
+Other lookup errors must remain failures. Test the missing-document boundary as well as the
+live-count path; mocking only a successful survey state misses this deployment condition.
+In the admin preview iframe, resolve site image URLs against the current deployment so new
+campaign assets can be reviewed before production release. Delivered email HTML must retain
+the absolute production HTTPS URLs. Verify the actual image loads in the staging preview.
+
 Prepared marketing templates use their stable source-controlled template identity for that
 campaign ID, rather than their rendered evidence totals. A changed public counter must therefore
 not cause another copy of an already-started template to be sent. Each continuation uses the
