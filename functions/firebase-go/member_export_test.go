@@ -272,3 +272,57 @@ func TestMemberExportResponseHeaders(t *testing.T) {
 		t.Fatal("missing nosniff header")
 	}
 }
+
+func TestMemberWorkbookUsesWorksheetFiltersAndExplicitBanding(t *testing.T) {
+	snapshot := memberExportFixture()
+	snapshot.ServiceEvents = append(snapshot.ServiceEvents, snapshot.ServiceEvents[0])
+	body, err := buildMemberWorkbook(snapshot)
+	if err != nil {
+		t.Fatal(err)
+	}
+	book, err := excelize.OpenReader(bytes.NewReader(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer book.Close()
+	firstStyle, err := book.GetCellStyle("Service & Faults", "A2")
+	if err != nil {
+		t.Fatal(err)
+	}
+	secondStyle, err := book.GetCellStyle("Service & Faults", "A3")
+	if err != nil || firstStyle == secondStyle {
+		t.Fatal("alternating row styles missing")
+	}
+	style, err := book.GetStyle(firstStyle)
+	if err != nil || len(style.Fill.Color) == 0 || style.Fill.Color[0] != "E8F3F1" {
+		t.Fatalf("stripe style=%v err=%v", style, err)
+	}
+	archive, err := zip.NewReader(bytes.NewReader(body), int64(len(body)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	filters := 0
+	for _, file := range archive.File {
+		if strings.HasPrefix(file.Name, "xl/tables/") {
+			t.Fatal("unexpected structured table part")
+		}
+		if !strings.HasPrefix(file.Name, "xl/worksheets/sheet") || !strings.HasSuffix(file.Name, ".xml") {
+			continue
+		}
+		stream, err := file.Open()
+		if err != nil {
+			t.Fatal(err)
+		}
+		xml, err := io.ReadAll(stream)
+		stream.Close()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if bytes.Contains(xml, []byte("<autoFilter ")) {
+			filters++
+		}
+	}
+	if filters != 4 {
+		t.Fatalf("filterable sheets=%d want 4", filters)
+	}
+}

@@ -315,6 +315,7 @@ type memberWorkbookStyleSet struct {
 	header int
 	label  int
 	note   int
+	stripe int
 }
 
 func memberWorkbookStyles(book *excelize.File) (memberWorkbookStyleSet, error) {
@@ -349,7 +350,13 @@ func memberWorkbookStyles(book *excelize.File) (memberWorkbookStyleSet, error) {
 	if err != nil {
 		return memberWorkbookStyleSet{}, err
 	}
-	return memberWorkbookStyleSet{title: title, header: header, label: label, note: note}, nil
+	stripe, err := book.NewStyle(&excelize.Style{
+		Fill: excelize.Fill{Type: "pattern", Color: []string{"E8F3F1"}, Pattern: 1},
+	})
+	if err != nil {
+		return memberWorkbookStyleSet{}, err
+	}
+	return memberWorkbookStyleSet{title: title, header: header, label: label, note: note, stripe: stripe}, nil
 }
 
 func writeSummarySheet(book *excelize.File, snapshot memberSnapshot, styles memberWorkbookStyleSet) error {
@@ -430,13 +437,17 @@ func writeDataSheet(book *excelize.File, sheet string, rows [][]string, styles m
 	_ = book.SetPanes(sheet, &excelize.Panes{Freeze: true, Split: false, XSplit: 0, YSplit: 1, TopLeftCell: "A2", ActivePane: "bottomLeft"})
 	_ = book.SetColWidth(sheet, "A", lastColumn, 18)
 	if len(rows) > 1 {
-		showRows := true
-		_ = book.AddTable(sheet, &excelize.Table{
-			Range:          fmt.Sprintf("A1:%s%d", lastColumn, len(rows)),
-			Name:           strings.ReplaceAll(strings.ReplaceAll(sheet, " ", ""), "&", "And") + "Table",
-			StyleName:      "TableStyleMedium2",
-			ShowRowStripes: &showRows,
-		})
+		// Avoid AddTable's shared-string reader (GO-2026-6452). Worksheet
+		// filters and explicit banding preserve the export's analysis controls.
+		for row := 2; row <= len(rows); row += 2 {
+			if err := book.SetCellStyle(sheet, fmt.Sprintf("A%d", row), fmt.Sprintf("%s%d", lastColumn, row), styles.stripe); err != nil {
+				return err
+			}
+		}
+		if err := book.AutoFilter(sheet, fmt.Sprintf("A1:%s%d", lastColumn, len(rows)), nil); err != nil {
+			return err
+		}
+
 	}
 	return nil
 }

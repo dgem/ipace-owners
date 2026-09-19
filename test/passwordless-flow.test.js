@@ -111,7 +111,12 @@ test('member data fetches include Identity bearer tokens', function () {
   assert.match(memberAuth, /memberDataRequest\(true\)/);
   assert.match(memberAuth, /function adminDataRequest/);
   assert.match(memberAuth, /fetch\('\/api\/admin-data'/);
-  assert.match(memberAuth, /adminDataRequest\(true\)/);
+  assert.match(memberAuth, /function adminAuthorizationRequest/);
+  assert.match(memberAuth, /fetch\('\/api\/admin\/authorize'/);
+  assert.match(memberAuth, /function adminVerificationRequest/);
+  assert.match(memberAuth, /data-admin-data-required/);
+  assert.match(memberAuth, /adminVerificationRequest\(container, true\)/);
+  assert.match(read('src/admin/review-queue.njk'), /data-admin-data-required/);
   assert.match(read('src/assets/js/identity.js'), /identity:ready/);
   assert.match(memberAuth, /addEventListener\('identity:ready'/);
   assert.doesNotMatch(read('src/assets/js/identity.js'), /window\.location\.reload/);
