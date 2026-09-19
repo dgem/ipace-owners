@@ -16,13 +16,15 @@ We have received **{{surveyResponses}} survey responses so far**. If you have no
 
 [Add my voice — take the survey](https://ipace-owners.org/member/survey-response/?id=survey_38447815d17b0e954a4edbca1b9600c9){.button}
 
+The survey closes on **23 September 2026**. Sign in with your member email, select every outcome you would support, and mark a preferred option if you wish. Results remain hidden until you submit, so your answer is your own.
+
+## Our journey since 17 July. We've come a long way.
+
 [[responses:{{surveyResponses}}]]
 [[members:{{membersJoined}}]]
 [[vehicles:{{vehiclesRegisteredCount}}]]
 [[soh:{{vehiclesSoHReadingsCount}}]]
 [[service:{{serviceFaultRecordsCount}}]]
-
-The survey closes on **23 September 2026**. Sign in with your member email, select every outcome you would support, and mark a preferred option if you wish. Results remain hidden until you submit, so your answer is your own.
 
 ## Different views. A stronger shared case.
 
