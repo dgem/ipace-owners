@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"html"
 	"io"
@@ -54,6 +55,7 @@ type marketingMessageTemplate struct {
 }
 
 type marketingMessagePreview struct {
+	PreviewOnly  bool   `json:"previewOnly,omitempty"`
 	CampaignID   string `json:"campaignId"`
 	Eligible     int    `json:"eligible"`
 	Subject      string `json:"subject"`
@@ -166,11 +168,20 @@ func AdminMarketingMessageSend(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "Invalid request body"})
 		return
 	}
+	input.TemplateID = strings.TrimSpace(input.TemplateID)
+	if input.TemplateID == surveyReminderTemplateID {
+		resolved, err := resolvedSurveyReminder(r.Context(), input)
+		if err != nil {
+			writeJSON(w, http.StatusBadRequest, map[string]any{"error": err.Error()})
+			return
+		}
+		input = resolved
+	}
 	if err := validateMarketingMessage(input); err != nil {
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": err.Error()})
 		return
 	}
-	audience, err := marketingMessageAudience(r.Context())
+	audience, err := marketingMessageAudienceFor(r.Context(), input)
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Could not calculate the consented audience"})
 		return
@@ -270,12 +281,15 @@ func previewMarketingMessage(ctx context.Context, input marketingMessageRequest)
 	var err error
 	input, err = resolvedMarketingMessage(ctx, input)
 	if err != nil {
+		if input.TemplateID == surveyReminderTemplateID && errors.Is(err, errSeptemberSurveyMissing) {
+			return surveyReminderLayoutPreview(input)
+		}
 		return marketingMessagePreview{}, err
 	}
 	if err := validateMarketingMessage(input); err != nil {
 		return marketingMessagePreview{}, err
 	}
-	audience, err := marketingMessageAudience(ctx)
+	audience, err := marketingMessageAudienceFor(ctx, input)
 	if err != nil {
 		return marketingMessagePreview{}, err
 	}
@@ -285,7 +299,11 @@ func previewMarketingMessage(ctx context.Context, input marketingMessageRequest)
 	}
 	markdown := renderMarketingMessageMarkdown(input.Markdown, previewRecipient)
 	previewUnsubscribeURL := "https://ipace-owners.org/api/email-unsubscribe?campaign=preview&token=preview-token"
-	return marketingMessagePreview{CampaignID: marketingMessageCampaignID(input), Eligible: len(audience), Subject: strings.TrimSpace(input.Subject), HTML: marketingMessageHTML(markdown, input.TemplateID, previewUnsubscribeURL), Text: marketingMessageText(markdown, previewUnsubscribeURL), Confirmation: fmt.Sprintf("SEND %d", len(audience)), Notice: fmt.Sprintf("All registered members are included unless they have opted out of group communications. Emails are sent in resumable batches of %d; previewing never sends email.", marketingMessageBatchSize)}, nil
+	notice := fmt.Sprintf("All registered members are included unless they have opted out of group communications. Emails are sent in resumable batches of %d; previewing never sends email.", marketingMessageBatchSize)
+	if input.TemplateID == surveyReminderTemplateID {
+		notice = "Only members eligible for group communications who have not submitted this survey are included. Responses and opt-outs are checked again before each batch; changes require fresh confirmation. Previewing never sends email."
+	}
+	return marketingMessagePreview{CampaignID: marketingMessageCampaignID(input), Eligible: len(audience), Subject: strings.TrimSpace(input.Subject), HTML: marketingMessageHTML(markdown, input.TemplateID, previewUnsubscribeURL), Text: marketingMessageText(markdown, previewUnsubscribeURL), Confirmation: fmt.Sprintf("SEND %d", len(audience)), Notice: notice}, nil
 }
 
 func validateMarketingMessage(input marketingMessageRequest) error {
@@ -463,14 +481,17 @@ func renderMarketingMessageMarkdown(markdown string, person campaignRecipient) s
 }
 func marketingMessageHTML(markdown, templateID, unsubscribeURL string) string {
 	body := markdownToEmailHTML(markdown)
+	if templateID == surveyReminderTemplateID {
+		body = surveyReminderEmailHTML(markdown)
+	}
 	hero := ""
 	if template, ok := marketingMessageTemplateSource(templateID); ok && template.HeroImage != "" {
-		hero = `<img src="https://ipace-owners.org` + template.HeroImage + `" alt="` + htmlEscape(template.HeroImageAlt) + `" style="display:block;width:100%;height:auto;border:0;border-radius:10px;margin:0 0 24px;">`
+		hero = `<img src="https://ipace-owners.org` + template.HeroImage + `" width="640" alt="` + htmlEscape(template.HeroImageAlt) + `" style="display:block;width:100%;max-width:640px;height:auto;border:0;border-radius:10px;margin:0 0 24px;">`
 	}
 	return `<!doctype html><html><body style="margin:0;padding:24px;background:#f7f8fb;font-family:Arial,sans-serif;"><main style="max-width:640px;margin:auto;background:#fff;padding:32px;border-radius:12px;">` + hero + body + `<hr style="border:0;border-top:1px solid #dbe3ec;margin:28px 0 16px;"><p style="font-size:13px;color:#4b5563;">You are receiving this because you chose to receive group communications. <a href="` + htmlEscape(unsubscribeURL) + `">Unsubscribe</a>.</p></main></body></html>`
 }
 func marketingMessageText(markdown, unsubscribeURL string) string {
-	return markdownToPlainText(markdown) + "\nYou are receiving this because you chose to receive group communications. Unsubscribe: " + unsubscribeURL + "\n"
+	return markdownToPlainText(surveyReminderPlainCounters(markdown)) + "\nYou are receiving this because you chose to receive group communications. Unsubscribe: " + unsubscribeURL + "\n"
 }
 
 func sendMarketingMessageBatch(ctx context.Context, input marketingMessageRequest, audience []campaignRecipient) (marketingMessageSent, error) {
@@ -484,6 +505,10 @@ func sendMarketingMessageBatch(ctx context.Context, input marketingMessageReques
 	record, err := loadOrCreateMarketingMessageRecord(ctx, db, input, len(audience))
 	if err != nil {
 		return marketingMessageSent{}, err
+	}
+	// Keep reminder statistics current for this batch without changing delivery identity.
+	if input.TemplateID == surveyReminderTemplateID {
+		record.Markdown = input.Markdown
 	}
 	related, err := matchingMarketingMessageRecords(ctx, db, input)
 	if err != nil {
@@ -1027,13 +1052,16 @@ func marketingMessageTemplates(ctx context.Context) ([]marketingMessageTemplate,
 	if err != nil {
 		return nil, err
 	}
-	result := make([]marketingMessageTemplate, 0, 4)
-	for _, id := range []string{"survey-september-2026", "jlr-contact", "find-members", "reach-1000"} {
+	result := make([]marketingMessageTemplate, 0, 5)
+	for _, id := range []string{surveyReminderTemplateID, "survey-september-2026", "jlr-contact", "find-members", "reach-1000"} {
 		template, ok := marketingMessageTemplateSource(id)
 		if !ok {
 			continue
 		}
 		template.Markdown = marketingTemplateMarkdown(template.Markdown, stats)
+		if id == surveyReminderTemplateID {
+			template.Markdown = strings.ReplaceAll(template.Markdown, "{{surveyResponses}}", "calculated at preview")
+		}
 		result = append(result, template)
 	}
 	return result, nil
@@ -1041,10 +1069,11 @@ func marketingMessageTemplates(ctx context.Context) ([]marketingMessageTemplate,
 
 func marketingMessageTemplateSource(id string) (marketingMessageTemplate, bool) {
 	file := map[string]string{
-		"survey-september-2026": "survey-september-2026",
-		"jlr-contact":           "jlr-contact",
-		"find-members":          "member-referral",
-		"reach-1000":            "all-members-drive",
+		surveyReminderTemplateID: surveyReminderTemplateID,
+		"survey-september-2026":  "survey-september-2026",
+		"jlr-contact":            "jlr-contact",
+		"find-members":           "member-referral",
+		"reach-1000":             "all-members-drive",
 	}[id]
 	if file == "" {
 		return marketingMessageTemplate{}, false
@@ -1054,16 +1083,20 @@ func marketingMessageTemplateSource(id string) (marketingMessageTemplate, bool) 
 		return marketingMessageTemplate{}, false
 	}
 	description := map[string]string{
-		"survey-september-2026": "Invite every consented member to the September preferred-outcomes survey.",
-		"jlr-contact":           "Share the JLR meeting update and ask members to strengthen the evidence.",
-		"find-members":          "Ask members to help another I-PACE owner find the group.",
-		"reach-1000":            "Ask all consented members to share the group and grow the evidence base.",
+		surveyReminderTemplateID: "Final-week reminder only for members who have not answered the September survey. Live counts are calculated at preview; targeting is rechecked before every batch.",
+		"survey-september-2026":  "Invite every consented member to the September preferred-outcomes survey.",
+		"jlr-contact":            "Share the JLR meeting update and ask members to strengthen the evidence.",
+		"find-members":           "Ask members to help another I-PACE owner find the group.",
+		"reach-1000":             "Ask all consented members to share the group and grow the evidence base.",
 	}[id]
 	return marketingMessageTemplate{ID: id, Name: source.Name, Description: description, Subject: source.Subject, Markdown: source.Markdown, HeroImage: source.HeroImage, HeroImageAlt: source.HeroImageAlt}, true
 }
 
 func resolvedMarketingMessage(ctx context.Context, input marketingMessageRequest) (marketingMessageRequest, error) {
 	input.TemplateID = strings.TrimSpace(input.TemplateID)
+	if input.TemplateID == surveyReminderTemplateID {
+		return resolvedSurveyReminder(ctx, input)
+	}
 	if input.TemplateID == "" {
 		return input, nil
 	}

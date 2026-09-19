@@ -45,6 +45,11 @@
       var key = element.getAttribute('data-public-stat');
       var value = data[key];
       element.textContent = displayValue(value, element.getAttribute('data-public-stat-format'));
+      if (root.hasAttribute('data-public-stats-retain-fallback')) {
+        var group = element.closest('.launch-member-count-group');
+        var date = group && group.querySelector('.launch-member-count__date');
+        if (date) date.textContent = 'Latest published total';
+      }
       if (element.classList.contains('launch-member-count__value') && Number.isFinite(Number(value))) {
         var count = Math.max(0, Math.round(Number(value)));
         var displayedCharacters = count.toLocaleString('en-GB').length;
@@ -74,7 +79,7 @@
       console.warn('[public-stats] Could not load aggregate data.', error);
       roots.forEach(function (root) {
         root.querySelectorAll('[data-public-stat]').forEach(function (element) {
-          element.textContent = 'Unavailable';
+          if (!root.hasAttribute('data-public-stats-retain-fallback')) element.textContent = 'Unavailable';
         });
         root.querySelectorAll('[data-public-distribution]').forEach(function (element) {
           element.innerHTML = '<p class="text-muted">Statistics are temporarily unavailable.</p>';

@@ -20,7 +20,7 @@ batches and stop to investigate any provider or ledger error.
 
 All group-wide messages use `/admin/marketing-messages/` and resumable direct Resend email batches, never the
 resumable reminder batches. Prepared source-controlled templates cover the September survey, JLR
-meeting update, finding more owners and growing the evidence base. They always target the
+meeting update, finding more owners and growing the evidence base. They normally target the
 canonical-email-deduplicated member audience: verified historic Firebase Auth accounts (whose
 membership flow required contact consent) and modern Join registrations, excluding explicit
 withdrawals. Load the template and public evidence totals server-side,
@@ -32,6 +32,31 @@ for reconciliation. A missing ledger entry from a pre-ledger aggregate provider 
 recipient identity, so it is logged as an operator warning but cannot block the campaign.
 Registration reminders remain separate because every recipient
 needs a newly minted private sign-in link.
+
+The `survey-reminder-september-2026` template further excludes canonical emails whose Auth
+UID has a response to `survey_38447815d17b0e954a4edbca1b9600c9`. Read only response document
+IDs, resolve Auth users in batches of at most 100, and fail closed on lookup errors.
+Recalculate eligibility at preview and each send batch. Keep source copy read-only in the admin
+form so editing cannot silently discard its targeting. Resolve `{{surveyResponses}}` and the
+existing membership/vehicle-history variables server-side on every preview and send batch;
+retain the stable template campaign ID and existing delivery ledger. Permit sending only on
+18–23 September 2026 UTC while the survey is published and live. Never send from a preview.
+Render five racing-laurel counters with ordinary text over a small raster decoration, plus
+plain-text counters. Use the 1120×630 baseline RGB JPEG hero under 250 KiB, an absolute HTTPS
+URL, width attribute, responsive inline styles and descriptive alt text. Include Facebook,
+WhatsApp, X and LinkedIn shares of the public update, with no recipient or sign-in token.
+
+Staging surveys have independently generated IDs; do not assume the production September
+survey document exists there or copy private production responses into staging. Only a missing
+survey document enables a labelled layout-only preview with the dated 19 September figures
+(540 responses, 1,477 owners, 721 cars, 130 SoH readings and 182 service/fault records).
+Return `previewOnly: true`, no confirmation and no calculated audience; hide send controls and
+reject synthetic submits. The send endpoint must independently reject the missing survey.
+Other lookup errors must remain failures. Test the missing-document boundary as well as the
+live-count path; mocking only a successful survey state misses this deployment condition.
+In the admin preview iframe, resolve site image URLs against the current deployment so new
+campaign assets can be reviewed before production release. Delivered email HTML must retain
+the absolute production HTTPS URLs. Verify the actual image loads in the staging preview.
 
 Prepared marketing templates use their stable source-controlled template identity for that
 campaign ID, rather than their rendered evidence totals. A changed public counter must therefore
