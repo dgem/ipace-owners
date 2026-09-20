@@ -634,6 +634,10 @@ async function checkPublicContentPage(url, heading, viewport, screenshotName) {
     document.querySelectorAll('.cookie-notice').forEach((element) => { element.hidden = true; });
   });
   assert.equal(await page.getByRole('heading', { level: 1, name: heading }).isVisible(), true);
+  if (url === '/updates/') {
+    const reminderLink = page.locator('.dashboard-panel__title a[href="/updates/survey-final-straight/"]');
+    assert.equal(await reminderLink.isVisible(), true);
+  }
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
   await page.close();
@@ -876,6 +880,8 @@ async function checkSurveyReminder() {
 
 try {
   await checkSurveyReminder();
+  await checkPublicContentPage('/updates/', 'Updates', { width: 1440, height: 1000 }, 'updates-list-desktop.png');
+  await checkPublicContentPage('/updates/', 'Updates', { width: 390, height: 844 }, 'updates-list-mobile.png');
   await checkMarketingMessages({ width: 1440, height: 1100 }, 'admin-survey-layout-only-desktop.png', true, true);
   await checkMarketingMessages({ width: 390, height: 844 }, 'admin-survey-layout-only-mobile.png', true, true);
   await checkMarketingMessages({ width: 1440, height: 1100 }, 'admin-survey-reminder-desktop.png', true);

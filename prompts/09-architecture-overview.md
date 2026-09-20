@@ -1,6 +1,10 @@
 # Architecture Overview Prompt
 
 Read this prompt alongside the feature-specific prompts before making cross-layer changes.
+
+Eleventy's Updates collection includes both Markdown and Nunjucks files under `src/updates/`,
+sorted newest first. Build-level tests must cover the listing as well as individual pages so
+a new template format cannot silently disappear from public navigation.
 It is the current source of truth for the I-PACE Owners' Advocacy Group architecture.
 
 ## Current target architecture

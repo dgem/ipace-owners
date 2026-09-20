@@ -1,5 +1,9 @@
 # Clean-room Reconstruction Contract
 
+The `/updates/` listing must collect both `src/updates/*.md` and `src/updates/*.njk` and sort
+them newest first. A rendered-output test must verify that the Nunjucks September survey
+reminder appears alongside existing Markdown posts and links to a generated page.
+
 Preserve the 19 September 2026 update at `/updates/survey-final-straight/`, its dated fallback
 data in `src/_data/surveyReminder.json`, and browser module `survey-participation.js`. Preserve
 `public/images/september-survey-reminder-2026-hero.jpg` (1120×630 baseline RGB JPEG under 250 KiB)
