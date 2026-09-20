@@ -835,7 +835,9 @@ and substitute live survey, membership and vehicle-history counts. Its source co
 in the admin form to preserve targeting. Sending is restricted to 18–23 September 2026 UTC
 while the published survey is live. Existing exact-count confirmation and delivery deduplication apply.
 The matching `/updates/survey-final-straight/` page retains dated 19 September figures when
-live counts are unavailable. `GET /api/survey-participation` exposes only the fixed survey's
+live counts are unavailable. The Updates collection includes both Markdown and Nunjucks posts,
+sorted newest first, with a build-level regression test for discoverability.
+`GET /api/survey-participation` exposes only the fixed survey's
 response total, with 60-second public caching; it never exposes answers or respondent details.
 If that production survey ID does not exist in an environment (as in staging), the admin
 preview returns `previewOnly: true` with the clearly labelled 19 September publication figures,

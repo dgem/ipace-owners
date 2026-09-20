@@ -2,6 +2,10 @@
 
 Create or refine the public content pages for the I-PACE Owners' Advocacy Group.
 
+The Updates collection must include both `src/updates/*.md` and `src/updates/*.njk`, sorted
+newest first. Test the rendered `/updates/` listing, not just individual page generation:
+Nunjucks updates such as the survey reminder must be discoverable from that listing.
+
 Preserve `/updates/survey-final-straight/`, dated 19 September 2026, preparing members for
 the 24 September JLR meeting and the survey's 23 September close. Its publication snapshot is
 540 responses, 1,477 owners, 721 cars, 130 battery-health readings and 182 service/fault records.
