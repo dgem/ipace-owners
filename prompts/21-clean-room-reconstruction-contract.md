@@ -12,6 +12,10 @@ codes or route them through Cloud Functions. Test encoded query preservation and
 malformed input rejection. Deployment smoke checks must assert 302 and exact query retention
 using dummy codes without following the redirect. Google-sent fallback emails remain unchanged.
 
+The `/updates/` listing must collect both `src/updates/*.md` and `src/updates/*.njk` and sort
+them newest first. A rendered-output test must verify that the Nunjucks September survey
+reminder appears alongside existing Markdown posts and links to a generated page.
+
 Preserve the 19 September 2026 update at `/updates/survey-final-straight/`, its dated fallback
 data in `src/_data/surveyReminder.json`, and browser module `survey-participation.js`. Preserve
 `public/images/september-survey-reminder-2026-hero.jpg` (1120×630 baseline RGB JPEG under 250 KiB)
