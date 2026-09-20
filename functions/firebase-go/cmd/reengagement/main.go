@@ -9,6 +9,7 @@ import (
 	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go/v4"
 	"firebase.google.com/go/v4/auth"
+	"github.com/dgem/ipace-owners/functions/firebase-go/internal/authlink"
 )
 
 func main() {
@@ -112,6 +113,9 @@ func run(ctx context.Context, config campaignConfig) error {
 		link, err := authClient.EmailSignInLink(ctx, person.Email, &auth.ActionCodeSettings{
 			URL: config.ContinueURL, HandleCodeInApp: true, LinkDomain: config.LinkDomain,
 		})
+		if err == nil {
+			link, err = authlink.Brand(link, config.ContinueURL, config.ProjectID)
+		}
 		if err != nil {
 			results = append(results, resultRow{Recipient: person, Status: "error", Detail: "Firebase link generation failed"})
 			if writeErr := writeResults(config.ResultsPath, results); writeErr != nil {

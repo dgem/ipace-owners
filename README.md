@@ -1,5 +1,15 @@
 # I-PACE Owners' Advocacy Group
 
+Application-generated Resend sign-in and registration-reminder emails use the authorized
+site origin at `/auth/action?...`. Firebase Hosting returns a fixed 302 to `/__/auth/action`
+on that same origin, preserving the Firebase query and continuation URL. The shared
+`internal/authlink` helper also covers the re-engagement CLI; preview links stay on their PR
+origin. No Cloud Function handles or logs the one-time code. Hosting applies no-store and
+no-referrer headers to `/auth/**`. Deployment smoke checks use dummy parameters and never
+follow the sign-in redirect. Firebase's direct fallback email service is unchanged and may
+still use a default Firebase URL. Domain branding addresses Resend's mismatch warning but
+does not guarantee delivery; inspect the recipient server's bounce reason before retrying.
+
 An independent advocacy group for Jaguar I-PACE owners affected by traction battery faults,
 H441/H448 and H57x recall or customer-notice work, battery degradation, and warranty
 uncertainty.

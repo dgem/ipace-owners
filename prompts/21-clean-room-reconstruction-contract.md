@@ -3,6 +3,18 @@
 The `/updates/` listing must collect both `src/updates/*.md` and `src/updates/*.njk` and sort
 them newest first. A rendered-output test must verify that the Nunjucks September survey
 reminder appears alongside existing Markdown posts and links to a generated page.
+Preserve Hosting redirects `/auth/action` and `/auth/action/` → `/__/auth/action` (302,
+same origin, query preserved) and no-store/no-referrer/noindex headers for `/auth/**`.
+Brand application-generated Resend sign-in and registration-reminder links through the shared
+`internal/authlink` helper, including CLI delivery. Retain Firebase verification and authorized
+continuation URLs, do not expose a configurable redirect destination, and do not log action
+codes or route them through Cloud Functions. Test encoded query preservation and wrong-host/
+malformed input rejection. Deployment smoke checks must assert 302 and exact query retention
+using dummy codes without following the redirect. Google-sent fallback emails remain unchanged.
+
+The `/updates/` listing must collect both `src/updates/*.md` and `src/updates/*.njk` and sort
+them newest first. A rendered-output test must verify that the Nunjucks September survey
+reminder appears alongside existing Markdown posts and links to a generated page.
 
 Preserve the 19 September 2026 update at `/updates/survey-final-straight/`, its dated fallback
 data in `src/_data/surveyReminder.json`, and browser module `survey-participation.js`. Preserve

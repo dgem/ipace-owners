@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"firebase.google.com/go/v4/auth"
+	"github.com/dgem/ipace-owners/functions/firebase-go/internal/authlink"
 )
 
 var (
@@ -40,7 +41,11 @@ func generateFirebaseEmailSignInLinkRequest(ctx context.Context, email string, c
 	if err != nil {
 		return "", err
 	}
-	return client.EmailSignInLink(ctx, email, firebaseEmailActionCodeSettings(continueURL, linkDomain))
+	link, err := client.EmailSignInLink(ctx, email, firebaseEmailActionCodeSettings(continueURL, linkDomain))
+	if err != nil {
+		return "", err
+	}
+	return authlink.Brand(link, continueURL, projectID())
 }
 
 func sendResendMagicLinkEmailRequest(ctx context.Context, email string, actionLink string, continueURL string) error {

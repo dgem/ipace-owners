@@ -24,6 +24,17 @@ magic-link request path for existing users.
 
 ## Magic-link rules
 
+- Before Resend delivery, transform generated HTTPS Firebase `signIn` action links through
+  `internal/authlink.Brand` into `/auth/action` on the server-selected continuation origin.
+  Apply the same helper to the re-engagement CLI. Preserve the raw query byte-for-byte,
+  validate the generated host and required unique mode/API-key/code fields, and never put
+  a code in an error. Keep alternate mobile-link formats and local development unchanged.
+- Hosting redirects both `/auth/action` and `/auth/action/` with 302 to `/__/auth/action`
+  on that same site. Production links stay branded; staging links remain in their own
+  environment. This is a fixed redirect, not an arbitrary destination parameter or Function.
+- Keep Firebase's direct-email fallback unchanged; those Google-sent messages can still use
+  the default Firebase URL. Do not claim URL branding guarantees deliverability.
+
 - Do not make Join completion fire a second browser request to `SendMagicLink`.
 - Custom passwordless sign-in forms outside Join may call `SendMagicLink`, but this is a
   login path only, not registration.
