@@ -35,6 +35,14 @@
         ]
       },
       {
+        "source": "/auth/**",
+        "headers": [
+          { "key": "Cache-Control", "value": "no-store, max-age=0" },
+          { "key": "Referrer-Policy", "value": "no-referrer" },
+          { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        ]
+      },
+      {
         "source": "/assets/**",
         "headers": [
           {
@@ -81,6 +89,16 @@
       }
     ],
     "redirects": [
+      {
+        "source": "/auth/action",
+        "destination": "/__/auth/action",
+        "type": 302
+      },
+      {
+        "source": "/auth/action/",
+        "destination": "/__/auth/action",
+        "type": 302
+      },
       {
         "source": "/account",
         "destination": "/member/account/",

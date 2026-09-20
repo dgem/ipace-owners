@@ -3,6 +3,11 @@
 Use this prompt when changing Firebase Authentication, passwordless sign-in UI, member
 pages, admin pages, or server-verified page gating.
 
+Application-sent sign-in emails enter at `/auth/action` on the authorized continuation origin.
+Hosting 302s to the same site's reserved Firebase `/__/auth/action` handler, preserving the
+query and existing Firebase sign-in checks. Do not consume action codes in an application
+Function, broaden continuation origins, or log the URL. Both slash forms are supported.
+
 ## Goal
 
 Provide passwordless sign-in, sign-out, registration state, member-only pages with live

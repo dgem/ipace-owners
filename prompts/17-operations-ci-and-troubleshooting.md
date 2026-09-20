@@ -380,6 +380,18 @@ site-owned `/images/` paths; Freeform campaigns retain the generic hero.
   Auth action links; the action-link host must be a Firebase Hosting/Auth domain accepted
   by Firebase. Keep the sender-domain subdomain separate unless it is also deliberately
   configured as an action-link Hosting domain.
+- For application-generated Resend sign-in emails, also brand the generated URL as
+  `/auth/action` on the authorized continuation origin. Hosting 302s to its own Firebase
+  `/__/auth/action` handler, retaining every query parameter; both slash forms are supported.
+  This avoids a new Function request log containing a one-time code. Set no-store,
+  no-referrer and noindex headers. Keep PR links on their own preview origin and apply the
+  same helper to CLI registration reminders. Smoke-test with dummy codes and manual redirect
+  handling; never follow, log or commit a real sign-in code.
+- A reported `550 5.7.1 Policy-DT54` bounce coincided with Resend's sender/link-domain mismatch
+  warning for a Firebase-hosted sign-in URL. Branding addresses that warning; the SMTP response
+  alone does not prove the sole cause. Google-sent fallback emails remain unchanged and may
+  still show the Firebase domain. Do not automatically retry bounced recipients or send test
+  mail without authorization.
 - If `FIREBASE_EMAIL_LINK_DOMAIN` is not present, Functions derive `linkDomain` from an
   HTTPS custom-domain `continueUrl` and suppress it for preview/default Firebase domains,
   localhost, and non-HTTPS URLs.

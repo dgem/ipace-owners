@@ -1,3 +1,5 @@
+import { checkAuthLinkRedirect } from './auth-link-redirect-smoke.mjs';
+
 const rawBaseUrl = process.env.SMOKE_BASE_URL;
 
 if (!rawBaseUrl) {
@@ -68,6 +70,8 @@ function assertNotIncludes(value, unexpected, label) {
 
 async function main() {
   console.log(`Running smoke tests for ${baseUrl.toString()}`);
+
+  await checkAuthLinkRedirect(baseUrl);
 
   const home = await fetchText('/');
   assertIncludesAny(home, ['i-Pace Owners', 'I-PACE Owners', 'Owners working together'], 'home page');

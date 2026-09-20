@@ -5,6 +5,10 @@ Read this prompt alongside the feature-specific prompts before making cross-laye
 Eleventy's Updates collection includes both Markdown and Nunjucks files under `src/updates/`,
 sorted newest first. Build-level tests must cover the listing as well as individual pages so
 a new template format cannot silently disappear from public navigation.
+Hosting owns `/auth/action` and `/auth/action/`: fixed 302 redirects to its reserved
+`/__/auth/action` handler, retaining the query on the same origin. `internal/authlink` brands
+SDK-generated links for Resend delivery and the CLI without routing one-time codes through
+the API Function. No new API, storage, credential or environment variable is needed.
 It is the current source of truth for the I-PACE Owners' Advocacy Group architecture.
 
 ## Current target architecture
