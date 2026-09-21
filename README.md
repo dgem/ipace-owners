@@ -653,12 +653,14 @@ description (up to 2,000 characters); the response UI initially collapses multi-
 descriptions behind an accessible “more” control.
 Each selected text-enabled option can carry its own 250-character member explanation, which is
 never included in aggregate results or disclosed to other members.
-The separate admin analysis page can review those free-text answers with consistently masked
+The separate admin analysis page shows exact votes, preferred votes and optional-comment
+counts per choice and can review those free-text answers with consistently masked
 respondent emails and download a CSV restricted to that masked identifier, UTC submission time,
 selected option IDs, an optional preferred option ID, and text answers in `option-id: text` form; it never includes full emails, names, Firebase UIDs, or
 member/vehicle data.
 The linked `/admin/survey-insights/` workflow calls `POST /api/admin/survey-insights` in
-bounded, document-ID-ordered pages of 12 responses and `POST /api/admin/survey-insights-summary`
+bounded, document-ID-ordered pages of 24 responses, classifying comments in model groups
+of at most eight with up to three groups in flight, and then calls `POST /api/admin/survey-insights-summary`
 after all pages complete. Both require an admin ID token. The first endpoint sends only
 comments with common identifiers redacted, the associated selected/preferred option names,
 and ephemeral numeric indices to Vertex AI Gemini in `europe-west2` (model and location are
@@ -671,20 +673,27 @@ and confirms quote permission and de-identification before a PowerPoint file is 
 the browser. Transient 429/502/503/504 responses retry the same page; if retries fail,
 Resume analysis continues from the last completed page in the current tab. Refreshing the tab
 starts afresh; no comments, prompts, model replies or deck are persisted or logged by this flow.
-The deck combines exact stored survey option totals with consent-filtered public vehicle
+If a model reply omits or duplicates classifications, the Function retries smaller comment
+groups with fresh indices. An individual comment that still cannot be classified is counted
+as unclassified, excluded from sentiment/theme totals and quote candidates, and disclosed in
+the admin review and deck. Transport errors continue to fail the page for retry.
+The deck combines exact stored survey option selected, preferred and optional-comment counts with consent-filtered public vehicle
 model-year statistics and admin-only, consent-filtered member-country and service-provider
 postcode-area counts; groups with fewer than five records are combined. Group demographics are labelled separately
 from survey respondent characteristics. AI sentiment describes only optional comment entries,
 not votes or the I-PACE fleet. The editable PowerPoint uses the site palette and the existing
-UK-road hero image. It separates full HV replacement, fair buy-back and neither from the
+UK-road hero image and the existing gold racing laurel around the two headline counts. It sets an Arial PowerPoint theme and an editable content layout with a title placeholder, teal divider and meeting footer so inserted slides can use the same style. It separates full HV replacement, fair buy-back and neither from the
 additional compensation/concerns choices, shows the actual survey wording and a labelled
-fictional completed example, explains sentiment denominators, visualises theme frequency,
+fictional completed example modelled on the member form, explains sentiment denominators, visualises theme frequency,
 and places up to three permission-checked quotes on each of three editorial quote slides.
 It frames the meeting with JLR's UK Director for Client Care as an opportunity for reliable
 resolution of battery, H441-era recall and related service concerns without claiming recall
 causality or fleet-wide prevalence.
-The growth slide uses the first dated, contact-consenting Join record per canonical member
-email to show cumulative milestones, with the latest published member count alongside it.
+The primary route with the most selections is called out; preferred votes break a selection tie,
+and an exact tie has no single leader. The growth slide cites the About page and official
+17 July 2026 launch. It uses the first dated, contact-consenting Join record per canonical
+member email from that date for cumulative milestones and the displayed owner total;
+pre-launch test registrations are excluded. The published consented vehicle total is shown separately.
 The browser generator uses the self-hosted `pptxgenjs` bundle copied by Eleventy from the
 locked npm dependency. A local JSZip pass removes orphan slide-master declarations emitted
 by that library before download; package integrity and slide bounds are checked with a

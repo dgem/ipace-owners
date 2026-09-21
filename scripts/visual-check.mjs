@@ -899,9 +899,9 @@ async function checkSurveyInsights(viewport, suffix) {
         { id: 'compensation', name: 'Fair Compensation', description: 'For disruption and repeat visits.' },
         { id: 'concerns', name: 'Additional Concerns', description: 'Other faults also need rectifying.' }
       ] },
-      counts: { repair: 8, buyback: 5, neither: 1, compensation: 3, concerns: 2 }, preferredCounts: { repair: 6, buyback: 2 },
+      counts: { repair: 8, buyback: 5, neither: 1, compensation: 3, concerns: 2 }, preferredCounts: { repair: 6, buyback: 2 }, textCounts: { repair: 4, buyback: 3, neither: 1, compensation: 2, concerns: 1 },
       totalResponses: 10, offset: 0, nextOffset: 10, hasMore: false,
-      items: [{ optionId: 'repair', sentiment: 'negative', themes: ['battery', 'service'] }, { optionId: 'warranty', sentiment: 'mixed', themes: ['warranty'] }],
+      items: [{ optionId: 'repair', sentiment: 'negative', themes: ['battery', 'service'] }, { optionId: 'buyback', sentiment: 'mixed', themes: ['warranty'] }, { optionId: 'repair', sentiment: 'unclassified', themes: [] }],
       quotes: ['good', 'bad', 'ugly'].flatMap((kind) => [1, 2, 3].map((index) => ({ kind, text: `${kind} comment ${index}: The owner described how the car and service experience affected them.` }))),
       finding: 'Battery repair delays affected several comments.'
     })
@@ -919,12 +919,14 @@ async function checkSurveyInsights(viewport, suffix) {
   await page.locator('[data-insights-run]').click();
   if (suffix === 'mobile') {
     await page.getByRole('button', { name: 'Resume analysis' }).waitFor();
-    assert.match(await page.locator('[data-insights-status]').textContent(), /Progress is kept in this tab/);
+    assert.match(await page.locator('[data-insights-status]').textContent(), /Completed 0 of \? responses\. Resume analysis retries from response 1 in this tab/);
     await page.getByRole('button', { name: 'Resume analysis' }).click();
   }
   await page.waitForFunction(() => document.querySelector('[data-insights-report]') && !document.querySelector('[data-insights-report]').hidden);
   assert.equal(insightRequests, suffix === 'mobile' ? 4 : 2);
   assert.match(await page.locator('[data-insights-status]').textContent(), /Analysis complete/);
+  assert.match(await page.locator('[data-insights-status]').textContent(), /1 unclassified/);
+  assert.equal(await page.getByRole('columnheader', { name: 'Unclassified' }).count(), 1);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, 'survey-insights-review-' + suffix + '.png'), fullPage: true });
   if (suffix === 'desktop') {

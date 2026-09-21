@@ -176,6 +176,10 @@ func TestAggregateSurveyResultsExposeOnlyTextCounts(t *testing.T) {
 	if !strings.Contains(string(encoded), `"textCounts":{"option-1":1}`) {
 		t.Fatalf("aggregate survey result omitted optional-detail count: %s", encoded)
 	}
+	adminEncoded, err := json.Marshal(adminSurveyAnalysis{Counts: result.Counts, PreferredCounts: result.PreferredCounts, TextCounts: result.TextCounts})
+	if err != nil || !strings.Contains(string(adminEncoded), `"textCounts":{"option-1":1}`) {
+		t.Fatalf("admin survey results omitted optional-detail count: %s (%v)", adminEncoded, err)
+	}
 }
 
 func TestMemberMayViewResultsOnlyAfterSubmittingResponse(t *testing.T) {
