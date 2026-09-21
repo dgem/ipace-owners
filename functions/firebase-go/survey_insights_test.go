@@ -1,10 +1,12 @@
 package ipace
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 )
@@ -61,6 +63,95 @@ func TestSurveyInsightOffersThreeExactQuotesPerCategory(t *testing.T) {
 	_, quotes, err := validateSurveyInsightOutput(comments, surveyInsightModelOutput{Assessments: assessments})
 	if err != nil || len(quotes) != 3 || quotes[2].Text != comments[2].Text {
 		t.Fatalf("expected three source-exact quote candidates, got %#v, %v", quotes, err)
+	}
+}
+
+func TestSurveyInsightSplitsIncompleteRepliesAndFlagsOnlyIrreducibleComment(t *testing.T) {
+	previous := surveyInsightGenerate
+	defer func() { surveyInsightGenerate = previous }()
+	calls := 0
+	surveyInsightGenerate = func(_ context.Context, _ surveyRecord, comments []surveyInsightComment) (surveyInsightModelOutput, error) {
+		calls++
+		for index, comment := range comments {
+			if comment.ID != index {
+				t.Fatalf("split comment index %d retained stale ID %d", index, comment.ID)
+			}
+		}
+		if len(comments) != 1 || comments[0].Text == "cannot classify" {
+			return surveyInsightModelOutput{}, nil // Incomplete but parseable model reply.
+		}
+		return surveyInsightModelOutput{Assessments: []surveyInsightAssessment{{ID: 0, Sentiment: "negative", Themes: []string{"battery"}, QuoteKind: "bad"}}}, nil
+	}
+	comments := []surveyInsightComment{
+		{ID: 0, OptionID: "repair", Text: "Battery repair took another long visit."},
+		{ID: 1, OptionID: "repair", Text: "cannot classify"},
+		{ID: 2, OptionID: "buyback", Text: "The car is still at the workshop."},
+	}
+	items, quotes, _, err := classifySurveyInsightComments(context.Background(), surveyRecord{}, comments)
+	if err != nil || calls != 5 || len(items) != 3 || items[0].Sentiment != "negative" || items[1].Sentiment != "unclassified" || len(items[1].Themes) != 0 || items[2].OptionID != "buyback" || len(quotes) != 2 {
+		t.Fatalf("incomplete reply recovery: items=%#v quotes=%#v calls=%d err=%v", items, quotes, calls, err)
+	}
+	stats := surveyInsightSummaryInput(items)
+	if stats.Unclassified != 1 || stats.Sentiment["repair"]["negative"] != 1 || stats.Sentiment["repair"]["unclassified"] != 0 {
+		t.Fatalf("unclassified comment entered sentiment totals: %#v", stats)
+	}
+	report := surveyInsightReport{ID: "survey", Items: items}
+	if !validSurveyInsightReport(report) {
+		t.Fatal("valid report with disclosed unclassified comment rejected")
+	}
+	report.Items[1].Themes = []string{"battery"}
+	if validSurveyInsightReport(report) {
+		t.Fatal("unclassified comment with invented theme accepted")
+	}
+}
+
+func TestSurveyInsightPageBoundsModelRepliesAndPreservesOrder(t *testing.T) {
+	previous := surveyInsightGenerate
+	defer func() { surveyInsightGenerate = previous }()
+	var mu sync.Mutex
+	chunkSizes := []int{}
+	surveyInsightGenerate = func(_ context.Context, _ surveyRecord, comments []surveyInsightComment) (surveyInsightModelOutput, error) {
+		mu.Lock()
+		chunkSizes = append(chunkSizes, len(comments))
+		mu.Unlock()
+		rows := make([]surveyInsightAssessment, len(comments))
+		for index, comment := range comments {
+			if comment.ID != index {
+				t.Errorf("comment in chunk has stale index %d", comment.ID)
+			}
+			rows[index] = surveyInsightAssessment{ID: index, Sentiment: "mixed", Themes: []string{"battery"}, QuoteKind: "none"}
+		}
+		return surveyInsightModelOutput{Assessments: rows, Finding: "Battery comments occurred."}, nil
+	}
+	comments := make([]surveyInsightComment, 20)
+	for index := range comments {
+		comments[index] = surveyInsightComment{ID: index, OptionID: fmt.Sprintf("option-%02d", index), Text: "A comment about battery repairs."}
+	}
+	items, quotes, _, err := classifySurveyInsightPage(context.Background(), surveyRecord{}, comments)
+	if err != nil || len(items) != len(comments) || len(quotes) != 0 || len(chunkSizes) != 3 {
+		t.Fatalf("bounded page classification failed: items=%d quotes=%d chunks=%v err=%v", len(items), len(quotes), chunkSizes, err)
+	}
+	for index, item := range items {
+		if item.OptionID != comments[index].OptionID {
+			t.Fatalf("comment order changed at %d: %#v", index, item)
+		}
+	}
+	for _, size := range chunkSizes {
+		if size > surveyInsightModelChunkSize {
+			t.Fatalf("model group too large: %d", size)
+		}
+	}
+}
+
+func TestSurveyInsightTransportFailureDoesNotBecomeUnclassified(t *testing.T) {
+	previous := surveyInsightGenerate
+	defer func() { surveyInsightGenerate = previous }()
+	surveyInsightGenerate = func(_ context.Context, _ surveyRecord, _ []surveyInsightComment) (surveyInsightModelOutput, error) {
+		return surveyInsightModelOutput{}, fmt.Errorf("model unavailable")
+	}
+	items, _, _, err := classifySurveyInsightComments(context.Background(), surveyRecord{}, []surveyInsightComment{{OptionID: "repair", Text: "A battery comment"}})
+	if err == nil || len(items) != 0 {
+		t.Fatalf("transport error was hidden as a classification: %#v, %v", items, err)
 	}
 }
 

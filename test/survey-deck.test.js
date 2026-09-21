@@ -48,7 +48,7 @@ test('browser deck creates an editable PowerPoint with grounded counts and revie
     const slides = Object.keys(zip.files).filter((name) => /^ppt\/slides\/slide\d+\.xml$/.test(name));
     assert.equal(slides.length, 15);
     const contents = (await Promise.all(slides.map((name) => zip.files[name].async('string')))).join('\n');
-    for (const phrase of ['UK I-PACE Forum', '1,477', '721', 'Battery faults and parts delays', 'good owner quote number 3', 'ugly owner quote number 3', 'Full HV Replacement', 'Fair Compensation', 'fictional example', 'How we arrived at these labels', 'service locations recorded', 'United Kingdom', 'Explain the battery plan']) {
+    for (const phrase of ['I-PACE owners: experiences and priorities', 'Member survey findings for discussion with JLR', 'UK I-PACE Forum', '1,477', '721', 'Battery faults and parts delays', 'good owner quote number 3', 'ugly owner quote number 3', 'Full HV Replacement', 'Fair Compensation', 'fictional example', 'How we arrived at these labels', 'service locations recorded', 'United Kingdom', 'Explain the battery plan']) {
       assert.ok(contents.includes(phrase), `PowerPoint omitted ${phrase}`);
     }
     assert.ok(Object.keys(zip.files).some((name) => name.startsWith('ppt/media/')), 'cover hero image omitted');

@@ -100,15 +100,15 @@
     pptx.layout = "LAYOUT_WIDE";
     pptx.author = "I-PACE Owners’ Advocacy Group";
     pptx.subject = "Anonymous member survey analysis for the 24 September 2026 JLR meeting";
-    pptx.title = "I-PACE owners: member survey findings";
+    pptx.title = "I-PACE owners: experiences and priorities";
     pptx.lang = "en-GB";
     var date = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
     var index = 1;
     var slide = pptx.addSlide();
     slide.addImage({ data: heroData, x: 0, y: 0, w: 13.333, h: 7.5 });
     slide.addShape(pptx.ShapeType.rect, { x: 0, y: 4.3, w: 13.333, h: 3.2, line: { color: navy, transparency: 100 }, fill: { color: navy, transparency: 4 } });
-    text(slide, "I-PACE owners: a route to resolution", 0.75, 4.72, 11.8, 0.69, { color: "FFFFFF", fontSize: 35, bold: true });
-    text(slide, "Member survey findings and owner priorities", 0.78, 5.48, 11.8, 0.44, { color: "FFFFFF", fontSize: 23 });
+    text(slide, "I-PACE owners: experiences and priorities", 0.75, 4.72, 11.8, 0.69, { color: "FFFFFF", fontSize: 35, bold: true });
+    text(slide, "Member survey findings for discussion with JLR", 0.78, 5.48, 11.8, 0.44, { color: "FFFFFF", fontSize: 23 });
     text(slide, "UK Director for Client Care  •  24 September 2026  •  Private meeting", 0.78, 6.74, 11.8, 0.31, { color: "DCE9E9", fontSize: 14 });
 
     slide = baseSlide(pptx, "How the group formed and grew", ++index, date);
@@ -200,12 +200,12 @@
         if (width) slide.addShape(pptx.ShapeType.rect, { x: x, y: y + 0.06, w: width, h: 0.28, line: { color: sentimentColors[kind], transparency: 100 }, fill: { color: sentimentColors[kind] } });
         x += width;
       });
-      text(slide, row.positive + " / " + row.mixed + " / " + row.negative + "  (n=" + total + ")", 10.42, y, 1.89, 0.4, { fontSize: 11, color: navy, align: "right" });
+      text(slide, row.positive + " / " + row.mixed + " / " + row.negative + "  (n=" + total + ", U=" + (row.unclassified || 0) + ")", 10.42, y, 1.89, 0.4, { fontSize: 11, color: navy, align: "right" });
     });
     text(slide, "Positive", 0.86, 5.42, 1.2, 0.3, { fontSize: 13, color: teal, bold: true });
     text(slide, "Mixed", 2.1, 5.42, 1.1, 0.3, { fontSize: 13, color: gold, bold: true });
     text(slide, "Negative", 3.24, 5.42, 1.4, 0.3, { fontSize: 13, color: red, bold: true });
-    callout(slide, pptx, "How we arrived at these labels", "Each optional comment was labelled in the context of its option, all selected choices and preferred choice. Figures are positive / mixed / negative comment entries; n is the sum. Unanswered options carry no sentiment.", 0.85, 5.68, 11.62, 1.2);
+    callout(slide, pptx, "How we arrived at these labels", "Each comment was assessed with its option, all selected choices and preferred choice. Figures are positive / mixed / negative classified entries; n is their sum. U counts comments the model could not classify, excluded from the bars.", 0.85, 5.68, 11.62, 1.2);
 
     slide = baseSlide(pptx, "Recurring themes in owners’ words", ++index, date);
     var themes = report.themeCounts.slice(0, 7);
@@ -267,7 +267,7 @@
     [
       "Responses and vehicle/service information are self-reported. The survey is self-selected and cannot estimate prevalence across all I-PACE owners.",
       "Survey choice counts use stored aggregates. Comment themes and sentiment are AI-assisted classifications of optional text, reviewed by an administrator.",
-      "Comments may cover several themes; sentiment is tied to the option where the comment was entered, with all selected and preferred outcomes supplied as context. Figures show positive / mixed / negative comment entries.",
+      "Comments may cover several themes; sentiment is tied to the option where the comment was entered, with selected/preferred outcomes as context. Unclassified comments are counted separately, never assigned themes or sentiment.",
       "Quoted comments were redacted and selected for this private meeting with confirmed permission. Group demographics are not linked to survey respondents."
     ].forEach(function (item, i) { text(slide, "•  " + item, 0.86, 1.48 + i * 1.21, 11.4, 0.9, { fontSize: 18, color: navy }); });
     // PptxGenJS 4 emits content-type entries for slide masters that do not

@@ -658,7 +658,8 @@ respondent emails and download a CSV restricted to that masked identifier, UTC s
 selected option IDs, an optional preferred option ID, and text answers in `option-id: text` form; it never includes full emails, names, Firebase UIDs, or
 member/vehicle data.
 The linked `/admin/survey-insights/` workflow calls `POST /api/admin/survey-insights` in
-bounded, document-ID-ordered pages of 12 responses and `POST /api/admin/survey-insights-summary`
+bounded, document-ID-ordered pages of 24 responses, classifying comments in model groups
+of at most eight with up to three groups in flight, and then calls `POST /api/admin/survey-insights-summary`
 after all pages complete. Both require an admin ID token. The first endpoint sends only
 comments with common identifiers redacted, the associated selected/preferred option names,
 and ephemeral numeric indices to Vertex AI Gemini in `europe-west2` (model and location are
@@ -671,6 +672,10 @@ and confirms quote permission and de-identification before a PowerPoint file is 
 the browser. Transient 429/502/503/504 responses retry the same page; if retries fail,
 Resume analysis continues from the last completed page in the current tab. Refreshing the tab
 starts afresh; no comments, prompts, model replies or deck are persisted or logged by this flow.
+If a model reply omits or duplicates classifications, the Function retries smaller comment
+groups with fresh indices. An individual comment that still cannot be classified is counted
+as unclassified, excluded from sentiment/theme totals and quote candidates, and disclosed in
+the admin review and deck. Transport errors continue to fail the page for retry.
 The deck combines exact stored survey option totals with consent-filtered public vehicle
 model-year statistics and admin-only, consent-filtered member-country and service-provider
 postcode-area counts; groups with fewer than five records are combined. Group demographics are labelled separately

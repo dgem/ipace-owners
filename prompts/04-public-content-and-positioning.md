@@ -4,6 +4,9 @@ For the private 24 September JLR meeting deck, explain that the independent grou
 following a call to action in the UK I-PACE Forum and show its growth through dated,
 consent-filtered aggregate membership and vehicle statistics. The meeting narrative should
 lead from owner evidence to specific questions or actions for JLR. Theme the PowerPoint in
+constructive language: title the cover “I-PACE owners: experiences and priorities” with
+“Member survey findings for discussion with JLR,” avoiding a threatening or ultimatum-like tone.
+Theme it in
 the site's navy, teal and white design, with the existing RHD UK-road hero image, clear
 callouts, and separate editorial good/bad/ugly slides carrying up to three reviewed quotes
 each. Show the actual member survey options and a conspicuously fictional completed example.
@@ -11,7 +14,8 @@ Treat full HV replacement, fair buy-back and neither as the three primary routes
 compensation and additional concerns as accompanying requests. Show the positive/mixed/negative
 comment counts behind each sentiment bar and a frequency-scaled display of fixed themes;
 explain that option-level comments were assessed in the context of all selected and preferred
-choices. Address the UK Director for Client Care and position the findings as an opportunity
+choices. Show comments the model could not classify separately and exclude them from sentiment
+and theme totals. Address the UK Director for Client Care and position the findings as an opportunity
 for JLR to resolve concerns for a growing group of owners, including H441-era experiences,
 without claiming recall causality or fleet-wide prevalence. Describe model-year and service-provider location
 figures as group records, not demographics of survey respondents.
