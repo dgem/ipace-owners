@@ -14,11 +14,32 @@ import (
 
 // adminStatsResponse is returned by the /api/admin/stats endpoint.
 type adminStatsResponse struct {
-	GeneratedAt       string               `json:"generatedAt"`
-	PublicStats       publicDashboardStats `json:"publicStats"`
-	MemberStats       memberStats          `json:"memberStats"`
-	VehicleStats      vehicleStats         `json:"vehicleStats"`
-	ServiceEventStats serviceEventStats    `json:"serviceEventStats"`
+	GeneratedAt              string               `json:"generatedAt"`
+	PublicStats              publicDashboardStats `json:"publicStats"`
+	MemberStats              memberStats          `json:"memberStats"`
+	VehicleStats             vehicleStats         `json:"vehicleStats"`
+	ServiceEventStats        serviceEventStats    `json:"serviceEventStats"`
+	ServiceLocations         serviceLocationStats `json:"serviceLocations"`
+	ConsentedJoinTimeline    []timelineBucket     `json:"consentedJoinTimeline"`
+	ConsentedMemberCountries []demographicBucket  `json:"consentedMemberCountries"`
+}
+
+type demographicBucket struct {
+	Label string `json:"label"`
+	Count int    `json:"count"`
+}
+
+// serviceLocationStats counts consent-eligible service records, not unique owners.
+// Small postcode areas are combined so the meeting deck cannot single out a member.
+type serviceLocationStats struct {
+	Known   int                   `json:"known"`
+	Unknown int                   `json:"unknown"`
+	Areas   []serviceLocationArea `json:"areas"`
+}
+
+type serviceLocationArea struct {
+	Area  string `json:"area"`
+	Count int    `json:"count"`
 }
 
 // publicDashboardStats mirrors the consent-filtered counters displayed on the homepage.
@@ -162,9 +183,12 @@ func AdminStats(w http.ResponseWriter, r *http.Request) {
 			SOHReadings:         published.SOHReadings,
 			ServiceEventsLogged: published.ServiceEventsLogged,
 		},
-		MemberStats:       computeMemberStats(joins, accounts, vehicles),
-		VehicleStats:      computeVehicleStats(vehicles),
-		ServiceEventStats: computeServiceEventStats(services),
+		MemberStats:              computeMemberStats(joins, accounts, vehicles),
+		VehicleStats:             computeVehicleStats(vehicles),
+		ServiceEventStats:        computeServiceEventStats(services),
+		ServiceLocations:         computeConsentServiceLocations(joins, vehicles, services),
+		ConsentedJoinTimeline:    computeConsentedJoinTimeline(joins),
+		ConsentedMemberCountries: computeConsentedMemberCountries(joins),
 	}
 
 	w.Header().Set("Cache-Control", "private, no-store")
@@ -430,6 +454,124 @@ func computeServiceEventStats(services []serviceEventRecord) serviceEventStats {
 		EventTypeBreakup:   eventTypeBreakup,
 		CategoryAggregates: categoryAggregates,
 	}
+}
+
+var servicePostcodeAreaRE = regexp.MustCompile(`^[A-Z]{1,2}`)
+var servicePostcodeValidRE = regexp.MustCompile(`^[A-Z]{1,2}[0-9][A-Z0-9]?\s*[0-9][A-Z]{2}$`)
+
+func computeConsentServiceLocations(joins []joinRecord, vehicles []vehicleRecord, services []serviceEventRecord) serviceLocationStats {
+	consented := consentedJoinHashes(joins)
+	eligibleVehicles := map[string]bool{}
+	for _, vehicle := range vehicles {
+		if vehicle.Review.Status != "excluded" && !recordDeleted(vehicle.Review) && consented[vehicle.UserEmailHash] {
+			eligibleVehicles[vehicle.ID] = true
+		}
+	}
+	counts := map[string]int{}
+	result := serviceLocationStats{Areas: []serviceLocationArea{}}
+	for _, event := range services {
+		if !eligibleVehicles[event.VehicleID] || event.Review.Status == "excluded" || recordDeleted(event.Review) {
+			continue
+		}
+		postcode := strings.ToUpper(strings.TrimSpace(event.ServiceProviderPostcode))
+		area := ""
+		if servicePostcodeValidRE.MatchString(postcode) {
+			area = servicePostcodeAreaRE.FindString(postcode)
+		}
+		if area == "" {
+			result.Unknown++
+			continue
+		}
+		result.Known++
+		counts[area]++
+	}
+	other := 0
+	for area, count := range counts {
+		if count < 5 {
+			other += count
+		} else {
+			result.Areas = append(result.Areas, serviceLocationArea{Area: area, Count: count})
+		}
+	}
+	if other > 0 {
+		result.Areas = append(result.Areas, serviceLocationArea{Area: "Other areas", Count: other})
+	}
+	sort.Slice(result.Areas, func(i, j int) bool {
+		if result.Areas[i].Count == result.Areas[j].Count {
+			return result.Areas[i].Area < result.Areas[j].Area
+		}
+		return result.Areas[i].Count > result.Areas[j].Count
+	})
+	return result
+}
+
+func computeConsentedJoinTimeline(joins []joinRecord) []timelineBucket {
+	firstByEmail := map[string]time.Time{}
+	for _, join := range joins {
+		if !join.Consents.Contact || join.CreatedAt.IsZero() {
+			continue
+		}
+		email := canonicalJoinEmail(join.Contact.Email)
+		if email == "" {
+			continue
+		}
+		if first, found := firstByEmail[email]; !found || join.CreatedAt.Before(first) {
+			firstByEmail[email] = join.CreatedAt
+		}
+	}
+	counts := map[string]int{}
+	for _, joined := range firstByEmail {
+		counts[joined.UTC().Format("2006-01-02")]++
+	}
+	result := make([]timelineBucket, 0, len(counts))
+	for day, count := range counts {
+		result = append(result, timelineBucket{Label: day, Count: count})
+	}
+	sort.Slice(result, func(i, j int) bool { return result[i].Label < result[j].Label })
+	return result
+}
+
+func computeConsentedMemberCountries(joins []joinRecord) []demographicBucket {
+	firstByEmail := map[string]joinRecord{}
+	for _, join := range joins {
+		if !join.Consents.AnonymisedAnalysis {
+			continue
+		}
+		email := canonicalJoinEmail(join.Contact.Email)
+		if email == "" {
+			continue
+		}
+		if previous, found := firstByEmail[email]; !found || joinRecordPrecedes(join, previous) {
+			firstByEmail[email] = join
+		}
+	}
+	counts := map[string]int{}
+	for _, join := range firstByEmail {
+		country := strings.TrimSpace(join.Contact.Country)
+		if country == "" {
+			country = "Unknown"
+		}
+		counts[country]++
+	}
+	result := []demographicBucket{}
+	other := 0
+	for country, count := range counts {
+		if count < 5 {
+			other += count
+		} else {
+			result = append(result, demographicBucket{Label: country, Count: count})
+		}
+	}
+	if other > 0 {
+		result = append(result, demographicBucket{Label: "Other / unknown", Count: other})
+	}
+	sort.Slice(result, func(i, j int) bool {
+		if result[i].Count == result[j].Count {
+			return result[i].Label < result[j].Label
+		}
+		return result[i].Count > result[j].Count
+	})
+	return result
 }
 
 // computeCategoryAggregates computes min/avg/max for each category.

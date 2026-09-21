@@ -130,6 +130,12 @@
   {% if surveys %}
   <script src="/assets/js/surveys.js" defer></script>
   {% endif %}
+  {% if surveyInsights %}
+  <script src="/assets/js/vendor/pptxgen.bundle.js" defer></script>
+  <script src="/assets/js/vendor/jszip.min.js" defer></script>
+  <script src="/assets/js/survey-deck.js" defer></script>
+  <script src="/assets/js/survey-insights.js" defer></script>
+  {% endif %}
   {% if adminDashboard %}
   <script src="/assets/js/admin-campaign-summary.js" defer></script>
   <script src="/assets/js/admin-stats.js" defer></script>

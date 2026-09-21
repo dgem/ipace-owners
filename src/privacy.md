@@ -66,6 +66,13 @@ published on the evidence dashboard or used in reports and constructive engageme
 consumer bodies, or the media. We do not publish your name, email address, registration,
 retained VIN characters, free-text notes, or documents without specific permission.
 
+For the September member survey, administrators may use Google Cloud's Vertex AI service to
+group optional comments by topic and sentiment alongside the outcomes each member selected.
+Common contact and vehicle identifiers are removed before comments are sent for analysis.
+An administrator reviews the resulting findings. Anonymous quotations are included in a
+private meeting deck only where we have specific permission and have checked the wording for
+identifying details. AI classifications do not determine any member's rights or treatment.
+
 We do not use your information for solely automated decisions or profiling that produces
 legal or similarly significant effects.
 

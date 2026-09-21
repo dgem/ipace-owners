@@ -2107,6 +2107,50 @@ textarea {
   color: var(--color-primary);
 }
 
+.survey-insights [role="status"] {
+  min-height: 1.5em;
+  color: var(--color-text-muted);
+}
+
+.survey-insights__quotes {
+  display: grid;
+  gap: var(--space-3);
+  max-height: 24rem;
+  overflow: auto;
+}
+
+.survey-insights__quote,
+.survey-insights__confirmation {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  line-height: 1.5;
+}
+
+.survey-insights__quote {
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.survey-insights__quote input,
+.survey-insights__confirmation input {
+  flex: none;
+  margin-top: 0.3em;
+}
+
+.survey-insights__action {
+  display: block;
+  margin-bottom: var(--space-4);
+}
+
+.survey-insights__action textarea {
+  display: block;
+  width: 100%;
+  margin-top: var(--space-2);
+}
+
 .admin-dashboard-stack {
   display: flex;
   flex-direction: column;

@@ -1,5 +1,21 @@
 # Public Content and Positioning Prompt
 
+For the private 24 September JLR meeting deck, explain that the independent group formed
+following a call to action in the UK I-PACE Forum and show its growth through dated,
+consent-filtered aggregate membership and vehicle statistics. The meeting narrative should
+lead from owner evidence to specific questions or actions for JLR. Theme the PowerPoint in
+the site's navy, teal and white design, with the existing RHD UK-road hero image, clear
+callouts, and separate editorial good/bad/ugly slides carrying up to three reviewed quotes
+each. Show the actual member survey options and a conspicuously fictional completed example.
+Treat full HV replacement, fair buy-back and neither as the three primary routes, with fair
+compensation and additional concerns as accompanying requests. Show the positive/mixed/negative
+comment counts behind each sentiment bar and a frequency-scaled display of fixed themes;
+explain that option-level comments were assessed in the context of all selected and preferred
+choices. Address the UK Director for Client Care and position the findings as an opportunity
+for JLR to resolve concerns for a growing group of owners, including H441-era experiences,
+without claiming recall causality or fleet-wide prevalence. Describe model-year and service-provider location
+figures as group records, not demographics of survey respondents.
+
 Create or refine the public content pages for the I-PACE Owners' Advocacy Group.
 
 The Updates collection must include both `src/updates/*.md` and `src/updates/*.njk`, sorted

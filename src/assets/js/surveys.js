@@ -522,7 +522,9 @@
       root.innerHTML =
         '<article class="dashboard-panel"><div class="dashboard-panel__header"><div><p class="dashboard-panel__eyebrow">Admin-only analysis</p><h2 class="dashboard-panel__title">' +
         esc(analysis.survey.title) +
-        '</h2><p class="form-hint">Masked respondent emails and free-text are visible only to administrators. The CSV contains no full emails, names, or Firebase IDs.</p></div><button class="btn btn--primary" type="button" data-survey-download>Download CSV</button></div><div class="survey-results"><div class="survey-results__header"><h3>Aggregate results</h3><span>' +
+        '</h2><p class="form-hint">Masked respondent emails and free-text are visible only to administrators. The CSV contains no full emails, names, or Firebase IDs.</p></div><div class="cluster"><a class="btn btn--secondary" href="/admin/survey-insights/?id=' +
+        encodeURIComponent(analysis.survey.id) +
+        '">AI insights &amp; PPT</a><button class="btn btn--primary" type="button" data-survey-download>Download CSV</button></div></div><div class="survey-results"><div class="survey-results__header"><h3>Aggregate results</h3><span>' +
         analysis.total +
         " response" +
         (analysis.total === 1 ? "" : "s") +

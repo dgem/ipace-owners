@@ -197,6 +197,8 @@ src/
       `admin-stats.js`     # Claim-gated member, vehicle, SoH and service aggregate dashboard
       email-campaigns.js  # Admin re-engagement preview and bounded send controls
       `surveys.js`        # Admin survey CRUD and member survey responses/results
+      `survey-insights.js`  # Admin AI comment analysis and human review
+      `survey-deck.js`      # Browser PowerPoint meeting deck generator
       public-stats.js    # Public aggregate-statistics rendering
       site-mode.js       # Launch/full presentation selection
 public/            # Favicons, images and other root-level static assets
@@ -655,6 +657,38 @@ The separate admin analysis page can review those free-text answers with consist
 respondent emails and download a CSV restricted to that masked identifier, UTC submission time,
 selected option IDs, an optional preferred option ID, and text answers in `option-id: text` form; it never includes full emails, names, Firebase UIDs, or
 member/vehicle data.
+The linked `/admin/survey-insights/` workflow calls `POST /api/admin/survey-insights` in
+bounded, document-ID-ordered pages of 40 responses and `POST /api/admin/survey-insights-summary`
+after all pages complete. Both require an admin ID token. The first endpoint sends only
+comments with common identifiers redacted, the associated selected/preferred option names,
+and ephemeral numeric indices to Vertex AI Gemini in `europe-west2` (model and location are
+configurable through `SURVEY_AI_MODEL` and `SURVEY_AI_LOCATION`). It verifies one allowed
+classification per comment, then returns optional themes, sentiment for the commented option,
+and source-exact anonymous quote candidates. The second endpoint summarises checked theme and
+sentiment counts and proposes three discussion actions. The administrator reviews and edits
+the overview/actions, selects up to three permitted quotes in each good/bad/ugly category,
+and confirms quote permission and de-identification before a PowerPoint file is generated in
+the browser. No comments, prompts, model replies or deck are persisted or logged by this flow.
+The deck combines exact stored survey option totals with consent-filtered public vehicle
+model-year statistics and admin-only, consent-filtered member-country and service-provider
+postcode-area counts; groups with fewer than five records are combined. Group demographics are labelled separately
+from survey respondent characteristics. AI sentiment describes only optional comment entries,
+not votes or the I-PACE fleet. The editable PowerPoint uses the site palette and the existing
+UK-road hero image. It separates full HV replacement, fair buy-back and neither from the
+additional compensation/concerns choices, shows the actual survey wording and a labelled
+fictional completed example, explains sentiment denominators, visualises theme frequency,
+and places up to three permission-checked quotes on each of three editorial quote slides.
+It frames the meeting with JLR's UK Director for Client Care as an opportunity for reliable
+resolution of battery, H441-era recall and related service concerns without claiming recall
+causality or fleet-wide prevalence.
+The growth slide uses the first dated, contact-consenting Join record per canonical member
+email to show cumulative milestones, with the latest published member count alongside it.
+The browser generator uses the self-hosted `pptxgenjs` bundle copied by Eleventy from the
+locked npm dependency. A local JSZip pass removes orphan slide-master declarations emitted
+by that library before download; package integrity and slide bounds are checked with a
+synthetic deck. No third-party script host receives report data. Since comments may
+still contain names that automatic redaction misses, an administrator must inspect every
+selected quote before downloading. The deck is for the private 24 September meeting.
 For a multiple-choice survey, administrators choose which options are eligible to be marked as
 preferred. A member may optionally mark exactly one selected eligible option as their preferred
 outcome; aggregate preference counts are included with the normal option counts.

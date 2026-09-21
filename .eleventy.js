@@ -4,6 +4,8 @@ const dateFilter = require('nunjucks-date-filter');
 module.exports = function (eleventyConfig) {
   // Passthrough copies
   eleventyConfig.addPassthroughCopy("src/assets");
+  eleventyConfig.addPassthroughCopy({ "node_modules/pptxgenjs/dist/pptxgen.bundle.js": "assets/js/vendor/pptxgen.bundle.js" });
+  eleventyConfig.addPassthroughCopy({ "node_modules/jszip/dist/jszip.min.js": "assets/js/vendor/jszip.min.js" });
   eleventyConfig.addPassthroughCopy({ public: "." });
   eleventyConfig.addPassthroughCopy("robots.txt");
   eleventyConfig.addPassthroughCopy("favicon.ico");

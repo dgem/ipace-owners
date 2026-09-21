@@ -1,8 +1,5 @@
 # Clean-room Reconstruction Contract
 
-The `/updates/` listing must collect both `src/updates/*.md` and `src/updates/*.njk` and sort
-them newest first. A rendered-output test must verify that the Nunjucks September survey
-reminder appears alongside existing Markdown posts and links to a generated page.
 Preserve Hosting redirects `/auth/action` and `/auth/action/` → `/__/auth/action` (302,
 same origin, query preserved) and no-store/no-referrer/noindex headers for `/auth/**`.
 Brand application-generated Resend sign-in and registration-reminder links through the shared
@@ -15,6 +12,28 @@ using dummy codes without following the redirect. Google-sent fallback emails re
 The `/updates/` listing must collect both `src/updates/*.md` and `src/updates/*.njk` and sort
 them newest first. A rendered-output test must verify that the Nunjucks September survey
 reminder appears alongside existing Markdown posts and links to a generated page.
+
+The admin `/admin/survey-insights/` workflow uses `POST /api/admin/survey-insights` to
+classify redacted optional comments in pages of 40, retaining the selected/preferred option
+context, and `POST /api/admin/survey-insights-summary` to draft a short findings narrative and
+three JLR discussion actions. Both routes require the admin claim, never log or persist
+responses, and validate AI classifications before counting themes or comment sentiment.
+The administrator edits the summary/actions and reviews permission and identifying details
+for every selected anonymous good/bad/ugly quote before browser-side PowerPoint export,
+with up to three quotes on each of three quote slides.
+Keep exact survey choice totals separate from AI sentiment denominators. The private meeting
+deck covers the UK I-PACE Forum call to action, group growth, survey results, battery and
+air-conditioning themes where supported, reviewed quotes, consent-filtered member-country,
+model-year and service-provider postcode-area aggregates, specific JLR discussion actions and limitations.
+Small service postcode areas are grouped; group demographics must not be represented as
+survey respondent demographics. Cumulative growth milestones use each member's earliest
+dated, contact-consenting Join record. Self-host the locked `pptxgenjs` and JSZip browser
+bundles, repairing orphan slide-master declarations before the PowerPoint download. The deck
+uses the existing UK-road RHD hero, site colours and callouts. It displays the live survey's
+member-facing option names/descriptions, a labelled fictional completed response, the three
+primary outcomes separately from two accompanying requests, sentiment counts/denominators
+and an explained fixed-theme frequency visual. Address the UK Director for Client Care and
+frame H441-era concerns as a chance for constructive JLR action without asserting causality.
 
 Preserve the 19 September 2026 update at `/updates/survey-final-straight/`, its dated fallback
 data in `src/_data/surveyReminder.json`, and browser module `survey-participation.js`. Preserve

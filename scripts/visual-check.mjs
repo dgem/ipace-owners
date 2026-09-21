@@ -878,7 +878,57 @@ async function checkSurveyReminder() {
   }
 }
 
+async function checkSurveyInsights(viewport, suffix) {
+  const page = await browser.newPage({ viewport });
+  await page.addInitScript(() => {
+    window.firebase = { auth: () => ({ currentUser: { getIdToken: () => Promise.resolve('visual-token') } }) };
+  });
+  await page.route('**/api/admin/survey-insights', (route) => route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({
+      survey: { id: 'visual-survey', title: 'Owner priorities', question: 'Which outcomes would you support?', options: [
+        { id: 'repair', name: 'Full HV Replacement', description: 'A reliable replacement without repeat visits.' },
+        { id: 'buyback', name: 'A Fair Buy Back', description: 'A fair price despite the affected market value.' },
+        { id: 'neither', name: 'None of the above', description: 'Neither primary route meets my needs.' },
+        { id: 'compensation', name: 'Fair Compensation', description: 'For disruption and repeat visits.' },
+        { id: 'concerns', name: 'Additional Concerns', description: 'Other faults also need rectifying.' }
+      ] },
+      counts: { repair: 8, buyback: 5, neither: 1, compensation: 3, concerns: 2 }, preferredCounts: { repair: 6, buyback: 2 },
+      totalResponses: 10, offset: 0, nextOffset: 10, hasMore: false,
+      items: [{ optionId: 'repair', sentiment: 'negative', themes: ['battery', 'service'] }, { optionId: 'warranty', sentiment: 'mixed', themes: ['warranty'] }],
+      quotes: ['good', 'bad', 'ugly'].flatMap((kind) => [1, 2, 3].map((index) => ({ kind, text: `${kind} comment ${index}: The owner described how the car and service experience affected them.` }))),
+      finding: 'Battery repair delays affected several comments.'
+    })
+  }));
+  await page.route('**/api/admin/survey-insights-summary', (route) => route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({ overview: 'Owners raised battery repair delays and warranty uncertainty.', actions: ['Set out a lasting repair plan', 'Publish repair-time targets', 'Clarify warranty terms'] })
+  }));
+  await page.route('**/api/admin/stats', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ serviceLocations: { known: 5, unknown: 1, areas: [{ area: 'SW', count: 5 }] } }) }));
+  await page.route('**/api/public-stats', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ joinedOwners: 1477, vehiclesRegistered: 721, modelYearDistribution: [{ label: '2020', count: 100 }] }) }));
+  await page.goto(baseURL + '/admin/survey-insights/?id=visual-survey', { waitUntil: 'networkidle' });
+  await revealAdminState(page);
+  await page.screenshot({ path: path.join(outputDir, 'survey-insights-idle-' + suffix + '.png'), fullPage: true });
+  await page.locator('[data-insights-run]').click();
+  await page.waitForFunction(() => document.querySelector('[data-insights-report]') && !document.querySelector('[data-insights-report]').hidden);
+  assert.match(await page.locator('[data-insights-status]').textContent(), /Analysis complete/);
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
+  await page.screenshot({ path: path.join(outputDir, 'survey-insights-review-' + suffix + '.png'), fullPage: true });
+  if (suffix === 'desktop') {
+    await page.locator('[data-quote-index="0"]').check();
+    await page.locator('[data-insights-quote-review]').check();
+    const download = page.waitForEvent('download');
+    await page.locator('[data-insights-download]').click();
+    const file = await download;
+    assert.equal(file.suggestedFilename(), 'ipace-owner-survey-jlr-24-september-2026.pptx');
+    assert.ok(fs.statSync(await file.path()).size > 10000);
+  }
+  await page.close();
+}
+
 try {
+  await checkSurveyInsights({ width: 1440, height: 1000 }, 'desktop');
+  await checkSurveyInsights({ width: 390, height: 844 }, 'mobile');
   await checkSurveyReminder();
   await checkPublicContentPage('/updates/', 'Updates', { width: 1440, height: 1000 }, 'updates-list-desktop.png');
   await checkPublicContentPage('/updates/', 'Updates', { width: 390, height: 844 }, 'updates-list-mobile.png');
