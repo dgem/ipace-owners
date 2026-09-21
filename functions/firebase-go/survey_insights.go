@@ -16,7 +16,9 @@ import (
 	"strings"
 )
 
-const surveyInsightPageSize = 40
+// Keep model calls well below Hosting's request deadline even when a response
+// contains text for all five choices. Failed pages are safe to retry by offset.
+const surveyInsightPageSize = 12
 const surveyInsightModel = "gemini-2.5-flash"
 const surveyInsightRegion = "europe-west2"
 

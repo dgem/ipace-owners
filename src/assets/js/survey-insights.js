@@ -8,6 +8,7 @@
   var output = root.querySelector("[data-insights-report]");
   var surveyID = new URLSearchParams(window.location.search).get("id");
   var active = false;
+  var pending = null;
 
   function escapeHTML(value) {
     var element = document.createElement("span");
@@ -24,10 +25,24 @@
         headers: window.ipaceAuthHeaders ? window.ipaceAuthHeaders({ Authorization: "Bearer " + token, "Content-Type": "application/json" }) : { Authorization: "Bearer " + token, "Content-Type": "application/json" },
         body: body ? JSON.stringify(body) : undefined
       }).then(function (response) {
-        return response.json().then(function (data) {
-          if (!response.ok) throw new Error(data.error || "Request failed.");
+        return response.json().catch(function () { return {}; }).then(function (data) {
+          if (!response.ok) {
+            var error = new Error(data.error || "The analysis request failed (HTTP " + response.status + ").");
+            error.status = response.status;
+            throw error;
+          }
           return data;
         });
+      });
+    });
+  }
+
+  function retryRequest(path, method, body, attempt) {
+    return request(path, method, body).catch(function (error) {
+      if (attempt >= 2 || [429, 502, 503, 504].indexOf(error.status) === -1 && !(error instanceof TypeError)) throw error;
+      status.textContent = "Temporary server error. Retrying this page (" + (attempt + 2) + "/3)…";
+      return new Promise(function (resolve) { window.setTimeout(resolve, (attempt + 1) * 1500); }).then(function () {
+        return retryRequest(path, method, body, attempt + 1);
       });
     });
   }
@@ -98,11 +113,12 @@
     active = true;
     runButton.disabled = true;
     output.hidden = true;
-    var report = { id: surveyID, items: [], findings: [], quotes: [] };
+    if (!pending) pending = { report: { id: surveyID, items: [], findings: [], quotes: [] }, offset: 0 };
+    var report = pending.report;
     function page(offset) {
-      status.textContent = "Analysing responses " + (offset + 1) + " onward…";
-      return request("/api/admin/survey-insights", "POST", { id: surveyID, offset: offset }).then(function (batch) {
-        if (offset && batch.totalResponses !== report.totalResponses) throw new Error("Survey responses changed during analysis. Restart for a consistent snapshot.");
+      status.textContent = "Analysing responses " + (offset + 1) + (report.totalResponses == null ? "" : " of " + report.totalResponses) + " onward…";
+      return retryRequest("/api/admin/survey-insights", "POST", { id: surveyID, offset: offset }, 0).then(function (batch) {
+        if (offset && batch.totalResponses !== report.totalResponses) { pending = null; throw new Error("Survey responses changed during analysis. Restart for a consistent snapshot."); }
         if (!offset) {
           report.survey = batch.survey;
           report.counts = batch.counts;
@@ -112,6 +128,7 @@
         report.items = report.items.concat(batch.items);
         report.quotes = report.quotes.concat(batch.quotes);
         if (batch.finding) report.findings.push(batch.finding);
+        pending.offset = batch.nextOffset;
         if (batch.hasMore) {
           if (batch.nextOffset <= offset) throw new Error("Analysis did not advance. Restart.");
           return page(batch.nextOffset);
@@ -119,17 +136,23 @@
         return report;
       });
     }
-    page(0).then(function () {
+    (report.totalResponses != null && pending.offset >= report.totalResponses ? Promise.resolve(report) : page(pending.offset)).then(function () {
+      if (report.overview && report.actions) return { overview: report.overview, actions: report.actions };
       status.textContent = "Summarising " + report.items.length + " optional comments…";
-      return request("/api/admin/survey-insights-summary", "POST", { id: surveyID, expectedResponses: report.totalResponses, items: report.items, findings: report.findings, quotes: [] });
+      return retryRequest("/api/admin/survey-insights-summary", "POST", { id: surveyID, expectedResponses: report.totalResponses, items: report.items, findings: report.findings, quotes: [] }, 0);
     }).then(function (summary) {
       report.overview = summary.overview;
       report.actions = summary.actions;
-      return Promise.all([request("/api/admin/stats", "GET"), new Promise(function(resolve) { setTimeout(resolve, 0); }), fetch("/api/public-stats").then(function (response) { if (!response.ok) throw new Error("Could not load published statistics."); return response.json(); })]);
+      return Promise.all([retryRequest("/api/admin/stats", "GET", null, 0), fetch("/api/public-stats").then(function (response) { if (!response.ok) throw new Error("Could not load published statistics."); return response.json(); })]);
     }).then(function (stats) {
       render(report, stats[0], stats[1]);
+      pending = null;
+      runButton.textContent = "Analyse survey comments";
       status.textContent = "Analysis complete: " + report.totalResponses + " survey responses; " + report.items.length + " optional comments assessed. Review the draft below.";
-    }).catch(function (error) { status.textContent = error.message; }).finally(function () { active = false; runButton.disabled = false; });
+    }).catch(function (error) {
+      runButton.textContent = pending ? "Resume analysis" : "Analyse survey comments";
+      status.textContent = error.message + (pending ? " Progress is kept in this tab; choose Resume analysis to retry the current page." : "");
+    }).finally(function () { active = false; runButton.disabled = false; });
   }
 
   if (!surveyID) {
