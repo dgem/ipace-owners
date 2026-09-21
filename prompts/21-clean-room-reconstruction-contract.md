@@ -14,10 +14,13 @@ them newest first. A rendered-output test must verify that the Nunjucks Septembe
 reminder appears alongside existing Markdown posts and links to a generated page.
 
 The admin `/admin/survey-insights/` workflow uses `POST /api/admin/survey-insights` to
-classify redacted optional comments in pages of 40, retaining the selected/preferred option
+classify redacted optional comments in pages of 12, retaining the selected/preferred option
 context, and `POST /api/admin/survey-insights-summary` to draft a short findings narrative and
 three JLR discussion actions. Both routes require the admin claim, never log or persist
 responses, and validate AI classifications before counting themes or comment sentiment.
+The browser retries transient gateway/rate errors on the same page, retains completed pages
+in memory, and offers Resume analysis after failed retries. This limits model request size
+without writing private comments to browser storage.
 The administrator edits the summary/actions and reviews permission and identifying details
 for every selected anonymous good/bad/ugly quote before browser-side PowerPoint export,
 with up to three quotes on each of three quote slides.

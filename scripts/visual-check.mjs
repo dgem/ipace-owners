@@ -880,10 +880,16 @@ async function checkSurveyReminder() {
 
 async function checkSurveyInsights(viewport, suffix) {
   const page = await browser.newPage({ viewport });
+  let insightRequests = 0;
   await page.addInitScript(() => {
     window.firebase = { auth: () => ({ currentUser: { getIdToken: () => Promise.resolve('visual-token') } }) };
   });
-  await page.route('**/api/admin/survey-insights', (route) => route.fulfill({
+  await page.route('**/api/admin/survey-insights', (route) => {
+    insightRequests += 1;
+    if (insightRequests <= (suffix === 'mobile' ? 3 : 1)) {
+      return route.fulfill({ status: 504, contentType: 'text/html', body: '<html>Gateway timeout</html>' });
+    }
+    return route.fulfill({
     contentType: 'application/json',
     body: JSON.stringify({
       survey: { id: 'visual-survey', title: 'Owner priorities', question: 'Which outcomes would you support?', options: [
@@ -899,7 +905,8 @@ async function checkSurveyInsights(viewport, suffix) {
       quotes: ['good', 'bad', 'ugly'].flatMap((kind) => [1, 2, 3].map((index) => ({ kind, text: `${kind} comment ${index}: The owner described how the car and service experience affected them.` }))),
       finding: 'Battery repair delays affected several comments.'
     })
-  }));
+    });
+  });
   await page.route('**/api/admin/survey-insights-summary', (route) => route.fulfill({
     contentType: 'application/json',
     body: JSON.stringify({ overview: 'Owners raised battery repair delays and warranty uncertainty.', actions: ['Set out a lasting repair plan', 'Publish repair-time targets', 'Clarify warranty terms'] })
@@ -910,7 +917,13 @@ async function checkSurveyInsights(viewport, suffix) {
   await revealAdminState(page);
   await page.screenshot({ path: path.join(outputDir, 'survey-insights-idle-' + suffix + '.png'), fullPage: true });
   await page.locator('[data-insights-run]').click();
+  if (suffix === 'mobile') {
+    await page.getByRole('button', { name: 'Resume analysis' }).waitFor();
+    assert.match(await page.locator('[data-insights-status]').textContent(), /Progress is kept in this tab/);
+    await page.getByRole('button', { name: 'Resume analysis' }).click();
+  }
   await page.waitForFunction(() => document.querySelector('[data-insights-report]') && !document.querySelector('[data-insights-report]').hidden);
+  assert.equal(insightRequests, suffix === 'mobile' ? 4 : 2);
   assert.match(await page.locator('[data-insights-status]').textContent(), /Analysis complete/);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, 'survey-insights-review-' + suffix + '.png'), fullPage: true });
