@@ -71,21 +71,49 @@
     return rows;
   }
 
+  function makeSignalCounts(items) {
+    var rows = {};
+    items.forEach(function (item) {
+      (item.signals || []).forEach(function (signal) {
+        if (!rows[item.optionId]) rows[item.optionId] = {};
+        if (!rows[item.optionId][signal.name]) rows[item.optionId][signal.name] = { positive: 0, mixed: 0, negative: 0 };
+        if (rows[item.optionId][signal.name][signal.sentiment] != null) rows[item.optionId][signal.name][signal.sentiment] += 1;
+      });
+    });
+    return rows;
+  }
+
   function render(report, adminStats, publicStats) {
     var themeCounts = makeThemeCounts(report.items);
     var sentiment = makeSentiment(report.items);
+    var signalCounts = makeSignalCounts(report.items);
     var optionRows = (report.survey.options || []).map(function (option) {
       var feelings = sentiment[option.id] || { positive: 0, mixed: 0, negative: 0, unclassified: 0 };
       return "<tr><th scope=\"row\">" + escapeHTML(optionName(report.survey, option.id)) + "</th><td>" + (report.counts[option.id] || 0) + "</td><td>" + feelings.positive + "</td><td>" + feelings.mixed + "</td><td>" + feelings.negative + "</td><td>" + feelings.unclassified + "</td></tr>";
     }).join("");
+    var signalRows = (report.survey.options || []).map(function (option) {
+      return Object.keys(signalCounts[option.id] || {}).map(function (name) {
+        var row = signalCounts[option.id][name];
+        return '<tr><th scope="row">' + escapeHTML(optionName(report.survey, option.id)) + '</th><td>' + escapeHTML(name.replace(/-/g, ' ')) + '</td><td>' + row.positive + '</td><td>' + row.mixed + '</td><td>' + row.negative + '</td></tr>';
+      }).join('');
+    }).join('');
     var proposed = { good: 0, bad: 0, ugly: 0 };
-    var quoteMarkup = report.quotes.map(function (quote, index) {
+    var optionOrder = (report.survey.options || []).map(function (option) { return option.id; });
+    var sentimentOrder = { positive: 0, mixed: 1, negative: 2 };
+    var quoteGroup = '';
+    var quoteMarkup = report.quotes.map(function (quote, index) { return { quote: quote, index: index }; }).sort(function (left, right) {
+      return optionOrder.indexOf(left.quote.optionId) - optionOrder.indexOf(right.quote.optionId) ||
+        (sentimentOrder[left.quote.sentiment] == null ? 3 : sentimentOrder[left.quote.sentiment]) - (sentimentOrder[right.quote.sentiment] == null ? 3 : sentimentOrder[right.quote.sentiment]);
+    }).map(function (entry) {
+      var quote = entry.quote;
+      var heading = quote.optionId !== quoteGroup ? '<h5 class="survey-insights__quote-group">' + escapeHTML(optionName(report.survey, quote.optionId)) + '</h5>' : '';
+      quoteGroup = quote.optionId;
       var checked = proposed[quote.kind] < 3 ? ' checked' : '';
       proposed[quote.kind] += 1;
-      return '<label class="survey-insights__quote"><input type="checkbox" data-quote-index="' + index + '"' + checked + '><span><strong>' + escapeHTML(quote.kind) + '</strong> — “' + escapeHTML(quote.text) + '”</span></label>';
+      return heading + '<label class="survey-insights__quote"><input type="checkbox" data-quote-index="' + entry.index + '"' + checked + '><span><strong>' + escapeHTML(quote.sentiment || 'unlabelled') + ' · ' + escapeHTML(quote.kind) + '</strong> — “' + escapeHTML(quote.text) + '”</span></label>';
     }).join("");
     output.hidden = false;
-    output.innerHTML = '<section class="stack"><h3>Draft findings</h3><p class="form-hint">Review and edit the AI wording. The deck uses exact stored survey counts.</p><label for="survey-insights-overview">Summary</label><textarea id="survey-insights-overview" data-insights-overview rows="4" maxlength="650"></textarea><h4>Themes in optional comments</h4><div class="table-wrapper"><table class="data-table"><thead><tr><th>Theme</th><th>Comment entries</th></tr></thead><tbody>' + themeCounts.map(function (row) { return '<tr><td>' + escapeHTML(row.name) + '</td><td>' + row.count + '</td></tr>'; }).join("") + '</tbody></table></div><h4>Survey choices and comment sentiment</h4><p class="form-hint">Choice counts are respondents. Sentiment columns count only classified comments entered for that option; multiple comments may come from one respondent. Unclassified comments are excluded from sentiment and theme totals. Scroll the table sideways on a small screen.</p><div class="table-wrapper"><table class="data-table"><thead><tr><th>Outcome</th><th>Selected</th><th>Positive</th><th>Mixed</th><th>Negative</th><th>Unclassified</th></tr></thead><tbody>' + optionRows + '</tbody></table></div><h4>Questions and actions for JLR</h4><div data-insights-actions></div><h4>Choose anonymous quotes</h4><p class="form-hint">Choose three per good, bad and ugly category where suitable comments are available. Check that each quote has permission and reveals no person, registration or other identifying detail.</p><div class="survey-insights__quotes">' + (quoteMarkup || '<p>No suitable quote candidates were found.</p>') + '</div><label class="survey-insights__confirmation"><input type="checkbox" data-insights-quote-review> I have checked permission and reviewed every selected quote for identifying details.</label><div class="cluster"><button class="btn btn--primary" type="button" data-insights-download>Download PowerPoint</button></div><p class="form-hint">Meeting use only. AI labels and selected quotes need human review; self-selected survey responses are not a representative sample of all I-PACE owners.</p></section>';
+    output.innerHTML = '<section class="stack"><h3>Draft findings</h3><p class="form-hint">Review and edit the AI wording. The deck uses exact stored survey counts.</p><label for="survey-insights-overview">Summary</label><textarea id="survey-insights-overview" data-insights-overview rows="4" maxlength="650"></textarea><h4>Themes in optional comments</h4><div class="table-wrapper"><table class="data-table"><thead><tr><th>Theme</th><th>Comment entries</th></tr></thead><tbody>' + themeCounts.map(function (row) { return '<tr><td>' + escapeHTML(row.name) + '</td><td>' + row.count + '</td></tr>'; }).join("") + '</tbody></table></div><h4>Survey choices and comment sentiment</h4><p class="form-hint">Choice counts are respondents. Sentiment columns count only classified comments entered for that option; multiple comments may come from one respondent. Unclassified comments are excluded from sentiment and theme totals. Scroll the table sideways on a small screen.</p><div class="table-wrapper"><table class="data-table"><thead><tr><th>Outcome</th><th>Selected</th><th>Positive</th><th>Mixed</th><th>Negative</th><th>Unclassified</th></tr></thead><tbody>' + optionRows + '</tbody></table></div><h4>Key phrases by option</h4><p class="form-hint">Controlled phrase labels are counted by the experience expressed in each classified comment. A comment can carry up to three labels.</p><div class="table-wrapper"><table class="data-table"><thead><tr><th>Outcome</th><th>Phrase</th><th>Positive</th><th>Mixed</th><th>Negative</th></tr></thead><tbody>' + (signalRows || '<tr><td colspan="5">No supported phrases identified.</td></tr>') + '</tbody></table></div><h4>Questions and actions for JLR</h4><div data-insights-actions></div><h4>Choose anonymous quotes</h4><p class="form-hint">Quotes are grouped by option and ordered by sentiment. Choose up to three per good, bad and ugly category. Check permission and remove identifying details.</p><div class="survey-insights__quotes">' + (quoteMarkup || '<p>No suitable quote candidates were found.</p>') + '</div><label class="survey-insights__confirmation"><input type="checkbox" data-insights-quote-review> I have checked permission and reviewed every selected quote for identifying details.</label><div class="cluster"><button class="btn btn--primary" type="button" data-insights-download>Download PowerPoint</button></div><p class="form-hint">Meeting use only. AI labels and selected quotes need human review; self-selected survey responses are not a representative sample of all I-PACE owners.</p></section>';
     output.querySelector("[data-insights-overview]").value = report.overview;
     var actions = output.querySelector("[data-insights-actions]");
     actions.innerHTML = report.actions.map(function (_, index) {

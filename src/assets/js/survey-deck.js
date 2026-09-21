@@ -10,6 +10,7 @@
   var red = "A83B42";
   var sentimentColors = { positive: teal, mixed: gold, negative: red };
   var themeLabels = { battery: "HV battery", charging: "Charging", "air-conditioning": "Air conditioning", service: "Service visits", parts: "Parts", warranty: "Warranty", safety: "Safety", value: "Market value", other: "Other" };
+  var signalLabels = { "repair-delays": "Repair delays", "repeat-visits": "Repeat visits", "replacement-reliability": "Reliable replacement", "battery-confidence": "Battery confidence", "parts-availability": "Parts availability", "resale-value": "Resale value", "buyback-fairness": "Fair buy-back", "air-conditioning": "Air conditioning", charging: "Charging", warranty: "Warranty clarity", communication: "Communication", "customer-care": "Customer care" };
 
   function label(value, limit) {
     var text = String(value == null ? "" : value).replace(/\s+/g, " ").trim();
@@ -38,11 +39,25 @@
     text(slide, number(value) + (suffix || ""), x + 4.75 + width, y, 1.3, 0.4, { fontSize: 14, bold: true, color: navy, align: "right" });
   }
 
-  function compactChartRow(slide, pptx, caption, value, max, x, y) {
-    text(slide, label(caption, 22), x, y, 2.4, 0.38, { fontSize: 13 });
-    slide.addShape(pptx.ShapeType.rect, { x: x + 2.45, y: y + 0.1, w: 2.15, h: 0.19, line: { color: "D8E0E5", transparency: 100 }, fill: { color: "D8E0E5" } });
-    if (value > 0 && max > 0) slide.addShape(pptx.ShapeType.rect, { x: x + 2.45, y: y + 0.1, w: 2.15 * value / max, h: 0.19, line: { color: teal, transparency: 100 }, fill: { color: teal } });
-    text(slide, number(value), x + 4.7, y, 0.7, 0.38, { fontSize: 13, bold: true, color: navy, align: "right" });
+  function wreathCounter(slide, imageData, value, caption, x, y, size) {
+    slide.addImage({ data: imageData, altText: "Gold racing laurel framing the " + caption.toLowerCase() + " count", x: x, y: y, w: size, h: size });
+    var digits = number(value).length;
+    text(slide, number(value), x + size * 0.19, y + size * 0.35, size * 0.62, size * 0.32, { fontSize: digits > 5 ? 26 : digits > 4 ? 30 : digits > 3 ? 35 : 40, bold: true, color: navy, align: "center" });
+    text(slide, caption, x - 0.76, y + size + 0.02, size + 1.52, 0.42, { fontSize: 17, color: navy, align: "center", bold: true });
+  }
+
+  function signalCounts(items) {
+    var rows = {};
+    (items || []).forEach(function (item) {
+      (item.signals || []).forEach(function (signal) {
+        if (!signalLabels[signal.name] || !sentimentColors[signal.sentiment]) return;
+        var key = item.optionId + "|" + signal.name;
+        if (!rows[key]) rows[key] = { optionId: item.optionId, name: signal.name, positive: 0, mixed: 0, negative: 0, count: 0 };
+        rows[key][signal.sentiment] += 1;
+        rows[key].count += 1;
+      });
+    });
+    return Object.keys(rows).map(function (key) { return rows[key]; });
   }
 
   function optionGroups(survey) {
@@ -124,7 +139,7 @@
       objects: [
         { placeholder: { options: { name: "title", type: "title", x: 0.75, y: 0.42, w: 11.9, h: 0.68, fontFace: "Arial", fontSize: 28, bold: true, color: navy, margin: 0 }, text: "" } },
         { line: { x: 0.75, y: 1.2, w: 11.85, h: 0, line: { color: teal, width: 2 } } },
-        { text: { text: "I-PACE Owners’ Advocacy Group  •  Private JLR meeting", options: { x: 0.75, y: 7.06, w: 8.9, h: 0.2, margin: 0, fontFace: "Arial", fontSize: 9, color: muted } } }
+        { text: { text: "I-PACE Owners’ Advocacy Group  •  Sept JLR Meeting", options: { x: 0.75, y: 7.06, w: 8.9, h: 0.2, margin: 0, fontFace: "Arial", fontSize: 9, color: muted } } }
       ]
     });
     pptx.author = "I-PACE Owners’ Advocacy Group";
@@ -138,11 +153,26 @@
     slide.addShape(pptx.ShapeType.rect, { x: 0, y: 4.3, w: 13.333, h: 3.2, line: { color: navy, transparency: 100 }, fill: { color: navy, transparency: 4 } });
     text(slide, "i-Pace Owners Advocacy Group", 0.75, 4.72, 11.8, 0.69, { color: "FFFFFF", fontSize: 35, bold: true });
     text(slide, "Member survey findings for discussion with JLR", 0.78, 5.48, 11.8, 0.44, { color: "FFFFFF", fontSize: 23 });
-    text(slide, "UK Director for Client Care  •  24 September 2026  •  Private meeting", 0.78, 6.74, 11.8, 0.31, { color: "DCE9E9", fontSize: 14 });
+    text(slide, "UK Director for Client Care  •  24 September 2026  •  Sept JLR Meeting", 0.78, 6.74, 11.8, 0.31, { color: "DCE9E9", fontSize: 14 });
+
+    slide = baseSlide(pptx, "What we need from this meeting", ++index, date);
+    text(slide, "An opportunity to agree what good looks like — and a plan to deliver it.", 0.86, 1.48, 11.3, 0.74, { fontSize: 25, bold: true, color: navy });
+    [
+      ["01", "Start with a shared picture", "Confirm everyone has seen the group's letter; hear what JLR has done and plans next."],
+      ["02", "Agree the principles", "Discuss a reliable fix, a fair alternative where needed, and disruption separately."],
+      ["03", "Leave with owners and dates", "Identify decisions, workstreams and a route to an update for members."]
+    ].forEach(function (row, i) {
+      var y = 2.48 + i * 1.27;
+      box(slide, pptx, 0.86, y, 11.55, 1.08, "FFFFFF", "D8E0E5");
+      text(slide, row[0], 1.12, y + 0.28, 0.72, 0.45, { fontSize: 26, bold: true, color: teal });
+      text(slide, row[1], 2.08, y + 0.12, 9.8, 0.36, { fontSize: 19, bold: true, color: navy });
+      text(slide, row[2], 2.08, y + 0.55, 9.85, 0.32, { fontSize: 14, color: muted });
+    });
+    text(slide, "A constructive channel for owner evidence can help JLR rebuild trust as future models arrive.", 0.86, 6.57, 11.3, 0.26, { fontSize: 12, color: muted });
 
     slide = baseSlide(pptx, "How the group formed and grew", ++index, date);
     text(slide, "A call to action in the UK I-PACE Forum brought owners together around battery, recall and support concerns.", 0.85, 1.55, 11.6, 1.0, { fontSize: 24, color: navy, bold: true });
-    text(slide, "Official launch: 17 July 2026. The independent, UK-led group gives JLR a direct route to hear owners’ priorities and shape a fair, consistent response.", 0.85, 2.78, 11.2, 1.0, { fontSize: 21 });
+    text(slide, "Official launch: 17 July 2026. The independent, UK-led group gives JLR a direct route to hear owners’ priorities and shape a fair, consistent response.", 0.85, 2.70, 11.2, 0.80, { fontSize: 19 });
     var timeline = (adminStats.consentedJoinTimeline || []).filter(function (point) { return point.label >= "2026-07-17"; }).sort(function (a, b) { return a.label.localeCompare(b.label); });
     var joined = 0;
     var milestones = [];
@@ -151,22 +181,18 @@
       [0.25, 0.5, 0.75, 1].forEach(function (fraction, i) {
         var target = Math.ceil(joined * fraction);
         var reached = milestones.find(function (point) { return point.count >= target; });
-        text(slide, number(target) + " by " + reached.date, 0.86 + i * 3.0, 3.93, 2.8, 0.43, { fontSize: 13, color: muted, bold: true });
+        text(slide, number(target) + " by " + reached.date, 0.86 + i * 3.0, 3.75, 2.8, 0.26, { fontSize: 12, color: muted, bold: true });
       });
     }
-    slide.addImage({ data: wreathData, altText: "Gold racing laurel framing the owner count", x: 0.92, y: 4.42, w: 1.86, h: 1.86 });
-    text(slide, number(joined), 1.17, 4.97, 1.36, 0.66, { fontSize: 38, bold: true, color: navy, align: "center" });
-    text(slide, "consented owner joins since launch", 3.0, 5.17, 3.4, 0.64, { fontSize: 17, color: muted });
-    text(slide, number(publicStats.vehiclesRegistered), 7.15, 4.85, 4.2, 0.85, { fontSize: 43, bold: true, color: teal });
-    text(slide, "consented vehicles recorded", 7.15, 5.68, 4.7, 0.42, { fontSize: 17, color: muted });
-    text(slide, "Source: About page and first dated, contact-consenting Join per owner from 17 July; pre-launch test members excluded. Vehicles: published site total (" + label(publicStats.generatedAt || date, 24) + ").", 0.85, 6.4, 11.6, 0.47, { fontSize: 11, color: muted });
+    wreathCounter(slide, wreathData, joined, "Members joined", 2.17, 4.18, 1.82);
+    wreathCounter(slide, wreathData, publicStats.vehiclesRegistered, "Cars registered", 8.30, 4.18, 1.82);
+    text(slide, "Member figure: first contact-consenting Join from 17 July; pre-launch test members excluded. Cars: published consented total (" + label(publicStats.generatedAt || date, 24) + ").", 0.85, 6.53, 11.6, 0.28, { fontSize: 10, color: muted });
 
-    slide = baseSlide(pptx, "Survey participation and main finding", ++index, date);
-    slide.addImage({ data: wreathData, altText: "Gold racing laurel framing the survey response count", x: 0.95, y: 1.56, w: 2.5, h: 2.5 });
-    text(slide, number(report.totalResponses), 1.34, 2.31, 1.72, 0.9, { fontSize: 45, bold: true, color: navy, align: "center" });
-    text(slide, "member responses", 0.96, 4.16, 3.2, 0.45, { fontSize: 21, color: navy, align: "center" });
-    text(slide, label(report.overview, 650), 6.1, 1.64, 6.15, 3.6, { fontSize: 23, color: navy, valign: "top" });
-    text(slide, "Respondents could select more than one outcome and optionally identify a preferred one. Comments were optional. Results describe this self-selected group.", 0.86, 5.75, 11.5, 0.85, { fontSize: 16, color: muted });
+    slide = baseSlide(pptx, "Vehicle model years recorded", ++index, date);
+    var years = (publicStats.modelYearDistribution || []).filter(function (row) { return row.count > 0; });
+    var yearMax = Math.max.apply(null, years.map(function (row) { return row.count; }).concat([1]));
+    years.slice(0, 8).forEach(function (row, i) { chartRow(slide, pptx, row.label, row.count, yearMax, 0.86, 1.5 + i * 0.59, 5.45, teal); });
+    text(slide, "Overall consented vehicle records, not a model-year breakdown of survey respondents. Model year is shown where known.", 0.86, 6.5, 11.4, 0.35, { fontSize: 12, color: muted });
 
     var groups = optionGroups(report.survey);
     var primary = [groups.replacement, groups.buyback, groups.neither].filter(Boolean);
@@ -212,8 +238,18 @@
     text(slide, "Update your response", 7.18, 5.8, 2.17, 0.25, { fontSize: 12, bold: true, color: "FFFFFF", align: "center" });
     text(slide, "Selected cards, numbered options, preferred checkbox and option-level text mirror the member response layout.", 7.03, 6.31, 5.08, 0.29, { fontSize: 10, color: muted });
 
+    slide = baseSlide(pptx, "Survey participation", ++index, date);
+    var classifiedComments = (report.items || []).filter(function (item) { return item.sentiment !== "unclassified"; }).length;
+    wreathCounter(slide, wreathData, report.totalResponses, "Survey responses", 2.05, 1.67, 2.55);
+    wreathCounter(slide, wreathData, (report.items || []).length, "Optional comments", 8.72, 1.67, 2.55);
+    box(slide, pptx, 1.08, 5.12, 11.1, 0.83, "E8F4F2", "E8F4F2");
+    text(slide, number(classifiedComments) + " classified comments", 1.42, 5.36, 5.1, 0.34, { fontSize: 19, color: navy, bold: true });
+    text(slide, number((report.items || []).length - classifiedComments) + " unclassified", 7.15, 5.36, 4.5, 0.34, { fontSize: 19, color: navy, bold: true, align: "right" });
+    text(slide, "Results describe members who chose to answer this survey; optional comments are counted per selected option.", 1.08, 6.32, 11.1, 0.43, { fontSize: 14, color: muted });
+
     slide = baseSlide(pptx, "Three primary routes owners considered", ++index, date);
-    var primaryMax = Math.max.apply(null, primary.map(function (option) { return report.counts[option.id] || 0; }).concat([1]));
+    var allOptions = primary.concat(extras);
+    var primaryMax = Math.max.apply(null, allOptions.map(function (option) { return report.counts[option.id] || 0; }).concat([1]));
     var leading = primary.slice().sort(function (left, right) {
       return ((report.counts || {})[right.id] || 0) - ((report.counts || {})[left.id] || 0) ||
         ((report.preferredCounts || {})[right.id] || 0) - ((report.preferredCounts || {})[left.id] || 0);
@@ -221,53 +257,55 @@
     var leader = leading.length && (report.counts[leading[0].id] || 0) > 0 && (!leading[1] ||
       (report.counts[leading[0].id] || 0) !== (report.counts[leading[1].id] || 0) ||
       ((report.preferredCounts || {})[leading[0].id] || 0) !== ((report.preferredCounts || {})[leading[1].id] || 0)) ? leading[0] : null;
-    box(slide, pptx, 0.86, 1.38, 11.6, 0.77, "E8F4F2", "E8F4F2");
-    text(slide, "CURRENT LEADING OUTCOME", 1.08, 1.52, 3.3, 0.22, { fontSize: 11, bold: true, color: teal });
-    text(slide, leader ? optionText(leader, "Outcome") : "No single leading outcome", 4.4, 1.47, 7.8, 0.35, { fontSize: 19, bold: true, color: navy });
-    primary.forEach(function (option, i) {
+    box(slide, pptx, 0.86, 1.38, 11.6, 0.68, "E8F4F2", "E8F4F2");
+    text(slide, "WINNER", 1.08, 1.56, 1.8, 0.25, { fontSize: 13, bold: true, color: teal });
+    text(slide, leader ? optionText(leader, "Outcome") : "No single winner", 3.0, 1.51, 8.8, 0.35, { fontSize: 19, bold: true, color: navy });
+    allOptions.forEach(function (option, i) {
       var count = report.counts[option.id] || 0;
-      var y = 2.3 + i * 1.08;
-      text(slide, optionText(option, "Outcome"), 0.86, y, 6.5, 0.35, { fontSize: 19, bold: true, color: navy });
-      slide.addShape(pptx.ShapeType.rect, { x: 0.86, y: y + 0.47, w: 8.55, h: 0.21, line: { color: "D8E0E5", transparency: 100 }, fill: { color: "D8E0E5" } });
-      if (count) slide.addShape(pptx.ShapeType.rect, { x: 0.86, y: y + 0.47, w: 8.55 * count / primaryMax, h: 0.21, line: { color: teal, transparency: 100 }, fill: { color: teal } });
-      text(slide, number(count) + " votes  ·  " + percent(count, report.totalResponses), 9.48, y + 0.28, 2.8, 0.42, { fontSize: 17, bold: true, color: teal, align: "right" });
-      text(slide, number((report.preferredCounts || {})[option.id]) + " preferred   •   " + number((report.textCounts || {})[option.id]) + " comments", 0.86, y + 0.74, 10.0, 0.25, { fontSize: 13, color: muted });
+      var y = 2.17 + i * 0.86;
+      box(slide, pptx, 0.86, y, 11.6, 0.77, "FFFFFF", "D8E0E5");
+      text(slide, optionText(option, "Outcome"), 1.05, y + 0.10, 5.25, 0.28, { fontSize: 16, bold: true, color: navy });
+      if (i >= primary.length) text(slide, "ADDITIONAL REQUEST", 5.9, y + 0.13, 2.2, 0.22, { fontSize: 9, color: muted, bold: true });
+      slide.addShape(pptx.ShapeType.rect, { x: 1.05, y: y + 0.48, w: 6.2, h: 0.13, line: { color: "D8E0E5", transparency: 100 }, fill: { color: "D8E0E5" } });
+      if (count) slide.addShape(pptx.ShapeType.rect, { x: 1.05, y: y + 0.48, w: 6.2 * count / primaryMax, h: 0.13, line: { color: teal, transparency: 100 }, fill: { color: teal } });
+      text(slide, number(count) + " votes · " + percent(count, report.totalResponses), 7.45, y + 0.11, 2.0, 0.27, { fontSize: 14, bold: true, color: teal, align: "right" });
+      text(slide, (i < primary.length ? number((report.preferredCounts || {})[option.id]) + " preferred · " : "") + number((report.textCounts || {})[option.id]) + " comments", 9.55, y + 0.11, 2.58, 0.27, { fontSize: 12, color: muted, align: "right" });
     });
-    callout(slide, pptx, "Additional requests", extras.map(function (option) { return optionText(option, "Choice") + ": " + number(report.counts[option.id] || 0) + " votes, " + number((report.textCounts || {})[option.id]) + " comments"; }).join("   •   "), 0.86, 5.57, 11.6, 0.94);
-    text(slide, "Share of " + number(report.totalResponses) + " respondents. Leading route: most selected, then most preferred if selected counts tie. An exact tie has no leader. Choices could overlap.", 0.86, 6.59, 11.4, 0.38, { fontSize: 11, color: muted });
+    text(slide, "Winner uses most votes; preferred votes break a primary-route tie. Additional requests can accompany a primary route.", 0.86, 6.55, 11.4, 0.25, { fontSize: 11, color: muted });
 
-    slide = baseSlide(pptx, "Sentiment in the optional comments", ++index, date);
-    var sentimentOptions = primary.concat(extras);
-    sentimentOptions.forEach(function (option, i) {
-      var row = report.sentiment[option.id] || { positive: 0, mixed: 0, negative: 0 };
-      var total = row.positive + row.mixed + row.negative;
-      var y = 1.52 + i * 0.71;
-      text(slide, label(optionText(option, "Outcome"), 37), 0.86, y, 3.6, 0.38, { fontSize: 14, bold: i < primary.length });
-      var x = 4.55;
-      ["positive", "mixed", "negative"].forEach(function (kind) {
-        var width = total ? 5.7 * row[kind] / total : 0;
-        if (width) slide.addShape(pptx.ShapeType.rect, { x: x, y: y + 0.06, w: width, h: 0.28, line: { color: sentimentColors[kind], transparency: 100 }, fill: { color: sentimentColors[kind] } });
-        x += width;
-      });
-      text(slide, row.positive + " / " + row.mixed + " / " + row.negative + "  (n=" + total + ", U=" + (row.unclassified || 0) + ")", 10.42, y, 1.89, 0.4, { fontSize: 11, color: navy, align: "right" });
+    slide = baseSlide(pptx, "Survey findings at a glance", ++index, date);
+    var alternative = leading.length > 1 ? leading[1] : null;
+    var topTheme = (report.themeCounts || [])[0];
+    [
+      ["MOST SELECTED ROUTE", leader ? optionText(leader, "Outcome") : "No single winner", leader ? number(report.counts[leader.id]) + " selections · " + number((report.preferredCounts || {})[leader.id]) + " preferred" : "Primary routes tied on votes and preference"],
+      ["STRONGEST ALTERNATIVE", alternative ? optionText(alternative, "Outcome") : "No alternative recorded", alternative ? number(report.counts[alternative.id]) + " selections" : ""],
+      ["ADDITIONAL REQUEST", optionText(groups.compensation, "Fair compensation"), number(groups.compensation && report.counts[groups.compensation.id]) + " selections"],
+      ["TOP COMMENT CONCERN", topTheme ? themeLabels[topTheme.name] || topTheme.name : "No classified theme", topTheme ? number(topTheme.count) + " comment entries" : "No classified comments"]
+    ].forEach(function (row, i) {
+      var x = 0.86 + (i % 2) * 5.91;
+      var y = 1.50 + Math.floor(i / 2) * 2.18;
+      box(slide, pptx, x, y, 5.55, 1.86, i === 0 ? "E8F4F2" : "FFFFFF", "D8E0E5");
+      text(slide, row[0], x + 0.24, y + 0.20, 4.95, 0.25, { fontSize: 11, bold: true, color: teal });
+      text(slide, row[1], x + 0.24, y + 0.61, 5.05, 0.51, { fontSize: 21, bold: true, color: navy });
+      text(slide, row[2], x + 0.24, y + 1.30, 5.05, 0.29, { fontSize: 15, color: muted });
     });
-    text(slide, "Positive", 0.86, 5.42, 1.2, 0.3, { fontSize: 13, color: teal, bold: true });
-    text(slide, "Mixed", 2.1, 5.42, 1.1, 0.3, { fontSize: 13, color: gold, bold: true });
-    text(slide, "Negative", 3.24, 5.42, 1.4, 0.3, { fontSize: 13, color: red, bold: true });
-    callout(slide, pptx, "How we arrived at these labels", "Each comment was assessed with its option, all selected choices and preferred choice. Figures are positive / mixed / negative classified entries; n is their sum. U counts comments the model could not classify, excluded from the bars.", 0.85, 5.68, 11.62, 1.2);
+    text(slide, "Members could select several routes and additional requests; these counts are not a head-to-head ballot. Comment concerns are AI-assisted labels, not fleet prevalence.", 0.86, 6.35, 11.4, 0.47, { fontSize: 12, color: muted });
 
     slide = baseSlide(pptx, "Recurring themes in owners’ words", ++index, date);
-    var themes = report.themeCounts.slice(0, 7);
-    var themeMax = Math.max.apply(null, themes.map(function (row) { return row.count; }).concat([1]));
-    themes.forEach(function (row, i) {
-      var size = 16 + 10 * row.count / themeMax;
-      var x = 0.86 + (i % 3) * 3.93;
-      var y = 1.6 + Math.floor(i / 3) * 1.38;
-      box(slide, pptx, x, y, 3.58, 1.12, i % 2 ? "E8F4F2" : "FFFFFF", "D8E0E5");
-      text(slide, themeLabels[row.name] || row.name, x + 0.2, y + 0.18, 3.13, 0.38, { fontSize: size, bold: true, color: navy });
-      text(slide, number(row.count) + " comment entries", x + 0.2, y + 0.69, 3.13, 0.24, { fontSize: 12, color: teal });
+    text(slide, "KEY CONCERN", 1.08, 1.53, 3.2, 0.25, { fontSize: 12, bold: true, color: muted });
+    text(slide, "COMMENTS", 5.1, 1.53, 1.4, 0.25, { fontSize: 12, bold: true, color: muted });
+    text(slide, "OPTION(S) WHERE RAISED", 6.65, 1.53, 5.3, 0.25, { fontSize: 12, bold: true, color: muted });
+    report.themeCounts.slice(0, 7).forEach(function (row, i) {
+      var y = 1.94 + i * 0.64;
+      box(slide, pptx, 0.86, y, 11.6, 0.56, i % 2 ? "F0F9F7" : "FFFFFF", "D8E0E5");
+      var byOption = {};
+      (report.items || []).forEach(function (item) { if ((item.themes || []).indexOf(row.name) !== -1) byOption[item.optionId] = (byOption[item.optionId] || 0) + 1; });
+      var names = allOptions.filter(function (option) { return byOption[option.id]; }).map(function (option) { return optionText(option, "Outcome"); });
+      text(slide, themeLabels[row.name] || row.name, 1.08, y + 0.11, 3.9, 0.31, { fontSize: 16, bold: true, color: navy });
+      text(slide, number(row.count), 5.12, y + 0.11, 1.2, 0.31, { fontSize: 17, bold: true, color: teal });
+      text(slide, label(names.join(", ") || "Not specified", 100), 6.65, y + 0.10, 5.55, 0.35, { fontSize: 13, color: navy });
     });
-    text(slide, "Size and count use the same frequency. AI-assisted theme labels use a fixed vocabulary; one comment can mention several themes. Counts are comment entries, not vehicles or owners.", 0.86, 6.32, 11.45, 0.54, { fontSize: 13, color: muted });
+    text(slide, "AI-assisted labels from optional comments. A comment can raise several themes; these counts are comments, not vehicles or votes.", 0.86, 6.62, 11.45, 0.25, { fontSize: 11, color: muted });
 
     ["good", "bad", "ugly"].forEach(function (kind) {
       var accent = kind === "good" ? teal : kind === "bad" ? gold : red;
@@ -277,48 +315,76 @@
         var y = 1.42 + i * 1.62;
         box(slide, pptx, 0.85, y, 11.62, 1.43, "FFFFFF", "D8E0E5");
         slide.addShape(pptx.ShapeType.rect, { x: 0.85, y: y, w: 0.12, h: 1.43, line: { color: accent, transparency: 100 }, fill: { color: accent } });
-        text(slide, "“", 1.14, y + 0.03, 0.45, 0.58, { fontSize: 41, bold: true, color: accent });
-        text(slide, label(quote.text, 400), 1.72, y + 0.19, 9.85, 1.0, { fontSize: 19, color: navy, valign: "mid" });
+        text(slide, optionText((report.survey.options || []).find(function (option) { return option.id === quote.optionId; }), "Survey option") + "  •  " + (quote.sentiment || "unlabelled") + " experience", 1.19, y + 0.14, 10.8, 0.26, { fontSize: 12, bold: true, color: accent });
+        text(slide, "“", 1.15, y + 0.39, 0.45, 0.55, { fontSize: 40, bold: true, color: accent });
+        text(slide, label(quote.text, 400), 1.72, y + 0.47, 9.85, 0.8, { fontSize: 18, color: navy, valign: "mid" });
       });
       if (!selected.length) text(slide, "No permission-cleared quote was selected for this category.", 0.86, 2.14, 11.5, 0.5, { fontSize: 20, color: muted });
-      text(slide, "Anonymous, permission-checked survey comments chosen by an administrator. " + selected.length + " of 3 possible quotes shown; no quotation has been invented.", 0.86, 6.43, 11.4, 0.34, { fontSize: 12, color: muted });
+      text(slide, "Anonymous, permission-checked survey comments chosen by an administrator. Quote category and experience sentiment are separate AI labels.", 0.86, 6.43, 11.4, 0.34, { fontSize: 12, color: muted });
     });
 
-    slide = baseSlide(pptx, "Vehicle model years recorded", ++index, date);
-    var years = (publicStats.modelYearDistribution || []).filter(function (row) { return row.count > 0; });
-    var yearMax = Math.max.apply(null, years.map(function (row) { return row.count; }).concat([1]));
-    years.slice(0, 8).forEach(function (row, i) { chartRow(slide, pptx, row.label, row.count, yearMax, 0.86, 1.5 + i * 0.59, 5.45, teal); });
-    text(slide, "Group vehicle records with anonymised-analysis consent; model year where known. These are not necessarily vehicles of survey respondents.", 0.86, 6.5, 11.4, 0.35, { fontSize: 12, color: muted });
+    var phrases = signalCounts(report.items);
+    slide = baseSlide(pptx, "Sentiment in the optional comments", ++index, date);
+    allOptions.forEach(function (option, i) {
+      var row = report.sentiment[option.id] || { positive: 0, mixed: 0, negative: 0, unclassified: 0 };
+      var total = row.positive + row.mixed + row.negative;
+      var y = 1.48 + i * 0.98;
+      text(slide, label(optionText(option, "Outcome"), 35), 0.86, y, 3.55, 0.32, { fontSize: 15, bold: true, color: navy });
+      var x = 4.45;
+      ["positive", "mixed", "negative"].forEach(function (kind) {
+        var width = total ? 5.1 * row[kind] / total : 0;
+        if (width) slide.addShape(pptx.ShapeType.rect, { x: x, y: y + 0.07, w: width, h: 0.25, line: { color: sentimentColors[kind], transparency: 100 }, fill: { color: sentimentColors[kind] } });
+        x += width;
+      });
+      text(slide, "+" + row.positive + " / ±" + row.mixed + " / −" + row.negative + "  (U " + (row.unclassified || 0) + ")", 9.75, y, 2.5, 0.34, { fontSize: 12, color: navy, align: "right" });
+      var optionPhrases = phrases.filter(function (phrase) { return phrase.optionId === option.id; });
+      var positivePhrase = optionPhrases.slice().sort(function (a, b) { return b.positive - a.positive; })[0];
+      var negativePhrase = optionPhrases.slice().sort(function (a, b) { return b.negative - a.negative; })[0];
+      text(slide, positivePhrase && positivePhrase.positive ? "+ " + signalLabels[positivePhrase.name] + " " + positivePhrase.positive : "No positive phrase tag", 0.86, y + 0.46, 5.42, 0.28, { fontSize: 12, color: teal });
+      text(slide, negativePhrase && negativePhrase.negative ? "− " + signalLabels[negativePhrase.name] + " " + negativePhrase.negative : "No negative phrase tag", 6.64, y + 0.46, 5.42, 0.28, { fontSize: 12, color: red });
+    });
+    text(slide, "Bars count classified comments per option. Phrase tags are controlled labels from those comments; U is unclassified. A member may comment on several options.", 0.86, 6.61, 11.4, 0.27, { fontSize: 11, color: muted });
 
-    slide = baseSlide(pptx, "Member and service locations recorded", ++index, date);
-    text(slide, "Member country", 0.86, 1.45, 5.6, 0.4, { fontSize: 20, bold: true, color: navy });
-    text(slide, "Service provider postcode area", 6.78, 1.45, 5.6, 0.4, { fontSize: 20, bold: true, color: navy });
-    var countries = adminStats.consentedMemberCountries || [];
-    var locations = (adminStats.serviceLocations && adminStats.serviceLocations.areas) || [];
-    var countryMax = Math.max.apply(null, countries.map(function (row) { return row.count; }).concat([1]));
-    var locationMax = Math.max.apply(null, locations.map(function (row) { return row.count; }).concat([1]));
-    countries.slice(0, 7).forEach(function (row, i) { compactChartRow(slide, pptx, row.label, row.count, countryMax, 0.86, 2.0 + i * 0.57); });
-    locations.slice(0, 7).forEach(function (row, i) { compactChartRow(slide, pptx, row.area, row.count, locationMax, 6.78, 2.0 + i * 0.57); });
-    if (!locations.length) text(slide, "No area breakdown available.", 6.78, 2.1, 5.45, 0.5, { fontSize: 18, color: muted });
-    text(slide, "Member country: first Join record with anonymised-analysis consent, where known. Service areas: consent-eligible records with a provider postcode; areas with fewer than five records are combined. Known service locations: " + number((adminStats.serviceLocations || {}).known) + "; unknown: " + number((adminStats.serviceLocations || {}).unknown) + ". Neither distribution describes survey respondents.", 0.86, 6.2, 11.4, 0.73, { fontSize: 11, color: muted });
+    slide = baseSlide(pptx, "Phrases shaping customer confidence", ++index, date);
+    allOptions.forEach(function (option, i) {
+      var x = 0.86 + (i % 3) * 3.94;
+      var y = 1.47 + Math.floor(i / 3) * 2.52;
+      box(slide, pptx, x, y, 3.67, 2.31, "FFFFFF", "D8E0E5");
+      text(slide, label(optionText(option, "Outcome"), 32), x + 0.18, y + 0.17, 3.28, 0.37, { fontSize: 16, bold: true, color: navy });
+      var ranked = phrases.filter(function (phrase) { return phrase.optionId === option.id; }).sort(function (a, b) { return b.count - a.count || a.name.localeCompare(b.name); }).slice(0, 4);
+      if (!ranked.length) text(slide, "No specific phrase tags", x + 0.19, y + 0.89, 3.25, 0.36, { fontSize: 14, color: muted });
+      ranked.forEach(function (phrase, j) {
+        var tone = phrase.positive > phrase.negative ? teal : phrase.negative > phrase.positive ? red : gold;
+        text(slide, signalLabels[phrase.name] + "  " + number(phrase.count), x + 0.19 + (j % 2) * 0.12, y + 0.68 + j * 0.37, 3.18, 0.34, { fontSize: 14 + Math.min(7, phrase.count * 0.6), bold: true, color: tone });
+      });
+    });
+    text(slide, "Colour shows the dominant experience: positive, mixed or negative; size follows comment frequency. For JLR discussion: negative language can affect confidence in future launches, while positive language shows what to reinforce. This is not a sales forecast.", 8.75, 4.27, 3.58, 1.8, { fontSize: 13, color: muted, valign: "top" });
 
-    slide = baseSlide(pptx, "An opportunity for JLR Client Care", ++index, date);
-    text(slide, "A growing group of owners wants dependable resolution to battery, recall and related service concerns, including experiences around H441.", 0.86, 1.42, 11.52, 0.83, { fontSize: 21, bold: true, color: navy });
+    slide = baseSlide(pptx, "Next steps for JLR Client Care", ++index, date);
+    box(slide, pptx, 0.86, 1.42, 11.52, 0.73, "E8F4F2", "E8F4F2");
+    text(slide, "Survey winner: " + (leader ? optionText(leader, "Outcome") : "no single route"), 1.12, 1.59, 10.9, 0.4, { fontSize: 21, bold: true, color: navy });
+    text(slide, "Three actions to agree", 0.86, 2.36, 8.0, 0.34, { fontSize: 17, bold: true, color: teal });
     report.actions.forEach(function (action, i) {
-      var y = 2.46 + i * 1.08;
-      box(slide, pptx, 0.86, y, 11.52, 0.92, "FFFFFF", "D8E0E5");
-      text(slide, String(i + 1).padStart(2, "0"), 1.08, y + 0.18, 0.7, 0.52, { fontSize: 27, bold: true, color: teal });
-      text(slide, label(action, 200), 1.94, y + 0.15, 10.06, 0.58, { fontSize: 19, color: navy });
+      var y = 2.83 + i * 1.14;
+      box(slide, pptx, 0.86, y, 11.52, 1.03, "FFFFFF", "D8E0E5");
+      text(slide, String(i + 1).padStart(2, "0"), 1.10, y + 0.25, 0.7, 0.45, { fontSize: 26, bold: true, color: teal });
+      text(slide, String(action), 1.95, y + 0.13, 10.05, 0.76, { fontSize: 17, color: navy, valign: "mid" });
     });
-    text(slide, "Proposed actions for discussion, reviewed by the group. No JLR commitment or recall causality is implied.", 0.86, 6.45, 11.4, 0.32, { fontSize: 13, color: muted });
+    text(slide, "Reliable resolution and clear communication are an opportunity to rebuild owner confidence. Proposed discussion points; no JLR commitment is implied.", 0.86, 6.54, 11.4, 0.34, { fontSize: 12, color: muted });
 
-    slide = baseSlide(pptx, "How to read these findings", ++index, date);
+    slide = baseSlide(pptx, "Decisions and dates", ++index, date);
     [
-      "Responses and vehicle/service information are self-reported. The survey is self-selected and cannot estimate prevalence across all I-PACE owners.",
-      "Survey choice counts use stored aggregates. Comment themes and sentiment are AI-assisted classifications of optional text, reviewed by an administrator.",
-      "Comments may cover several themes; sentiment is tied to the option where the comment was entered, with selected/preferred outcomes as context. Unclassified comments are counted separately, never assigned themes or sentiment.",
-      "Quoted comments were redacted and selected for this private meeting with confirmed permission. Group demographics are not linked to survey respondents."
-    ].forEach(function (item, i) { text(slide, "•  " + item, 0.86, 1.48 + i * 1.21, 11.4, 0.9, { fontSize: 18, color: navy }); });
+      ["Outcome", "Agree what a dependable repair means and when a fair buy-back choice is appropriate."],
+      ["JLR plan", "Understand work completed, planned work, constraints, owners and realistic dates."],
+      ["Confidentiality", "Agree what needs protection; discuss a narrow arrangement for sensitive workstream detail if necessary."],
+      ["Member update", "Ask whether a board-level written statement can be provided before 5 October; agree an owner and date."]
+    ].forEach(function (row, i) {
+      var y = 1.47 + i * 1.24;
+      box(slide, pptx, 0.86, y, 11.55, 1.08, i % 2 ? "F0F9F7" : "FFFFFF", "D8E0E5");
+      text(slide, row[0], 1.12, y + 0.18, 2.25, 0.42, { fontSize: 20, bold: true, color: teal });
+      text(slide, row[1], 3.48, y + 0.16, 8.5, 0.74, { fontSize: 17, color: navy });
+    });
+    text(slide, "Proposed discussion outcomes; no JLR agreement or board statement is assumed.", 0.86, 6.64, 11.4, 0.25, { fontSize: 11, color: muted });
     // PptxGenJS 4 emits content-type entries for slide masters that do not
     // exist in the archive. Remove only those orphan entries before download.
     return pptx.write({ outputType: "uint8array", compression: true }).then(function (bytes) {

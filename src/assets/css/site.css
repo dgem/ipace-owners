@@ -2119,6 +2119,12 @@ textarea {
   overflow: auto;
 }
 
+.survey-insights__quote-group {
+  margin: var(--space-2) 0 0;
+  color: var(--color-primary);
+  font-size: var(--text-base);
+}
+
 .survey-insights__quote,
 .survey-insights__confirmation {
   display: flex;

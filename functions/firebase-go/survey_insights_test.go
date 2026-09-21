@@ -32,8 +32,8 @@ func TestSurveyInsightClassificationMatchesOriginalComments(t *testing.T) {
 		{ID: 1, OptionID: "buyback", Text: "Battery failed twice and I waited months."},
 	}
 	output := surveyInsightModelOutput{Assessments: []surveyInsightAssessment{
-		{ID: 1, Sentiment: "negative", Themes: []string{"battery", "parts"}, QuoteKind: "ugly"},
-		{ID: 0, Sentiment: "positive", Themes: []string{"other"}, QuoteKind: "good"},
+		{ID: 1, Sentiment: "negative", Themes: []string{"battery", "parts"}, Signals: []surveyInsightSignal{{Name: "repair-delays", Sentiment: "negative"}, {Name: "invented", Sentiment: "positive"}}, QuoteKind: "ugly"},
+		{ID: 0, Sentiment: "positive", Themes: []string{"other"}, Signals: []surveyInsightSignal{{Name: "customer-care", Sentiment: "positive"}}, QuoteKind: "good"},
 	}}
 	items, quotes, err := validateSurveyInsightOutput(comments, output)
 	if err != nil || len(items) != 2 || items[0].OptionID != "repair" || items[0].Sentiment != "positive" || items[1].OptionID != "buyback" || items[1].Sentiment != "negative" {
@@ -41,6 +41,9 @@ func TestSurveyInsightClassificationMatchesOriginalComments(t *testing.T) {
 	}
 	if len(quotes) != 2 || quotes[0].Text != comments[0].Text || quotes[1].Text != comments[1].Text {
 		t.Fatalf("quote candidates must be exact redacted source text: %#v", quotes)
+	}
+	if quotes[1].OptionID != "buyback" || quotes[1].Sentiment != "negative" || len(items[1].Signals) != 1 || items[1].Signals[0].Name != "repair-delays" {
+		t.Fatalf("quote context or controlled phrase labels missing: items=%#v quotes=%#v", items, quotes)
 	}
 	for _, bad := range []surveyInsightModelOutput{
 		{Assessments: output.Assessments[:1]},
@@ -102,6 +105,11 @@ func TestSurveyInsightSplitsIncompleteRepliesAndFlagsOnlyIrreducibleComment(t *t
 	report.Items[1].Themes = []string{"battery"}
 	if validSurveyInsightReport(report) {
 		t.Fatal("unclassified comment with invented theme accepted")
+	}
+	report.Items[1].Themes = nil
+	report.Items[1].Signals = []surveyInsightSignal{{Name: "repair-delays", Sentiment: "negative"}}
+	if validSurveyInsightReport(report) {
+		t.Fatal("unclassified comment with phrase signal accepted")
 	}
 }
 
@@ -183,7 +191,7 @@ func TestInvalidQuoteCannotEnterSummary(t *testing.T) {
 	if !validSurveyInsightReport(base) {
 		t.Fatal("valid aggregate rejected")
 	}
-	base.Quotes = []surveyInsightQuote{{Kind: "ugly", Text: "Contact me at sam@example.org"}}
+	base.Quotes = []surveyInsightQuote{{Kind: "ugly", OptionID: "repair", Sentiment: "negative", Text: "Contact me at sam@example.org"}}
 	if validSurveyInsightReport(base) {
 		t.Fatal("unredacted quote accepted")
 	}
