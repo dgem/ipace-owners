@@ -39,7 +39,9 @@ official 17 July 2026 launch. Cumulative growth milestones and the displayed own
 use each member's earliest dated, contact-consenting Join record from launch, excluding
 pre-launch test registrations. Self-host the locked `pptxgenjs` and JSZip browser
 bundles, repairing orphan slide-master declarations before the PowerPoint download. The deck
-uses the existing UK-road RHD hero, site colours and callouts. It displays the live survey's
+uses the existing UK-road RHD hero, gold racing laurel on the two headline counters, site
+colours and callouts, and an editable PowerPoint content layout with a title placeholder,
+divider, footer and Arial font theme. It displays the live survey's
 member-facing option names/descriptions, a labelled fictional completed response that
 visually follows the member form, the three primary outcomes separately from two accompanying
 requests, exact selected/preferred/comment counts, a selection leader with preferred-vote

@@ -24,11 +24,9 @@
   }
 
   function baseSlide(pptx, title, index, date) {
-    var slide = pptx.addSlide();
-    slide.background = { color: pale };
-    text(slide, title, 0.75, 0.42, 11.9, 0.68, { color: navy, fontSize: 28, bold: true });
-    slide.addShape(pptx.ShapeType.line, { x: 0.75, y: 1.2, w: 11.85, h: 0, line: { color: teal, width: 2 } });
-    text(slide, "I-PACE Owners’ Advocacy Group  •  Private JLR meeting  •  " + date, 0.75, 7.06, 11.5, 0.2, { color: muted, fontSize: 9 });
+    var slide = pptx.addSlide({ masterName: "IPACE_CONTENT" });
+    text(slide, title, 0.75, 0.42, 11.9, 0.68, { color: navy, fontSize: 28, bold: true, placeholder: "title" });
+    text(slide, date, 10.55, 7.06, 1.45, 0.2, { color: muted, fontSize: 9, align: "right" });
     text(slide, String(index), 12.2, 7.06, 0.35, 0.2, { color: muted, fontSize: 9, align: "right" });
     return slide;
   }
@@ -97,10 +95,10 @@
     checkInput(report, adminStats, publicStats);
     if (!window.PptxGenJS) return Promise.reject(new Error("PowerPoint library unavailable"));
     if (!window.JSZip) return Promise.reject(new Error("PowerPoint package validator unavailable"));
-    function loadHero() {
-      if (assets && assets.heroData) return Promise.resolve(assets.heroData);
-      return fetch("/images/september-survey-reminder-2026-hero.jpg").then(function (response) {
-        if (!response.ok) throw new Error("Meeting hero image unavailable");
+    function loadImage(source, supplied, message) {
+      if (supplied) return Promise.resolve(supplied);
+      return fetch(source).then(function (response) {
+        if (!response.ok) throw new Error(message);
         return response.blob();
       }).then(function (blob) {
         return new Promise(function (resolve, reject) {
@@ -111,9 +109,24 @@
         });
       });
     }
-    return loadHero().then(function (heroData) {
+    return Promise.all([
+      loadImage("/images/september-survey-reminder-2026-hero.jpg", assets && assets.heroData, "Meeting hero image unavailable"),
+      loadImage("/images/racing-laurel-email.png", assets && assets.wreathData, "Racing laurel image unavailable")
+    ]).then(function (images) {
+    var heroData = images[0];
+    var wreathData = images[1];
     var pptx = new window.PptxGenJS();
     pptx.layout = "LAYOUT_WIDE";
+    pptx.theme = { headFontFace: "Arial", bodyFontFace: "Arial" };
+    pptx.defineSlideMaster({
+      title: "IPACE_CONTENT",
+      background: { color: pale },
+      objects: [
+        { placeholder: { options: { name: "title", type: "title", x: 0.75, y: 0.42, w: 11.9, h: 0.68, fontFace: "Arial", fontSize: 28, bold: true, color: navy, margin: 0 }, text: "" } },
+        { line: { x: 0.75, y: 1.2, w: 11.85, h: 0, line: { color: teal, width: 2 } } },
+        { text: { text: "I-PACE Owners’ Advocacy Group  •  Private JLR meeting", options: { x: 0.75, y: 7.06, w: 8.9, h: 0.2, margin: 0, fontFace: "Arial", fontSize: 9, color: muted } } }
+      ]
+    });
     pptx.author = "I-PACE Owners’ Advocacy Group";
     pptx.subject = "Anonymous member survey analysis for the 24 September 2026 JLR meeting";
     pptx.title = "i-Pace Owners Advocacy Group";
@@ -121,7 +134,7 @@
     var date = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
     var index = 1;
     var slide = pptx.addSlide();
-    slide.addImage({ data: heroData, x: 0, y: 0, w: 13.333, h: 7.5 });
+    slide.addImage({ data: heroData, altText: "Two right-hand-drive I-PACE-style cars on a British country road", x: 0, y: 0, w: 13.333, h: 7.5 });
     slide.addShape(pptx.ShapeType.rect, { x: 0, y: 4.3, w: 13.333, h: 3.2, line: { color: navy, transparency: 100 }, fill: { color: navy, transparency: 4 } });
     text(slide, "i-Pace Owners Advocacy Group", 0.75, 4.72, 11.8, 0.69, { color: "FFFFFF", fontSize: 35, bold: true });
     text(slide, "Member survey findings for discussion with JLR", 0.78, 5.48, 11.8, 0.44, { color: "FFFFFF", fontSize: 23 });
@@ -141,15 +154,17 @@
         text(slide, number(target) + " by " + reached.date, 0.86 + i * 3.0, 3.93, 2.8, 0.43, { fontSize: 13, color: muted, bold: true });
       });
     }
-    text(slide, number(joined), 0.85, 4.85, 4.2, 0.85, { fontSize: 43, bold: true, color: teal });
-    text(slide, "consented owner joins since launch", 0.85, 5.68, 5.5, 0.42, { fontSize: 17, color: muted });
+    slide.addImage({ data: wreathData, altText: "Gold racing laurel framing the owner count", x: 0.92, y: 4.42, w: 1.86, h: 1.86 });
+    text(slide, number(joined), 1.17, 4.97, 1.36, 0.66, { fontSize: 38, bold: true, color: navy, align: "center" });
+    text(slide, "consented owner joins since launch", 3.0, 5.17, 3.4, 0.64, { fontSize: 17, color: muted });
     text(slide, number(publicStats.vehiclesRegistered), 7.15, 4.85, 4.2, 0.85, { fontSize: 43, bold: true, color: teal });
     text(slide, "consented vehicles recorded", 7.15, 5.68, 4.7, 0.42, { fontSize: 17, color: muted });
     text(slide, "Source: About page and first dated, contact-consenting Join per owner from 17 July; pre-launch test members excluded. Vehicles: published site total (" + label(publicStats.generatedAt || date, 24) + ").", 0.85, 6.4, 11.6, 0.47, { fontSize: 11, color: muted });
 
     slide = baseSlide(pptx, "Survey participation and main finding", ++index, date);
-    text(slide, number(report.totalResponses), 0.85, 1.58, 4.5, 1.1, { fontSize: 62, bold: true, color: teal });
-    text(slide, "member responses", 0.86, 2.66, 5.3, 0.45, { fontSize: 21, color: navy });
+    slide.addImage({ data: wreathData, altText: "Gold racing laurel framing the survey response count", x: 0.95, y: 1.56, w: 2.5, h: 2.5 });
+    text(slide, number(report.totalResponses), 1.34, 2.31, 1.72, 0.9, { fontSize: 45, bold: true, color: navy, align: "center" });
+    text(slide, "member responses", 0.96, 4.16, 3.2, 0.45, { fontSize: 21, color: navy, align: "center" });
     text(slide, label(report.overview, 650), 6.1, 1.64, 6.15, 3.6, { fontSize: 23, color: navy, valign: "top" });
     text(slide, "Respondents could select more than one outcome and optionally identify a preferred one. Comments were optional. Results describe this self-selected group.", 0.86, 5.75, 11.5, 0.85, { fontSize: 16, color: muted });
 

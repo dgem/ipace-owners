@@ -682,7 +682,7 @@ model-year statistics and admin-only, consent-filtered member-country and servic
 postcode-area counts; groups with fewer than five records are combined. Group demographics are labelled separately
 from survey respondent characteristics. AI sentiment describes only optional comment entries,
 not votes or the I-PACE fleet. The editable PowerPoint uses the site palette and the existing
-UK-road hero image. It separates full HV replacement, fair buy-back and neither from the
+UK-road hero image and the existing gold racing laurel around the two headline counts. It sets an Arial PowerPoint theme and an editable content layout with a title placeholder, teal divider and meeting footer so inserted slides can use the same style. It separates full HV replacement, fair buy-back and neither from the
 additional compensation/concerns choices, shows the actual survey wording and a labelled
 fictional completed example modelled on the member form, explains sentiment denominators, visualises theme frequency,
 and places up to three permission-checked quotes on each of three editorial quote slides.

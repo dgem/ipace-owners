@@ -9,10 +9,13 @@ Theme the PowerPoint in
 constructive language: title the first-meeting cover “i-Pace Owners Advocacy Group” with
 “Member survey findings for discussion with JLR,” avoiding a threatening or ultimatum-like tone.
 Theme it in the site's navy, teal and white design, with the existing RHD UK-road hero image, clear
-callouts, and separate editorial good/bad/ugly slides carrying up to three reviewed quotes
+callouts, the existing racing laurel around the launch-growth and survey-response headline
+counters, and separate editorial good/bad/ugly slides carrying up to three reviewed quotes
 each. Show the actual member survey options and a conspicuously fictional completed example
 that mirrors the member form's question panel, numbered choice cards, preferred control and
 option-level comment fields.
+Use an editable PowerPoint content layout and font theme so a later meeting slide can inherit
+the heading, divider, footer and typography.
 Treat full HV replacement, fair buy-back and neither as the three primary routes, with fair
 compensation and additional concerns as accompanying requests.
 Show selected, preferred and optional-comment counts for each primary route, plus selected and

@@ -17,6 +17,7 @@ test('browser deck creates an editable PowerPoint with grounded counts and revie
       const vm = require('node:vm');
       const browser = { PptxGenJS: require(${JSON.stringify(packageRoot)}), JSZip: require(${JSON.stringify(zipRoot)}) };
       const heroData = 'data:image/jpeg;base64,' + fs.readFileSync(${JSON.stringify(path.resolve('public/images/september-survey-reminder-2026-hero.jpg'))}).toString('base64');
+      const wreathData = 'data:image/png;base64,' + fs.readFileSync(${JSON.stringify(path.resolve('public/images/racing-laurel-email.png'))}).toString('base64');
       vm.runInNewContext(fs.readFileSync(${JSON.stringify(generator)}, 'utf8'), { window: browser, Date, Promise });
       browser.ipaceMakeSurveyDeck({
         survey: { question: 'Which outcome would you support?', options: [
@@ -34,7 +35,7 @@ test('browser deck creates an editable PowerPoint with grounded counts and revie
         sentiment: { repair: { positive: 1, mixed: 2, negative: 3 }, buyback: { positive: 0, mixed: 1, negative: 2 }, neither: { positive: 0, mixed: 1, negative: 0 }, compensation: { positive: 0, mixed: 1, negative: 1 }, concerns: { positive: 0, mixed: 0, negative: 1 } }
       }, { serviceLocations: { known: 6, unknown: 2, areas: [{ area: 'SW', count: 5 }, { area: 'Other areas', count: 1 }] }, consentedJoinTimeline: [{ label: '2026-07-01', count: 2 }, { label: '2026-08-01', count: 4 }, { label: '2026-09-01', count: 4 }], consentedMemberCountries: [{ label: 'United Kingdom', count: 9 }, { label: 'Other / unknown', count: 1 }] },
       { joinedOwners: 1477, vehiclesRegistered: 721, modelYearDistribution: [{ label: '2020', count: 4 }], generatedAt: '2026-09-19' },
-      (bytes) => fs.writeFileSync('ipace-owner-survey-jlr-24-september-2026.pptx', bytes), { heroData })
+      (bytes) => fs.writeFileSync('ipace-owner-survey-jlr-24-september-2026.pptx', bytes), { heroData, wreathData })
         .catch((error) => { console.error(error); process.exitCode = 1; });
     `;
     execFileSync(process.execPath, ['-e', script], { cwd: temp, stdio: 'pipe' });
@@ -42,6 +43,9 @@ test('browser deck creates an editable PowerPoint with grounded counts and revie
     const zip = await JSZip.loadAsync(deck);
     const contentTypes = await zip.file('[Content_Types].xml').async('string');
     assert.ok(!contentTypes.includes('slideMaster2.xml'), 'orphan slide master entries must be removed');
+    const layout = await zip.file('ppt/slideLayouts/slideLayout2.xml').async('string');
+    assert.ok(layout.includes('type="title"') && layout.includes('0F766E') && layout.includes('Private JLR meeting'), 'editable content layout must carry title, divider and footer');
+    assert.ok((await zip.file('ppt/theme/theme1.xml').async('string')).includes('Arial'), 'added slides must inherit the deck font theme');
     for (const match of contentTypes.matchAll(/<Override PartName="\/([^"]+)"/g)) {
       assert.ok(zip.file(match[1]), `package declares missing part ${match[1]}`);
     }
@@ -53,6 +57,9 @@ test('browser deck creates an editable PowerPoint with grounded counts and revie
     }
     const slide2 = await zip.file('ppt/slides/slide2.xml').async('string');
     assert.ok(!slide2.includes('1,477'), 'pre-launch test members must not enter the growth total');
+    assert.ok(slide2.includes('<p:pic>'), 'group growth headline should include the racing laurel');
+    assert.ok(slide2.includes('type="title"'), 'generated content headings should remain editable title placeholders');
+    assert.ok((await zip.file('ppt/slides/slide3.xml').async('string')).includes('<p:pic>'), 'survey response headline should include the racing laurel');
     const choicesSlide = await zip.file('ppt/slides/slide6.xml').async('string');
     assert.ok(choicesSlide.indexOf('CURRENT LEADING OUTCOME') < choicesSlide.indexOf('Full HV Replacement'), 'selected route should lead');
     execFileSync(process.execPath, ['-e', script.replace('counts: { repair: 8, buyback: 5', 'counts: { repair: 5, buyback: 5').replace('preferredCounts: { repair: 6, buyback: 2 }', 'preferredCounts: { repair: 4, buyback: 5 }')], { cwd: temp, stdio: 'pipe' });
