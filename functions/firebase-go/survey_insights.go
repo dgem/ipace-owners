@@ -72,6 +72,7 @@ type surveyInsightBatch struct {
 	Survey          surveyRecord         `json:"survey"`
 	Counts          map[string]int       `json:"counts"`
 	PreferredCounts map[string]int       `json:"preferredCounts"`
+	TextCounts      map[string]int       `json:"textCounts"`
 	TotalResponses  int                  `json:"totalResponses"`
 	Offset          int                  `json:"offset"`
 	NextOffset      int                  `json:"nextOffset"`
@@ -124,7 +125,7 @@ func AdminSurveyInsights(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Could not load survey totals"})
 		return
 	}
-	response := surveyInsightBatch{Survey: survey, Counts: result.Counts, PreferredCounts: result.PreferredCounts, TotalResponses: result.Total, Offset: input.Offset, Items: []surveyInsightItem{}, Quotes: []surveyInsightQuote{}}
+	response := surveyInsightBatch{Survey: survey, Counts: result.Counts, PreferredCounts: result.PreferredCounts, TextCounts: result.TextCounts, TotalResponses: result.Total, Offset: input.Offset, Items: []surveyInsightItem{}, Quotes: []surveyInsightQuote{}}
 	comments, next, more, err := loadSurveyInsightComments(r.Context(), db, survey, input.Offset)
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Could not load survey comments"})

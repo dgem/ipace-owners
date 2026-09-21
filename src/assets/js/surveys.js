@@ -256,7 +256,7 @@
           preferredCount +
           " preferred</span>"
         : "") +
-      (!showDescription && option.allowsText
+      (option.allowsText
         ? '<span class="survey-result__comments" aria-label="' +
           textCount +
           " optional " +
@@ -543,7 +543,7 @@
               option.allowsPreferred || !analysis.survey.preferredEligibilityConfigured,
               analysis.total,
               true,
-              0
+              (analysis.textCounts && analysis.textCounts[option.id]) || 0
             );
           })
           .join("") +

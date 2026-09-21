@@ -26,7 +26,7 @@ test('browser deck creates an editable PowerPoint with grounded counts and revie
           { id: 'compensation', name: 'Fair Compensation', description: 'For disruption and repeat visits.' },
           { id: 'concerns', name: 'Additional Concerns', description: 'Other faults also need rectifying.' }
         ] },
-        counts: { repair: 8, buyback: 5, neither: 1, compensation: 3, concerns: 2 }, preferredCounts: { repair: 6, buyback: 2 },
+        counts: { repair: 8, buyback: 5, neither: 1, compensation: 3, concerns: 2 }, preferredCounts: { repair: 6, buyback: 2 }, textCounts: { repair: 4, buyback: 3, neither: 1, compensation: 2, concerns: 1 },
         totalResponses: 10, items: [], overview: 'Battery faults and parts delays were raised.',
         actions: ['Explain the battery plan', 'Set repair time targets', 'Clarify warranty cover'],
         quotes: ['good', 'bad', 'ugly'].flatMap((kind) => [1, 2, 3].map((i) => ({ kind, text: kind + ' owner quote number ' + i + ' about their experience.' }))),
@@ -48,9 +48,20 @@ test('browser deck creates an editable PowerPoint with grounded counts and revie
     const slides = Object.keys(zip.files).filter((name) => /^ppt\/slides\/slide\d+\.xml$/.test(name));
     assert.equal(slides.length, 15);
     const contents = (await Promise.all(slides.map((name) => zip.files[name].async('string')))).join('\n');
-    for (const phrase of ['i-Pace Owners Advocacy Group', 'Member survey findings for discussion with JLR', 'UK I-PACE Forum', '1,477', '721', 'Battery faults and parts delays', 'good owner quote number 3', 'ugly owner quote number 3', 'Full HV Replacement', 'Fair Compensation', 'fictional example', 'How we arrived at these labels', 'service locations recorded', 'United Kingdom', 'Explain the battery plan']) {
+    for (const phrase of ['i-Pace Owners Advocacy Group', 'Member survey findings for discussion with JLR', 'UK I-PACE Forum', '17 July 2026', 'consented owner joins since launch', '721', 'Battery faults and parts delays', 'good owner quote number 3', 'ugly owner quote number 3', 'Full HV Replacement', 'Fair Compensation', 'fictional', 'MEMBER SURVEY', 'Make this my preferred outcome', 'DEMONSTRATION ONLY', 'Battery work has needed repeat visits.', 'How we arrived at these labels', 'service locations recorded', 'United Kingdom', 'Explain the battery plan', '8 votes', '6 preferred', '4 comments', 'CURRENT LEADING OUTCOME']) {
       assert.ok(contents.includes(phrase), `PowerPoint omitted ${phrase}`);
     }
+    const slide2 = await zip.file('ppt/slides/slide2.xml').async('string');
+    assert.ok(!slide2.includes('1,477'), 'pre-launch test members must not enter the growth total');
+    const choicesSlide = await zip.file('ppt/slides/slide6.xml').async('string');
+    assert.ok(choicesSlide.indexOf('CURRENT LEADING OUTCOME') < choicesSlide.indexOf('Full HV Replacement'), 'selected route should lead');
+    execFileSync(process.execPath, ['-e', script.replace('counts: { repair: 8, buyback: 5', 'counts: { repair: 5, buyback: 5').replace('preferredCounts: { repair: 6, buyback: 2 }', 'preferredCounts: { repair: 4, buyback: 5 }')], { cwd: temp, stdio: 'pipe' });
+    const tiedZip = await JSZip.loadAsync(fs.readFileSync(path.join(temp, 'ipace-owner-survey-jlr-24-september-2026.pptx')));
+    const tiedChoices = await tiedZip.file('ppt/slides/slide6.xml').async('string');
+    assert.ok(tiedChoices.indexOf('CURRENT LEADING OUTCOME') < tiedChoices.indexOf('A Fair Buy Back') && tiedChoices.indexOf('A Fair Buy Back') < tiedChoices.indexOf('Full HV Replacement'), 'preferred votes should break a selected-vote tie');
+    execFileSync(process.execPath, ['-e', script.replace('counts: { repair: 8, buyback: 5', 'counts: { repair: 5, buyback: 5').replace('preferredCounts: { repair: 6, buyback: 2 }', 'preferredCounts: { repair: 4, buyback: 4 }')], { cwd: temp, stdio: 'pipe' });
+    const exactTieZip = await JSZip.loadAsync(fs.readFileSync(path.join(temp, 'ipace-owner-survey-jlr-24-september-2026.pptx')));
+    assert.ok((await exactTieZip.file('ppt/slides/slide6.xml').async('string')).includes('No single leading outcome'), 'exact selected and preferred tie must not claim a leader');
     assert.ok(Object.keys(zip.files).some((name) => name.startsWith('ppt/media/')), 'cover hero image omitted');
     assert.ok(!contents.includes('sam@example.org'), 'no respondent identity should enter the deck');
     if (process.env.SURVEY_DECK_PREVIEW_DIR) {

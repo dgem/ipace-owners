@@ -113,6 +113,7 @@ type adminSurveyAnalysis struct {
 	Survey          surveyRecord          `json:"survey"`
 	Counts          map[string]int        `json:"counts"`
 	PreferredCounts map[string]int        `json:"preferredCounts"`
+	TextCounts      map[string]int        `json:"textCounts"`
 	Total           int                   `json:"total"`
 	Responses       []adminSurveyResponse `json:"responses"`
 	ResponsesOffset int                   `json:"responsesOffset"`
@@ -353,7 +354,7 @@ func loadAdminSurveyAnalysis(ctx context.Context, db *firestore.Client, survey s
 	if err != nil {
 		return adminSurveyAnalysis{}, err
 	}
-	analysis := adminSurveyAnalysis{Survey: survey, Counts: aggregate.Counts, PreferredCounts: aggregate.PreferredCounts, Total: aggregate.Total, Responses: []adminSurveyResponse{}, ResponsesOffset: offset}
+	analysis := adminSurveyAnalysis{Survey: survey, Counts: aggregate.Counts, PreferredCounts: aggregate.PreferredCounts, TextCounts: aggregate.TextCounts, Total: aggregate.Total, Responses: []adminSurveyResponse{}, ResponsesOffset: offset}
 	allowed := map[string]bool{}
 	for _, option := range survey.Options {
 		allowed[option.ID] = true

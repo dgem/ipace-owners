@@ -899,7 +899,7 @@ async function checkSurveyInsights(viewport, suffix) {
         { id: 'compensation', name: 'Fair Compensation', description: 'For disruption and repeat visits.' },
         { id: 'concerns', name: 'Additional Concerns', description: 'Other faults also need rectifying.' }
       ] },
-      counts: { repair: 8, buyback: 5, neither: 1, compensation: 3, concerns: 2 }, preferredCounts: { repair: 6, buyback: 2 },
+      counts: { repair: 8, buyback: 5, neither: 1, compensation: 3, concerns: 2 }, preferredCounts: { repair: 6, buyback: 2 }, textCounts: { repair: 4, buyback: 3, neither: 1, compensation: 2, concerns: 1 },
       totalResponses: 10, offset: 0, nextOffset: 10, hasMore: false,
       items: [{ optionId: 'repair', sentiment: 'negative', themes: ['battery', 'service'] }, { optionId: 'buyback', sentiment: 'mixed', themes: ['warranty'] }, { optionId: 'repair', sentiment: 'unclassified', themes: [] }],
       quotes: ['good', 'bad', 'ugly'].flatMap((kind) => [1, 2, 3].map((index) => ({ kind, text: `${kind} comment ${index}: The owner described how the car and service experience affected them.` }))),

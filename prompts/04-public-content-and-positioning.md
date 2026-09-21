@@ -1,17 +1,24 @@
 # Public Content and Positioning Prompt
 
 For the private 24 September JLR meeting deck, explain that the independent group formed
-following a call to action in the UK I-PACE Forum and show its growth through dated,
-consent-filtered aggregate membership and vehicle statistics. The meeting narrative should
-lead from owner evidence to specific questions or actions for JLR. Theme the PowerPoint in
+following a call to action in the UK I-PACE Forum, as described on the About page, and show
+its official 17 July 2026 launch and growth through dated, consent-filtered aggregate membership
+and vehicle statistics. Exclude pre-launch test registrations from the displayed owner count.
+The meeting narrative should lead from owner evidence to specific questions or actions for JLR.
+Theme the PowerPoint in
 constructive language: title the first-meeting cover “i-Pace Owners Advocacy Group” with
 “Member survey findings for discussion with JLR,” avoiding a threatening or ultimatum-like tone.
-Theme it in
-the site's navy, teal and white design, with the existing RHD UK-road hero image, clear
+Theme it in the site's navy, teal and white design, with the existing RHD UK-road hero image, clear
 callouts, and separate editorial good/bad/ugly slides carrying up to three reviewed quotes
-each. Show the actual member survey options and a conspicuously fictional completed example.
+each. Show the actual member survey options and a conspicuously fictional completed example
+that mirrors the member form's question panel, numbered choice cards, preferred control and
+option-level comment fields.
 Treat full HV replacement, fair buy-back and neither as the three primary routes, with fair
-compensation and additional concerns as accompanying requests. Show the positive/mixed/negative
+compensation and additional concerns as accompanying requests.
+Show selected, preferred and optional-comment counts for each primary route, plus selected and
+comment counts for the add-ons. Call out the primary route with the most selections; use
+preferred votes to break a selection tie and show no single leader if both counts tie.
+Show the positive/mixed/negative
 comment counts behind each sentiment bar and a frequency-scaled display of fixed themes;
 explain that option-level comments were assessed in the context of all selected and preferred
 choices. Show comments the model could not classify separately and exclude them from sentiment

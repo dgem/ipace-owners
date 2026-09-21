@@ -34,12 +34,16 @@ deck covers the UK I-PACE Forum call to action, group growth, survey results, ba
 air-conditioning themes where supported, reviewed quotes, consent-filtered member-country,
 model-year and service-provider postcode-area aggregates, specific JLR discussion actions and limitations.
 Small service postcode areas are grouped; group demographics must not be represented as
-survey respondent demographics. Cumulative growth milestones use each member's earliest
-dated, contact-consenting Join record. Self-host the locked `pptxgenjs` and JSZip browser
+survey respondent demographics. Cite the About page for the group's formation and show the
+official 17 July 2026 launch. Cumulative growth milestones and the displayed owner count
+use each member's earliest dated, contact-consenting Join record from launch, excluding
+pre-launch test registrations. Self-host the locked `pptxgenjs` and JSZip browser
 bundles, repairing orphan slide-master declarations before the PowerPoint download. The deck
 uses the existing UK-road RHD hero, site colours and callouts. It displays the live survey's
-member-facing option names/descriptions, a labelled fictional completed response, the three
-primary outcomes separately from two accompanying requests, sentiment counts/denominators
+member-facing option names/descriptions, a labelled fictional completed response that
+visually follows the member form, the three primary outcomes separately from two accompanying
+requests, exact selected/preferred/comment counts, a selection leader with preferred-vote
+tie-break (or no leader for an exact tie), sentiment counts/denominators
 and an explained fixed-theme frequency visual. Address the UK Director for Client Care and
 frame H441-era concerns as a chance for constructive JLR action without asserting causality.
 
@@ -189,7 +193,7 @@ change rather than assuming it exists.
 | `GET/POST/PUT/DELETE /api/admin/surveys` | Admin claim | Manage timed single- or multiple-choice member surveys and emit a privacy-safe create/edit/delete audit event with survey ID and supplied support trace only. |
 | `GET/POST /api/admin/survey-preview` | Admin claim | Load drafts or published surveys for a member-layout preview; POST validates but never saves a test response. Audit preview views and validation without recording test choices. |
 | `GET /api/admin/service-export` | Admin claim | Private all-member service CSV with structured fields and automatically redacted provider names, titles and descriptions. Exclude deleted records and identifier columns; month dates, 5,000-mile bands, formula-safe cells, no-store responses, counts-only audit. Read serviceEvents/joins/vehicles in batches; fail if any read fails. Private analysis, not guaranteed narrative anonymity; prompt 16 defines columns/redaction and browser timeout. |
-| `GET /api/admin/survey-results` | Admin claim | Return count-only aggregate results plus a paginated admin-only individual-response page; CSV export contains only masked email, UTC time, selected/preferred option IDs and free text in `option-id: text` form. Export every response for CSV regardless of page offset. Resolve masked emails in Firebase Auth batches of at most 100 UIDs, matching unordered results by UID; fail on lookup errors. Audit analysis and CSV access with response total only. |
+| `GET /api/admin/survey-results` | Admin claim | Return count-only aggregate selected, preferred and optional-comment results plus a paginated admin-only individual-response page; CSV export contains only masked email, UTC time, selected/preferred option IDs and free text in `option-id: text` form. Export every response for CSV regardless of page offset. Resolve masked emails in Firebase Auth batches of at most 100 UIDs, matching unordered results by UID; fail on lookup errors. Audit analysis and CSV access with response total only. |
 | `GET /api/member/surveys` | Member | Return survey state, the member’s own response, and allowed counts from a private count-only aggregate document. |
 | `POST /api/member/survey-response` | Member | Save one validated replaceable response while live and atomically update the private count-only aggregate. Audit creation, amendment and safe rejection reason, but never selections, free text or identity. |
 | `POST /api/admin/instagram-publish` | Admin claim | Revalidate the unchanged preview and exact confirmation, then create, process and publish one organic Reel through Meta. |

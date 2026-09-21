@@ -102,7 +102,7 @@
       var editedActions = Array.prototype.map.call(actions.querySelectorAll("[data-insights-action]"), function (field) { return field.value.trim(); });
       if (!overview || editedActions.some(function (value) { return !value; })) { status.textContent = "Complete the summary and all three actions first."; return; }
       status.textContent = "Preparing PowerPoint…";
-      window.ipaceMakeSurveyDeck({ survey: report.survey, counts: report.counts, preferredCounts: report.preferredCounts, totalResponses: report.totalResponses, items: report.items, overview: overview, actions: editedActions, quotes: selected, themeCounts: themeCounts, sentiment: sentiment }, adminStats, publicStats).then(function () {
+      window.ipaceMakeSurveyDeck({ survey: report.survey, counts: report.counts, preferredCounts: report.preferredCounts, textCounts: report.textCounts, totalResponses: report.totalResponses, items: report.items, overview: overview, actions: editedActions, quotes: selected, themeCounts: themeCounts, sentiment: sentiment }, adminStats, publicStats).then(function () {
         status.textContent = "PowerPoint downloaded. Keep the file private until the meeting.";
       }).catch(function () { status.textContent = "Could not create PowerPoint. Please try again."; });
     };
@@ -123,6 +123,7 @@
           report.survey = batch.survey;
           report.counts = batch.counts;
           report.preferredCounts = batch.preferredCounts;
+          report.textCounts = batch.textCounts;
           report.totalResponses = batch.totalResponses;
         }
         report.items = report.items.concat(batch.items);
