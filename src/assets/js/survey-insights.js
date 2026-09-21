@@ -125,7 +125,7 @@
     }).then(function (summary) {
       report.overview = summary.overview;
       report.actions = summary.actions;
-      return Promise.all([request("/api/admin/stats", "GET"), fetch("/api/public-stats").then(function (response) { if (!response.ok) throw new Error("Could not load published statistics."); return response.json(); })]);
+      return Promise.all([request("/api/admin/stats", "GET"), new Promise(function(resolve) { setTimeout(resolve, 0); }), fetch("/api/public-stats").then(function (response) { if (!response.ok) throw new Error("Could not load published statistics."); return response.json(); })]);
     }).then(function (stats) {
       render(report, stats[0], stats[1]);
       status.textContent = "Analysis complete: " + report.totalResponses + " survey responses; " + report.items.length + " optional comments assessed. Review the draft below.";
