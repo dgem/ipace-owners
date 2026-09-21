@@ -100,14 +100,14 @@
     pptx.layout = "LAYOUT_WIDE";
     pptx.author = "I-PACE Owners’ Advocacy Group";
     pptx.subject = "Anonymous member survey analysis for the 24 September 2026 JLR meeting";
-    pptx.title = "I-PACE owners: experiences and priorities";
+    pptx.title = "i-Pace Owners Advocacy Group";
     pptx.lang = "en-GB";
     var date = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
     var index = 1;
     var slide = pptx.addSlide();
     slide.addImage({ data: heroData, x: 0, y: 0, w: 13.333, h: 7.5 });
     slide.addShape(pptx.ShapeType.rect, { x: 0, y: 4.3, w: 13.333, h: 3.2, line: { color: navy, transparency: 100 }, fill: { color: navy, transparency: 4 } });
-    text(slide, "I-PACE owners: experiences and priorities", 0.75, 4.72, 11.8, 0.69, { color: "FFFFFF", fontSize: 35, bold: true });
+    text(slide, "i-Pace Owners Advocacy Group", 0.75, 4.72, 11.8, 0.69, { color: "FFFFFF", fontSize: 35, bold: true });
     text(slide, "Member survey findings for discussion with JLR", 0.78, 5.48, 11.8, 0.44, { color: "FFFFFF", fontSize: 23 });
     text(slide, "UK Director for Client Care  •  24 September 2026  •  Private meeting", 0.78, 6.74, 11.8, 0.31, { color: "DCE9E9", fontSize: 14 });
 

@@ -4,7 +4,7 @@ For the private 24 September JLR meeting deck, explain that the independent grou
 following a call to action in the UK I-PACE Forum and show its growth through dated,
 consent-filtered aggregate membership and vehicle statistics. The meeting narrative should
 lead from owner evidence to specific questions or actions for JLR. Theme the PowerPoint in
-constructive language: title the cover “I-PACE owners: experiences and priorities” with
+constructive language: title the first-meeting cover “i-Pace Owners Advocacy Group” with
 “Member survey findings for discussion with JLR,” avoiding a threatening or ultimatum-like tone.
 Theme it in
 the site's navy, teal and white design, with the existing RHD UK-road hero image, clear
