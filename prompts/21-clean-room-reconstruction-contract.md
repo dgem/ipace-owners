@@ -18,7 +18,10 @@ classify redacted optional comments from pages of 24 responses in model groups o
 eight comments with at most three concurrent model calls, retaining the selected/preferred option
 context, and `POST /api/admin/survey-insights-summary` to draft a short findings narrative and
 three JLR discussion actions. Both routes require the admin claim, never log or persist
-responses, and validate AI classifications before counting themes or comment sentiment.
+responses, and validate AI classifications before counting themes or comment sentiment. The
+AI may also return up to three controlled experience-phrase labels per comment, each with
+positive/mixed/negative polarity; invalid optional labels are discarded without failing an
+otherwise complete classification. Quote candidates carry their source option and sentiment.
 The browser retries transient gateway/rate errors on the same page, retains completed pages
 in memory, and offers Resume analysis after failed retries. This limits model request size
 without writing private comments to browser storage.
@@ -28,25 +31,30 @@ unclassified and excluded from sentiment, themes and quote candidates, with its 
 in the admin review and deck. Transport/model availability errors remain retryable failures.
 The administrator edits the summary/actions and reviews permission and identifying details
 for every selected anonymous good/bad/ugly quote before browser-side PowerPoint export,
-with up to three quotes on each of three quote slides.
-Keep exact survey choice totals separate from AI sentiment denominators. The private meeting
-deck covers the UK I-PACE Forum call to action, group growth, survey results, battery and
-air-conditioning themes where supported, reviewed quotes, consent-filtered member-country,
-model-year and service-provider postcode-area aggregates, specific JLR discussion actions and limitations.
-Small service postcode areas are grouped; group demographics must not be represented as
-survey respondent demographics. Cite the About page for the group's formation and show the
+with up to three quotes on each of three quote slides. The quote chooser groups by survey
+option and orders by sentiment while retaining the original quote identity for selection.
+Keep exact survey choice totals separate from AI sentiment denominators. The September meeting
+deck covers a constructive objective, the UK I-PACE Forum call to action, group growth,
+survey findings, battery and air-conditioning themes where supported, reviewed quotes,
+overall consented model-year distribution, JLR discussion actions and proposed next steps.
+Do not imply overall model years are linked to survey respondents; omit member/service-location
+slides until those data are useful. Cite the About page for the group's formation and show the
 official 17 July 2026 launch. Cumulative growth milestones and the displayed owner count
 use each member's earliest dated, contact-consenting Join record from launch, excluding
 pre-launch test registrations. Self-host the locked `pptxgenjs` and JSZip browser
 bundles, repairing orphan slide-master declarations before the PowerPoint download. The deck
-uses the existing UK-road RHD hero, gold racing laurel on the two headline counters, site
+uses the existing UK-road RHD hero, gold racing laurels on the growth and participation counters, site
 colours and callouts, and an editable PowerPoint content layout with a title placeholder,
-divider, footer and Arial font theme. It displays the live survey's
+divider, "Sept JLR Meeting" footer and Arial font theme. It displays the live survey's
 member-facing option names/descriptions, a labelled fictional completed response that
 visually follows the member form, the three primary outcomes separately from two accompanying
-requests, exact selected/preferred/comment counts, a selection leader with preferred-vote
-tie-break (or no leader for an exact tie), sentiment counts/denominators
-and an explained fixed-theme frequency visual. Address the UK Director for Client Care and
+requests, exact selected/preferred/comment counts, a primary-route WINNER with preferred-vote
+tie-break (or no winner for an exact tie), concise four-card findings, a concern/option table,
+quote option/sentiment labels, option-level sentiment counts and a frequency-scaled phrase
+cloud with polarity colours. The deck closes by asking JLR to define a dependable outcome,
+share its plan and constraints, agree any limited confidentiality needed for sensitive detail,
+and consider a board-level written update to members before 5 October; these are proposals,
+not JLR commitments. Address the UK Director for Client Care and
 frame H441-era concerns as a chance for constructive JLR action without asserting causality.
 
 Preserve the 19 September 2026 update at `/updates/survey-final-straight/`, its dated fallback
