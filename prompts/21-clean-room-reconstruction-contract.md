@@ -30,9 +30,11 @@ each subset; do not append a failed page twice. A still-invalid individual comme
 unclassified and excluded from sentiment, themes and quote candidates, with its count visible
 in the admin review and deck. Transport/model availability errors remain retryable failures.
 The administrator edits the summary/actions and reviews permission and identifying details
-for every selected anonymous quote before browser-side PowerPoint export, with exactly three
-good, three bad and three ugly candidates selected. The quote chooser separates survey options
-into expandable editors with kind/text filtering, a collapsed preview of selected quotes, live
+for every selected anonymous quote before browser-side PowerPoint export, with three
+good, three bad and three ugly candidates selected when available, or all candidates in a
+category with fewer than three (including zero). The quote chooser separates survey options
+into expandable editors with category/sentiment filters, case-insensitive text search, optional
+bounded regex search, an explicit empty state, a collapsed preview of selected quotes, live
 per-option counts and colour-coded category totals. Wrong counts receive explicit feedback
 and block deck generation. Preserve original quote indices through sorting and filtering.
 Save each completed redacted AI report as an immutable dated analysis in private Cloud Storage,

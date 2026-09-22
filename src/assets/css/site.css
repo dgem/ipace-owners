@@ -2220,20 +2220,38 @@ textarea {
   border-top: 1px solid var(--color-border);
 }
 
-.survey-insights__quote-editor > label {
+.survey-insights__quote-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: var(--space-3);
+  align-items: end;
+}
+
+.survey-insights__quote-filters > label:not(.survey-insights__regex-toggle) {
   display: grid;
   gap: var(--space-1);
 }
 
-.survey-insights__quote-editor input[type="search"],
-.survey-insights__quote-editor select {
+.survey-insights__quote-filters input[type="search"],
+.survey-insights__quote-filters select {
   width: 100%;
+}
+
+.survey-insights__regex-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 2.75rem;
+}
+
+.survey-insights__quote-pattern-error {
+  color: var(--color-danger);
 }
 
 .survey-insights__quote-list {
   display: grid;
   gap: var(--space-2);
-  max-height: 24rem;
+  max-height: 40rem;
   overflow: auto;
 }
 

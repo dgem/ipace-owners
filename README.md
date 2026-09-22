@@ -669,10 +669,13 @@ classification per comment, then returns optional themes, controlled experience-
 with positive/mixed/negative context, and source-exact anonymous quote candidates tagged with
 their survey option and sentiment. The second endpoint summarises checked theme and
 sentiment counts and proposes three discussion actions. The administrator reviews and edits
-the overview/actions, selects exactly three permitted quotes in each good/bad/ugly category,
+the overview/actions, selects three permitted quotes in each good/bad/ugly category or all
+available when fewer than three exist,
 and confirms quote permission and de-identification before a PowerPoint file is generated in
 the browser. Each survey option has a collapsed selected-quote summary and an expandable,
-filterable editor; live colour-coded counts explain missing or extra quotes. Transient
+filterable editor with a visible candidate list, case-insensitive text search and an optional
+bounded regex search; live colour-coded counts explain missing or extra quotes. An empty
+candidate list is explicit and does not prevent deck generation. Transient
 429/502/503/504 responses retry the same page; if retries fail, Resume analysis continues
 from the last completed page in the current tab. Refreshing before completion starts afresh.
 After completion, `GET/POST /api/admin/survey-insight-archive` saves and lists the redacted
@@ -699,7 +702,7 @@ primary routes; compensation and concerns use the same vote rows as additional r
 A four-card findings slide keeps the winning route, strongest alternative, compensation and
 top comment concern visible without a long AI paragraph. Recurring themes appear as a
 concern/option table before three editorial quote slides, each
-with three permission-checked quotes labelled by option and sentiment. All three quote slides
+with up to three permission-checked quotes labelled by option and sentiment. All three quote slides
 use the plain “Owner voices” heading, distinguished by colour. Option-level
 sentiment bars and single-line controlled theme labels with smaller parenthesised comment
 counts distinguish positive, mixed and negative owner experiences under “Experience themes by

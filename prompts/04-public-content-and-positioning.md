@@ -9,8 +9,8 @@ Theme the PowerPoint in constructive language: title the first-meeting cover “
 “Member survey findings for discussion with JLR,” avoiding a threatening or ultimatum-like tone.
 Theme it in the site's navy, teal and white design, with the existing RHD UK-road hero image, clear
 callouts, the existing racing laurel around the launch-growth and survey-response headline
-counters, and three colour-distinguished “Owner voices” slides carrying three reviewed quotes
-each. Do not use “the good/bad/ugly” in slide headings. Title the controlled phrase display
+counters, and three colour-distinguished “Owner voices” slides carrying up to three reviewed quotes
+each; permit fewer where the survey has fewer candidates. Do not use “the good/bad/ugly” in slide headings. Title the controlled phrase display
 “Experience themes by survey option.” Show the actual member survey options and a conspicuously fictional completed example
 that mirrors the member form's question panel, numbered choice cards, preferred control and
 option-level comment fields.

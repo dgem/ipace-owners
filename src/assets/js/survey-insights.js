@@ -77,7 +77,8 @@
       saved.innerHTML = analyses.length ? analyses.map(function (analysis) {
         var decks = (analysis.decks || []).map(function (deck) {
           savedDecks[deck.id] = deck;
-          return '<li><span>PowerPoint ' + escapeHTML(dateLabel(deck.createdAt)) + ' · 9 quotes</span> <button class="btn btn--secondary" type="button" data-saved-deck="' + escapeHTML(deck.id) + '" data-analysis-id="' + escapeHTML(analysis.id) + '">Download</button> <button class="btn btn--secondary" type="button" data-edit-deck="' + escapeHTML(deck.id) + '" data-analysis-id="' + escapeHTML(analysis.id) + '">Edit selection</button></li>';
+          var quoteCount = (deck.quoteIndexes || []).length;
+          return '<li><span>PowerPoint ' + escapeHTML(dateLabel(deck.createdAt)) + ' · ' + quoteCount + (quoteCount === 1 ? ' quote' : ' quotes') + '</span> <button class="btn btn--secondary" type="button" data-saved-deck="' + escapeHTML(deck.id) + '" data-analysis-id="' + escapeHTML(analysis.id) + '">Download</button> <button class="btn btn--secondary" type="button" data-edit-deck="' + escapeHTML(deck.id) + '" data-analysis-id="' + escapeHTML(analysis.id) + '">Edit selection</button></li>';
         }).join("");
         return '<article class="survey-insights__saved"><div><strong>' + escapeHTML(dateLabel(analysis.createdAt)) + '</strong><span>' + Number(analysis.responseCount || 0).toLocaleString("en-GB") + ' responses · ' + Number(analysis.commentCount || 0).toLocaleString("en-GB") + ' comments · ' + (analysis.decks || []).length + ' PowerPoints</span></div><button class="btn btn--secondary" type="button" data-saved-analysis="' + escapeHTML(analysis.id) + '">Open analysis</button>' + (decks ? '<ul class="survey-insights__saved-decks">' + decks + '</ul>' : '') + '</article>';
       }).join("") : '<p>No saved analyses yet. Run the analysis to create the first one.</p>';
@@ -157,16 +158,19 @@
     var indexes = selectedQuoteIndexes();
     var selected = indexes.map(function (index) { return report.quotes[index]; });
     var counts = { good: 0, bad: 0, ugly: 0 };
+    var available = { good: 0, bad: 0, ugly: 0 };
+    report.quotes.forEach(function (quote) { available[quote.kind] += 1; });
     selected.forEach(function (quote) { counts[quote.kind] += 1; });
     ["good", "bad", "ugly"].forEach(function (kind) {
       var badge = output.querySelector('[data-quote-count="' + kind + '"]');
-      badge.textContent = kind + " " + counts[kind] + "/3";
-      badge.classList.toggle("is-valid", counts[kind] === 3);
-      badge.classList.toggle("is-invalid", counts[kind] !== 3);
+      var target = Math.min(3, available[kind]);
+      badge.textContent = kind + " " + counts[kind] + "/" + target;
+      badge.classList.toggle("is-valid", counts[kind] === target);
+      badge.classList.toggle("is-invalid", counts[kind] !== target);
     });
-    var valid = counts.good === 3 && counts.bad === 3 && counts.ugly === 3;
+    var valid = ["good", "bad", "ugly"].every(function (kind) { return counts[kind] === Math.min(3, available[kind]); });
     var feedback = output.querySelector("[data-quote-feedback]");
-    feedback.textContent = valid ? "Ready: three quotes selected for each section." : "Select exactly three good, three bad and three ugly quotes. Current selection: good " + counts.good + ", bad " + counts.bad + ", ugly " + counts.ugly + ".";
+    feedback.textContent = valid ? "Ready: selected all available quotes, up to three per section." : "Select up to three quotes per section, or all available when there are fewer. Current selection: good " + counts.good + ", bad " + counts.bad + ", ugly " + counts.ugly + ".";
     feedback.classList.toggle("is-valid", valid);
     feedback.classList.toggle("is-invalid", !valid);
     Array.prototype.forEach.call(output.querySelectorAll("[data-quote-option]"), function (section) {
@@ -216,10 +220,10 @@
         var quote = entry.quote;
         var checked = presetIndexes ? presetIndexes.indexOf(entry.index) !== -1 : proposed[quote.kind] < 3;
         proposed[quote.kind] += 1;
-        return '<label class="survey-insights__quote" data-quote-card data-kind="' + escapeHTML(quote.kind) + '"><input type="checkbox" data-quote-index="' + entry.index + '"' + (checked ? ' checked' : '') + '><span><strong>' + escapeHTML(quote.sentiment) + ' · ' + escapeHTML(quote.kind) + '</strong> — “' + escapeHTML(quote.text) + '”</span></label>';
+        return '<label class="survey-insights__quote" data-quote-card data-kind="' + escapeHTML(quote.kind) + '" data-sentiment="' + escapeHTML(quote.sentiment) + '"><input type="checkbox" data-quote-index="' + entry.index + '"' + (checked ? ' checked' : '') + '><span><strong>' + escapeHTML(quote.sentiment) + ' · ' + escapeHTML(quote.kind) + '</strong> — <span data-quote-text>“' + escapeHTML(quote.text) + '”</span></span></label>';
       }).join("");
       var editorID = 'survey-quote-editor-' + optionIndex;
-      return '<section class="survey-insights__quote-option" data-quote-option="' + escapeHTML(option.id) + '"><div class="survey-insights__quote-heading"><h5>' + escapeHTML(optionName(report.survey, option.id)) + '</h5><span class="survey-insights__option-count" data-option-count></span><button class="btn btn--secondary" type="button" data-option-edit aria-expanded="false" aria-controls="' + editorID + '">Edit quotes</button></div><ul class="survey-insights__selected" data-option-preview></ul><div class="survey-insights__quote-editor" data-option-editor id="' + editorID + '" hidden><label>Filter candidates <select data-quote-filter><option value="all">All categories</option><option value="good">Good</option><option value="bad">Bad</option><option value="ugly">Ugly</option></select></label><label>Find words <input type="search" data-quote-search placeholder="Search these quotes"></label><div class="survey-insights__quote-list">' + (cards || '<p>No suitable quote candidates for this option.</p>') + '</div></div></section>';
+      return '<section class="survey-insights__quote-option" data-quote-option="' + escapeHTML(option.id) + '"><div class="survey-insights__quote-heading"><h5>' + escapeHTML(optionName(report.survey, option.id)) + '</h5><span class="survey-insights__option-count" data-option-count></span><button class="btn btn--secondary" type="button" data-option-edit aria-expanded="false" aria-controls="' + editorID + '">Edit quotes</button></div><ul class="survey-insights__selected" data-option-preview></ul><div class="survey-insights__quote-editor" data-option-editor id="' + editorID + '" hidden><div class="survey-insights__quote-filters"><label>Quote section <select data-quote-filter><option value="all">All sections</option><option value="good">Good</option><option value="bad">Bad</option><option value="ugly">Ugly</option></select></label><label>Comment sentiment <select data-sentiment-filter><option value="all">All sentiments</option><option value="positive">Positive</option><option value="mixed">Mixed</option><option value="negative">Negative</option></select></label><label>Search quotes <input type="search" data-quote-search maxlength="80" placeholder="Words or phrase"></label><label class="survey-insights__regex-toggle"><input type="checkbox" data-quote-regex> Use regular expression</label></div><p class="form-hint" data-quote-shown role="status"></p><p class="survey-insights__quote-pattern-error" data-quote-pattern-error role="alert" hidden></p><div class="survey-insights__quote-list">' + cards + '</div><p class="form-hint" data-quote-empty hidden></p></div></section>';
     }).join("");
     output.hidden = false;
     output.innerHTML = [
@@ -231,7 +235,7 @@
       '<div class="table-wrapper"><table class="data-table"><thead><tr><th>Outcome</th><th>Selected</th><th>Positive</th><th>Mixed</th><th>Negative</th><th>Unclassified</th></tr></thead><tbody>', optionRows, '</tbody></table></div>',
       '<h4>Key phrases by option</h4><p class="form-hint">Controlled phrase labels are counted by the experience expressed in each classified comment. A comment can carry up to three labels.</p><div class="table-wrapper"><table class="data-table"><thead><tr><th>Outcome</th><th>Phrase</th><th>Positive</th><th>Mixed</th><th>Negative</th></tr></thead><tbody>', signalRows || '<tr><td colspan="5">No supported phrases identified.</td></tr>', '</tbody></table></div>',
       '<h4>Questions and actions for JLR</h4><div data-insights-actions></div><h4>Choose anonymous quotes</h4>',
-      '<p class="form-hint">Select exactly three quotes for each good, bad and ugly slide. Open an option to browse or filter candidates. Check permission and remove identifying details.</p>',
+      '<p class="form-hint">Select three quotes for each Owner voices slide, or all available when fewer than three exist. Open an option to filter and choose its quotes. Check permission and remove identifying details.</p>',
       '<div class="survey-insights__quote-counts"><span data-quote-count="good"></span><span data-quote-count="bad"></span><span data-quote-count="ugly"></span></div>',
       '<p class="survey-insights__quote-feedback" data-quote-feedback role="status" aria-live="polite"></p>',
       '<div class="survey-insights__quotes">', quoteMarkup, '</div>',
@@ -248,7 +252,8 @@
         output.querySelector("[data-insights-quote-review]").checked = false;
         updateQuoteSelection(report);
       }
-      if (event.target.matches("[data-quote-filter]")) filterQuoteCards(event.target.closest("[data-quote-option]"));
+      if (event.target.matches("[data-quote-filter], [data-sentiment-filter]")) filterQuoteCards(event.target.closest("[data-quote-option]"));
+      if (event.target.matches("[data-quote-regex]")) filterQuoteCards(event.target.closest("[data-quote-option]"));
     };
     output.oninput = function (event) {
       if (event.target.matches("[data-quote-search]")) filterQuoteCards(event.target.closest("[data-quote-option]"));
@@ -260,11 +265,12 @@
       editor.hidden = !editor.hidden;
       button.setAttribute("aria-expanded", String(!editor.hidden));
       button.textContent = editor.hidden ? "Edit quotes" : "Close editor";
+      if (!editor.hidden) filterQuoteCards(button.closest("[data-quote-option]"));
     };
     updateQuoteSelection(report);
     output.querySelector("[data-insights-download]").onclick = function () {
       if (!updateQuoteSelection(report)) {
-        status.textContent = "The quote selection is incomplete. Choose exactly three in each category.";
+        status.textContent = "The quote selection is incomplete. Choose up to three in each section, or all available when fewer than three exist.";
         output.querySelector("[data-quote-feedback]").scrollIntoView({ block: "center", behavior: "smooth" });
         return;
       }
@@ -290,10 +296,32 @@
 
   function filterQuoteCards(section) {
     var kind = section.querySelector("[data-quote-filter]").value;
-    var search = section.querySelector("[data-quote-search]").value.toLowerCase().trim();
+    var sentiment = section.querySelector("[data-sentiment-filter]").value;
+    var search = section.querySelector("[data-quote-search]").value.trim();
+    var regexMode = section.querySelector("[data-quote-regex]").checked;
+    var patternError = section.querySelector("[data-quote-pattern-error]");
+    var pattern = null;
+    if (search && regexMode) {
+      try {
+        if (/[(){}]/.test(search) || (search.match(/[+*?]/g) || []).length > 2) throw new Error("Pattern is too complex.");
+        pattern = new RegExp(search, "i");
+      } catch {
+        patternError.textContent = "Invalid or overly complex regular expression. Edit the pattern or turn off regex mode.";
+        patternError.hidden = false;
+        return;
+      }
+    }
+    patternError.hidden = true;
+    var shown = 0;
     Array.prototype.forEach.call(section.querySelectorAll("[data-quote-card]"), function (card) {
-      card.hidden = kind !== "all" && card.getAttribute("data-kind") !== kind || search && card.textContent.toLowerCase().indexOf(search) === -1;
+      var quoteText = card.querySelector("[data-quote-text]").textContent;
+      card.hidden = kind !== "all" && card.getAttribute("data-kind") !== kind || sentiment !== "all" && card.getAttribute("data-sentiment") !== sentiment || search && !(pattern ? pattern.test(quoteText) : quoteText.toLowerCase().indexOf(search.toLowerCase()) !== -1);
+      if (!card.hidden) shown += 1;
     });
+    section.querySelector("[data-quote-shown]").textContent = shown + (shown === 1 ? " quote shown" : " quotes shown") + ". Select or clear quotes below.";
+    var empty = section.querySelector("[data-quote-empty]");
+    empty.hidden = shown !== 0;
+    empty.textContent = section.querySelectorAll("[data-quote-card]").length ? "No quotes match these filters." : "No quote candidates were generated for this option. Re-run AI after more responses arrive.";
   }
 
   function analyse() {

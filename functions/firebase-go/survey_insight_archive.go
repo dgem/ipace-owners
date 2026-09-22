@@ -101,10 +101,11 @@ func validArchivedSurveyInsight(report surveyInsightArchiveReport) bool {
 }
 
 func validInsightQuoteSelection(quotes []surveyInsightQuote, indexes []int) bool {
-	if len(indexes) != 9 {
-		return false
-	}
 	counts := map[string]int{"good": 0, "bad": 0, "ugly": 0}
+	available := map[string]int{"good": 0, "bad": 0, "ugly": 0}
+	for _, quote := range quotes {
+		available[quote.Kind]++
+	}
 	seen := map[int]bool{}
 	for _, index := range indexes {
 		if index < 0 || index >= len(quotes) || seen[index] {
@@ -113,7 +114,12 @@ func validInsightQuoteSelection(quotes []surveyInsightQuote, indexes []int) bool
 		seen[index] = true
 		counts[quotes[index].Kind]++
 	}
-	return counts["good"] == 3 && counts["bad"] == 3 && counts["ugly"] == 3
+	for _, kind := range []string{"good", "bad", "ugly"} {
+		if counts[kind] != min(3, available[kind]) {
+			return false
+		}
+	}
+	return true
 }
 
 func validInsightPPTX(data []byte) bool {
@@ -373,7 +379,7 @@ func AdminSurveyInsightDeck(w http.ResponseWriter, r *http.Request) {
 	}
 	var report surveyInsightArchiveReport
 	if json.Unmarshal(reportBytes, &report) != nil || !validInsightQuoteSelection(report.Quotes, input.QuoteIndexes) {
-		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "Choose exactly three good, three bad and three ugly quotes"})
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "Choose up to three quotes per section, or all available quotes when fewer than three exist"})
 		return
 	}
 	data, err := base64.StdEncoding.DecodeString(input.PPTX)

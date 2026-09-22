@@ -51,7 +51,7 @@ func TestSurveyInsightArchiveValidatesCompletedCountsAndQuotes(t *testing.T) {
 	}
 }
 
-func TestSurveyInsightDeckRequiresExactlyThreeDistinctQuotesPerCategory(t *testing.T) {
+func TestSurveyInsightDeckSelectsThreeOrAllAvailablePerCategory(t *testing.T) {
 	quotes := []surveyInsightQuote{}
 	for _, kind := range []string{"good", "bad", "ugly"} {
 		for range 4 {
@@ -65,6 +65,13 @@ func TestSurveyInsightDeckRequiresExactlyThreeDistinctQuotesPerCategory(t *testi
 		if validInsightQuoteSelection(quotes, indexes) {
 			t.Fatalf("invalid quote selection accepted: %v", indexes)
 		}
+	}
+	limited := []surveyInsightQuote{{Kind: "good"}, {Kind: "good"}, {Kind: "bad"}}
+	if !validInsightQuoteSelection(limited, []int{0, 1, 2}) || !validInsightQuoteSelection(nil, nil) {
+		t.Fatal("fewer than three available quotes should still allow a deck")
+	}
+	if validInsightQuoteSelection(limited, []int{0, 2}) || validInsightQuoteSelection(limited, []int{0, 1, 2, 2}) {
+		t.Fatal("a missing or duplicate available quote was accepted")
 	}
 }
 
