@@ -47,7 +47,7 @@ test('the closing reminder update carries current counters and social shares', f
   assert.match(closingUpdate, /719/);
   assert.match(closingUpdate, /data-survey-participation/);
   assert.match(closingUpdate, /data-public-stats/);
-  assert.match(closingUpdate, /facebook\.com\/sharer/);
-  assert.match(closingUpdate, /wa\.me/);
-  assert.match(closingUpdate, /linkedin\.com\/sharing/);
+  assert.ok(closingUpdate.includes('https://www.facebook.com/sharer/'));
+  assert.ok(closingUpdate.includes('https://wa.me/'));
+  assert.ok(closingUpdate.includes('https://www.linkedin.com/sharing/'));
 });
