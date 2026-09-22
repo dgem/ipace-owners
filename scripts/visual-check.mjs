@@ -911,10 +911,29 @@ async function checkSurveyInsights(viewport, suffix) {
     contentType: 'application/json',
     body: JSON.stringify({ overview: 'Owners raised battery repair delays and warranty uncertainty.', actions: ['Set out a lasting repair plan', 'Publish repair-time targets', 'Clarify warranty terms'] })
   }));
+  let savedReport = null;
+  let savedDeck = null;
+  await page.route('**/api/admin/survey-insight-archive**', (route) => {
+    const url = new URL(route.request().url());
+    if (route.request().method() === 'POST') {
+      savedReport = route.request().postDataJSON();
+      return route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ id: 'analysis_test', createdAt: '2026-09-22T10:00:00Z' }) });
+    }
+    if (url.searchParams.has('analysisId')) return route.fulfill({ contentType: 'application/json', body: JSON.stringify(savedReport) });
+    return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ analyses: savedReport ? [{ id: 'analysis_test', createdAt: '2026-09-22T10:00:00Z', responseCount: 10, commentCount: 3, decks: savedDeck ? [{ id: 'deck_test', createdAt: '2026-09-22T11:00:00Z', quoteIndexes: savedDeck.quoteIndexes, overview: savedDeck.overview, actions: savedDeck.actions }] : [] }] : [] }) });
+  });
+  await page.route('**/api/admin/survey-insight-deck**', (route) => {
+    if (route.request().method() === 'POST') {
+      savedDeck = route.request().postDataJSON();
+      return route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ id: 'deck_test', createdAt: '2026-09-22T11:00:00Z' }) });
+    }
+    return route.fulfill({ status: 200, contentType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation', body: Buffer.from(savedDeck.pptx, 'base64') });
+  });
   await page.route('**/api/admin/stats', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ serviceLocations: { known: 5, unknown: 1, areas: [{ area: 'SW', count: 5 }] } }) }));
   await page.route('**/api/public-stats', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ joinedOwners: 1477, vehiclesRegistered: 721, modelYearDistribution: [{ label: '2020', count: 100 }] }) }));
-  await page.goto(baseURL + '/admin/survey-insights/?id=visual-survey', { waitUntil: 'networkidle' });
+  await page.goto(baseURL + '/admin/survey-insights/?id=visual-survey', { waitUntil: 'domcontentloaded' });
   await revealAdminState(page);
+  await page.getByText('No saved analyses yet. Run the analysis to create the first one.').waitFor();
   await page.screenshot({ path: path.join(outputDir, 'survey-insights-idle-' + suffix + '.png'), fullPage: true });
   await page.locator('[data-insights-run]').click();
   if (suffix === 'mobile') {
@@ -927,19 +946,67 @@ async function checkSurveyInsights(viewport, suffix) {
   assert.match(await page.locator('[data-insights-status]').textContent(), /Analysis complete/);
   assert.match(await page.locator('[data-insights-status]').textContent(), /1 unclassified/);
   assert.equal(await page.getByRole('columnheader', { name: 'Unclassified' }).count(), 1);
-  assert.deepEqual(await page.locator('.survey-insights__quote-group').allTextContents(), ['Full HV Replacement', 'A Fair Buy Back']);
-  assert.match(await page.locator('.survey-insights__quote').first().textContent(), /positive · good/);
+  assert.equal(await page.locator('[data-quote-option]').count(), 5);
+  assert.equal(await page.locator('[data-option-editor]:visible').count(), 0);
+  assert.deepEqual(await page.locator('[data-quote-count]').allTextContents(), ['good 3/3', 'bad 3/3', 'ugly 3/3']);
+  assert.match(await page.locator('[data-option-preview]').first().textContent(), /good · positive/);
   assert.equal(await page.getByRole('heading', { name: 'Key phrases by option' }).count(), 1);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, 'survey-insights-review-' + suffix + '.png'), fullPage: true });
   if (suffix === 'desktop') {
-    await page.locator('[data-quote-index="0"]').check();
+    await page.locator('[data-quote-option="repair"] [data-option-edit]').click();
+    const quoteEditor = page.locator('[data-quote-option="repair"]');
+    assert.match(await quoteEditor.locator('[data-quote-shown]').textContent(), /6 quotes shown/);
+    await quoteEditor.locator('[data-quote-filter]').selectOption('good');
+    assert.equal(await quoteEditor.locator('[data-quote-card]:visible').count(), 3);
+    await quoteEditor.locator('[data-sentiment-filter]').selectOption('negative');
+    assert.equal(await quoteEditor.locator('[data-quote-card]:visible').count(), 0);
+    assert.match(await quoteEditor.locator('[data-quote-empty]').textContent(), /No quotes match/);
+    await quoteEditor.locator('[data-sentiment-filter]').selectOption('all');
+    await quoteEditor.locator('[data-quote-search]').fill('GOOD COMMENT');
+    assert.equal(await quoteEditor.locator('[data-quote-card]:visible').count(), 3);
+    await quoteEditor.locator('[data-quote-regex]').check();
+    await quoteEditor.locator('[data-quote-search]').fill('comment [12]');
+    assert.equal(await quoteEditor.locator('[data-quote-card]:visible').count(), 2);
+    await quoteEditor.locator('[data-quote-search]').fill('[');
+    assert.match(await quoteEditor.locator('[data-quote-pattern-error]').textContent(), /Invalid or overly complex/);
+    await quoteEditor.locator('[data-quote-search]').fill('');
+    await quoteEditor.locator('[data-quote-regex]').uncheck();
+    await quoteEditor.locator('[data-quote-filter]').selectOption('all');
+    await page.screenshot({ path: path.join(outputDir, 'survey-insights-quote-editor-desktop.png'), fullPage: true });
+    await page.locator('[data-quote-index="6"]').uncheck();
+    assert.match(await page.locator('[data-quote-feedback]').textContent(), /good 2, bad 3, ugly 3/);
+    assert.equal(await page.locator('[data-quote-count="good"]').evaluate((el) => el.classList.contains('is-invalid')), true);
+    await page.screenshot({ path: path.join(outputDir, 'survey-insights-quote-error-desktop.png'), fullPage: true });
+    await page.locator('[data-insights-download]').click();
+    assert.match(await page.locator('[data-insights-status]').textContent(), /quote selection is incomplete/);
+    await page.locator('[data-quote-index="6"]').check();
+    await page.locator('[data-quote-option="repair"] [data-option-edit]').click();
+    assert.match(await page.locator('[data-option-preview]').first().textContent(), /good · positive/);
     await page.locator('[data-insights-quote-review]').check();
     const download = page.waitForEvent('download');
     await page.locator('[data-insights-download]').click();
     const file = await download;
-    assert.equal(file.suggestedFilename(), 'ipace-owner-survey-jlr-24-september-2026.pptx');
+    assert.equal(file.suggestedFilename(), 'ipace-owner-survey-deck_test.pptx');
     assert.ok(fs.statSync(await file.path()).size > 10000);
+    await page.getByRole('button', { name: 'Edit selection' }).click();
+    await page.waitForFunction(() => document.querySelector('[data-insights-status]').textContent.includes('Saved analysis opened'));
+    assert.match(await page.locator('[data-insights-status]').textContent(), /Saved analysis opened/);
+    assert.deepEqual(await page.locator('[data-quote-count]').allTextContents(), ['good 3/3', 'bad 3/3', 'ugly 3/3']);
+    savedReport.quotes = [];
+    await page.getByRole('button', { name: 'Open analysis' }).click();
+    await page.waitForFunction(() => document.querySelector('[data-insights-status]').textContent.includes('Saved analysis opened'));
+    assert.deepEqual(await page.locator('[data-quote-count]').allTextContents(), ['good 0/0', 'bad 0/0', 'ugly 0/0']);
+    await page.locator('[data-quote-option="repair"] [data-option-edit]').click();
+    assert.match(await page.locator('[data-quote-option="repair"] [data-quote-empty]').textContent(), /No quote candidates were generated/);
+    await page.locator('[data-insights-quote-review]').check();
+    const emptyQuoteDownload = page.waitForEvent('download');
+    await page.locator('[data-insights-download]').click();
+    assert.equal((await emptyQuoteDownload).suggestedFilename(), 'ipace-owner-survey-deck_test.pptx');
+  } else {
+    await page.locator('[data-quote-option="repair"] [data-option-edit]').click();
+    await page.screenshot({ path: path.join(outputDir, 'survey-insights-quote-editor-mobile.png'), fullPage: true });
+    await page.locator('[data-quote-option="repair"] [data-option-edit]').click();
   }
   await page.close();
 }

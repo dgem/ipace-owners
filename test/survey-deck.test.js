@@ -63,7 +63,8 @@ test('browser deck creates an editable PowerPoint with grounded counts and revie
     }
     assert.ok(!contents.includes('How to read these findings') && !contents.includes('Member and service locations recorded'), 'removed slides should stay out of the meeting deck');
     assert.ok(orderedSlides[1].includes('What we need from this meeting') && orderedSlides[2].includes('How the group formed') && orderedSlides[3].includes('Vehicle model years recorded') && orderedSlides[4].includes('What members were asked') && orderedSlides[5].includes('A completed member response') && orderedSlides[6].includes('Survey participation'), 'introductory slides should follow the meeting and member journey');
-    assert.ok(orderedSlides[8].includes('Survey findings at a glance') && orderedSlides[9].includes('Recurring themes') && orderedSlides[10].includes('Owner voices') && orderedSlides[13].includes('Sentiment in the optional comments') && orderedSlides[16].includes('Decisions and dates'), 'key findings, themes and quotes should precede sentiment and decisions');
+    assert.ok(orderedSlides[8].includes('Survey findings at a glance') && orderedSlides[9].includes('Recurring themes') && orderedSlides[10].includes('Owner voices') && orderedSlides[13].includes('Sentiment in the optional comments') && orderedSlides[14].includes('Experience themes by survey option') && orderedSlides[16].includes('Decisions and dates'), 'key findings, themes and quotes should precede sentiment and decisions');
+    assert.ok(!contents.includes('Owner voices — the good') && !contents.includes('Owner voices — the bad') && !contents.includes('Owner voices — the ugly') && !contents.includes('Phrases shaping customer confidence'), 'meeting deck should use plain editorial headings');
     const growthSlide = orderedSlides[2];
     assert.ok(!growthSlide.includes('1,477'), 'pre-launch test members must not enter the growth total');
     assert.equal((growthSlide.match(/<p:pic>/g) || []).length, 2, 'both group growth counters should include racing laurels');
@@ -73,6 +74,7 @@ test('browser deck creates an editable PowerPoint with grounded counts and revie
     assert.ok(choicesSlide.indexOf('WINNER') < choicesSlide.indexOf('Full HV Replacement'), 'selected route should win');
     assert.ok(choicesSlide.includes('Fair Compensation') && choicesSlide.includes('Additional Concerns'), 'additional requests should use the same vote rows');
     assert.ok(orderedSlides[10].includes('positive experience') && orderedSlides[11].includes('A Fair Buy Back') && orderedSlides[11].includes('negative experience'), 'quote slides should identify option and sentiment');
+    assert.ok(orderedSlides[14].includes('Reliable replacement') && orderedSlides[14].includes('(1)') && !orderedSlides[14].includes('Reliable replacement  1'), 'theme names and smaller counts should use separate single-line text boxes');
     execFileSync(process.execPath, ['-e', script.replace('counts: { repair: 8, buyback: 5', 'counts: { repair: 5, buyback: 5').replace('preferredCounts: { repair: 6, buyback: 2 }', 'preferredCounts: { repair: 4, buyback: 5 }')], { cwd: temp, stdio: 'pipe' });
     const tiedZip = await JSZip.loadAsync(fs.readFileSync(path.join(temp, 'ipace-owner-survey-jlr-24-september-2026.pptx')));
     const tiedChoices = await tiedZip.file('ppt/slides/slide8.xml').async('string');

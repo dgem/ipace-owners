@@ -9,8 +9,9 @@ Theme the PowerPoint in constructive language: title the first-meeting cover “
 “Member survey findings for discussion with JLR,” avoiding a threatening or ultimatum-like tone.
 Theme it in the site's navy, teal and white design, with the existing RHD UK-road hero image, clear
 callouts, the existing racing laurel around the launch-growth and survey-response headline
-counters, and separate editorial good/bad/ugly slides carrying up to three reviewed quotes
-each. Show the actual member survey options and a conspicuously fictional completed example
+counters, and three colour-distinguished “Owner voices” slides carrying up to three reviewed quotes
+each; permit fewer where the survey has fewer candidates. Do not use “the good/bad/ugly” in slide headings. Title the controlled phrase display
+“Experience themes by survey option.” Show the actual member survey options and a conspicuously fictional completed example
 that mirrors the member form's question panel, numbered choice cards, preferred control and
 option-level comment fields.
 Use an editable PowerPoint content layout and font theme so a later meeting slide can inherit
@@ -25,8 +26,8 @@ exact tie has no winner. Explain the member-facing survey before showing respons
 totals. Preserve a dedicated concise findings slide showing the winning route, strongest
 alternative, compensation and top comment concern with their counts. Place a key-concern/option
 table before three quote slides, then option-level sentiment
-bars and controlled phrase clouds whose size reflects frequency and colour reflects positive,
-mixed or negative experience. Quotes show their associated option and sentiment. Exclude
+bars and controlled experience-theme labels in one-line rows, with smaller parenthesised
+frequencies and colours for positive, mixed or negative experience. Quotes show their associated option and sentiment. Exclude
 unclassified comments from sentiment, themes and phrase counts, and disclose their number.
 Position the findings as an opportunity for JLR to resolve H441-era concerns and rebuild
 owner confidence, without claiming recall causality or fleet-wide prevalence. Put overall

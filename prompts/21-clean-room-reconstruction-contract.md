@@ -30,9 +30,18 @@ each subset; do not append a failed page twice. A still-invalid individual comme
 unclassified and excluded from sentiment, themes and quote candidates, with its count visible
 in the admin review and deck. Transport/model availability errors remain retryable failures.
 The administrator edits the summary/actions and reviews permission and identifying details
-for every selected anonymous good/bad/ugly quote before browser-side PowerPoint export,
-with up to three quotes on each of three quote slides. The quote chooser groups by survey
-option and orders by sentiment while retaining the original quote identity for selection.
+for every selected anonymous quote before browser-side PowerPoint export, with three
+good, three bad and three ugly candidates selected when available, or all candidates in a
+category with fewer than three (including zero). The quote chooser separates survey options
+into expandable editors with category/sentiment filters, case-insensitive text search, optional
+bounded regex search, an explicit empty state, a collapsed preview of selected quotes, live
+per-option counts and colour-coded category totals. Wrong counts receive explicit feedback
+and block deck generation. Preserve original quote indices through sorting and filtering.
+Save each completed redacted AI report as an immutable dated analysis in private Cloud Storage,
+with Firestore metadata, then save each generated PPTX as an immutable child version. Admins
+can reopen an analysis and edit its selected quotes/actions without rerunning AI, or re-run AI
+against the latest answers while retaining older reports and decks. All archive operations
+are admin-authorized and no archive data enters public statistics or logs.
 Keep exact survey choice totals separate from AI sentiment denominators. The September meeting
 deck covers a constructive objective, the UK I-PACE Forum call to action, group growth,
 survey findings, battery and air-conditioning themes where supported, reviewed quotes,
@@ -50,8 +59,10 @@ member-facing option names/descriptions, a labelled fictional completed response
 visually follows the member form, the three primary outcomes separately from two accompanying
 requests, exact selected/preferred/comment counts, a primary-route WINNER with preferred-vote
 tie-break (or no winner for an exact tie), concise four-card findings, a concern/option table,
-quote option/sentiment labels, option-level sentiment counts and a frequency-scaled phrase
-cloud with polarity colours. The deck closes by asking JLR to define a dependable outcome,
+quote option/sentiment labels, option-level sentiment counts and single-line controlled theme
+labels with smaller parenthesised frequencies and polarity colours under “Experience themes by survey option.” The three quote slides
+share the plain “Owner voices” heading and use colour to distinguish their editorial groups.
+The deck closes by asking JLR to define a dependable outcome,
 share its plan and constraints, agree any limited confidentiality needed for sensitive detail,
 and consider a board-level written update to members before 5 October; these are proposals,
 not JLR commitments. Address the UK Director for Client Care and
@@ -118,7 +129,7 @@ The generated public route surface must include:
 - `/member/dashboard/`, `/member/account/`, `/member/submit-vehicle-data/`,
   `/member/surveys/`, `/member/survey-response/`, and `/member/survey-results/`;
 - `/admin/`, `/admin/review-queue/`, `/admin/outreach/`, `/admin/email-campaigns/`, and
-  `/admin/instagram-campaigns/`, `/admin/marketing-messages/`, `/admin/surveys/`, `/admin/survey-preview/`, and `/admin/survey-results/`;
+  `/admin/instagram-campaigns/`, `/admin/marketing-messages/`, `/admin/surveys/`, `/admin/survey-preview/`, `/admin/survey-results/`, and `/admin/survey-insights/`;
 - permanent redirects from `/account/**` and `/submit-vehicle-data/**` to their member
   equivalents;
 - a generated 404 page, clean URLs, trailing slashes, and a final Hosting fallback to
@@ -204,6 +215,10 @@ change rather than assuming it exists.
 | `GET/POST /api/admin/survey-preview` | Admin claim | Load drafts or published surveys for a member-layout preview; POST validates but never saves a test response. Audit preview views and validation without recording test choices. |
 | `GET /api/admin/service-export` | Admin claim | Private all-member service CSV with structured fields and automatically redacted provider names, titles and descriptions. Exclude deleted records and identifier columns; month dates, 5,000-mile bands, formula-safe cells, no-store responses, counts-only audit. Read serviceEvents/joins/vehicles in batches; fail if any read fails. Private analysis, not guaranteed narrative anonymity; prompt 16 defines columns/redaction and browser timeout. |
 | `GET /api/admin/survey-results` | Admin claim | Return count-only aggregate selected, preferred and optional-comment results plus a paginated admin-only individual-response page; CSV export contains only masked email, UTC time, selected/preferred option IDs and free text in `option-id: text` form. Export every response for CSV regardless of page offset. Resolve masked emails in Firebase Auth batches of at most 100 UIDs, matching unordered results by UID; fail on lookup errors. Audit analysis and CSV access with response total only. |
+| `POST /api/admin/survey-insights` | Admin claim | Classify a bounded page of redacted optional comments with selected/preferred context; return controlled themes, sentiment, phrase tags and source-exact quote candidates. Incomplete classifications split into smaller groups; irreducible comments are disclosed as unclassified. |
+| `POST /api/admin/survey-insights-summary` | Admin claim | Summarise verified classification counts and draft three editable discussion actions; do not persist raw model prompts or responses. |
+| `GET/POST /api/admin/survey-insight-archive` | Admin claim | List dated analysis and deck versions, restore a saved report, or save a completed redacted analysis. Check current aggregate counts before save; private GCS stores JSON, Firestore stores metadata. |
+| `GET/POST /api/admin/survey-insight-deck` | Admin claim | Save or download an immutable PPTX version for an existing analysis. Validate the nine selected quote indices, edited text, size and PPTX package; private GCS stores the file and Firestore stores version metadata. |
 | `GET /api/member/surveys` | Member | Return survey state, the member’s own response, and allowed counts from a private count-only aggregate document. |
 | `POST /api/member/survey-response` | Member | Save one validated replaceable response while live and atomically update the private count-only aggregate. Audit creation, amendment and safe rejection reason, but never selections, free text or identity. |
 | `POST /api/admin/instagram-publish` | Admin claim | Revalidate the unchanged preview and exact confirmation, then create, process and publish one organic Reel through Meta. |
@@ -252,6 +267,12 @@ an optional preferred option ID (which must be selected and explicitly preferred
 multiple-choice survey), a map of
 250-character explanations keyed by selected text-enabled option, and update timestamp.
 Aggregate survey APIs must never return free-text explanations.
+`surveys/{surveyId}/insightAnalyses/{analysisId}` stores only a dated report index with
+response/comment counts; its `decks/{deckId}` subcollection stores date, chosen quote indices
+and edited meeting wording. The private `SNAPSHOT_BUCKET` holds
+`survey-insights/{surveyId}/{analysisId}/analysis.json` and immutable
+`decks/{deckId}.pptx` objects. Never grant public object access. Restore and download only
+after an admin claim check, with no-store responses.
 
 Use these exact collection names: `joinSubmissions`, `members`, `vehicles`,
 `batteryReadings`, `serviceEvents`, `memberSnapshots`, `emailCampaigns`, `campaignMetadata`,

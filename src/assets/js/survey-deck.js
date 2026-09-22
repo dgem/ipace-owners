@@ -309,7 +309,7 @@
 
     ["good", "bad", "ugly"].forEach(function (kind) {
       var accent = kind === "good" ? teal : kind === "bad" ? gold : red;
-      slide = baseSlide(pptx, "Owner voices — the " + kind, ++index, date);
+      slide = baseSlide(pptx, "Owner voices", ++index, date);
       var selected = report.quotes.filter(function (quote) { return quote.kind === kind; }).slice(0, 3);
       selected.forEach(function (quote, i) {
         var y = 1.42 + i * 1.62;
@@ -345,7 +345,7 @@
     });
     text(slide, "Bars count classified comments per option. Phrase tags are controlled labels from those comments; U is unclassified. A member may comment on several options.", 0.86, 6.61, 11.4, 0.27, { fontSize: 11, color: muted });
 
-    slide = baseSlide(pptx, "Phrases shaping customer confidence", ++index, date);
+    slide = baseSlide(pptx, "Experience themes by survey option", ++index, date);
     allOptions.forEach(function (option, i) {
       var x = 0.86 + (i % 3) * 3.94;
       var y = 1.47 + Math.floor(i / 3) * 2.52;
@@ -355,10 +355,11 @@
       if (!ranked.length) text(slide, "No specific phrase tags", x + 0.19, y + 0.89, 3.25, 0.36, { fontSize: 14, color: muted });
       ranked.forEach(function (phrase, j) {
         var tone = phrase.positive > phrase.negative ? teal : phrase.negative > phrase.positive ? red : gold;
-        text(slide, signalLabels[phrase.name] + "  " + number(phrase.count), x + 0.19 + (j % 2) * 0.12, y + 0.68 + j * 0.37, 3.18, 0.34, { fontSize: 14 + Math.min(7, phrase.count * 0.6), bold: true, color: tone });
+        text(slide, signalLabels[phrase.name], x + 0.19, y + 0.68 + j * 0.37, 2.67, 0.30, { fontSize: 14, bold: true, color: tone, breakLine: false, fit: "shrink" });
+        text(slide, "(" + number(phrase.count) + ")", x + 2.85, y + 0.68 + j * 0.37, 0.56, 0.30, { fontSize: 10, color: muted, align: "right" });
       });
     });
-    text(slide, "Colour shows the dominant experience: positive, mixed or negative; size follows comment frequency. For JLR discussion: negative language can affect confidence in future launches, while positive language shows what to reinforce. This is not a sales forecast.", 8.75, 4.27, 3.58, 1.8, { fontSize: 13, color: muted, valign: "top" });
+    text(slide, "Colour shows the dominant experience: positive, mixed or negative; the number is the comment count. For JLR discussion: negative language can affect confidence in future launches, while positive language shows what to reinforce. This is not a sales forecast.", 8.75, 4.27, 3.58, 1.8, { fontSize: 13, color: muted, valign: "top" });
 
     slide = baseSlide(pptx, "Next steps for JLR Client Care", ++index, date);
     box(slide, pptx, 0.86, 1.42, 11.52, 0.73, "E8F4F2", "E8F4F2");

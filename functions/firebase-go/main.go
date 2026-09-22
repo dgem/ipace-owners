@@ -133,6 +133,10 @@ func Api(w http.ResponseWriter, r *http.Request) {
 		AdminSurveyInsights(w, r)
 	case "/api/admin/survey-insights-summary":
 		AdminSurveyInsightSummary(w, r)
+	case "/api/admin/survey-insight-archive":
+		AdminSurveyInsightArchive(w, r)
+	case "/api/admin/survey-insight-deck":
+		AdminSurveyInsightDeck(w, r)
 	case "/api/admin/survey-preview":
 		AdminSurveyPreview(w, r)
 	case "/api/member/surveys":
