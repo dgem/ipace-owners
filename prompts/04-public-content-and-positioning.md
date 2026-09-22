@@ -1,12 +1,11 @@
 # Public Content and Positioning Prompt
 
-For the private 24 September JLR meeting deck, explain that the independent group formed
+For the 24 September JLR meeting deck, explain that the independent group formed
 following a call to action in the UK I-PACE Forum, as described on the About page, and show
 its official 17 July 2026 launch and growth through dated, consent-filtered aggregate membership
 and vehicle statistics. Exclude pre-launch test registrations from the displayed owner count.
 The meeting narrative should lead from owner evidence to specific questions or actions for JLR.
-Theme the PowerPoint in
-constructive language: title the first-meeting cover “i-Pace Owners Advocacy Group” with
+Theme the PowerPoint in constructive language: title the first-meeting cover “i-Pace Owners Advocacy Group” with
 “Member survey findings for discussion with JLR,” avoiding a threatening or ultimatum-like tone.
 Theme it in the site's navy, teal and white design, with the existing RHD UK-road hero image, clear
 callouts, the existing racing laurel around the launch-growth and survey-response headline
@@ -16,19 +15,26 @@ that mirrors the member form's question panel, numbered choice cards, preferred 
 option-level comment fields.
 Use an editable PowerPoint content layout and font theme so a later meeting slide can inherit
 the heading, divider, footer and typography.
-Treat full HV replacement, fair buy-back and neither as the three primary routes, with fair
-compensation and additional concerns as accompanying requests.
-Show selected, preferred and optional-comment counts for each primary route, plus selected and
-comment counts for the add-ons. Call out the primary route with the most selections; use
-preferred votes to break a selection tie and show no single leader if both counts tie.
-Show the positive/mixed/negative
-comment counts behind each sentiment bar and a frequency-scaled display of fixed themes;
-explain that option-level comments were assessed in the context of all selected and preferred
-choices. Show comments the model could not classify separately and exclude them from sentiment
-and theme totals. Address the UK Director for Client Care and position the findings as an opportunity
-for JLR to resolve concerns for a growing group of owners, including H441-era experiences,
-without claiming recall causality or fleet-wide prevalence. Describe model-year and service-provider location
-figures as group records, not demographics of survey respondents.
+Open with the meeting purpose: confirm the group letter has been seen, learn JLR's work and
+plans, agree what a good outcome means, and leave with owners and dates. Treat full HV
+replacement, fair buy-back and neither as the three primary routes, with fair compensation
+and additional concerns as accompanying requests shown in the same result-row style. Show
+votes, percentages, preferred votes where eligible, and optional-comment counts. Mark the
+primary route with most selections as WINNER; preferred votes break a selection tie and an
+exact tie has no winner. Explain the member-facing survey before showing response and comment
+totals. Preserve a dedicated concise findings slide showing the winning route, strongest
+alternative, compensation and top comment concern with their counts. Place a key-concern/option
+table before three quote slides, then option-level sentiment
+bars and controlled phrase clouds whose size reflects frequency and colour reflects positive,
+mixed or negative experience. Quotes show their associated option and sentiment. Exclude
+unclassified comments from sentiment, themes and phrase counts, and disclose their number.
+Position the findings as an opportunity for JLR to resolve H441-era concerns and rebuild
+owner confidence, without claiming recall causality or fleet-wide prevalence. Put overall
+vehicle model years beside group growth and label them as unlinked to survey respondents;
+omit immature member/service-location data. Close with practical JLR actions and a proposed
+agreement on outcome principles, JLR's plan and constraints, confidentiality if needed, and
+the possibility of a board-level written member update before 5 October. Treat team views
+about owners' EV affinity or JLR capacity as discussion context, not survey facts or legal claims.
 
 Create or refine the public content pages for the I-PACE Owners' Advocacy Group.
 

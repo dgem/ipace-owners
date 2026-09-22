@@ -901,8 +901,8 @@ async function checkSurveyInsights(viewport, suffix) {
       ] },
       counts: { repair: 8, buyback: 5, neither: 1, compensation: 3, concerns: 2 }, preferredCounts: { repair: 6, buyback: 2 }, textCounts: { repair: 4, buyback: 3, neither: 1, compensation: 2, concerns: 1 },
       totalResponses: 10, offset: 0, nextOffset: 10, hasMore: false,
-      items: [{ optionId: 'repair', sentiment: 'negative', themes: ['battery', 'service'] }, { optionId: 'buyback', sentiment: 'mixed', themes: ['warranty'] }, { optionId: 'repair', sentiment: 'unclassified', themes: [] }],
-      quotes: ['good', 'bad', 'ugly'].flatMap((kind) => [1, 2, 3].map((index) => ({ kind, text: `${kind} comment ${index}: The owner described how the car and service experience affected them.` }))),
+      items: [{ optionId: 'repair', sentiment: 'negative', themes: ['battery', 'service'], signals: [{ name: 'repair-delays', sentiment: 'negative' }] }, { optionId: 'buyback', sentiment: 'mixed', themes: ['warranty'], signals: [{ name: 'resale-value', sentiment: 'negative' }] }, { optionId: 'repair', sentiment: 'unclassified', themes: [] }],
+      quotes: ['ugly', 'bad', 'good'].flatMap((kind) => [1, 2, 3].map((index) => ({ kind, optionId: kind === 'ugly' ? 'buyback' : 'repair', sentiment: kind === 'good' ? 'positive' : 'negative', text: `${kind} comment ${index}: The owner described how the car and service experience affected them.` }))),
       finding: 'Battery repair delays affected several comments.'
     })
     });
@@ -927,6 +927,9 @@ async function checkSurveyInsights(viewport, suffix) {
   assert.match(await page.locator('[data-insights-status]').textContent(), /Analysis complete/);
   assert.match(await page.locator('[data-insights-status]').textContent(), /1 unclassified/);
   assert.equal(await page.getByRole('columnheader', { name: 'Unclassified' }).count(), 1);
+  assert.deepEqual(await page.locator('.survey-insights__quote-group').allTextContents(), ['Full HV Replacement', 'A Fair Buy Back']);
+  assert.match(await page.locator('.survey-insights__quote').first().textContent(), /positive · good/);
+  assert.equal(await page.getByRole('heading', { name: 'Key phrases by option' }).count(), 1);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, 'survey-insights-review-' + suffix + '.png'), fullPage: true });
   if (suffix === 'desktop') {

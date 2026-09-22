@@ -665,8 +665,9 @@ after all pages complete. Both require an admin ID token. The first endpoint sen
 comments with common identifiers redacted, the associated selected/preferred option names,
 and ephemeral numeric indices to Vertex AI Gemini in `europe-west2` (model and location are
 configurable through `SURVEY_AI_MODEL` and `SURVEY_AI_LOCATION`). It verifies one allowed
-classification per comment, then returns optional themes, sentiment for the commented option,
-and source-exact anonymous quote candidates. The second endpoint summarises checked theme and
+classification per comment, then returns optional themes, controlled experience-phrase labels
+with positive/mixed/negative context, and source-exact anonymous quote candidates tagged with
+their survey option and sentiment. The second endpoint summarises checked theme and
 sentiment counts and proposes three discussion actions. The administrator reviews and edits
 the overview/actions, selects up to three permitted quotes in each good/bad/ugly category,
 and confirms quote permission and de-identification before a PowerPoint file is generated in
@@ -677,18 +678,24 @@ If a model reply omits or duplicates classifications, the Function retries small
 groups with fresh indices. An individual comment that still cannot be classified is counted
 as unclassified, excluded from sentiment/theme totals and quote candidates, and disclosed in
 the admin review and deck. Transport errors continue to fail the page for retry.
-The deck combines exact stored survey option selected, preferred and optional-comment counts with consent-filtered public vehicle
-model-year statistics and admin-only, consent-filtered member-country and service-provider
-postcode-area counts; groups with fewer than five records are combined. Group demographics are labelled separately
-from survey respondent characteristics. AI sentiment describes only optional comment entries,
-not votes or the I-PACE fleet. The editable PowerPoint uses the site palette and the existing
-UK-road hero image and the existing gold racing laurel around the two headline counts. It sets an Arial PowerPoint theme and an editable content layout with a title placeholder, teal divider and meeting footer so inserted slides can use the same style. It separates full HV replacement, fair buy-back and neither from the
-additional compensation/concerns choices, shows the actual survey wording and a labelled
-fictional completed example modelled on the member form, explains sentiment denominators, visualises theme frequency,
-and places up to three permission-checked quotes on each of three editorial quote slides.
-It frames the meeting with JLR's UK Director for Client Care as an opportunity for reliable
-resolution of battery, H441-era recall and related service concerns without claiming recall
-causality or fleet-wide prevalence.
+The deck combines exact stored survey option selected, preferred and optional-comment counts
+with the overall consent-filtered public vehicle model-year distribution. Model years are not
+linked to survey respondents. AI sentiment and phrase tags describe only classified optional
+comment entries, not votes or the I-PACE fleet. The editable PowerPoint uses the site palette,
+UK-road hero and gold racing laurels around the growth and participation counters. Its Arial
+font theme and content layout carry an editable title placeholder, divider and September meeting
+footer to newly added slides. It introduces the meeting objective and group origin, shows the
+member-facing survey and a labelled fictional response, then two participation counters and
+all five choices using the member-results style. A winner callout compares only the three
+primary routes; compensation and concerns use the same vote rows as additional requests.
+A four-card findings slide keeps the winning route, strongest alternative, compensation and
+top comment concern visible without a long AI paragraph. Recurring themes appear as a
+concern/option table before three editorial quote slides, each
+with up to three permission-checked quotes labelled by option and sentiment. Option-level
+sentiment bars and a controlled phrase cloud distinguish positive, mixed and negative owner
+experiences. The deck closes with JLR actions and proposed decisions and dates, including an
+owner-facing written update request, without claiming recall causality, JLR agreement or
+fleet-wide prevalence.
 The primary route with the most selections is called out; preferred votes break a selection tie,
 and an exact tie has no single leader. The growth slide cites the About page and official
 17 July 2026 launch. It uses the first dated, contact-consenting Join record per canonical
