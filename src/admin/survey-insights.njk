@@ -21,8 +21,13 @@ date: Last Modified
       <h2 class="dashboard-panel__title">Prepare the JLR meeting deck</h2>
       <p>The AI reads redacted survey comments alongside each respondent’s selected and preferred outcomes. Survey choice totals remain exact. Review its themes, suggested actions and anonymous quotes before downloading.</p>
       <p class="form-hint">Sentiment covers comments provided for each option, not every vote or every I-PACE owner. Check the wording and remove any identifying detail from quotes.</p>
-      <div class="cluster"><button class="btn btn--primary" type="button" data-insights-run>Analyse survey comments</button><a class="btn btn--secondary" data-insights-back href="/admin/surveys/">Back to surveys</a></div>
+      <div class="cluster"><button class="btn btn--primary" type="button" data-insights-run>Run AI analysis on latest responses</button><a class="btn btn--secondary" data-insights-back href="/admin/surveys/">Back to surveys</a></div>
       <p role="status" aria-live="polite" data-insights-status></p>
+      <section class="survey-insights__archive" aria-labelledby="saved-insights-heading">
+        <h3 id="saved-insights-heading">Saved analyses and PowerPoints</h3>
+        <p class="form-hint">Open a completed analysis to change its quotes and make another deck without running AI again. Re-run AI above when members submit or change answers; earlier analyses and decks stay available as dated snapshots.</p>
+        <div data-insights-saved><p>Loading saved work…</p></div>
+      </section>
       <div data-insights-report hidden></div>
     </article>
   </div>

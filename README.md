@@ -669,11 +669,19 @@ classification per comment, then returns optional themes, controlled experience-
 with positive/mixed/negative context, and source-exact anonymous quote candidates tagged with
 their survey option and sentiment. The second endpoint summarises checked theme and
 sentiment counts and proposes three discussion actions. The administrator reviews and edits
-the overview/actions, selects up to three permitted quotes in each good/bad/ugly category,
+the overview/actions, selects exactly three permitted quotes in each good/bad/ugly category,
 and confirms quote permission and de-identification before a PowerPoint file is generated in
-the browser. Transient 429/502/503/504 responses retry the same page; if retries fail,
-Resume analysis continues from the last completed page in the current tab. Refreshing the tab
-starts afresh; no comments, prompts, model replies or deck are persisted or logged by this flow.
+the browser. Each survey option has a collapsed selected-quote summary and an expandable,
+filterable editor; live colour-coded counts explain missing or extra quotes. Transient
+429/502/503/504 responses retry the same page; if retries fail, Resume analysis continues
+from the last completed page in the current tab. Refreshing before completion starts afresh.
+After completion, `GET/POST /api/admin/survey-insight-archive` saves and lists the redacted
+AI reports, while `GET/POST /api/admin/survey-insight-deck` saves and downloads generated
+PowerPoints as separate versions. Administrators can reopen an analysis, change quotes and
+generate another deck without rerunning AI, or re-run AI against the latest survey responses
+while retaining earlier dated versions. Firestore holds only archive/deck metadata; private
+Cloud Storage holds the report JSON and PPTX. Admin authorization protects list, load,
+save and download routes, and the archive is never exposed through public aggregate APIs.
 If a model reply omits or duplicates classifications, the Function retries smaller comment
 groups with fresh indices. An individual comment that still cannot be classified is counted
 as unclassified, excluded from sentiment/theme totals and quote candidates, and disclosed in
@@ -691,9 +699,11 @@ primary routes; compensation and concerns use the same vote rows as additional r
 A four-card findings slide keeps the winning route, strongest alternative, compensation and
 top comment concern visible without a long AI paragraph. Recurring themes appear as a
 concern/option table before three editorial quote slides, each
-with up to three permission-checked quotes labelled by option and sentiment. Option-level
-sentiment bars and a controlled phrase cloud distinguish positive, mixed and negative owner
-experiences. The deck closes with JLR actions and proposed decisions and dates, including an
+with three permission-checked quotes labelled by option and sentiment. All three quote slides
+use the plain “Owner voices” heading, distinguished by colour. Option-level
+sentiment bars and single-line controlled theme labels with smaller parenthesised comment
+counts distinguish positive, mixed and negative owner experiences under “Experience themes by
+survey option.” The deck closes with JLR actions and proposed decisions and dates, including an
 owner-facing written update request, without claiming recall causality, JLR agreement or
 fleet-wide prevalence.
 The primary route with the most selections is called out; preferred votes break a selection tie,
