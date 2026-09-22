@@ -63,6 +63,33 @@ func TestSurveyReminderPreviewSubstitutesCountsAndTargetsNonrespondents(t *testi
 	}
 }
 
+func TestSurveyClosingReminderUsesLiveCountsAndNonrespondentAudience(t *testing.T) {
+	setupReminderTest(t)
+	marketingReminderNow = func() time.Time { return time.Date(2026, 9, 22, 12, 0, 0, 0, time.UTC) }
+	preview, err := previewMarketingMessage(context.Background(), marketingMessageRequest{TemplateID: surveyClosingReminderTemplateID})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if preview.Eligible != 1 || preview.Confirmation != "SEND 1" {
+		t.Fatalf("wrong closing-reminder audience: %+v", preview)
+	}
+	for _, value := range []string{"A little more than 24 hours", "540", "1477", "721", "130", "182", "survey-closing-tomorrow", "september-survey-reminder-2026-hero.jpg"} {
+		if !strings.Contains(preview.HTML, value) {
+			t.Errorf("closing reminder missing %q", value)
+		}
+	}
+	if strings.Contains(preview.HTML, "{{") || strings.Contains(preview.HTML, "[[") {
+		t.Fatal("unresolved closing-reminder substitutions")
+	}
+}
+
+func TestSurveyClosingReminderOnlyAvailableFrom22September(t *testing.T) {
+	setupReminderTest(t)
+	if _, err := previewMarketingMessage(context.Background(), marketingMessageRequest{TemplateID: surveyClosingReminderTemplateID}); err == nil {
+		t.Fatal("closing reminder was available before 22 September")
+	}
+}
+
 func TestSurveyReminderMissingSurveyAllowsLayoutPreviewButNeverSending(t *testing.T) {
 	setupReminderTest(t)
 	oldSurvey, oldAuth := marketingReminderSurvey, campaignAuthorize
@@ -96,6 +123,25 @@ func TestSurveyReminderMissingSurveyAllowsLayoutPreviewButNeverSending(t *testin
 	AdminMarketingMessageSend(w, httptest.NewRequest("POST", "/api/admin/marketing-message-send", strings.NewReader(`{"templateId":"survey-reminder-september-2026","confirmation":"SEND 0","expectedEligible":0}`)))
 	if w.Code != http.StatusBadRequest || !strings.Contains(w.Body.String(), "not available in this environment") {
 		t.Fatalf("missing survey must reject send: %d %s", w.Code, w.Body)
+	}
+}
+
+func TestSurveyClosingReminderMissingSurveyUsesClosingSnapshot(t *testing.T) {
+	setupReminderTest(t)
+	oldSurvey := marketingReminderSurvey
+	t.Cleanup(func() { marketingReminderSurvey = oldSurvey })
+	marketingSurveyReminderState = loadSurveyReminderState
+	marketingReminderSurvey = func(context.Context) (surveyRecord, error) {
+		return surveyRecord{}, status.Error(codes.NotFound, "missing staging document")
+	}
+	preview, err := previewMarketingMessage(context.Background(), marketingMessageRequest{TemplateID: surveyClosingReminderTemplateID})
+	if err != nil || !preview.PreviewOnly {
+		t.Fatalf("closing layout preview: %+v, %v", preview, err)
+	}
+	for _, value := range []string{"22 September 2026", "719", "1527", "768", "141", "200"} {
+		if !strings.Contains(preview.HTML, value) {
+			t.Errorf("closing layout preview missing %q", value)
+		}
 	}
 }
 
@@ -205,6 +251,22 @@ func TestRenderSurveyReminderEmailFixture(t *testing.T) {
 	}
 	setupReminderTest(t)
 	preview, err := previewMarketingMessage(context.Background(), marketingMessageRequest{TemplateID: surveyReminderTemplateID})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(target, []byte(preview.HTML), 0600); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestRenderSurveyClosingReminderEmailFixture(t *testing.T) {
+	target := os.Getenv("SURVEY_CLOSING_REMINDER_PREVIEW")
+	if target == "" {
+		t.Skip("set SURVEY_CLOSING_REMINDER_PREVIEW for local visual QA")
+	}
+	setupReminderTest(t)
+	marketingReminderNow = func() time.Time { return time.Date(2026, 9, 22, 12, 0, 0, 0, time.UTC) }
+	preview, err := previewMarketingMessage(context.Background(), marketingMessageRequest{TemplateID: surveyClosingReminderTemplateID})
 	if err != nil {
 		t.Fatal(err)
 	}

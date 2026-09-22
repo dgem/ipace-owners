@@ -13,6 +13,7 @@ import (
 )
 
 const surveyReminderTemplateID = "survey-reminder-september-2026"
+const surveyClosingReminderTemplateID = "survey-closing-reminder-september-2026"
 const septemberSurveyID = "survey_38447815d17b0e954a4edbca1b9600c9"
 
 var errSeptemberSurveyMissing = errors.New("The September survey is not available in this environment")
@@ -26,6 +27,10 @@ type surveyReminderState struct {
 var marketingSurveyReminderState = loadSurveyReminderState
 var marketingReminderSurvey = loadReminderSurvey
 var marketingReminderNow = time.Now
+
+func isSurveyReminderTemplate(id string) bool {
+	return id == surveyReminderTemplateID || id == surveyClosingReminderTemplateID
+}
 
 func loadReminderSurvey(ctx context.Context) (surveyRecord, error) {
 	var survey surveyRecord
@@ -101,16 +106,23 @@ func surveyReminderIsTimely(state surveyReminderState, now time.Time) bool {
 		surveyIsPublished(state.Survey) && surveyIsLive(state.Survey, now)
 }
 
+func surveyReminderIsTimelyForTemplate(state surveyReminderState, templateID string, now time.Time) bool {
+	if !surveyReminderIsTimely(state, now) {
+		return false
+	}
+	return templateID != surveyClosingReminderTemplateID || !now.Before(time.Date(2026, 9, 22, 0, 0, 0, 0, time.UTC))
+}
+
 func marketingMessageAudienceFor(ctx context.Context, input marketingMessageRequest) ([]campaignRecipient, error) {
 	audience, err := marketingMessageAudience(ctx)
-	if err != nil || input.TemplateID != surveyReminderTemplateID {
+	if err != nil || !isSurveyReminderTemplate(input.TemplateID) {
 		return audience, err
 	}
 	state, err := marketingSurveyReminderState(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("Could not verify survey responses; no reminder audience is available")
 	}
-	if !surveyReminderIsTimely(state, marketingReminderNow()) {
+	if !surveyReminderIsTimelyForTemplate(state, input.TemplateID, marketingReminderNow()) {
 		return nil, fmt.Errorf("The survey reminder is only available before the survey closes and the 24 September meeting")
 	}
 	return surveyReminderNonrespondents(audience, state.RespondentEmails), nil
@@ -134,14 +146,14 @@ func resolvedSurveyReminder(ctx context.Context, input marketingMessageRequest) 
 		}
 		return input, fmt.Errorf("Could not load the September survey response count")
 	}
-	if !surveyReminderIsTimely(state, marketingReminderNow()) {
+	if !surveyReminderIsTimelyForTemplate(state, input.TemplateID, marketingReminderNow()) {
 		return input, fmt.Errorf("The survey reminder is no longer available outside the final week before the meeting")
 	}
 	stats, err := marketingMessageStats(ctx)
 	if err != nil {
 		return input, err
 	}
-	source, ok := marketingMessageTemplateSource(surveyReminderTemplateID)
+	source, ok := marketingMessageTemplateSource(input.TemplateID)
 	if !ok {
 		return input, fmt.Errorf("Survey reminder template is unavailable")
 	}
@@ -153,18 +165,23 @@ func resolvedSurveyReminder(ctx context.Context, input marketingMessageRequest) 
 // A missing environment-local survey permits design review only. This path is
 // never used by sending or by audience calculation, and reads no member data.
 func surveyReminderLayoutPreview(input marketingMessageRequest) (marketingMessagePreview, error) {
-	source, ok := marketingMessageTemplateSource(surveyReminderTemplateID)
+	source, ok := marketingMessageTemplateSource(input.TemplateID)
 	if !ok {
 		return marketingMessagePreview{}, fmt.Errorf("Survey reminder template is unavailable")
 	}
 	stats := publicStatsSnapshot{JoinedOwners: 1477, VehiclesRegistered: 721, SOHReadings: 130, ServiceEventsLogged: 182}
-	markdown := strings.ReplaceAll(marketingTemplateMarkdown(source.Markdown, stats), "{{surveyResponses}}", "540")
-	notice := "Layout preview only: the September survey is not available in this environment. All figures are the dated 19 September 2026 snapshot, not live counts. No audience has been calculated and sending is disabled."
+	responses, snapshotDate := "540", "19 September 2026"
+	if input.TemplateID == surveyClosingReminderTemplateID {
+		stats = publicStatsSnapshot{JoinedOwners: 1527, VehiclesRegistered: 768, SOHReadings: 141, ServiceEventsLogged: 200}
+		responses, snapshotDate = "719", "22 September 2026"
+	}
+	markdown := strings.ReplaceAll(marketingTemplateMarkdown(source.Markdown, stats), "{{surveyResponses}}", responses)
+	notice := "Layout preview only: the September survey is not available in this environment. All figures are the dated " + snapshotDate + " snapshot, not live counts. No audience has been calculated and sending is disabled."
 	markdown = "**" + notice + "**\n\n" + renderMarketingMessageMarkdown(markdown, campaignRecipient{Name: "Preview Member"})
 	const unsubscribeURL = "https://ipace-owners.org/api/email-unsubscribe?campaign=preview&token=preview-token"
 	return marketingMessagePreview{
 		CampaignID: marketingMessageCampaignID(input), PreviewOnly: true, Subject: source.Subject,
-		HTML: marketingMessageHTML(markdown, surveyReminderTemplateID, unsubscribeURL),
+		HTML: marketingMessageHTML(markdown, input.TemplateID, unsubscribeURL),
 		Text: marketingMessageText(markdown, unsubscribeURL), Notice: notice,
 	}, nil
 }

@@ -169,7 +169,7 @@ func AdminMarketingMessageSend(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	input.TemplateID = strings.TrimSpace(input.TemplateID)
-	if input.TemplateID == surveyReminderTemplateID {
+	if isSurveyReminderTemplate(input.TemplateID) {
 		resolved, err := resolvedSurveyReminder(r.Context(), input)
 		if err != nil {
 			writeJSON(w, http.StatusBadRequest, map[string]any{"error": err.Error()})
@@ -281,7 +281,7 @@ func previewMarketingMessage(ctx context.Context, input marketingMessageRequest)
 	var err error
 	input, err = resolvedMarketingMessage(ctx, input)
 	if err != nil {
-		if input.TemplateID == surveyReminderTemplateID && errors.Is(err, errSeptemberSurveyMissing) {
+		if isSurveyReminderTemplate(input.TemplateID) && errors.Is(err, errSeptemberSurveyMissing) {
 			return surveyReminderLayoutPreview(input)
 		}
 		return marketingMessagePreview{}, err
@@ -300,7 +300,7 @@ func previewMarketingMessage(ctx context.Context, input marketingMessageRequest)
 	markdown := renderMarketingMessageMarkdown(input.Markdown, previewRecipient)
 	previewUnsubscribeURL := "https://ipace-owners.org/api/email-unsubscribe?campaign=preview&token=preview-token"
 	notice := fmt.Sprintf("All registered members are included unless they have opted out of group communications. Emails are sent in resumable batches of %d; previewing never sends email.", marketingMessageBatchSize)
-	if input.TemplateID == surveyReminderTemplateID {
+	if isSurveyReminderTemplate(input.TemplateID) {
 		notice = "Only members eligible for group communications who have not submitted this survey are included. Responses and opt-outs are checked again before each batch; changes require fresh confirmation. Previewing never sends email."
 	}
 	return marketingMessagePreview{CampaignID: marketingMessageCampaignID(input), Eligible: len(audience), Subject: strings.TrimSpace(input.Subject), HTML: marketingMessageHTML(markdown, input.TemplateID, previewUnsubscribeURL), Text: marketingMessageText(markdown, previewUnsubscribeURL), Confirmation: fmt.Sprintf("SEND %d", len(audience)), Notice: notice}, nil
@@ -481,7 +481,7 @@ func renderMarketingMessageMarkdown(markdown string, person campaignRecipient) s
 }
 func marketingMessageHTML(markdown, templateID, unsubscribeURL string) string {
 	body := markdownToEmailHTML(markdown)
-	if templateID == surveyReminderTemplateID {
+	if isSurveyReminderTemplate(templateID) {
 		body = surveyReminderEmailHTML(markdown)
 	}
 	hero := ""
@@ -507,7 +507,7 @@ func sendMarketingMessageBatch(ctx context.Context, input marketingMessageReques
 		return marketingMessageSent{}, err
 	}
 	// Keep reminder statistics current for this batch without changing delivery identity.
-	if input.TemplateID == surveyReminderTemplateID {
+	if isSurveyReminderTemplate(input.TemplateID) {
 		record.Markdown = input.Markdown
 	}
 	related, err := matchingMarketingMessageRecords(ctx, db, input)
@@ -1052,14 +1052,14 @@ func marketingMessageTemplates(ctx context.Context) ([]marketingMessageTemplate,
 	if err != nil {
 		return nil, err
 	}
-	result := make([]marketingMessageTemplate, 0, 5)
-	for _, id := range []string{surveyReminderTemplateID, "survey-september-2026", "jlr-contact", "find-members", "reach-1000"} {
+	result := make([]marketingMessageTemplate, 0, 6)
+	for _, id := range []string{surveyClosingReminderTemplateID, surveyReminderTemplateID, "survey-september-2026", "jlr-contact", "find-members", "reach-1000"} {
 		template, ok := marketingMessageTemplateSource(id)
 		if !ok {
 			continue
 		}
 		template.Markdown = marketingTemplateMarkdown(template.Markdown, stats)
-		if id == surveyReminderTemplateID {
+		if isSurveyReminderTemplate(id) {
 			template.Markdown = strings.ReplaceAll(template.Markdown, "{{surveyResponses}}", "calculated at preview")
 		}
 		result = append(result, template)
@@ -1069,11 +1069,12 @@ func marketingMessageTemplates(ctx context.Context) ([]marketingMessageTemplate,
 
 func marketingMessageTemplateSource(id string) (marketingMessageTemplate, bool) {
 	file := map[string]string{
-		surveyReminderTemplateID: surveyReminderTemplateID,
-		"survey-september-2026":  "survey-september-2026",
-		"jlr-contact":            "jlr-contact",
-		"find-members":           "member-referral",
-		"reach-1000":             "all-members-drive",
+		surveyClosingReminderTemplateID: surveyClosingReminderTemplateID,
+		surveyReminderTemplateID:        surveyReminderTemplateID,
+		"survey-september-2026":         "survey-september-2026",
+		"jlr-contact":                   "jlr-contact",
+		"find-members":                  "member-referral",
+		"reach-1000":                    "all-members-drive",
 	}[id]
 	if file == "" {
 		return marketingMessageTemplate{}, false
@@ -1083,18 +1084,19 @@ func marketingMessageTemplateSource(id string) (marketingMessageTemplate, bool) 
 		return marketingMessageTemplate{}, false
 	}
 	description := map[string]string{
-		surveyReminderTemplateID: "Final-week reminder only for members who have not answered the September survey. Live counts are calculated at preview; targeting is rechecked before every batch.",
-		"survey-september-2026":  "Invite every consented member to the September preferred-outcomes survey.",
-		"jlr-contact":            "Share the JLR meeting update and ask members to strengthen the evidence.",
-		"find-members":           "Ask members to help another I-PACE owner find the group.",
-		"reach-1000":             "Ask all consented members to share the group and grow the evidence base.",
+		surveyClosingReminderTemplateID: "Closing-day reminder only for members who have not answered the September survey. Live counts and targeting are rechecked before every batch.",
+		surveyReminderTemplateID:        "Final-week reminder only for members who have not answered the September survey. Live counts are calculated at preview; targeting is rechecked before every batch.",
+		"survey-september-2026":         "Invite every consented member to the September preferred-outcomes survey.",
+		"jlr-contact":                   "Share the JLR meeting update and ask members to strengthen the evidence.",
+		"find-members":                  "Ask members to help another I-PACE owner find the group.",
+		"reach-1000":                    "Ask all consented members to share the group and grow the evidence base.",
 	}[id]
 	return marketingMessageTemplate{ID: id, Name: source.Name, Description: description, Subject: source.Subject, Markdown: source.Markdown, HeroImage: source.HeroImage, HeroImageAlt: source.HeroImageAlt}, true
 }
 
 func resolvedMarketingMessage(ctx context.Context, input marketingMessageRequest) (marketingMessageRequest, error) {
 	input.TemplateID = strings.TrimSpace(input.TemplateID)
-	if input.TemplateID == surveyReminderTemplateID {
+	if isSurveyReminderTemplate(input.TemplateID) {
 		return resolvedSurveyReminder(ctx, input)
 	}
 	if input.TemplateID == "" {

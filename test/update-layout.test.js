@@ -36,3 +36,18 @@ test('the first member survey update has a purposeful hero image', function () {
   assert.match(surveyUpdate, /heroImage: \/images\/september-survey-2026-hero\.jpg/);
   assert.match(surveyUpdate, /heroImageAlt:\s*["'][^"']+['"]/);
 });
+
+test('the closing reminder update carries current counters and social shares', function () {
+  var closingUpdate = fs.readFileSync(
+    path.join(updatesDirectory, 'survey-closing-tomorrow.njk'),
+    'utf8'
+  );
+
+  assert.match(closingUpdate, /A little more than 24 hours/);
+  assert.match(closingUpdate, /719/);
+  assert.match(closingUpdate, /data-survey-participation/);
+  assert.match(closingUpdate, /data-public-stats/);
+  assert.match(closingUpdate, /facebook\.com\/sharer/);
+  assert.match(closingUpdate, /wa\.me/);
+  assert.match(closingUpdate, /linkedin\.com\/sharing/);
+});

@@ -774,7 +774,7 @@ async function checkPublicEvidenceCounters(url, viewport, screenshotName, showMe
 async function checkMarketingMessages(viewport, screenshotName, reminder = false, previewOnly = false) {
   const page = await browser.newPage({ viewport });
   const survey = {
-    id: reminder ? 'survey-reminder-september-2026' : 'survey-september-2026',
+    id: reminder ? 'survey-closing-reminder-september-2026' : 'survey-september-2026',
     name: 'September 2026 — Preferred outcomes survey',
     description: 'Invite every consented member to the September preferred-outcomes survey.',
     subject: 'Have your say before our September meeting with JLR',
@@ -873,6 +873,32 @@ async function checkSurveyReminder() {
         await page.close();
       }
     }
+    const closingFixturePath = path.join(fixtureDir, 'closing-email.html');
+    execFileSync('go', ['test', '-count=1', '-run', '^TestRenderSurveyClosingReminderEmailFixture$', '.'], {
+      cwd: 'functions/firebase-go', env: { ...process.env, SURVEY_CLOSING_REMINDER_PREVIEW: closingFixturePath }
+    });
+    const closingHTML = fs.readFileSync(closingFixturePath, 'utf8');
+    for (const width of [800, 390]) {
+      const page = await browser.newPage({ viewport: { width, height: 900 } });
+      await page.route('https://ipace-owners.org/images/**', (route) => route.fulfill({ path: path.join('public/images', path.basename(new URL(route.request().url()).pathname)) }));
+      await page.setContent(closingHTML, { waitUntil: 'networkidle' });
+      assert.equal(await page.getByText('A little more than 24 hours to go.').isVisible(), true);
+      assert.equal(await page.locator('a[href*="survey-closing-tomorrow"]').count(), 4);
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
+      await page.screenshot({ path: path.join(outputDir, `survey-closing-email-${width}.png`), fullPage: true });
+      await page.close();
+    }
+    for (const width of [1440, 390]) {
+      const page = await browser.newPage({ viewport: { width, height: 1000 } });
+      await page.route('**/api/public-stats*', (route) => route.abort());
+      await page.route('**/api/survey-participation', (route) => route.abort());
+      await page.goto(baseURL + '/updates/survey-closing-tomorrow/', { waitUntil: 'networkidle' });
+      assert.equal(await page.locator('[data-survey-participation] strong').textContent(), '719');
+      assert.equal(await page.locator('[data-public-stat="joinedOwners"]').textContent(), '1527');
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
+      await page.screenshot({ path: path.join(outputDir, `survey-closing-update-${width}.png`), fullPage: true });
+      await page.close();
+    }
   } finally {
     fs.rmSync(fixtureDir, { recursive: true, force: true });
   }
@@ -946,18 +972,19 @@ async function checkSurveyInsights(viewport, suffix) {
   assert.match(await page.locator('[data-insights-status]').textContent(), /Analysis complete/);
   assert.match(await page.locator('[data-insights-status]').textContent(), /1 unclassified/);
   assert.equal(await page.getByRole('columnheader', { name: 'Unclassified' }).count(), 1);
-  assert.equal(await page.locator('[data-quote-option]').count(), 5);
+  assert.equal(await page.locator('[data-quote-section]').count(), 3);
   assert.equal(await page.locator('[data-option-editor]:visible').count(), 0);
   assert.deepEqual(await page.locator('[data-quote-count]').allTextContents(), ['good 3/3', 'bad 3/3', 'ugly 3/3']);
-  assert.match(await page.locator('[data-option-preview]').first().textContent(), /good · positive/);
+  assert.match(await page.locator('[data-option-preview]').first().textContent(), /Option 1 · Full HV Replacement · positive/);
   assert.equal(await page.getByRole('heading', { name: 'Key phrases by option' }).count(), 1);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, 'survey-insights-review-' + suffix + '.png'), fullPage: true });
   if (suffix === 'desktop') {
-    await page.locator('[data-quote-option="repair"] [data-option-edit]').click();
-    const quoteEditor = page.locator('[data-quote-option="repair"]');
-    assert.match(await quoteEditor.locator('[data-quote-shown]').textContent(), /6 quotes shown/);
-    await quoteEditor.locator('[data-quote-filter]').selectOption('good');
+    await page.locator('[data-quote-section="good"] [data-option-edit]').click();
+    const quoteEditor = page.locator('[data-quote-section="good"]');
+    assert.match(await quoteEditor.locator('[data-quote-shown]').textContent(), /3 quotes shown/);
+    assert.deepEqual(await quoteEditor.locator('[data-section-option-counts] span').allTextContents(), ['Option 1: 3', 'Option 2: 0', 'Option 3: 0', 'Option 4: 0', 'Option 5: 0']);
+    await quoteEditor.locator('[data-option-filter]').selectOption('repair');
     assert.equal(await quoteEditor.locator('[data-quote-card]:visible').count(), 3);
     await quoteEditor.locator('[data-sentiment-filter]').selectOption('negative');
     assert.equal(await quoteEditor.locator('[data-quote-card]:visible').count(), 0);
@@ -972,7 +999,7 @@ async function checkSurveyInsights(viewport, suffix) {
     assert.match(await quoteEditor.locator('[data-quote-pattern-error]').textContent(), /Invalid or overly complex/);
     await quoteEditor.locator('[data-quote-search]').fill('');
     await quoteEditor.locator('[data-quote-regex]').uncheck();
-    await quoteEditor.locator('[data-quote-filter]').selectOption('all');
+    await quoteEditor.locator('[data-option-filter]').selectOption('all');
     await page.screenshot({ path: path.join(outputDir, 'survey-insights-quote-editor-desktop.png'), fullPage: true });
     await page.locator('[data-quote-index="6"]').uncheck();
     assert.match(await page.locator('[data-quote-feedback]').textContent(), /good 2, bad 3, ugly 3/);
@@ -981,8 +1008,8 @@ async function checkSurveyInsights(viewport, suffix) {
     await page.locator('[data-insights-download]').click();
     assert.match(await page.locator('[data-insights-status]').textContent(), /quote selection is incomplete/);
     await page.locator('[data-quote-index="6"]').check();
-    await page.locator('[data-quote-option="repair"] [data-option-edit]').click();
-    assert.match(await page.locator('[data-option-preview]').first().textContent(), /good · positive/);
+    await page.locator('[data-quote-section="good"] [data-option-edit]').click();
+    assert.match(await page.locator('[data-option-preview]').first().textContent(), /Option 1 · Full HV Replacement · positive/);
     await page.locator('[data-insights-quote-review]').check();
     const download = page.waitForEvent('download');
     await page.locator('[data-insights-download]').click();
@@ -997,16 +1024,16 @@ async function checkSurveyInsights(viewport, suffix) {
     await page.getByRole('button', { name: 'Open analysis' }).click();
     await page.waitForFunction(() => document.querySelector('[data-insights-status]').textContent.includes('Saved analysis opened'));
     assert.deepEqual(await page.locator('[data-quote-count]').allTextContents(), ['good 0/0', 'bad 0/0', 'ugly 0/0']);
-    await page.locator('[data-quote-option="repair"] [data-option-edit]').click();
-    assert.match(await page.locator('[data-quote-option="repair"] [data-quote-empty]').textContent(), /No quote candidates were generated/);
+    await page.locator('[data-quote-section="good"] [data-option-edit]').click();
+    assert.match(await page.locator('[data-quote-section="good"] [data-quote-empty]').textContent(), /No quote candidates were generated/);
     await page.locator('[data-insights-quote-review]').check();
     const emptyQuoteDownload = page.waitForEvent('download');
     await page.locator('[data-insights-download]').click();
     assert.equal((await emptyQuoteDownload).suggestedFilename(), 'ipace-owner-survey-deck_test.pptx');
   } else {
-    await page.locator('[data-quote-option="repair"] [data-option-edit]').click();
+    await page.locator('[data-quote-section="good"] [data-option-edit]').click();
     await page.screenshot({ path: path.join(outputDir, 'survey-insights-quote-editor-mobile.png'), fullPage: true });
-    await page.locator('[data-quote-option="repair"] [data-option-edit]').click();
+    await page.locator('[data-quote-section="good"] [data-option-edit]').click();
   }
   await page.close();
 }

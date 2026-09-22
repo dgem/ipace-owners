@@ -154,11 +154,12 @@ func TestJLRContactCampaignUsesItsHolidayHeroImage(t *testing.T) {
 
 func TestAllCampaignsUseMarkdownSources(t *testing.T) {
 	for fileName, expectedID := range map[string]string{
-		"campaign-reengagement": "registration-reminder",
-		"member-referral":       "member-referral",
-		"all-members-drive":     "reach-1000",
-		"jlr-contact":           "jlr-contact",
-		"survey-september-2026": "survey-september-2026",
+		"campaign-reengagement":                  "registration-reminder",
+		"member-referral":                        "member-referral",
+		"all-members-drive":                      "reach-1000",
+		"jlr-contact":                            "jlr-contact",
+		"survey-september-2026":                  "survey-september-2026",
+		"survey-closing-reminder-september-2026": "survey-closing-reminder-september-2026",
 	} {
 		template, err := embeddedCampaignTemplate(fileName)
 		if err != nil {

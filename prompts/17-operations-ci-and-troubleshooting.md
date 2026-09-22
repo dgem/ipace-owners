@@ -33,14 +33,15 @@ recipient identity, so it is logged as an operator warning but cannot block the 
 Registration reminders remain separate because every recipient
 needs a newly minted private sign-in link.
 
-The `survey-reminder-september-2026` template further excludes canonical emails whose Auth
+The `survey-reminder-september-2026` and `survey-closing-reminder-september-2026` templates further exclude canonical emails whose Auth
 UID has a response to `survey_38447815d17b0e954a4edbca1b9600c9`. Read only response document
 IDs, resolve Auth users in batches of at most 100, and fail closed on lookup errors.
 Recalculate eligibility at preview and each send batch. Keep source copy read-only in the admin
 form so editing cannot silently discard its targeting. Resolve `{{surveyResponses}}` and the
 existing membership/vehicle-history variables server-side on every preview and send batch;
-retain the stable template campaign ID and existing delivery ledger. Permit sending only on
-18–23 September 2026 UTC while the survey is published and live. Never send from a preview.
+retain each stable template campaign ID and existing delivery ledger. Permit the final-week
+reminder only on 18–23 September 2026 UTC and its distinct closing-day follow-up only on
+22–23 September, while the survey is published and live. Never send from a preview.
 Render five racing-laurel counters with ordinary text over a small raster decoration, plus
 plain-text counters. Use the 1120×630 baseline RGB JPEG hero under 250 KiB, an absolute HTTPS
 URL, width attribute, responsive inline styles and descriptive alt text. Include Facebook,

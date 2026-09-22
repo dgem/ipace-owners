@@ -425,7 +425,7 @@ sending it through a separately selected transactional email provider.
 
 ### Marketing messages
 
-`/admin/marketing-messages/` is the single purpose-built path for group-wide marketing updates. It includes source-controlled prepared campaigns for the September survey, JLR meeting update, member referral and evidence-growth drive, plus a blank message for new copy. The prior per-recipient versions are no longer routable from the admin API, so group-wide sends cannot accidentally bypass Resend's provider-managed unsubscribe behaviour. Before sending, an administrator sees the current number of canonical-email-deduplicated registered members and must type the exact `SEND <count>` confirmation. The preview has no Resend side effect. Each send attempt writes a privacy-safe Cloud log event with its campaign ID and aggregate delivery counts (accepted, held/failed and remaining), plus the administrator's auth trace code when supplied; recipient addresses and provider message IDs are kept out of Cloud Logging.
+`/admin/marketing-messages/` is the single purpose-built path for group-wide marketing updates. It includes source-controlled prepared campaigns for the September survey invitation, final-week reminder and closing-day reminder, JLR meeting update, member referral and evidence-growth drive, plus a blank message for new copy. The prior per-recipient versions are no longer routable from the admin API, so group-wide sends cannot accidentally bypass Resend's provider-managed unsubscribe behaviour. Before sending, an administrator sees the current number of canonical-email-deduplicated registered members and must type the exact `SEND <count>` confirmation. The preview has no Resend side effect. Each send attempt writes a privacy-safe Cloud log event with its campaign ID and aggregate delivery counts (accepted, held/failed and remaining), plus the administrator's auth trace code when supplied; recipient addresses and provider message IDs are kept out of Cloud Logging.
 
 On confirmation, the Function reads the live audience of verified historic Firebase Auth accounts and modern Join registrations, deduplicated by canonical email, then sends the message through Resend's normal email API in resumable batches of 100. All historic accounts were created through a required-contact-consent membership flow; an explicit withdrawal in a Join record, member preferences, or the email unsubscribe link overrides that historic consent. Every continuation rechecks that live audience while the recipient ledger skips anyone already recorded for the same prepared message. Before calling Resend, it atomically reserves each recipient in Firestore; an `attempting` or failed record is never retried automatically, including after a provider timeout or 502. This prevents a whole batch — or an uncertain recipient — being replayed. Aggregate failure counters left by pre-ledger versions are audit warnings only: they cannot identify a recipient, so delivery continues exclusively from the per-recipient ledger. The admin UI shows the masked delivery ledger so an operator can reconcile recorded failures before deciding on any manual follow-up. Only a member's email address and first name are sent to Resend; no vehicle, survey, evidence, or Firebase identity data is transferred. The message may use `{{firstName}}`; every email includes an opaque, recipient-specific unsubscribe link that updates the member's communications consent without requiring sign-in.
 
@@ -672,8 +672,9 @@ sentiment counts and proposes three discussion actions. The administrator review
 the overview/actions, selects three permitted quotes in each good/bad/ugly category or all
 available when fewer than three exist,
 and confirms quote permission and de-identification before a PowerPoint file is generated in
-the browser. Each survey option has a collapsed selected-quote summary and an expandable,
-filterable editor with a visible candidate list, case-insensitive text search and an optional
+the browser. Each good/bad/ugly editorial section has a collapsed selected-quote summary,
+its selected count split by numbered survey option, and an expandable editor with option and
+sentiment filters, a visible candidate list, case-insensitive text search and an optional
 bounded regex search; live colour-coded counts explain missing or extra quotes. An empty
 candidate list is explicit and does not prevent deck generation. Transient
 429/502/503/504 responses retry the same page; if retries fail, Resume analysis continues
@@ -904,13 +905,13 @@ Plain vanilla JavaScript, no bundler. The current modules are:
 - `public-stats.js` — homepage and evidence-dashboard aggregate rendering
 - `survey-participation.js` — public September survey participation count, retaining the dated fallback when unavailable
 
-The `survey-reminder-september-2026` marketing template targets consented members who have
+The `survey-reminder-september-2026` and `survey-closing-reminder-september-2026` marketing templates target consented members who have
 not submitted the September survey. Preview and each send batch recalculate that audience
 and substitute live survey, membership and vehicle-history counts. Its source copy is locked
-in the admin form to preserve targeting. Sending is restricted to 18–23 September 2026 UTC
-while the published survey is live. Existing exact-count confirmation and delivery deduplication apply.
-The matching `/updates/survey-final-straight/` page retains dated 19 September figures when
-live counts are unavailable. The Updates collection includes both Markdown and Nunjucks posts,
+in the admin form to preserve targeting. The final-week version is restricted to 18–23 September
+2026 UTC, and the closing-day version to 22–23 September, while the published survey is live. Existing exact-count confirmation and delivery deduplication apply.
+The matching `/updates/survey-final-straight/` and `/updates/survey-closing-tomorrow/` pages
+retain dated publication figures when live counts are unavailable. The Updates collection includes both Markdown and Nunjucks posts,
 sorted newest first, with a build-level regression test for discoverability.
 `GET /api/survey-participation` exposes only the fixed survey's
 response total, with 60-second public caching; it never exposes answers or respondent details.
