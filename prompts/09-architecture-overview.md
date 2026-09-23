@@ -145,7 +145,7 @@ header.
 | `GET /api/admin/stats` | `AdminStats` | Admin | Return public consent-filtered homepage counters alongside private all-record member, vehicle, SoH, and service-event statistics with `Cache-Control: private, no-store`; canonical emails are deduplicated at the first Join before the daily Join trend and country rows are calculated. Derive country from the Join, one unambiguous vehicle country, or a strict UK registration, otherwise use `Unknown` (including conflicting vehicle countries). Magic-link-verified accounts have a separate daily line chart, and no per-vehicle evidence is returned. |
 | `POST /api/admin/reengagement-preview` | `AdminReengagementPreview` | Admin | Return aggregate counts for the consented, unsigned-in Join audience. |
 | `POST /api/admin/reengagement-send` | `AdminReengagementSend` | Admin | Confirm and send the next resumable batch of at most ten reminders. |
-| `POST /api/admin/marketing-message-templates` | `AdminMarketingMessageTemplates` | Admin | Load source-controlled prepared marketing messages (September survey, JLR update, member referral and growth drive), filling public evidence totals server-side. |
+| `POST /api/admin/marketing-message-templates` | `AdminMarketingMessageTemplates` | Admin | Load source-controlled prepared marketing messages (September survey invitation, nonrespondent reminders, JLR update, member referral and growth drive), filling public evidence totals server-side. |
 | `POST /api/admin/marketing-message-preview` | `AdminMarketingMessagePreview` | Admin | Validate a prepared or administrator-authored Markdown marketing message, calculate the canonical-email-deduplicated member audience from verified historic Firebase Auth accounts and modern Join registrations, excluding explicit withdrawals, and return a sandboxable rendered preview and exact send confirmation without contacting Resend. |
 | `POST /api/admin/marketing-message-send` | `AdminMarketingMessageSend` | Admin | Recalculate that member audience and, only after the exact confirmation and unchanged count, send the next resumable batch of at most 100 individual Resend emails. Each continuation uses the current eligible audience; the Firestore recipient ledger, rather than an old audience cutoff, skips recipients already recorded for the same prepared message. A prepared template's stable source identity, not dynamic aggregate values in its rendered copy, identifies the campaign, and all matching legacy ledgers are unioned before sending. Pre-ledger aggregate provider-failure counters are logged as a warning but cannot halt a continuation because they identify no recipient; only the per-recipient ledger determines suppression. Only name/email are transferred and each message has an opaque, recipient-specific unsubscribe link. Log one privacy-safe aggregate batch outcome (campaign ID; accepted, held/failed and remaining counts; supplied auth trace) without recipient or provider identifiers. |
 | `POST /api/admin/marketing-message-deliveries` | `AdminMarketingMessageDeliveries` | Admin | Return a masked, recipient-deduplicated view of every matching legacy and current delivery ledger for a marketing message, including attempted, sent and failed states, so the history reflects the same records the send guard uses. |
@@ -169,12 +169,13 @@ header.
 | `GET /api/public-stats` | `PublicStats` | No | Return the generated anonymised aggregate snapshot. |
 | `GET /api/survey-participation` | `SurveyParticipation` | No | Return only the fixed published September survey response total; cache for 60 seconds, never expose answers or identities. |
 
-The prepared `survey-reminder-september-2026` marketing campaign narrows the consented member
+The prepared `survey-reminder-september-2026` and `survey-closing-reminder-september-2026` marketing campaigns narrow the consented member
 audience to nonrespondents, using response document IDs and batched Auth email lookup. Resolve
 live response and evidence variables and recheck eligibility at preview and each batch; preserve
-the template's stable campaign identity and existing delivery suppression. It is available only
-18–23 September 2026 UTC while the survey remains published and live. The matching dated public
-update uses participation/public-stat counters with explicit fallbacks, shared laurel styling,
+each template's stable campaign identity and existing delivery suppression. The final-week
+campaign is available only 18–23 September 2026 UTC; the closing-day campaign is available only
+22–23 September, while the survey remains published and live. The matching dated public updates
+use participation/public-stat counters with explicit fallbacks, shared laurel styling,
 an email-friendly JPEG hero and public social-share links. See prompts 04 and 17 for content
 and operational details.
 

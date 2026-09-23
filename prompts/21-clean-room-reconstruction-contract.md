@@ -32,10 +32,10 @@ in the admin review and deck. Transport/model availability errors remain retryab
 The administrator edits the summary/actions and reviews permission and identifying details
 for every selected anonymous quote before browser-side PowerPoint export, with three
 good, three bad and three ugly candidates selected when available, or all candidates in a
-category with fewer than three (including zero). The quote chooser separates survey options
-into expandable editors with category/sentiment filters, case-insensitive text search, optional
-bounded regex search, an explicit empty state, a collapsed preview of selected quotes, live
-per-option counts and colour-coded category totals. Wrong counts receive explicit feedback
+category with fewer than three (including zero). The quote chooser separates good/bad/ugly
+into expandable editors with survey-option and sentiment filters, case-insensitive text search,
+optional bounded regex search, an explicit empty state, and a collapsed preview of selected
+quotes. Each section shows its total and a breakdown by numbered survey option. Wrong counts receive explicit feedback
 and block deck generation. Preserve original quote indices through sorting and filtering.
 Save each completed redacted AI report as an immutable dated analysis in private Cloud Storage,
 with Firestore metadata, then save each generated PPTX as an immutable child version. Admins
@@ -81,6 +81,12 @@ enforce the published/live survey plus 18–23 September UTC sending window. Kee
 identity, ledger deduplication and exact current-count confirmation when counters or eligibility
 change. No preview or test may send email. Desktop/mobile checkpoints cover the public update,
 the rendered email, and the email with images blocked.
+
+Preserve the distinct closing-day follow-up, updated on 23 September, at
+`/updates/survey-closing-tomorrow/` and `survey-closing-reminder-september-2026.md`. It reuses the
+email-safe race hero and five live-substituted wreath counters, targets only current
+nonrespondents, says the survey closes at midnight that night, has its own delivery identity,
+and is sendable only on 22–23 September while the survey is live.
 
 If the fixed survey document is absent (notably in staging with independently generated IDs),
 the admin marketing preview must still render a clearly labelled layout-only preview using all
@@ -203,7 +209,7 @@ change rather than assuming it exists.
 | `GET /api/admin/stats` | Admin claim | Return the consent-filtered homepage counters alongside private all-record member, vehicle, SoH, and service-event statistics with `Cache-Control: private, no-store`; canonical emails are deduplicated at the first Join before the daily Join trend and country rows are calculated. Derive country from the Join, one unambiguous vehicle country, or a strict UK registration, otherwise use `Unknown` (including conflicting vehicle countries). Magic-link-verified accounts have a separate daily line chart, and no per-vehicle evidence is returned. |
 | `POST /api/admin/reengagement-preview` | Admin claim | Return aggregate counts for consented Join submitters who have not registered. |
 | `POST /api/admin/reengagement-send` | Admin claim | Require the campaign ID, exact eligible count and typed confirmation; recheck registrations and send the next batch of at most ten. |
-| `POST /api/admin/marketing-message-templates` | Admin claim | Load source-controlled marketing-message templates for the September survey, JLR meeting update, member referral and group growth, filling aggregate evidence values server-side. |
+| `POST /api/admin/marketing-message-templates` | Admin claim | Load source-controlled marketing-message templates for the September survey invitation and nonrespondent reminders, JLR meeting update, member referral and group growth, filling aggregate evidence values server-side. |
 | `POST /api/admin/marketing-message-preview` | Admin claim | Validate prepared or custom Markdown, recalculate the canonical member audience from verified historic Firebase Auth accounts and modern Join registrations, excluding explicit withdrawals, and render a sandboxable preview with no provider side effect. |
 | `POST /api/admin/marketing-message-send` | Admin claim | Recheck that member audience and exact `SEND <count>` confirmation, then reserve each recipient before sending the next batch of at most 100 individual emails. Each continuation considers every currently eligible member, while the recipient ledger skips anyone already recorded for the same campaign. The ledger treats `attempting` and failed deliveries as non-retryable until manual reconciliation, preventing timeout/502 duplicates. Aggregate counters from a pre-ledger sender are diagnostic only and cannot stop a continuation because they identify no recipient. Prepared templates are identified by stable source content rather than changing rendered aggregate values, and all matching legacy ledgers are unioned before sending. Each email has an opaque, recipient-specific unsubscribe link. |
 | `POST /api/admin/marketing-message-deliveries` | Admin claim | Return the masked, recipient-deduplicated union of matching legacy and current delivery ledgers for a marketing message, including attempted, sent and failed states. |

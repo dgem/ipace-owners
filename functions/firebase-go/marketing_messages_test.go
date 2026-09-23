@@ -190,17 +190,23 @@ func TestMarketingMessageTemplatesMoveSeptemberSurveyToBroadcasts(t *testing.T) 
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(templates) != 5 {
-		t.Fatalf("template count = %d, want 5", len(templates))
+	if len(templates) != 6 {
+		t.Fatalf("template count = %d, want 6", len(templates))
 	}
-	var survey marketingMessageTemplate
+	var survey, closing marketingMessageTemplate
 	for _, template := range templates {
 		if template.ID == "survey-september-2026" {
 			survey = template
 		}
+		if template.ID == surveyClosingReminderTemplateID {
+			closing = template
+		}
 	}
 	if survey.ID == "" {
 		t.Fatal("September survey template is missing")
+	}
+	if closing.ID == "" || !strings.Contains(closing.Markdown, "calculated at preview") || closing.HeroImage != "/images/september-survey-reminder-2026-hero.jpg" {
+		t.Fatalf("closing reminder template is incomplete: %+v", closing)
 	}
 	for _, expected := range []string{
 		"{{firstName}}",
