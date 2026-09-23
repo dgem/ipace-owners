@@ -1,16 +1,16 @@
 ---
 id: survey-closing-reminder-september-2026
-name: September survey — a little more than 24 hours to go
-subject: A little more than 24 hours to add your voice
+name: September survey — less than 24 hours to go
+subject: Less than 24 hours to add your voice
 audience: custom-member
 heroImage: /images/september-survey-reminder-2026-hero.jpg
 heroImageAlt: "Two right-hand-drive I-PACE-style cars travelling together in the left-hand lane of a British country road."
 ---
 Hi {{memberFirstName}},
 
-## A little more than 24 hours to go.
+## Less than 24 hours to go.
 
-Our member survey closes at the end of **23 September**, before we meet Jaguar Land Rover on **24 September**. If you have not submitted your answers, this is the moment to add your voice.
+Our member survey closes at **midnight tonight, 23 September**, before we meet Jaguar Land Rover tomorrow. If you have not submitted your answers, this is the moment to add your voice.
 
 We have received **{{surveyResponses}} survey responses so far**. Every additional response gives us a clearer picture of what owners want us to put to JLR.
 
@@ -38,7 +38,7 @@ Already answered? Thank you. This reminder is sent only to members who had not s
 
 Share the final reminder:
 
-[Facebook](https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fipace-owners.org%2Fupdates%2Fsurvey-closing-tomorrow%2F) · [WhatsApp](https://wa.me/?text=I-PACE%20owners%3A%20a%20little%20more%20than%2024%20hours%20remain%20to%20complete%20the%20member%20survey.%20https%3A%2F%2Fipace-owners.org%2Fupdates%2Fsurvey-closing-tomorrow%2F) · [X](https://twitter.com/intent/tweet?text=I-PACE%20owners%3A%20a%20little%20more%20than%2024%20hours%20remain%20to%20complete%20the%20member%20survey&url=https%3A%2F%2Fipace-owners.org%2Fupdates%2Fsurvey-closing-tomorrow%2F) · [LinkedIn](https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fipace-owners.org%2Fupdates%2Fsurvey-closing-tomorrow%2F)
+[Facebook](https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fipace-owners.org%2Fupdates%2Fsurvey-closing-tomorrow%2F) · [WhatsApp](https://wa.me/?text=I-PACE%20owners%3A%20less%20than%2024%20hours%20remain%20to%20complete%20the%20member%20survey.%20It%20closes%20at%20midnight%20tonight.%20https%3A%2F%2Fipace-owners.org%2Fupdates%2Fsurvey-closing-tomorrow%2F) · [X](https://twitter.com/intent/tweet?text=I-PACE%20owners%3A%20less%20than%2024%20hours%20remain%20to%20complete%20the%20member%20survey.%20It%20closes%20at%20midnight%20tonight&url=https%3A%2F%2Fipace-owners.org%2Fupdates%2Fsurvey-closing-tomorrow%2F) · [LinkedIn](https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fipace-owners.org%2Fupdates%2Fsurvey-closing-tomorrow%2F)
 
 Thank you for helping us arrive at the meeting with a stronger owner voice.
 

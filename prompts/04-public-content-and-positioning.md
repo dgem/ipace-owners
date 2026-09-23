@@ -52,12 +52,12 @@ body copy explicit, pill links to the survey and vehicle workspace, and four pub
 The matching hero shows two RHD I-PACE-style cars in the left lane of a British countryside
 road. Reuse the compressed email-safe JPEG; keep key copy and numbers as accessible text.
 
-Also preserve `/updates/survey-closing-tomorrow/`, dated 22 September 2026, and its matching
-nonrespondent-only prepared email. Lead with “a little more than 24 hours”, the end-of-23
-September close and the 24 September JLR meeting. Use the same race hero, five live-refreshing
+Also preserve `/updates/survey-closing-tomorrow/`, updated on 23 September 2026, and its matching
+nonrespondent-only prepared email. Lead with “less than 24 hours”, the midnight-on-23-September
+close and the following day's JLR meeting. Use the same race hero, five live-refreshing
 laurel counters, survey and vehicle-history actions, and Facebook/WhatsApp/X/LinkedIn shares.
-The dated fallback snapshot is 719 responses, 1,527 owners, 768 cars, 141 battery-health
-readings and 200 service/fault records.
+The dated fallback snapshot is 738 responses, 1,550 owners, 786 cars, 144 battery-health
+readings and 203 service/fault records.
 
 ## Goal
 

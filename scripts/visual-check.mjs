@@ -882,7 +882,7 @@ async function checkSurveyReminder() {
       const page = await browser.newPage({ viewport: { width, height: 900 } });
       await page.route('https://ipace-owners.org/images/**', (route) => route.fulfill({ path: path.join('public/images', path.basename(new URL(route.request().url()).pathname)) }));
       await page.setContent(closingHTML, { waitUntil: 'networkidle' });
-      assert.equal(await page.getByText('A little more than 24 hours to go.').isVisible(), true);
+      assert.equal(await page.getByText('Less than 24 hours to go.').isVisible(), true);
       assert.equal(await page.locator('a[href*="survey-closing-tomorrow"]').count(), 4);
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
       await page.screenshot({ path: path.join(outputDir, `survey-closing-email-${width}.png`), fullPage: true });
@@ -893,8 +893,8 @@ async function checkSurveyReminder() {
       await page.route('**/api/public-stats*', (route) => route.abort());
       await page.route('**/api/survey-participation', (route) => route.abort());
       await page.goto(baseURL + '/updates/survey-closing-tomorrow/', { waitUntil: 'networkidle' });
-      assert.equal(await page.locator('[data-survey-participation] strong').textContent(), '719');
-      assert.equal(await page.locator('[data-public-stat="joinedOwners"]').textContent(), '1527');
+      assert.equal(await page.locator('[data-survey-participation] strong').textContent(), '738');
+      assert.equal(await page.locator('[data-public-stat="joinedOwners"]').textContent(), '1550');
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
       await page.screenshot({ path: path.join(outputDir, `survey-closing-update-${width}.png`), fullPage: true });
       await page.close();

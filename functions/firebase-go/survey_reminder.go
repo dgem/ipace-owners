@@ -172,8 +172,8 @@ func surveyReminderLayoutPreview(input marketingMessageRequest) (marketingMessag
 	stats := publicStatsSnapshot{JoinedOwners: 1477, VehiclesRegistered: 721, SOHReadings: 130, ServiceEventsLogged: 182}
 	responses, snapshotDate := "540", "19 September 2026"
 	if input.TemplateID == surveyClosingReminderTemplateID {
-		stats = publicStatsSnapshot{JoinedOwners: 1527, VehiclesRegistered: 768, SOHReadings: 141, ServiceEventsLogged: 200}
-		responses, snapshotDate = "719", "22 September 2026"
+		stats = publicStatsSnapshot{JoinedOwners: 1550, VehiclesRegistered: 786, SOHReadings: 144, ServiceEventsLogged: 203}
+		responses, snapshotDate = "738", "23 September 2026"
 	}
 	markdown := strings.ReplaceAll(marketingTemplateMarkdown(source.Markdown, stats), "{{surveyResponses}}", responses)
 	notice := "Layout preview only: the September survey is not available in this environment. All figures are the dated " + snapshotDate + " snapshot, not live counts. No audience has been calculated and sending is disabled."

@@ -73,7 +73,7 @@ func TestSurveyClosingReminderUsesLiveCountsAndNonrespondentAudience(t *testing.
 	if preview.Eligible != 1 || preview.Confirmation != "SEND 1" {
 		t.Fatalf("wrong closing-reminder audience: %+v", preview)
 	}
-	for _, value := range []string{"A little more than 24 hours", "540", "1477", "721", "130", "182", "survey-closing-tomorrow", "september-survey-reminder-2026-hero.jpg"} {
+	for _, value := range []string{"Less than 24 hours", "midnight tonight", "540", "1477", "721", "130", "182", "survey-closing-tomorrow", "september-survey-reminder-2026-hero.jpg"} {
 		if !strings.Contains(preview.HTML, value) {
 			t.Errorf("closing reminder missing %q", value)
 		}
@@ -138,7 +138,7 @@ func TestSurveyClosingReminderMissingSurveyUsesClosingSnapshot(t *testing.T) {
 	if err != nil || !preview.PreviewOnly {
 		t.Fatalf("closing layout preview: %+v, %v", preview, err)
 	}
-	for _, value := range []string{"22 September 2026", "719", "1527", "768", "141", "200"} {
+	for _, value := range []string{"23 September 2026", "738", "1550", "786", "144", "203"} {
 		if !strings.Contains(preview.HTML, value) {
 			t.Errorf("closing layout preview missing %q", value)
 		}

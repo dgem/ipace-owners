@@ -82,11 +82,11 @@ identity, ledger deduplication and exact current-count confirmation when counter
 change. No preview or test may send email. Desktop/mobile checkpoints cover the public update,
 the rendered email, and the email with images blocked.
 
-Preserve the distinct 22 September closing-day follow-up at
+Preserve the distinct closing-day follow-up, updated on 23 September, at
 `/updates/survey-closing-tomorrow/` and `survey-closing-reminder-september-2026.md`. It reuses the
 email-safe race hero and five live-substituted wreath counters, targets only current
-nonrespondents, has its own delivery identity, and is sendable only on 22–23 September while
-the survey is live.
+nonrespondents, says the survey closes at midnight that night, has its own delivery identity,
+and is sendable only on 22–23 September while the survey is live.
 
 If the fixed survey document is absent (notably in staging with independently generated IDs),
 the admin marketing preview must still render a clearly labelled layout-only preview using all

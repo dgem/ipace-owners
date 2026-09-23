@@ -43,8 +43,9 @@ test('the closing reminder update carries current counters and social shares', f
     'utf8'
   );
 
-  assert.match(closingUpdate, /A little more than 24 hours/);
-  assert.match(closingUpdate, /719/);
+  assert.match(closingUpdate, /Less than 24 hours/);
+  assert.match(closingUpdate, /midnight tonight/);
+  assert.match(closingUpdate, /738/);
   assert.match(closingUpdate, /data-survey-participation/);
   assert.match(closingUpdate, /data-public-stats/);
   assert.equal(closingUpdate.split('social-share__link').length - 1, 4);
