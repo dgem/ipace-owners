@@ -113,7 +113,8 @@ callout once the result is shown so it does not repeat the next-step guidance.
 Collect:
 
 - Contact details.
-- Default country / region to United Kingdom while keeping non-UK owner options available.
+- Default country / region to United Kingdom while keeping non-UK owner options available,
+  including Greece (`GR`) in Join, vehicle creation and vehicle editing.
   Explain that launch is UK-led and that non-UK interest may be kept separate for regional
   scope or future handoff.
 - One combined owner/relationship status field. Do not ask separate relationship and

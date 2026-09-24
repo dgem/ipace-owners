@@ -40,7 +40,7 @@ var skillValues = []string{
 }
 
 var countryValues = []string{
-	"GB", "IE", "DE", "FR", "NL", "NO", "SE", "DK", "AT", "CH", "BE", "ES", "IT", "PT", "US", "CA", "AU", "NZ", "other",
+	"GB", "IE", "DE", "FR", "NL", "NO", "SE", "DK", "AT", "CH", "BE", "ES", "IT", "GR", "PT", "US", "CA", "AU", "NZ", "other",
 }
 
 var modelYearValues = []string{"2018", "2019", "2020", "2021", "2022", "2023", "2024"}
