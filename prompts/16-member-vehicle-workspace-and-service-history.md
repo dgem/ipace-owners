@@ -224,6 +224,15 @@ date boundaries, including the PII-safe CSV fields. Delete a survey's response s
 
 ## Private all-member service analysis CSV
 
+Keep the Admin dashboard summary comprehensible before offering record-level export. Display
+record types, dispute outcomes and service providers as separate tables; never mix those
+dimensions into one “Category” column. Recalculate resolution days from valid event/final-fix
+dates, show the number of records contributing a duration, and show median, average and range.
+Explain that same-day fixes are zero, open records are excluded, and median is less sensitive
+to very long cases. Group providers by stored provider ID where available; otherwise merge
+obvious case, punctuation, postcode and generic Jaguar/JLR wording variants. Show the 20
+providers with the most records and retain every row in the CSV.
+
 Add `Download service CSV` beside Service Event Summary on the admin dashboard, using
 `GET /api/admin/service-export` and `admin-service-export.js`. Require a verified admin
 server-side and include all non-deleted service records, irrespective of public-analysis
@@ -241,14 +250,15 @@ event/fix dates. Missing values stay blank, and invalid stored enums are exclude
 member/vehicle/event IDs, contact columns, registrations, VIN fragments/hashes, provider
 postcodes, and creation/update timestamps. Filter deletion status and deletion timestamps.
 
-Load service events, joins and vehicles in three collection scans, never one Auth lookup per
-member. Use known names (including name components of at least three characters), emails,
-internal identifiers, registrations, VIN fragments and hashes only as a text-redaction
-dictionary. Redact common email, URL, phone, full VIN and UK registration/postcode patterns;
-handle registration spacing variants. Redact provider names too if they contain matching
-personal details. Automated redaction may over-redact and cannot guarantee contextual
-anonymity; keep this limitation in the private admin UI. Fail the export if any source
-collection cannot be read. Never log text, dictionary contents, identifiers or CSV data.
+Scan service events once, then batch-get only the directly related vehicle documents and member
+documents needed for redaction; never scan every Join/vehicle collection or perform one Auth
+lookup per member. Use the related owners' known names (including name components of at least
+three characters), hashes, internal identifiers, registrations and VIN fragments only as a
+text-redaction dictionary. Redact common email, URL, phone, full VIN and UK
+registration/postcode patterns; handle registration spacing variants. Redact provider names too
+if they contain matching personal details. Automated redaction may over-redact and cannot
+guarantee contextual anonymity; keep this limitation in the private admin UI. Fail the export
+if any required read fails. Never log text, dictionary contents, identifiers or CSV data.
 
 Neutralise spreadsheet formulas in every output cell. Return private/no-store CSV attachment
 headers, a header-only CSV for no records, and deterministic ordering by exported values.

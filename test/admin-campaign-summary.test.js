@@ -45,3 +45,16 @@ test('admin statistics load only after admin visibility with an identity token',
   assert.match(page, /<th scope="col">Registered<\/th><th scope="col">Verified<\/th>/);
   assert.doesNotMatch(statsScript, /container\.innerHTML\s*=/);
 });
+
+test('service analysis separates record types, disputes and providers', function () {
+  assert.match(page, /Resolution time by record type/);
+  assert.match(page, /Recorded dispute outcomes/);
+  assert.match(page, /Resolution time by service provider/);
+  assert.match(page, /With final fix/);
+  assert.match(page, /Median days/);
+  assert.match(page, /same-day fix is 0 days/);
+  assert.doesNotMatch(page, /<th scope="col">Category<\/th>/);
+  assert.match(statsScript, /eventTypeAggregates/);
+  assert.match(statsScript, /disputeStatusBreakup/);
+  assert.match(statsScript, /providerAggregates/);
+});

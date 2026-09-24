@@ -29,8 +29,11 @@ Potential future Go Functions or handler extensions:
   server-side validation, and admin review workflows.
 - Further export Functions: admin-only CSV/JSON exports with explicit audit logging.
   Private all-member service CSV export is implemented at `/api/admin/service-export`,
-  with automatically redacted provider names and narrative text; prompt 16 defines its
-  scope and limitations. Survey CSV and member-owned CSV/Excel exports also already exist.
+  with automatically redacted provider names and narrative text. It scans service records and
+  batch-gets only related member/vehicle redaction data. The admin summary separately presents
+  record types, dispute outcomes and normalised providers with explicit final-fix denominators
+  and median/average/range; prompt 16 defines its scope and limitations. Survey CSV and
+  member-owned CSV/Excel exports also already exist.
 
 ## Evidence Upload Rules
 

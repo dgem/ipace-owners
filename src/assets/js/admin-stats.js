@@ -197,10 +197,19 @@
 
   // ── Service Event Aggregates Table ────────────────────────────────────────
 
-  function renderServiceAggregates(container, aggregates) {
-    var table = container.querySelector('[data-service-event-aggregates]');
+  function formatServiceDays(value, decimals) {
+    if (value == null) return '—';
+    var number = Number(value);
+    return decimals && number % 1 !== 0 ? number.toFixed(1) : String(number);
+  }
+
+  function renderServiceAggregates(container, selector, aggregates, limit) {
+    var table = container.querySelector(selector);
     if (!table || !aggregates || aggregates.length === 0) {
-      if (table) table.parentNode.innerHTML = '<p>No service event data available.</p>';
+      if (table) {
+        var emptyBody = table.querySelector('tbody');
+        if (emptyBody) emptyBody.innerHTML = '<tr><td colspan="6">No matching service records available.</td></tr>';
+      }
       return;
     }
 
@@ -208,24 +217,43 @@
     if (!tbody) return;
     tbody.innerHTML = '';
 
-    for (var i = 0; i < Math.min(aggregates.length, TABLE_ROWS_LIMIT); i++) {
+    for (var i = 0; i < Math.min(aggregates.length, limit); i++) {
       var agg = aggregates[i];
       var tr = document.createElement('tr');
-      var fields = [
-        { key: 'category' },
-        { key: 'eventCount', format: function(v) { return v == null ? '—' : String(v); } },
-        { key: 'minDays', format: function(v) { return v == null ? '—' : String(v); } },
-        { key: 'avgDays', format: function(v) { return v == null ? '—' : Number(v).toFixed(1); } },
-        { key: 'maxDays', format: function(v) { return v == null ? '—' : String(v); } }
+      var range = agg.durationCount > 0 ? formatServiceDays(agg.minDays, false) + '–' + formatServiceDays(agg.maxDays, false) : '—';
+      var values = [
+        agg.label,
+        agg.eventCount == null ? '—' : String(agg.eventCount),
+        agg.durationCount == null ? '—' : String(agg.durationCount),
+        formatServiceDays(agg.medianDays, true),
+        agg.avgDays == null ? '—' : Number(agg.avgDays).toFixed(1),
+        range
       ];
-      for (var f = 0; f < fields.length; f++) {
+      for (var f = 0; f < values.length; f++) {
         var td = document.createElement('td');
-        var val = agg[fields[f].key];
-        td.textContent = fields[f].format ? fields[f].format(val) : (val == null ? '—' : String(val));
+        td.textContent = values[f] == null ? '—' : String(values[f]);
         tr.appendChild(td);
       }
       tbody.appendChild(tr);
     }
+  }
+
+  function renderServiceDisputes(container, disputes) {
+    var section = container.querySelector('[data-service-disputes]');
+    var tbody = container.querySelector('[data-service-dispute-table] tbody');
+    if (!section || !tbody || !disputes || disputes.length === 0) return;
+    tbody.innerHTML = '';
+    for (var i = 0; i < Math.min(disputes.length, TABLE_ROWS_LIMIT); i++) {
+      var tr = document.createElement('tr');
+      var label = document.createElement('td');
+      var count = document.createElement('td');
+      label.textContent = disputes[i].label || 'Unknown';
+      count.textContent = disputes[i].count == null ? '—' : String(disputes[i].count);
+      tr.appendChild(label);
+      tr.appendChild(count);
+      tbody.appendChild(tr);
+    }
+    section.hidden = false;
   }
 
   // ── Main Render Function ──────────────────────────────────────────────────
@@ -300,15 +328,13 @@
       }
     }
 
-    // Render service event aggregates
-    if (serviceStats.categoryAggregates && serviceStats.categoryAggregates.length > 0) {
-      renderServiceAggregates(container, serviceStats.categoryAggregates);
-    } else {
-      var serviceSection = container.querySelector('[data-service-event-aggregates]');
-      if (serviceSection) {
-        serviceSection.parentNode.innerHTML = '<p>No service event data available.</p>';
-      }
-    }
+    renderStatCards(container, '[data-service-stats]', serviceStats, [
+      { key: 'totalEvents', label: 'Service records' },
+      { key: 'eventsWithFinalFix', label: 'With a final-fix date', accent: true }
+    ]);
+    renderServiceAggregates(container, '[data-service-event-type-aggregates]', serviceStats.eventTypeAggregates, TABLE_ROWS_LIMIT);
+    renderServiceDisputes(container, serviceStats.disputeStatusBreakup);
+    renderServiceAggregates(container, '[data-service-provider-aggregates]', serviceStats.providerAggregates, 20);
   }
 
   // ── Initialization ────────────────────────────────────────────────────────

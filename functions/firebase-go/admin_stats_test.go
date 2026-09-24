@@ -150,16 +150,15 @@ func TestAdminStatsRequiresAdministrator(t *testing.T) {
 }
 
 func TestComputeServiceEventStatsKeepsEachRecord(t *testing.T) {
-	firstDays, secondDays := 3, 9
 	stats := computeServiceEventStats([]serviceEventRecord{
-		{EventType: "repair", ServiceProviderName: "Provider A", DaysToFinalFix: &firstDays},
-		{EventType: "repair", ServiceProviderName: "Provider A", DaysToFinalFix: &secondDays},
+		{EventType: "repair", OccurredAt: "2026-09-01", FinalFixAt: "2026-09-04", ServiceProviderName: "Provider A"},
+		{EventType: "repair", OccurredAt: "2026-09-01", FinalFixAt: "2026-09-10", ServiceProviderName: "Provider A"},
 	})
-	if len(stats.CategoryAggregates) != 1 {
-		t.Fatalf("aggregates=%#v", stats.CategoryAggregates)
+	if stats.TotalEvents != 2 || stats.EventsWithFinalFix != 2 || len(stats.EventTypeAggregates) != 1 || len(stats.ProviderAggregates) != 1 {
+		t.Fatalf("stats=%#v", stats)
 	}
-	agg := stats.CategoryAggregates[0]
-	if agg.EventCount != 2 || agg.MinDays == nil || *agg.MinDays != 3 || agg.MaxDays == nil || *agg.MaxDays != 9 || agg.AvgDays == nil || *agg.AvgDays != 6 {
+	agg := stats.ProviderAggregates[0]
+	if agg.Label != "Provider A" || agg.EventCount != 2 || agg.DurationCount != 2 || agg.MinDays == nil || *agg.MinDays != 3 || agg.MaxDays == nil || *agg.MaxDays != 9 || agg.MedianDays == nil || *agg.MedianDays != 6 || agg.AvgDays == nil || *agg.AvgDays != 6 {
 		t.Fatalf("aggregate=%#v", agg)
 	}
 }
@@ -169,14 +168,37 @@ func TestComputeServiceEventStatsDoesNotClassifyNoDisputeAsDisputed(t *testing.T
 		{EventType: "inspection", DisputeStatus: "none"},
 		{EventType: "repair", DisputeStatus: "still-disputed"},
 	})
-	if len(stats.CategoryAggregates) != 2 {
-		t.Fatalf("aggregates=%#v", stats.CategoryAggregates)
+	if len(stats.EventTypeAggregates) != 2 || len(stats.DisputeStatusBreakup) != 1 {
+		t.Fatalf("stats=%#v", stats)
 	}
-	byCategory := make(map[string]categoryAggregate, len(stats.CategoryAggregates))
-	for _, aggregate := range stats.CategoryAggregates {
-		byCategory[aggregate.Category] = aggregate
+	if stats.DisputeStatusBreakup[0] != (demographicBucket{Label: "Still disputed", Count: 1}) {
+		t.Fatalf("disputes=%#v", stats.DisputeStatusBreakup)
 	}
-	if byCategory["inspection"].EventCount != 1 || byCategory["Disputes"].EventCount != 1 {
-		t.Fatalf("aggregates=%#v", byCategory)
+}
+
+func TestComputeServiceEventStatsNormalisesProvidersAndUsesVerifiedDates(t *testing.T) {
+	staleDays := 999
+	stats := computeServiceEventStats([]serviceEventRecord{
+		{EventType: "fault", OccurredAt: "2026-09-01", FinalFixAt: "2026-09-01", ServiceProviderName: "Sytner Jaguar, Northampton"},
+		{EventType: "fault", OccurredAt: "2026-09-01", FinalFixAt: "2026-09-11", ServiceProviderName: "sytner JLR Northampton — NN1 2AB"},
+		{EventType: "fault", DaysToFinalFix: &staleDays, ServiceProviderName: "Sytner Northampton"},
+		{EventType: "fault", OccurredAt: "2026-09-01", FinalFixAt: "2026-09-06", ServiceProviderID: "provider-1", ServiceProviderName: "Canonical Provider"},
+		{EventType: "fault", OccurredAt: "2026-09-01", FinalFixAt: "2026-09-08", ServiceProviderID: "PROVIDER-1", ServiceProviderName: "Old Provider Spelling"},
+		{EventType: "fault", Review: reviewRecord{Status: "deleted"}, ServiceProviderName: "Deleted Provider"},
+	})
+	if stats.TotalEvents != 5 || stats.EventsWithFinalFix != 4 || len(stats.ProviderAggregates) != 2 {
+		t.Fatalf("stats=%#v", stats)
+	}
+	byProvider := map[string]resolutionAggregate{}
+	for _, aggregate := range stats.ProviderAggregates {
+		byProvider[aggregate.Label] = aggregate
+	}
+	northampton := byProvider["Sytner Northampton"]
+	if northampton.EventCount != 3 || northampton.DurationCount != 2 || northampton.MedianDays == nil || *northampton.MedianDays != 5 || northampton.AvgDays == nil || *northampton.AvgDays != 5 {
+		t.Fatalf("northampton=%#v providers=%#v", northampton, stats.ProviderAggregates)
+	}
+	canonical := byProvider["Canonical Provider"]
+	if canonical.EventCount != 2 || canonical.DurationCount != 2 || canonical.MedianDays == nil || *canonical.MedianDays != 6 {
+		t.Fatalf("canonical=%#v providers=%#v", canonical, stats.ProviderAggregates)
 	}
 }

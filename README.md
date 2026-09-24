@@ -1040,6 +1040,14 @@ group branding. Committed vehicle artwork is original or generated for this proj
 
 ### Private admin service CSV
 
+The Service Event Summary keeps record types, dispute outcomes and service providers in
+separate views. Resolution statistics use only records with valid event and final-fix dates,
+show that denominator explicitly, and include median alongside average and range so unusually
+long cases do not dominate the result without context. Provider rows prefer the stored provider
+ID and otherwise merge obvious case, punctuation, postcode and generic Jaguar/JLR wording
+variants; the dashboard shows the 20 providers with the most records and leaves record-level
+analysis to the private CSV.
+
 The Admin dashboard Service Event Summary offers `Download service CSV` through
 `GET /api/admin/service-export`. `admin-service-export.js` sends a Firebase token; the
 server requires an admin claim. Export every non-deleted service record across members,
@@ -1049,7 +1057,8 @@ internal IDs, vehicle registrations/VIN fragments/hashes, and common email, phon
 registration/postcode and URL patterns from text. Dates use months and mileage uses
 5,000-mile bands. This CSV supports private admin analysis; automated text redaction is
 not a guarantee of anonymity. Never export member/vehicle identifier columns or provider
-postcodes. Read service events, joins and vehicles once per request; no per-user Auth calls.
+postcodes. Scan service events once, then batch-read only the related vehicle and member
+documents needed for redaction; do not scan every Join and vehicle or make per-user Auth calls.
 Responses are private/no-store, spreadsheet formula-safe, and audit logs contain only counts.
 The download prevents duplicate clicks and reports failures or a 60-second timeout.
 
