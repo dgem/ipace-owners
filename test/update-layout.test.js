@@ -53,3 +53,20 @@ test('the closing reminder update carries current counters and social shares', f
     assert.ok(closingUpdate.includes(`>${network}</a>`));
   }
 });
+
+test('the final survey update publishes selections, comments and the winner', function () {
+  var resultsUpdate = fs.readFileSync(
+    path.join(updatesDirectory, 'september-survey-results.njk'),
+    'utf8'
+  );
+
+  assert.match(resultsUpdate, /847 owners/);
+  assert.match(resultsUpdate, /501 optional comment entries/);
+  assert.match(resultsUpdate, /<p>Winner<\/p>\s*<strong>Full HV Replacement<\/strong>/);
+  assert.match(resultsUpdate, /681 selections · 420 preferred votes/);
+  assert.match(resultsUpdate, /563 selected/);
+  assert.match(resultsUpdate, /636 marked a preferred main route/);
+  assert.match(resultsUpdate, /preferred votes used to break an exact tie/);
+  assert.match(resultsUpdate, /Full HV Replacement leads both measures/);
+  assert.equal(resultsUpdate.split('social-share__link').length - 1, 4);
+});

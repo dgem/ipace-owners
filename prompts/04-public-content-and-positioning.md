@@ -59,6 +59,16 @@ laurel counters, survey and vehicle-history actions, and Facebook/WhatsApp/X/Lin
 The dated fallback snapshot is 738 responses, 1,550 owners, 786 cars, 144 battery-health
 readings and 203 service/fault records.
 
+Publish the final September survey results at `/updates/september-survey-results/`, dated
+24 September 2026. Thank the 847 respondents and show 501 optional comment entries. Name Full
+HV Replacement as the winner because it leads both measures with 681 selections and 420
+preferred votes; the main route with the most selections wins and preferred votes break an exact
+tie. Keep selection, preferred and comment counts distinct for each main route. Show Fair
+Compensation and Additional Concerns in the same visual language as additional requests. Explain
+that the survey allowed multiple selections, so selections do not add to the response total, and
+that comments count entries rather than unique commenters. Do not publish free text. Reuse the
+email-safe racing hero, racing-wreath headline counters and four public social shares.
+
 ## Goal
 
 The public site should explain the group clearly, invite owners to participate, and establish a constructive evidence-led posture without overstating legal status or data certainty.

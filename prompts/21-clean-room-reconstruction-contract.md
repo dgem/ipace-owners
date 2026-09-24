@@ -88,6 +88,14 @@ email-safe race hero and five live-substituted wreath counters, targets only cur
 nonrespondents, says the survey closes at midnight that night, has its own delivery identity,
 and is sendable only on 22–23 September while the survey is live.
 
+Preserve the dated final-results update at `/updates/september-survey-results/`. It thanks all
+847 respondents, reports 501 optional comment entries, and names Full HV Replacement as the
+winner because it leads with 681 selections and 420 preferred votes. The main route with the most
+selections wins, with preferred votes breaking an exact tie. Show selection, preferred and
+comment counts separately, explain multiple-selection and comment-entry denominators, keep
+additional requests visually consistent with the main routes, and publish no member free text.
+Include the racing hero, racing-wreath response/comment counters and four social-share links.
+
 If the fixed survey document is absent (notably in staging with independently generated IDs),
 the admin marketing preview must still render a clearly labelled layout-only preview using all
 five dated publication counts. Its API response sets `previewOnly: true`, no confirmation and
@@ -202,6 +210,10 @@ change rather than assuming it exists.
 | `POST /api/delete-vehicle` | Member/vehicle owner | `id`, `confirmation: "DELETE"`; soft-delete the vehicle and its dependent SoH and service records. |
 | `POST /api/delete-soh` | Member/reading owner | `id`, `confirmation: "DELETE"`; soft-delete an SoH reading and refresh the vehicle compatibility value. |
 | `POST /api/delete-service-event` | Member/event owner | `id`, `confirmation: "DELETE"`; soft-delete a service/fault record. |
+
+The shared country allowlist and every corresponding selector include Greece as `GR` in Join,
+vehicle creation and vehicle editing. Keep United Kingdom as the default.
+
 | `GET /api/member-data` | Member | Return only that UID's private member snapshot. |
 | `GET /api/member-export?format=csv\|xlsx` | Member | Return a private no-store ZIP of four CSV datasets or a formatted five-sheet Excel workbook built from only that UID's snapshot; omit internal IDs/hashes and neutralise spreadsheet formulas. |
 | `GET /api/admin/authorize` | Admin claim | Verify access to an admin page and return only `{ "authorized": true }` with `Cache-Control: private, no-store`; never use the review-data route as a generic gate. |
