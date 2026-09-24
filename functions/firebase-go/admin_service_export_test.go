@@ -27,7 +27,13 @@ func TestAdminServiceCSVPrivacyAndStructuredFields(t *testing.T) {
 	deleted.Review.Status = "deleted"
 	deletedAt := record
 	deletedAt.Review.DeletedAt = time.Now()
-	body, count, err := buildAdminServiceCSV(serviceExportData{Records: []serviceEventRecord{record, deleted, deletedAt}, Joins: []joinRecord{{Contact: contactRecord{Name: "Owner Name"}}}, Vehicles: []vehicleRecord{{Vehicle: vehicleDetails{VINLast6: "VIN123456"}}}})
+	body, count, err := buildAdminServiceCSV(serviceExportData{
+		Records: []serviceEventRecord{record, deleted, deletedAt},
+		Joins:   []joinRecord{{IdentityUserID: "private-uid", Contact: contactRecord{Name: "Owner Name"}}},
+		Vehicles: []vehicleRecord{{
+			ID: record.VehicleID, IdentityUserID: "private-uid", Vehicle: vehicleDetails{VINLast6: "VIN123456"},
+		}},
+	})
 	if err != nil || count != 1 {
 		t.Fatalf("count=%d err=%v", count, err)
 	}
@@ -121,9 +127,9 @@ func TestAdminServiceExportAuthorizationAndFailures(t *testing.T) {
 
 func TestServiceExportRedactsNarrativeWithoutLosingAnalysis(t *testing.T) {
 	data := serviceExportData{
-		Joins:    []joinRecord{{Contact: contactRecord{Name: "Ann Example", Email: "ann@example.test"}}},
-		Vehicles: []vehicleRecord{{Vehicle: vehicleDetails{Registration: "P4 ANN", VINLast6: "654321"}}},
-		Records:  []serviceEventRecord{{EventType: "repair", ServiceProviderName: "Example Jaguar", Title: "=HYPERLINK(\"test\")", Description: "Ann cannot attend annual service. Call +44 (0) 7123 456789 or ann@example.test. P4ANN, AB12 CDE, SAJAA1B12J1F12345, 654321, SW1A 1AA. See https://example.test/private. Battery repair took 12 days, H441."}},
+		Joins:    []joinRecord{{IdentityUserID: "member-one", Contact: contactRecord{Name: "Ann Example", Email: "ann@example.test"}}},
+		Vehicles: []vehicleRecord{{ID: "vehicle-one", IdentityUserID: "member-one", Vehicle: vehicleDetails{Registration: "P4 ANN", VINLast6: "654321"}}},
+		Records:  []serviceEventRecord{{IdentityUserID: "member-one", VehicleID: "vehicle-one", EventType: "repair", ServiceProviderName: "Example Jaguar", Title: "=HYPERLINK(\"test\")", Description: "Ann cannot attend annual service. Call +44 (0) 7123 456789 or ann@example.test. P4ANN, AB12 CDE, SAJAA1B12J1F12345, 654321, SW1A 1AA. See https://example.test/private. Battery repair took 12 days, H441."}},
 	}
 	body, _, err := buildAdminServiceCSV(data)
 	if err != nil {
@@ -146,6 +152,28 @@ func TestServiceExportRedactsNarrativeWithoutLosingAnalysis(t *testing.T) {
 		if !strings.Contains(description, retained) {
 			t.Errorf("lost analysis detail %q: %s", retained, description)
 		}
+	}
+}
+
+func TestServiceExportRedactorUsesOnlyRelatedMemberData(t *testing.T) {
+	data := serviceExportData{
+		Records: []serviceEventRecord{{IdentityUserID: "included", VehicleID: "included-vehicle", Title: "Included Owner visited Unrelated Person"}},
+		Joins: []joinRecord{
+			{IdentityUserID: "included", Contact: contactRecord{Name: "Included Owner"}},
+			{IdentityUserID: "unrelated", Contact: contactRecord{Name: "Unrelated Person"}},
+		},
+		Vehicles: []vehicleRecord{
+			{ID: "included-vehicle", IdentityUserID: "included"},
+			{ID: "unrelated-vehicle", IdentityUserID: "unrelated", Vehicle: vehicleDetails{Registration: "AB12 CDE"}},
+		},
+	}
+	body, _, err := buildAdminServiceCSV(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := string(body)
+	if strings.Contains(text, "Included Owner") || !strings.Contains(text, "Unrelated Person") {
+		t.Fatalf("redaction scope is wrong: %s", text)
 	}
 }
 

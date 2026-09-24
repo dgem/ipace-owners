@@ -109,18 +109,51 @@ date: Last Modified
               <section aria-labelledby="service-section-title">
                 <div class="dashboard-panel__header">
                   <div><h3 id="service-section-title">Service Event Summary</h3>
-                  <p class="form-hint">Download all non-deleted service and fault records for private analysis, including provider names, titles and descriptions. Known personal details are redacted; identifying context may remain. Dates use months and mileage uses 5,000-mile bands.</p></div>
+                  <p class="form-hint">Review record types, disputes and provider experience separately. Download all non-deleted service and fault records for private analysis, including provider names, titles and descriptions. Known personal details are redacted; identifying context may remain.</p></div>
                   <button class="btn btn--secondary" type="button" data-service-export>Download service CSV</button>
                 </div>
                 <p class="form-hint" role="status" data-service-export-status></p>
+                <div class="grid grid--4 stat-cards" data-service-stats>
+                  <article class="stat-card">
+                    <h3 class="stat-card__label">Service records</h3>
+                    <p class="stat-card__value" data-stat="totalEvents">—</p>
+                  </article>
+                  <article class="stat-card">
+                    <h3 class="stat-card__label">With a final-fix date</h3>
+                    <p class="stat-card__value" data-stat="eventsWithFinalFix">—</p>
+                  </article>
+                </div>
+                <h4>Resolution time by record type</h4>
+                <p class="form-hint">Days are calculated only where both the event date and final-fix date are present. A same-day fix is 0 days; open records are excluded. The median is usually more representative than the average when a few cases ran for a very long time.</p>
                 <div class="table-wrapper">
-                  <table class="data-table" data-service-event-aggregates>
+                  <table class="data-table" data-service-event-type-aggregates>
                     <thead>
-                      <tr><th scope="col">Category</th><th scope="col">Count</th><th scope="col">Min Fix (days)</th><th scope="col">Avg Fix (days)</th><th scope="col">Max Fix (days)</th></tr>
+                      <tr><th scope="col">Record type</th><th scope="col">Records</th><th scope="col">With final fix</th><th scope="col">Median days</th><th scope="col">Average days</th><th scope="col">Range</th></tr>
                     </thead>
                     <tbody></tbody>
                   </table>
                 </div>
+                <div data-service-disputes hidden>
+                  <h4>Recorded dispute outcomes</h4>
+                  <p class="form-hint">These counts are an additional attribute on service records; they are not service providers or record types.</p>
+                  <div class="table-wrapper">
+                    <table class="data-table" data-service-dispute-table>
+                      <thead><tr><th scope="col">Dispute outcome</th><th scope="col">Records</th></tr></thead>
+                      <tbody></tbody>
+                    </table>
+                  </div>
+                </div>
+                <h4>Resolution time by service provider</h4>
+                <p class="form-hint">Provider rows use the saved provider ID where available and otherwise group obvious case, punctuation, postcode and Jaguar/JLR wording variants. The 20 providers with the most records are shown; spelling differences can remain in older free-text entries.</p>
+                <div class="table-wrapper">
+                  <table class="data-table" data-service-provider-aggregates>
+                    <thead>
+                      <tr><th scope="col">Service provider</th><th scope="col">Records</th><th scope="col">With final fix</th><th scope="col">Median days</th><th scope="col">Average days</th><th scope="col">Range</th></tr>
+                    </thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+                <p class="form-hint">The CSV contains every record and uses month dates and 5,000-mile mileage bands. Preparing it reads service records plus only their related member and vehicle redaction data.</p>
               </section>
             </div>
           </section>

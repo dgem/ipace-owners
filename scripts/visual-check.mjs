@@ -416,8 +416,22 @@ async function checkServiceExport(viewport, suffix) {
   await revealAdminState(page);
   await page.evaluate(() => {
     window.ipaceGetIdentityToken = async () => 'visual-admin-token';
-    const rows = document.querySelector('[data-service-event-aggregates] tbody');
-    rows.innerHTML = '<tr><td>Repair</td><td>42</td><td>2</td><td>18</td><td>90</td></tr>';
+    document.querySelector('[data-service-stats] [data-stat="totalEvents"]').textContent = '203';
+    document.querySelector('[data-service-stats] [data-stat="eventsWithFinalFix"]').textContent = '128';
+    document.querySelector('[data-service-event-type-aggregates] tbody').innerHTML = [
+      '<tr><td>Fault</td><td>82</td><td>51</td><td>28</td><td>51.8</td><td>0–120</td></tr>',
+      '<tr><td>Recall</td><td>46</td><td>31</td><td>91</td><td>158.3</td><td>0–474</td></tr>',
+      '<tr><td>Service</td><td>39</td><td>18</td><td>2</td><td>8.6</td><td>0–38</td></tr>'
+    ].join('');
+    document.querySelector('[data-service-disputes]').hidden = false;
+    document.querySelector('[data-service-dispute-table] tbody').innerHTML = [
+      '<tr><td>Still disputed</td><td>11</td></tr>',
+      '<tr><td>Resolved after escalation</td><td>8</td></tr>'
+    ].join('');
+    document.querySelector('[data-service-provider-aggregates] tbody').innerHTML = [
+      '<tr><td>Example Jaguar North</td><td>14</td><td>9</td><td>42</td><td>61.4</td><td>0–180</td></tr>',
+      '<tr><td>Example Jaguar South</td><td>8</td><td>5</td><td>21</td><td>29.2</td><td>2–70</td></tr>'
+    ].join('');
   });
   const section = page.locator('[aria-labelledby="service-section-title"]');
   await section.scrollIntoViewIfNeeded();

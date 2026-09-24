@@ -88,9 +88,12 @@ type modelYearBreakdown struct {
 
 // serviceEventStats holds aggregate service event metrics.
 type serviceEventStats struct {
-	TotalEvents        int                  `json:"totalEvents"`
-	EventTypeBreakup   []eventTypeBreakdown `json:"eventTypeBreakup"`
-	CategoryAggregates []categoryAggregate  `json:"categoryAggregates"`
+	TotalEvents          int                   `json:"totalEvents"`
+	EventsWithFinalFix   int                   `json:"eventsWithFinalFix"`
+	EventTypeBreakup     []eventTypeBreakdown  `json:"eventTypeBreakup"`
+	EventTypeAggregates  []resolutionAggregate `json:"eventTypeAggregates"`
+	ProviderAggregates   []resolutionAggregate `json:"providerAggregates"`
+	DisputeStatusBreakup []demographicBucket   `json:"disputeStatusBreakup"`
 }
 
 // eventTypeBreakdown shows event counts by EventType.
@@ -99,13 +102,16 @@ type eventTypeBreakdown struct {
 	Count     int    `json:"count"`
 }
 
-// categoryAggregate holds min/max/avg for a service category.
-type categoryAggregate struct {
-	Category   string   `json:"category"`
-	EventCount int      `json:"eventCount"`
-	MinDays    *int     `json:"minDays,omitempty"`
-	AvgDays    *float64 `json:"avgDays,omitempty"`
-	MaxDays    *int     `json:"maxDays,omitempty"`
+// resolutionAggregate keeps the record count distinct from the smaller
+// denominator that has both an event date and a final-fix date.
+type resolutionAggregate struct {
+	Label         string   `json:"label"`
+	EventCount    int      `json:"eventCount"`
+	DurationCount int      `json:"durationCount"`
+	MinDays       *int     `json:"minDays,omitempty"`
+	MedianDays    *float64 `json:"medianDays,omitempty"`
+	AvgDays       *float64 `json:"avgDays,omitempty"`
+	MaxDays       *int     `json:"maxDays,omitempty"`
 }
 
 // timelineBucket represents a time bucket for compact graphs.
@@ -423,19 +429,41 @@ func computeVehicleStats(vehicles []vehicleRecord) vehicleStats {
 
 // computeServiceEventStats aggregates service event data.
 func computeServiceEventStats(services []serviceEventRecord) serviceEventStats {
-	totalEvents := len(services)
 	eventTypeCounts := make(map[string]int)
-	categoryMap := make(map[string][]*serviceEventRecord)
+	eventTypeRecords := make(map[string][]*serviceEventRecord)
+	providerRecords := make(map[string][]*serviceEventRecord)
+	providerNames := make(map[string]map[string]int)
+	disputeCounts := make(map[string]int)
+	totalEvents := 0
+	eventsWithFinalFix := 0
 
 	for index := range services {
 		rec := &services[index]
-		eventTypeCounts[rec.EventType]++
-		if rec.ServiceProviderName != "" {
-			categoryMap[rec.ServiceProviderName] = append(categoryMap[rec.ServiceProviderName], rec)
-		} else if rec.DisputeStatus != "" && rec.DisputeStatus != "none" {
-			categoryMap["Disputes"] = append(categoryMap["Disputes"], rec)
-		} else {
-			categoryMap[rec.EventType] = append(categoryMap[rec.EventType], rec)
+		if recordDeleted(rec.Review) {
+			continue
+		}
+		totalEvents++
+		eventType := cleanEnum(rec.EventType, serviceEventTypeValues)
+		if eventType == "" {
+			eventType = "unknown"
+		}
+		eventTypeCounts[eventType]++
+		eventTypeRecords[eventType] = append(eventTypeRecords[eventType], rec)
+		if serviceEventResolutionDays(rec.OccurredAt, rec.FinalFixAt) != nil {
+			eventsWithFinalFix++
+		}
+		if providerKey := normalisedServiceProviderKey(*rec); providerKey != "" {
+			providerRecords[providerKey] = append(providerRecords[providerKey], rec)
+			name := strings.TrimSpace(rec.ServiceProviderName)
+			if name != "" {
+				if providerNames[providerKey] == nil {
+					providerNames[providerKey] = map[string]int{}
+				}
+				providerNames[providerKey][name]++
+			}
+		}
+		if dispute := cleanEnum(rec.DisputeStatus, serviceEventDisputeStatusValues); dispute != "" && dispute != "none" {
+			disputeCounts[dispute]++
 		}
 	}
 
@@ -447,13 +475,101 @@ func computeServiceEventStats(services []serviceEventRecord) serviceEventStats {
 		return eventTypeBreakup[i].Count > eventTypeBreakup[j].Count
 	})
 
-	categoryAggregates := computeCategoryAggregates(categoryMap)
+	eventTypeAggregates := make([]resolutionAggregate, 0, len(eventTypeRecords))
+	for eventType, records := range eventTypeRecords {
+		eventTypeAggregates = append(eventTypeAggregates, computeResolutionAggregate(serviceEventTypeLabel(eventType), records))
+	}
+	sortResolutionAggregates(eventTypeAggregates)
+
+	providerAggregates := make([]resolutionAggregate, 0, len(providerRecords))
+	for key, records := range providerRecords {
+		providerAggregates = append(providerAggregates, computeResolutionAggregate(preferredServiceProviderName(providerNames[key]), records))
+	}
+	sortResolutionAggregates(providerAggregates)
+
+	disputeStatusBreakup := make([]demographicBucket, 0, len(disputeCounts))
+	for status, count := range disputeCounts {
+		disputeStatusBreakup = append(disputeStatusBreakup, demographicBucket{Label: serviceDisputeStatusLabel(status), Count: count})
+	}
+	sort.Slice(disputeStatusBreakup, func(i, j int) bool {
+		if disputeStatusBreakup[i].Count == disputeStatusBreakup[j].Count {
+			return disputeStatusBreakup[i].Label < disputeStatusBreakup[j].Label
+		}
+		return disputeStatusBreakup[i].Count > disputeStatusBreakup[j].Count
+	})
 
 	return serviceEventStats{
-		TotalEvents:        totalEvents,
-		EventTypeBreakup:   eventTypeBreakup,
-		CategoryAggregates: categoryAggregates,
+		TotalEvents:          totalEvents,
+		EventsWithFinalFix:   eventsWithFinalFix,
+		EventTypeBreakup:     eventTypeBreakup,
+		EventTypeAggregates:  eventTypeAggregates,
+		ProviderAggregates:   providerAggregates,
+		DisputeStatusBreakup: disputeStatusBreakup,
 	}
+}
+
+var serviceProviderPostcodeRE = regexp.MustCompile(`(?i)\b[A-Z]{1,2}[0-9][A-Z0-9]?\s*[0-9][A-Z]{2}\b`)
+var serviceProviderNonWordRE = regexp.MustCompile(`[^a-z0-9]+`)
+
+func normalisedServiceProviderKey(record serviceEventRecord) string {
+	if id := strings.ToLower(strings.TrimSpace(record.ServiceProviderID)); id != "" {
+		return "id:" + id
+	}
+	name := strings.ToLower(strings.TrimSpace(record.ServiceProviderName))
+	if name == "" {
+		return ""
+	}
+	name = serviceProviderPostcodeRE.ReplaceAllString(name, " ")
+	name = strings.NewReplacer(
+		"jaguar land rover", " ",
+		"service centre", " ",
+		"service center", " ",
+		"jaguar", " ",
+		"land rover", " ",
+		"jlr", " ",
+		"marshalls", "marshall",
+	).Replace(name)
+	name = strings.Join(strings.Fields(serviceProviderNonWordRE.ReplaceAllString(name, " ")), " ")
+	if name == "" {
+		name = strings.Join(strings.Fields(serviceProviderNonWordRE.ReplaceAllString(strings.ToLower(record.ServiceProviderName), " ")), " ")
+	}
+	return "name:" + name
+}
+
+func preferredServiceProviderName(names map[string]int) string {
+	best := ""
+	bestCount := 0
+	for name, count := range names {
+		if count > bestCount || count == bestCount && (best == "" || len(name) < len(best) || len(name) == len(best) && name < best) {
+			best, bestCount = name, count
+		}
+	}
+	if best == "" {
+		return "Provider name unavailable"
+	}
+	return best
+}
+
+func serviceEventTypeLabel(value string) string {
+	labels := map[string]string{"service": "Service", "fault": "Fault", "repair": "Repair", "recall": "Recall", "inspection": "Inspection", "other": "Other", "unknown": "Unknown"}
+	if label := labels[value]; label != "" {
+		return label
+	}
+	return value
+}
+
+func serviceDisputeStatusLabel(value string) string {
+	labels := map[string]string{
+		"initially-refused":         "Initially refused",
+		"partially-accepted":        "Partially accepted",
+		"still-disputed":            "Still disputed",
+		"resolved-after-escalation": "Resolved after escalation",
+		"unsure":                    "Unsure",
+	}
+	if label := labels[value]; label != "" {
+		return label
+	}
+	return value
 }
 
 var servicePostcodeAreaRE = regexp.MustCompile(`^[A-Z]{1,2}`)
@@ -574,52 +690,41 @@ func computeConsentedMemberCountries(joins []joinRecord) []demographicBucket {
 	return result
 }
 
-// computeCategoryAggregates computes min/avg/max for each category.
-func computeCategoryAggregates(categoryMap map[string][]*serviceEventRecord) []categoryAggregate {
-	aggregates := make([]categoryAggregate, 0, len(categoryMap))
-
-	for category, records := range categoryMap {
-		count := len(records)
-		var daysSum float64
-		daysCount := 0
-		minDays := math.MaxInt32
-		maxDays := 0
-
-		for _, rec := range records {
-			if rec.DaysToFinalFix != nil && *rec.DaysToFinalFix >= 0 {
-				d := *rec.DaysToFinalFix
-				daysSum += float64(d)
-				daysCount++
-				if d < minDays {
-					minDays = d
-				}
-				if d > maxDays {
-					maxDays = d
-				}
-			}
+func computeResolutionAggregate(label string, records []*serviceEventRecord) resolutionAggregate {
+	aggregate := resolutionAggregate{Label: label, EventCount: len(records)}
+	durations := make([]int, 0, len(records))
+	for _, record := range records {
+		if days := serviceEventResolutionDays(record.OccurredAt, record.FinalFixAt); days != nil {
+			durations = append(durations, *days)
 		}
-
-		agg := categoryAggregate{
-			Category:   category,
-			EventCount: count,
-			MinDays:    nil,
-			AvgDays:    nil,
-			MaxDays:    nil,
-		}
-
-		if daysCount > 0 {
-			avg := math.Round((daysSum/float64(daysCount))*10) / 10
-			agg.MinDays = &minDays
-			agg.AvgDays = &avg
-			agg.MaxDays = &maxDays
-		}
-
-		aggregates = append(aggregates, agg)
 	}
+	if len(durations) == 0 {
+		return aggregate
+	}
+	sort.Ints(durations)
+	sum := 0
+	for _, days := range durations {
+		sum += days
+	}
+	minDays, maxDays := durations[0], durations[len(durations)-1]
+	median := float64(durations[len(durations)/2])
+	if len(durations)%2 == 0 {
+		median = float64(durations[len(durations)/2-1]+durations[len(durations)/2]) / 2
+	}
+	average := math.Round((float64(sum)/float64(len(durations)))*10) / 10
+	aggregate.DurationCount = len(durations)
+	aggregate.MinDays = &minDays
+	aggregate.MedianDays = &median
+	aggregate.AvgDays = &average
+	aggregate.MaxDays = &maxDays
+	return aggregate
+}
 
+func sortResolutionAggregates(aggregates []resolutionAggregate) {
 	sort.Slice(aggregates, func(i, j int) bool {
+		if aggregates[i].EventCount == aggregates[j].EventCount {
+			return strings.ToLower(aggregates[i].Label) < strings.ToLower(aggregates[j].Label)
+		}
 		return aggregates[i].EventCount > aggregates[j].EventCount
 	})
-
-	return aggregates
 }

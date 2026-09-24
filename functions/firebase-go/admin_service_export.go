@@ -12,6 +12,8 @@ import (
 	"time"
 	"unicode"
 	"unicode/utf8"
+
+	"cloud.google.com/go/firestore"
 )
 
 var adminServiceExportRequireAdmin = requireAdmin
@@ -29,15 +31,119 @@ func loadServiceExportRecords(ctx context.Context) (serviceExportData, error) {
 	if err != nil {
 		return data, err
 	}
-	// Three collection reads, with no per-member Firebase Auth lookups.
+	// Service records are the only collection scan. Related vehicles and member
+	// redaction terms are fetched directly so export latency does not grow with
+	// every member and vehicle in the system.
 	if err = readCollection(ctx, db.Collection("serviceEvents").Query, &data.Records); err != nil {
 		return data, err
 	}
-	if err = readCollection(ctx, db.Collection("joinSubmissions").Query, &data.Joins); err != nil {
+	vehicleIDs := map[string]bool{}
+	memberUIDs := map[string]bool{}
+	for _, record := range data.Records {
+		if recordDeleted(record.Review) {
+			continue
+		}
+		if record.VehicleID != "" {
+			vehicleIDs[record.VehicleID] = true
+		}
+		if record.IdentityUserID != "" {
+			memberUIDs[record.IdentityUserID] = true
+		}
+	}
+	data.Vehicles, err = loadServiceExportVehicles(ctx, db, vehicleIDs)
+	if err != nil {
 		return data, err
 	}
-	err = readCollection(ctx, db.Collection("vehicles").Query, &data.Vehicles)
+	for _, vehicle := range data.Vehicles {
+		if vehicle.IdentityUserID != "" {
+			memberUIDs[vehicle.IdentityUserID] = true
+		}
+	}
+	data.Joins, err = loadServiceExportMembers(ctx, db, memberUIDs)
 	return data, err
+}
+
+const serviceExportBatchGetSize = 100
+
+func sortedServiceExportKeys(values map[string]bool) []string {
+	keys := make([]string, 0, len(values))
+	for value := range values {
+		if value = strings.TrimSpace(value); value != "" {
+			keys = append(keys, value)
+		}
+	}
+	sort.Strings(keys)
+	return keys
+}
+
+func loadServiceExportVehicles(ctx context.Context, db *firestore.Client, ids map[string]bool) ([]vehicleRecord, error) {
+	keys := sortedServiceExportKeys(ids)
+	records := make([]vehicleRecord, 0, len(keys))
+	for start := 0; start < len(keys); start += serviceExportBatchGetSize {
+		end := min(start+serviceExportBatchGetSize, len(keys))
+		refs := make([]*firestore.DocumentRef, 0, end-start)
+		for _, id := range keys[start:end] {
+			refs = append(refs, db.Collection("vehicles").Doc(id))
+		}
+		documents, err := db.GetAll(ctx, refs)
+		if err != nil {
+			return nil, err
+		}
+		for _, document := range documents {
+			if !document.Exists() {
+				continue
+			}
+			var record vehicleRecord
+			if err := document.DataTo(&record); err != nil {
+				return nil, err
+			}
+			if record.ID == "" {
+				record.ID = document.Ref.ID
+			}
+			records = append(records, record)
+		}
+	}
+	return records, nil
+}
+
+type serviceExportMemberRecord struct {
+	IdentityUserID string `firestore:"identityUserId"`
+	EmailHash      string `firestore:"emailHash"`
+	DisplayName    string `firestore:"displayName"`
+}
+
+func loadServiceExportMembers(ctx context.Context, db *firestore.Client, ids map[string]bool) ([]joinRecord, error) {
+	keys := sortedServiceExportKeys(ids)
+	records := make([]joinRecord, 0, len(keys))
+	for start := 0; start < len(keys); start += serviceExportBatchGetSize {
+		end := min(start+serviceExportBatchGetSize, len(keys))
+		refs := make([]*firestore.DocumentRef, 0, end-start)
+		for _, id := range keys[start:end] {
+			refs = append(refs, db.Collection("members").Doc(id))
+		}
+		documents, err := db.GetAll(ctx, refs)
+		if err != nil {
+			return nil, err
+		}
+		for _, document := range documents {
+			if !document.Exists() {
+				continue
+			}
+			var member serviceExportMemberRecord
+			if err := document.DataTo(&member); err != nil {
+				return nil, err
+			}
+			if member.IdentityUserID == "" {
+				member.IdentityUserID = document.Ref.ID
+			}
+			records = append(records, joinRecord{
+				IdentityUserID: member.IdentityUserID,
+				UserEmailHash:  member.EmailHash,
+				Contact:        contactRecord{Name: member.DisplayName},
+			})
+		}
+	}
+	return records, nil
 }
 
 // AdminServiceExport exports allowlisted fields with narrative redaction. It
@@ -138,12 +244,49 @@ func buildAdminServiceCSV(data serviceExportData) ([]byte, int, error) {
 // Unknown people, addresses and identifying circumstances may remain.
 func serviceExportRedactor(data serviceExportData) func(string) string {
 	known := map[string]bool{}
+	relevantUIDs := map[string]bool{}
+	relevantVehicleIDs := map[string]bool{}
+	relevantEmailHashes := map[string]bool{}
 	add := func(value string) {
 		if value = strings.TrimSpace(value); value != "" {
 			known[value] = true
 		}
 	}
+	for _, record := range data.Records {
+		if recordDeleted(record.Review) {
+			continue
+		}
+		if record.IdentityUserID != "" {
+			relevantUIDs[record.IdentityUserID] = true
+		}
+		if record.VehicleID != "" {
+			relevantVehicleIDs[record.VehicleID] = true
+		}
+		add(record.ID)
+		add(record.IdentityUserID)
+		add(record.VehicleID)
+	}
+	for _, vehicle := range data.Vehicles {
+		if !relevantVehicleIDs[vehicle.ID] && !relevantUIDs[vehicle.IdentityUserID] {
+			continue
+		}
+		if vehicle.IdentityUserID != "" {
+			relevantUIDs[vehicle.IdentityUserID] = true
+		}
+		if vehicle.UserEmailHash != "" {
+			relevantEmailHashes[vehicle.UserEmailHash] = true
+		}
+		add(vehicle.ID)
+		add(vehicle.IdentityUserID)
+		add(vehicle.UserEmailHash)
+		add(vehicle.Vehicle.VINHash)
+		add(vehicle.Vehicle.VINLast6)
+		add(vehicle.Vehicle.Registration)
+	}
 	for _, join := range data.Joins {
+		if !relevantUIDs[join.IdentityUserID] && !relevantEmailHashes[join.UserEmailHash] {
+			continue
+		}
 		add(join.Contact.Name)
 		add(join.Contact.Email)
 		add(join.IdentityUserID)
@@ -154,19 +297,6 @@ func serviceExportRedactor(data serviceExportData) func(string) string {
 				add(part)
 			}
 		}
-	}
-	for _, vehicle := range data.Vehicles {
-		add(vehicle.ID)
-		add(vehicle.IdentityUserID)
-		add(vehicle.UserEmailHash)
-		add(vehicle.Vehicle.VINHash)
-		add(vehicle.Vehicle.VINLast6)
-		add(vehicle.Vehicle.Registration)
-	}
-	for _, record := range data.Records {
-		add(record.ID)
-		add(record.IdentityUserID)
-		add(record.VehicleID)
 	}
 	values := make([]string, 0, len(known))
 	for value := range known {
@@ -184,6 +314,9 @@ func serviceExportRedactor(data serviceExportData) func(string) string {
 	// Registrations may appear with different spacing from the stored form.
 	registrationPatterns := []string{}
 	for _, vehicle := range data.Vehicles {
+		if !relevantVehicleIDs[vehicle.ID] && !relevantUIDs[vehicle.IdentityUserID] {
+			continue
+		}
 		registration := strings.Map(func(r rune) rune {
 			if r == ' ' || r == '-' {
 				return -1
