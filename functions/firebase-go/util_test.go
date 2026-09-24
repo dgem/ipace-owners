@@ -226,6 +226,9 @@ func TestCleaners(t *testing.T) {
 	if got := cleanEnum("GB", countryValues); got != "GB" {
 		t.Fatalf("cleanEnum() = %q", got)
 	}
+	if got := cleanEnum("GR", countryValues); got != "GR" {
+		t.Fatalf("cleanEnum(GR) = %q", got)
+	}
 	if got := cleanEnum("XX", countryValues); got != "" {
 		t.Fatalf("cleanEnum(invalid) = %q", got)
 	}
