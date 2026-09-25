@@ -19,12 +19,15 @@ test('update posts use the dedicated editorial layout', function () {
 
 test('the update layout keeps article context and optional heroes together', function () {
   var layout = fs.readFileSync(path.join(root, 'src', '_includes', 'layouts', 'update.njk'), 'utf8');
+  var styles = fs.readFileSync(path.join(root, 'src', 'assets', 'css', 'site.css'), 'utf8');
 
   assert.match(layout, /date \| readableDate/);
   assert.match(layout, /I-PACE Owners' Advocacy Group/);
   assert.match(layout, /update-header__summary/);
   assert.match(layout, /update-article/);
   assert.match(layout, /{% if heroImage %}/);
+  assert.match(styles, /\.update-article__hero img\s*{[^}]*aspect-ratio:\s*16 \/ 7/s);
+  assert.match(styles, /@media \(max-width: 40rem\)[\s\S]*\.update-article__hero img\s*{[^}]*aspect-ratio:\s*16 \/ 9/);
 });
 
 test('the first member survey update has a purposeful hero image', function () {
@@ -69,4 +72,32 @@ test('the final survey update publishes selections, comments and the winner', fu
   assert.match(resultsUpdate, /preferred votes used to break an exact tie/);
   assert.match(resultsUpdate, /Full HV Replacement leads both measures/);
   assert.equal(resultsUpdate.split('social-share__link').length - 1, 4);
+});
+
+test('the post-meeting update records the asks and protects member data', function () {
+  var meetingUpdate = fs.readFileSync(
+    path.join(updatesDirectory, 'after-our-first-jlr-meeting.md'),
+    'utf8'
+  );
+
+  assert.match(meetingUpdate, /UK Director of Client Care/);
+  assert.match(meetingUpdate, /particularly keen to improve the customer experience/);
+  assert.match(meetingUpdate, /inconsistent and, too often, poor/);
+  assert.match(meetingUpdate, /brand has not moved on from them/);
+  assert.match(meetingUpdate, /H570, H571 or H572/);
+  assert.match(meetingUpdate, /JLR representatives were very interested in our evidence and customer experiences/);
+  assert.match(meetingUpdate, /direct customer support channels\s+went unanswered or were dismissed/);
+  assert.match(meetingUpdate, /substantive ask is one clear commitment/);
+  assert.match(meetingUpdate, /board-level statement to I-PACE owners setting\s+out how\s+JLR will resolve the high-voltage battery issue/i);
+  assert.match(meetingUpdate, /by the end of\s+next\s+week/);
+  assert.match(meetingUpdate, /do not currently have members’ permission/);
+  assert.match(meetingUpdate, /ask each person for explicit consent/);
+  assert.match(meetingUpdate, /including\s+legal\s+avenues/);
+  assert.match(meetingUpdate, /Thank you to everyone who has recently volunteered to help/);
+  assert.match(meetingUpdate, /sufficient\s+legal\s+and\s+litigation\s+experience\s+for\s+the\s+current\s+stage/);
+  assert.match(meetingUpdate, /particularly\s+interested\s+to\s+hear\s+from\s+members\s+with\s+media\s+or\s+public\s+relations\s+experience/);
+  assert.match(meetingUpdate, /relevant\s+press\s+and\s+media\s+contacts/);
+  assert.match(meetingUpdate, /href="\/contact\/"/);
+  assert.match(meetingUpdate, /heroImage: \/images\/post-jlr-meeting-2026-hero\.jpg/);
+  assert.equal(meetingUpdate.split('social-share__link').length - 1, 4);
 });

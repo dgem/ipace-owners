@@ -69,6 +69,32 @@ that the survey allowed multiple selections, so selections do not add to the res
 that comments count entries rather than unique commenters. Do not publish free text. Reuse the
 email-safe racing hero, racing-wreath headline counters and four public social shares.
 
+Publish a dated follow-up at `/updates/after-our-first-jlr-meeting/` after the 24 September
+meeting. Keep the tone candid and constructive: JLR listened and showed interest in the
+group's evidence, but offered no substantive route forward for H570/H571/H572 or a full HV
+battery replacement programme. Record JLR's stated wish to repair an inconsistent customer
+experience and reassure existing Jaguar owners, including used-car buyers, that the brand has not
+moved on from them. Attribute
+that disconnects among retailers, dealer groups, Jaguar, JLR and Tata may help explain the incomplete
+view, then add that authorised dealerships use TOPIx to record work and support invoicing, so JLR
+should already hold richer source data than the member-collected subset. Record the group's challenge over
+direct support approaches that went unanswered or were dismissed. Treat the promised meeting
+minutes as an expected follow-up and make the substantive ask one board-level commitment to resolve
+the high-voltage battery issue to affected owners' satisfaction by the end of the following week.
+State clearly that member-level
+records, experiences and VINs cannot be shared with JLR without explicit consent from each
+member, and that only data belonging to members who opt in could form part of a future,
+properly safeguarded proposal. Thank recent volunteers and say that their offers have added legal
+and litigation, technical and management experience. Explain that the group believes it has
+sufficient legal and litigation experience for the current stage while welcoming more, then focus
+the volunteer request on members with media or PR experience, or useful press and media contacts,
+without presenting it as an urgent gap. Provide social share links. Use the restrained left-lane
+T-junction hero at `/images/post-jlr-meeting-2026-hero.jpg`.
+
+Update article heroes use a shallow 16:7 editorial crop on larger screens so long headlines do
+not push the article text too far down the page. Restore a 16:9 crop on small screens where the
+narrower card needs enough image height to remain legible. Use `object-fit: cover` for both.
+
 ## Goal
 
 The public site should explain the group clearly, invite owners to participate, and establish a constructive evidence-led posture without overstating legal status or data certainty.
