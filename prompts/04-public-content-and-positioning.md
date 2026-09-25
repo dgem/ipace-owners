@@ -72,8 +72,9 @@ email-safe racing hero, racing-wreath headline counters and four public social s
 Publish a dated follow-up at `/updates/after-our-first-jlr-meeting/` after the 24 September
 meeting. Keep the tone candid and constructive: JLR listened and showed interest in the
 group's evidence, but offered no substantive route forward for H570/H571/H572 or a full HV
-battery replacement programme. Record JLR's stated wish to repair the used-car customer
-experience and reassure existing Jaguar owners that the brand has not moved on from them. Attribute
+battery replacement programme. Record JLR's stated wish to repair an inconsistent customer
+experience and reassure existing Jaguar owners, including used-car buyers, that the brand has not
+moved on from them. Attribute
 the retailer/dealer-group/Jaguar/JLR/Tata disconnect explanation to JLR, then explain why the group
 is unconvinced: authorised dealerships use TOPIx to record work and support invoicing, so JLR should
 already hold richer source data than the member-collected subset. Record the group's challenge over
