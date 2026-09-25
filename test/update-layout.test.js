@@ -81,12 +81,23 @@ test('the post-meeting update records the asks and protects member data', functi
   );
 
   assert.match(meetingUpdate, /UK Director of Client Care/);
+  assert.match(meetingUpdate, /repair the customer experience in the used-car market/);
+  assert.match(meetingUpdate, /brand has not moved on from them/);
   assert.match(meetingUpdate, /H570, H571 or H572/);
-  assert.match(meetingUpdate, /board-level statement to I-PACE owners/i);
+  assert.match(meetingUpdate, /which JLR cited as a reason nobody has a\s+complete view/);
+  assert.match(meetingUpdate, /Authorised dealerships use TOPIx\s+to record work and support invoicing/);
+  assert.match(meetingUpdate, /direct customer support\s+channels had gone unanswered or been dismissed/);
+  assert.match(meetingUpdate, /The substantive ask is now one clear commitment/);
+  assert.match(meetingUpdate, /board-level statement to I-PACE owners setting\s+out how JLR will resolve the high-voltage battery issue/i);
   assert.match(meetingUpdate, /by the end of\s+next week/);
   assert.match(meetingUpdate, /do not currently have members’ permission/);
   assert.match(meetingUpdate, /ask each person for explicit consent/);
   assert.match(meetingUpdate, /including legal avenues/);
+  assert.match(meetingUpdate, /Thank you to everyone who has recently volunteered to help/);
+  assert.match(meetingUpdate, /legal and\s+litigation, technical and management experience/);
+  assert.match(meetingUpdate, /sufficient\s+legal and litigation experience for the current stage/);
+  assert.match(meetingUpdate, /particularly interested to hear from members with\s+media or public relations experience/);
+  assert.match(meetingUpdate, /useful\s+press and media contacts/);
   assert.match(meetingUpdate, /href="\/contact\/"/);
   assert.match(meetingUpdate, /heroImage: \/images\/post-jlr-meeting-2026-hero\.jpg/);
   assert.equal(meetingUpdate.split('social-share__link').length - 1, 4);

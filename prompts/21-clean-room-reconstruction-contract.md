@@ -99,10 +99,15 @@ Include the racing hero, racing-wreath response/comment counters and four social
 Preserve the 25 September post-meeting update at
 `/updates/after-our-first-jlr-meeting/`. It must distinguish a constructive introductory
 meeting from the absence of substantive commitments on H570/H571/H572, publish the group's
-two written asks and response deadline, and explain that VINs, customer experiences and
+account of JLR's used-market customer-experience intent and its internal data-disconnect explanation,
+alongside the group's TOPIx-based reason for remaining unconvinced. Distinguish
+promised meeting minutes from the single substantive board-level commitment sought, publish the
+response deadline, and explain that VINs, customer experiences and
 member-level records cannot be supplied to JLR without explicit individual consent. Include
-the restrained left-lane T-junction hero at `/images/post-jlr-meeting-2026-hero.jpg`, volunteer
-call to action and four social share links.
+the restrained left-lane T-junction hero at `/images/post-jlr-meeting-2026-hero.jpg`, thanks to
+recent volunteers, a note that current legal and litigation experience is considered sufficient
+while more remains welcome, a focused invitation for media/PR experience or contacts, and four
+social share links.
 
 All update-page hero images use a shallow 16:7 crop above the mobile breakpoint and 16:9 on
 small screens, keeping the opening text closer to long multi-line headings without losing a

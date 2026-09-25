@@ -12,6 +12,11 @@ heroImageAlt: "An I-PACE-style electric car in the left-hand lane approaching a 
 
 <p class="lead">Our first meeting with JLR’s UK Director of Client Care and Head of Legal for Supply Chain was courteous and constructive. They appeared genuinely concerned by members’ experiences and were very interested in the evidence our community has assembled.</p>
 
+JLR told us it is particularly keen to repair the customer experience in the used-car market. It
+recognised that the experience has been far from good and wants existing Jaguar owners, including
+those who bought their I-PACE used, to know that the brand has not moved on from them. That is
+welcome. Delivery now matters.
+
 That matters. The meeting gave us the opportunity to explain our letter directly, put members’
 experiences behind the headline numbers, and make sure senior people at JLR understood why owners
 need a proper resolution.
@@ -39,9 +44,15 @@ with a credible route forward for affected owners.
 ## JLR asked about access to member data
 
 JLR would like access to more of our evidence and customer experiences, with particular interest
-in VINs so that cases can be matched to individual vehicles. We were surprised that this should be
-necessary: much of our evidence comes from work carried out and paperwork produced by JLR
-dealerships, so JLR should already hold richer source data than the subset members record with us.
+in VINs so that cases can be matched to individual vehicles. We discussed the disconnects between
+individual retailers, dealer groups, Jaguar, JLR and Tata, which JLR cited as a reason nobody has a
+complete view. We are not convinced that fully explains the gap. Authorised dealerships use TOPIx
+to record work and support invoicing, so JLR should already be able to analyse much richer source
+data than the subset members record with us.
+
+We also challenged JLR on members’ reports that approaches to its own direct customer support
+channels had gone unanswered or been dismissed. Whatever the internal boundaries, owners should
+not have to reconstruct JLR’s view of their cases for it.
 
 **We do not currently have members’ permission to share their records, VINs or experiences with
 JLR, and we will not do so.** If a useful, properly safeguarded proposal is made, we will explain it
@@ -52,12 +63,11 @@ Any proposal would need a clear purpose, appropriate privacy and security safegu
 access and retention arrangements, and a credible explanation of how sharing the data would help
 affected owners.
 
-## We have asked JLR for two written commitments
+## The commitment we now need
 
-1. **A statement or agreed note of the meeting,** based on the notes taken by JLR’s Head of Legal
-   for Supply Chain.
-2. **A board-level statement to I-PACE owners,** setting out a firm commitment to address the
-   concerns raised in our letter, our evidence and the member survey.
+JLR has said it will send minutes based on the notes taken by its Head of Legal for Supply Chain.
+The substantive ask is now one clear commitment: **a board-level statement to I-PACE owners setting
+out how JLR will resolve the high-voltage battery issue to the satisfaction of affected owners.**
 
 We have asked JLR to provide a written statement that we can share with members **by the end of
 next week**, before the launch of its new car. Owners have lived with recalls, restrictions, repeat
@@ -74,11 +84,13 @@ including legal avenues.
 
 ## Can you help?
 
-New volunteers from the legal and public relations professions have recently offered their time.
-We are grateful for their help. If you have relevant legal, communications, technical, data or
-organising experience and would like to contribute, we would be pleased to hear from you.
+Thank you to everyone who has recently volunteered to help. Those offers have added legal and
+litigation, technical and management experience to the group. We believe we now have sufficient
+legal and litigation experience for the current stage, although more can only help. We would be
+particularly interested to hear from members with media or public relations experience, or useful
+press and media contacts, who would like to help.
 
-<p><a class="btn btn--primary" href="/contact/">Volunteer to help the group</a></p>
+<p><a class="btn btn--primary" href="/contact/">Offer media or PR support</a></p>
 
 ## Share this update
 
