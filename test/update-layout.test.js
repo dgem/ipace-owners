@@ -76,14 +76,14 @@ test('the final survey update publishes selections, comments and the winner', fu
 
 test('the post-meeting update records the asks and protects member data', function () {
   var meetingUpdate = fs.readFileSync(
-    path.join(updatesDirectory, 'after-our-first-jlr-meeting.njk'),
+    path.join(updatesDirectory, 'after-our-first-jlr-meeting.md'),
     'utf8'
   );
 
   assert.match(meetingUpdate, /UK Director of Client Care/);
   assert.match(meetingUpdate, /H570, H571 or H572/);
   assert.match(meetingUpdate, /board-level statement to I-PACE owners/i);
-  assert.match(meetingUpdate, /by the end of next week/);
+  assert.match(meetingUpdate, /by the end of\s+next week/);
   assert.match(meetingUpdate, /do not currently have members’ permission/);
   assert.match(meetingUpdate, /ask each person for explicit consent/);
   assert.match(meetingUpdate, /including legal avenues/);
