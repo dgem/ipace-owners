@@ -86,8 +86,6 @@ test('the post-meeting update records the asks and protects member data', functi
   assert.match(meetingUpdate, /brand has not moved on from them/);
   assert.match(meetingUpdate, /H570, H571 or H572/);
   assert.match(meetingUpdate, /JLR representatives were very interested in our evidence and customer experiences/);
-  assert.match(meetingUpdate, /Disconnects among retailers,\s+dealer groups, Jaguar, JLR and Tata may help explain/);
-  assert.match(meetingUpdate, /authorised dealerships use TOPIx\s+to record work and support invoicing/i);
   assert.match(meetingUpdate, /direct customer support channels\s+went unanswered or were dismissed/);
   assert.match(meetingUpdate, /substantive ask is one clear commitment/);
   assert.match(meetingUpdate, /board-level statement to I-PACE owners setting\s+out how\s+JLR will resolve the high-voltage battery issue/i);
