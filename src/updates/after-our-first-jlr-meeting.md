@@ -41,11 +41,10 @@ JLR now needs to respond with a credible route forward for affected owners.
 
 ## JLR asked about access to member data
 
-JLR representatives were very interested in our evidence and customer experiences, particularly
+JLR representatives were very interested in our evidence and customer experiences, linked to
 VINs, which would allow cases to be matched to individual vehicles. Disconnects among retailers,
-dealer groups, Jaguar, JLR and Tata may help explain why nobody has a complete view. However,
-authorised dealerships use TOPIx to record work and support invoicing, so JLR should already be able
-to analyse much richer source data than our subset.
+dealer groups, and JLR may help explain why nobody has a complete view. At the same time,
+authorised dealerships use TOPIx, so JLR already have a rich source data to analyse.
 
 We also challenged JLR over members’ reports that approaches to its direct customer support channels
 went unanswered or were dismissed. Whatever the internal boundaries, owners should not have to
