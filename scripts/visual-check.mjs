@@ -1060,6 +1060,8 @@ try {
   await checkPublicContentPage('/updates/', 'Updates', { width: 390, height: 844 }, 'updates-list-mobile.png');
   await checkPublicContentPage('/updates/september-survey-results/', 'Thank you: the final member survey results', { width: 1440, height: 1000 }, 'survey-results-update-desktop.png');
   await checkPublicContentPage('/updates/september-survey-results/', 'Thank you: the final member survey results', { width: 390, height: 844 }, 'survey-results-update-mobile.png');
+  await checkPublicContentPage('/updates/after-our-first-jlr-meeting/', 'After our first meeting with JLR: substance must follow', { width: 1440, height: 1000 }, 'post-jlr-meeting-update-desktop.png');
+  await checkPublicContentPage('/updates/after-our-first-jlr-meeting/', 'After our first meeting with JLR: substance must follow', { width: 390, height: 844 }, 'post-jlr-meeting-update-mobile.png');
   await checkMarketingMessages({ width: 1440, height: 1100 }, 'admin-survey-layout-only-desktop.png', true, true);
   await checkMarketingMessages({ width: 390, height: 844 }, 'admin-survey-layout-only-mobile.png', true, true);
   await checkMarketingMessages({ width: 1440, height: 1100 }, 'admin-survey-reminder-desktop.png', true);

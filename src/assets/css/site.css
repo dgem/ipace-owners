@@ -3519,7 +3519,7 @@ canvas.admin-timeline {
 }
 
 .update-article__hero img {
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 16 / 7;
   display: block;
   object-fit: cover;
   width: 100%;
@@ -3559,6 +3559,10 @@ canvas.admin-timeline {
 
   .update-article {
     border-radius: var(--radius-lg);
+  }
+
+  .update-article__hero img {
+    aspect-ratio: 16 / 9;
   }
 }
 

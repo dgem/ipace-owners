@@ -69,6 +69,21 @@ that the survey allowed multiple selections, so selections do not add to the res
 that comments count entries rather than unique commenters. Do not publish free text. Reuse the
 email-safe racing hero, racing-wreath headline counters and four public social shares.
 
+Publish a dated follow-up at `/updates/after-our-first-jlr-meeting/` after the 24 September
+meeting. Keep the tone candid and constructive: JLR listened and showed interest in the
+group's evidence, but offered no substantive route forward for H570/H571/H572 or a full HV
+battery replacement programme. Record the requests for an agreed meeting note and a
+board-level commitment by the end of the following week. State clearly that member-level
+records, experiences and VINs cannot be shared with JLR without explicit consent from each
+member, and that only data belonging to members who opt in could form part of a future,
+properly safeguarded proposal. Invite volunteers with relevant professional experience and
+provide social share links. Use the restrained left-lane T-junction hero at
+`/images/post-jlr-meeting-2026-hero.jpg`.
+
+Update article heroes use a shallow 16:7 editorial crop on larger screens so long headlines do
+not push the article text too far down the page. Restore a 16:9 crop on small screens where the
+narrower card needs enough image height to remain legible. Use `object-fit: cover` for both.
+
 ## Goal
 
 The public site should explain the group clearly, invite owners to participate, and establish a constructive evidence-led posture without overstating legal status or data certainty.

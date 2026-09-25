@@ -19,12 +19,15 @@ test('update posts use the dedicated editorial layout', function () {
 
 test('the update layout keeps article context and optional heroes together', function () {
   var layout = fs.readFileSync(path.join(root, 'src', '_includes', 'layouts', 'update.njk'), 'utf8');
+  var styles = fs.readFileSync(path.join(root, 'src', 'assets', 'css', 'site.css'), 'utf8');
 
   assert.match(layout, /date \| readableDate/);
   assert.match(layout, /I-PACE Owners' Advocacy Group/);
   assert.match(layout, /update-header__summary/);
   assert.match(layout, /update-article/);
   assert.match(layout, /{% if heroImage %}/);
+  assert.match(styles, /\.update-article__hero img\s*{[^}]*aspect-ratio:\s*16 \/ 7/s);
+  assert.match(styles, /@media \(max-width: 40rem\)[\s\S]*\.update-article__hero img\s*{[^}]*aspect-ratio:\s*16 \/ 9/);
 });
 
 test('the first member survey update has a purposeful hero image', function () {
@@ -69,4 +72,22 @@ test('the final survey update publishes selections, comments and the winner', fu
   assert.match(resultsUpdate, /preferred votes used to break an exact tie/);
   assert.match(resultsUpdate, /Full HV Replacement leads both measures/);
   assert.equal(resultsUpdate.split('social-share__link').length - 1, 4);
+});
+
+test('the post-meeting update records the asks and protects member data', function () {
+  var meetingUpdate = fs.readFileSync(
+    path.join(updatesDirectory, 'after-our-first-jlr-meeting.njk'),
+    'utf8'
+  );
+
+  assert.match(meetingUpdate, /UK Director of Client Care/);
+  assert.match(meetingUpdate, /H570, H571 or H572/);
+  assert.match(meetingUpdate, /board-level statement to I-PACE owners/i);
+  assert.match(meetingUpdate, /by the end of next week/);
+  assert.match(meetingUpdate, /do not currently have members’ permission/);
+  assert.match(meetingUpdate, /ask each person for explicit consent/);
+  assert.match(meetingUpdate, /including legal avenues/);
+  assert.match(meetingUpdate, /href="\/contact\/"/);
+  assert.match(meetingUpdate, /heroImage: \/images\/post-jlr-meeting-2026-hero\.jpg/);
+  assert.equal(meetingUpdate.split('social-share__link').length - 1, 4);
 });
