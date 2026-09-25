@@ -1,5 +1,5 @@
 ---
-title: "After our first meeting with JLR: substance must follow"
+title: "Our first meeting with JLR: substance must follow"
 date: 2026-09-25
 summary: "The meeting was constructive and JLR listened closely. I-PACE owners now need a clear, board-level commitment."
 description: "An update for I-PACE owners following our 24 September meeting with JLR's UK Director of Client Care and Head of Legal for Supply Chain."
@@ -12,8 +12,8 @@ heroImageAlt: "An I-PACE-style electric car in the left-hand lane approaching a 
 
 <p class="lead">Our first meeting with JLR’s UK Director of Client Care and Head of Legal for Supply Chain was courteous and constructive. Both appeared genuinely concerned about members’ experiences and keen to understand the evidence our community has assembled.</p>
 
-The Director of Client Care told us it is particularly keen to improve the customer experience.
-They recognised that this has been inconsistent and, too often, poor. They wants existing Jaguar owners — 
+The Director of Client Care told us they were particularly keen to improve the customer experience.
+They recognised that this has been inconsistent and, too often, poor. They want existing Jaguar owners — 
 including those who bought their I-PACE used — to know that the brand has not moved on from them.
 That is welcome. Delivery now matters.
 
