@@ -25,7 +25,7 @@ numbers and ensure senior JLR leaders understood why owners need a proper resolu
   <div class="callout__content">
     <p class="callout__title">A useful introduction. Now we need substance.</p>
     <p>We see the meeting as the start of constructive work with JLR. Without firm commitments and dates, members will reasonably fear another delay.</p>
-    <p>We have asked for **a board-level statement to I-PACE owners** setting out how HV issues will be resolved to the satisfaction of affected owners.<p>
+    <p>We have asked for <em>a board-level statement to I-PACE owners</em> setting out how HV issues will be resolved to the satisfaction of affected owners.<p>
   </div>
 </div>
 
