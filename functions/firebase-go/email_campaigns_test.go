@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -134,6 +135,60 @@ func TestEmbeddedSeptemberSurveyCampaignHasSurveyAndEvidenceCTA(t *testing.T) {
 	}
 }
 
+func TestEmbeddedPostMeetingNextStepsCampaignIsPrivateAndActionable(t *testing.T) {
+	template, err := embeddedCampaignTemplate(postMeetingNextStepsTemplateID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if template.ID != postMeetingNextStepsTemplateID || template.Audience != "verified-members" {
+		t.Fatalf("unexpected campaign routing metadata: %#v", template)
+	}
+	for _, expected := range []string{
+		"{{firstName}}",
+		"{{membersJoined}} members",
+		"Response deadline: Friday 2 October 2026",
+		"don't plan to publish the correspondence in full",
+		"transparent as possible without compromising the work",
+		"members understand our caution",
+		"As soon as we hear anything from JLR, we will update the group",
+		"case-by-case work",
+		"explicit consent",
+		"3,000 members",
+		"what-we-have-asked-jlr-to-do-next",
+		"{.button}",
+	} {
+		if !strings.Contains(template.Markdown, expected) {
+			t.Fatalf("post-meeting campaign is missing %q", expected)
+		}
+	}
+	if template.HeroImage != "/images/jlr-next-steps-2026-email.jpg" || strings.TrimSpace(template.HeroImageAlt) == "" {
+		t.Fatalf("post-meeting campaign must provide its approved hero: %#v", template)
+	}
+}
+
+// Opt-in local fixture for browser visual QA; it uses no member data and never sends mail.
+func TestRenderPostMeetingNextStepsEmailFixture(t *testing.T) {
+	target := os.Getenv("POST_MEETING_NEXT_STEPS_PREVIEW")
+	if target == "" {
+		t.Skip("set POST_MEETING_NEXT_STEPS_PREVIEW for local visual QA")
+	}
+	template, err := embeddedCampaignTemplate(postMeetingNextStepsTemplateID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	markdown := marketingTemplateMarkdown(template.Markdown, publicStatsSnapshot{
+		JoinedOwners:        1624,
+		VehiclesRegistered:  824,
+		SOHReadings:         151,
+		ServiceEventsLogged: 219,
+	})
+	markdown = renderMarketingMessageMarkdown(markdown, campaignRecipient{Name: "Alex Owner", Email: "alex@example.com"})
+	html := marketingMessageHTML(markdown, postMeetingNextStepsTemplateID, "https://ipace-owners.org/api/email-unsubscribe?campaign=preview&token=preview-token")
+	if err := os.WriteFile(target, []byte(html), 0600); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestJLRContactCampaignUsesItsHolidayHeroImage(t *testing.T) {
 	_, htmlBody, _, err := renderCustomCampaignEmail(customCampaignRecord{
 		Kind:         jlrContactCampaignKind,
@@ -158,6 +213,7 @@ func TestAllCampaignsUseMarkdownSources(t *testing.T) {
 		"member-referral":                        "member-referral",
 		"all-members-drive":                      "reach-1000",
 		"jlr-contact":                            "jlr-contact",
+		"post-meeting-next-steps":                postMeetingNextStepsTemplateID,
 		"survey-september-2026":                  "survey-september-2026",
 		"survey-closing-reminder-september-2026": "survey-closing-reminder-september-2026",
 	} {

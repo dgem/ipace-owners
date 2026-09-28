@@ -97,6 +97,17 @@ The fixed September Survey invitation is a group-wide member poll. It may reach 
 historic member account and every modern Join registration, including members who have not
 completed magic-link sign-in; an explicit withdrawal through account preferences or the email
 unsubscribe flow always excludes the member. This is the widest permitted member-email audience.
+
+The prepared `post-meeting-next-steps` campaign is narrower. It reaches only communication-consented
+members whose Firebase account is verified, meaning they have completed at least one passwordless
+sign-in. Keep its source-controlled subject, body and email-safe country-road hero locked in the
+editor so a copy edit cannot silently clear the template ID and widen the audience. Recheck
+verification and opt-outs before every preview and batch. The email summarises the private follow-up,
+explains that the group does not plan to publish the correspondence in full in case doing so affects
+its interests or compromises work being done for members, asks them to understand that caution,
+promises an update as soon as JLR responds, links to the 28 September update, gives the Friday
+2 October 2026 response deadline its own prominent heading, and asks members to help reach 3,000
+while improving the evidence base.
 Refreshing history must reconcile stored Resend IDs with the paginated sent-email API, cache
 provider checks for five minutes, and aggregate delivered, awaiting-delivery, opened, clicked,
 delayed, bounced, suppressed, complained, provider-failed and combined-undeliverable outcomes

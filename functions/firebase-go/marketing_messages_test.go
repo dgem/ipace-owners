@@ -30,6 +30,60 @@ func TestMarketingMessagePreviewUsesConsentedAudienceAndPersonalisation(t *testi
 	}
 }
 
+func TestPostMeetingNextStepsUsesVerifiedAudienceOnly(t *testing.T) {
+	originalAll := marketingMessageAudience
+	originalVerified := marketingVerifiedAudience
+	t.Cleanup(func() {
+		marketingMessageAudience = originalAll
+		marketingVerifiedAudience = originalVerified
+	})
+	marketingMessageAudience = func(context.Context) ([]campaignRecipient, error) {
+		return []campaignRecipient{{Email: "all@example.com"}, {Email: "verified@example.com"}}, nil
+	}
+	marketingVerifiedAudience = func(context.Context) ([]campaignRecipient, error) {
+		return []campaignRecipient{{Email: "verified@example.com"}}, nil
+	}
+
+	verified, err := marketingMessageAudienceFor(context.Background(), marketingMessageRequest{TemplateID: postMeetingNextStepsTemplateID})
+	if err != nil || len(verified) != 1 || verified[0].Email != "verified@example.com" {
+		t.Fatalf("verified audience = %#v, %v", verified, err)
+	}
+	all, err := marketingMessageAudienceFor(context.Background(), marketingMessageRequest{})
+	if err != nil || len(all) != 2 {
+		t.Fatalf("general audience = %#v, %v", all, err)
+	}
+}
+
+func TestVerifiedMarketingAudienceRetainsConsentAndOptOutRules(t *testing.T) {
+	joins := map[string]marketingJoinConsent{
+		"verified@example.com": {
+			Recipient: campaignRecipient{Name: "Verified Join", Email: "verified@example.com"},
+			Contact:   true,
+		},
+		"unverified@example.com": {
+			Recipient: campaignRecipient{Name: "Unverified Join", Email: "unverified@example.com"},
+			Contact:   true,
+		},
+		"withdrawn@example.com": {
+			Recipient: campaignRecipient{Name: "Withdrawn", Email: "withdrawn@example.com"},
+			Contact:   false,
+		},
+	}
+	accounts := []campaignRecipient{
+		{Name: "Verified Auth", Email: "verified@example.com"},
+		{Name: "Legacy Verified", Email: "legacy@example.com"},
+		{Name: "Withdrawn Auth", Email: "withdrawn@example.com"},
+	}
+	preferences := map[string]communicationsConsentRecord{
+		emailFingerprint("legacy@example.com"): {Contact: false},
+	}
+
+	audience := verifiedMarketingAudienceFromSources(joins, accounts, preferences)
+	if len(audience) != 1 || audience[0].Email != "verified@example.com" || audience[0].Name != "Verified Join" {
+		t.Fatalf("verified audience = %#v", audience)
+	}
+}
+
 func TestMarketingMessageBatchUsesOpaqueUnsubscribeTokens(t *testing.T) {
 	token := "unsubscribe_0123456789abcdef"
 	hash := marketingUnsubscribeTokenHash(token)
@@ -174,7 +228,7 @@ func TestMarketingMessageUnsubscribeGETRequiresConfirmation(t *testing.T) {
 	}
 }
 
-func TestMarketingMessageTemplatesMoveSeptemberSurveyToBroadcasts(t *testing.T) {
+func TestMarketingMessageTemplatesIncludePreparedMemberUpdates(t *testing.T) {
 	originalStats, originalAudience := marketingMessageStats, marketingMessageAudience
 	t.Cleanup(func() {
 		marketingMessageStats = originalStats
@@ -190,11 +244,14 @@ func TestMarketingMessageTemplatesMoveSeptemberSurveyToBroadcasts(t *testing.T) 
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(templates) != 6 {
-		t.Fatalf("template count = %d, want 6", len(templates))
+	if len(templates) != 7 {
+		t.Fatalf("template count = %d, want 7", len(templates))
 	}
-	var survey, closing marketingMessageTemplate
+	var survey, closing, nextSteps marketingMessageTemplate
 	for _, template := range templates {
+		if template.ID == postMeetingNextStepsTemplateID {
+			nextSteps = template
+		}
 		if template.ID == "survey-september-2026" {
 			survey = template
 		}
@@ -204,6 +261,9 @@ func TestMarketingMessageTemplatesMoveSeptemberSurveyToBroadcasts(t *testing.T) 
 	}
 	if survey.ID == "" {
 		t.Fatal("September survey template is missing")
+	}
+	if nextSteps.ID == "" || !strings.Contains(nextSteps.Markdown, "1299 members") || nextSteps.HeroImage != "/images/jlr-next-steps-2026-email.jpg" {
+		t.Fatalf("post-meeting next-steps template is incomplete: %+v", nextSteps)
 	}
 	if closing.ID == "" || !strings.Contains(closing.Markdown, "calculated at preview") || closing.HeroImage != "/images/september-survey-reminder-2026-hero.jpg" {
 		t.Fatalf("closing reminder template is incomplete: %+v", closing)

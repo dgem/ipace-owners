@@ -109,6 +109,23 @@ recent volunteers, a note that current legal and litigation experience is consid
 while more remains welcome, a focused invitation for media/PR experience or contacts, and four
 social share links.
 
+Preserve the 28 September update at `/updates/what-we-have-asked-jlr-to-do-next/`. It summarises
+the substance of the private post-meeting follow-up. It explains that the group does not plan to
+publish the correspondence in full in case doing so affects its interests or compromises work being
+done for members, asks them to understand that caution and promises an update as soon as JLR
+responds. Give the Friday 2 October 2026 response
+deadline a prominent labelled callout on the page and heading in the email. It asks for a board-level,
+group-wide commitment by that date, uses the survey winner and fair buy-back alternative to
+describe the requested outcome, states that individual case review cannot replace a consistent
+battery remedy, and retains explicit consent as the boundary for member records and VINs. Include a
+live member count, the 3,000-member milestone,
+join and data actions, four social shares and the fresh country-road hero at
+`/images/jlr-next-steps-2026-hero.jpg`. Two cars approach the camera on their UK left-hand lane and
+the nearer right-hand-drive car includes a woman driver. The matching
+prepared email uses the smaller `/images/jlr-next-steps-2026-email.jpg` derivative and reaches
+only communication-consented members with verified Firebase accounts and must remain source-locked
+in the editor so its audience cannot be widened accidentally.
+
 All update-page hero images use a shallow 16:7 crop above the mobile breakpoint and 16:9 on
 small screens, keeping the opening text closer to long multi-line headings without losing a
 useful image treatment on narrow cards.
@@ -460,6 +477,8 @@ the repository or an artifact archive:
 - `public/images/ipace-hero.png`;
 - `public/images/jlr-client-care-september-hero.png`;
 - `public/images/september-survey-2026-hero.jpg`;
+- `public/images/jlr-next-steps-2026-hero.jpg` and
+  `public/images/jlr-next-steps-2026-email.jpg`;
 - `public/images/ipace-owners-logo.svg` and `public/images/ipace-owners-logo.png`;
 - `public/images/ipace-owners-qr.svg`;
 - `public/images/ipace-owners-card-front.svg` and

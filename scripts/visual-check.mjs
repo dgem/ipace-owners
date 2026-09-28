@@ -918,6 +918,83 @@ async function checkSurveyReminder() {
   }
 }
 
+async function checkPostMeetingNextSteps() {
+  const fixtureDir = fs.mkdtempSync(path.join(os.tmpdir(), 'post-meeting-next-steps-'));
+  const fixturePath = path.join(fixtureDir, 'email.html');
+  try {
+    execFileSync('go', ['test', '-count=1', '-run', '^TestRenderPostMeetingNextStepsEmailFixture$', '.'], {
+      cwd: 'functions/firebase-go', env: { ...process.env, POST_MEETING_NEXT_STEPS_PREVIEW: fixturePath }
+    });
+    const html = fs.readFileSync(fixturePath, 'utf8');
+    for (const width of [800, 390]) {
+      const page = await browser.newPage({ viewport: { width, height: 900 } });
+      await page.route('https://ipace-owners.org/images/**', (route) => route.fulfill({
+        path: path.join('public/images', path.basename(new URL(route.request().url()).pathname))
+      }));
+      await page.setContent(html, { waitUntil: 'networkidle' });
+      assert.equal(await page.getByText('What we have asked JLR to do next', { exact: true }).isVisible(), true);
+      assert.equal(await page.getByText('1624 members', { exact: false }).isVisible(), true);
+      assert.equal(await page.locator('a[href*="sharer"], a[href*="wa.me"], a[href*="twitter.com/intent"], a[href*="linkedin.com/sharing"]').count(), 4);
+      assert.equal(await page.locator('a[href*="what-we-have-asked-jlr-to-do-next"]').first().evaluate((link) => getComputedStyle(link).borderRadius), '999px');
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
+      await page.screenshot({ path: path.join(outputDir, `post-meeting-next-steps-email-${width}.png`), fullPage: true });
+      await page.close();
+    }
+    for (const width of [1440, 390]) {
+      const page = await browser.newPage({ viewport: { width, height: 1000 } });
+      await page.route('**/api/public-stats*', (route) => route.fulfill({ json: { joinedOwners: 1624 } }));
+      await page.goto(baseURL + '/updates/what-we-have-asked-jlr-to-do-next/', { waitUntil: 'networkidle' });
+      assert.equal(await page.locator('[data-public-stat="joinedOwners"]').textContent(), '1,624');
+      assert.equal(await page.getByText('Response deadline: Friday 2 October 2026').isVisible(), true);
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
+      await page.screenshot({ path: path.join(outputDir, `post-meeting-next-steps-update-${width}.png`), fullPage: true });
+      await page.close();
+    }
+  } finally {
+    fs.rmSync(fixtureDir, { recursive: true, force: true });
+  }
+}
+
+async function checkPostMeetingCampaignAdmin(viewport, screenshotName) {
+  const page = await browser.newPage({ viewport });
+  const campaign = {
+    id: 'post-meeting-next-steps',
+    name: 'September 2026 — What we have asked JLR to do next',
+    description: 'Explain the post-meeting request and deadline to verified members.',
+    subject: 'What we have asked JLR to do next',
+    markdown: 'Hi {{firstName}},\n\n[Read the full member update](https://ipace-owners.org/updates/what-we-have-asked-jlr-to-do-next/){.button}'
+  };
+  await page.route('**/api/admin/marketing-message-templates', (route) => route.fulfill({
+    contentType: 'application/json', body: JSON.stringify({ templates: [campaign] })
+  }));
+  await page.route('**/api/admin/marketing-message-preview', (route) => route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({
+      eligible: 1280,
+      campaignId: 'post-meeting-next-steps-staging-2026-09-28',
+      subject: campaign.subject,
+      html: '<!doctype html><html><body><h1>What we have asked JLR to do next</h1><p>Verified member preview.</p></body></html>',
+      text: 'What we have asked JLR to do next',
+      confirmation: 'SEND 1280',
+      notice: 'Only communication-consented members with a verified account are included.'
+    })
+  }));
+  await page.goto(baseURL + '/admin/marketing-messages/', { waitUntil: 'networkidle' });
+  await revealAdminState(page);
+  await page.evaluate(() => {
+    window.firebase = { auth: () => ({ currentUser: { getIdToken: async () => 'visual-admin-token' } }) };
+  });
+  await page.locator('[data-marketing-message-template]').selectOption(campaign.id);
+  await page.waitForFunction((expectedName) => document.querySelector('[data-marketing-message-name]').value === expectedName, campaign.name);
+  assert.equal(await page.locator('[data-marketing-message-markdown]').evaluate((field) => field.readOnly), true);
+  await page.locator('[data-marketing-message-form]').evaluate((form) => form.requestSubmit());
+  await page.frameLocator('[data-marketing-message-html]').getByText('Verified member preview.').waitFor({ state: 'visible' });
+  assert.match(await page.locator('[data-marketing-message-audience]').textContent(), /verified members who have signed in at least once/);
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
+  await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
+  await page.close();
+}
+
 async function checkSurveyInsights(viewport, suffix) {
   const page = await browser.newPage({ viewport });
   let insightRequests = 0;
@@ -1056,6 +1133,7 @@ try {
   await checkSurveyInsights({ width: 1440, height: 1000 }, 'desktop');
   await checkSurveyInsights({ width: 390, height: 844 }, 'mobile');
   await checkSurveyReminder();
+  await checkPostMeetingNextSteps();
   await checkPublicContentPage('/updates/', 'Updates', { width: 1440, height: 1000 }, 'updates-list-desktop.png');
   await checkPublicContentPage('/updates/', 'Updates', { width: 390, height: 844 }, 'updates-list-mobile.png');
   await checkPublicContentPage('/updates/september-survey-results/', 'Thank you: the final member survey results', { width: 1440, height: 1000 }, 'survey-results-update-desktop.png');
@@ -1075,6 +1153,8 @@ try {
   await checkCampaignControls({ width: 390, height: 844 }, 'admin-email-campaigns-mobile.png');
   await checkMarketingMessages({ width: 1440, height: 1100 }, 'admin-marketing-messages-desktop.png');
   await checkMarketingMessages({ width: 390, height: 844 }, 'admin-marketing-messages-mobile.png');
+  await checkPostMeetingCampaignAdmin({ width: 1440, height: 1100 }, 'admin-post-meeting-next-steps-desktop.png');
+  await checkPostMeetingCampaignAdmin({ width: 390, height: 844 }, 'admin-post-meeting-next-steps-mobile.png');
   await checkInstagramCampaigns({ width: 1440, height: 1100 }, 'admin-instagram-campaigns-desktop.png');
   await checkInstagramCampaigns({ width: 390, height: 844 }, 'admin-instagram-campaigns-mobile.png');
   await checkMemberExport({ width: 1440, height: 1000 }, 'member-export-desktop.png');

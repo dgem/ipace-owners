@@ -101,3 +101,27 @@ test('the post-meeting update records the asks and protects member data', functi
   assert.match(meetingUpdate, /heroImage: \/images\/post-jlr-meeting-2026-hero\.jpg/);
   assert.equal(meetingUpdate.split('social-share__link').length - 1, 4);
 });
+
+test('the next-steps update explains the private follow-up and grows the group', function () {
+  var nextStepsUpdate = fs.readFileSync(
+    path.join(updatesDirectory, 'what-we-have-asked-jlr-to-do-next.md'),
+    'utf8'
+  );
+
+  assert.match(nextStepsUpdate, /don't plan to publish the correspondence in full/i);
+  assert.match(nextStepsUpdate, /transparent as possible without compromising the work/i);
+  assert.match(nextStepsUpdate, /hope\s+members understand our caution/i);
+  assert.match(nextStepsUpdate, /As soon as we hear anything from JLR, we will update the\s+group/);
+  assert.match(nextStepsUpdate, /Response deadline: Friday 2 October 2026/);
+  assert.match(nextStepsUpdate, /board-level commitment/);
+  assert.match(nextStepsUpdate, /Full HV Replacement was the winning\s+outcome/);
+  assert.match(nextStepsUpdate, /reviewing cases one by one cannot replace\s+a consistent approach/);
+  assert.match(nextStepsUpdate, /do not have permission to share them/);
+  assert.match(nextStepsUpdate, /data-public-stat="joinedOwners"/);
+  assert.match(nextStepsUpdate, /3,000/);
+  assert.match(nextStepsUpdate, /about 10% of the UK I-PACE parc/);
+  assert.match(nextStepsUpdate, /href="\/join\/"/);
+  assert.match(nextStepsUpdate, /href="\/member\/dashboard\/"/);
+  assert.match(nextStepsUpdate, /heroImage: \/images\/jlr-next-steps-2026-hero\.jpg/);
+  assert.equal(nextStepsUpdate.split('social-share__link').length - 1, 4);
+});

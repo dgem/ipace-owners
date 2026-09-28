@@ -28,6 +28,14 @@
     return id === 'survey-reminder-september-2026' || id === 'survey-closing-reminder-september-2026';
   }
 
+  function isVerifiedMembersTemplate(id) {
+    return id === 'post-meeting-next-steps';
+  }
+
+  function isLockedPreparedCampaign(id) {
+    return isSurveyReminder(id) || isVerifiedMembersTemplate(id);
+  }
+
   function newCampaignID() {
     if (window.crypto && window.crypto.randomUUID) return 'marketing_' + window.crypto.randomUUID().replace(/-/g, '');
     return 'marketing_' + Date.now() + '_' + Math.random().toString(36).slice(2);
@@ -149,7 +157,7 @@
       if (!selected) throw new Error('That prepared campaign is unavailable.');
       loadingTemplate = true;
       templateID.value = selected.id;
-      [name, subject, markdown].forEach(function (field) { field.readOnly = isSurveyReminder(selected.id); });
+      [name, subject, markdown].forEach(function (field) { field.readOnly = isLockedPreparedCampaign(selected.id); });
       name.value = selected.name;
       subject.value = selected.subject;
       markdown.value = selected.markdown;
@@ -180,7 +188,7 @@
       preview.hidden = false;
       sendForm.hidden = !!data.previewOnly;
       confirm.value = '';
-      root.querySelector('[data-marketing-message-audience]').textContent = data.previewOnly ? 'Layout preview only — audience unavailable; sending disabled.' : data.eligible + (isSurveyReminder(templateID.value) ? ' members have not yet answered and are eligible for this reminder.' : ' registered members are currently eligible for group communications.');
+      root.querySelector('[data-marketing-message-audience]').textContent = data.previewOnly ? 'Layout preview only — audience unavailable; sending disabled.' : data.eligible + (isSurveyReminder(templateID.value) ? ' members have not yet answered and are eligible for this reminder.' : isVerifiedMembersTemplate(templateID.value) ? ' verified members who have signed in at least once are currently eligible for this update.' : ' registered members are currently eligible for group communications.');
       root.querySelector('[data-marketing-message-subject-preview]').textContent = data.subject;
       // Review this deployment's assets before they exist on the production host.
       // Delivered email HTML continues to use the server's absolute HTTPS URLs.
@@ -213,7 +221,7 @@
       if (error.status === 409 && error.data && typeof error.data.eligible === 'number') {
         current.eligible = error.data.eligible;
         confirm.value = '';
-        root.querySelector('[data-marketing-message-audience]').textContent = error.data.eligible + (isSurveyReminder(templateID.value) ? ' members have not yet answered and are eligible for this reminder.' : ' registered members are currently eligible for group communications.');
+        root.querySelector('[data-marketing-message-audience]').textContent = error.data.eligible + (isSurveyReminder(templateID.value) ? ' members have not yet answered and are eligible for this reminder.' : isVerifiedMembersTemplate(templateID.value) ? ' verified members who have signed in at least once are currently eligible for this update.' : ' registered members are currently eligible for group communications.');
         root.querySelector('[data-marketing-message-confirm-hint]').textContent = 'The audience changed. Type “' + error.data.confirmation + '” to confirm the updated count.';
       }
       if (error.message.indexOf('earlier provider failure without a recipient ledger entry') !== -1) {
