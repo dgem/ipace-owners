@@ -109,8 +109,8 @@ test('the next-steps update explains the private follow-up and grows the group',
   );
 
   assert.match(nextStepsUpdate, /don't plan to publish the correspondence in full/i);
-  assert.match(nextStepsUpdate, /transparent as possible without prejudicing the\s+group's position/i);
-  assert.match(nextStepsUpdate, /hope members can\s+understand our caution/i);
+  assert.match(nextStepsUpdate, /transparent as possible without compromising the work/i);
+  assert.match(nextStepsUpdate, /hope\s+members understand our caution/i);
   assert.match(nextStepsUpdate, /As soon as we hear anything from JLR, we will update the\s+group/);
   assert.match(nextStepsUpdate, /Response deadline: Friday 2 October 2026/);
   assert.match(nextStepsUpdate, /board-level commitment/);

@@ -13,10 +13,10 @@ Hi {{firstName}},
 Our first meeting with JLR was a useful introduction. We have now sent a written follow-up setting
 out the group-wide commitment affected owners need.
 
-We don't plan to publish the correspondence in full, in case it affects our position, but members
-should know the substance of our position, what we have asked JLR to do and what happens next. We
-want to be as transparent as possible without prejudicing the group's position. We hope members can
-understand our caution.
+We don't plan to publish the correspondence in full, in case doing so affects the group's interests,
+but members should know what we have asked JLR to do and what happens next. We want to be as
+transparent as possible without compromising the work being done on members' behalf. We hope
+members understand our caution.
 
 [Read the full member update](https://ipace-owners.org/updates/what-we-have-asked-jlr-to-do-next/){.button}
 
