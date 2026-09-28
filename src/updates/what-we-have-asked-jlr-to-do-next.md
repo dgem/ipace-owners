@@ -12,10 +12,10 @@ permalink: /updates/what-we-have-asked-jlr-to-do-next/
 
 <p class="lead">Our first meeting with JLR was a useful introduction. The follow-through now matters. We have written to JLR again to set out the commitment affected owners need and the timescale in which we have asked to receive it.</p>
 
-We are not publishing that correspondence or the associated legal material. Private communications
-need to remain private, but members should know the substance of our position, what we have asked
-JLR to do and what happens next. We want to be as transparent as possible without prejudicing the
-group's position or the confidential work being done on members' behalf.
+We don't plan to publish the correspondence in full, in case it affects our position, but members
+should know the substance of our position, what we have asked JLR to do and what happens next. We
+want to be as transparent as possible without prejudicing the group's position. We hope members can
+understand our caution.
 
 <div class="callout callout--info" role="note">
   <span class="callout__icon" aria-hidden="true">→</span>

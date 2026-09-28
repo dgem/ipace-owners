@@ -102,9 +102,9 @@ The prepared `post-meeting-next-steps` campaign is narrower. It reaches only com
 members whose Firebase account is verified, meaning they have completed at least one passwordless
 sign-in. Keep its source-controlled subject, body and email-safe country-road hero locked in the
 editor so a copy edit cannot silently clear the template ID and widen the audience. Recheck
-verification and opt-outs before every preview and batch. The email summarises the private follow-up
-without reproducing the correspondence or associated legal material, explains the balance between
-transparency and protecting the group's position, promises an update as soon as JLR responds, links
+verification and opt-outs before every preview and batch. The email summarises the private follow-up,
+explains that the group does not plan to publish the correspondence in full in case it affects its
+position, asks members to understand that caution, promises an update as soon as JLR responds, links
 to the 28 September update, gives the Friday 2 October deadline, and asks members to help reach 3,000
 while improving the evidence base.
 Refreshing history must reconcile stored Resend IDs with the paginated sent-email API, cache

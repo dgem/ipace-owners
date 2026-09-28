@@ -110,9 +110,9 @@ while more remains welcome, a focused invitation for media/PR experience or cont
 social share links.
 
 Preserve the 28 September update at `/updates/what-we-have-asked-jlr-to-do-next/`. It summarises
-the substance of the private post-meeting follow-up without publishing or quoting the correspondence
-or associated legal material. It explains that transparency must not prejudice the group's position
-or confidential work and promises an update as soon as JLR responds. It asks for a board-level,
+the substance of the private post-meeting follow-up. It explains that the group does not plan to
+publish the correspondence in full in case it affects its position, asks members to understand that
+caution and promises an update as soon as JLR responds. It asks for a board-level,
 group-wide commitment by Friday 2 October, uses the survey winner and fair buy-back alternative to
 describe the requested outcome, states that individual case review cannot replace a consistent
 battery remedy, and retains explicit consent as the boundary for member records and VINs. Include a
