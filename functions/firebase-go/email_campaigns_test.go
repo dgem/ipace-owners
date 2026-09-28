@@ -146,7 +146,7 @@ func TestEmbeddedPostMeetingNextStepsCampaignIsPrivateAndActionable(t *testing.T
 	for _, expected := range []string{
 		"{{firstName}}",
 		"{{membersJoined}} members",
-		"Friday 2 October",
+		"Response deadline: Friday 2 October 2026",
 		"don't plan to publish the correspondence in full",
 		"transparent as possible without prejudicing the group's position",
 		"understand our caution",

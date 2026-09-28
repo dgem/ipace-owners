@@ -945,7 +945,7 @@ async function checkPostMeetingNextSteps() {
       await page.route('**/api/public-stats*', (route) => route.fulfill({ json: { joinedOwners: 1624 } }));
       await page.goto(baseURL + '/updates/what-we-have-asked-jlr-to-do-next/', { waitUntil: 'networkidle' });
       assert.equal(await page.locator('[data-public-stat="joinedOwners"]').textContent(), '1,624');
-      assert.equal(await page.getByText('We have asked JLR to respond by Friday 2 October.').isVisible(), true);
+      assert.equal(await page.getByText('Response deadline: Friday 2 October 2026').isVisible(), true);
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
       await page.screenshot({ path: path.join(outputDir, `post-meeting-next-steps-update-${width}.png`), fullPage: true });
       await page.close();

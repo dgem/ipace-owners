@@ -1,7 +1,7 @@
 ---
 title: "What we have asked JLR to do next"
 date: 2026-09-28
-summary: "We have set out the group-wide commitment I-PACE owners need and asked JLR to respond by Friday 2 October."
+summary: "We have set out the group-wide commitment I-PACE owners need and asked JLR to respond by Friday 2 October 2026."
 description: "A transparent summary of the I-PACE Owners' Advocacy Group's follow-up with JLR after the 24 September meeting."
 layout: update.njk
 eyebrow: Member update · Next steps
@@ -20,7 +20,7 @@ understand our caution.
 <div class="callout callout--info" role="note">
   <span class="callout__icon" aria-hidden="true">→</span>
   <div class="callout__content">
-    <p class="callout__title">We have asked JLR to respond by Friday 2 October.</p>
+    <p class="callout__title">Response deadline: Friday 2 October 2026</p>
     <p>The response needs to give affected owners immediate confidence that the battery fault and its consequences will be addressed fairly and consistently.</p>
   </div>
 </div>

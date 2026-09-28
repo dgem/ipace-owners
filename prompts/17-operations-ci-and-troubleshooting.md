@@ -105,8 +105,8 @@ editor so a copy edit cannot silently clear the template ID and widen the audien
 verification and opt-outs before every preview and batch. The email summarises the private follow-up,
 explains that the group does not plan to publish the correspondence in full in case it affects its
 position, asks members to understand that caution, promises an update as soon as JLR responds, links
-to the 28 September update, gives the Friday 2 October deadline, and asks members to help reach 3,000
-while improving the evidence base.
+to the 28 September update, gives the Friday 2 October 2026 response deadline its own prominent
+heading, and asks members to help reach 3,000 while improving the evidence base.
 Refreshing history must reconcile stored Resend IDs with the paginated sent-email API, cache
 provider checks for five minutes, and aggregate delivered, awaiting-delivery, opened, clicked,
 delayed, bounced, suppressed, complained, provider-failed and combined-undeliverable outcomes

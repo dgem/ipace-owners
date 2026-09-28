@@ -112,8 +112,9 @@ social share links.
 Preserve the 28 September update at `/updates/what-we-have-asked-jlr-to-do-next/`. It summarises
 the substance of the private post-meeting follow-up. It explains that the group does not plan to
 publish the correspondence in full in case it affects its position, asks members to understand that
-caution and promises an update as soon as JLR responds. It asks for a board-level,
-group-wide commitment by Friday 2 October, uses the survey winner and fair buy-back alternative to
+caution and promises an update as soon as JLR responds. Give the Friday 2 October 2026 response
+deadline a prominent labelled callout on the page and heading in the email. It asks for a board-level,
+group-wide commitment by that date, uses the survey winner and fair buy-back alternative to
 describe the requested outcome, states that individual case review cannot replace a consistent
 battery remedy, and retains explicit consent as the boundary for member records and VINs. Include a
 live member count, the 3,000-member milestone,

@@ -20,6 +20,12 @@ understand our caution.
 
 [Read the full member update](https://ipace-owners.org/updates/what-we-have-asked-jlr-to-do-next/){.button}
 
+## Response deadline: Friday 2 October 2026
+
+We have asked JLR to provide a clear commitment by this date. The detailed implementation can
+follow, but affected owners need confidence now that the fault and its consequences will be
+addressed fairly and consistently.
+
 ## Our request
 
 We have asked JLR for a clear, board-level commitment to resolve the high-voltage battery fault and
@@ -31,8 +37,7 @@ JLR’s interest in individual cases may help it understand owners’ experience
 cannot replace a consistent approach to the underlying fault. We have not offered to share member
 records or VINs and would seek each member’s explicit consent before any future sharing.
 
-We have asked JLR to respond by **Friday 2 October**. A clear commitment is needed now; the detailed
-implementation can follow. As soon as we hear anything from JLR, we will update the group.
+As soon as we hear anything from JLR, we will update the group.
 
 ## Help us carry more weight
 

@@ -93,9 +93,9 @@ T-junction hero at `/images/post-jlr-meeting-2026-hero.jpg`.
 Publish a further dated update at `/updates/what-we-have-asked-jlr-to-do-next/` on 28 September
 2026. Be transparent about the substance of the private post-meeting follow-up while explaining that
 the group does not plan to publish the correspondence in full in case it affects its position. Ask
-members to understand that caution, and promise to update them as soon as JLR responds. Record the
-request for a board-level,
-group-wide commitment by Friday 2 October; explain that Full HV Replacement won the member survey,
+members to understand that caution, and promise to update them as soon as JLR responds. Give the
+Friday 2 October 2026 response deadline a prominent labelled callout. Record the request for a board-level,
+group-wide commitment by Friday 2 October 2026; explain that Full HV Replacement won the member survey,
 that a fair buy-back remains the supported alternative where a dependable repair cannot restore the
 car, and that reviewing individual cases cannot replace a consistent remedy for the underlying
 battery fault. Repeat that member records and VINs require explicit individual consent. Use a live
