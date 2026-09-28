@@ -28,6 +28,7 @@ test('registration reminders retain only the transactional fresh-link workflow',
 
 test('marketing messages provides resumable prepared campaigns', function () {
   for (const template of [
+    'post-meeting-next-steps',
     'survey-september-2026',
     'jlr-contact',
     'find-members',
@@ -36,6 +37,7 @@ test('marketing messages provides resumable prepared campaigns', function () {
     assert.match(marketingPage, new RegExp('value="' + template + '"'));
   }
   assert.match(marketingPage, /September survey invitation/);
+  assert.match(marketingPage, /What we have asked JLR to do next — verified members/);
   assert.match(marketingPage, /source-controlled copy/);
   assert.match(marketingScript, /\/api\/admin\/marketing-message-templates/);
   assert.match(marketingScript, /templateId: templateID\.value/);
@@ -51,6 +53,8 @@ test('marketing messages provides resumable prepared campaigns', function () {
   assert.match(marketingPage, /Editing the copied content/);
   assert.match(marketingScript, /getIdToken\(\)/);
   assert.match(marketingScript, /data\.eligible/);
+  assert.match(marketingScript, /verified members who have signed in at least once/);
+  assert.match(marketingScript, /isLockedPreparedCampaign/);
   assert.doesNotMatch(marketingScript, /innerHTML\s*=/);
 });
 

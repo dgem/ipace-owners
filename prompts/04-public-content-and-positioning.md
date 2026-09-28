@@ -84,12 +84,27 @@ the high-voltage battery issue to affected owners' satisfaction by the end of th
 State clearly that member-level
 records, experiences and VINs cannot be shared with JLR without explicit consent from each
 member, and that only data belonging to members who opt in could form part of a future,
-properly safeguarded proposal. Thank recent volunteers and say that their offers have added legal
-and litigation, technical and management experience. Explain that the group believes it has
+properly safeguarded proposal. Thank recent volunteers. Explain that the group believes it has
 sufficient legal and litigation experience for the current stage while welcoming more, then focus
 the volunteer request on members with media or PR experience, or useful press and media contacts,
 without presenting it as an urgent gap. Provide social share links. Use the restrained left-lane
 T-junction hero at `/images/post-jlr-meeting-2026-hero.jpg`.
+
+Publish a further dated update at `/updates/what-we-have-asked-jlr-to-do-next/` on 28 September
+2026. Be transparent about the substance of the private post-meeting follow-up without quoting or
+publishing the correspondence or associated legal material. Explain that transparency must not
+prejudice the group's position or confidential work, and promise to update members as soon as JLR
+responds. Record the request for a board-level,
+group-wide commitment by Friday 2 October; explain that Full HV Replacement won the member survey,
+that a fair buy-back remains the supported alternative where a dependable repair cannot restore the
+car, and that reviewing individual cases cannot replace a consistent remedy for the underlying
+battery fault. Repeat that member records and VINs require explicit individual consent. Use a live
+membership count, a 3,000-member milestone framed as equivalent in scale to about 10% of the UK
+I-PACE parc, join and vehicle-data actions, four social shares and a fresh editorial hero showing
+two generic I-PACE-style cars approaching the camera on the left side of a simple two-way UK
+country road. A woman is visible in the nearer car's right-hand driving position. Use
+`/images/jlr-next-steps-2026-hero.jpg` on the update and the smaller email-safe
+`/images/jlr-next-steps-2026-email.jpg` in the matching campaign.
 
 Update article heroes use a shallow 16:7 editorial crop on larger screens so long headlines do
 not push the article text too far down the page. Restore a 16:9 crop on small screens where the

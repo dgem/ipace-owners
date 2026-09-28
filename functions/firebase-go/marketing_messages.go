@@ -29,6 +29,7 @@ const (
 	marketingMessageMarkdownMax     = 20000
 	marketingMessageBatchSize       = 100
 	marketingMessageKind            = "marketing-message"
+	postMeetingNextStepsTemplateID  = "post-meeting-next-steps"
 	communicationsConsentCollection = "communicationsConsents"
 )
 
@@ -121,6 +122,7 @@ type communicationsConsentRecord struct {
 }
 
 var marketingMessageAudience = loadMarketingMessageAudience
+var marketingVerifiedAudience = loadVerifiedMarketingMessageAudience
 var marketingMessageStats = buildPublicStatsSnapshot
 
 func AdminMarketingMessageTemplates(w http.ResponseWriter, r *http.Request) {
@@ -302,6 +304,8 @@ func previewMarketingMessage(ctx context.Context, input marketingMessageRequest)
 	notice := fmt.Sprintf("All registered members are included unless they have opted out of group communications. Emails are sent in resumable batches of %d; previewing never sends email.", marketingMessageBatchSize)
 	if isSurveyReminderTemplate(input.TemplateID) {
 		notice = "Only members eligible for group communications who have not submitted this survey are included. Responses and opt-outs are checked again before each batch; changes require fresh confirmation. Previewing never sends email."
+	} else if input.TemplateID == postMeetingNextStepsTemplateID {
+		notice = fmt.Sprintf("Only communication-consented members with a verified account are included. Verification and opt-outs are checked again before each batch. Emails are sent in resumable batches of %d; previewing never sends email.", marketingMessageBatchSize)
 	}
 	return marketingMessagePreview{CampaignID: marketingMessageCampaignID(input), Eligible: len(audience), Subject: strings.TrimSpace(input.Subject), HTML: marketingMessageHTML(markdown, input.TemplateID, previewUnsubscribeURL), Text: marketingMessageText(markdown, previewUnsubscribeURL), Confirmation: fmt.Sprintf("SEND %d", len(audience)), Notice: notice}, nil
 }
@@ -352,6 +356,50 @@ func loadMarketingMessageAudience(ctx context.Context) ([]campaignRecipient, err
 		return nil, err
 	}
 	return marketingAudienceFromSources(joins, legacyAccounts, preferences), nil
+}
+
+// This narrower audience is used where a message is expressly intended for members
+// who have completed a passwordless sign-in. It retains the same consent and opt-out
+// rules as the wider marketing audience.
+func loadVerifiedMarketingMessageAudience(ctx context.Context) ([]campaignRecipient, error) {
+	db, err := firestoreClient(ctx)
+	if err != nil {
+		return nil, err
+	}
+	joins, err := loadMarketingJoinConsents(ctx, db)
+	if err != nil {
+		return nil, err
+	}
+	preferences, err := loadCommunicationsConsentRecords(ctx, db)
+	if err != nil {
+		return nil, err
+	}
+	authClient, err := firebaseAuth(ctx)
+	if err != nil {
+		return nil, err
+	}
+	verifiedAccounts, err := loadVerifiedMarketingAccounts(ctx, authClient)
+	if err != nil {
+		return nil, err
+	}
+	return verifiedMarketingAudienceFromSources(joins, verifiedAccounts, preferences), nil
+}
+
+func verifiedMarketingAudienceFromSources(joins map[string]marketingJoinConsent, verifiedAccounts []campaignRecipient, preferences map[string]communicationsConsentRecord) []campaignRecipient {
+	verified := map[string]bool{}
+	for _, account := range verifiedAccounts {
+		if key := canonicalCampaignEmail(account.Email); key != "" {
+			verified[key] = true
+		}
+	}
+	complete := marketingAudienceFromSources(joins, verifiedAccounts, preferences)
+	result := make([]campaignRecipient, 0, len(complete))
+	for _, person := range complete {
+		if verified[canonicalCampaignEmail(person.Email)] {
+			result = append(result, person)
+		}
+	}
+	return result
 }
 
 // Marketing reaches the complete member population. Current Join records provide
@@ -1052,8 +1100,8 @@ func marketingMessageTemplates(ctx context.Context) ([]marketingMessageTemplate,
 	if err != nil {
 		return nil, err
 	}
-	result := make([]marketingMessageTemplate, 0, 6)
-	for _, id := range []string{surveyClosingReminderTemplateID, surveyReminderTemplateID, "survey-september-2026", "jlr-contact", "find-members", "reach-1000"} {
+	result := make([]marketingMessageTemplate, 0, 7)
+	for _, id := range []string{postMeetingNextStepsTemplateID, surveyClosingReminderTemplateID, surveyReminderTemplateID, "survey-september-2026", "jlr-contact", "find-members", "reach-1000"} {
 		template, ok := marketingMessageTemplateSource(id)
 		if !ok {
 			continue
@@ -1069,6 +1117,7 @@ func marketingMessageTemplates(ctx context.Context) ([]marketingMessageTemplate,
 
 func marketingMessageTemplateSource(id string) (marketingMessageTemplate, bool) {
 	file := map[string]string{
+		postMeetingNextStepsTemplateID:  postMeetingNextStepsTemplateID,
 		surveyClosingReminderTemplateID: surveyClosingReminderTemplateID,
 		surveyReminderTemplateID:        surveyReminderTemplateID,
 		"survey-september-2026":         "survey-september-2026",
@@ -1084,6 +1133,7 @@ func marketingMessageTemplateSource(id string) (marketingMessageTemplate, bool) 
 		return marketingMessageTemplate{}, false
 	}
 	description := map[string]string{
+		postMeetingNextStepsTemplateID:  "Explain the post-meeting request and 2 October deadline to verified, communication-consented members.",
 		surveyClosingReminderTemplateID: "Closing-day reminder only for members who have not answered the September survey. Live counts and targeting are rechecked before every batch.",
 		surveyReminderTemplateID:        "Final-week reminder only for members who have not answered the September survey. Live counts are calculated at preview; targeting is rechecked before every batch.",
 		"survey-september-2026":         "Invite every consented member to the September preferred-outcomes survey.",

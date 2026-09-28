@@ -114,6 +114,9 @@ func surveyReminderIsTimelyForTemplate(state surveyReminderState, templateID str
 }
 
 func marketingMessageAudienceFor(ctx context.Context, input marketingMessageRequest) ([]campaignRecipient, error) {
+	if strings.TrimSpace(input.TemplateID) == postMeetingNextStepsTemplateID {
+		return marketingVerifiedAudience(ctx)
+	}
 	audience, err := marketingMessageAudience(ctx)
 	if err != nil || !isSurveyReminderTemplate(input.TemplateID) {
 		return audience, err
