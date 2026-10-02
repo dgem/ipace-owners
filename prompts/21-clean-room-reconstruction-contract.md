@@ -136,11 +136,16 @@ ask them to include their VIN, and invite feedback on whether the route resolves
 case. Correct the 25 September update's attribution: JLR was concerned to hear members'
 service reports, rather than accepting that service was poor. Keep the prepared
 `jlr-response-october-2026` email source-locked and limited to communication-consented,
-verified Firebase accounts.
+verified Firebase accounts. Include it in the prepared-campaign selector and show its
+verified-member audience accurately in the preview. Label the admin workspace Mass Mailings
+while retaining the `/admin/marketing-messages/` route and existing API paths.
 
 All update-page hero images use a shallow 16:7 crop above the mobile breakpoint and 16:9 on
 small screens, keeping the opening text closer to long multi-line headings without losing a
 useful image treatment on narrow cards.
+Standard cards use the shared plain border and surface treatment without a coloured top-edge accent.
+The three evidence counters in the signed-in homepage hero must leave clear space between
+their number glyphs and the gold laurels, including when cars registered exceeds 1,000.
 
 If the fixed survey document is absent (notably in staging with independently generated IDs),
 the admin marketing preview must still render a clearly labelled layout-only preview using all
@@ -459,7 +464,7 @@ forms explicitly use POST even when JavaScript intercepts them.
   with an owner Join CTA and prefill the same text in platform composers where supported;
   LinkedIn and Instagram retain the visible copy because their web share flows cannot reliably
   prefill it.
-- Move every group-wide campaign to Marketing Messages: the September survey, JLR meeting
+- Move every group-wide campaign to Mass Mailings: the September survey, JLR meeting
   update, member referral, evidence-growth message and newly composed messages. Use one
   canonical-email-deduplicated member audience made of verified historic Firebase Auth accounts
   (whose membership flow required contact consent) and modern Join registrations, including

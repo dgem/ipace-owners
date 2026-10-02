@@ -396,7 +396,7 @@ async function checkAdminDashboard() {
   assert.equal(await page.locator('.admin-dashboard-grid .admin-tool-logo svg').count(), 6);
   assert.equal(await page.locator('.admin-dashboard-grid .btn--primary').count(), 6);
   assert.deepEqual(await page.locator('.admin-dashboard-grid .btn').allTextContents(), [
-    'Review Queue', 'Facebook Assistant', 'Registration Reminders', 'Marketing Messages', 'Instagram Campaigns', 'Member Surveys'
+    'Review Queue', 'Facebook Assistant', 'Registration Reminders', 'Mass Mailings', 'Instagram Campaigns', 'Member Surveys'
   ]);
   assert.deepEqual(await page.locator('.admin-dashboard-grid a').evaluateAll((links) => links.map((link) => link.getAttribute('href'))), expectedAdminDestinations.slice(1));
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
@@ -667,7 +667,7 @@ async function checkPublicEvidenceCounters(url, viewport, screenshotName, showMe
       joinedOwners: 429,
       registeredMembers: 401,
       ownersContributed: 287,
-      vehiclesRegistered: 312,
+      vehiclesRegistered: 1042,
       vehiclesWithSoh: 196,
       sohReadings: 634,
       serviceEventsLogged: 148,
@@ -739,13 +739,19 @@ async function checkPublicEvidenceCounters(url, viewport, screenshotName, showMe
     return;
   }
   await page.locator('[data-public-stat="serviceEventsLogged"]').first().waitFor({ state: 'visible' });
-  assert.equal(await page.locator('[data-public-stat="vehiclesRegistered"]').first().textContent(), '312');
+  assert.equal(await page.locator('[data-public-stat="vehiclesRegistered"]').first().textContent(), '1,042');
   assert.equal(await page.locator('[data-public-stat="sohReadings"]').first().textContent(), '634');
   assert.equal(await page.locator('[data-public-stat="serviceEventsLogged"]').first().textContent(), '148');
   if (url === '/') {
     assert.equal(await page.locator('.launch-hero .hero__media > .launch-hero__evidence').count(), 1);
     assert.equal(await page.locator('.launch-evidence-wreaths .launch-member-count').count(), 3);
     assert.equal(await page.locator('.launch-evidence-wreaths .launch-member-count__laurels').count(), 3);
+    const numberClearance = await page.locator('.launch-evidence-wreaths .launch-member-count').evaluateAll((wreaths) => wreaths.map((wreath) => ({
+      numberWidth: wreath.querySelector('.launch-member-count__value').getBoundingClientRect().width,
+      wreathWidth: wreath.getBoundingClientRect().width
+    })));
+    assert.equal(numberClearance.every(({ numberWidth, wreathWidth }) => numberWidth <= wreathWidth * 0.48), true,
+      'all evidence counts need visible clearance inside their laurels');
     const evidenceComposition = await page.evaluate(() => {
       const hero = document.querySelector('.launch-hero');
       const heroInner = hero.querySelector('.hero__inner');
@@ -787,6 +793,13 @@ async function checkPublicEvidenceCounters(url, viewport, screenshotName, showMe
 
 async function checkMarketingMessages(viewport, screenshotName, reminder = false, previewOnly = false) {
   const page = await browser.newPage({ viewport });
+  const response = {
+    id: 'jlr-response-october-2026',
+    name: 'JLR response — 2 October 2026',
+    description: 'Update verified members on JLR’s response.',
+    subject: 'JLR has replied: we hoped for more',
+    markdown: 'Hello {{firstName}},\n\n[Read our assessment](https://ipace-owners.org/updates/jlr-response-2-october-2026/){.button}'
+  };
   const survey = {
     id: reminder ? 'survey-closing-reminder-september-2026' : 'survey-september-2026',
     name: 'September 2026 — Preferred outcomes survey',
@@ -796,7 +809,7 @@ async function checkMarketingMessages(viewport, screenshotName, reminder = false
   };
   await page.route('**/api/admin/marketing-message-templates', (route) => route.fulfill({
     contentType: 'application/json',
-    body: JSON.stringify({ templates: [survey] })
+    body: JSON.stringify({ templates: [response, survey] })
   }));
   await page.route('**/api/admin/marketing-message-preview', (route) => route.fulfill({
     contentType: 'application/json',
@@ -812,10 +825,13 @@ async function checkMarketingMessages(viewport, screenshotName, reminder = false
   }));
   await page.goto(baseURL + '/admin/marketing-messages/', { waitUntil: 'networkidle' });
   await revealAdminState(page);
-  await assertAdminBreadcrumb(page, 'Marketing messages');
+  await assertAdminBreadcrumb(page, 'Mass mailings');
   await page.evaluate(() => {
     window.firebase = { auth: () => ({ currentUser: { getIdToken: async () => 'visual-admin-token' } }) };
   });
+  await page.locator('[data-marketing-message-template]').selectOption(response.id);
+  await page.waitForFunction((expectedName) => document.querySelector('[data-marketing-message-name]').value === expectedName, response.name);
+  assert.equal(await page.locator('[data-marketing-message-markdown]').evaluate((field) => field.readOnly), true);
   await page.locator('[data-marketing-message-template]').selectOption(survey.id);
   await page.waitForFunction((expectedName) => document.querySelector('[data-marketing-message-name]').value === expectedName, survey.name);
   assert.equal(await page.locator('[data-marketing-message-name]').inputValue(), survey.name);
