@@ -126,9 +126,33 @@ prepared email uses the smaller `/images/jlr-next-steps-2026-email.jpg` derivati
 only communication-consented members with verified Firebase accounts and must remain source-locked
 in the editor so its audience cannot be widened accidentally.
 
+Preserve the 2 October update at `/updates/jlr-response-2-october-2026/` and its realistic
+UK left-lane amber-signal hero at `/images/jlr-response-october-2026-hero.jpg`. Lead with
+the group's disappointment that JLR offers individual case review without committing to
+a wider lasting battery remedy. Summarise JLR's position and the separate H576 study
+without implying that all selected modules are faulty; distinguish owner reports from
+fleet-wide failure rates. Give owners JLR's Executive Office email and requested subject,
+ask them to include their VIN, and invite feedback on whether the route resolves their
+case. Correct the 25 September update's attribution: JLR was concerned to hear members'
+service reports, rather than accepting that service was poor. Keep the prepared
+`jlr-response-october-2026` email source-locked and limited to communication-consented,
+verified Firebase accounts. Include it in the prepared-campaign selector and show its
+verified-member audience accurately in the preview. Label the admin workspace Mass Mailings
+while retaining the `/admin/marketing-messages/` route and existing API paths. Embed the
+smaller `/images/jlr-response-october-2026-email.jpg` hero inline in the HTML email.
+Resolve every prepared template from server-controlled source again at send time, ignoring
+client-edited subject and body even if a stale browser retains the template ID.
+For resumed prepared campaigns, render remaining recipients from that current source
+while preserving the existing campaign ID and per-recipient delivery ledger. Match an
+existing prepared campaign by its stable template ID even when its name or subject changes.
+
 All update-page hero images use a shallow 16:7 crop above the mobile breakpoint and 16:9 on
 small screens, keeping the opening text closer to long multi-line headings without losing a
 useful image treatment on narrow cards.
+Standard cards use the shared plain border and surface treatment without a coloured top-edge accent.
+The three evidence counters in the signed-in homepage hero must leave clear space between
+their number glyphs and the gold laurels, including when cars registered exceeds 1,000.
+Their wreaths must shrink within each grid column at 320px without horizontal overflow.
 
 If the fixed survey document is absent (notably in staging with independently generated IDs),
 the admin marketing preview must still render a clearly labelled layout-only preview using all
@@ -452,7 +476,7 @@ forms explicitly use POST even when JavaScript intercepts them.
   with an owner Join CTA and prefill the same text in platform composers where supported;
   LinkedIn and Instagram retain the visible copy because their web share flows cannot reliably
   prefill it.
-- Move every group-wide campaign to Marketing Messages: the September survey, JLR meeting
+- Move every group-wide campaign to Mass Mailings: the September survey, JLR meeting
   update, member referral, evidence-growth message and newly composed messages. Use one
   canonical-email-deduplicated member audience made of verified historic Firebase Auth accounts
   (whose membership flow required contact consent) and modern Join registrations, including
@@ -484,6 +508,8 @@ the repository or an artifact archive:
 - `public/images/september-survey-2026-hero.jpg`;
 - `public/images/jlr-next-steps-2026-hero.jpg` and
   `public/images/jlr-next-steps-2026-email.jpg`;
+- `public/images/jlr-response-october-2026-hero.jpg`;
+- `public/images/jlr-response-october-2026-email.jpg`;
 - `public/images/ipace-owners-logo.svg` and `public/images/ipace-owners-logo.png`;
 - `public/images/ipace-owners-qr.svg`;
 - `public/images/ipace-owners-card-front.svg` and

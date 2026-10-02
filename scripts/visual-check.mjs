@@ -396,7 +396,7 @@ async function checkAdminDashboard() {
   assert.equal(await page.locator('.admin-dashboard-grid .admin-tool-logo svg').count(), 6);
   assert.equal(await page.locator('.admin-dashboard-grid .btn--primary').count(), 6);
   assert.deepEqual(await page.locator('.admin-dashboard-grid .btn').allTextContents(), [
-    'Review Queue', 'Facebook Assistant', 'Registration Reminders', 'Marketing Messages', 'Instagram Campaigns', 'Member Surveys'
+    'Review Queue', 'Facebook Assistant', 'Registration Reminders', 'Mass Mailings', 'Instagram Campaigns', 'Member Surveys'
   ]);
   assert.deepEqual(await page.locator('.admin-dashboard-grid a').evaluateAll((links) => links.map((link) => link.getAttribute('href'))), expectedAdminDestinations.slice(1));
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
@@ -673,7 +673,7 @@ async function checkPublicEvidenceCounters(url, viewport, screenshotName, showMe
       joinedOwners: 429,
       registeredMembers: 401,
       ownersContributed: 287,
-      vehiclesRegistered: 312,
+      vehiclesRegistered: 1042,
       vehiclesWithSoh: 196,
       sohReadings: 634,
       serviceEventsLogged: 148,
@@ -745,13 +745,19 @@ async function checkPublicEvidenceCounters(url, viewport, screenshotName, showMe
     return;
   }
   await page.locator('[data-public-stat="serviceEventsLogged"]').first().waitFor({ state: 'visible' });
-  assert.equal(await page.locator('[data-public-stat="vehiclesRegistered"]').first().textContent(), '312');
+  assert.equal(await page.locator('[data-public-stat="vehiclesRegistered"]').first().textContent(), '1,042');
   assert.equal(await page.locator('[data-public-stat="sohReadings"]').first().textContent(), '634');
   assert.equal(await page.locator('[data-public-stat="serviceEventsLogged"]').first().textContent(), '148');
   if (url === '/') {
     assert.equal(await page.locator('.launch-hero .hero__media > .launch-hero__evidence').count(), 1);
     assert.equal(await page.locator('.launch-evidence-wreaths .launch-member-count').count(), 3);
     assert.equal(await page.locator('.launch-evidence-wreaths .launch-member-count__laurels').count(), 3);
+    const numberClearance = await page.locator('.launch-evidence-wreaths .launch-member-count').evaluateAll((wreaths) => wreaths.map((wreath) => ({
+      numberWidth: wreath.querySelector('.launch-member-count__value').getBoundingClientRect().width,
+      wreathWidth: wreath.getBoundingClientRect().width
+    })));
+    assert.equal(numberClearance.every(({ numberWidth, wreathWidth }) => numberWidth <= wreathWidth * 0.6), true,
+      'all evidence counts need visible clearance inside their laurels');
     const evidenceComposition = await page.evaluate(() => {
       const hero = document.querySelector('.launch-hero');
       const heroInner = hero.querySelector('.hero__inner');
@@ -793,6 +799,13 @@ async function checkPublicEvidenceCounters(url, viewport, screenshotName, showMe
 
 async function checkMarketingMessages(viewport, screenshotName, reminder = false, previewOnly = false) {
   const page = await browser.newPage({ viewport });
+  const response = {
+    id: 'jlr-response-october-2026',
+    name: 'JLR response — 2 October 2026',
+    description: 'Update verified members on JLR’s response.',
+    subject: 'JLR has replied: we hoped for more',
+    markdown: 'Hello {{firstName}},\n\n[Read our assessment](https://ipace-owners.org/updates/jlr-response-2-october-2026/){.button}'
+  };
   const survey = {
     id: reminder ? 'survey-closing-reminder-september-2026' : 'survey-september-2026',
     name: 'September 2026 — Preferred outcomes survey',
@@ -802,7 +815,7 @@ async function checkMarketingMessages(viewport, screenshotName, reminder = false
   };
   await page.route('**/api/admin/marketing-message-templates', (route) => route.fulfill({
     contentType: 'application/json',
-    body: JSON.stringify({ templates: [survey] })
+    body: JSON.stringify({ templates: [response, survey] })
   }));
   await page.route('**/api/admin/marketing-message-preview', (route) => route.fulfill({
     contentType: 'application/json',
@@ -818,10 +831,13 @@ async function checkMarketingMessages(viewport, screenshotName, reminder = false
   }));
   await page.goto(baseURL + '/admin/marketing-messages/', { waitUntil: 'networkidle' });
   await revealAdminState(page);
-  await assertAdminBreadcrumb(page, 'Marketing messages');
+  await assertAdminBreadcrumb(page, 'Mass mailings');
   await page.evaluate(() => {
     window.firebase = { auth: () => ({ currentUser: { getIdToken: async () => 'visual-admin-token' } }) };
   });
+  await page.locator('[data-marketing-message-template]').selectOption(response.id);
+  await page.waitForFunction((expectedName) => document.querySelector('[data-marketing-message-name]').value === expectedName, response.name);
+  assert.equal(await page.locator('[data-marketing-message-markdown]').evaluate((field) => field.readOnly), true);
   await page.locator('[data-marketing-message-template]').selectOption(survey.id);
   await page.waitForFunction((expectedName) => document.querySelector('[data-marketing-message-name]').value === expectedName, survey.name);
   assert.equal(await page.locator('[data-marketing-message-name]').inputValue(), survey.name);
@@ -954,6 +970,32 @@ async function checkPostMeetingNextSteps() {
       assert.equal(await page.getByText('Response deadline: Friday 2 October 2026').isVisible(), true);
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
       await page.screenshot({ path: path.join(outputDir, `post-meeting-next-steps-update-${width}.png`), fullPage: true });
+      await page.close();
+    }
+  } finally {
+    fs.rmSync(fixtureDir, { recursive: true, force: true });
+  }
+}
+
+async function checkOctoberResponseEmail() {
+  const fixtureDir = fs.mkdtempSync(path.join(os.tmpdir(), 'october-response-email-'));
+  const fixturePath = path.join(fixtureDir, 'email.html');
+  try {
+    execFileSync('go', ['test', '-count=1', '-run', '^TestRenderOctoberResponseEmailFixture$', '.'], {
+      cwd: 'functions/firebase-go', env: { ...process.env, OCTOBER_RESPONSE_EMAIL_PREVIEW: fixturePath }
+    });
+    const html = fs.readFileSync(fixturePath, 'utf8');
+    for (const width of [800, 390]) {
+      const page = await browser.newPage({ viewport: { width, height: 900 } });
+      await page.route('https://ipace-owners.org/images/**', (route) => route.fulfill({
+        path: path.join('public/images', path.basename(new URL(route.request().url()).pathname))
+      }));
+      await page.setContent(html, { waitUntil: 'networkidle' });
+      const hero = page.locator('img[src*="jlr-response-october-2026-email.jpg"]');
+      assert.equal(await hero.count(), 1);
+      assert.equal(await hero.evaluate((img) => img.naturalWidth), 1120);
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
+      await page.screenshot({ path: path.join(outputDir, `jlr-response-email-${width}.png`), fullPage: true });
       await page.close();
     }
   } finally {
@@ -1140,12 +1182,15 @@ try {
   await checkSurveyInsights({ width: 390, height: 844 }, 'mobile');
   await checkSurveyReminder();
   await checkPostMeetingNextSteps();
+  await checkOctoberResponseEmail();
   await checkPublicContentPage('/updates/', 'Updates', { width: 1440, height: 1000 }, 'updates-list-desktop.png');
   await checkPublicContentPage('/updates/', 'Updates', { width: 390, height: 844 }, 'updates-list-mobile.png');
   await checkPublicContentPage('/updates/september-survey-results/', 'Thank you: the final member survey results', { width: 1440, height: 1000 }, 'survey-results-update-desktop.png');
   await checkPublicContentPage('/updates/september-survey-results/', 'Thank you: the final member survey results', { width: 390, height: 844 }, 'survey-results-update-mobile.png');
   await checkPublicContentPage('/updates/after-our-first-jlr-meeting/', 'Our first meeting with JLR: substance must follow', { width: 1440, height: 1000 }, 'post-jlr-meeting-update-desktop.png');
   await checkPublicContentPage('/updates/after-our-first-jlr-meeting/', 'Our first meeting with JLR: substance must follow', { width: 390, height: 844 }, 'post-jlr-meeting-update-mobile.png');
+  await checkPublicContentPage('/updates/jlr-response-2-october-2026/', 'JLR has replied: we hoped for more', { width: 1440, height: 1000 }, 'jlr-response-update-desktop.png');
+  await checkPublicContentPage('/updates/jlr-response-2-october-2026/', 'JLR has replied: we hoped for more', { width: 390, height: 844 }, 'jlr-response-update-mobile.png');
   await checkMarketingMessages({ width: 1440, height: 1100 }, 'admin-survey-layout-only-desktop.png', true, true);
   await checkMarketingMessages({ width: 390, height: 844 }, 'admin-survey-layout-only-mobile.png', true, true);
   await checkMarketingMessages({ width: 1440, height: 1100 }, 'admin-survey-reminder-desktop.png', true);
@@ -1181,6 +1226,7 @@ try {
   await checkPublicEvidenceCounters('/', { width: 390, height: 844 }, 'public-evidence-counters-mobile.png');
   await checkPublicEvidenceCounters('/', { width: 1440, height: 1000 }, 'public-evidence-member-cta-desktop.png', true);
   await checkPublicEvidenceCounters('/', { width: 390, height: 844 }, 'public-evidence-member-cta-mobile.png', true);
+  await checkPublicEvidenceCounters('/', { width: 320, height: 700 }, 'public-evidence-member-cta-narrow-mobile.png', true);
   await checkPublicEvidenceCounters('/', { width: 412, height: 915 }, 'public-evidence-member-cta-android-15.png', true);
   await checkPublicEvidenceCounters('/', { width: 490, height: 874 }, 'public-evidence-member-cta-firefox-android.png', true);
   await checkPublicEvidenceCounters('/evidence-dashboard/?site-mode=full', { width: 1440, height: 1000 }, 'evidence-dashboard-desktop.png');

@@ -29,7 +29,7 @@
   }
 
   function isVerifiedMembersTemplate(id) {
-    return id === 'post-meeting-next-steps';
+    return id === 'post-meeting-next-steps' || id === 'jlr-response-october-2026';
   }
 
   function isLockedPreparedCampaign(id) {

@@ -26,8 +26,9 @@ test('registration reminders retain only the transactional fresh-link workflow',
   assert.match(reminderScript, /expectedEligible: current\.eligible/);
 });
 
-test('marketing messages provides resumable prepared campaigns', function () {
+test('mass mailings includes the October verified-member campaign', function () {
   for (const template of [
+    'jlr-response-october-2026',
     'post-meeting-next-steps',
     'survey-september-2026',
     'jlr-contact',
@@ -38,6 +39,8 @@ test('marketing messages provides resumable prepared campaigns', function () {
   }
   assert.match(marketingPage, /September survey invitation/);
   assert.match(marketingPage, /What we have asked JLR to do next — verified members/);
+  assert.match(marketingPage, /JLR's 2 October response — verified members/);
+  assert.match(marketingPage, /Mass mailings/);
   assert.match(marketingPage, /source-controlled copy/);
   assert.match(marketingScript, /\/api\/admin\/marketing-message-templates/);
   assert.match(marketingScript, /templateId: templateID\.value/);
@@ -55,12 +58,13 @@ test('marketing messages provides resumable prepared campaigns', function () {
   assert.match(marketingScript, /data\.eligible/);
   assert.match(marketingScript, /verified members who have signed in at least once/);
   assert.match(marketingScript, /isLockedPreparedCampaign/);
+  assert.match(marketingScript, /id === 'post-meeting-next-steps' \|\| id === 'jlr-response-october-2026'/);
   assert.doesNotMatch(marketingScript, /innerHTML\s*=/);
 });
 
-test('admin dashboard distinguishes marketing broadcasts from registration reminders', function () {
+test('admin dashboard distinguishes mass mailings from registration reminders', function () {
   assert.match(dashboard, />Registration reminders<\/h3>/);
   assert.match(dashboard, />Registration Reminders<\/a>/);
   assert.match(dashboard, /September survey/);
-  assert.match(dashboard, />Marketing Messages<\/a>/);
+  assert.match(dashboard, />Mass Mailings<\/a>/);
 });
