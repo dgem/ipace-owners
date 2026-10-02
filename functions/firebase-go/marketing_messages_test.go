@@ -79,6 +79,19 @@ func TestPreparedMessageResolutionIgnoresClientCopy(t *testing.T) {
 	}
 }
 
+func TestResumedPreparedMessageUsesCurrentSourceCopy(t *testing.T) {
+	record := marketingMessageRecord{CampaignID: "existing", TemplateID: jlrResponseOctoberTemplateID, Subject: "Subject", Markdown: "stale or client-edited copy", Sent: 5}
+	input := marketingMessageRequest{TemplateID: jlrResponseOctoberTemplateID, Markdown: "current server copy"}
+	updated := currentPreparedMarketingMessageRecord(record, input)
+	if updated.Markdown != input.Markdown || updated.CampaignID != record.CampaignID || updated.Sent != record.Sent {
+		t.Fatalf("resumed prepared campaign lost current copy or delivery state: %#v", updated)
+	}
+	freeform := currentPreparedMarketingMessageRecord(record, marketingMessageRequest{Markdown: "unsolicited change"})
+	if freeform.Markdown != record.Markdown {
+		t.Fatalf("freeform campaign copy changed: %#v", freeform)
+	}
+}
+
 func TestVerifiedMarketingAudienceRetainsConsentAndOptOutRules(t *testing.T) {
 	joins := map[string]marketingJoinConsent{
 		"verified@example.com": {

@@ -552,10 +552,9 @@ func sendMarketingMessageBatch(ctx context.Context, input marketingMessageReques
 	if err != nil {
 		return marketingMessageSent{}, err
 	}
-	// Keep reminder statistics current for this batch without changing delivery identity.
-	if isSurveyReminderTemplate(input.TemplateID) {
-		record.Markdown = input.Markdown
-	}
+	// A resumed prepared campaign retains its delivery ledger, but each remaining
+	// recipient must receive the current server-controlled copy.
+	record = currentPreparedMarketingMessageRecord(record, input)
 	related, err := matchingMarketingMessageRecords(ctx, db, input)
 	if err != nil {
 		return marketingMessageSent{}, err
@@ -719,6 +718,13 @@ func marketingMessageRecordsMatch(record marketingMessageRecord, input marketing
 		record.Subject == strings.TrimSpace(input.Subject) &&
 		record.Markdown == input.Markdown &&
 		record.TemplateID == ""
+}
+
+func currentPreparedMarketingMessageRecord(record marketingMessageRecord, input marketingMessageRequest) marketingMessageRecord {
+	if strings.TrimSpace(input.TemplateID) != "" {
+		record.Markdown = input.Markdown
+	}
+	return record
 }
 
 func loadMarketingMessageDeliveries(ctx context.Context, db *firestore.Client, id string) (map[string]string, error) {
