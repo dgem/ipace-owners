@@ -15,10 +15,10 @@ the documents, VIN list, or substantial passages. H576 is described by JLR as a 
 engineering study, not proof that all selected modules are defective.
 Invite members who use JLR's Executive Office route to report whether it helped,
 resolved their concern, or involved diagnostic or repair charges, without sending VINs
-or private correspondence by ordinary email. The prepared email asks JLR to clarify
-H570/H571 safety work and diagnostic charges after the eight-year battery warranty;
-the shorter public update invites reports of charges without setting out the full policy
-questions. Do not equate the battery warranty with a safety recall or claim every
+or private correspondence by ordinary email. The prepared email also invites members
+to ask JLR to address the wider problem through the group. The public update and email
+invite reports of charges without setting out the full warranty-policy questions.
+Do not equate the battery warranty with a safety recall or claim every
 investigation is necessarily free. TOPIx public campaign guidance shows diagnostic steps
 and VIN-specific campaign status but does not settle these billing questions.
 

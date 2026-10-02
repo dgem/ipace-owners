@@ -29,14 +29,12 @@ If many owners write, JLR will see the scale its individual route must handle. O
 clear account per owner is enough. We have not shared member records or VINs with JLR
 and would ask your permission before doing so.
 
+You can also ask JLR to address the wider problem and engage with us as a group.
+
 If you contact JLR, please [tell us](mailto:contact@ipace-owners.org?subject=JLR%20Executive%20Office%20outcome)
 whether it helped and resolved your concern. Tell us too if you were asked to pay for
 diagnosis or repair. A short summary is enough; please keep your VIN and correspondence
 private unless we request them securely.
-
-We are asking JLR whether H570/H571-related safety work remains free after the eight-year
-battery warranty expires, and whether owners can face diagnostic charges when no campaign
-fault is found.
 
 We will review the response with our advisers and update you on next steps.
 
