@@ -23,7 +23,9 @@ For privacy questions or requests, email
 Depending on what you choose to provide, we may collect:
 
 - Your name, email address, country or region, relationship to an I-PACE, volunteering
-  interests, and consent choices.
+  interests, postal address, optional phone number, and consent choices.
+- Your choice to authorise preparatory legal representation, when eligible, and an
+  administrator's separate identity-verification decision.
 - Vehicle registration, country, model year, mileage, ownership dates, and the final six
   characters of a VIN.
 - Battery State of Health readings, measurement dates, mileage, and source.
