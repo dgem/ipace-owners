@@ -571,6 +571,12 @@ async function checkMemberAccountManagement(viewport, screenshotName) {
       batteryReadings: []
     }) });
   });
+  await page.route('**/api/member-profile', async (route) => {
+    await route.fulfill({ contentType: 'application/json', body: JSON.stringify({
+      profile: { name: 'Alex Example', country: 'United Kingdom', represent: false },
+      representationWording: "I authorise the I-PACE Owners' Advocacy Group to represent my interests in preparatory legal engagement with JLR. This does not authorise issuing proceedings or accepting costs on my behalf."
+    }) });
+  });
   await page.goto(baseURL + '/member/account/', { waitUntil: 'networkidle' });
   await page.locator('[data-vehicle-list] .account-vehicle-card').waitFor({ state: 'visible' });
   assert.equal(await page.locator('[data-preferences-form]').isHidden(), true, 'preferences should be an explicit action');
