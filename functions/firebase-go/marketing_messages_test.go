@@ -56,6 +56,29 @@ func TestVerifiedMemberTemplatesUseVerifiedAudienceOnly(t *testing.T) {
 	}
 }
 
+func TestPreparedMessageResolutionIgnoresClientCopy(t *testing.T) {
+	originalStats := marketingMessageStats
+	t.Cleanup(func() { marketingMessageStats = originalStats })
+	marketingMessageStats = func(context.Context) (publicStatsSnapshot, error) { return publicStatsSnapshot{}, nil }
+	input := marketingMessageRequest{
+		TemplateID: jlrResponseOctoberTemplateID,
+		Name:       "Changed name",
+		Subject:    "Changed subject",
+		Markdown:   "Changed message",
+	}
+	resolved, err := resolvedMarketingMessage(context.Background(), input)
+	if err != nil {
+		t.Fatal(err)
+	}
+	template, ok := marketingMessageTemplateSource(jlrResponseOctoberTemplateID)
+	if !ok || resolved.Name != template.Name || resolved.Subject != template.Subject || resolved.Markdown != template.Markdown {
+		t.Fatalf("prepared message accepted client copy: %#v", resolved)
+	}
+	if _, err := resolvedMarketingMessage(context.Background(), marketingMessageRequest{TemplateID: "unknown"}); err == nil {
+		t.Fatal("unknown prepared template was accepted")
+	}
+}
+
 func TestVerifiedMarketingAudienceRetainsConsentAndOptOutRules(t *testing.T) {
 	joins := map[string]marketingJoinConsent{
 		"verified@example.com": {

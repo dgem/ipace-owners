@@ -2,8 +2,9 @@
 
 For the 2 October JLR response, distinguish the group's preferred full HV replacement
 remedy from a proven technical fix. Record that members have reported concerns about
-2022-and-later cars and one subsequent failure of a replacement module, while making clear
-that the model-year spread and repeat-failure pattern require verification. Do not assert
+2022-and-later cars, without estimating their prevalence. Keep the separate report of a
+replacement module failing as an internal verification lead rather than mandatory public
+copy until the repeat-failure pattern is checked. Do not assert
 that LGES resolved all issues around 2024 or that later cars are unaffected. Do not treat a
 self-selected member sample as a fleet failure rate or free-text references as confirmed
 module replacements.
@@ -14,11 +15,12 @@ the documents, VIN list, or substantial passages. H576 is described by JLR as a 
 engineering study, not proof that all selected modules are defective.
 Invite members who use JLR's Executive Office route to report whether it helped,
 resolved their concern, or involved diagnostic or repair charges, without sending VINs
-or private correspondence by ordinary email. Ask JLR to clarify H570/H571 safety work
-and diagnostic charges after the eight-year battery warranty expires; distinguish the
-battery warranty from a safety recall and do not claim that every investigation is
-necessarily free. TOPIx public campaign guidance shows diagnostic steps and VIN-specific
-campaign status but does not settle these billing questions.
+or private correspondence by ordinary email. The prepared email asks JLR to clarify
+H570/H571 safety work and diagnostic charges after the eight-year battery warranty;
+the shorter public update invites reports of charges without setting out the full policy
+questions. Do not equate the battery warranty with a safety recall or claim every
+investigation is necessarily free. TOPIx public campaign guidance shows diagnostic steps
+and VIN-specific campaign status but does not settle these billing questions.
 
 For the 24 September JLR meeting deck, explain that the independent group formed
 following a call to action in the UK I-PACE Forum, as described on the About page, and show

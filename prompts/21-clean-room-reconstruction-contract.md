@@ -140,6 +140,8 @@ verified Firebase accounts. Include it in the prepared-campaign selector and sho
 verified-member audience accurately in the preview. Label the admin workspace Mass Mailings
 while retaining the `/admin/marketing-messages/` route and existing API paths. Embed the
 smaller `/images/jlr-response-october-2026-email.jpg` hero inline in the HTML email.
+Resolve every prepared template from server-controlled source again at send time, ignoring
+client-edited subject and body even if a stale browser retains the template ID.
 
 All update-page hero images use a shallow 16:7 crop above the mobile breakpoint and 16:9 on
 small screens, keeping the opening text closer to long multi-line headings without losing a
@@ -147,6 +149,7 @@ useful image treatment on narrow cards.
 Standard cards use the shared plain border and surface treatment without a coloured top-edge accent.
 The three evidence counters in the signed-in homepage hero must leave clear space between
 their number glyphs and the gold laurels, including when cars registered exceeds 1,000.
+Their wreaths must shrink within each grid column at 320px without horizontal overflow.
 
 If the fixed survey document is absent (notably in staging with independently generated IDs),
 the admin marketing preview must still render a clearly labelled layout-only preview using all

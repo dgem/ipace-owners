@@ -171,15 +171,12 @@ func AdminMarketingMessageSend(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "Invalid request body"})
 		return
 	}
-	input.TemplateID = strings.TrimSpace(input.TemplateID)
-	if isSurveyReminderTemplate(input.TemplateID) {
-		resolved, err := resolvedSurveyReminder(r.Context(), input)
-		if err != nil {
-			writeJSON(w, http.StatusBadRequest, map[string]any{"error": err.Error()})
-			return
-		}
-		input = resolved
+	resolved, err := resolvedMarketingMessage(r.Context(), input)
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": err.Error()})
+		return
 	}
+	input = resolved
 	if err := validateMarketingMessage(input); err != nil {
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": err.Error()})
 		return
