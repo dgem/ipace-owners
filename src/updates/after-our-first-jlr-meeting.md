@@ -13,9 +13,15 @@ heroImageAlt: "An I-PACE-style electric car in the left-hand lane approaching a 
 <p class="lead">Our first meeting with JLR’s UK Director of Client Care and Head of Legal for Supply Chain was courteous and constructive. Both appeared genuinely concerned about members’ experiences and keen to understand the evidence our community has assembled.</p>
 
 The Director of Client Care told us they were particularly keen to improve the customer experience.
-They recognised that this has been inconsistent and, too often, poor. They want existing Jaguar owners — 
+They said they were concerned to hear members describe experiences that were poor and inconsistent,
+and wanted to investigate them. They want existing Jaguar owners —
 including those who bought their I-PACE used — to know that the brand has not moved on from them.
 That is welcome. Delivery now matters.
+
+**Correction, 2 October 2026:** An earlier version of this update said JLR recognised that
+customer experiences had been inconsistent and too often poor. JLR has clarified that it was
+concerned to hear members describe those experiences and wants to investigate them. We have
+corrected the attribution above. [Read our update on JLR's written response](/updates/jlr-response-2-october-2026/).
 
 The meeting allowed us to explain our letter directly, put members’ experiences behind the headline
 numbers and ensure senior JLR leaders understood why owners need a proper resolution.

@@ -82,7 +82,8 @@ test('the post-meeting update records the asks and protects member data', functi
 
   assert.match(meetingUpdate, /UK Director of Client Care/);
   assert.match(meetingUpdate, /particularly keen to improve the customer experience/);
-  assert.match(meetingUpdate, /inconsistent and, too often, poor/);
+  assert.match(meetingUpdate, /concerned to hear members describe experiences that were poor and inconsistent/);
+  assert.match(meetingUpdate, /Correction, 2 October 2026/);
   assert.match(meetingUpdate, /brand has not moved on from them/);
   assert.match(meetingUpdate, /H570, H571 or H572/);
   assert.match(meetingUpdate, /JLR representatives were very interested in our evidence and customer experiences/);

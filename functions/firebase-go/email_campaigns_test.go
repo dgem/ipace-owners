@@ -214,6 +214,7 @@ func TestAllCampaignsUseMarkdownSources(t *testing.T) {
 		"all-members-drive":                      "reach-1000",
 		"jlr-contact":                            "jlr-contact",
 		"post-meeting-next-steps":                postMeetingNextStepsTemplateID,
+		"jlr-response-october-2026":              jlrResponseOctoberTemplateID,
 		"survey-september-2026":                  "survey-september-2026",
 		"survey-closing-reminder-september-2026": "survey-closing-reminder-september-2026",
 	} {

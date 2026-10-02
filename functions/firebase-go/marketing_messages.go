@@ -30,6 +30,7 @@ const (
 	marketingMessageBatchSize       = 100
 	marketingMessageKind            = "marketing-message"
 	postMeetingNextStepsTemplateID  = "post-meeting-next-steps"
+	jlrResponseOctoberTemplateID    = "jlr-response-october-2026"
 	communicationsConsentCollection = "communicationsConsents"
 )
 
@@ -1101,7 +1102,7 @@ func marketingMessageTemplates(ctx context.Context) ([]marketingMessageTemplate,
 		return nil, err
 	}
 	result := make([]marketingMessageTemplate, 0, 7)
-	for _, id := range []string{postMeetingNextStepsTemplateID, surveyClosingReminderTemplateID, surveyReminderTemplateID, "survey-september-2026", "jlr-contact", "find-members", "reach-1000"} {
+	for _, id := range []string{jlrResponseOctoberTemplateID, postMeetingNextStepsTemplateID, surveyClosingReminderTemplateID, surveyReminderTemplateID, "survey-september-2026", "jlr-contact", "find-members", "reach-1000"} {
 		template, ok := marketingMessageTemplateSource(id)
 		if !ok {
 			continue
@@ -1117,6 +1118,7 @@ func marketingMessageTemplates(ctx context.Context) ([]marketingMessageTemplate,
 
 func marketingMessageTemplateSource(id string) (marketingMessageTemplate, bool) {
 	file := map[string]string{
+		jlrResponseOctoberTemplateID:    jlrResponseOctoberTemplateID,
 		postMeetingNextStepsTemplateID:  postMeetingNextStepsTemplateID,
 		surveyClosingReminderTemplateID: surveyClosingReminderTemplateID,
 		surveyReminderTemplateID:        surveyReminderTemplateID,
@@ -1133,6 +1135,7 @@ func marketingMessageTemplateSource(id string) (marketingMessageTemplate, bool) 
 		return marketingMessageTemplate{}, false
 	}
 	description := map[string]string{
+		jlrResponseOctoberTemplateID:    "Summarise JLR's 2 October letter, the Executive Office contact route, and the outstanding group-wide request.",
 		postMeetingNextStepsTemplateID:  "Explain the post-meeting request and 2 October deadline to verified, communication-consented members.",
 		surveyClosingReminderTemplateID: "Closing-day reminder only for members who have not answered the September survey. Live counts and targeting are rechecked before every batch.",
 		surveyReminderTemplateID:        "Final-week reminder only for members who have not answered the September survey. Live counts are calculated at preview; targeting is rechecked before every batch.",

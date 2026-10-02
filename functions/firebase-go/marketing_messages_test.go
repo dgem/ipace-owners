@@ -244,11 +244,14 @@ func TestMarketingMessageTemplatesIncludePreparedMemberUpdates(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(templates) != 7 {
-		t.Fatalf("template count = %d, want 7", len(templates))
+	if len(templates) != 8 {
+		t.Fatalf("template count = %d, want 8", len(templates))
 	}
-	var survey, closing, nextSteps marketingMessageTemplate
+	var survey, closing, nextSteps, response marketingMessageTemplate
 	for _, template := range templates {
+		if template.ID == jlrResponseOctoberTemplateID {
+			response = template
+		}
 		if template.ID == postMeetingNextStepsTemplateID {
 			nextSteps = template
 		}
@@ -261,6 +264,9 @@ func TestMarketingMessageTemplatesIncludePreparedMemberUpdates(t *testing.T) {
 	}
 	if survey.ID == "" {
 		t.Fatal("September survey template is missing")
+	}
+	if response.ID == "" || !strings.Contains(response.Markdown, "Full battery") || !strings.Contains(response.Markdown, "UKEO@jaguarlandrover.com") {
+		t.Fatalf("JLR response template is incomplete: %+v", response)
 	}
 	if nextSteps.ID == "" || !strings.Contains(nextSteps.Markdown, "1299 members") || nextSteps.HeroImage != "/images/jlr-next-steps-2026-email.jpg" {
 		t.Fatalf("post-meeting next-steps template is incomplete: %+v", nextSteps)

@@ -1,5 +1,25 @@
 # Public Content and Positioning Prompt
 
+For the 2 October JLR response, distinguish the group's preferred full HV replacement
+remedy from a proven technical fix. Record that members have reported concerns about
+2022-and-later cars and one subsequent failure of a replacement module, while making clear
+that the model-year spread and repeat-failure pattern require verification. Do not assert
+that LGES resolved all issues around 2024 or that later cars are unaffected. Do not treat a
+self-selected member sample as a fleet failure rate or free-text references as confirmed
+module replacements.
+TOPIx PDFs in ignored `docs/topix` are subscription-access material. Public content may
+summarise the H576 facts relevant to advocacy (selected VINs are mapped to specific
+modules for free replacement; an incentive voucher is offered) but must not reproduce
+the documents, VIN list, or substantial passages. H576 is described by JLR as a limited
+engineering study, not proof that all selected modules are defective.
+Invite members who use JLR's Executive Office route to report whether it helped,
+resolved their concern, or involved diagnostic or repair charges, without sending VINs
+or private correspondence by ordinary email. Ask JLR to clarify H570/H571 safety work
+and diagnostic charges after the eight-year battery warranty expires; distinguish the
+battery warranty from a safety recall and do not claim that every investigation is
+necessarily free. TOPIx public campaign guidance shows diagnostic steps and VIN-specific
+campaign status but does not settle these billing questions.
+
 For the 24 September JLR meeting deck, explain that the independent group formed
 following a call to action in the UK I-PACE Forum, as described on the About page, and show
 its official 17 July 2026 launch and growth through dated, consent-filtered aggregate membership
@@ -72,7 +92,8 @@ email-safe racing hero, racing-wreath headline counters and four public social s
 Publish a dated follow-up at `/updates/after-our-first-jlr-meeting/` after the 24 September
 meeting. Keep the tone candid and constructive: JLR listened and showed interest in the
 group's evidence, but offered no substantive route forward for H570/H571/H572 or a full HV
-battery replacement programme. Record JLR's stated wish to repair an inconsistent customer
+battery replacement programme. Record JLR's concern on hearing members describe poor and
+inconsistent experiences, its wish to investigate them, and its stated wish to improve customer
 experience and reassure existing Jaguar owners, including used-car buyers, that the brand has not
 moved on from them. Attribute
 that disconnects among retailers, dealer groups, Jaguar, JLR and Tata may help explain the incomplete
@@ -106,6 +127,25 @@ two generic I-PACE-style cars approaching the camera on the left side of a simpl
 country road. A woman is visible in the nearer car's right-hand driving position. Use
 `/images/jlr-next-steps-2026-hero.jpg` on the update and the smaller email-safe
 `/images/jlr-next-steps-2026-email.jpg` in the matching campaign.
+
+Publish `/updates/jlr-response-2-october-2026/` after JLR's 2 October 2026 letter. State
+that JLR offered an Executive Office contact route and continued dialogue but did not make
+the board-level, group-wide battery commitment requested by the deadline. Attribute its
+case-by-case rationale, H570/H571 safety statement, and ongoing-owner assurance to JLR;
+do not present them as independently verified findings. Give members the exact Executive
+Office email `UKEO@jaguarlandrover.com` and subject `iPACE owners advocacy group`, with
+JLR's request for a VIN. Note that members have separately raised concerns about 2022
+and later model-year cars, while the survey comments cannot establish their prevalence
+because comments are not linked to verified model years. Summarise the survey's repeated
+reports of workshop visits, delays, poor communication and variable support, while
+acknowledging different faults and circumstances. Repeat that the group has not
+shared member records or VINs. State the group's assessment that the letter does not set
+out a change to JLR's existing case-by-case approach or explain how reported delays and
+repeat visits will be avoided; distinguish this assessment from JLR's own statements.
+Correct the earlier meeting update's claim that JLR acknowledged poor and inconsistent
+service: JLR said it was concerned to hear members describe this and wanted to investigate.
+Carry a visible dated correction on the earlier page. Provide the matching consented-member
+email campaign through `jlr-response-october-2026`.
 
 Update article heroes use a shallow 16:7 editorial crop on larger screens so long headlines do
 not push the article text too far down the page. Restore a 16:9 crop on small screens where the
