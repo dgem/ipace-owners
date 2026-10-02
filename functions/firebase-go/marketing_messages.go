@@ -30,6 +30,7 @@ const (
 	marketingMessageBatchSize       = 100
 	marketingMessageKind            = "marketing-message"
 	postMeetingNextStepsTemplateID  = "post-meeting-next-steps"
+	jlrResponseOctoberTemplateID    = "jlr-response-october-2026"
 	communicationsConsentCollection = "communicationsConsents"
 )
 
@@ -170,15 +171,12 @@ func AdminMarketingMessageSend(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "Invalid request body"})
 		return
 	}
-	input.TemplateID = strings.TrimSpace(input.TemplateID)
-	if isSurveyReminderTemplate(input.TemplateID) {
-		resolved, err := resolvedSurveyReminder(r.Context(), input)
-		if err != nil {
-			writeJSON(w, http.StatusBadRequest, map[string]any{"error": err.Error()})
-			return
-		}
-		input = resolved
+	resolved, err := resolvedMarketingMessage(r.Context(), input)
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": err.Error()})
+		return
 	}
+	input = resolved
 	if err := validateMarketingMessage(input); err != nil {
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": err.Error()})
 		return
@@ -304,7 +302,7 @@ func previewMarketingMessage(ctx context.Context, input marketingMessageRequest)
 	notice := fmt.Sprintf("All registered members are included unless they have opted out of group communications. Emails are sent in resumable batches of %d; previewing never sends email.", marketingMessageBatchSize)
 	if isSurveyReminderTemplate(input.TemplateID) {
 		notice = "Only members eligible for group communications who have not submitted this survey are included. Responses and opt-outs are checked again before each batch; changes require fresh confirmation. Previewing never sends email."
-	} else if input.TemplateID == postMeetingNextStepsTemplateID {
+	} else if input.TemplateID == postMeetingNextStepsTemplateID || input.TemplateID == jlrResponseOctoberTemplateID {
 		notice = fmt.Sprintf("Only communication-consented members with a verified account are included. Verification and opt-outs are checked again before each batch. Emails are sent in resumable batches of %d; previewing never sends email.", marketingMessageBatchSize)
 	}
 	return marketingMessagePreview{CampaignID: marketingMessageCampaignID(input), Eligible: len(audience), Subject: strings.TrimSpace(input.Subject), HTML: marketingMessageHTML(markdown, input.TemplateID, previewUnsubscribeURL), Text: marketingMessageText(markdown, previewUnsubscribeURL), Confirmation: fmt.Sprintf("SEND %d", len(audience)), Notice: notice}, nil
@@ -554,10 +552,9 @@ func sendMarketingMessageBatch(ctx context.Context, input marketingMessageReques
 	if err != nil {
 		return marketingMessageSent{}, err
 	}
-	// Keep reminder statistics current for this batch without changing delivery identity.
-	if isSurveyReminderTemplate(input.TemplateID) {
-		record.Markdown = input.Markdown
-	}
+	// A resumed prepared campaign retains its delivery ledger, but each remaining
+	// recipient must receive the current server-controlled copy.
+	record = currentPreparedMarketingMessageRecord(record, input)
 	related, err := matchingMarketingMessageRecords(ctx, db, input)
 	if err != nil {
 		return marketingMessageSent{}, err
@@ -711,16 +708,23 @@ func containsMarketingMessageRecord(records []marketingMessageRecord, campaignID
 
 func marketingMessageRecordsMatch(record marketingMessageRecord, input marketingMessageRequest) bool {
 	if strings.TrimSpace(input.TemplateID) != "" {
-		// Prepared templates can contain live aggregate values. Those values must
-		// not turn a later preview of the same campaign into a fresh mailing.
-		return record.TemplateID == strings.TrimSpace(input.TemplateID) &&
-			record.Name == strings.TrimSpace(input.Name) &&
-			record.Subject == strings.TrimSpace(input.Subject)
+		// Source copy and live values can change between batches. A prepared
+		// template keeps one delivery ledger for its stable template ID.
+		return record.TemplateID == strings.TrimSpace(input.TemplateID)
 	}
 	return record.Name == strings.TrimSpace(input.Name) &&
 		record.Subject == strings.TrimSpace(input.Subject) &&
 		record.Markdown == input.Markdown &&
 		record.TemplateID == ""
+}
+
+func currentPreparedMarketingMessageRecord(record marketingMessageRecord, input marketingMessageRequest) marketingMessageRecord {
+	if strings.TrimSpace(input.TemplateID) != "" {
+		record.Name = strings.TrimSpace(input.Name)
+		record.Subject = strings.TrimSpace(input.Subject)
+		record.Markdown = input.Markdown
+	}
+	return record
 }
 
 func loadMarketingMessageDeliveries(ctx context.Context, db *firestore.Client, id string) (map[string]string, error) {
@@ -1101,7 +1105,7 @@ func marketingMessageTemplates(ctx context.Context) ([]marketingMessageTemplate,
 		return nil, err
 	}
 	result := make([]marketingMessageTemplate, 0, 7)
-	for _, id := range []string{postMeetingNextStepsTemplateID, surveyClosingReminderTemplateID, surveyReminderTemplateID, "survey-september-2026", "jlr-contact", "find-members", "reach-1000"} {
+	for _, id := range []string{jlrResponseOctoberTemplateID, postMeetingNextStepsTemplateID, surveyClosingReminderTemplateID, surveyReminderTemplateID, "survey-september-2026", "jlr-contact", "find-members", "reach-1000"} {
 		template, ok := marketingMessageTemplateSource(id)
 		if !ok {
 			continue
@@ -1117,6 +1121,7 @@ func marketingMessageTemplates(ctx context.Context) ([]marketingMessageTemplate,
 
 func marketingMessageTemplateSource(id string) (marketingMessageTemplate, bool) {
 	file := map[string]string{
+		jlrResponseOctoberTemplateID:    jlrResponseOctoberTemplateID,
 		postMeetingNextStepsTemplateID:  postMeetingNextStepsTemplateID,
 		surveyClosingReminderTemplateID: surveyClosingReminderTemplateID,
 		surveyReminderTemplateID:        surveyReminderTemplateID,
@@ -1133,6 +1138,7 @@ func marketingMessageTemplateSource(id string) (marketingMessageTemplate, bool) 
 		return marketingMessageTemplate{}, false
 	}
 	description := map[string]string{
+		jlrResponseOctoberTemplateID:    "Summarise JLR's 2 October letter, the Executive Office contact route, and the outstanding group-wide request.",
 		postMeetingNextStepsTemplateID:  "Explain the post-meeting request and 2 October deadline to verified, communication-consented members.",
 		surveyClosingReminderTemplateID: "Closing-day reminder only for members who have not answered the September survey. Live counts and targeting are rechecked before every batch.",
 		surveyReminderTemplateID:        "Final-week reminder only for members who have not answered the September survey. Live counts are calculated at preview; targeting is rechecked before every batch.",

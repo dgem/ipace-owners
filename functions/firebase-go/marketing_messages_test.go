@@ -30,7 +30,7 @@ func TestMarketingMessagePreviewUsesConsentedAudienceAndPersonalisation(t *testi
 	}
 }
 
-func TestPostMeetingNextStepsUsesVerifiedAudienceOnly(t *testing.T) {
+func TestVerifiedMemberTemplatesUseVerifiedAudienceOnly(t *testing.T) {
 	originalAll := marketingMessageAudience
 	originalVerified := marketingVerifiedAudience
 	t.Cleanup(func() {
@@ -44,13 +44,57 @@ func TestPostMeetingNextStepsUsesVerifiedAudienceOnly(t *testing.T) {
 		return []campaignRecipient{{Email: "verified@example.com"}}, nil
 	}
 
-	verified, err := marketingMessageAudienceFor(context.Background(), marketingMessageRequest{TemplateID: postMeetingNextStepsTemplateID})
-	if err != nil || len(verified) != 1 || verified[0].Email != "verified@example.com" {
-		t.Fatalf("verified audience = %#v, %v", verified, err)
+	for _, templateID := range []string{postMeetingNextStepsTemplateID, jlrResponseOctoberTemplateID} {
+		verified, err := marketingMessageAudienceFor(context.Background(), marketingMessageRequest{TemplateID: templateID})
+		if err != nil || len(verified) != 1 || verified[0].Email != "verified@example.com" {
+			t.Fatalf("%s verified audience = %#v, %v", templateID, verified, err)
+		}
 	}
 	all, err := marketingMessageAudienceFor(context.Background(), marketingMessageRequest{})
 	if err != nil || len(all) != 2 {
 		t.Fatalf("general audience = %#v, %v", all, err)
+	}
+}
+
+func TestPreparedMessageResolutionIgnoresClientCopy(t *testing.T) {
+	originalStats := marketingMessageStats
+	t.Cleanup(func() { marketingMessageStats = originalStats })
+	marketingMessageStats = func(context.Context) (publicStatsSnapshot, error) { return publicStatsSnapshot{}, nil }
+	input := marketingMessageRequest{
+		TemplateID: jlrResponseOctoberTemplateID,
+		Name:       "Changed name",
+		Subject:    "Changed subject",
+		Markdown:   "Changed message",
+	}
+	resolved, err := resolvedMarketingMessage(context.Background(), input)
+	if err != nil {
+		t.Fatal(err)
+	}
+	template, ok := marketingMessageTemplateSource(jlrResponseOctoberTemplateID)
+	if !ok || resolved.Name != template.Name || resolved.Subject != template.Subject || resolved.Markdown != template.Markdown {
+		t.Fatalf("prepared message accepted client copy: %#v", resolved)
+	}
+	if _, err := resolvedMarketingMessage(context.Background(), marketingMessageRequest{TemplateID: "unknown"}); err == nil {
+		t.Fatal("unknown prepared template was accepted")
+	}
+}
+
+func TestResumedPreparedMessageUsesCurrentSourceCopy(t *testing.T) {
+	record := marketingMessageRecord{CampaignID: "existing", TemplateID: jlrResponseOctoberTemplateID, Name: "Old name", Subject: "Old subject", Markdown: "stale or client-edited copy", Sent: 5}
+	input := marketingMessageRequest{TemplateID: jlrResponseOctoberTemplateID, Name: "New name", Subject: "New subject", Markdown: "current server copy"}
+	if marketingMessageCampaignID(input) == record.CampaignID {
+		t.Fatal("test requires an existing ledger with a prior campaign ID")
+	}
+	if !marketingMessageRecordsMatch(record, input) {
+		t.Fatal("changed prepared name and subject must match the existing delivery ledger")
+	}
+	updated := currentPreparedMarketingMessageRecord(record, input)
+	if updated.Name != input.Name || updated.Subject != input.Subject || updated.Markdown != input.Markdown || updated.CampaignID != record.CampaignID || updated.Sent != record.Sent {
+		t.Fatalf("resumed prepared campaign lost current copy or delivery state: %#v", updated)
+	}
+	freeform := currentPreparedMarketingMessageRecord(record, marketingMessageRequest{Markdown: "unsolicited change"})
+	if freeform.Markdown != record.Markdown {
+		t.Fatalf("freeform campaign copy changed: %#v", freeform)
 	}
 }
 
@@ -244,11 +288,14 @@ func TestMarketingMessageTemplatesIncludePreparedMemberUpdates(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(templates) != 7 {
-		t.Fatalf("template count = %d, want 7", len(templates))
+	if len(templates) != 8 {
+		t.Fatalf("template count = %d, want 8", len(templates))
 	}
-	var survey, closing, nextSteps marketingMessageTemplate
+	var survey, closing, nextSteps, response marketingMessageTemplate
 	for _, template := range templates {
+		if template.ID == jlrResponseOctoberTemplateID {
+			response = template
+		}
 		if template.ID == postMeetingNextStepsTemplateID {
 			nextSteps = template
 		}
@@ -261,6 +308,9 @@ func TestMarketingMessageTemplatesIncludePreparedMemberUpdates(t *testing.T) {
 	}
 	if survey.ID == "" {
 		t.Fatal("September survey template is missing")
+	}
+	if response.ID == "" || !strings.Contains(response.Markdown, "Full battery") || !strings.Contains(response.Markdown, "UKEO@jaguarlandrover.com") {
+		t.Fatalf("JLR response template is incomplete: %+v", response)
 	}
 	if nextSteps.ID == "" || !strings.Contains(nextSteps.Markdown, "1299 members") || nextSteps.HeroImage != "/images/jlr-next-steps-2026-email.jpg" {
 		t.Fatalf("post-meeting next-steps template is incomplete: %+v", nextSteps)
