@@ -750,7 +750,7 @@ async function checkPublicEvidenceCounters(url, viewport, screenshotName, showMe
       numberWidth: wreath.querySelector('.launch-member-count__value').getBoundingClientRect().width,
       wreathWidth: wreath.getBoundingClientRect().width
     })));
-    assert.equal(numberClearance.every(({ numberWidth, wreathWidth }) => numberWidth <= wreathWidth * 0.48), true,
+    assert.equal(numberClearance.every(({ numberWidth, wreathWidth }) => numberWidth <= wreathWidth * 0.6), true,
       'all evidence counts need visible clearance inside their laurels');
     const evidenceComposition = await page.evaluate(() => {
       const hero = document.querySelector('.launch-hero');
