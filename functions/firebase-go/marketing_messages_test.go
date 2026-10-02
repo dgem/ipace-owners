@@ -80,10 +80,16 @@ func TestPreparedMessageResolutionIgnoresClientCopy(t *testing.T) {
 }
 
 func TestResumedPreparedMessageUsesCurrentSourceCopy(t *testing.T) {
-	record := marketingMessageRecord{CampaignID: "existing", TemplateID: jlrResponseOctoberTemplateID, Subject: "Subject", Markdown: "stale or client-edited copy", Sent: 5}
-	input := marketingMessageRequest{TemplateID: jlrResponseOctoberTemplateID, Markdown: "current server copy"}
+	record := marketingMessageRecord{CampaignID: "existing", TemplateID: jlrResponseOctoberTemplateID, Name: "Old name", Subject: "Old subject", Markdown: "stale or client-edited copy", Sent: 5}
+	input := marketingMessageRequest{TemplateID: jlrResponseOctoberTemplateID, Name: "New name", Subject: "New subject", Markdown: "current server copy"}
+	if marketingMessageCampaignID(input) == record.CampaignID {
+		t.Fatal("test requires an existing ledger with a prior campaign ID")
+	}
+	if !marketingMessageRecordsMatch(record, input) {
+		t.Fatal("changed prepared name and subject must match the existing delivery ledger")
+	}
 	updated := currentPreparedMarketingMessageRecord(record, input)
-	if updated.Markdown != input.Markdown || updated.CampaignID != record.CampaignID || updated.Sent != record.Sent {
+	if updated.Name != input.Name || updated.Subject != input.Subject || updated.Markdown != input.Markdown || updated.CampaignID != record.CampaignID || updated.Sent != record.Sent {
 		t.Fatalf("resumed prepared campaign lost current copy or delivery state: %#v", updated)
 	}
 	freeform := currentPreparedMarketingMessageRecord(record, marketingMessageRequest{Markdown: "unsolicited change"})

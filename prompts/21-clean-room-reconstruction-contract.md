@@ -143,7 +143,8 @@ smaller `/images/jlr-response-october-2026-email.jpg` hero inline in the HTML em
 Resolve every prepared template from server-controlled source again at send time, ignoring
 client-edited subject and body even if a stale browser retains the template ID.
 For resumed prepared campaigns, render remaining recipients from that current source
-while preserving the existing campaign ID and per-recipient delivery ledger.
+while preserving the existing campaign ID and per-recipient delivery ledger. Match an
+existing prepared campaign by its stable template ID even when its name or subject changes.
 
 All update-page hero images use a shallow 16:7 crop above the mobile breakpoint and 16:9 on
 small screens, keeping the opening text closer to long multi-line headings without losing a

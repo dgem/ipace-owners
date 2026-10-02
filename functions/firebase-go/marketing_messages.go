@@ -708,11 +708,9 @@ func containsMarketingMessageRecord(records []marketingMessageRecord, campaignID
 
 func marketingMessageRecordsMatch(record marketingMessageRecord, input marketingMessageRequest) bool {
 	if strings.TrimSpace(input.TemplateID) != "" {
-		// Prepared templates can contain live aggregate values. Those values must
-		// not turn a later preview of the same campaign into a fresh mailing.
-		return record.TemplateID == strings.TrimSpace(input.TemplateID) &&
-			record.Name == strings.TrimSpace(input.Name) &&
-			record.Subject == strings.TrimSpace(input.Subject)
+		// Source copy and live values can change between batches. A prepared
+		// template keeps one delivery ledger for its stable template ID.
+		return record.TemplateID == strings.TrimSpace(input.TemplateID)
 	}
 	return record.Name == strings.TrimSpace(input.Name) &&
 		record.Subject == strings.TrimSpace(input.Subject) &&
@@ -722,6 +720,8 @@ func marketingMessageRecordsMatch(record marketingMessageRecord, input marketing
 
 func currentPreparedMarketingMessageRecord(record marketingMessageRecord, input marketingMessageRequest) marketingMessageRecord {
 	if strings.TrimSpace(input.TemplateID) != "" {
+		record.Name = strings.TrimSpace(input.Name)
+		record.Subject = strings.TrimSpace(input.Subject)
 		record.Markdown = input.Markdown
 	}
 	return record
