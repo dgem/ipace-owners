@@ -126,6 +126,18 @@ prepared email uses the smaller `/images/jlr-next-steps-2026-email.jpg` derivati
 only communication-consented members with verified Firebase accounts and must remain source-locked
 in the editor so its audience cannot be widened accidentally.
 
+Preserve the 2 October update at `/updates/jlr-response-2-october-2026/` and its realistic
+UK left-lane amber-signal hero at `/images/jlr-response-october-2026-hero.jpg`. Lead with
+the group's disappointment that JLR offers individual case review without committing to
+a wider lasting battery remedy. Summarise JLR's position and the separate H576 study
+without implying that all selected modules are faulty; distinguish owner reports from
+fleet-wide failure rates. Give owners JLR's Executive Office email and requested subject,
+ask them to include their VIN, and invite feedback on whether the route resolves their
+case. Correct the 25 September update's attribution: JLR was concerned to hear members'
+service reports, rather than accepting that service was poor. Keep the prepared
+`jlr-response-october-2026` email source-locked and limited to communication-consented,
+verified Firebase accounts.
+
 All update-page hero images use a shallow 16:7 crop above the mobile breakpoint and 16:9 on
 small screens, keeping the opening text closer to long multi-line headings without losing a
 useful image treatment on narrow cards.
@@ -479,6 +491,7 @@ the repository or an artifact archive:
 - `public/images/september-survey-2026-hero.jpg`;
 - `public/images/jlr-next-steps-2026-hero.jpg` and
   `public/images/jlr-next-steps-2026-email.jpg`;
+- `public/images/jlr-response-october-2026-hero.jpg`;
 - `public/images/ipace-owners-logo.svg` and `public/images/ipace-owners-logo.png`;
 - `public/images/ipace-owners-qr.svg`;
 - `public/images/ipace-owners-card-front.svg` and

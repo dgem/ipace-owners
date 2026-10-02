@@ -30,7 +30,7 @@ func TestMarketingMessagePreviewUsesConsentedAudienceAndPersonalisation(t *testi
 	}
 }
 
-func TestPostMeetingNextStepsUsesVerifiedAudienceOnly(t *testing.T) {
+func TestVerifiedMemberTemplatesUseVerifiedAudienceOnly(t *testing.T) {
 	originalAll := marketingMessageAudience
 	originalVerified := marketingVerifiedAudience
 	t.Cleanup(func() {
@@ -44,9 +44,11 @@ func TestPostMeetingNextStepsUsesVerifiedAudienceOnly(t *testing.T) {
 		return []campaignRecipient{{Email: "verified@example.com"}}, nil
 	}
 
-	verified, err := marketingMessageAudienceFor(context.Background(), marketingMessageRequest{TemplateID: postMeetingNextStepsTemplateID})
-	if err != nil || len(verified) != 1 || verified[0].Email != "verified@example.com" {
-		t.Fatalf("verified audience = %#v, %v", verified, err)
+	for _, templateID := range []string{postMeetingNextStepsTemplateID, jlrResponseOctoberTemplateID} {
+		verified, err := marketingMessageAudienceFor(context.Background(), marketingMessageRequest{TemplateID: templateID})
+		if err != nil || len(verified) != 1 || verified[0].Email != "verified@example.com" {
+			t.Fatalf("%s verified audience = %#v, %v", templateID, verified, err)
+		}
 	}
 	all, err := marketingMessageAudienceFor(context.Background(), marketingMessageRequest{})
 	if err != nil || len(all) != 2 {

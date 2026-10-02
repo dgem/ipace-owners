@@ -305,7 +305,7 @@ func previewMarketingMessage(ctx context.Context, input marketingMessageRequest)
 	notice := fmt.Sprintf("All registered members are included unless they have opted out of group communications. Emails are sent in resumable batches of %d; previewing never sends email.", marketingMessageBatchSize)
 	if isSurveyReminderTemplate(input.TemplateID) {
 		notice = "Only members eligible for group communications who have not submitted this survey are included. Responses and opt-outs are checked again before each batch; changes require fresh confirmation. Previewing never sends email."
-	} else if input.TemplateID == postMeetingNextStepsTemplateID {
+	} else if input.TemplateID == postMeetingNextStepsTemplateID || input.TemplateID == jlrResponseOctoberTemplateID {
 		notice = fmt.Sprintf("Only communication-consented members with a verified account are included. Verification and opt-outs are checked again before each batch. Emails are sent in resumable batches of %d; previewing never sends email.", marketingMessageBatchSize)
 	}
 	return marketingMessagePreview{CampaignID: marketingMessageCampaignID(input), Eligible: len(audience), Subject: strings.TrimSpace(input.Subject), HTML: marketingMessageHTML(markdown, input.TemplateID, previewUnsubscribeURL), Text: marketingMessageText(markdown, previewUnsubscribeURL), Confirmation: fmt.Sprintf("SEND %d", len(audience)), Notice: notice}, nil
