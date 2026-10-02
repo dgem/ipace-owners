@@ -138,7 +138,8 @@ service reports, rather than accepting that service was poor. Keep the prepared
 `jlr-response-october-2026` email source-locked and limited to communication-consented,
 verified Firebase accounts. Include it in the prepared-campaign selector and show its
 verified-member audience accurately in the preview. Label the admin workspace Mass Mailings
-while retaining the `/admin/marketing-messages/` route and existing API paths.
+while retaining the `/admin/marketing-messages/` route and existing API paths. Embed the
+smaller `/images/jlr-response-october-2026-email.jpg` hero inline in the HTML email.
 
 All update-page hero images use a shallow 16:7 crop above the mobile breakpoint and 16:9 on
 small screens, keeping the opening text closer to long multi-line headings without losing a
@@ -497,6 +498,7 @@ the repository or an artifact archive:
 - `public/images/jlr-next-steps-2026-hero.jpg` and
   `public/images/jlr-next-steps-2026-email.jpg`;
 - `public/images/jlr-response-october-2026-hero.jpg`;
+- `public/images/jlr-response-october-2026-email.jpg`;
 - `public/images/ipace-owners-logo.svg` and `public/images/ipace-owners-logo.png`;
 - `public/images/ipace-owners-qr.svg`;
 - `public/images/ipace-owners-card-front.svg` and

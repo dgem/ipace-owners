@@ -145,7 +145,8 @@ repeat visits will be avoided; distinguish this assessment from JLR's own statem
 Correct the earlier meeting update's claim that JLR acknowledged poor and inconsistent
 service: JLR said it was concerned to hear members describe this and wanted to investigate.
 Carry a visible dated correction on the earlier page. Provide the matching consented-member
-email campaign through `jlr-response-october-2026`.
+email campaign through `jlr-response-october-2026`, with a smaller inline version of
+the amber-signal hero at `/images/jlr-response-october-2026-email.jpg`.
 
 Update article heroes use a shallow 16:7 editorial crop on larger screens so long headlines do
 not push the article text too far down the page. Restore a 16:9 crop on small screens where the

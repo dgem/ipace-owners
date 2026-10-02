@@ -3,6 +3,8 @@ id: jlr-response-october-2026
 name: October 2026 — JLR's written response
 subject: JLR has replied: we hoped for more
 audience: verified-members
+heroImage: /images/jlr-response-october-2026-email.jpg
+heroImageAlt: "A dark electric SUV waits in the left lane beside an amber temporary traffic signal on a wet British country road."
 ---
 Hi {{firstName}},
 

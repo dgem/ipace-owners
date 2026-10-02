@@ -971,6 +971,32 @@ async function checkPostMeetingNextSteps() {
   }
 }
 
+async function checkOctoberResponseEmail() {
+  const fixtureDir = fs.mkdtempSync(path.join(os.tmpdir(), 'october-response-email-'));
+  const fixturePath = path.join(fixtureDir, 'email.html');
+  try {
+    execFileSync('go', ['test', '-count=1', '-run', '^TestRenderOctoberResponseEmailFixture$', '.'], {
+      cwd: 'functions/firebase-go', env: { ...process.env, OCTOBER_RESPONSE_EMAIL_PREVIEW: fixturePath }
+    });
+    const html = fs.readFileSync(fixturePath, 'utf8');
+    for (const width of [800, 390]) {
+      const page = await browser.newPage({ viewport: { width, height: 900 } });
+      await page.route('https://ipace-owners.org/images/**', (route) => route.fulfill({
+        path: path.join('public/images', path.basename(new URL(route.request().url()).pathname))
+      }));
+      await page.setContent(html, { waitUntil: 'networkidle' });
+      const hero = page.locator('img[src*="jlr-response-october-2026-email.jpg"]');
+      assert.equal(await hero.count(), 1);
+      assert.equal(await hero.evaluate((img) => img.naturalWidth), 1120);
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
+      await page.screenshot({ path: path.join(outputDir, `jlr-response-email-${width}.png`), fullPage: true });
+      await page.close();
+    }
+  } finally {
+    fs.rmSync(fixtureDir, { recursive: true, force: true });
+  }
+}
+
 async function checkPostMeetingCampaignAdmin(viewport, screenshotName) {
   const page = await browser.newPage({ viewport });
   const campaign = {
@@ -1150,6 +1176,7 @@ try {
   await checkSurveyInsights({ width: 390, height: 844 }, 'mobile');
   await checkSurveyReminder();
   await checkPostMeetingNextSteps();
+  await checkOctoberResponseEmail();
   await checkPublicContentPage('/updates/', 'Updates', { width: 1440, height: 1000 }, 'updates-list-desktop.png');
   await checkPublicContentPage('/updates/', 'Updates', { width: 390, height: 844 }, 'updates-list-mobile.png');
   await checkPublicContentPage('/updates/september-survey-results/', 'Thank you: the final member survey results', { width: 1440, height: 1000 }, 'survey-results-update-desktop.png');

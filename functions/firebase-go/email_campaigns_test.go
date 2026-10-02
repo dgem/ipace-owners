@@ -166,6 +166,37 @@ func TestEmbeddedPostMeetingNextStepsCampaignIsPrivateAndActionable(t *testing.T
 	}
 }
 
+func TestOctoberResponseEmailIncludesApprovedHero(t *testing.T) {
+	template, err := embeddedCampaignTemplate(jlrResponseOctoberTemplateID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if template.HeroImage != "/images/jlr-response-october-2026-email.jpg" || strings.TrimSpace(template.HeroImageAlt) == "" {
+		t.Fatalf("October campaign must include its email-safe hero: %#v", template)
+	}
+	html := marketingMessageHTML(template.Markdown, jlrResponseOctoberTemplateID, "https://ipace-owners.org/api/email-unsubscribe?campaign=preview&token=preview-token")
+	if !strings.Contains(html, "https://ipace-owners.org/images/jlr-response-october-2026-email.jpg") || !strings.Contains(html, template.HeroImageAlt) {
+		t.Fatal("October email preview did not embed the approved hero")
+	}
+}
+
+// Opt-in local fixture for browser visual QA; it uses no member data and never sends mail.
+func TestRenderOctoberResponseEmailFixture(t *testing.T) {
+	target := os.Getenv("OCTOBER_RESPONSE_EMAIL_PREVIEW")
+	if target == "" {
+		t.Skip("set OCTOBER_RESPONSE_EMAIL_PREVIEW for local visual QA")
+	}
+	template, err := embeddedCampaignTemplate(jlrResponseOctoberTemplateID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	markdown := renderMarketingMessageMarkdown(template.Markdown, campaignRecipient{Name: "Alex Owner", Email: "alex@example.com"})
+	html := marketingMessageHTML(markdown, jlrResponseOctoberTemplateID, "https://ipace-owners.org/api/email-unsubscribe?campaign=preview&token=preview-token")
+	if err := os.WriteFile(target, []byte(html), 0600); err != nil {
+		t.Fatal(err)
+	}
+}
+
 // Opt-in local fixture for browser visual QA; it uses no member data and never sends mail.
 func TestRenderPostMeetingNextStepsEmailFixture(t *testing.T) {
 	target := os.Getenv("POST_MEETING_NEXT_STEPS_PREVIEW")
