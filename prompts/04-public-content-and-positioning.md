@@ -150,6 +150,22 @@ Carry a visible dated correction on the earlier page. Provide the matching conse
 email campaign through `jlr-response-october-2026`, with a smaller inline version of
 the amber-signal hero at `/images/jlr-response-october-2026-email.jpg`.
 
+Publish `/updates/jlr-letter-and-what-next/` on 8 October 2026 after JLR permits the
+group to share its 2 October letter. Link the three-page source-format PDF at
+`/docs/jlr-letter-2-october-2026-redacted.pdf`; remove personal names, the individual's
+email address, handwritten signature and identifying metadata without changing JLR's
+remaining wording. Thank members who report their individual JLR contact and invite
+outcome summaries without ordinary-email VINs or private correspondence. Explain the
+four possible group priorities: allow time for a clearer JLR response, grow membership
+and evidence, consider measured press engagement, and prepare legal escalation with
+advice on costs and funding. Raise the Type 01 battery comparison as a question, not a
+technical finding. Tell members a “what next?” survey and contact/consent features are
+being prepared. A survey preference is not authority to represent anyone. The account
+choice being prepared covers preparatory legal engagement only; identity and eligibility
+checks, and further authority for proceedings or costs, remain separate. Preserve the
+proposed survey wording in `docs/next-steps-survey-draft.md` until it is configured in
+the admin survey manager; do not describe that draft as live.
+
 Update article heroes use a shallow 16:7 editorial crop on larger screens so long headlines do
 not push the article text too far down the page. Restore a 16:9 crop on small screens where the
 narrower card needs enough image height to remain legible. Use `object-fit: cover` for both.

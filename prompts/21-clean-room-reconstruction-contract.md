@@ -146,6 +146,16 @@ For resumed prepared campaigns, render remaining recipients from that current so
 while preserving the existing campaign ID and per-recipient delivery ledger. Match an
 existing prepared campaign by its stable template ID even when its name or subject changes.
 
+Preserve the 8 October update at `/updates/jlr-letter-and-what-next/` and its link to the
+three-page JLR letter at `/docs/jlr-letter-2-october-2026-redacted.pdf`. The public PDF
+retains JLR's words and layout after removal of personal names, a personal email address,
+the handwritten signature, personal-email hyperlink and identifying PDF metadata.
+The update thanks members for direct-contact reports and presents four possible next
+steps without implying that the upcoming survey is already live or that a survey choice
+is legal consent. Keep the proposed question and options in
+`docs/next-steps-survey-draft.md`; legal representation preferences are being prepared
+separately for the member account, with only preparatory engagement covered by the first choice.
+
 All update-page hero images use a shallow 16:7 crop above the mobile breakpoint and 16:9 on
 small screens, keeping the opening text closer to long multi-line headings without losing a
 useful image treatment on narrow cards.
@@ -505,6 +515,7 @@ the repository or an artifact archive:
   `public/images/jlr-next-steps-2026-email.jpg`;
 - `public/images/jlr-response-october-2026-hero.jpg`;
 - `public/images/jlr-response-october-2026-email.jpg`;
+- `public/docs/jlr-letter-2-october-2026-redacted.pdf`;
 - `public/images/ipace-owners-logo.svg` and `public/images/ipace-owners-logo.png`;
 - `public/images/ipace-owners-qr.svg`;
 - `public/images/ipace-owners-card-front.svg` and
