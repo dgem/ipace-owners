@@ -31,6 +31,7 @@ const (
 	marketingMessageKind            = "marketing-message"
 	postMeetingNextStepsTemplateID  = "post-meeting-next-steps"
 	jlrResponseOctoberTemplateID    = "jlr-response-october-2026"
+	whatNextOctoberTemplateID       = "what-next-october-2026"
 	communicationsConsentCollection = "communicationsConsents"
 )
 
@@ -532,7 +533,7 @@ func marketingMessageHTML(markdown, templateID, unsubscribeURL string) string {
 	}
 	hero := ""
 	if template, ok := marketingMessageTemplateSource(templateID); ok && template.HeroImage != "" {
-		hero = `<img src="https://ipace-owners.org` + template.HeroImage + `" width="640" alt="` + htmlEscape(template.HeroImageAlt) + `" style="display:block;width:100%;max-width:640px;height:auto;border:0;border-radius:10px;margin:0 0 24px;">`
+		hero = `<img src="` + emailAssetBaseURL(unsubscribeURL) + template.HeroImage + `" width="640" alt="` + htmlEscape(template.HeroImageAlt) + `" style="display:block;width:100%;max-width:640px;height:auto;border:0;border-radius:10px;margin:0 0 24px;">`
 	}
 	return `<!doctype html><html><body style="margin:0;padding:24px;background:#f7f8fb;font-family:Arial,sans-serif;"><main style="max-width:640px;margin:auto;background:#fff;padding:32px;border-radius:12px;">` + hero + body + `<hr style="border:0;border-top:1px solid #dbe3ec;margin:28px 0 16px;"><p style="font-size:13px;color:#4b5563;">You are receiving this because you chose to receive group communications. <a href="` + htmlEscape(unsubscribeURL) + `">Unsubscribe</a>.</p></main></body></html>`
 }
@@ -1104,8 +1105,8 @@ func marketingMessageTemplates(ctx context.Context) ([]marketingMessageTemplate,
 	if err != nil {
 		return nil, err
 	}
-	result := make([]marketingMessageTemplate, 0, 7)
-	for _, id := range []string{jlrResponseOctoberTemplateID, postMeetingNextStepsTemplateID, surveyClosingReminderTemplateID, surveyReminderTemplateID, "survey-september-2026", "jlr-contact", "find-members", "reach-1000"} {
+	result := make([]marketingMessageTemplate, 0, 9)
+	for _, id := range []string{whatNextOctoberTemplateID, jlrResponseOctoberTemplateID, postMeetingNextStepsTemplateID, surveyClosingReminderTemplateID, surveyReminderTemplateID, "survey-september-2026", "jlr-contact", "find-members", "reach-1000"} {
 		template, ok := marketingMessageTemplateSource(id)
 		if !ok {
 			continue
@@ -1121,6 +1122,7 @@ func marketingMessageTemplates(ctx context.Context) ([]marketingMessageTemplate,
 
 func marketingMessageTemplateSource(id string) (marketingMessageTemplate, bool) {
 	file := map[string]string{
+		whatNextOctoberTemplateID:       whatNextOctoberTemplateID,
 		jlrResponseOctoberTemplateID:    jlrResponseOctoberTemplateID,
 		postMeetingNextStepsTemplateID:  postMeetingNextStepsTemplateID,
 		surveyClosingReminderTemplateID: surveyClosingReminderTemplateID,
@@ -1138,6 +1140,7 @@ func marketingMessageTemplateSource(id string) (marketingMessageTemplate, bool) 
 		return marketingMessageTemplate{}, false
 	}
 	description := map[string]string{
+		whatNextOctoberTemplateID:       "Publish JLR's letter and invite verified members to set the group's next priority in the what-next survey.",
 		jlrResponseOctoberTemplateID:    "Summarise JLR's 2 October letter, the Executive Office contact route, and the outstanding group-wide request.",
 		postMeetingNextStepsTemplateID:  "Explain the post-meeting request and 2 October deadline to verified, communication-consented members.",
 		surveyClosingReminderTemplateID: "Closing-day reminder only for members who have not answered the September survey. Live counts and targeting are rechecked before every batch.",

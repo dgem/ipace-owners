@@ -114,7 +114,7 @@ func surveyReminderIsTimelyForTemplate(state surveyReminderState, templateID str
 }
 
 func marketingMessageAudienceFor(ctx context.Context, input marketingMessageRequest) ([]campaignRecipient, error) {
-	if input.TemplateID == postMeetingNextStepsTemplateID || input.TemplateID == jlrResponseOctoberTemplateID {
+	if input.TemplateID == postMeetingNextStepsTemplateID || input.TemplateID == jlrResponseOctoberTemplateID || input.TemplateID == whatNextOctoberTemplateID {
 		return marketingVerifiedAudience(ctx)
 	}
 	audience, err := marketingMessageAudience(ctx)

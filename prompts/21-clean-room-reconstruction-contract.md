@@ -520,6 +520,7 @@ the repository or an artifact archive:
   `public/images/jlr-next-steps-2026-email.jpg`;
 - `public/images/jlr-response-october-2026-hero.jpg`;
 - `public/images/jlr-response-october-2026-email.jpg`;
+- `public/images/where-next-october-2026-email.png`;
 - `public/docs/jlr-letter-2-october-2026-redacted.pdf`;
 - `public/images/ipace-owners-logo.svg` and `public/images/ipace-owners-logo.png`;
 - `public/images/ipace-owners-qr.svg`;
