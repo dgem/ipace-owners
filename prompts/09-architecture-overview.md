@@ -327,6 +327,10 @@ sheet and chart format without exposing member data.
   Cloud Run functions, and current runtime-compatible action majors. Deploy Cloud Function runtime
   environment variables from an env vars file rather than comma-separated `--set-env-vars`,
   because values such as `ALLOWED_ORIGINS` contain commas.
+- The October "what next?" survey fixture is enabled only in staging through
+  `SEED_NEXT_STEPS_SURVEY=true`. The authenticated member/admin survey APIs create
+  its Firestore record once, preserving later admin edits and test responses. Production
+  leaves the flag unset and does not auto-publish the survey.
 - Pin third-party Actions to immutable commit SHAs and serialize both staging and production
   deployment jobs without cancellation. Deployment smoke tests must require the current
   public-statistics schema so outdated snapshots regenerate under the Function runtime

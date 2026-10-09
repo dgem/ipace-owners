@@ -137,6 +137,10 @@ func AdminSurveys(w http.ResponseWriter, r *http.Request) {
 	}
 	switch r.Method {
 	case http.MethodGet:
+		if err := ensureNextStepsSurvey(r.Context(), db); err != nil {
+			writeJSON(w, 500, map[string]any{"error": "Could not prepare surveys"})
+			return
+		}
 		var surveys []surveyRecord
 		if err := readCollection(r.Context(), db.Collection("surveys").OrderBy("createdAt", firestore.Desc), &surveys); err != nil {
 			writeJSON(w, 500, map[string]any{"error": "Could not load surveys"})
@@ -586,6 +590,10 @@ func MemberSurveys(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, 500, map[string]any{"error": "Could not connect to data store"})
 		return
 	}
+	if e = ensureNextStepsSurvey(r.Context(), db); e != nil {
+		writeJSON(w, 500, map[string]any{"error": "Could not prepare surveys"})
+		return
+	}
 	var surveys []surveyRecord
 	if e = readCollection(r.Context(), db.Collection("surveys").OrderBy("createdAt", firestore.Desc), &surveys); e != nil {
 		writeJSON(w, 500, map[string]any{"error": "Could not load surveys"})
@@ -633,6 +641,10 @@ func SubmitSurveyResponse(w http.ResponseWriter, r *http.Request) {
 	db, e := firestoreClient(r.Context())
 	if e != nil {
 		writeJSON(w, 500, map[string]any{"error": "Could not connect to data store"})
+		return
+	}
+	if e = ensureNextStepsSurvey(r.Context(), db); e != nil {
+		writeJSON(w, 500, map[string]any{"error": "Could not prepare surveys"})
 		return
 	}
 	snap, e := db.Collection("surveys").Doc(cleanString(input.SurveyID, 160)).Get(r.Context())

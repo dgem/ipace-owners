@@ -49,3 +49,5 @@ representation, we will also need to confirm each person's eligibility and ident
 and obtain their separate, explicit consent. The account choice being prepared covers
 **preparatory legal engagement only**; issuing proceedings or accepting costs would
 require further authority.
+
+When the survey opens, you can find it in [member surveys](/member/surveys/).

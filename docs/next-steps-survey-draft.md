@@ -1,9 +1,10 @@
 # Draft member survey: what next?
 
-Prepare this in the existing admin survey manager after the membership contact and
-preparatory-legal-engagement choice in PR #163 is available. Use an authenticated member
-survey. Set the live dates
-when publication is agreed; do not present the survey as legal authorisation.
+This wording is deployed as a **staging-only, working member survey** from 9 October
+to 9 November 2026. Authenticated members can submit test responses in staging.
+Production publication still needs a separate decision after the membership contact
+and preparatory-legal-engagement choice in PR #163 is available. Do not present a
+survey response as legal authorisation.
 
 **Title:** What should the group do next?
 

@@ -151,9 +151,12 @@ three-page JLR letter at `/docs/jlr-letter-2-october-2026-redacted.pdf`. The pub
 retains JLR's words and layout after removal of personal names, a personal email address,
 the handwritten signature, personal-email hyperlink and identifying PDF metadata.
 The update thanks members for direct-contact reports and presents four possible next
-steps without implying that the upcoming survey is already live or that a survey choice
+steps without implying that the survey is live in production or that a survey choice
 is legal consent. Keep the proposed question and options in
-`docs/next-steps-survey-draft.md`; legal representation preferences are being prepared
+`docs/next-steps-survey-draft.md`; staging seeds a published, editable survey record
+on first authenticated survey access and accepts test responses through the normal
+survey API from 9 October to 9 November 2026. Production does not seed it. Legal
+representation preferences are being prepared
 separately for the member account, with only preparatory engagement covered by the first choice.
 
 All update-page hero images use a shallow 16:7 crop above the mobile breakpoint and 16:9 on
@@ -418,6 +421,8 @@ Build-time Firebase web configuration uses `FIREBASE_WEB_API_KEY`,
 `SNAPSHOT_BUCKET`, `VIN_PEPPER`, `ALLOWED_ORIGINS`, `FIREBASE_WEB_API_KEY`,
 `FIREBASE_EMAIL_CONTINUE_URL`, optional `FIREBASE_EMAIL_LINK_DOMAIN`, and optional
 `RESEND_API_KEY`, `RESEND_FROM`, `RESEND_REPLY_TO`, and `RESEND_ASSET_BASE_URL`.
+The optional `SEED_NEXT_STEPS_SURVEY` flag is `true` only in staging Function deployments;
+when absent, no survey is created automatically.
 Optional Instagram publishing additionally uses secret `INSTAGRAM_ACCESS_TOKEN` and non-secret
 `INSTAGRAM_USER_ID`, `INSTAGRAM_GRAPH_API_VERSION`, and `INSTAGRAM_MEDIA_BASE_URL`. Absence or
 invalidity must disable publishing while leaving local preview available.

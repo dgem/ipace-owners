@@ -163,8 +163,9 @@ technical finding. Tell members a “what next?” survey and contact/consent fe
 being prepared. A survey preference is not authority to represent anyone. The account
 choice being prepared covers preparatory legal engagement only; identity and eligibility
 checks, and further authority for proceedings or costs, remain separate. Preserve the
-proposed survey wording in `docs/next-steps-survey-draft.md` until it is configured in
-the admin survey manager; do not describe that draft as live.
+proposed survey wording in `docs/next-steps-survey-draft.md`. In staging only, the
+survey is seeded into the existing authenticated member-survey flow for real test
+responses from 9 October to 9 November 2026. Do not describe it as live in production.
 
 Update article heroes use a shallow 16:7 editorial crop on larger screens so long headlines do
 not push the article text too far down the page. Restore a 16:9 crop on small screens where the
