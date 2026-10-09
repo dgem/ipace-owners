@@ -86,6 +86,7 @@ test('footer exposes social share links', function () {
   assert.match(footer, /facebook\.com\/sharer\/sharer\.php/);
   assert.match(footer, /linkedin\.com\/sharing\/share-offsite/);
   assert.match(footer, /wa\.me\/\?text=/);
+  assert.match(footer, /https:\/\/www\.instagram\.com\/ipaceowners\//);
 });
 
 test('footer links to the public source repository with a GitHub icon', function () {

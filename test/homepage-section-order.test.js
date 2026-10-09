@@ -81,3 +81,9 @@ test('homepage orders Why now, features, and participation actions', function ()
       homepage.indexOf('This is not a legal action', participation)
   );
 });
+
+
+test('launch homepage promotes the I-PACE Owners Instagram account without displacing joining', function () {
+  assert.match(homepage, /https:\/\/www\.instagram\.com\/ipaceowners\//);
+  assert.match(homepage, /Follow.*@ipaceowners on Instagram/);
+});
