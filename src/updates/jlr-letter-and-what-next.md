@@ -8,7 +8,7 @@ eyebrow: Member update · What next
 seoType: article
 ---
 
-<p class="lead">Many members asked to read JLR's response for themselves. JLR has agreed that we can publish its 2 October letter.</p>
+<p class="lead">Many members asked to read JLR's response for themselves. Following advice, we have decided to publish its 2 October letter with personal details redacted.</p>
 
 <p><a class="btn btn--primary" href="/member/survey-response/?id=latest">Tell us what you think the group should do next</a></p>
 

@@ -8,7 +8,7 @@ heroImageAlt: "Inside a parked right-hand-drive I-PACE-style electric car, with 
 ---
 Hi {{firstName}},
 
-JLR has agreed that we can publish its 2 October letter. We had hoped for more than a
+Following advice, we have decided to publish JLR's 2 October letter with personal details redacted. We had hoped for more than a
 case-by-case response.
 
 [Read JLR's letter and our update](https://ipace-owners.org/updates/jlr-letter-and-what-next/){.button}
