@@ -43,7 +43,7 @@ test('launch homepage leads with recruitment and constructive resolution', funct
   assertText(launch, /not building an open comment board/);
   assertText(launch, /legal counsel within the group to help test the process and options/);
   assertText(launch, /does not enrol you in legal action/);
-  assertText(launch, /only asking owners to register with a name and email address/);
+  assertText(launch, /Free to join. Name and email only/);
   assert.equal((launch.match(/href="\/join\/"/g) || []).length, 2);
   assert.doesNotMatch(visibleText(launch), /State of Health|Submit Vehicle Data/);
 });
@@ -80,4 +80,10 @@ test('homepage orders Why now, features, and participation actions', function ()
     homepage.indexOf('Get started', participation) <
       homepage.indexOf('This is not a legal action', participation)
   );
+});
+
+
+test('launch homepage promotes the I-PACE Owners Instagram account without displacing joining', function () {
+  assert.ok(homepage.includes('href="https://www.instagram.com/ipaceowners/"'));
+  assert.match(homepage, /Follow @ipaceowners/);
 });
