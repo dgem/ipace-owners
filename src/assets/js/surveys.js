@@ -207,11 +207,11 @@
           textID +
           '"> ' +
           esc(optionTextPrompt(option)) +
-          ' <span>(optional, up to 250 characters)</span></label><textarea id="' +
+          ' <span>(optional, up to 1,024 characters)</span></label><textarea id="' +
           textID +
           '" data-option-text-id="' +
           esc(option.id) +
-          '" maxlength="250" rows="3" placeholder="enter your text here...">' +
+          '" maxlength="1024" rows="5" placeholder="enter your text here...">' +
           esc(text) +
           "</textarea></div>"
         : "") +
@@ -731,14 +731,35 @@
     if (adminContainer && adminContainer.dataset.adminData) start();
   }
   function setupResponse(root) {
+    function latestSurvey(all) {
+      var today = dateInputValue(new Date()),
+        live = all
+          .filter(function (result) {
+            return result.canRespond;
+          })
+          .sort(function (a, b) {
+            return b.survey.startsOn.localeCompare(a.survey.startsOn);
+          }),
+        closed = all
+          .filter(function (result) {
+            return result.survey.endsOn < today;
+          })
+          .sort(function (a, b) {
+            return b.survey.endsOn.localeCompare(a.survey.endsOn);
+          });
+      return live[0] || closed[0] || null;
+    }
     function render(all) {
       var requestedID = new URLSearchParams(window.location.search).get("id");
-      var active = all.filter(function (result) {
-        return (
-          result.canRespond &&
-          (!requestedID || result.survey.id === requestedID)
-        );
-      });
+      var requested = requestedID === "latest" ? latestSurvey(all) : null;
+      var active = requested
+        ? [requested]
+        : all.filter(function (result) {
+            return (
+              result.canRespond &&
+              (!requestedID || result.survey.id === requestedID)
+            );
+          });
       root.innerHTML = "";
       if (!active.length) {
         root.innerHTML =
@@ -1108,9 +1129,22 @@
   }
   function setupMemberDashboard(root) {
     var started = false;
+    function calloutHeading(survey) {
+      if (survey.id === "survey_what_next_october_2026") {
+        return "What do you think the group should do next?";
+      }
+      return esc(survey.title);
+    }
     function render(surveys) {
       var active = surveys.filter(function (result) {
           return result.canRespond;
+        }),
+        upcoming = surveys.filter(function (result) {
+          return (
+            !result.canRespond &&
+            result.survey.status === "published" &&
+            result.survey.startsOn > dateInputValue(new Date())
+          );
         }),
         closed = surveys.filter(function (result) {
           return (
@@ -1122,6 +1156,15 @@
           ? '<a class="btn btn--secondary" href="/member/surveys/?filter=closed">Past surveys</a>'
           : "";
       if (!active.length) {
+        if (upcoming.length) {
+          root.innerHTML =
+            '<p class="dashboard-panel__eyebrow">Your voice matters</p><h2 class="survey-dashboard-callout__title">' +
+            calloutHeading(upcoming[0].survey) +
+            '</h2><p>This member survey opens soon. Tell us what you want the group to do next.</p><div class="cluster"><a class="btn btn--primary" href="/member/surveys/">View survey</a>' +
+            historyAction +
+            "</div>";
+          return;
+        }
         root.innerHTML =
           '<h2 class="survey-dashboard-callout__title">Member surveys</h2><p>There are no open surveys right now.</p>' +
           historyAction;
@@ -1133,7 +1176,11 @@
         })
         .join("");
       root.innerHTML =
-        '<p class="dashboard-panel__eyebrow">Your voice matters</p><h2 class="survey-dashboard-callout__title">Help steer our discussions with JLR</h2><p>There ' +
+        '<p class="dashboard-panel__eyebrow">Your voice matters</p><h2 class="survey-dashboard-callout__title">' +
+        (active.length === 1
+          ? calloutHeading(active[0].survey)
+          : "Tell us what you want the group to do next") +
+        "</h2><p>There " +
         (active.length === 1
           ? "is an open member survey"
           : "are " + active.length + " open member surveys") +

@@ -28,6 +28,8 @@ values.INSTAGRAM_MEDIA_BASE_URL = process.env.INSTAGRAM_MEDIA_BASE_URL || "";
 values.CAMPAIGN_MEDIA_BUCKET = process.env.CAMPAIGN_MEDIA_BUCKET || "";
 values.VEO_LOCATION = process.env.VEO_LOCATION || "";
 values.VEO_MODEL_ID = process.env.VEO_MODEL_ID || "";
+values.SEED_NEXT_STEPS_SURVEY = process.env.SEED_NEXT_STEPS_SURVEY || "";
+values.NEXT_STEPS_SURVEY_STATUS = process.env.NEXT_STEPS_SURVEY_STATUS || "";
 try {
   new URL(values.FIREBASE_EMAIL_CONTINUE_URL);
 } catch {

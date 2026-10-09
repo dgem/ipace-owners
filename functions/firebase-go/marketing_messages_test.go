@@ -44,7 +44,7 @@ func TestVerifiedMemberTemplatesUseVerifiedAudienceOnly(t *testing.T) {
 		return []campaignRecipient{{Email: "verified@example.com"}}, nil
 	}
 
-	for _, templateID := range []string{postMeetingNextStepsTemplateID, jlrResponseOctoberTemplateID} {
+	for _, templateID := range []string{postMeetingNextStepsTemplateID, jlrResponseOctoberTemplateID, whatNextOctoberTemplateID} {
 		verified, err := marketingMessageAudienceFor(context.Background(), marketingMessageRequest{TemplateID: templateID})
 		if err != nil || len(verified) != 1 || verified[0].Email != "verified@example.com" {
 			t.Fatalf("%s verified audience = %#v, %v", templateID, verified, err)
@@ -288,10 +288,10 @@ func TestMarketingMessageTemplatesIncludePreparedMemberUpdates(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(templates) != 8 {
-		t.Fatalf("template count = %d, want 8", len(templates))
+	if len(templates) != 9 {
+		t.Fatalf("template count = %d, want 9", len(templates))
 	}
-	var survey, closing, nextSteps, response marketingMessageTemplate
+	var survey, closing, nextSteps, response, whatNext marketingMessageTemplate
 	for _, template := range templates {
 		if template.ID == jlrResponseOctoberTemplateID {
 			response = template
@@ -305,12 +305,18 @@ func TestMarketingMessageTemplatesIncludePreparedMemberUpdates(t *testing.T) {
 		if template.ID == surveyClosingReminderTemplateID {
 			closing = template
 		}
+		if template.ID == whatNextOctoberTemplateID {
+			whatNext = template
+		}
 	}
 	if survey.ID == "" {
 		t.Fatal("September survey template is missing")
 	}
 	if response.ID == "" || !strings.Contains(response.Markdown, "Full battery") || !strings.Contains(response.Markdown, "UKEO@jaguarlandrover.com") {
 		t.Fatalf("JLR response template is incomplete: %+v", response)
+	}
+	if whatNext.ID == "" || !strings.Contains(whatNext.Markdown, "jlr-letter-and-what-next") || whatNext.HeroImage != "/images/where-next-october-2026-email.png" {
+		t.Fatalf("what-next template is incomplete: %+v", whatNext)
 	}
 	if nextSteps.ID == "" || !strings.Contains(nextSteps.Markdown, "1299 members") || nextSteps.HeroImage != "/images/jlr-next-steps-2026-email.jpg" {
 		t.Fatalf("post-meeting next-steps template is incomplete: %+v", nextSteps)

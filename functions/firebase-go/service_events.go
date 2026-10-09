@@ -8,7 +8,8 @@ import (
 	"time"
 )
 
-var serviceEventTypeValues = []string{"service", "fault", "repair", "recall", "inspection", "other"}
+var serviceEventTypeValues = []string{"service", "fault", "repair", "recall", "inspection", "executive-office-contact", "other"}
+var executiveOfficeSatisfactionValues = []string{"happy", "partly-happy", "not-happy", "awaiting-outcome"}
 var serviceEventStatusValues = []string{"open", "monitoring", "resolved", "completed"}
 var serviceEventCampaignValues = []string{"H441", "H448", "H570", "H571", "H572", "other", "unsure", "none"}
 var serviceEventYesNoValues = []string{"yes", "no", "not-needed", "unsure"}
@@ -51,33 +52,37 @@ func UpsertServiceEvent(w http.ResponseWriter, r *http.Request) {
 
 	now := time.Now().UTC()
 	record := serviceEventRecord{
-		ID:                        submissionID("event"),
-		Type:                      "service-event",
-		CreatedAt:                 now,
-		UpdatedAt:                 now,
-		IdentityUserID:            user.UID,
-		VehicleID:                 vehicle.ID,
-		EventType:                 cleaned.EventType,
-		OccurredAt:                cleaned.OccurredAt,
-		Mileage:                   cleaned.Mileage,
-		Title:                     cleaned.Title,
-		Description:               cleaned.Description,
-		Status:                    cleaned.Status,
-		Campaigns:                 cleaned.Campaigns,
-		ServiceProviderID:         cleaned.ServiceProviderID,
-		ServiceProviderName:       cleaned.ServiceProviderName,
-		ServiceProviderPostcode:   cleaned.ServiceProviderPostcode,
-		ServiceProviderAuthorised: cleaned.ServiceProviderAuthorised,
-		FinalFixAt:                cleaned.FinalFixAt,
-		DaysToFinalFix:            cleaned.DaysToFinalFix,
-		CourtesyVehicleOffered:    cleaned.CourtesyVehicleOffered,
-		CourtesyVehicleProvided:   cleaned.CourtesyVehicleProvided,
-		PartsDelay:                cleaned.PartsDelay,
-		GoodwillPayment:           cleaned.GoodwillPayment,
-		MilesDrivenWhilstFaulty:   cleaned.MilesDrivenWhilstFaulty,
-		WarrantyCover:             cleaned.WarrantyCover,
-		DisputeStatus:             cleaned.DisputeStatus,
-		Review:                    reviewRecord{Status: "new", VerificationLevel: "self-reported"},
+		ID:                            submissionID("event"),
+		Type:                          "service-event",
+		CreatedAt:                     now,
+		UpdatedAt:                     now,
+		IdentityUserID:                user.UID,
+		VehicleID:                     vehicle.ID,
+		EventType:                     cleaned.EventType,
+		OccurredAt:                    cleaned.OccurredAt,
+		Mileage:                       cleaned.Mileage,
+		Title:                         cleaned.Title,
+		Description:                   cleaned.Description,
+		Status:                        cleaned.Status,
+		Campaigns:                     cleaned.Campaigns,
+		ServiceProviderID:             cleaned.ServiceProviderID,
+		ServiceProviderName:           cleaned.ServiceProviderName,
+		ServiceProviderPostcode:       cleaned.ServiceProviderPostcode,
+		ServiceProviderAuthorised:     cleaned.ServiceProviderAuthorised,
+		FinalFixAt:                    cleaned.FinalFixAt,
+		DaysToFinalFix:                cleaned.DaysToFinalFix,
+		CourtesyVehicleOffered:        cleaned.CourtesyVehicleOffered,
+		CourtesyVehicleProvided:       cleaned.CourtesyVehicleProvided,
+		PartsDelay:                    cleaned.PartsDelay,
+		GoodwillPayment:               cleaned.GoodwillPayment,
+		MilesDrivenWhilstFaulty:       cleaned.MilesDrivenWhilstFaulty,
+		WarrantyCover:                 cleaned.WarrantyCover,
+		DisputeStatus:                 cleaned.DisputeStatus,
+		ExecutiveOfficeAcknowledgedAt: cleaned.ExecutiveOfficeAcknowledgedAt,
+		ExecutiveOfficeRepliedAt:      cleaned.ExecutiveOfficeRepliedAt,
+		ExecutiveOfficeOutcome:        cleaned.ExecutiveOfficeOutcome,
+		ExecutiveOfficeSatisfied:      cleaned.ExecutiveOfficeSatisfied,
+		Review:                        reviewRecord{Status: "new", VerificationLevel: "self-reported"},
 	}
 	if cleaned.ID != "" {
 		existing, err := loadOwnedServiceEvent(r.Context(), cleaned.ID, user.UID, vehicle.ID)
@@ -104,53 +109,61 @@ func UpsertServiceEvent(w http.ResponseWriter, r *http.Request) {
 }
 
 type cleanedServiceEvent struct {
-	ID                        string
-	VehicleID                 string
-	EventType                 string
-	OccurredAt                string
-	Mileage                   *int
-	Title                     string
-	Description               string
-	Status                    string
-	Campaigns                 []string
-	ServiceProviderID         string
-	ServiceProviderName       string
-	ServiceProviderPostcode   string
-	ServiceProviderAuthorised *bool
-	FinalFixAt                string
-	DaysToFinalFix            *int
-	CourtesyVehicleOffered    string
-	CourtesyVehicleProvided   string
-	PartsDelay                string
-	GoodwillPayment           *bool
-	MilesDrivenWhilstFaulty   *int
-	WarrantyCover             string
-	DisputeStatus             string
+	ID                            string
+	VehicleID                     string
+	EventType                     string
+	OccurredAt                    string
+	Mileage                       *int
+	Title                         string
+	Description                   string
+	Status                        string
+	Campaigns                     []string
+	ServiceProviderID             string
+	ServiceProviderName           string
+	ServiceProviderPostcode       string
+	ServiceProviderAuthorised     *bool
+	FinalFixAt                    string
+	DaysToFinalFix                *int
+	CourtesyVehicleOffered        string
+	CourtesyVehicleProvided       string
+	PartsDelay                    string
+	GoodwillPayment               *bool
+	MilesDrivenWhilstFaulty       *int
+	WarrantyCover                 string
+	DisputeStatus                 string
+	ExecutiveOfficeAcknowledgedAt string
+	ExecutiveOfficeRepliedAt      string
+	ExecutiveOfficeOutcome        string
+	ExecutiveOfficeSatisfied      string
 }
 
 func validatedServiceEvent(req serviceEventRequest) (cleanedServiceEvent, error) {
 	cleaned := cleanedServiceEvent{
-		ID:                        cleanString(req.ID, 100),
-		VehicleID:                 cleanString(req.VehicleID, 100),
-		EventType:                 cleanEnum(req.EventType, serviceEventTypeValues),
-		OccurredAt:                cleanDate(req.OccurredAt),
-		Mileage:                   cleanInt(req.Mileage, 0, 500000),
-		Title:                     cleanString(req.Title, 160),
-		Description:               cleanString(req.Description, 4000),
-		Status:                    cleanEnum(req.Status, serviceEventStatusValues),
-		Campaigns:                 cleanEnums([]string(req.Campaigns), serviceEventCampaignValues),
-		ServiceProviderID:         cleanString(req.ServiceProviderID, 40),
-		ServiceProviderName:       cleanString(req.ServiceProviderName, 180),
-		ServiceProviderPostcode:   strings.ToUpper(cleanString(req.ServiceProviderPostcode, 16)),
-		ServiceProviderAuthorised: req.ServiceProviderAuthorised,
-		FinalFixAt:                cleanDate(req.FinalFixAt),
-		CourtesyVehicleOffered:    cleanEnum(req.CourtesyVehicleOffered, serviceEventYesNoValues),
-		CourtesyVehicleProvided:   cleanEnum(req.CourtesyVehicleProvided, serviceEventYesNoValues),
-		PartsDelay:                cleanEnum(req.PartsDelay, serviceEventPartsDelayValues),
-		GoodwillPayment:           req.GoodwillPayment,
-		MilesDrivenWhilstFaulty:   cleanInt(req.MilesDrivenWhilstFaulty, 0, 500000),
-		WarrantyCover:             cleanEnum(req.WarrantyCover, serviceEventWarrantyCoverValues),
-		DisputeStatus:             cleanEnum(req.DisputeStatus, serviceEventDisputeStatusValues),
+		ID:                            cleanString(req.ID, 100),
+		VehicleID:                     cleanString(req.VehicleID, 100),
+		EventType:                     cleanEnum(req.EventType, serviceEventTypeValues),
+		OccurredAt:                    cleanDate(req.OccurredAt),
+		Mileage:                       cleanInt(req.Mileage, 0, 500000),
+		Title:                         cleanString(req.Title, 160),
+		Description:                   cleanString(req.Description, 4000),
+		Status:                        cleanEnum(req.Status, serviceEventStatusValues),
+		Campaigns:                     cleanEnums([]string(req.Campaigns), serviceEventCampaignValues),
+		ServiceProviderID:             cleanString(req.ServiceProviderID, 40),
+		ServiceProviderName:           cleanString(req.ServiceProviderName, 180),
+		ServiceProviderPostcode:       strings.ToUpper(cleanString(req.ServiceProviderPostcode, 16)),
+		ServiceProviderAuthorised:     req.ServiceProviderAuthorised,
+		FinalFixAt:                    cleanDate(req.FinalFixAt),
+		CourtesyVehicleOffered:        cleanEnum(req.CourtesyVehicleOffered, serviceEventYesNoValues),
+		CourtesyVehicleProvided:       cleanEnum(req.CourtesyVehicleProvided, serviceEventYesNoValues),
+		PartsDelay:                    cleanEnum(req.PartsDelay, serviceEventPartsDelayValues),
+		GoodwillPayment:               req.GoodwillPayment,
+		MilesDrivenWhilstFaulty:       cleanInt(req.MilesDrivenWhilstFaulty, 0, 500000),
+		WarrantyCover:                 cleanEnum(req.WarrantyCover, serviceEventWarrantyCoverValues),
+		DisputeStatus:                 cleanEnum(req.DisputeStatus, serviceEventDisputeStatusValues),
+		ExecutiveOfficeAcknowledgedAt: cleanDate(req.ExecutiveOfficeAcknowledgedAt),
+		ExecutiveOfficeRepliedAt:      cleanDate(req.ExecutiveOfficeRepliedAt),
+		ExecutiveOfficeOutcome:        cleanString(req.ExecutiveOfficeOutcome, 2000),
+		ExecutiveOfficeSatisfied:      cleanEnum(req.ExecutiveOfficeSatisfied, executiveOfficeSatisfactionValues),
 	}
 	if cleaned.VehicleID == "" {
 		return cleanedServiceEvent{}, fmt.Errorf("vehicle is required")
@@ -185,6 +198,17 @@ func validatedServiceEvent(req serviceEventRequest) (cleanedServiceEvent, error)
 	}
 	if cleaned.Status == "" {
 		return cleanedServiceEvent{}, fmt.Errorf("status is required")
+	}
+	if req.ExecutiveOfficeAcknowledgedAt != "" && cleaned.ExecutiveOfficeAcknowledgedAt == "" {
+		return cleanedServiceEvent{}, fmt.Errorf("Executive Office acknowledgement date must be a valid date")
+	}
+	if req.ExecutiveOfficeRepliedAt != "" && cleaned.ExecutiveOfficeRepliedAt == "" {
+		return cleanedServiceEvent{}, fmt.Errorf("Executive Office reply date must be a valid date")
+	}
+	for _, date := range []string{cleaned.ExecutiveOfficeAcknowledgedAt, cleaned.ExecutiveOfficeRepliedAt} {
+		if date != "" && (dateIsFuture(date, time.Now().UTC()) || date < cleaned.OccurredAt) {
+			return cleanedServiceEvent{}, fmt.Errorf("Executive Office dates must follow the contact date")
+		}
 	}
 	return cleaned, nil
 }

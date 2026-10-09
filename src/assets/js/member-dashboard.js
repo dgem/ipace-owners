@@ -55,7 +55,7 @@
   }
 
   function eventTypeLabel(value) {
-    return ({ service: 'Service', fault: 'Fault', repair: 'Repair', recall: 'Recall', inspection: 'Inspection', other: 'Other' })[value] || value;
+    return ({ service: 'Service', fault: 'Fault', repair: 'Repair', recall: 'Recall', inspection: 'Inspection', 'executive-office-contact': 'Executive Office contact', other: 'Other' })[value] || value;
   }
 
   function statusLabel(value) {
@@ -84,6 +84,18 @@
       'up-to-3-months': 'Up to 3 months',
       '4-plus-months': '4 months or more',
     })[value] || value;
+  }
+
+  function executiveOfficeOutcomeLabel(value) {
+    return ({ happy: 'Happy with outcome', 'partly-happy': 'Partly happy with outcome', 'not-happy': 'Not happy with outcome', 'awaiting-outcome': 'Awaiting outcome' })[value] || value;
+  }
+
+  function syncExecutiveOfficeFields(form) {
+    var section = form.querySelector('[data-executive-office-fields]');
+    var enabled = form.elements.eventType.value === 'executive-office-contact';
+    if (!section) return;
+    section.hidden = !enabled;
+    section.querySelectorAll('input, select, textarea').forEach(function (field) { field.disabled = !enabled; });
   }
 
   function serviceProviderValue(provider) {
@@ -296,10 +308,11 @@
     return '<div class="member-form-panel" data-event-panel hidden><form data-service-event-form>' +
       '<input type="hidden" name="id"><input type="hidden" name="vehicleId" value="' + escapeHtml(vehicleId) + '">' +
       '<h3 data-event-form-title>Add service event or fault</h3><div class="member-form-grid">' +
-      '<div class="form-group"><label for="event-type">Record type</label><select id="event-type" name="eventType" required><option value="fault" selected>Fault</option><option value="service">Service</option><option value="repair">Repair</option><option value="recall">Recall</option><option value="inspection">Inspection</option><option value="other">Other</option></select></div>' +
+      '<div class="form-group"><label for="event-type">Record type</label><select id="event-type" name="eventType" required><option value="fault" selected>Fault</option><option value="service">Service</option><option value="repair">Repair</option><option value="recall">Recall</option><option value="inspection">Inspection</option><option value="executive-office-contact">Executive Office contact</option><option value="other">Other</option></select></div>' +
       '<div class="form-group"><label for="event-date">Date</label><input id="event-date" name="occurredAt" type="date" required' + notFutureDateAttributes('event-date-error') + '><span class="form-error" id="event-date-error" role="alert" hidden>Event date cannot be in the future.</span></div>' +
       '<div class="form-group"><label for="event-mileage">Mileage</label><input id="event-mileage" name="mileage" type="number" min="0" max="500000"></div>' +
       '<div class="form-group"><label for="event-status">Status</label><select id="event-status" name="status" required><option value="open">Open</option><option value="monitoring">Monitoring</option><option value="resolved">Resolved</option><option value="completed">Completed</option></select></div>' +
+      '<div class="member-form-grid__wide member-form-grid" data-executive-office-fields hidden><div class="form-group"><label>Acknowledgement date<input name="executiveOfficeAcknowledgedAt" type="date"></label></div><div class="form-group"><label>Reply date<input name="executiveOfficeRepliedAt" type="date"></label></div><div class="form-group"><label>Are you happy with the outcome?<select name="executiveOfficeSatisfied"><option value="">Select</option><option value="happy">Yes</option><option value="partly-happy">Partly</option><option value="not-happy">No</option><option value="awaiting-outcome">Still awaiting an outcome</option></select></label></div><div class="form-group member-form-grid__wide"><label>Executive Office outcome<textarea name="executiveOfficeOutcome" rows="3" maxlength="2000"></textarea></label></div></div>' +
       '<div class="form-group member-form-grid__wide"><label for="event-service-provider">Service provider</label><div class="provider-autocomplete"><input id="event-service-provider" type="text" autocomplete="off" data-service-provider-lookup placeholder="Search by provider name, town or postcode" role="combobox" aria-autocomplete="list" aria-controls="jaguar-service-provider-suggestions" aria-expanded="false"><div id="jaguar-service-provider-suggestions" class="provider-autocomplete__suggestions" data-service-provider-suggestions role="listbox" hidden></div></div>' +
       '<input type="hidden" name="serviceProviderId"><input type="hidden" name="serviceProviderName"><input type="hidden" name="serviceProviderPostcode"><p class="form-hint">Jaguar UK EV service locations are suggested. You can also enter another provider.</p>' +
       '<label class="check-label"><input type="checkbox" name="serviceProviderAuthorised" value="true"> Authorised Jaguar Land Rover service provider</label></div>' +
@@ -344,10 +357,14 @@
       if (item.goodwillPayment) support.push('Goodwill payment received');
       if (item.warrantyCover) support.push('Warranty: ' + supportLabel(item.warrantyCover));
       if (item.disputeStatus) support.push('Dispute: ' + supportLabel(item.disputeStatus));
+      if (item.executiveOfficeAcknowledgedAt) support.push('Acknowledged: ' + formatDate(item.executiveOfficeAcknowledgedAt));
+      if (item.executiveOfficeRepliedAt) support.push('Reply: ' + formatDate(item.executiveOfficeRepliedAt));
+      if (item.executiveOfficeSatisfied) support.push('Outcome: ' + executiveOfficeOutcomeLabel(item.executiveOfficeSatisfied));
       return '<article class="service-event"><div class="service-event__main"><div class="cluster cluster--sm"><span class="badge">' + escapeHtml(eventTypeLabel(item.eventType)) + '</span><span class="badge badge--muted">' + escapeHtml(statusLabel(item.status)) + '</span></div>' +
         '<h3>' + escapeHtml(item.title) + '</h3><p class="service-event__meta">' + escapeHtml(meta.join(' · ')) + '</p>' +
         (support.length ? '<p class="service-event__meta">' + escapeHtml(support.join(' · ')) + '</p>' : '') +
-        (item.description ? '<p>' + escapeHtml(item.description) + '</p>' : '') + '</div>' +
+        (item.description ? '<p>' + escapeHtml(item.description) + '</p>' : '') +
+        (item.executiveOfficeOutcome ? '<p>' + escapeHtml(item.executiveOfficeOutcome) + '</p>' : '') + '</div>' +
         '<div class="cluster cluster--sm"><button class="btn btn--sm btn--secondary" type="button" data-edit-event="' + escapeHtml(item.id) + '">Edit</button><button class="btn btn--sm btn--secondary" type="button" data-delete-record="event" data-record-id="' + escapeHtml(item.id) + '">Delete</button></div></article>';
     }).join('') + '</div>';
   }
@@ -365,7 +382,7 @@
       '<header class="vehicle-workspace-header"><div><p class="page-header__eyebrow">Selected vehicle</p><h2>' + escapeHtml(vehicleName(record)) + '</h2><p class="vehicle-workspace-meta">' + escapeHtml(meta.join(' · ')) + '</p></div></header>' +
       '<section class="vehicle-data-section" aria-labelledby="soh-history-title"><div class="vehicle-section-header"><div><h2 id="soh-history-title">State of Health history</h2><p>Track battery health readings over time.</p></div><button class="btn btn--primary" type="button" data-open-panel="soh">Add reading</button></div>' +
       sohFormMarkup(record.id) + chartMarkup(readings) + readingsMarkup(readings) + '</section>' +
-      '<section class="vehicle-data-section" aria-labelledby="service-events-title"><div class="vehicle-section-header"><div><h2 id="service-events-title">Service events and faults</h2><p>Keep a dated record of servicing, recalls, faults and repairs.</p></div><button class="btn btn--primary" type="button" data-open-panel="event">Add record</button></div>' +
+      '<section class="vehicle-data-section" aria-labelledby="service-events-title"><div class="vehicle-section-header"><div><h2 id="service-events-title">Vehicle history</h2><p>Keep a dated record of servicing, recalls, faults, repairs and JLR contacts.</p></div><button class="btn btn--primary" type="button" data-open-panel="event">Add record</button></div>' +
       serviceEventFormMarkup(record.id) + serviceEventsMarkup(events) + '</section></div>';
   }
 
@@ -425,6 +442,11 @@
     form.elements.milesDrivenWhilstFaulty.value = item.milesDrivenWhilstFaulty == null ? '' : item.milesDrivenWhilstFaulty;
     form.elements.warrantyCover.value = item.warrantyCover || '';
     form.elements.disputeStatus.value = item.disputeStatus || '';
+    form.elements.executiveOfficeAcknowledgedAt.value = item.executiveOfficeAcknowledgedAt || '';
+    form.elements.executiveOfficeRepliedAt.value = item.executiveOfficeRepliedAt || '';
+    form.elements.executiveOfficeOutcome.value = item.executiveOfficeOutcome || '';
+    form.elements.executiveOfficeSatisfied.value = item.executiveOfficeSatisfied || '';
+    syncExecutiveOfficeFields(form);
     form.elements.title.value = item.title;
     form.elements.description.value = item.description || '';
     form.elements.status.value = item.status;
@@ -507,6 +529,7 @@
         updateResolutionDays(form);
         hideServiceProviderSuggestions(form);
         form.querySelector('[data-event-form-title]').textContent = 'Add service event or fault';
+        syncExecutiveOfficeFields(form);
       } else if (open.dataset.openPanel === 'soh') {
         var sohForm = workspace.querySelector('[data-soh-update-form]');
         sohForm.reset();
@@ -546,6 +569,7 @@
     if (event.target.matches('[data-service-provider-lookup]')) {
       syncServiceProviderFields(form, true);
     }
+    if (event.target.name === 'eventType') syncExecutiveOfficeFields(form);
     if (event.target.name === 'occurredAt' || event.target.name === 'finalFixAt') {
       updateResolutionDays(form);
     }

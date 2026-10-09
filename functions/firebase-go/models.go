@@ -49,27 +49,31 @@ type deleteRequest struct {
 }
 
 type serviceEventRequest struct {
-	ID                        string      `json:"id"`
-	VehicleID                 string      `json:"vehicleId"`
-	EventType                 string      `json:"eventType"`
-	OccurredAt                string      `json:"occurredAt"`
-	Mileage                   string      `json:"mileage"`
-	Title                     string      `json:"title"`
-	Description               string      `json:"description"`
-	Status                    string      `json:"status"`
-	Campaigns                 stringArray `json:"campaigns"`
-	ServiceProviderID         string      `json:"serviceProviderId"`
-	ServiceProviderName       string      `json:"serviceProviderName"`
-	ServiceProviderPostcode   string      `json:"serviceProviderPostcode"`
-	ServiceProviderAuthorised *bool       `json:"serviceProviderAuthorised"`
-	FinalFixAt                string      `json:"finalFixAt"`
-	CourtesyVehicleOffered    string      `json:"courtesyVehicleOffered"`
-	CourtesyVehicleProvided   string      `json:"courtesyVehicleProvided"`
-	PartsDelay                string      `json:"partsDelay"`
-	GoodwillPayment           *bool       `json:"goodwillPayment"`
-	MilesDrivenWhilstFaulty   string      `json:"milesDrivenWhilstFaulty"`
-	WarrantyCover             string      `json:"warrantyCover"`
-	DisputeStatus             string      `json:"disputeStatus"`
+	ID                            string      `json:"id"`
+	VehicleID                     string      `json:"vehicleId"`
+	EventType                     string      `json:"eventType"`
+	OccurredAt                    string      `json:"occurredAt"`
+	Mileage                       string      `json:"mileage"`
+	Title                         string      `json:"title"`
+	Description                   string      `json:"description"`
+	Status                        string      `json:"status"`
+	Campaigns                     stringArray `json:"campaigns"`
+	ServiceProviderID             string      `json:"serviceProviderId"`
+	ServiceProviderName           string      `json:"serviceProviderName"`
+	ServiceProviderPostcode       string      `json:"serviceProviderPostcode"`
+	ServiceProviderAuthorised     *bool       `json:"serviceProviderAuthorised"`
+	FinalFixAt                    string      `json:"finalFixAt"`
+	CourtesyVehicleOffered        string      `json:"courtesyVehicleOffered"`
+	CourtesyVehicleProvided       string      `json:"courtesyVehicleProvided"`
+	PartsDelay                    string      `json:"partsDelay"`
+	GoodwillPayment               *bool       `json:"goodwillPayment"`
+	MilesDrivenWhilstFaulty       string      `json:"milesDrivenWhilstFaulty"`
+	WarrantyCover                 string      `json:"warrantyCover"`
+	DisputeStatus                 string      `json:"disputeStatus"`
+	ExecutiveOfficeAcknowledgedAt string      `json:"executiveOfficeAcknowledgedAt"`
+	ExecutiveOfficeRepliedAt      string      `json:"executiveOfficeRepliedAt"`
+	ExecutiveOfficeOutcome        string      `json:"executiveOfficeOutcome"`
+	ExecutiveOfficeSatisfied      string      `json:"executiveOfficeSatisfied"`
 }
 
 type magicLinkRequest struct {
@@ -161,33 +165,37 @@ type batteryReadingRecord struct {
 }
 
 type serviceEventRecord struct {
-	ID                        string       `json:"id" firestore:"id"`
-	Type                      string       `json:"type" firestore:"type"`
-	CreatedAt                 time.Time    `json:"createdAt" firestore:"createdAt"`
-	UpdatedAt                 time.Time    `json:"updatedAt" firestore:"updatedAt"`
-	IdentityUserID            string       `json:"identityUserId" firestore:"identityUserId"`
-	VehicleID                 string       `json:"vehicleId" firestore:"vehicleId"`
-	EventType                 string       `json:"eventType" firestore:"eventType"`
-	OccurredAt                string       `json:"occurredAt" firestore:"occurredAt"`
-	Mileage                   *int         `json:"mileage,omitempty" firestore:"mileage,omitempty"`
-	Title                     string       `json:"title" firestore:"title"`
-	Description               string       `json:"description,omitempty" firestore:"description,omitempty"`
-	Status                    string       `json:"status" firestore:"status"`
-	Campaigns                 []string     `json:"campaigns,omitempty" firestore:"campaigns,omitempty"`
-	ServiceProviderID         string       `json:"serviceProviderId,omitempty" firestore:"serviceProviderId,omitempty"`
-	ServiceProviderName       string       `json:"serviceProviderName,omitempty" firestore:"serviceProviderName,omitempty"`
-	ServiceProviderPostcode   string       `json:"serviceProviderPostcode,omitempty" firestore:"serviceProviderPostcode,omitempty"`
-	ServiceProviderAuthorised *bool        `json:"serviceProviderAuthorised,omitempty" firestore:"serviceProviderAuthorised,omitempty"`
-	FinalFixAt                string       `json:"finalFixAt,omitempty" firestore:"finalFixAt,omitempty"`
-	DaysToFinalFix            *int         `json:"daysToFinalFix,omitempty" firestore:"daysToFinalFix,omitempty"`
-	CourtesyVehicleOffered    string       `json:"courtesyVehicleOffered,omitempty" firestore:"courtesyVehicleOffered,omitempty"`
-	CourtesyVehicleProvided   string       `json:"courtesyVehicleProvided,omitempty" firestore:"courtesyVehicleProvided,omitempty"`
-	PartsDelay                string       `json:"partsDelay,omitempty" firestore:"partsDelay,omitempty"`
-	GoodwillPayment           *bool        `json:"goodwillPayment,omitempty" firestore:"goodwillPayment,omitempty"`
-	MilesDrivenWhilstFaulty   *int         `json:"milesDrivenWhilstFaulty,omitempty" firestore:"milesDrivenWhilstFaulty,omitempty"`
-	WarrantyCover             string       `json:"warrantyCover,omitempty" firestore:"warrantyCover,omitempty"`
-	DisputeStatus             string       `json:"disputeStatus,omitempty" firestore:"disputeStatus,omitempty"`
-	Review                    reviewRecord `json:"review" firestore:"review"`
+	ID                            string       `json:"id" firestore:"id"`
+	Type                          string       `json:"type" firestore:"type"`
+	CreatedAt                     time.Time    `json:"createdAt" firestore:"createdAt"`
+	UpdatedAt                     time.Time    `json:"updatedAt" firestore:"updatedAt"`
+	IdentityUserID                string       `json:"identityUserId" firestore:"identityUserId"`
+	VehicleID                     string       `json:"vehicleId" firestore:"vehicleId"`
+	EventType                     string       `json:"eventType" firestore:"eventType"`
+	OccurredAt                    string       `json:"occurredAt" firestore:"occurredAt"`
+	Mileage                       *int         `json:"mileage,omitempty" firestore:"mileage,omitempty"`
+	Title                         string       `json:"title" firestore:"title"`
+	Description                   string       `json:"description,omitempty" firestore:"description,omitempty"`
+	Status                        string       `json:"status" firestore:"status"`
+	Campaigns                     []string     `json:"campaigns,omitempty" firestore:"campaigns,omitempty"`
+	ServiceProviderID             string       `json:"serviceProviderId,omitempty" firestore:"serviceProviderId,omitempty"`
+	ServiceProviderName           string       `json:"serviceProviderName,omitempty" firestore:"serviceProviderName,omitempty"`
+	ServiceProviderPostcode       string       `json:"serviceProviderPostcode,omitempty" firestore:"serviceProviderPostcode,omitempty"`
+	ServiceProviderAuthorised     *bool        `json:"serviceProviderAuthorised,omitempty" firestore:"serviceProviderAuthorised,omitempty"`
+	FinalFixAt                    string       `json:"finalFixAt,omitempty" firestore:"finalFixAt,omitempty"`
+	DaysToFinalFix                *int         `json:"daysToFinalFix,omitempty" firestore:"daysToFinalFix,omitempty"`
+	CourtesyVehicleOffered        string       `json:"courtesyVehicleOffered,omitempty" firestore:"courtesyVehicleOffered,omitempty"`
+	CourtesyVehicleProvided       string       `json:"courtesyVehicleProvided,omitempty" firestore:"courtesyVehicleProvided,omitempty"`
+	PartsDelay                    string       `json:"partsDelay,omitempty" firestore:"partsDelay,omitempty"`
+	GoodwillPayment               *bool        `json:"goodwillPayment,omitempty" firestore:"goodwillPayment,omitempty"`
+	MilesDrivenWhilstFaulty       *int         `json:"milesDrivenWhilstFaulty,omitempty" firestore:"milesDrivenWhilstFaulty,omitempty"`
+	WarrantyCover                 string       `json:"warrantyCover,omitempty" firestore:"warrantyCover,omitempty"`
+	DisputeStatus                 string       `json:"disputeStatus,omitempty" firestore:"disputeStatus,omitempty"`
+	ExecutiveOfficeAcknowledgedAt string       `json:"executiveOfficeAcknowledgedAt,omitempty" firestore:"executiveOfficeAcknowledgedAt,omitempty"`
+	ExecutiveOfficeRepliedAt      string       `json:"executiveOfficeRepliedAt,omitempty" firestore:"executiveOfficeRepliedAt,omitempty"`
+	ExecutiveOfficeOutcome        string       `json:"executiveOfficeOutcome,omitempty" firestore:"executiveOfficeOutcome,omitempty"`
+	ExecutiveOfficeSatisfied      string       `json:"executiveOfficeSatisfied,omitempty" firestore:"executiveOfficeSatisfied,omitempty"`
+	Review                        reviewRecord `json:"review" firestore:"review"`
 }
 
 type memberSnapshot struct {
