@@ -57,6 +57,7 @@
     var sourceCampaignID = '';
     var generationTimer = null;
     var generationStorageKey = 'ipace-instagram-veo-job';
+    var defaultMediaPath = '/i-pace-owners-insta-launch-with-text.mp4';
 
     function draft() {
       return {
@@ -162,7 +163,7 @@
       sourceCampaignID = '';
       current = null;
       name.value = '';
-      mediaPath.value = '';
+      mediaPath.value = defaultMediaPath;
       mediaReviewed.checked = false;
       workspaceTitle.textContent = 'Create an Instagram campaign';
       invalidate();

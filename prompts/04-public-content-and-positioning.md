@@ -432,3 +432,7 @@ offer a downloadable sample Excel workbook generated with fictional data only.
 - Run `make build`.
 - Check that every page has front matter with `layout`, `title`, and `description`.
 - Check links among Join, Submit Vehicle Data, Evidence Dashboard, FAQ, Methodology, Privacy, and Terms.
+
+## Instagram discovery
+
+Promote the group’s public Instagram profile, `https://www.instagram.com/ipaceowners/`, as a follow destination rather than only offering social sharing. Keep joining as the primary homepage action. The launch homepage final CTA should invite visitors to follow `@ipaceowners` for owner updates and reels, and the footer’s social area should include a direct Instagram-profile link alongside share controls.

@@ -3642,6 +3642,20 @@ canvas.admin-timeline {
   color: #ffffff;
 }
 
+.launch-final-cta__actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  justify-content: center;
+}
+
+.launch-final-cta__note {
+  margin: var(--space-4) 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
 .social-share {
   list-style: none;
   padding: 0;
@@ -4324,6 +4338,33 @@ details .details-body p:last-child {
   border-radius: var(--radius-md);
   display: block;
   margin-block: var(--space-4);
+  max-height: 70vh;
+  width: min(100%, 22rem);
+}
+
+.instagram-approved-reel {
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  margin: 0;
+  padding: var(--space-4);
+}
+
+.instagram-approved-reel figcaption {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.instagram-approved-reel figcaption span {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.instagram-approved-reel video {
+  background: #000;
+  border-radius: var(--radius-md);
+  display: block;
+  margin-top: var(--space-3);
   max-height: 70vh;
   width: min(100%, 22rem);
 }

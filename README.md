@@ -212,6 +212,7 @@ src/
       main.js            # Mobile menu, nav helpers
       identity.js        # Firebase Auth email-link integration
       member-auth.js     # Server-verified member/admin data loading
+      member-profile.js  # Member contact profile, address lookup and representation choice
       member-dashboard.js # Vehicle tabs, SoH graph and service/fault editing
       member-export.js    # Authenticated CSV/Excel account downloads
       multistep-form.js  # Multi-step form controller
@@ -922,6 +923,17 @@ Plain vanilla JavaScript, no bundler. The current modules are:
 - `main.js` — mobile menu toggle, current-page nav highlighting
 - `identity.js` — Firebase Auth email-link and UI state
 - `member-auth.js` — authenticated member/admin data loading and account rendering
+- `member-profile.js` — editable member contact profile, optional UK address lookup and representation choice
+
+Member contact details use `GET/POST /api/member-profile`. Signed-in members can use
+`GET /api/member-address-lookup` for optional address or postcode search when the server has an
+`IDEAL_POSTCODES_API_KEY`; all addresses can be entered manually. Administrators can set
+the separate identity-verification flag through `POST /api/admin/member-verification`.
+The member's representation choice requires a complete UK address and records the
+accepted wording version and time, with an append-only choice history under the profile
+that does not duplicate contact details. The verification flag is not exposed to members.
+Configure `IDEAL_POSTCODES_API_KEY_STAGING` and `IDEAL_POSTCODES_API_KEY_PRODUCTION` as
+GitHub environment secrets to enable lookup in deployments; without them, manual entry works.
 - `member-dashboard.js` — vehicle tabs, SoH history and service/fault editing
 - `member-export.js` — authenticated CSV-bundle and Excel-report downloads
 - `multistep-form.js` — generic multi-step form (data-attribute driven)

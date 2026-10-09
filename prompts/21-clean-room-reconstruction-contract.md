@@ -277,6 +277,9 @@ change rather than assuming it exists.
 | `POST /api/submit-soh` | Member/vehicle owner | Optional `id` for an owned edit plus `vehicleId`, `soh`, `sohDate`, `sohMileage`, `sohSource`; maintain the vehicle compatibility value. |
 | `POST /api/upsert-service-event` | Member/vehicle and record owner | `id`, `vehicleId`, `eventType`, `occurredAt`, `mileage`, `title`, `description`, `status`, `campaigns[]`, `serviceProviderId`, `serviceProviderName`, `serviceProviderPostcode`, `serviceProviderAuthorised`, `finalFixAt`, `courtesyVehicleOffered`, `courtesyVehicleProvided`, `partsDelay`, `goodwillPayment`, `milesDrivenWhilstFaulty`, `warrantyCover`, `disputeStatus`, `executiveOfficeAcknowledgedAt`, `executiveOfficeRepliedAt`, `executiveOfficeOutcome`, `executiveOfficeSatisfied`. Derive `daysToFinalFix` server-side. For Executive Office contacts, supplied acknowledgement/reply dates must be valid, non-future, and on or after `occurredAt`. |
 | `POST /api/update-member-preferences` | Member | Required booleans `contact`, `anonymisedAnalysis`; apply to every Join record sharing the authenticated email hash. |
+| `GET/POST /api/member-profile` | Member | One contact profile per Firebase UID; freeform international address, optional phone, and a versioned representation choice available only for a complete UK address. Append choice changes to a PII-free `representationChoices` subcollection. |
+| `GET /api/member-address-lookup` | Member | Optional address or postcode search and resolution through a server-side Ideal Postcodes key, with manual entry fallback. |
+| `POST /api/admin/member-verification` | Admin | Set an admin-only identity-verification decision, separate from member consent. |
 | `POST /api/delete-vehicle` | Member/vehicle owner | `id`, `confirmation: "DELETE"`; soft-delete the vehicle and its dependent SoH and service records. |
 | `POST /api/delete-soh` | Member/reading owner | `id`, `confirmation: "DELETE"`; soft-delete an SoH reading and refresh the vehicle compatibility value. |
 | `POST /api/delete-service-event` | Member/event owner | `id`, `confirmation: "DELETE"`; soft-delete a service/fault record. |
@@ -362,7 +365,7 @@ and edited meeting wording. The private `SNAPSHOT_BUCKET` holds
 `decks/{deckId}.pptx` objects. Never grant public object access. Restore and download only
 after an admin claim check, with no-store responses.
 
-Use these exact collection names: `joinSubmissions`, `members`, `vehicles`,
+Use these exact collection names: `joinSubmissions`, `members`, `memberProfiles`, `memberVerification`, `vehicles`,
 `batteryReadings`, `serviceEvents`, `memberSnapshots`, `emailCampaigns`, `campaignMetadata`,
 `instagramCampaigns`, and `instagramGenerationJobs`. The email collection stores
 campaign delivery subdocuments keyed by a non-reversible email fingerprint, with no recipient
@@ -419,7 +422,10 @@ Build-time Firebase web configuration uses `FIREBASE_WEB_API_KEY`,
 `FIREBASE_STORAGE_BUCKET`. Function runtime configuration uses `FIRESTORE_DATABASE_ID`,
 `SNAPSHOT_BUCKET`, `VIN_PEPPER`, `ALLOWED_ORIGINS`, `FIREBASE_WEB_API_KEY`,
 `FIREBASE_EMAIL_CONTINUE_URL`, optional `FIREBASE_EMAIL_LINK_DOMAIN`, and optional
-`RESEND_API_KEY`, `RESEND_FROM`, `RESEND_REPLY_TO`, and `RESEND_ASSET_BASE_URL`.
+`RESEND_API_KEY`, `RESEND_FROM`, `RESEND_REPLY_TO`, `RESEND_ASSET_BASE_URL`, and
+`IDEAL_POSTCODES_API_KEY`. The latter is supplied by environment-specific GitHub secrets;
+without it, members enter addresses manually. Per-member address lookups are persistently
+rate-limited before the paid provider is called.
 The optional `SEED_NEXT_STEPS_SURVEY` flag creates the October survey automatically on the first
 authenticated survey access. `NEXT_STEPS_SURVEY_STATUS` is `published` in staging and `draft` in
 production, preserving an explicit production publication decision.
