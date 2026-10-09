@@ -141,7 +141,7 @@ lines or overflow their visible space should be collapsed to two visible lines w
 Existing surveys without explicit preferred-eligibility configuration retain their prior behaviour:
 all options, including any newly added during an edit, initially appear preferred-eligible until
 the administrator saves the explicit configuration.
-Any number of options may offer an optional 250-character free-text explanation (for example,
+Any number of options may offer an optional 1,024-character free-text explanation (for example,
 two distinct `Other` options); store text only when the member supplies it against the relevant
 selected option.
 For multiple-choice surveys only, let administrators explicitly mark each eligible option with

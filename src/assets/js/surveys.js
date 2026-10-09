@@ -207,11 +207,11 @@
           textID +
           '"> ' +
           esc(optionTextPrompt(option)) +
-          ' <span>(optional, up to 250 characters)</span></label><textarea id="' +
+          ' <span>(optional, up to 1,024 characters)</span></label><textarea id="' +
           textID +
           '" data-option-text-id="' +
           esc(option.id) +
-          '" maxlength="250" rows="3" placeholder="enter your text here...">' +
+          '" maxlength="1024" rows="5" placeholder="enter your text here...">' +
           esc(text) +
           "</textarea></div>"
         : "") +

@@ -49,7 +49,8 @@ test("surveys support public Markdown copy, multiple text options, and seven-day
   assert.match(script, /button\.textContent\s*=\s*["']More["']/);
   assert.match(script, /end\.setDate\(end\.getDate\(\) \+ 6\)/);
   assert.match(script, /textByOption/);
-  assert.match(script, /optional, up to 250 characters/);
+  assert.match(script, /optional, up to 1,024 characters/);
+  assert.match(script, /maxlength="1024"/);
   assert.match(script, /function optionTextPrompt\(option\)/);
   assert.match(script, /function expandSelectedOptionDescriptions\(form\)/);
   assert.match(

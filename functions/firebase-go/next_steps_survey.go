@@ -16,16 +16,71 @@ const nextStepsSurveyID = "survey_what_next_october_2026"
 // created only once, so subsequent admin edits and test responses are preserved.
 func ensureNextStepsSurvey(ctx context.Context, db *firestore.Client) error {
 	ref := db.Collection("surveys").Doc(nextStepsSurveyID)
-	return seedNextStepsSurvey(os.Getenv("SEED_NEXT_STEPS_SURVEY") == "true", time.Now().UTC(), func() (bool, error) {
-		_, err := ref.Get(ctx)
-		if status.Code(err) == codes.NotFound {
-			return false, nil
+	if os.Getenv("SEED_NEXT_STEPS_SURVEY") != "true" {
+		return nil
+	}
+	now := time.Now().UTC()
+	snapshot, err := ref.Get(ctx)
+	if status.Code(err) == codes.NotFound {
+		record, recordErr := nextStepsSurveyRecord(now)
+		if recordErr != nil {
+			return recordErr
 		}
-		return err == nil, err
-	}, func(record surveyRecord) error {
 		_, err := ref.Create(ctx, record)
+		if status.Code(err) == codes.AlreadyExists {
+			return nil
+		}
 		return err
+	}
+	if err != nil {
+		return err
+	}
+	var existing surveyRecord
+	if err := snapshot.DataTo(&existing); err != nil {
+		return err
+	}
+	updated, changed, err := nextStepsSurveyPresentation(existing, now)
+	if err != nil || !changed {
+		return err
+	}
+	_, err = ref.Update(ctx, []firestore.Update{
+		{Path: "title", Value: updated.Title},
+		{Path: "options", Value: updated.Options},
+		{Path: "updatedAt", Value: now},
 	})
+	return err
+}
+
+func nextStepsSurveyPresentation(existing surveyRecord, now time.Time) (surveyRecord, bool, error) {
+	desired, err := nextStepsSurveyRecord(now)
+	if err != nil {
+		return surveyRecord{}, false, err
+	}
+	changed := false
+	if existing.Title == "What should the group do next?" {
+		existing.Title = desired.Title
+		changed = true
+	}
+	desiredOptions := make(map[string]surveyOption, len(desired.Options))
+	for _, option := range desired.Options {
+		desiredOptions[option.ID] = option
+	}
+	for i := range existing.Options {
+		current := &existing.Options[i]
+		wanted, ok := desiredOptions[current.ID]
+		if !ok {
+			continue
+		}
+		if !current.AllowsText {
+			current.AllowsText = true
+			changed = true
+		}
+		if current.TextPrompt == "" || current.TextPrompt == "What else should we consider?" {
+			current.TextPrompt = wanted.TextPrompt
+			changed = true
+		}
+	}
+	return existing, changed, nil
 }
 
 func seedNextStepsSurvey(enabled bool, now time.Time, exists func() (bool, error), create func(surveyRecord) error) error {
@@ -60,11 +115,11 @@ func nextStepsSurveyRecord(now time.Time) (surveyRecord, error) {
 		EndsOn:       "2026-11-09",
 		ShowResults:  true,
 		Options: []surveyOption{
-			{ID: "dialogue", Name: "Give JLR time to respond", Description: "Keep dialogue open and assess whether individual case reviews produce lasting results.", AllowsPreferred: true},
-			{ID: "evidence", Name: "Grow membership and evidence", Description: "Reach more I-PACE owners and strengthen verified vehicle and service records.", AllowsPreferred: true},
-			{ID: "press", Name: "Measured press engagement", Description: "Explain owners' experiences publicly without undermining constructive dialogue. Anyone whose story may be used would be asked separately for consent.", AllowsPreferred: true},
-			{ID: "legal-preparation", Name: "Prepare legal escalation", Description: "Assess legal routes, costs and possible funding with advisers. Selecting this is not consent to representation or litigation.", AllowsPreferred: true},
-			{ID: "other", Name: "Another approach", Description: "Tell us what you would prioritise.", AllowsPreferred: true, AllowsText: true, TextPrompt: "What else should we consider?"},
+			{ID: "dialogue", Name: "Give JLR time to respond", Description: "Keep dialogue open and assess whether individual case reviews produce lasting results.", AllowsPreferred: true, AllowsText: true, TextPrompt: "Please share a brief summary of what you think JLR should do next."},
+			{ID: "evidence", Name: "Grow membership and evidence", Description: "Reach more I-PACE owners and strengthen verified vehicle and service records.", AllowsPreferred: true, AllowsText: true, TextPrompt: "Please share a brief summary of the evidence or member growth that would help most."},
+			{ID: "press", Name: "Measured press engagement", Description: "Explain owners' experiences publicly without undermining constructive dialogue. Anyone whose story may be used would be asked separately for consent.", AllowsPreferred: true, AllowsText: true, TextPrompt: "Please share a brief summary that could inform measured press engagement. We would ask separately before using your words publicly."},
+			{ID: "legal-preparation", Name: "Prepare legal escalation", Description: "Assess legal routes, costs and possible funding with advisers. Selecting this is not consent to representation or litigation.", AllowsPreferred: true, AllowsText: true, TextPrompt: "Please share a brief summary of what legal preparation you think the group should explore."},
+			{ID: "other", Name: "Another approach", Description: "Tell us what you would prioritise.", AllowsPreferred: true, AllowsText: true, TextPrompt: "Please share a brief summary of the approach you would like the group to consider."},
 		},
 	})
 	if err != nil {

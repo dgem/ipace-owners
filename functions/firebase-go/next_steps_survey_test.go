@@ -21,6 +21,11 @@ func TestNextStepsSurveyIsAStagingPreferenceSurvey(t *testing.T) {
 	if record.Title != "What do you think the group should do next?" {
 		t.Fatalf("survey title = %q", record.Title)
 	}
+	for _, option := range record.Options {
+		if !option.AllowsText || option.TextPrompt == "" {
+			t.Fatalf("%s must invite an optional summary: %#v", option.ID, option)
+		}
+	}
 	if !strings.Contains(record.Description, "does not authorise") || !strings.Contains(record.Description, "separate choice") {
 		t.Fatal("survey must distinguish a preference from legal consent")
 	}
@@ -59,5 +64,27 @@ func TestStagingSurveySeedPreservesExistingRecordAndHandlesRaces(t *testing.T) {
 	read = func() (bool, error) { return false, want }
 	if err := seedNextStepsSurvey(true, now, read, create); !errors.Is(err, want) {
 		t.Fatalf("read error lost: %v", err)
+	}
+}
+
+func TestNextStepsPresentationMigratesOnlyLegacyPrompts(t *testing.T) {
+	now := time.Date(2026, 10, 9, 12, 0, 0, 0, time.UTC)
+	existing := surveyRecord{
+		Title: "What should the group do next?",
+		Options: []surveyOption{
+			{ID: "press", Name: "Measured press engagement"},
+			{ID: "other", Name: "Another approach", AllowsText: true, TextPrompt: "What else should we consider?"},
+			{ID: "evidence", Name: "Grow membership and evidence", AllowsText: true, TextPrompt: "Keep my custom prompt"},
+		},
+	}
+	updated, changed, err := nextStepsSurveyPresentation(existing, now)
+	if err != nil || !changed {
+		t.Fatalf("legacy presentation was not updated: %v, %#v", err, updated)
+	}
+	if updated.Title != "What do you think the group should do next?" || !updated.Options[0].AllowsText || updated.Options[0].TextPrompt == "" || updated.Options[1].TextPrompt == "What else should we consider?" {
+		t.Fatalf("legacy values not migrated: %#v", updated)
+	}
+	if updated.Options[2].TextPrompt != "Keep my custom prompt" {
+		t.Fatalf("custom administrator prompt was overwritten: %#v", updated.Options[2])
 	}
 }

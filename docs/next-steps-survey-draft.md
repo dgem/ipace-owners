@@ -29,6 +29,8 @@ which path should come first.
 | Prepare legal escalation | Assess legal routes, costs and possible funding with advisers. Any representation requires separate verified opt-in. |
 | Another approach | Tell us what you would prioritise. |
 
-Allow multiple selections and one preferred option. Enable optional text only for
-“Another approach”. Do not publish a claim about the number of owners legally
-represented based on this survey; use the separate legal-consent process instead.
+Allow multiple selections and one preferred option. Every selected option has an optional,
+focused prompt for a brief summary of the member's view, with up to 1,024 characters. For
+press engagement, make clear that a response alone does not permit public use of the member's
+words or story. Do not publish a claim about the number of owners legally represented based on
+this survey; use the separate legal-consent process instead.

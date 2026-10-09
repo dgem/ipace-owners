@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-const surveyOtherTextMax = 250
+const surveyOtherTextMax = 1024
 const surveyDescriptionMax = 4000
 const surveyCallToActionMax = 1000
 const surveyOptionNameMax = 120
