@@ -85,6 +85,12 @@ func Api(w http.ResponseWriter, r *http.Request) {
 		UpsertServiceEvent(w, r)
 	case "/api/update-member-preferences":
 		UpdateMemberPreferences(w, r)
+	case "/api/member-profile":
+		MemberProfile(w, r)
+	case "/api/member-address-lookup":
+		MemberAddressLookup(w, r)
+	case "/api/admin/member-verification":
+		AdminMemberVerification(w, r)
 	case "/api/delete-vehicle":
 		DeleteVehicle(w, r)
 	case "/api/delete-soh":

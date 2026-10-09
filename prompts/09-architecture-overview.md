@@ -65,6 +65,7 @@ It is the current source of truth for the I-PACE Owners' Advocacy Group architec
 src/                         Static Eleventy source
 src/assets/js/identity.js    Firebase Auth email-link adapter
 src/assets/js/member-auth.js Server-verified member/admin data loading
+src/assets/js/member-profile.js Member contact details, UK address lookup and representation choice
 functions/firebase-go/       Go Cloud Functions
 infra/opentofu/              GCP/Firebase infrastructure
 firebase.json                Firebase Hosting headers and rewrites
@@ -135,6 +136,9 @@ header.
 | `POST /api/submit-soh` | `SubmitSOH` | Member | Create or edit an owned SoH reading after verifying vehicle ownership. |
 | `POST /api/upsert-service-event` | `UpsertServiceEvent` | Member | Add or edit an owned vehicle's service/fault timeline record. |
 | `POST /api/update-member-preferences` | `UpdateMemberPreferences` | Member | Update contact and anonymised-analysis consent for all Join records of the signed-in email. |
+| `GET/POST /api/member-profile` | `MemberProfile` | Member | Read or update the member's sole contact profile and versioned UK representation choice. |
+| `GET /api/member-address-lookup` | `MemberAddressLookup` | Member | Optional server-side UK postcode lookup; requires an Ideal Postcodes API key. |
+| `POST /api/admin/member-verification` | `AdminMemberVerification` | Admin | Set a separate, admin-only identity-verification flag. |
 | `POST /api/delete-vehicle` | `DeleteVehicle` | Member | Soft-delete an owned vehicle and its dependent SoH and service records after typed confirmation. |
 | `POST /api/delete-soh` | `DeleteSOH` | Member | Soft-delete an owned SoH reading after typed confirmation. |
 | `POST /api/delete-service-event` | `DeleteServiceEvent` | Member | Soft-delete an owned service/fault record after typed confirmation. |
