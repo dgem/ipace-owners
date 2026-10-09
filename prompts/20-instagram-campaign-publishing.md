@@ -100,7 +100,7 @@ Suggested message beats:
 - 9–12 seconds: `CONSTRUCTIVE. EVIDENCE-LED. / Focused on fair outcomes.`
 - 12–15 seconds: `ADD YOUR VOICE / ipace-owners.org / Free to join. Under a minute.`
 
-`public/ipace-owners-instagram-launch-reel.mp4` is reserved for a future approved export. The
+`public/i-pace-owners-insta-launch-with-text.mp4` is the approved posted launch Reel and is the default reusable media path in the campaign workspace. The
 recovered keyframe-composite draft is not approved, must not be selected by default, and must not
 be committed as preservation-critical media. Generate the native temporal video and synchronized
 soundtrack defined below into private campaign storage, watch it in full, verify the stop cannot

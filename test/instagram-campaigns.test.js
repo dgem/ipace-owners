@@ -43,5 +43,11 @@ test('browser sends only an admin token and the reviewed draft', function () {
 
 test('deployment allows enough time for Meta container processing without weakening preview gates', function () {
   assert.match(makefile, /gcloud functions deploy[\s\S]*--timeout=180s/);
-  assert.doesNotMatch(page, /data-instagram-media-path value=/);
+  assert.match(page, /data-instagram-media-path value="\/i-pace-owners-insta-launch-with-text\.mp4"/);
+});
+
+
+test('Instagram campaign workspace defaults to the approved launch Reel', function () {
+  assert.match(page, /value="\/i-pace-owners-insta-launch-with-text\.mp4"/);
+  assert.match(script, /defaultMediaPath = '\/i-pace-owners-insta-launch-with-text\.mp4'/);
 });
