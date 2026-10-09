@@ -23,11 +23,11 @@ which path should come first.
 
 | Option | Member-facing description |
 | --- | --- |
-| Give JLR time to respond | Keep dialogue open and assess whether individual case review produces lasting results. |
-| Grow membership and evidence | Reach more I-PACE owners and strengthen verified vehicle and service records. |
-| Measured press engagement | Explain owners' experiences publicly without undermining constructive dialogue. Invite separate consent from anyone whose story may be used. |
-| Prepare legal escalation | Assess legal routes, costs and possible funding with advisers. Any representation requires separate verified opt-in. |
-| Another approach | Tell us what you would prioritise. |
+| Give JLR time to respond | Keep dialogue open and assess whether individual case review produces lasting results. **Prompt:** How long should we wait, and what are you hoping will happen in that time? |
+| Grow membership and evidence | Reach more I-PACE owners and strengthen verified vehicle and service records. **Prompt:** Can you help us? How can we attract more I-PACE owners? |
+| Measured press engagement | Explain owners' experiences publicly without undermining constructive dialogue. Invite separate consent from anyone whose story may be used. **Prompt:** Do you have a story to share, or experience or contacts that could help? |
+| Prepare legal escalation | Assess legal routes, costs and possible funding with advisers. Any representation requires separate verified opt-in. **Prompt:** Have you tried this avenue already, or do you have relevant expertise to offer? |
+| Another approach | Tell us what you would prioritise. **Prompt:** What other approach should the group consider? |
 
 Allow multiple selections and one preferred option. Every selected option has an optional,
 focused prompt for a brief summary of the member's view, with up to 1,024 characters. For

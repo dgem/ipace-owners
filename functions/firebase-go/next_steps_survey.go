@@ -75,12 +75,26 @@ func nextStepsSurveyPresentation(existing surveyRecord, now time.Time) (surveyRe
 			current.AllowsText = true
 			changed = true
 		}
-		if current.TextPrompt == "" || current.TextPrompt == "What else should we consider?" {
+		if nextStepsLegacyPrompt(current.TextPrompt) {
 			current.TextPrompt = wanted.TextPrompt
 			changed = true
 		}
 	}
 	return existing, changed, nil
+}
+
+func nextStepsLegacyPrompt(prompt string) bool {
+	switch prompt {
+	case "", "What else should we consider?",
+		"Please share a brief summary of what you think JLR should do next.",
+		"Please share a brief summary of the evidence or member growth that would help most.",
+		"Please share a brief summary that could inform measured press engagement. We would ask separately before using your words publicly.",
+		"Please share a brief summary of what legal preparation you think the group should explore.",
+		"Please share a brief summary of the approach you would like the group to consider.":
+		return true
+	default:
+		return false
+	}
 }
 
 func seedNextStepsSurvey(enabled bool, now time.Time, exists func() (bool, error), create func(surveyRecord) error) error {
@@ -115,11 +129,11 @@ func nextStepsSurveyRecord(now time.Time) (surveyRecord, error) {
 		EndsOn:       "2026-11-09",
 		ShowResults:  true,
 		Options: []surveyOption{
-			{ID: "dialogue", Name: "Give JLR time to respond", Description: "Keep dialogue open and assess whether individual case reviews produce lasting results.", AllowsPreferred: true, AllowsText: true, TextPrompt: "Please share a brief summary of what you think JLR should do next."},
-			{ID: "evidence", Name: "Grow membership and evidence", Description: "Reach more I-PACE owners and strengthen verified vehicle and service records.", AllowsPreferred: true, AllowsText: true, TextPrompt: "Please share a brief summary of the evidence or member growth that would help most."},
-			{ID: "press", Name: "Measured press engagement", Description: "Explain owners' experiences publicly without undermining constructive dialogue. Anyone whose story may be used would be asked separately for consent.", AllowsPreferred: true, AllowsText: true, TextPrompt: "Please share a brief summary that could inform measured press engagement. We would ask separately before using your words publicly."},
-			{ID: "legal-preparation", Name: "Prepare legal escalation", Description: "Assess legal routes, costs and possible funding with advisers. Selecting this is not consent to representation or litigation.", AllowsPreferred: true, AllowsText: true, TextPrompt: "Please share a brief summary of what legal preparation you think the group should explore."},
-			{ID: "other", Name: "Another approach", Description: "Tell us what you would prioritise.", AllowsPreferred: true, AllowsText: true, TextPrompt: "Please share a brief summary of the approach you would like the group to consider."},
+			{ID: "dialogue", Name: "Give JLR time to respond", Description: "Keep dialogue open and assess whether individual case reviews produce lasting results.", AllowsPreferred: true, AllowsText: true, TextPrompt: "How long should we wait, and what are you hoping will happen in that time?"},
+			{ID: "evidence", Name: "Grow membership and evidence", Description: "Reach more I-PACE owners and strengthen verified vehicle and service records.", AllowsPreferred: true, AllowsText: true, TextPrompt: "Can you help us? How can we attract more I-PACE owners?"},
+			{ID: "press", Name: "Measured press engagement", Description: "Explain owners' experiences publicly without undermining constructive dialogue. Anyone whose story may be used would be asked separately for consent.", AllowsPreferred: true, AllowsText: true, TextPrompt: "Do you have a story to share, or experience or contacts that could help?"},
+			{ID: "legal-preparation", Name: "Prepare legal escalation", Description: "Assess legal routes, costs and possible funding with advisers. Selecting this is not consent to representation or litigation.", AllowsPreferred: true, AllowsText: true, TextPrompt: "Have you tried this avenue already, or do you have relevant expertise to offer?"},
+			{ID: "other", Name: "Another approach", Description: "Tell us what you would prioritise.", AllowsPreferred: true, AllowsText: true, TextPrompt: "What other approach should the group consider?"},
 		},
 	})
 	if err != nil {

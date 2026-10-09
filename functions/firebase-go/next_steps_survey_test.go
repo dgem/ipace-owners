@@ -72,7 +72,7 @@ func TestNextStepsPresentationMigratesOnlyLegacyPrompts(t *testing.T) {
 	existing := surveyRecord{
 		Title: "What should the group do next?",
 		Options: []surveyOption{
-			{ID: "press", Name: "Measured press engagement"},
+			{ID: "press", Name: "Measured press engagement", TextPrompt: "Please share a brief summary that could inform measured press engagement. We would ask separately before using your words publicly."},
 			{ID: "other", Name: "Another approach", AllowsText: true, TextPrompt: "What else should we consider?"},
 			{ID: "evidence", Name: "Grow membership and evidence", AllowsText: true, TextPrompt: "Keep my custom prompt"},
 		},
@@ -81,7 +81,7 @@ func TestNextStepsPresentationMigratesOnlyLegacyPrompts(t *testing.T) {
 	if err != nil || !changed {
 		t.Fatalf("legacy presentation was not updated: %v, %#v", err, updated)
 	}
-	if updated.Title != "What do you think the group should do next?" || !updated.Options[0].AllowsText || updated.Options[0].TextPrompt == "" || updated.Options[1].TextPrompt == "What else should we consider?" {
+	if updated.Title != "What do you think the group should do next?" || !updated.Options[0].AllowsText || updated.Options[0].TextPrompt != "Do you have a story to share, or experience or contacts that could help?" || updated.Options[1].TextPrompt != "What other approach should the group consider?" {
 		t.Fatalf("legacy values not migrated: %#v", updated)
 	}
 	if updated.Options[2].TextPrompt != "Keep my custom prompt" {
