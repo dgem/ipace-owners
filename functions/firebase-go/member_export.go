@@ -186,7 +186,7 @@ func sohRows(snapshot memberSnapshot) [][]string {
 }
 
 func serviceRows(snapshot memberSnapshot) [][]string {
-	rows := [][]string{{"Vehicle", "Type", "Date", "Mileage", "Title", "Description", "Status", "Campaigns", "Service provider", "Provider postcode", "Authorised JLR provider", "Final fix date", "Days to final fix", "Courtesy vehicle offered", "Courtesy vehicle provided", "Parts delay", "Goodwill payment", "Miles driven whilst faulty", "Warranty cover", "Dispute status", "Created", "Updated"}}
+	rows := [][]string{{"Vehicle", "Type", "Date", "Mileage", "Title", "Description", "Status", "Campaigns", "Service provider", "Provider postcode", "Authorised JLR provider", "Final fix date", "Days to final fix", "Courtesy vehicle offered", "Courtesy vehicle provided", "Parts delay", "Goodwill payment", "Miles driven whilst faulty", "Warranty cover", "Dispute status", "Executive Office acknowledgement", "Executive Office reply", "Executive Office outcome", "Satisfied with outcome", "Created", "Updated"}}
 	for _, record := range snapshot.ServiceEvents {
 		rows = append(rows, []string{
 			vehicleLabelByID(snapshot, record.VehicleID),
@@ -209,6 +209,10 @@ func serviceRows(snapshot memberSnapshot) [][]string {
 			exportInt(record.MilesDrivenWhilstFaulty),
 			record.WarrantyCover,
 			record.DisputeStatus,
+			record.ExecutiveOfficeAcknowledgedAt,
+			record.ExecutiveOfficeRepliedAt,
+			record.ExecutiveOfficeOutcome,
+			record.ExecutiveOfficeSatisfied,
 			exportTime(record.CreatedAt),
 			exportTime(record.UpdatedAt),
 		})

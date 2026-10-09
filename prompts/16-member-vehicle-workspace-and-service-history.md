@@ -270,3 +270,7 @@ timeout covering both authentication and download. Append the download link to t
 and release its blob URL after the browser starts downloading. Test access denial, source
 failure, redaction, preserved narrative/provider fields, multiple members, deletion, empty
 exports, formula safety and frontend recovery. Add desktop/mobile visual checkpoints.
+
+### Executive Office contact history
+
+The private vehicle timeline includes an `executive-office-contact` record type. Its event date is the date the member contacted JLR's Executive Office; it can also store acknowledgement and reply dates, the member's account of the outcome (up to 2,000 characters), and whether they are happy, partly happy, unhappy, or still awaiting an outcome. Show those fields only for this record type, validate that supplied dates are valid, not future dates, and no earlier than the contact date, and include them in the member's own CSV/XLSX export. This creates structured, member-controlled evidence of whether individual handling resolved matters.

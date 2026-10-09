@@ -61,6 +61,8 @@ func memberExportFixture() memberSnapshot {
 			Description: "+not a formula", Status: "resolved", DaysToFinalFix: &days,
 			ServiceProviderName: "Example Jaguar Service Centre", ServiceProviderPostcode: "AB1 2CD",
 			ServiceProviderAuthorised: &yes, GoodwillPayment: &yes, MilesDrivenWhilstFaulty: &mileage,
+			ExecutiveOfficeAcknowledgedAt: "2026-07-02", ExecutiveOfficeRepliedAt: "2026-07-04",
+			ExecutiveOfficeOutcome: "Further inspection offered", ExecutiveOfficeSatisfied: "awaiting-outcome",
 			CreatedAt: now, UpdatedAt: now,
 		}},
 	}
@@ -144,6 +146,9 @@ func TestMemberCSVBundleHasSeparateSafeDatasets(t *testing.T) {
 	}
 	if !strings.Contains(exported, "'=FORMULA()") || !strings.Contains(exported, "'+not a formula") {
 		t.Fatal("spreadsheet formula injection values were not neutralised")
+	}
+	if !strings.Contains(exported, "Executive Office acknowledgement") || !strings.Contains(exported, "Further inspection offered") {
+		t.Fatal("Executive Office history was not included in the member export")
 	}
 }
 

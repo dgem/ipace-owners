@@ -10,16 +10,17 @@ seoType: article
 
 <p class="lead">Many members asked to read JLR's response for themselves. JLR has agreed that we can publish its 2 October letter.</p>
 
+<p><a class="btn btn--primary" href="/member/survey-response/?id=latest">Tell us what you think the group should do next</a></p>
+
 **[Read JLR's letter (PDF, 3 pages)](/docs/jlr-letter-2-october-2026-redacted.pdf).**
 We have redacted personal names, an individual email address and a handwritten signature.
 The letter is otherwise unchanged. Our [assessment of JLR's response](/updates/jlr-response-2-october-2026/)
 is also available.
 
-Thank you to everyone who has emailed us about their experience and what they are doing
-next. Your updates help us see whether JLR's individual review route is working. If you
-contact JLR, please [tell us whether the outcome resolved your concern](mailto:contact@ipace-owners.org?subject=JLR%20Executive%20Office%20outcome).
-A short summary is enough; please keep your VIN and correspondence private unless we ask
-for them securely.
+Thank you to everyone who has shared their experience. If you contact JLR's Executive Office,
+please record the dates, responses and outcome in your private member vehicle history. It gives
+the group structured evidence of whether the individual-review route works. You can add it from
+[your member dashboard](/member/dashboard/).
 
 ## What should we do next?
 
@@ -49,5 +50,3 @@ representation, we will also need to confirm each person's eligibility and ident
 and obtain their separate, explicit consent. The account choice being prepared covers
 **preparatory legal engagement only**; issuing proceedings or accepting costs would
 require further authority.
-
-When the survey opens, you can [tell us what you think the group should do next](/member/survey-response/?id=latest).

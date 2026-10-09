@@ -70,6 +70,10 @@ type serviceEventRequest struct {
 	MilesDrivenWhilstFaulty   string      `json:"milesDrivenWhilstFaulty"`
 	WarrantyCover             string      `json:"warrantyCover"`
 	DisputeStatus             string      `json:"disputeStatus"`
+	ExecutiveOfficeAcknowledgedAt string `json:"executiveOfficeAcknowledgedAt"`
+	ExecutiveOfficeRepliedAt string `json:"executiveOfficeRepliedAt"`
+	ExecutiveOfficeOutcome string `json:"executiveOfficeOutcome"`
+	ExecutiveOfficeSatisfied string `json:"executiveOfficeSatisfied"`
 }
 
 type magicLinkRequest struct {
@@ -187,6 +191,10 @@ type serviceEventRecord struct {
 	MilesDrivenWhilstFaulty   *int         `json:"milesDrivenWhilstFaulty,omitempty" firestore:"milesDrivenWhilstFaulty,omitempty"`
 	WarrantyCover             string       `json:"warrantyCover,omitempty" firestore:"warrantyCover,omitempty"`
 	DisputeStatus             string       `json:"disputeStatus,omitempty" firestore:"disputeStatus,omitempty"`
+	ExecutiveOfficeAcknowledgedAt string `json:"executiveOfficeAcknowledgedAt,omitempty" firestore:"executiveOfficeAcknowledgedAt,omitempty"`
+	ExecutiveOfficeRepliedAt string `json:"executiveOfficeRepliedAt,omitempty" firestore:"executiveOfficeRepliedAt,omitempty"`
+	ExecutiveOfficeOutcome string `json:"executiveOfficeOutcome,omitempty" firestore:"executiveOfficeOutcome,omitempty"`
+	ExecutiveOfficeSatisfied string `json:"executiveOfficeSatisfied,omitempty" firestore:"executiveOfficeSatisfied,omitempty"`
 	Review                    reviewRecord `json:"review" firestore:"review"`
 }
 
