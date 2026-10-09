@@ -49,5 +49,8 @@ test('deployment allows enough time for Meta container processing without weaken
 
 test('Instagram campaign workspace defaults to the approved launch Reel', function () {
   assert.match(page, /value="\/i-pace-owners-insta-launch-with-text\.mp4"/);
+  assert.match(page, /data-instagram-approved-reel/);
+  assert.match(page, /Approved launch Reel/);
+  assert.match(page, /src="\/i-pace-owners-insta-launch-with-text\.mp4"/);
   assert.match(script, /defaultMediaPath = '\/i-pace-owners-insta-launch-with-text\.mp4'/);
 });
