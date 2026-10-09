@@ -38,6 +38,9 @@ test('the live magic-link journey is opt-in and does not retain sensitive diagno
   assert.match(spec, /E2E_RESEND_INBOX/);
   assert.match(spec, /'\/emails\/receiving'/);
   assert.match(spec, /test\.skip\(!hasLiveAuthConfiguration/);
+  assert.match(spec, /actionURL\.origin === expectedOrigin/);
+  assert.match(spec, /actionURL\.pathname === '\/auth\/action'/);
+  assert.match(spec, /query\.get\('continueUrl'\) === expectedAccountURL/);
   assert.doesNotMatch(spec, /console\.(?:log|error|warn)/);
   assert.match(workflow, /PLAYWRIGHT_AUTH_E2E_ENABLED == 'true'/);
   assert.match(workflow, /E2E_RESEND_INBOX_STAGING/);
