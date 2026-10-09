@@ -848,8 +848,16 @@ async function checkMarketingMessages(viewport, screenshotName, reminder = false
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
   if (previewOnly) {
-    await page.waitForLoadState('networkidle');
-    assert.equal(await page.frameLocator('[data-marketing-message-html]').locator('img').evaluate((img) => img.naturalWidth), 1120);
+    const previewImage = page.frameLocator('[data-marketing-message-html]').locator('img');
+    await previewImage.waitFor({ state: 'visible' });
+    const imageWidth = await previewImage.evaluate((img) => {
+      if (img.complete) return img.naturalWidth;
+      return new Promise((resolve, reject) => {
+        img.addEventListener('load', () => resolve(img.naturalWidth), { once: true });
+        img.addEventListener('error', () => reject(new Error('Campaign hero did not load.')), { once: true });
+      });
+    });
+    assert.equal(imageWidth, 1120);
     assert.equal(await page.frameLocator('[data-marketing-message-html]').locator('img').getAttribute('src'), baseURL + '/images/september-survey-reminder-2026-hero.jpg');
     assert.match(await page.locator('[data-marketing-message-audience]').textContent(), /sending disabled/);
     let sends = 0;

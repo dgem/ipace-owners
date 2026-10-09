@@ -601,6 +601,11 @@ and frozen headers. See prompt 17 for the audit mitigation.
   regeneration verified by smoke testing, branch-run cancellation, direct smoke testing,
   weekly Dependabot coverage, CodeQL `security-extended`, dependency review, npm audit,
   pinned `govulncheck`, and the passive ZAP baseline described in prompt `17`.
+- Recreate Playwright public browser coverage for responsive desktop and mobile navigation and
+  the signed-out member gate. Keep real passwordless browser coverage as a separate opt-in
+  staging-preview job that uses a dedicated registered test inbox and Resend Receiving; it must
+  neither run for forks nor retain or print magic links, inbox addresses, traces, screenshots or
+  video.
 - Recreate the shared OpenTofu module, environment workspaces, Firebase/Identity Platform,
   named Firestore database, Storage bucket, runtime service account, least-privilege GitHub
   deployer, custom domains, DNS outputs, Secret Manager entries, GitHub environments, and
@@ -617,6 +622,8 @@ Before declaring reconstruction complete:
    colour/focus behaviour.
 3. Test Join and magic-link flows for new, existing, unknown, malformed, and honeypot users;
    confirm generic responses and that email addresses never enter fallback page URLs.
+   For the staging-only browser journey, prove a registered dedicated test member can request and
+   complete a Resend-delivered magic link before viewing protected account content.
 4. Test unauthenticated, member, wrong-owner, and admin authorization for every private API.
 5. Test multiple vehicles, SoH history, service-event create/edit, snapshot regeneration,
    Firebase Auth pagination, five-minute public caching, and snapshot fallback.
