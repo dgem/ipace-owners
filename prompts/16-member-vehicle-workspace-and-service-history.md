@@ -83,9 +83,10 @@ than calling a third-party document or OCR service.
 
 Hash each selected file using SHA-256 in the browser and suppress duplicates for the current
 session. Use filename/text hints only to draft date, mileage, invoice category, type, status,
-provider, and a short title. Show the source filename and local fingerprint alongside editable
-vehicle, date, mileage, provider, type, status, title, and details fields, and tell members to
-keep the original document open while reviewing. Never submit automatically;
+provider, and a short title. Render the first local page or image beside the editable draft, with
+visible tags for the proposed date, mileage, type and summary so members can compare each value
+with their actual document. Show the source filename and local fingerprint alongside editable
+vehicle, date, mileage, provider, type, status, title, and details fields. Never submit automatically;
 the member must use an explicit `Submit reviewed record` control. Submit only the reviewed
 structured JSON to the existing authenticated `POST /api/upsert-service-event`. Keep the source
 filename, digest, and raw OCR output local; do not seed any of them into submitted fields because

@@ -17,6 +17,9 @@ test('service document importer remains local, review-gated and uses the protect
   assert.match(script, /pdfjs\/pdf\.min\.mjs/);
   assert.match(script, /Tesseract\.createWorker/);
   assert.match(script, /pdfPageImages/);
+  assert.match(script, /function previewImage/);
+  assert.match(script, /service-import-preview/);
+  assert.match(script, /Review the locally rendered source/);
   assert.match(script, /page ' \+ \(index \+ 1\) \+ ' of '/);
   assert.match(script, /Submit reviewed record/);
   assert.match(script, /fetch\('\/api\/upsert-service-event'/);

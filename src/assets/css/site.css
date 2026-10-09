@@ -4446,3 +4446,9 @@ details .details-body p:last-child {
     box-shadow: none;
   }
 }
+.service-import-preview { background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-sm); margin-top: var(--space-3); overflow: hidden; position: relative; }
+.service-import-preview img { border: 0; border-radius: 0; display: block; height: 20rem; margin: 0; width: 100%; }
+.service-import-preview__tag { background: var(--color-primary); border: 2px solid #fff; border-radius: 999px; box-shadow: 0 2px 6px rgb(17 24 39 / .2); color: #fff; font-size: var(--text-xs); font-weight: 700; left: var(--space-3); max-width: calc(100% - var(--space-6)); overflow: hidden; padding: .2rem .55rem; position: absolute; text-overflow: ellipsis; top: var(--space-3); white-space: nowrap; }
+.service-import-preview__tag:nth-last-child(3) { top: 3.25rem; }
+.service-import-preview__tag:nth-last-child(2) { top: 5.5rem; }
+.service-import-preview__tag:nth-last-child(1) { top: 7.75rem; }
