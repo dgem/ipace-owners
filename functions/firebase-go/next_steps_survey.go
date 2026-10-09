@@ -50,7 +50,7 @@ func seedNextStepsSurvey(enabled bool, now time.Time, exists func() (bool, error
 func nextStepsSurveyRecord(now time.Time) (surveyRecord, error) {
 	record, err := validateSurvey(surveyInput{
 		ID:           nextStepsSurveyID,
-		Title:        "What should the group do next?",
+		Title:        "What do you think the group should do next?",
 		Description:  "JLR has offered to review owners' cases individually. Help us set the group's priorities. Choose any steps you support, then mark one as your top priority. These paths can be pursued together. This survey does not authorise the group to represent you legally or share your details or story. Any preparatory legal engagement requires a separate choice, UK eligibility and identity checks; proceedings and costs would require further authority.",
 		Question:     "Which steps should the group prioritise now?",
 		CallToAction: "Choose the steps you support",

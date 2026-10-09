@@ -6,7 +6,7 @@ Production publication still needs a separate decision after the membership cont
 and preparatory-legal-engagement choice in PR #163 is available. Do not present a
 survey response as legal authorisation.
 
-**Title:** What should the group do next?
+**Title:** What do you think the group should do next?
 
 **Description:** JLR has published its 2 October response and offered to review owners'
 cases individually. We want a clear member mandate for the group's next priorities.

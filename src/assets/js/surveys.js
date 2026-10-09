@@ -1108,6 +1108,12 @@
   }
   function setupMemberDashboard(root) {
     var started = false;
+    function calloutHeading(survey) {
+      if (survey.id === "survey_what_next_october_2026") {
+        return "What do you think the group should do next?";
+      }
+      return esc(survey.title);
+    }
     function render(surveys) {
       var active = surveys.filter(function (result) {
           return result.canRespond;
@@ -1132,7 +1138,7 @@
         if (upcoming.length) {
           root.innerHTML =
             '<p class="dashboard-panel__eyebrow">Your voice matters</p><h2 class="survey-dashboard-callout__title">' +
-            esc(upcoming[0].survey.title) +
+            calloutHeading(upcoming[0].survey) +
             '</h2><p>This member survey opens soon. Tell us what you want the group to do next.</p><div class="cluster"><a class="btn btn--primary" href="/member/surveys/">View survey</a>' +
             historyAction +
             "</div>";
@@ -1151,7 +1157,7 @@
       root.innerHTML =
         '<p class="dashboard-panel__eyebrow">Your voice matters</p><h2 class="survey-dashboard-callout__title">' +
         (active.length === 1
-          ? esc(active[0].survey.title)
+          ? calloutHeading(active[0].survey)
           : "Tell us what you want the group to do next") +
         "</h2><p>There " +
         (active.length === 1

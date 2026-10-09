@@ -18,6 +18,9 @@ func TestNextStepsSurveyIsAStagingPreferenceSurvey(t *testing.T) {
 	if record.ID != nextStepsSurveyID || record.Status != "published" || !record.Multiple || !surveyIsLive(record, now) || len(record.Options) != 5 {
 		t.Fatalf("unexpected next-steps survey: %#v", record)
 	}
+	if record.Title != "What do you think the group should do next?" {
+		t.Fatalf("survey title = %q", record.Title)
+	}
 	if !strings.Contains(record.Description, "does not authorise") || !strings.Contains(record.Description, "separate choice") {
 		t.Fatal("survey must distinguish a preference from legal consent")
 	}
