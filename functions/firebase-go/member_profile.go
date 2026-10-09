@@ -385,7 +385,11 @@ func AdminMemberVerification(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if _, err := db.Collection("memberProfiles").Doc(req.UID).Get(r.Context()); err != nil {
-		writeJSON(w, 404, map[string]any{"error": "Member profile not found"})
+		if status.Code(err) == codes.NotFound {
+			writeJSON(w, 404, map[string]any{"error": "Member profile not found"})
+		} else {
+			writeJSON(w, 500, map[string]any{"error": "Could not load profile"})
+		}
 		return
 	}
 	_, err = db.Collection("memberVerification").Doc(req.UID).Set(r.Context(), map[string]any{"verified": req.Verified, "updatedAt": time.Now().UTC(), "adminUID": admin.UID}, firestore.MergeAll)
