@@ -3642,13 +3642,18 @@ canvas.admin-timeline {
   color: #ffffff;
 }
 
-.launch-final-cta__social {
-  margin: var(--space-4) 0 0;
-  color: var(--color-text-muted);
+.launch-final-cta__actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  justify-content: center;
 }
 
-.launch-final-cta__social a {
-  font-weight: 700;
+.launch-final-cta__note {
+  margin: var(--space-4) 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
 }
 
 .social-share {
