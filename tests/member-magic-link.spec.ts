@@ -73,6 +73,9 @@ async function waitForMagicLink(notBefore: number) {
 }
 
 test.describe('member magic-link sign-in', () => {
+  if (process.env.CI && !hasLiveAuthConfiguration) {
+    throw new Error('The enabled live authentication journey requires E2E_BASE_URL and dedicated Resend inbox credentials.');
+  }
   test.skip(!hasLiveAuthConfiguration, 'Live authentication requires E2E_BASE_URL and the configured Resend test inbox.');
 
   test('a registered member can open a magic link and see protected account data', async ({ page }) => {
@@ -85,9 +88,13 @@ test.describe('member magic-link sign-in', () => {
     await expect(page.getByText(/secure sign-in link will be sent/i)).toBeVisible();
 
     const magicLink = await waitForMagicLink(requestedAt);
-    await page.goto(magicLink);
+    try {
+      await page.goto(magicLink);
+    } catch {
+      throw new Error('The secure sign-in link could not be opened.');
+    }
 
-    await expect(page).toHaveURL(/\/member\/account\//);
+    await expect.poll(() => new URL(page.url()).pathname).toBe('/member/account/');
     await expect(page.locator('[data-auth-content]')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Account details' })).toBeVisible();
   });

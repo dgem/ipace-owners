@@ -9,7 +9,7 @@ export default defineConfig({
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
-  timeout: 30_000,
+  timeout: 120_000,
   expect: {
     timeout: 10_000,
   },

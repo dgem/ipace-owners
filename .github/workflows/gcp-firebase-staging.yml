@@ -233,27 +233,35 @@ jobs:
 
   playwright-member-auth:
     needs: deploy-preview
-    if: needs.deploy-preview.result == 'success' && vars.PLAYWRIGHT_AUTH_E2E_ENABLED == 'true'
+    if: needs.deploy-preview.result == 'success'
     runs-on: ubuntu-latest
     environment: staging
     timeout-minutes: 10
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v7
+      - if: vars.PLAYWRIGHT_AUTH_E2E_ENABLED != 'true'
+        run: echo "Live member authentication journey is disabled."
 
-      - uses: actions/setup-node@v7
+      - if: vars.PLAYWRIGHT_AUTH_E2E_ENABLED == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - if: vars.PLAYWRIGHT_AUTH_E2E_ENABLED == 'true'
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version-file: .nvmrc
           cache: npm
 
       - name: Install dependencies
+        if: vars.PLAYWRIGHT_AUTH_E2E_ENABLED == 'true'
         run: make ci-install
 
       - name: Install Chromium
+        if: vars.PLAYWRIGHT_AUTH_E2E_ENABLED == 'true'
         run: npx playwright install --with-deps chromium
 
       - name: Verify a member can complete passwordless sign-in
+        if: vars.PLAYWRIGHT_AUTH_E2E_ENABLED == 'true'
         env:
           E2E_BASE_URL: ${{ needs.deploy-preview.outputs.preview_url }}
           E2E_RESEND_API_KEY: ${{ secrets.E2E_RESEND_API_KEY_STAGING }}
