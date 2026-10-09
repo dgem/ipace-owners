@@ -18,13 +18,13 @@ test('the homepage navigation is usable without horizontal overflow', async ({ p
     await menuButton.click();
 
     await expect(page.getByRole('navigation', { name: 'Mobile navigation' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Join the Group' }).last()).toBeVisible();
+    await expect(page.getByRole('navigation', { name: 'Mobile navigation' }).getByRole('link', { name: 'Join the Group' })).toBeVisible();
     await expectNoHorizontalOverflow(page);
     return;
   }
 
   await expect(page.getByRole('navigation', { name: 'Main navigation' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Join the Group' }).first()).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Join the Group' })).toBeVisible();
 });
 
 test('the member sign-in gate remains legible and usable', async ({ page }) => {

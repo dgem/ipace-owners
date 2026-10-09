@@ -237,6 +237,9 @@ jobs:
     runs-on: ubuntu-latest
     environment: staging
     timeout-minutes: 10
+    concurrency:
+      group: firebase-staging-deploy
+      cancel-in-progress: false
     permissions:
       contents: read
     steps:

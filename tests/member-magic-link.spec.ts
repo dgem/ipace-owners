@@ -94,7 +94,8 @@ test.describe('member magic-link sign-in', () => {
       throw new Error('The secure sign-in link could not be opened.');
     }
 
-    await expect.poll(() => new URL(page.url()).pathname).toBe('/member/account/');
+    const expectedAccountURL = new URL('/member/account/', process.env.E2E_BASE_URL);
+    await expect.poll(() => page.url()).toBe(expectedAccountURL.href);
     await expect(page.locator('[data-auth-content]')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Account details' })).toBeVisible();
   });

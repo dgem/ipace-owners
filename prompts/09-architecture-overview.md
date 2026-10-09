@@ -438,5 +438,6 @@ redaction and analysis contract. No extra infrastructure or stored export object
   Android Chrome and iPhone Safari profiles. A separate staging-only, opt-in Playwright journey
   runs after preview deployment: it requests a passwordless link for a dedicated registered test
   member, retrieves it through Resend Receiving, and verifies the protected account page. Pass the
-  preview URL as `E2E_BASE_URL`; gate it on `PLAYWRIGHT_AUTH_E2E_ENABLED` and never retain or print
-  authentication links, inbox addresses, screenshots, traces or video.
+  preview URL as `E2E_BASE_URL`; gate it on `PLAYWRIGHT_AUTH_E2E_ENABLED`, serialize it with the
+  shared Firebase staging lock, verify the final URL remains on that preview origin, and never retain
+  or print authentication links, inbox addresses, screenshots, traces or video.
