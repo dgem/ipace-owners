@@ -18,13 +18,17 @@ test('the homepage navigation is usable without horizontal overflow', async ({ p
     await menuButton.click();
 
     await expect(page.getByRole('navigation', { name: 'Mobile navigation' })).toBeVisible();
-    await expect(page.getByRole('navigation', { name: 'Mobile navigation' }).getByRole('link', { name: 'Join', exact: true })).toBeVisible();
+    const mobileJoinLink = page.getByRole('navigation', { name: 'Mobile navigation' }).getByRole('link', { name: 'Join', exact: true });
+    await expect(mobileJoinLink).toBeVisible();
+    await expect(mobileJoinLink).toHaveAttribute('href', '/join/');
     await expectNoHorizontalOverflow(page);
     return;
   }
 
   await expect(page.getByRole('navigation', { name: 'Main navigation' })).toBeVisible();
-  await expect(page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Join', exact: true })).toBeVisible();
+  const desktopJoinLink = page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Join', exact: true });
+  await expect(desktopJoinLink).toBeVisible();
+  await expect(desktopJoinLink).toHaveAttribute('href', '/join/');
 });
 
 test('the member sign-in gate remains legible and usable', async ({ page }) => {
