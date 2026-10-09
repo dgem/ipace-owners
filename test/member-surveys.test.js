@@ -92,7 +92,8 @@ test("member dashboard prominently links members to current and closed surveys",
 
   assert.match(dashboard, /data-member-survey-summary/);
   assert.match(dashboard, /surveys: true/);
-  assert.match(script, /Help steer our discussions with JLR/);
+  assert.match(script, /Tell us what you want the group to do next/);
+  assert.match(script, /survey\.status === "published"/);
   assert.match(script, /filter=closed/);
   assert.match(script, /href="\/member\/surveys\/"/);
   assert.match(account, /data-member-survey-summary/);

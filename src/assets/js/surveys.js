@@ -1112,6 +1112,13 @@
       var active = surveys.filter(function (result) {
           return result.canRespond;
         }),
+        upcoming = surveys.filter(function (result) {
+          return (
+            !result.canRespond &&
+            result.survey.status === "published" &&
+            result.survey.startsOn > dateInputValue(new Date())
+          );
+        }),
         closed = surveys.filter(function (result) {
           return (
             !result.canRespond &&
@@ -1122,6 +1129,15 @@
           ? '<a class="btn btn--secondary" href="/member/surveys/?filter=closed">Past surveys</a>'
           : "";
       if (!active.length) {
+        if (upcoming.length) {
+          root.innerHTML =
+            '<p class="dashboard-panel__eyebrow">Your voice matters</p><h2 class="survey-dashboard-callout__title">' +
+            esc(upcoming[0].survey.title) +
+            '</h2><p>This member survey opens soon. Tell us what you want the group to do next.</p><div class="cluster"><a class="btn btn--primary" href="/member/surveys/">View survey</a>' +
+            historyAction +
+            "</div>";
+          return;
+        }
         root.innerHTML =
           '<h2 class="survey-dashboard-callout__title">Member surveys</h2><p>There are no open surveys right now.</p>' +
           historyAction;
@@ -1133,7 +1149,11 @@
         })
         .join("");
       root.innerHTML =
-        '<p class="dashboard-panel__eyebrow">Your voice matters</p><h2 class="survey-dashboard-callout__title">Help steer our discussions with JLR</h2><p>There ' +
+        '<p class="dashboard-panel__eyebrow">Your voice matters</p><h2 class="survey-dashboard-callout__title">' +
+        (active.length === 1
+          ? esc(active[0].survey.title)
+          : "Tell us what you want the group to do next") +
+        "</h2><p>There " +
         (active.length === 1
           ? "is an open member survey"
           : "are " + active.length + " open member surveys") +
