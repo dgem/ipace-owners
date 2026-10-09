@@ -294,10 +294,11 @@ site-owned `/images/` paths; Freeform campaigns retain the generic hero.
   workflow dispatch should deploy `Api` so operators can force a backend rollout.
 - Backend change detection must match files beneath `functions/firebase-go/`, not only the
   directory name, so Go changes deploy the Function and refresh preview Hosting rewrites.
-- Staging Function deployment sets `SEED_NEXT_STEPS_SURVEY=true` for the October
-  next-steps survey. The record is created on first authenticated survey access only
-  if absent; production leaves the flag unset. Do not delete or replace staging test
-  responses during routine preview deploys.
+- Function deployments set `SEED_NEXT_STEPS_SURVEY=true` for the October next-steps survey.
+  The record is created on first authenticated survey access only if absent; staging sets
+  `NEXT_STEPS_SURVEY_STATUS=published` while production sets it to `draft` so an administrator
+  controls publication. Do not delete or replace staging test responses during routine preview
+  deploys.
 - Require the production smoke test to receive the current public-statistics schema and
   headline aggregate. `PublicStats` regenerates an outdated stored snapshot under the
   Function runtime identity; do not grant the GitHub deployer direct member-data access.

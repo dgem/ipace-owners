@@ -10,7 +10,7 @@ import (
 )
 
 func TestNextStepsSurveyIsAStagingPreferenceSurvey(t *testing.T) {
-	now := time.Date(2026, 10, 9, 12, 0, 0, 0, time.UTC)
+	now := time.Date(2026, 10, 10, 12, 0, 0, 0, time.UTC)
 	record, err := nextStepsSurveyRecord(now)
 	if err != nil {
 		t.Fatal(err)
@@ -20,6 +20,9 @@ func TestNextStepsSurveyIsAStagingPreferenceSurvey(t *testing.T) {
 	}
 	if record.Title != "What do you think the group should do next?" {
 		t.Fatalf("survey title = %q", record.Title)
+	}
+	if record.StartsOn != "2026-10-10" || record.EndsOn != "2026-10-23" {
+		t.Fatalf("survey dates = %s to %s", record.StartsOn, record.EndsOn)
 	}
 	for _, option := range record.Options {
 		if !option.AllowsText || option.TextPrompt == "" {

@@ -99,11 +99,13 @@ test('Firebase deploy workflows verify keyless GCP credentials before deployment
   }
 });
 
-test('next-steps survey fixture is enabled only for staging Function deployment', function () {
+test('next-steps survey fixture is published in staging and seeded as a production draft', function () {
   const stagingWorkflow = readFileSync(stagingWorkflowPath, 'utf8');
   const productionWorkflow = readFileSync(productionWorkflowPath, 'utf8');
   assert.match(stagingWorkflow, /SEED_NEXT_STEPS_SURVEY: "true"/);
-  assert.doesNotMatch(productionWorkflow, /SEED_NEXT_STEPS_SURVEY/);
+  assert.match(stagingWorkflow, /NEXT_STEPS_SURVEY_STATUS: "published"/);
+  assert.match(productionWorkflow, /SEED_NEXT_STEPS_SURVEY: "true"/);
+  assert.match(productionWorkflow, /NEXT_STEPS_SURVEY_STATUS: "draft"/);
 });
 
 test('Firebase CLI preload reuses the short-lived GitHub access token', function () {

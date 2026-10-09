@@ -96,6 +96,7 @@ test("member dashboard prominently links members to current and closed surveys",
   assert.match(script, /Tell us what you want the group to do next/);
   assert.match(script, /What do you think the group should do next\?/);
   assert.match(script, /survey\.status === "published"/);
+  assert.match(script, /requestedID === "latest" \? latestSurvey\(all\) : null/);
   assert.match(script, /filter=closed/);
   assert.match(script, /href="\/member\/surveys\/"/);
   assert.match(account, /data-member-survey-summary/);

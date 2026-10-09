@@ -731,14 +731,35 @@
     if (adminContainer && adminContainer.dataset.adminData) start();
   }
   function setupResponse(root) {
+    function latestSurvey(all) {
+      var today = dateInputValue(new Date()),
+        live = all
+          .filter(function (result) {
+            return result.canRespond;
+          })
+          .sort(function (a, b) {
+            return b.survey.startsOn.localeCompare(a.survey.startsOn);
+          }),
+        closed = all
+          .filter(function (result) {
+            return result.survey.endsOn < today;
+          })
+          .sort(function (a, b) {
+            return b.survey.endsOn.localeCompare(a.survey.endsOn);
+          });
+      return live[0] || closed[0] || null;
+    }
     function render(all) {
       var requestedID = new URLSearchParams(window.location.search).get("id");
-      var active = all.filter(function (result) {
-        return (
-          result.canRespond &&
-          (!requestedID || result.survey.id === requestedID)
-        );
-      });
+      var requested = requestedID === "latest" ? latestSurvey(all) : null;
+      var active = requested
+        ? [requested]
+        : all.filter(function (result) {
+            return (
+              result.canRespond &&
+              (!requestedID || result.survey.id === requestedID)
+            );
+          });
       root.innerHTML = "";
       if (!active.length) {
         root.innerHTML =

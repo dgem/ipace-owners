@@ -33,6 +33,7 @@ test("writes function env vars as JSON without splitting comma-separated origins
       VEO_LOCATION: "global",
       VEO_MODEL_ID: "veo-3.1-generate-001",
       SEED_NEXT_STEPS_SURVEY: "true",
+	      NEXT_STEPS_SURVEY_STATUS: "published",
     },
   });
 
@@ -58,6 +59,7 @@ test("writes function env vars as JSON without splitting comma-separated origins
     VEO_LOCATION: "global",
     VEO_MODEL_ID: "veo-3.1-generate-001",
     SEED_NEXT_STEPS_SURVEY: "true",
+	    NEXT_STEPS_SURVEY_STATUS: "published",
     GOOGLE_CLOUD_PROJECT: "ipace-owners-staging",
     GCP_PROJECT: "ipace-owners-staging",
   });
@@ -108,4 +110,5 @@ test("derives the database ID while leaving the preview link domain unset", () =
   assert.equal(written.VEO_LOCATION, "");
   assert.equal(written.VEO_MODEL_ID, "");
   assert.equal(written.SEED_NEXT_STEPS_SURVEY, "");
+  assert.equal(written.NEXT_STEPS_SURVEY_STATUS, "");
 });

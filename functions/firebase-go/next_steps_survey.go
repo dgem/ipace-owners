@@ -46,6 +46,8 @@ func ensureNextStepsSurvey(ctx context.Context, db *firestore.Client) error {
 	_, err = ref.Update(ctx, []firestore.Update{
 		{Path: "title", Value: updated.Title},
 		{Path: "options", Value: updated.Options},
+		{Path: "startsOn", Value: updated.StartsOn},
+		{Path: "endsOn", Value: updated.EndsOn},
 		{Path: "updatedAt", Value: now},
 	})
 	return err
@@ -59,6 +61,11 @@ func nextStepsSurveyPresentation(existing surveyRecord, now time.Time) (surveyRe
 	changed := false
 	if existing.Title == "What should the group do next?" {
 		existing.Title = desired.Title
+		changed = true
+	}
+	if existing.StartsOn == "2026-10-09" && existing.EndsOn == "2026-11-09" {
+		existing.StartsOn = desired.StartsOn
+		existing.EndsOn = desired.EndsOn
 		changed = true
 	}
 	desiredOptions := make(map[string]surveyOption, len(desired.Options))
@@ -123,10 +130,10 @@ func nextStepsSurveyRecord(now time.Time) (surveyRecord, error) {
 		Description:  "JLR has offered to review owners' cases individually. Help us set the group's priorities. Choose any steps you support, then mark one as your top priority. These paths can be pursued together. This survey does not authorise the group to represent you legally or share your details or story. Any preparatory legal engagement requires a separate choice, UK eligibility and identity checks; proceedings and costs would require further authority.",
 		Question:     "Which steps should the group prioritise now?",
 		CallToAction: "Choose the steps you support",
-		Status:       "published",
+		Status:       nextStepsSurveyStatus(),
 		Multiple:     true,
-		StartsOn:     "2026-10-09",
-		EndsOn:       "2026-11-09",
+		StartsOn:     "2026-10-10",
+		EndsOn:       "2026-10-23",
 		ShowResults:  true,
 		Options: []surveyOption{
 			{ID: "dialogue", Name: "Give JLR time to respond", Description: "Keep dialogue open and assess whether individual case reviews produce lasting results.", AllowsPreferred: true, AllowsText: true, TextPrompt: "How long should we wait, and what are you hoping will happen in that time?"},
@@ -142,4 +149,11 @@ func nextStepsSurveyRecord(now time.Time) (surveyRecord, error) {
 	record.CreatedAt = now.UTC()
 	record.UpdatedAt = now.UTC()
 	return record, nil
+}
+
+func nextStepsSurveyStatus() string {
+	if os.Getenv("NEXT_STEPS_SURVEY_STATUS") == "draft" {
+		return "draft"
+	}
+	return "published"
 }

@@ -50,4 +50,4 @@ and obtain their separate, explicit consent. The account choice being prepared c
 **preparatory legal engagement only**; issuing proceedings or accepting costs would
 require further authority.
 
-When the survey opens, you can find it in [member surveys](/member/surveys/).
+When the survey opens, you can [tell us what you think the group should do next](/member/survey-response/?id=latest).
