@@ -7,8 +7,8 @@
     "node": ">=24 <25"
   },
   "scripts": {
-    "dev": "eleventy --serve",
-    "build": "eleventy",
+    "dev": "npm run copy:browser-vendors && eleventy --serve",
+    "build": "npm run copy:browser-vendors && eleventy",
     "clean": "rm -rf _site",
     "lint:js": "eslint .eleventy.js scripts test src/assets/js",
     "lint:css": "stylelint \"src/**/*.css\"",
@@ -18,7 +18,8 @@
     "test:visual": "node scripts/visual-check.mjs",
     "test:e2e:responsive": "playwright test --project=responsive-chromium --project=responsive-firefox --project=responsive-webkit --project=responsive-mobile-chrome --project=responsive-mobile-safari",
     "test:e2e:auth": "playwright test --project=member-magic-link",
-    "smoke:deployment": "node scripts/smoke-test-deployment.mjs"
+    "smoke:deployment": "node scripts/smoke-test-deployment.mjs",
+    "copy:browser-vendors": "node scripts/copy-browser-vendors.mjs"
   },
   "dependencies": {
     "@11ty/eleventy": "^3.0.0",
