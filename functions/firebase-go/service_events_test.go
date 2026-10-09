@@ -10,26 +10,30 @@ import (
 func TestValidatedServiceEvent(t *testing.T) {
 	yes := true
 	event, err := validatedServiceEvent(serviceEventRequest{
-		VehicleID:                 "vehicle_123",
-		EventType:                 "fault",
-		OccurredAt:                "2026-06-22",
-		Mileage:                   "42000",
-		Title:                     "Traction battery warning",
-		Description:               "Warning shown while charging.",
-		Status:                    "open",
-		Campaigns:                 stringArray{"H441", "H448", "H570"},
-		ServiceProviderID:         "J1714",
-		ServiceProviderName:       "Barretts Jaguar Service Centre, Ashford",
-		ServiceProviderPostcode:   "tn24 0fl",
-		ServiceProviderAuthorised: &yes,
-		FinalFixAt:                "2026-06-24",
-		CourtesyVehicleOffered:    "yes",
-		CourtesyVehicleProvided:   "no",
-		PartsDelay:                "up-to-1-month",
-		GoodwillPayment:           &yes,
-		MilesDrivenWhilstFaulty:   "1200",
-		WarrantyCover:             "battery-warranty",
-		DisputeStatus:             "initially-refused",
+		VehicleID:                     "vehicle_123",
+		EventType:                     "fault",
+		OccurredAt:                    "2026-06-22",
+		Mileage:                       "42000",
+		Title:                         "Traction battery warning",
+		Description:                   "Warning shown while charging.",
+		Status:                        "open",
+		Campaigns:                     stringArray{"H441", "H448", "H570"},
+		ServiceProviderID:             "J1714",
+		ServiceProviderName:           "Barretts Jaguar Service Centre, Ashford",
+		ServiceProviderPostcode:       "tn24 0fl",
+		ServiceProviderAuthorised:     &yes,
+		FinalFixAt:                    "2026-06-24",
+		CourtesyVehicleOffered:        "yes",
+		CourtesyVehicleProvided:       "no",
+		PartsDelay:                    "up-to-1-month",
+		GoodwillPayment:               &yes,
+		MilesDrivenWhilstFaulty:       "1200",
+		WarrantyCover:                 "battery-warranty",
+		DisputeStatus:                 "initially-refused",
+		ExecutiveOfficeAcknowledgedAt: "2026-06-23",
+		ExecutiveOfficeRepliedAt:      "2026-06-24",
+		ExecutiveOfficeOutcome:        "JLR offered a further inspection.",
+		ExecutiveOfficeSatisfied:      "awaiting-outcome",
 	})
 	if err != nil {
 		t.Fatalf("validatedServiceEvent() error = %v", err)
@@ -52,6 +56,9 @@ func TestValidatedServiceEvent(t *testing.T) {
 	if event.CourtesyVehicleOffered != "yes" || event.CourtesyVehicleProvided != "no" || event.PartsDelay != "up-to-1-month" || event.GoodwillPayment == nil || !*event.GoodwillPayment || event.MilesDrivenWhilstFaulty == nil || *event.MilesDrivenWhilstFaulty != 1200 || event.WarrantyCover != "battery-warranty" || event.DisputeStatus != "initially-refused" {
 		t.Fatalf("support fields = %+v", event)
 	}
+	if event.ExecutiveOfficeAcknowledgedAt != "2026-06-23" || event.ExecutiveOfficeRepliedAt != "2026-06-24" || event.ExecutiveOfficeOutcome != "JLR offered a further inspection." || event.ExecutiveOfficeSatisfied != "awaiting-outcome" {
+		t.Fatalf("Executive Office fields = %+v", event)
+	}
 }
 
 func TestValidatedServiceEventRejectsInvalidInput(t *testing.T) {
@@ -71,6 +78,8 @@ func TestValidatedServiceEventRejectsInvalidInput(t *testing.T) {
 		{VehicleID: valid.VehicleID, EventType: valid.EventType, OccurredAt: valid.OccurredAt, Status: valid.Status},
 		{VehicleID: valid.VehicleID, EventType: valid.EventType, OccurredAt: valid.OccurredAt, Title: valid.Title, Status: "unknown"},
 		{VehicleID: valid.VehicleID, EventType: valid.EventType, OccurredAt: valid.OccurredAt, Mileage: "many", Title: valid.Title, Status: valid.Status},
+		{VehicleID: valid.VehicleID, EventType: "executive-office-contact", OccurredAt: valid.OccurredAt, ExecutiveOfficeAcknowledgedAt: "not-a-date", Title: valid.Title, Status: valid.Status},
+		{VehicleID: valid.VehicleID, EventType: "executive-office-contact", OccurredAt: valid.OccurredAt, ExecutiveOfficeRepliedAt: "2026-06-21", Title: valid.Title, Status: valid.Status},
 	}
 	for _, request := range cases {
 		if _, err := validatedServiceEvent(request); err == nil {

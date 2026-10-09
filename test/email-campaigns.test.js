@@ -28,6 +28,7 @@ test('registration reminders retain only the transactional fresh-link workflow',
 
 test('mass mailings includes the October verified-member campaign', function () {
   for (const template of [
+    'what-next-october-2026',
     'jlr-response-october-2026',
     'post-meeting-next-steps',
     'survey-september-2026',
@@ -40,6 +41,7 @@ test('mass mailings includes the October verified-member campaign', function () 
   assert.match(marketingPage, /September survey invitation/);
   assert.match(marketingPage, /What we have asked JLR to do next — verified members/);
   assert.match(marketingPage, /JLR's 2 October response — verified members/);
+  assert.match(marketingPage, /JLR's letter and what next\? — verified members/);
   assert.match(marketingPage, /Mass mailings/);
   assert.match(marketingPage, /source-controlled copy/);
   assert.match(marketingScript, /\/api\/admin\/marketing-message-templates/);
@@ -58,7 +60,7 @@ test('mass mailings includes the October verified-member campaign', function () 
   assert.match(marketingScript, /data\.eligible/);
   assert.match(marketingScript, /verified members who have signed in at least once/);
   assert.match(marketingScript, /isLockedPreparedCampaign/);
-  assert.match(marketingScript, /id === 'post-meeting-next-steps' \|\| id === 'jlr-response-october-2026'/);
+  assert.match(marketingScript, /id === 'post-meeting-next-steps' \|\| id === 'jlr-response-october-2026' \|\| id === 'what-next-october-2026'/);
   assert.doesNotMatch(marketingScript, /innerHTML\s*=/);
 });
 

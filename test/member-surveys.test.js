@@ -49,7 +49,8 @@ test("surveys support public Markdown copy, multiple text options, and seven-day
   assert.match(script, /button\.textContent\s*=\s*["']More["']/);
   assert.match(script, /end\.setDate\(end\.getDate\(\) \+ 6\)/);
   assert.match(script, /textByOption/);
-  assert.match(script, /optional, up to 250 characters/);
+  assert.match(script, /optional, up to 1,024 characters/);
+  assert.match(script, /maxlength="1024"/);
   assert.match(script, /function optionTextPrompt\(option\)/);
   assert.match(script, /function expandSelectedOptionDescriptions\(form\)/);
   assert.match(
@@ -92,7 +93,10 @@ test("member dashboard prominently links members to current and closed surveys",
 
   assert.match(dashboard, /data-member-survey-summary/);
   assert.match(dashboard, /surveys: true/);
-  assert.match(script, /Help steer our discussions with JLR/);
+  assert.match(script, /Tell us what you want the group to do next/);
+  assert.match(script, /What do you think the group should do next\?/);
+  assert.match(script, /survey\.status === "published"/);
+  assert.match(script, /requestedID === "latest" \? latestSurvey\(all\) : null/);
   assert.match(script, /filter=closed/);
   assert.match(script, /href="\/member\/surveys\/"/);
   assert.match(account, /data-member-survey-summary/);

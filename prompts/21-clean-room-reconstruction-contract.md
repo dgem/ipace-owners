@@ -146,6 +146,18 @@ For resumed prepared campaigns, render remaining recipients from that current so
 while preserving the existing campaign ID and per-recipient delivery ledger. Match an
 existing prepared campaign by its stable template ID even when its name or subject changes.
 
+Preserve the 8 October update at `/updates/jlr-letter-and-what-next/` and its link to the
+three-page JLR letter at `/docs/jlr-letter-2-october-2026-redacted.pdf`. The public PDF
+retains JLR's words and layout after removal of personal names, a personal email address,
+the handwritten signature, personal-email hyperlink and identifying PDF metadata.
+The update thanks members for direct-contact reports and presents four possible next
+steps without implying that a survey choice is legal consent. Keep the proposed question and
+options in `docs/next-steps-survey-draft.md`; staging seeds a published, editable survey record
+on first authenticated survey access, while production seeds an editable draft for an administrator
+to publish. The scheduled 10–23 October 2026 window accepts responses only after publication.
+Legal representation preferences are being prepared
+separately for the member account, with only preparatory engagement covered by the first choice.
+
 All update-page hero images use a shallow 16:7 crop above the mobile breakpoint and 16:9 on
 small screens, keeping the opening text closer to long multi-line headings without losing a
 useful image treatment on narrow cards.
@@ -263,7 +275,7 @@ change rather than assuming it exists.
 | `POST /api/submit-join` | Optional Firebase token | `name`, `email`, `country`, `relationship`, `skills[]`, `consent-contact`, `consent-not-legal`, `consent-data`, and `bot-field`; save the Join record and initiate guest activation. |
 | `POST /api/submit-vehicle-basics` | Member | Optional `id` for an owned edit; otherwise `vin`, `registration`, `country`, `modelYear`, `mileage`, `ownedSince`, `firstReg`, plus optional initial `soh`, `sohDate`, `sohMileage`, `sohSource`. |
 | `POST /api/submit-soh` | Member/vehicle owner | Optional `id` for an owned edit plus `vehicleId`, `soh`, `sohDate`, `sohMileage`, `sohSource`; maintain the vehicle compatibility value. |
-| `POST /api/upsert-service-event` | Member/vehicle and record owner | `id`, `vehicleId`, `eventType`, `occurredAt`, `mileage`, `title`, `description`, `status`, `campaigns[]`, `serviceProviderId`, `serviceProviderName`, `serviceProviderPostcode`, `serviceProviderAuthorised`, `finalFixAt`, `courtesyVehicleOffered`, `courtesyVehicleProvided`, `partsDelay`, `goodwillPayment`, `milesDrivenWhilstFaulty`, `warrantyCover`, `disputeStatus`. Derive `daysToFinalFix` server-side. |
+| `POST /api/upsert-service-event` | Member/vehicle and record owner | `id`, `vehicleId`, `eventType`, `occurredAt`, `mileage`, `title`, `description`, `status`, `campaigns[]`, `serviceProviderId`, `serviceProviderName`, `serviceProviderPostcode`, `serviceProviderAuthorised`, `finalFixAt`, `courtesyVehicleOffered`, `courtesyVehicleProvided`, `partsDelay`, `goodwillPayment`, `milesDrivenWhilstFaulty`, `warrantyCover`, `disputeStatus`, `executiveOfficeAcknowledgedAt`, `executiveOfficeRepliedAt`, `executiveOfficeOutcome`, `executiveOfficeSatisfied`. Derive `daysToFinalFix` server-side. For Executive Office contacts, supplied acknowledgement/reply dates must be valid, non-future, and on or after `occurredAt`. |
 | `POST /api/update-member-preferences` | Member | Required booleans `contact`, `anonymisedAnalysis`; apply to every Join record sharing the authenticated email hash. |
 | `POST /api/delete-vehicle` | Member/vehicle owner | `id`, `confirmation: "DELETE"`; soft-delete the vehicle and its dependent SoH and service records. |
 | `POST /api/delete-soh` | Member/reading owner | `id`, `confirmation: "DELETE"`; soft-delete an SoH reading and refresh the vehicle compatibility value. |
@@ -408,6 +420,9 @@ Build-time Firebase web configuration uses `FIREBASE_WEB_API_KEY`,
 `SNAPSHOT_BUCKET`, `VIN_PEPPER`, `ALLOWED_ORIGINS`, `FIREBASE_WEB_API_KEY`,
 `FIREBASE_EMAIL_CONTINUE_URL`, optional `FIREBASE_EMAIL_LINK_DOMAIN`, and optional
 `RESEND_API_KEY`, `RESEND_FROM`, `RESEND_REPLY_TO`, and `RESEND_ASSET_BASE_URL`.
+The optional `SEED_NEXT_STEPS_SURVEY` flag creates the October survey automatically on the first
+authenticated survey access. `NEXT_STEPS_SURVEY_STATUS` is `published` in staging and `draft` in
+production, preserving an explicit production publication decision.
 Optional Instagram publishing additionally uses secret `INSTAGRAM_ACCESS_TOKEN` and non-secret
 `INSTAGRAM_USER_ID`, `INSTAGRAM_GRAPH_API_VERSION`, and `INSTAGRAM_MEDIA_BASE_URL`. Absence or
 invalidity must disable publishing while leaving local preview available.
@@ -505,6 +520,8 @@ the repository or an artifact archive:
   `public/images/jlr-next-steps-2026-email.jpg`;
 - `public/images/jlr-response-october-2026-hero.jpg`;
 - `public/images/jlr-response-october-2026-email.jpg`;
+- `public/images/where-next-october-2026-email.png`;
+- `public/docs/jlr-letter-2-october-2026-redacted.pdf`;
 - `public/images/ipace-owners-logo.svg` and `public/images/ipace-owners-logo.png`;
 - `public/images/ipace-owners-qr.svg`;
 - `public/images/ipace-owners-card-front.svg` and

@@ -141,7 +141,7 @@ lines or overflow their visible space should be collapsed to two visible lines w
 Existing surveys without explicit preferred-eligibility configuration retain their prior behaviour:
 all options, including any newly added during an edit, initially appear preferred-eligible until
 the administrator saves the explicit configuration.
-Any number of options may offer an optional 250-character free-text explanation (for example,
+Any number of options may offer an optional 1,024-character free-text explanation (for example,
 two distinct `Other` options); store text only when the member supplies it against the relevant
 selected option.
 For multiple-choice surveys only, let administrators explicitly mark each eligible option with
@@ -163,10 +163,13 @@ member endpoints; reject an attempted member response to a draft rather than rel
 listing.
 On both member landing pages—`/member/dashboard/` and `/member/account/` (the destination of the
 signed-in `My Data` header action)—place a prominent, plain-language callout before the main
-workspace: when one or more surveys are open, name them and provide a primary `Take the survey`
-action plus a `Past surveys` action only when closed surveys exist. When exactly one survey is
-open, the primary action must link directly to its response page; with more than one, it may lead
-to the survey directory to avoid arbitrarily selecting one. Refresh this summary after
+workspace: when one survey is open, make its title the callout heading so the question itself is
+the call to action; when several are open, use the direct prompt “Tell us what you want the group
+to do next”. Provide a primary `Take the survey` action plus a `Past surveys` action only when
+closed surveys exist. When exactly one survey is open, the primary action must link directly to
+its response page; with more than one, it may lead to the survey directory to avoid arbitrarily
+selecting one. When none is open but a published survey is scheduled, show its title, say that it
+opens soon and link to the survey directory. Refresh this summary after
 member verification, every minute, and on focus. The member survey page is a date-ordered
 directory of every published survey, with All, Open, Upcoming, and Closed filters. Each item
 shows whether the member has submitted, and provides Submit/Edit only while open, and View
@@ -267,3 +270,7 @@ timeout covering both authentication and download. Append the download link to t
 and release its blob URL after the browser starts downloading. Test access denial, source
 failure, redaction, preserved narrative/provider fields, multiple members, deletion, empty
 exports, formula safety and frontend recovery. Add desktop/mobile visual checkpoints.
+
+### Executive Office contact history
+
+The private vehicle timeline includes an `executive-office-contact` record type. Its event date is the date the member contacted JLR's Executive Office; it can also store acknowledgement and reply dates, the member's account of the outcome (up to 2,000 characters), and whether they are happy, partly happy, unhappy, or still awaiting an outcome. Show those fields only for this record type, validate that supplied dates are valid, not future dates, and no earlier than the contact date, and include them in the member's own CSV/XLSX export. This creates structured, member-controlled evidence of whether individual handling resolved matters.

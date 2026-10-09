@@ -551,7 +551,7 @@ func preferredServiceProviderName(names map[string]int) string {
 }
 
 func serviceEventTypeLabel(value string) string {
-	labels := map[string]string{"service": "Service", "fault": "Fault", "repair": "Repair", "recall": "Recall", "inspection": "Inspection", "other": "Other", "unknown": "Unknown"}
+	labels := map[string]string{"service": "Service", "fault": "Fault", "repair": "Repair", "recall": "Recall", "inspection": "Inspection", "executive-office-contact": "Executive Office contact", "other": "Other", "unknown": "Unknown"}
 	if label := labels[value]; label != "" {
 		return label
 	}

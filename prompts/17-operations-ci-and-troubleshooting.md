@@ -108,6 +108,14 @@ its interests or compromises work being done for members, asks them to understan
 promises an update as soon as JLR responds, links to the 28 September update, gives the Friday
 2 October 2026 response deadline its own prominent heading, and asks members to help reach 3,000
 while improving the evidence base.
+
+The October 2026 `what-next-october-2026` campaign also targets only communication-consented,
+verified members. It links the redacted-letter update and the authenticated member survey, makes
+clear that a survey response is not legal consent, and uses the parked right-hand-drive I-PACE-style
+driver-seat hero at `/images/where-next-october-2026-email.png`. The centre display asks “Where
+next?” so the visual supports members setting the group's direction without suggesting interaction
+while driving.
+
 Refreshing history must reconcile stored Resend IDs with the paginated sent-email API, cache
 provider checks for five minutes, and aggregate delivered, awaiting-delivery, opened, clicked,
 delayed, bounced, suppressed, complained, provider-failed and combined-undeliverable outcomes
@@ -286,6 +294,11 @@ site-owned `/images/` paths; Freeform campaigns retain the generic hero.
   workflow dispatch should deploy `Api` so operators can force a backend rollout.
 - Backend change detection must match files beneath `functions/firebase-go/`, not only the
   directory name, so Go changes deploy the Function and refresh preview Hosting rewrites.
+- Function deployments set `SEED_NEXT_STEPS_SURVEY=true` for the October next-steps survey.
+  The record is created on first authenticated survey access only if absent; staging sets
+  `NEXT_STEPS_SURVEY_STATUS=published` while production sets it to `draft` so an administrator
+  controls publication. Do not delete or replace staging test responses during routine preview
+  deploys.
 - Require the production smoke test to receive the current public-statistics schema and
   headline aggregate. `PublicStats` regenerates an outdated stored snapshot under the
   Function runtime identity; do not grant the GitHub deployer direct member-data access.

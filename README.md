@@ -651,6 +651,10 @@ descriptions, CTAs, and option descriptions support a safe Markdown subset; raw 
 as text. Each option has a plain-text result name (up to 120 characters) and a separate Markdown
 description (up to 2,000 characters); the response UI initially collapses multi-line or overflowing
 descriptions behind an accessible “more” control.
+The October 2026 “what next?” survey is seeded as an editable, published record only
+in staging when `SEED_NEXT_STEPS_SURVEY=true`; the first authenticated member or admin
+survey request creates it if absent. Staging responses use the normal survey flow.
+Production does not seed the survey, and a response is not legal-representation consent.
 Each selected text-enabled option can carry its own 250-character member explanation, which is
 never included in aggregate results or disclosed to other members.
 The separate admin analysis page shows exact votes, preferred votes and optional-comment

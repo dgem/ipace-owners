@@ -155,6 +155,8 @@ jobs:
           CAMPAIGN_MEDIA_BUCKET: ${{ vars.CAMPAIGN_MEDIA_BUCKET_STAGING }}
           VEO_LOCATION: ${{ vars.VEO_LOCATION_STAGING }}
           VEO_MODEL_ID: ${{ vars.VEO_MODEL_ID_STAGING }}
+          SEED_NEXT_STEPS_SURVEY: "true"
+          NEXT_STEPS_SURVEY_STATUS: "published"
           ALLOWED_ORIGINS: ${{ steps.hosting.outputs.url }}
           FIREBASE_EMAIL_CONTINUE_URL: ${{ format('{0}/member/account/', steps.hosting.outputs.url) }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY_STAGING }}
