@@ -10,7 +10,7 @@ seoType: article
 
 <p class="lead">Many members asked to read JLR's response for themselves. Following advice, we have decided to publish its 2 October letter with personal details redacted.</p>
 
-<p><a class="btn btn--primary" href="/member/survey-response/?id=latest">Tell us what you think the group should do next</a></p>
+<p class="update-article__cta"><a class="btn btn--primary" href="/member/survey-response/?id=latest">Tell us what you think the group should do next</a></p>
 
 **[Read JLR's letter (PDF, 3 pages)](/docs/jlr-letter-2-october-2026-redacted.pdf).**
 We have redacted personal names, an individual email address and a handwritten signature.
@@ -66,3 +66,5 @@ The **“what next?” survey** will help establish which steps have a group man
 legal route merits further work, we will set out a separate, voluntary way for eligible
 UK members to register interest. We would confirm eligibility and identity before any
 further step. Registration would not authorise representation, proceedings or costs.
+
+<p class="update-article__cta"><a class="btn btn--primary" href="/member/survey-response/?id=latest">Tell us what you think the group should do next</a></p>
