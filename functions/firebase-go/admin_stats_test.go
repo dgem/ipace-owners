@@ -163,6 +163,34 @@ func TestComputeServiceEventStatsKeepsEachRecord(t *testing.T) {
 	}
 }
 
+func TestServiceEventsByModelYearCountsVehiclesAndRecordsSeparately(t *testing.T) {
+	vehicles := []vehicleRecord{
+		{ID: "v1", IdentityUserID: "u1", Vehicle: vehicleDetails{ModelYear: "2022"}},
+		{ID: "v2", IdentityUserID: "u2", Vehicle: vehicleDetails{ModelYear: "2022"}},
+		{ID: "v3", IdentityUserID: "u3", Vehicle: vehicleDetails{ModelYear: "2024"}},
+	}
+	services := []serviceEventRecord{
+		{VehicleID: "v1", IdentityUserID: "u1", EventType: "fault", Campaigns: []string{"H570", "H571"}},
+		{VehicleID: "v1", IdentityUserID: "u1", EventType: "repair"},
+		{VehicleID: "v3", IdentityUserID: "u3", EventType: "recall"},
+		{VehicleID: "v2", IdentityUserID: "wrong", EventType: "fault"},
+		{VehicleID: "missing", IdentityUserID: "u4", EventType: "fault"},
+		{VehicleID: "v2", IdentityUserID: "u2", EventType: "fault", Review: reviewRecord{Status: "deleted"}},
+	}
+	stats := computeServiceEventStatsWithVehicles(services, vehicles)
+	if len(stats.ModelYearBreakup) != 2 {
+		t.Fatalf("rows=%#v", stats.ModelYearBreakup)
+	}
+	y22 := stats.ModelYearBreakup[0]
+	if y22.ModelYear != "2022" || y22.Vehicles != 2 || y22.VehiclesWithEvents != 1 || y22.Events != 2 || y22.Faults != 1 || y22.Repairs != 1 || y22.BatteryCampaigns != 1 {
+		t.Fatalf("2022=%#v", y22)
+	}
+	y24 := stats.ModelYearBreakup[1]
+	if y24.ModelYear != "2024" || y24.Vehicles != 1 || y24.VehiclesWithEvents != 1 || y24.Recalls != 1 {
+		t.Fatalf("2024=%#v", y24)
+	}
+}
+
 func TestComputeServiceEventStatsDoesNotClassifyNoDisputeAsDisputed(t *testing.T) {
 	stats := computeServiceEventStats([]serviceEventRecord{
 		{EventType: "inspection", DisputeStatus: "none"},

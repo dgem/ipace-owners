@@ -59,7 +59,7 @@ private unless we ask for them securely.
 We have not shared member records, VINs or survey responses with JLR. We would seek
 your explicit permission before sharing your information ourselves.
 
-We will review JLR's response with our advisers and update members on next steps.
+We will review JLR's response with our advisers and update members on what next steps might look like.
 
 ## Correction to our meeting update
 
