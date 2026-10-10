@@ -49,16 +49,17 @@ Briefly describe the fault, repairs, effect on you and outcome you seek, and kee
 a copy. Contacting JLR is your choice. If many owners write, JLR will see the scale
 its individual route must handle.
 
-If you contact JLR, please tell **[contact@ipace-owners.org](mailto:contact@ipace-owners.org?subject=JLR%20Executive%20Office%20outcome)**
-whether the route helped, what JLR offered, and whether the result resolved your concern
-to your satisfaction. Please also tell us if you were asked to pay for diagnosis or
-repair. A short summary is enough; you need not forward private correspondence or your
-VIN unless we ask for it securely.
+If you contact JLR, please [add it to your private member service history](/member/dashboard/).
+Record when you emailed, when JLR acknowledged or replied, what it offered, whether the
+outcome resolved your concern, and any diagnosis or repair costs you were asked to pay.
+This gives us structured evidence of whether the Executive Office route delivers fair,
+timely and lasting outcomes. A short summary is enough; keep correspondence and your VIN
+private unless we ask for them securely.
 
 We have not shared member records, VINs or survey responses with JLR. We would seek
 your explicit permission before sharing your information ourselves.
 
-We will review JLR's response with our advisers and update members on next steps.
+We will review JLR's response with our advisers and update members on what next steps might look like.
 
 ## Correction to our meeting update
 

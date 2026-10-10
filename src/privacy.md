@@ -24,8 +24,8 @@ Depending on what you choose to provide, we may collect:
 
 - Your name, email address, country or region, relationship to an I-PACE, volunteering
   interests, postal address, optional phone number, and consent choices.
-- Your choice to authorise preparatory legal representation, when eligible, and an
-  administrator's separate identity-verification decision.
+- If this future option is enabled, your registered interest in exploring UK legal options and
+  an administrator's separate identity-verification decision.
 - Vehicle registration, country, model year, mileage, ownership dates, and the final six
   characters of a VIN.
 - Battery State of Health readings, measurement dates, mileage, and source.

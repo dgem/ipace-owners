@@ -94,6 +94,20 @@ type serviceEventStats struct {
 	EventTypeAggregates  []resolutionAggregate `json:"eventTypeAggregates"`
 	ProviderAggregates   []resolutionAggregate `json:"providerAggregates"`
 	DisputeStatusBreakup []demographicBucket   `json:"disputeStatusBreakup"`
+	ModelYearBreakup     []serviceModelYearRow `json:"modelYearBreakup"`
+}
+
+// serviceModelYearRow joins submitted service records to registered vehicles.
+// Counts describe this self-selected dataset, not the I-PACE fleet.
+type serviceModelYearRow struct {
+	ModelYear          string `json:"modelYear"`
+	Vehicles           int    `json:"vehicles"`
+	VehiclesWithEvents int    `json:"vehiclesWithEvents"`
+	Events             int    `json:"events"`
+	Faults             int    `json:"faults"`
+	Repairs            int    `json:"repairs"`
+	Recalls            int    `json:"recalls"`
+	BatteryCampaigns   int    `json:"batteryCampaigns"`
 }
 
 // eventTypeBreakdown shows event counts by EventType.
@@ -191,7 +205,7 @@ func AdminStats(w http.ResponseWriter, r *http.Request) {
 		},
 		MemberStats:              computeMemberStats(joins, accounts, vehicles),
 		VehicleStats:             computeVehicleStats(vehicles),
-		ServiceEventStats:        computeServiceEventStats(services),
+		ServiceEventStats:        computeServiceEventStatsWithVehicles(services, vehicles),
 		ServiceLocations:         computeConsentServiceLocations(joins, vehicles, services),
 		ConsentedJoinTimeline:    computeConsentedJoinTimeline(joins),
 		ConsentedMemberCountries: computeConsentedMemberCountries(joins),
@@ -506,6 +520,70 @@ func computeServiceEventStats(services []serviceEventRecord) serviceEventStats {
 		ProviderAggregates:   providerAggregates,
 		DisputeStatusBreakup: disputeStatusBreakup,
 	}
+}
+
+func computeServiceEventStatsWithVehicles(services []serviceEventRecord, vehicles []vehicleRecord) serviceEventStats {
+	stats := computeServiceEventStats(services)
+	byVehicle := make(map[string]vehicleRecord, len(vehicles))
+	rows := make(map[string]*serviceModelYearRow)
+	seen := make(map[string]map[string]bool)
+	for _, vehicle := range vehicles {
+		if vehicle.ID == "" || recordDeleted(vehicle.Review) {
+			continue
+		}
+		byVehicle[vehicle.ID] = vehicle
+		year := strings.TrimSpace(vehicle.Vehicle.ModelYear)
+		if year == "" {
+			year = "Unknown"
+		}
+		if rows[year] == nil {
+			rows[year] = &serviceModelYearRow{ModelYear: year}
+		}
+		rows[year].Vehicles++
+	}
+	for _, event := range services {
+		if recordDeleted(event.Review) {
+			continue
+		}
+		vehicle, ok := byVehicle[event.VehicleID]
+		if !ok || vehicle.IdentityUserID == "" || vehicle.IdentityUserID != event.IdentityUserID {
+			continue
+		}
+		year := strings.TrimSpace(vehicle.Vehicle.ModelYear)
+		if year == "" {
+			year = "Unknown"
+		}
+		row := rows[year]
+		row.Events++
+		if seen[year] == nil {
+			seen[year] = make(map[string]bool)
+		}
+		if !seen[year][vehicle.ID] {
+			row.VehiclesWithEvents++
+			seen[year][vehicle.ID] = true
+		}
+		switch cleanEnum(event.EventType, serviceEventTypeValues) {
+		case "fault":
+			row.Faults++
+		case "repair":
+			row.Repairs++
+		case "recall":
+			row.Recalls++
+		}
+		for _, campaign := range event.Campaigns {
+			if campaign == "H570" || campaign == "H571" || campaign == "H572" {
+				row.BatteryCampaigns++
+				break
+			}
+		}
+	}
+	for _, row := range rows {
+		stats.ModelYearBreakup = append(stats.ModelYearBreakup, *row)
+	}
+	sort.Slice(stats.ModelYearBreakup, func(i, j int) bool {
+		return stats.ModelYearBreakup[i].ModelYear < stats.ModelYearBreakup[j].ModelYear
+	})
+	return stats
 }
 
 var serviceProviderPostcodeRE = regexp.MustCompile(`(?i)\b[A-Z]{1,2}[0-9][A-Z0-9]?\s*[0-9][A-Z]{2}\b`)

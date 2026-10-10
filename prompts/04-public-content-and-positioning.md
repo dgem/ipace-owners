@@ -155,14 +155,20 @@ group to share its 2 October letter. Link the three-page source-format PDF at
 `/docs/jlr-letter-2-october-2026-redacted.pdf`; remove personal names, the individual's
 email address, handwritten signature and identifying metadata without changing JLR's
 remaining wording. Thank members who report their individual JLR contact and invite
-outcome summaries without ordinary-email VINs or private correspondence. Explain the
-four possible group priorities: allow time for a clearer JLR response, grow membership
+outcome summaries without ordinary-email VINs or private correspondence. Record that at least
+seven members reported contacting the Executive Office: one reported a final refusal of replacement
+and buy-back, while the others who reported in were waiting, with no reported satisfactory outcome.
+Describe this as early, self-selected evidence and use it to explain why the individual route must
+be tested for consistent, lasting results. Explain the four possible group priorities: allow time for a clearer JLR response, grow membership
 and evidence, consider measured press engagement, and prepare legal escalation with
 advice on costs and funding. Raise the Type 01 battery comparison as a question, not a
 technical finding. Tell members a “what next?” survey and contact/consent features are
-being prepared. A survey preference is not authority to represent anyone. The account
-choice being prepared covers preparatory legal engagement only; identity and eligibility
-checks, and further authority for proceedings or costs, remain separate. Preserve the
+being prepared. Explain that members may save legal names and addresses now as private
+preparation to reduce delay if this or a later decision supports legal work. A survey
+preference is not authority to represent anyone. Legal-interest registration is not currently
+offered; if a legal route merits further work, ask eligible UK members for a separate,
+voluntary interest-registration preference. Identity and eligibility checks and further
+authority for proceedings or costs remain separate. Preserve the
 proposed survey wording in `docs/next-steps-survey-draft.md`. In staging only, the
 survey is seeded into the existing authenticated member-survey flow for real test
 responses from 9 October to 9 November 2026. Do not describe it as live in production.
@@ -436,3 +442,7 @@ offer a downloadable sample Excel workbook generated with fictional data only.
 ## Instagram discovery
 
 Promote the group’s public Instagram profile, `https://www.instagram.com/ipaceowners/`, as a follow destination rather than only offering social sharing. Keep joining as the primary homepage action. The launch homepage final CTA should invite visitors to follow `@ipaceowners` for owner updates and reels, and the footer’s social area should include a direct Instagram-profile link alongside share controls.
+
+For the October 2026 Executive Office evidence, explain that the reports are early and self-selected, and that there is no evidence yet that individual Executive Office contact changes outcomes. Recognise members may reasonably regard repeated case-by-case review as delay or divide-and-conquer unless it produces fair, timely and lasting outcomes. Invite members to record dates, responses and outcomes in private vehicle history through the member dashboard so the group can test this claim.
+
+The 2 October JLR response update must direct members who contact the Executive Office to add a private service-history entry through the member dashboard. Ask for the date sent, acknowledgement or reply timing, offer, whether it resolved the concern, and any diagnosis or repair costs. Explain that this is how the group tests whether individual review delivers fair, timely and lasting outcomes.

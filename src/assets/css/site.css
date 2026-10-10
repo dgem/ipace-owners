@@ -3540,6 +3540,11 @@ canvas.admin-timeline {
   margin-bottom: 0;
 }
 
+.update-article__cta {
+  margin-block: var(--space-8);
+  text-align: center;
+}
+
 /* Content prose area */
 .prose {
   max-width: 70ch;

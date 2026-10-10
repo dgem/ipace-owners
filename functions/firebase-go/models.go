@@ -74,6 +74,7 @@ type serviceEventRequest struct {
 	ExecutiveOfficeRepliedAt      string      `json:"executiveOfficeRepliedAt"`
 	ExecutiveOfficeOutcome        string      `json:"executiveOfficeOutcome"`
 	ExecutiveOfficeSatisfied      string      `json:"executiveOfficeSatisfied"`
+	JLRCaseReference              string      `json:"jlrCaseReference"`
 }
 
 type magicLinkRequest struct {
@@ -195,6 +196,7 @@ type serviceEventRecord struct {
 	ExecutiveOfficeRepliedAt      string       `json:"executiveOfficeRepliedAt,omitempty" firestore:"executiveOfficeRepliedAt,omitempty"`
 	ExecutiveOfficeOutcome        string       `json:"executiveOfficeOutcome,omitempty" firestore:"executiveOfficeOutcome,omitempty"`
 	ExecutiveOfficeSatisfied      string       `json:"executiveOfficeSatisfied,omitempty" firestore:"executiveOfficeSatisfied,omitempty"`
+	JLRCaseReference              string       `json:"jlrCaseReference,omitempty" firestore:"jlrCaseReference,omitempty"`
 	Review                        reviewRecord `json:"review" firestore:"review"`
 }
 

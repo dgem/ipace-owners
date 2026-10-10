@@ -6,6 +6,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { execFileSync } from 'node:child_process';
 import { chromium } from 'playwright-core';
+import { expect } from '@playwright/test';
 
 const baseURL = (process.env.VISUAL_BASE_URL || 'http://127.0.0.1:8080').replace(/\/$/, '');
 const outputDir = process.env.VISUAL_OUTPUT_DIR || 'visual-artifacts';
@@ -620,7 +621,14 @@ async function checkServiceRecordForm(viewport, screenshotName) {
     }));
   });
   await page.waitForFunction(() => document.querySelector('[data-vehicle-workspace]').dataset.serviceProvidersReady === 'true');
-  await page.getByRole('button', { name: 'Add record' }).click();
+  const history = page.getByRole('region', { name: 'Vehicle history' });
+  await history.getByRole('button', { name: 'Add record' }).click();
+  const recordType = page.getByLabel('Record type');
+  await recordType.selectOption('service', { force: true });
+  const provider = page.locator('[data-service-provider-lookup]');
+  await expect(recordType).toHaveValue('service');
+  await expect(provider).toBeVisible();
+  await expect(provider).toBeEnabled();
   const providerName = new RegExp(escapeRegExp(providerFixture.name));
   for (const query of [providerFixture.name, providerFixture.town, providerFixture.postcode, providerFixture.county, providerFixture.addressLines[0]]) {
     await page.locator('[data-service-provider-lookup]').fill(query);
