@@ -92,10 +92,21 @@
 
   function syncExecutiveOfficeFields(form) {
     var section = form.querySelector('[data-executive-office-fields]');
+    var standardFields = form.querySelector('[data-standard-service-fields]');
+    var dateLabel = form.querySelector('[data-event-date-label]');
+    var titleLabel = form.querySelector('[data-event-title-label]');
+    var detailsLabel = form.querySelector('[data-event-details-label]');
     var enabled = form.elements.eventType.value === 'executive-office-contact';
     if (!section) return;
     section.hidden = !enabled;
     section.querySelectorAll('input, select, textarea').forEach(function (field) { field.disabled = !enabled; });
+    if (standardFields) {
+      standardFields.hidden = enabled;
+      standardFields.querySelectorAll('input, select, textarea').forEach(function (field) { field.disabled = enabled; });
+    }
+    if (titleLabel) titleLabel.textContent = enabled ? 'What did you ask the Executive Office to do?' : 'Summary';
+    if (detailsLabel) detailsLabel.textContent = enabled ? 'Anything else to add?' : 'Details';
+    if (dateLabel) dateLabel.textContent = enabled ? 'Date sent to the Executive Office' : 'Date';
   }
 
   function serviceProviderValue(provider) {
@@ -307,14 +318,14 @@
   function serviceEventFormMarkup(vehicleId) {
     return '<div class="member-form-panel" data-event-panel hidden><form data-service-event-form>' +
       '<input type="hidden" name="id"><input type="hidden" name="vehicleId" value="' + escapeHtml(vehicleId) + '">' +
-      '<h3 data-event-form-title>Add service event or fault</h3><div class="member-form-grid">' +
-      '<div class="form-group"><label for="event-type">Record type</label><select id="event-type" name="eventType" required><option value="fault" selected>Fault</option><option value="service">Service</option><option value="repair">Repair</option><option value="recall">Recall</option><option value="inspection">Inspection</option><option value="executive-office-contact">Executive Office contact</option><option value="other">Other</option></select></div>' +
-      '<div class="form-group"><label for="event-date">Date</label><input id="event-date" name="occurredAt" type="date" required' + notFutureDateAttributes('event-date-error') + '><span class="form-error" id="event-date-error" role="alert" hidden>Event date cannot be in the future.</span></div>' +
+      '<h3 data-event-form-title>Add Executive Office contact</h3><div class="member-form-grid">' +
+      '<div class="form-group"><label for="event-type">Record type</label><select id="event-type" name="eventType" required><option value="executive-office-contact" selected>Executive Office contact</option><option value="fault">Fault</option><option value="service">Service</option><option value="repair">Repair</option><option value="recall">Recall</option><option value="inspection">Inspection</option><option value="other">Other</option></select></div>' +
+      '<div class="form-group"><label for="event-date" data-event-date-label>Date</label><input id="event-date" name="occurredAt" type="date" required' + notFutureDateAttributes('event-date-error') + '><span class="form-error" id="event-date-error" role="alert" hidden>Event date cannot be in the future.</span></div>' +
       '<div class="form-group"><label for="event-mileage">Mileage</label><input id="event-mileage" name="mileage" type="number" min="0" max="500000"></div>' +
-      '<div class="form-group"><label for="event-jlr-case-reference">JLR Client Care case reference <span class="form-hint">(if assigned)</span></label><input id="event-jlr-case-reference" name="jlrCaseReference" type="text" inputmode="numeric" pattern="800[0-9]{7}" maxlength="10" placeholder="8001068526" aria-describedby="event-jlr-case-reference-hint" autocomplete="off"><span id="event-jlr-case-reference-hint" class="form-hint">Currently 10 digits, starting 800.</span></div>' +
       '<div class="form-group"><label for="event-status">Status</label><select id="event-status" name="status" required><option value="open">Open</option><option value="monitoring">Monitoring</option><option value="resolved">Resolved</option><option value="completed">Completed</option></select></div>' +
+      '<div class="form-group member-form-grid__wide"><label for="event-jlr-case-reference">JLR Client Care case reference <span class="form-hint">(if assigned)</span></label><input id="event-jlr-case-reference" name="jlrCaseReference" type="text" inputmode="numeric" pattern="800[0-9]{7}" maxlength="10" placeholder="8001068526" aria-describedby="event-jlr-case-reference-hint" autocomplete="off"><span id="event-jlr-case-reference-hint" class="form-hint">Currently 10 digits, starting 800.</span></div>' +
       '<div class="member-form-grid__wide member-form-grid" data-executive-office-fields hidden><div class="form-group"><label>Acknowledgement date<input name="executiveOfficeAcknowledgedAt" type="date"></label></div><div class="form-group"><label>Reply date<input name="executiveOfficeRepliedAt" type="date"></label></div><div class="form-group"><label>Are you happy with the outcome?<select name="executiveOfficeSatisfied"><option value="">Select</option><option value="happy">Yes</option><option value="partly-happy">Partly</option><option value="not-happy">No</option><option value="awaiting-outcome">Still awaiting an outcome</option></select></label></div><div class="form-group member-form-grid__wide"><label>Executive Office outcome<textarea name="executiveOfficeOutcome" rows="3" maxlength="2000"></textarea></label></div></div>' +
-      '<div class="form-group member-form-grid__wide"><label for="event-service-provider">Service provider</label><div class="provider-autocomplete"><input id="event-service-provider" type="text" autocomplete="off" data-service-provider-lookup placeholder="Search by provider name, town or postcode" role="combobox" aria-autocomplete="list" aria-controls="jaguar-service-provider-suggestions" aria-expanded="false"><div id="jaguar-service-provider-suggestions" class="provider-autocomplete__suggestions" data-service-provider-suggestions role="listbox" hidden></div></div>' +
+      '<div class="member-form-grid__wide member-form-grid" data-standard-service-fields><div class="form-group member-form-grid__wide"><label for="event-service-provider">Service provider</label><div class="provider-autocomplete"><input id="event-service-provider" type="text" autocomplete="off" data-service-provider-lookup placeholder="Search by provider name, town or postcode" role="combobox" aria-autocomplete="list" aria-controls="jaguar-service-provider-suggestions" aria-expanded="false"><div id="jaguar-service-provider-suggestions" class="provider-autocomplete__suggestions" data-service-provider-suggestions role="listbox" hidden></div></div>' +
       '<input type="hidden" name="serviceProviderId"><input type="hidden" name="serviceProviderName"><input type="hidden" name="serviceProviderPostcode"><p class="form-hint">Jaguar UK EV service locations are suggested. You can also enter another provider.</p>' +
       '<label class="check-label"><input type="checkbox" name="serviceProviderAuthorised" value="true"> Authorised Jaguar Land Rover service provider</label></div>' +
       '<fieldset class="form-group member-form-grid__wide"><legend>Related campaigns or recalls</legend><div class="campaign-selector" aria-label="Select related campaigns or recalls">' +
@@ -335,8 +346,8 @@
       '<div class="form-group member-form-grid__wide"><label class="toggle-control"><input type="checkbox" name="goodwillPayment" value="true"><span class="toggle-control__track" aria-hidden="true"></span><span>Goodwill payment received</span></label></div>' +
       '<div class="form-group"><label for="event-warranty-cover">Warranty cover in place</label><select id="event-warranty-cover" name="warrantyCover"><option value="">Select</option><option value="manufacturer">Manufacturer warranty</option><option value="battery-warranty">8-year battery warranty</option><option value="extended-manufacturer">Extended manufacturer warranty</option><option value="third-party">Third-party warranty</option><option value="none">No warranty cover</option><option value="unsure">Unsure</option></select></div>' +
       '<div class="form-group"><label for="event-dispute-status">Responsibility or warranty dispute?</label><select id="event-dispute-status" name="disputeStatus"><option value="">Select</option><option value="none">No dispute</option><option value="initially-refused">Initially refused</option><option value="partially-accepted">Partially accepted only</option><option value="still-disputed">Still disputed</option><option value="resolved-after-escalation">Resolved after escalation</option><option value="unsure">Unsure</option></select></div>' +
-      '<div class="form-group member-form-grid__wide"><label for="event-title">Summary</label><input id="event-title" name="title" type="text" maxlength="160" required></div>' +
-      '<div class="form-group member-form-grid__wide"><label for="event-description">Details</label><textarea id="event-description" name="description" rows="4" maxlength="4000"></textarea></div>' +
+      '</div><div class="form-group member-form-grid__wide"><label for="event-title" data-event-title-label>Summary</label><input id="event-title" name="title" type="text" maxlength="160" required></div>' +
+      '<div class="form-group member-form-grid__wide"><label for="event-description" data-event-details-label>Details</label><textarea id="event-description" name="description" rows="4" maxlength="4000"></textarea></div>' +
       '</div><div class="cluster"><button class="btn btn--primary" type="submit">Save record</button><button class="btn btn--secondary" type="button" data-close-panel="event">Cancel</button></div>' +
       '<p class="form-hint" data-service-event-status role="status" aria-live="polite"></p></form></div>';
   }
@@ -452,7 +463,7 @@
     form.elements.title.value = item.title;
     form.elements.description.value = item.description || '';
     form.elements.status.value = item.status;
-    form.querySelector('[data-event-form-title]').textContent = 'Edit service event or fault';
+    form.querySelector('[data-event-form-title]').textContent = item.eventType === 'executive-office-contact' ? 'Edit Executive Office contact' : 'Edit service event or fault';
     openPanel('event');
   }
 
@@ -530,7 +541,7 @@
         form.elements.vehicleId.value = activeVehicleId;
         updateResolutionDays(form);
         hideServiceProviderSuggestions(form);
-        form.querySelector('[data-event-form-title]').textContent = 'Add service event or fault';
+        form.querySelector('[data-event-form-title]').textContent = 'Add Executive Office contact';
         syncExecutiveOfficeFields(form);
       } else if (open.dataset.openPanel === 'soh') {
         var sohForm = workspace.querySelector('[data-soh-update-form]');

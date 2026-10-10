@@ -139,6 +139,14 @@ member can neither set nor read it. Append each opt-in, withdrawal or change to 
 `memberProfiles/{uid}/representationChoices`, recording the wording version and time without
 duplicating contact PII; keep only the current choice in the parent profile.
 
+Default new vehicle-history records to `Executive Office contact` while that is the active
+evidence focus. This version of the form shows date sent, optional mileage, JLR Client Care case
+reference, status, acknowledgement/reply dates, satisfaction, outcome and a concise request/details
+record. Hide and disable service-provider, campaign, repair, courtesy-car, parts-delay, mileage-while-
+faulty, goodwill, warranty and dispute fields for Executive Office entries; restore them for ordinary
+service, fault, repair, recall, inspection and other records. Put the case-reference field on its own
+full grid row so its validation help cannot disrupt the field alignment.
+
 Provide a protected member survey page at `/member/surveys/` and an admin CRUD workspace at
 `/admin/surveys/`. Administrators can create, edit, list, and delete a survey with a title,
 public Description and Call to action fields, an optional question/prompt, two to twelve options,
