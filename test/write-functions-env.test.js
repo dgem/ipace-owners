@@ -21,8 +21,6 @@ test("writes function env vars as JSON without splitting comma-separated origins
       ALLOWED_ORIGINS: "https://stage.ipace-owners.org,http://localhost:8080,http://localhost:5000",
       FIREBASE_EMAIL_CONTINUE_URL: "https://stage.ipace-owners.org/member/account/",
       FIREBASE_EMAIL_LINK_DOMAIN: "stage.ipace-owners.org",
-      RESEND_API_KEY: "resend-key",
-      IDEAL_POSTCODES_API_KEY: "address-key",
       RESEND_FROM: "I-PACE Owners <members@stage.ipace-owners.org>",
       RESEND_REPLY_TO: "contact@ipace-owners.org",
       RESEND_ASSET_BASE_URL: "https://stage.ipace-owners.org",
@@ -47,8 +45,6 @@ test("writes function env vars as JSON without splitting comma-separated origins
     ALLOWED_ORIGINS: "https://stage.ipace-owners.org,http://localhost:8080,http://localhost:5000",
     FIREBASE_EMAIL_CONTINUE_URL: "https://stage.ipace-owners.org/member/account/",
     FIREBASE_EMAIL_LINK_DOMAIN: "stage.ipace-owners.org",
-    RESEND_API_KEY: "resend-key",
-    IDEAL_POSTCODES_API_KEY: "address-key",
     RESEND_FROM: "I-PACE Owners <members@stage.ipace-owners.org>",
     RESEND_REPLY_TO: "contact@ipace-owners.org",
     RESEND_ASSET_BASE_URL: "https://stage.ipace-owners.org",
@@ -98,8 +94,8 @@ test("derives the database ID while leaving the preview link domain unset", () =
 
   assert.equal(written.FIRESTORE_DATABASE_ID, "ipace-owners-staging");
   assert.equal(written.FIREBASE_EMAIL_LINK_DOMAIN, "");
-  assert.equal(written.RESEND_API_KEY, "");
-  assert.equal(written.IDEAL_POSTCODES_API_KEY, "");
+  assert.equal("RESEND_API_KEY" in written, false);
+  assert.equal("IDEAL_POSTCODES_API_KEY" in written, false);
   assert.equal(written.RESEND_FROM, "");
   assert.equal(written.RESEND_REPLY_TO, "");
   assert.equal(written.RESEND_ASSET_BASE_URL, "");

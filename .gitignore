@@ -42,6 +42,7 @@ go.work.sum
 
 .ignore/
 docs/topix
+docs/no-git/
 deno.lock
 tmp/
 

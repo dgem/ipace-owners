@@ -122,7 +122,7 @@ variable "manage_local_secret_versions" {
 }
 
 variable "secret_version_rotation" {
-  description = "Non-secret rotation labels keyed by vin_pepper or instagram_access_token. Change a label to run the local version bootstrap."
+  description = "Non-secret rotation labels keyed by vin_pepper, resend_api_key, ideal_postcodes_api_key, or instagram_access_token. Change a label to run the local version bootstrap."
   type        = map(string)
   default     = {}
 }

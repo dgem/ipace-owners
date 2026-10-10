@@ -127,8 +127,10 @@ and SVG/XML. Each check is also available through the corresponding `make lint-*
 make audit
 ```
 
-Runs `npm audit` with a high-severity failure threshold and pinned `govulncheck` analysis for
-reachable Go vulnerabilities. GitHub Actions additionally runs CodeQL and dependency review
+Runs the Node audit gate and pinned `govulncheck` analysis for reachable Go vulnerabilities.
+The Node gate warns about the reviewed, upstream-only advisory URLs in
+`security/npm-audit-baseline.json`, and fails on new high or critical findings or a severity
+increase in an accepted finding. GitHub Actions additionally runs CodeQL and dependency review
 on pull requests and a weekly schedule. Firebase PR previews receive a blocking passive OWASP
 ZAP baseline scan after deployment smoke tests pass. `package.json` may pin narrow transitive
 security overrides when a maintained direct dependency has not yet widened its range to a
@@ -345,7 +347,6 @@ workflows:
 - `GCP_DEPLOYER_SERVICE_ACCOUNT_STAGING` / `GCP_DEPLOYER_SERVICE_ACCOUNT_PRODUCTION`
 - `GCP_FUNCTIONS_SERVICE_ACCOUNT_STAGING` / `GCP_FUNCTIONS_SERVICE_ACCOUNT_PRODUCTION`
 - `FIREBASE_WEB_API_KEY_STAGING` / `FIREBASE_WEB_API_KEY_PRODUCTION`
-- `VIN_PEPPER_SECRET_STAGING` / `VIN_PEPPER_SECRET_PRODUCTION` (secret names only)
 - `FIREBASE_STAGING_PROJECT_ID` / `FIREBASE_PRODUCTION_PROJECT_ID`
 - `FIRESTORE_DATABASE_ID_STAGING` / `FIRESTORE_DATABASE_ID_PRODUCTION`
 - `FIREBASE_AUTH_DOMAIN_*`, `FIREBASE_APP_ID_*`, `FIREBASE_STORAGE_BUCKET_*`
@@ -392,7 +393,9 @@ GitHub Actions environment settings automatically.
 
 ### Removing legacy secret values from OpenTofu state
 
-OpenTofu creates Secret Manager containers and IAM bindings, but never stores secret payloads in variables or state. For a local bootstrap or rotation, export the secret value and set a new non-secret `secret_version_rotation` label with `manage_local_secret_versions = true`; a local apply compares it with the latest version and creates one only when needed. Before applying this migration in each environment, remove only the value-owning legacy state entries; this retains the remote Secret Manager version and GitHub secret:
+OpenTofu creates the fixed Secret Manager containers `vin-pepper`, `resend-api-key`, `ideal-postcodes-api-key`, and `instagram-access-token`, with runtime access. It never stores their payloads in variables or state. Functions mount the first three by their fixed names; GitHub carries no application-secret value or secret-name pointer.
+
+For a local bootstrap or rotation, export the appropriate value and set a new non-secret `secret_version_rotation` label with `manage_local_secret_versions = true`; a local apply compares it with the latest version and creates one only when needed. Before applying the migration in each environment, remove only the legacy value-owning state entries; this retains the remote Secret Manager version and GitHub secret:
 
 ```bash
 tofu state rm 'module.ipace_owners.google_secret_manager_secret_version.vin_pepper'
@@ -401,7 +404,7 @@ tofu state rm 'module.ipace_owners.github_actions_environment_secret.actions["VI
 tofu state rm 'module.ipace_owners.github_actions_environment_secret.actions["RESEND_API_KEY_STAGING"]'
 ```
 
-Use the matching production names in production. Confirm `VIN_PEPPER_SECRET_<ENV>` points to `vin-pepper`, then apply. Set `RESEND_API_KEY` only in the shell when OpenTofu needs to manage the Resend sending domain; its GitHub Actions secret is managed outside OpenTofu.
+Use the matching production names in production. To add application-secret versions, export `VIN_PEPPER`, `RESEND_API_KEY`, and `IDEAL_POSTCODES_API_KEY` from secure operator storage, then apply with labels such as `secret_version_rotation = { resend_api_key = "2026-10-10" }`. `RESEND_API_KEY` also configures the Resend provider when its sending domain is managed. After a successful Functions deployment, remove the old GitHub Actions application secrets; retain only deployment bootstrap credentials and the dedicated staging E2E Resend key.
 
 ### Production monitoring and recovery
 
@@ -557,8 +560,8 @@ request credentials and raw delivery tokens are not logged.
 
 The production Function needs `INSTAGRAM_USER_ID`, an explicitly selected supported
 `INSTAGRAM_GRAPH_API_VERSION`, and `INSTAGRAM_MEDIA_BASE_URL`. Store the provider token in GCP
-Secret Manager and set `INSTAGRAM_ACCESS_TOKEN_SECRET_<ENV>` to that secret's name; deployment
-mounts its latest version as `INSTAGRAM_ACCESS_TOKEN`. Never place the token in repository files,
+Secret Manager; deployment mounts the fixed `instagram-access-token` latest version as
+`INSTAGRAM_ACCESS_TOKEN`. Never place the token in repository files,
 browser configuration, Firestore, GitHub variables or `functions-env.json`. The account must be
 an Instagram professional account with Meta's content-publishing permission. See prompt `20` for
 the creative-review boundary and the exact launch-Reel generation contract.
@@ -566,7 +569,7 @@ OpenTofu creates the `instagram-access-token` secret container and grants only t
 access, but deliberately does not create a secret version: token bytes must never enter tfvars or
 OpenTofu state. Add a version from secure operator input, then set
 `instagram_publishing_enabled`, `instagram_user_id`, and `instagram_graph_api_version` and reapply
-the environment so GitHub receives only the secret name and non-secret account configuration.
+the environment so GitHub receives only the non-secret account configuration.
 For Instagram Login, provision an OAuth user token for the Professional account with
 `instagram_business_basic`, `instagram_business_content_publish`, and
 `instagram_business_manage_insights`. The Meta app ID and app
@@ -945,8 +948,8 @@ the separate identity-verification flag through `POST /api/admin/member-verifica
 The member's representation choice requires a complete UK address and records the
 accepted wording version and time, with an append-only choice history under the profile
 that does not duplicate contact details. The verification flag is not exposed to members.
-Configure `IDEAL_POSTCODES_API_KEY_STAGING` and `IDEAL_POSTCODES_API_KEY_PRODUCTION` as
-GitHub environment secrets to enable lookup in deployments; without them, manual entry works.
+Configure the environment's `ideal-postcodes-api-key` Secret Manager version as
+the deployment value to enable lookup; without it, manual entry works.
 - `member-dashboard.js` — vehicle tabs, SoH history and service/fault editing
 - `member-export.js` — authenticated CSV-bundle and Excel-report downloads
 - `multistep-form.js` — generic multi-step form (data-attribute driven)

@@ -18,11 +18,9 @@ locals {
     "SNAPSHOT_BUCKET_${local.github_actions_suffix}"             = google_storage_bucket.snapshots.name
     "VEO_LOCATION_${local.github_actions_suffix}"                = var.veo_location
     "VEO_MODEL_ID_${local.github_actions_suffix}"                = var.veo_model_id
-    "VIN_PEPPER_SECRET_${local.github_actions_suffix}"           = google_secret_manager_secret.vin_pepper.secret_id
     }, var.instagram_publishing_enabled ? {
-    "INSTAGRAM_ACCESS_TOKEN_SECRET_${local.github_actions_suffix}" = google_secret_manager_secret.instagram_access_token.secret_id
-    "INSTAGRAM_GRAPH_API_VERSION_${local.github_actions_suffix}"   = var.instagram_graph_api_version
-    "INSTAGRAM_USER_ID_${local.github_actions_suffix}"             = var.instagram_user_id
+    "INSTAGRAM_GRAPH_API_VERSION_${local.github_actions_suffix}" = var.instagram_graph_api_version
+    "INSTAGRAM_USER_ID_${local.github_actions_suffix}"           = var.instagram_user_id
   } : {})
 
   github_actions_secrets = merge({

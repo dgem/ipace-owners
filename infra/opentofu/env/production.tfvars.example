@@ -45,8 +45,8 @@ site_url        = "https://ipace-owners.org/member/account/"
 firebase_auth_email_domain        = "auth.ipace-owners.org"
 firebase_auth_email_action_domain = "ipace-owners.org"
 
-# Set RESEND_API_KEY in the shell only when OpenTofu manages a Resend domain.
-# Manage RESEND_API_KEY_PRODUCTION directly in GitHub Actions secrets.
+# Set RESEND_API_KEY in the shell when OpenTofu manages a Resend domain or adds a
+# `resend-api-key` Secret Manager version.
 
 resend_from           = "I-PACE Owners <members@ipace-owners.org>"
 resend_reply_to       = "contact@ipace-owners.org"
@@ -71,7 +71,8 @@ manage_github_actions = true
 # Add the VIN pepper directly to this environment's GCP Secret Manager `vin-pepper` secret.
 # OpenTofu manages only the secret container and runtime access.
 
-# Optional local-only secret bootstrap. Export VIN_PEPPER (and, when used, INSTAGRAM_ACCESS_TOKEN),
+# Optional local-only secret bootstrap. Export VIN_PEPPER, RESEND_API_KEY,
+# IDEAL_POSTCODES_API_KEY (and, when used, INSTAGRAM_ACCESS_TOKEN),
 # then set a new non-secret label to add a version only when its value differs from latest.
 # manage_local_secret_versions = true
 # secret_version_rotation = { vin_pepper = "2026-10-10" }

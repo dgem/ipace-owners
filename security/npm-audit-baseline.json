@@ -1,0 +1,21 @@
+{
+  "reviewedAt": "2026-10-10",
+  "advisories": {
+    "https://github.com/advisories/GHSA-vfj7-8cjw-p6xm": {
+      "severity": "high",
+      "reason": "Affected only through current Eleventy, Firebase CLI, Stylelint and markdownlint tooling. npm audit --force proposes obsolete major downgrades; no compatible fix is available."
+    },
+    "https://github.com/advisories/GHSA-238p-pmpm-9mq7": {
+      "severity": "low",
+      "reason": "Affected only through markdownlint tooling. npm audit --force proposes downgrading markdownlint-cli2."
+    },
+    "https://github.com/advisories/GHSA-r4xh-jqrq-34v2": {
+      "severity": "moderate",
+      "reason": "Affected only through markdownlint tooling. npm audit --force proposes downgrading markdownlint-cli2."
+    },
+    "https://github.com/advisories/GHSA-hp3w-g68c-fv3c": {
+      "severity": "moderate",
+      "reason": "Affected only through Eleventy tooling. npm audit --force proposes downgrading Eleventy to 0.6.0."
+    }
+  }
+}

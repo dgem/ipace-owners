@@ -100,6 +100,9 @@ test('stores future email designs and manages supported settings through infrast
   assert.match(githubActions, /RESEND_REPLY_TO_\$\{local\.github_actions_suffix\}/);
   assert.match(githubActions, /RESEND_ASSET_BASE_URL_\$\{local\.github_actions_suffix\}/);
   assert.doesNotMatch(githubActions, /RESEND_API_KEY_\$\{local\.github_actions_suffix\}/);
+  assert.doesNotMatch(githubActions, /VIN_PEPPER_SECRET_\$\{local\.github_actions_suffix\}/);
+  assert.doesNotMatch(githubActions, /IDEAL_POSTCODES_API_KEY_SECRET_\$\{local\.github_actions_suffix\}/);
+  assert.doesNotMatch(githubActions, /INSTAGRAM_ACCESS_TOKEN_SECRET_\$\{local\.github_actions_suffix\}/);
   assert.doesNotMatch(githubActions, /bootstrap_resend_api_key_secret/);
   assert.doesNotMatch(githubActions, /for_each\s*=\s*var\.manage_github_actions \? local\.github_actions_secrets/);
   assert.match(productionConfig, /resend_from\s*=\s*"I-PACE Owners <members@ipace-owners\.org>"/);

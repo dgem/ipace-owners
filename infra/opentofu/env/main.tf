@@ -20,8 +20,8 @@ module "ipace_owners" {
   github_owner                       = var.github_owner
   github_repo                        = var.github_repo
 
-  manage_local_secret_versions          = var.manage_local_secret_versions
-  secret_version_rotation                = var.secret_version_rotation
+  manage_local_secret_versions         = var.manage_local_secret_versions
+  secret_version_rotation              = var.secret_version_rotation
   allowed_origins                      = var.allowed_origins
   site_url                             = var.site_url
   firebase_auth_authorized_domains     = var.firebase_auth_authorized_domains

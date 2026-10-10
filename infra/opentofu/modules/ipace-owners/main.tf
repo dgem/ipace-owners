@@ -274,6 +274,26 @@ resource "google_secret_manager_secret" "vin_pepper" {
   depends_on = [google_project_service.required]
 }
 
+resource "google_secret_manager_secret" "resend_api_key" {
+  secret_id = "resend-api-key"
+
+  replication {
+    auto {}
+  }
+
+  depends_on = [google_project_service.required]
+}
+
+resource "google_secret_manager_secret" "ideal_postcodes_api_key" {
+  secret_id = "ideal-postcodes-api-key"
+
+  replication {
+    auto {}
+  }
+
+  depends_on = [google_project_service.required]
+}
+
 resource "google_secret_manager_secret" "instagram_access_token" {
   secret_id = "instagram-access-token"
 
@@ -285,7 +305,7 @@ resource "google_secret_manager_secret" "instagram_access_token" {
 }
 
 resource "terraform_data" "local_secret_versions" {
-  count = var.manage_local_secret_versions ? 1 : 0
+  count = var.manage_local_secret_versions && length(var.secret_version_rotation) > 0 ? 1 : 0
 
   triggers_replace = [jsonencode(var.secret_version_rotation)]
 
@@ -297,7 +317,12 @@ resource "terraform_data" "local_secret_versions" {
     }
   }
 
-  depends_on = [google_secret_manager_secret.vin_pepper, google_secret_manager_secret.instagram_access_token]
+  depends_on = [
+    google_secret_manager_secret.vin_pepper,
+    google_secret_manager_secret.resend_api_key,
+    google_secret_manager_secret.ideal_postcodes_api_key,
+    google_secret_manager_secret.instagram_access_token,
+  ]
 }
 
 resource "google_service_account" "runtime" {
@@ -357,6 +382,18 @@ resource "google_secret_manager_secret_iam_member" "runtime_api_key" {
 
 resource "google_secret_manager_secret_iam_member" "runtime_vin_pepper" {
   secret_id = google_secret_manager_secret.vin_pepper.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.runtime.email}"
+}
+
+resource "google_secret_manager_secret_iam_member" "runtime_resend_api_key" {
+  secret_id = google_secret_manager_secret.resend_api_key.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.runtime.email}"
+}
+
+resource "google_secret_manager_secret_iam_member" "runtime_ideal_postcodes_api_key" {
+  secret_id = google_secret_manager_secret.ideal_postcodes_api_key.secret_id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${google_service_account.runtime.email}"
 }

@@ -28,7 +28,12 @@ func main() {
 	if err != nil {
 		fail("could not create Secret Manager client")
 	}
-	secrets := map[string]secret{"vin_pepper": {"vin-pepper", "VIN_PEPPER"}, "instagram_access_token": {"instagram-access-token", "INSTAGRAM_ACCESS_TOKEN"}}
+	secrets := map[string]secret{
+		"vin_pepper":              {"vin-pepper", "VIN_PEPPER"},
+		"resend_api_key":          {"resend-api-key", "RESEND_API_KEY"},
+		"ideal_postcodes_api_key": {"ideal-postcodes-api-key", "IDEAL_POSTCODES_API_KEY"},
+		"instagram_access_token":  {"instagram-access-token", "INSTAGRAM_ACCESS_TOKEN"},
+	}
 	for key, label := range rotations {
 		if label == "" {
 			continue
