@@ -40,11 +40,12 @@ profile.cov
 go.work
 go.work.sum
 
-.ignore/
-docs/topix
-docs/no-git/
-deno.lock
 tmp/
+docs/topix/
+docs/no-git/
+.ignore/
+deno.lock
+
 
 # Local OpenTofu/Terraform working directories
 **/.terraform/

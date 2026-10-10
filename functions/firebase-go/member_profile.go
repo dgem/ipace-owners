@@ -17,7 +17,11 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-const representationWording = "I authorise the I-PACE Owners' Advocacy Group to represent my interests in preparatory legal engagement with JLR. This does not authorise issuing proceedings or accepting costs on my behalf."
+const representationWording = "Register my interest in exploring UK legal options. This does not authorise representation, proceedings or costs."
+
+func legalRepresentationEnabled() bool {
+	return strings.EqualFold(strings.TrimSpace(os.Getenv("LEGAL_REPRESENTATION_ENABLED")), "true")
+}
 
 type memberContactProfile struct {
 	Name                    string    `json:"name" firestore:"name"`
@@ -97,6 +101,15 @@ func representationChoiceChanged(previous, next memberContactProfile) bool {
 		previous.Country != next.Country
 }
 
+func preserveRepresentationWhenDisabled(previous memberContactProfile, next *memberContactProfile) {
+	if legalRepresentationEnabled() {
+		return
+	}
+	next.Represent = previous.Represent
+	next.RepresentationVersion = previous.RepresentationVersion
+	next.RepresentationUpdatedAt = previous.RepresentationUpdatedAt
+}
+
 // MemberProfile stores one contact profile per authenticated person. Verification
 // status is deliberately kept in a separate admin-only collection.
 func MemberProfile(w http.ResponseWriter, r *http.Request) {
@@ -130,16 +143,16 @@ func MemberProfile(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, 500, map[string]any{"error": "Could not load profile"})
 			return
 		}
-		writeJSON(w, 200, map[string]any{"profile": profile, "representationWording": representationWording})
+		response := map[string]any{"profile": profile, "legalRepresentationEnabled": legalRepresentationEnabled()}
+		if legalRepresentationEnabled() {
+			response["representationWording"] = representationWording
+		}
+		writeJSON(w, 200, response)
 		return
 	}
 	var profile memberContactProfile
 	if err := decodeJSON(r, &profile); err != nil {
 		writeJSON(w, 400, map[string]any{"error": "Invalid profile"})
-		return
-	}
-	if msg := validateMemberContactProfile(&profile); msg != "" {
-		writeJSON(w, 400, map[string]any{"error": msg})
 		return
 	}
 	var previous memberContactProfile
@@ -152,13 +165,18 @@ func MemberProfile(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, 500, map[string]any{"error": "Could not load profile"})
 		return
 	}
+	preserveRepresentationWhenDisabled(previous, &profile)
+	if msg := validateMemberContactProfile(&profile); msg != "" {
+		writeJSON(w, 400, map[string]any{"error": msg})
+		return
+	}
 	now := time.Now().UTC()
-	if profile.Represent {
+	if legalRepresentationEnabled() && profile.Represent {
 		profile.RepresentationVersion = "2026-10-02-v1"
-	} else {
+	} else if legalRepresentationEnabled() {
 		profile.RepresentationVersion = ""
 	}
-	choiceChanged := representationChoiceChanged(previous, profile)
+	choiceChanged := legalRepresentationEnabled() && representationChoiceChanged(previous, profile)
 	if choiceChanged {
 		profile.RepresentationUpdatedAt = now
 	} else {

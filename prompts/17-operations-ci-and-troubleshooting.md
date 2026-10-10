@@ -193,8 +193,13 @@ site-owned `/images/` paths; Freeform campaigns retain the generic hero.
   major downgrades, record each specific upstream-only advisory URL and its maximum accepted
   severity in `security/npm-audit-baseline.json`. `scripts/audit-node.mjs` emits these as
   GitHub Actions warnings and fails new high-or-critical advisories or any severity increase.
-  Remove a baseline entry when a compatible upstream update is available; broader cross-major transitive
+  Remove a baseline entry when a compatible upstream update is available; broad cross-major
   migrations require compatibility checks for the CLI consumers.
+- Run `make audit` locally before every change is pushed and whenever new dependency
+  advisories are reported. The Go portion explicitly uses the production Go patch level from
+  `GOAUDIT_TOOLCHAIN`, so its reachable-vulnerability result matches CI even if the local Go
+  installation is newer. Keep that value aligned with the `go` directive in
+  `functions/firebase-go/go.mod` and update both promptly for standard-library security fixes.
 - After a Firebase Hosting PR preview passes its smoke test, run a blocking passive OWASP ZAP
   baseline scan against that preview. Use a versioned ZAP container, disable issue creation,
   retain the report as an Actions artifact, and keep reviewed platform/CDN findings in the

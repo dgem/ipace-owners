@@ -137,6 +137,10 @@ security overrides when a maintained direct dependency has not yet widened its r
 patched release; keep those overrides locked, test the affected CLI/build paths, and remove
 them when an upstream release makes them unnecessary.
 
+Run `make audit` locally before pushing every change and immediately after a new advisory is
+reported. Its Go check uses the production Go patch level declared by `GOAUDIT_TOOLCHAIN`, which
+is kept aligned with `functions/firebase-go/go.mod` so local and CI results match.
+
 ### Production build
 
 ```bash
