@@ -38,7 +38,7 @@ func TestAdminServiceCSVPrivacyAndStructuredFields(t *testing.T) {
 		t.Fatalf("count=%d err=%v", count, err)
 	}
 	rows, err := csv.NewReader(strings.NewReader(string(body))).ReadAll()
-	if err != nil || len(rows) != 2 || len(rows[1]) != 19 {
+	if err != nil || len(rows) != 2 || len(rows[1]) != 20 {
 		t.Fatalf("rows=%v err=%v", rows, err)
 	}
 	for _, private := range []string{"private", "Owner Name", "owner@", "VIN123456", "AB12CDE", "07123456789", "AB1 2CD", "event-one", "vehicle-one", "2026-07-01", "54000"} {
@@ -47,7 +47,7 @@ func TestAdminServiceCSVPrivacyAndStructuredFields(t *testing.T) {
 		}
 	}
 	want := []string{"", "2026-07", "50000-54999", "resolved", "H441", "Yes", "2026-07", "12", "yes", "", "up-to-1-week", "Yes", "50000-54999", "battery-warranty", "resolved-after-escalation"}
-	if rows[1][15] != "Example Jaguar Service Centre" || !strings.Contains(rows[1][16], "[redacted]") {
+	if rows[1][15] != "Example Jaguar Service Centre" || !strings.Contains(rows[1][17], "[redacted]") {
 		t.Fatal("provider or redacted narrative missing")
 	}
 	for i := range want {
@@ -139,10 +139,10 @@ func TestServiceExportRedactsNarrativeWithoutLosingAnalysis(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if rows[1][16] != "'=HYPERLINK(\"test\")" {
-		t.Fatalf("formula not neutralised: %q", rows[1][16])
+	if rows[1][17] != "'=HYPERLINK(\"test\")" {
+		t.Fatalf("formula not neutralised: %q", rows[1][17])
 	}
-	description := rows[1][17]
+	description := rows[1][18]
 	for _, private := range []string{"Ann", "7123", "ann@", "P4ANN", "AB12", "SAJAA", "654321", "SW1A", "https://"} {
 		if strings.Contains(description, private) {
 			t.Errorf("leaked %q: %s", private, description)
@@ -184,7 +184,7 @@ func TestServiceExportFormulaPrefixWithWhitespace(t *testing.T) {
 			t.Fatal(err)
 		}
 		rows, err := csv.NewReader(strings.NewReader(string(body))).ReadAll()
-		if err != nil || !strings.HasPrefix(rows[1][16], "'") {
+		if err != nil || !strings.HasPrefix(rows[1][17], "'") {
 			t.Fatalf("unsafe CSV %q: %v", body, err)
 		}
 	}

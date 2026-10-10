@@ -287,3 +287,5 @@ exports, formula safety and frontend recovery. Add desktop/mobile visual checkpo
 ### Executive Office contact history
 
 The private vehicle timeline includes an `executive-office-contact` record type. Its event date is the date the member contacted JLR's Executive Office; it can also store acknowledgement and reply dates, the member's account of the outcome (up to 2,000 characters), and whether they are happy, partly happy, unhappy, or still awaiting an outcome. Show those fields only for this record type, validate that supplied dates are valid, not future dates, and no earlier than the contact date, and include them in the member's own CSV/XLSX export. This creates structured, member-controlled evidence of whether individual handling resolved matters.
+
+Service-history records include an optional JLR Client Care case reference whenever JLR assigns one. Keep it with every service, fault, repair, recall and Executive Office entry so member history can be cross-referenced to JLR case records; include it in member and admin exports.

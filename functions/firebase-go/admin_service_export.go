@@ -219,6 +219,7 @@ func buildAdminServiceCSV(data serviceExportData) ([]byte, int, error) {
 			cleanEnum(record.WarrantyCover, serviceEventWarrantyCoverValues),
 			cleanEnum(record.DisputeStatus, serviceEventDisputeStatusValues),
 			redact(record.ServiceProviderName),
+			redact(record.JLRCaseReference),
 			redact(record.Title),
 			redact(record.Description),
 			"Private admin analysis; automated redaction",
@@ -232,7 +233,7 @@ func buildAdminServiceCSV(data serviceExportData) ([]byte, int, error) {
 	sort.Slice(rows, func(i, j int) bool { return strings.Join(rows[i], "\x00") < strings.Join(rows[j], "\x00") })
 	var body bytes.Buffer
 	writer := csv.NewWriter(&body)
-	_ = writer.Write([]string{"event_type", "event_month", "mileage_band_miles", "status", "campaigns", "authorised_service_provider", "final_fix_month", "days_to_final_fix", "courtesy_vehicle_offered", "courtesy_vehicle_provided", "parts_delay", "goodwill_payment", "miles_driven_whilst_faulty_band", "warranty_cover", "dispute_status", "service_provider_name", "title", "description", "privacy_review"})
+	_ = writer.Write([]string{"event_type", "event_month", "mileage_band_miles", "status", "campaigns", "authorised_service_provider", "final_fix_month", "days_to_final_fix", "courtesy_vehicle_offered", "courtesy_vehicle_provided", "parts_delay", "goodwill_payment", "miles_driven_whilst_faulty_band", "warranty_cover", "dispute_status", "service_provider_name", "jlr_client_care_case_reference", "title", "description", "privacy_review"})
 	for _, row := range rows {
 		_ = writer.Write(row)
 	}

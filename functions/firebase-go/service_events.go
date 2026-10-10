@@ -82,6 +82,7 @@ func UpsertServiceEvent(w http.ResponseWriter, r *http.Request) {
 		ExecutiveOfficeRepliedAt:      cleaned.ExecutiveOfficeRepliedAt,
 		ExecutiveOfficeOutcome:        cleaned.ExecutiveOfficeOutcome,
 		ExecutiveOfficeSatisfied:      cleaned.ExecutiveOfficeSatisfied,
+		JLRCaseReference:              cleaned.JLRCaseReference,
 		Review:                        reviewRecord{Status: "new", VerificationLevel: "self-reported"},
 	}
 	if cleaned.ID != "" {
@@ -135,6 +136,7 @@ type cleanedServiceEvent struct {
 	ExecutiveOfficeRepliedAt      string
 	ExecutiveOfficeOutcome        string
 	ExecutiveOfficeSatisfied      string
+	JLRCaseReference              string
 }
 
 func validatedServiceEvent(req serviceEventRequest) (cleanedServiceEvent, error) {
@@ -164,6 +166,7 @@ func validatedServiceEvent(req serviceEventRequest) (cleanedServiceEvent, error)
 		ExecutiveOfficeRepliedAt:      cleanDate(req.ExecutiveOfficeRepliedAt),
 		ExecutiveOfficeOutcome:        cleanString(req.ExecutiveOfficeOutcome, 2000),
 		ExecutiveOfficeSatisfied:      cleanEnum(req.ExecutiveOfficeSatisfied, executiveOfficeSatisfactionValues),
+		JLRCaseReference:              cleanString(req.JLRCaseReference, 100),
 	}
 	if cleaned.VehicleID == "" {
 		return cleanedServiceEvent{}, fmt.Errorf("vehicle is required")
