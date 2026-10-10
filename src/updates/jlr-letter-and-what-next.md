@@ -19,7 +19,7 @@ is also available.
 
 Thank you to everyone who has shared their experience. If you contact JLR's Executive Office,
 please [add the dates, responses and outcome to your private member vehicle history](/member/dashboard/).
-It helps us test whether Executive Office contact produces a fair resolution or simply prolongs an individual dispute.
+It helps us test whether Executive Office contact produces fair and timely outcomes or simply prolongs an individual dispute.
 
 ## What we have heard so far
 
@@ -37,7 +37,7 @@ differences; the question is whether it does so consistently and decisively.
 
 This is early, self-selected reporting, not a measure of every case. But there is no evidence yet
 that Executive Office contact changes the outcome. Members may reasonably see more case-by-case
-review as delay or divide-and-conquer unless it produces fair, lasting resolutions. That is why we
+review as delay or divide-and-conquer unless it produces fair and timely outcomes. That is why we
 need to test the individual route properly and decide what should happen if it does not.
 
 ## What should we do next?
@@ -45,7 +45,7 @@ need to test the individual route properly and decide what should happen if it d
 These paths are not mutually exclusive. We want members to help set their priority:
 
 - **Wait for a clearer response from JLR.** Keep the dialogue open for a defined period and
-  watch whether individual reviews produce satisfactory, lasting outcomes.
+  watch whether individual reviews produce fair and timely outcomes.
 - **Grow the group and the evidence.** More owners and stronger, accurate records will
   make the scale and range of concerns harder to overlook.
 - **Consider a measured approach to the press.** Existing owners must not be left behind
