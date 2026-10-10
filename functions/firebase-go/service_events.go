@@ -4,11 +4,14 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 )
 
 var serviceEventTypeValues = []string{"service", "fault", "repair", "recall", "inspection", "executive-office-contact", "other"}
+var jlrCaseReferenceRE = regexp.MustCompile(`^800[0-9]{7}$`)
+
 var executiveOfficeSatisfactionValues = []string{"happy", "partly-happy", "not-happy", "awaiting-outcome"}
 var serviceEventStatusValues = []string{"open", "monitoring", "resolved", "completed"}
 var serviceEventCampaignValues = []string{"H441", "H448", "H570", "H571", "H572", "other", "unsure", "none"}
@@ -185,6 +188,9 @@ func validatedServiceEvent(req serviceEventRequest) (cleanedServiceEvent, error)
 	}
 	if req.Mileage != "" && cleaned.Mileage == nil {
 		return cleanedServiceEvent{}, fmt.Errorf("mileage must be between 0 and 500000")
+	}
+	if cleaned.JLRCaseReference != "" && !jlrCaseReferenceRE.MatchString(cleaned.JLRCaseReference) {
+		return cleanedServiceEvent{}, fmt.Errorf("JLR Client Care case reference must be a 10-digit number beginning 800")
 	}
 	if req.FinalFixAt != "" && cleaned.FinalFixAt == "" {
 		return cleanedServiceEvent{}, fmt.Errorf("final fix date must be a valid date")

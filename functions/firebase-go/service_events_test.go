@@ -34,7 +34,7 @@ func TestValidatedServiceEvent(t *testing.T) {
 		ExecutiveOfficeRepliedAt:      "2026-06-24",
 		ExecutiveOfficeOutcome:        "JLR offered a further inspection.",
 		ExecutiveOfficeSatisfied:      "awaiting-outcome",
-		JLRCaseReference:              "JLR-CASE-123",
+		JLRCaseReference:              "8001068526",
 	})
 	if err != nil {
 		t.Fatalf("validatedServiceEvent() error = %v", err)
@@ -57,7 +57,7 @@ func TestValidatedServiceEvent(t *testing.T) {
 	if event.CourtesyVehicleOffered != "yes" || event.CourtesyVehicleProvided != "no" || event.PartsDelay != "up-to-1-month" || event.GoodwillPayment == nil || !*event.GoodwillPayment || event.MilesDrivenWhilstFaulty == nil || *event.MilesDrivenWhilstFaulty != 1200 || event.WarrantyCover != "battery-warranty" || event.DisputeStatus != "initially-refused" {
 		t.Fatalf("support fields = %+v", event)
 	}
-	if event.ExecutiveOfficeAcknowledgedAt != "2026-06-23" || event.ExecutiveOfficeRepliedAt != "2026-06-24" || event.ExecutiveOfficeOutcome != "JLR offered a further inspection." || event.ExecutiveOfficeSatisfied != "awaiting-outcome" || event.JLRCaseReference != "JLR-CASE-123" {
+	if event.ExecutiveOfficeAcknowledgedAt != "2026-06-23" || event.ExecutiveOfficeRepliedAt != "2026-06-24" || event.ExecutiveOfficeOutcome != "JLR offered a further inspection." || event.ExecutiveOfficeSatisfied != "awaiting-outcome" || event.JLRCaseReference != "8001068526" {
 		t.Fatalf("Executive Office fields = %+v", event)
 	}
 }
