@@ -214,6 +214,10 @@ Defined in `:root` in `site.css`. Key tokens:
 - Before pushing additional commits to an existing PR branch, cancel any in-progress staging
   deployment for that same branch. Do not cancel deployments for other PR branches; staging
   deployments remain globally serialized because they share infrastructure.
+- Remove any temporary worktree created for agent work as soon as its branch is pushed or the
+  work is no longer active. Do not leave branches checked out in `/private/tmp` between tasks.
+  If a temporary worktree has uncommitted changes, preserve them by committing or explicitly
+  reporting them; never force-remove it.
 - Every PR must include a clear description covering:
   - What changed and why.
   - Which files were added or modified.

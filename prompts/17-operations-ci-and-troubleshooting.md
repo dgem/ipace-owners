@@ -283,6 +283,10 @@ site-owned `/images/` paths; Freeform campaigns retain the generic hero.
   deployment for that same branch so obsolete code does not continue through the deployment
   sequence. Keep this cancellation branch-scoped: do not cancel another PR's deployment, and
   do not enable global `cancel-in-progress` while staging infrastructure is shared.
+- Agent-created temporary worktrees are short-lived: remove them as soon as the branch is
+  pushed or work is inactive. Do not leave a branch checked out under `/private/tmp` between
+  tasks. Preserve uncommitted work by committing it or reporting it explicitly; never
+  force-remove a dirty temporary worktree.
 - Authenticate deployments with GitHub OIDC Workload Identity Federation and short-lived
   service-account impersonation. Explicitly generate/export ADC credentials and verify an
   access-token exchange before invoking Firebase CLI; do not introduce long-lived Firebase
