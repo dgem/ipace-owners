@@ -186,7 +186,7 @@ site-owned `/images/` paths; Freeform campaigns retain the generic hero.
 - If a newly disclosed npm advisory affects transitive packages while the maintained direct
   tool is already current, prefer narrow pinned `overrides` for patched transitive releases
   over downgrading the direct tool. Regenerate `package-lock.json`, require a zero-result
-  full npm audit, and exercise the affected build or deployment CLI before pushing.
+  full npm audit where a compatible fix exists, and exercise the affected build or deployment CLI before pushing.
 - The September 2026 audit repair pins `markdownlint-cli2 > smol-toml` to 1.8.0 because
   the current linter pins affected 1.7.0. Refresh compatible js-yaml 3.x/4.x and other
   security patch resolutions in the lockfile. When `npm audit --force` offers only obsolete
@@ -449,14 +449,11 @@ site-owned `/images/` paths; Freeform campaigns retain the generic hero.
 - Manage the Firebase public-facing project display name with OpenTofu. Firebase's default
   Auth email template inserts that value as `%APP_NAME%`; stale values such as a previous
   product name require an infra apply before new default emails change.
-- Resend is the custom email transport for branded passwordless emails. Configure
-  `RESEND_API_KEY_<ENV>` as a GitHub environment secret, either manually or by supplying the
-  sensitive `resend_api_key` OpenTofu variable during bootstrap with
-  `bootstrap_resend_api_key_secret = true`. Leave that boolean false to avoid creating or
-  overwriting the GitHub secret. Do not use sensitive values in OpenTofu `for_each` keys;
-  use the non-sensitive bootstrap boolean for resource shape and the sensitive variable only
-  for the secret value. Manage non-secret `RESEND_FROM_<ENV>`, `RESEND_REPLY_TO_<ENV>`, and
-  `RESEND_ASSET_BASE_URL_<ENV>` through OpenTofu/GitHub environment variables. The Function
+- Resend is the custom email transport for branded passwordless emails. Store the application
+  key in the environment's fixed `resend-api-key` Secret Manager secret and mount it into
+  Functions as `RESEND_API_KEY`; keep its bytes out of GitHub and OpenTofu state. Manage
+  non-secret `RESEND_FROM_<ENV>`, `RESEND_REPLY_TO_<ENV>`, and `RESEND_ASSET_BASE_URL_<ENV>`
+  through OpenTofu/GitHub environment variables. The Function
   sends custom Resend email only when both `RESEND_API_KEY` and `RESEND_FROM` are present;
   otherwise it uses Firebase's default sender. If Resend generation or delivery fails, log a
   sanitized warning and fall back to Firebase default delivery so users still get a sign-in
@@ -482,8 +479,7 @@ site-owned `/images/` paths; Freeform campaigns retain the generic hero.
   account's daily/monthly Resend quota first: the free transactional daily quota is below a
   150-recipient campaign. Keep open/click tracking disabled for these authentication links.
 - OpenTofu can optionally create/read the Resend sending domain with
-  `manage_resend_domain = true`, `resend_domain`, `resend_region`, and a Resend API key
-  supplied through the sensitive `resend_api_key` variable or `TF_VAR_resend_api_key`.
+  `manage_resend_domain = true`, `resend_domain`, `resend_region`, and `RESEND_API_KEY` supplied only in the OpenTofu process environment.
   Because Fasthosts DNS is not managed by OpenTofu, use the `resend_email_domain` output or
   `make infra-resend-dns-records ENV=<environment>` to copy the required Resend SPF/DKIM/MX
   records into Fasthosts manually. Keep Resend open/click tracking disabled for

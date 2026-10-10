@@ -424,8 +424,9 @@ Build-time Firebase web configuration uses `FIREBASE_WEB_API_KEY`,
 `SNAPSHOT_BUCKET`, `VIN_PEPPER`, `ALLOWED_ORIGINS`, `FIREBASE_WEB_API_KEY`,
 `FIREBASE_EMAIL_CONTINUE_URL`, optional `FIREBASE_EMAIL_LINK_DOMAIN`, and optional
 `RESEND_API_KEY`, `RESEND_FROM`, `RESEND_REPLY_TO`, `RESEND_ASSET_BASE_URL`, and
-`IDEAL_POSTCODES_API_KEY`. The latter is supplied by environment-specific GitHub secrets;
-without it, members enter addresses manually. Per-member address lookups are persistently
+`IDEAL_POSTCODES_API_KEY`. Application secrets are mounted from the environment's GCP Secret
+Manager versions, never copied through GitHub; without the Ideal Postcodes version, members
+enter addresses manually. Per-member address lookups are persistently
 rate-limited before the paid provider is called.
 The optional `SEED_NEXT_STEPS_SURVEY` flag creates the October survey automatically on the first
 authenticated survey access. `NEXT_STEPS_SURVEY_STATUS` is `published` in staging and `draft` in
@@ -434,9 +435,13 @@ Optional Instagram publishing additionally uses secret `INSTAGRAM_ACCESS_TOKEN` 
 `INSTAGRAM_USER_ID`, `INSTAGRAM_GRAPH_API_VERSION`, and `INSTAGRAM_MEDIA_BASE_URL`. Absence or
 invalidity must disable publishing while leaving local preview available.
 OpenTofu creates the `instagram-access-token` Secret Manager container and grants the Function
-runtime accessor permission, but must not create its secret version from a tfvars value. Only after
-an operator adds a version should `instagram_publishing_enabled` expose the secret name and
-non-secret account ID/version to the deployment workflow.
+runtime accessor permission, but must not create its secret version from a tfvars value. On every
+local apply, the bootstrap examines any supplied `VIN_PEPPER`, `RESEND_API_KEY`,
+`IDEAL_POSTCODES_API_KEY`, and `INSTAGRAM_ACCESS_TOKEN` operator environment values, adds a
+version only when it differs from `latest`, and skips absent values. It must never store a value or
+fingerprint in OpenTofu state. Once a version exists, `instagram_publishing_enabled` exposes only
+its non-secret account ID/version to the deployment workflow; the Function deployment mounts the
+fixed secret name.
 Asynchronous campaign-video generation uses non-secret `CAMPAIGN_MEDIA_BUCKET`, `VEO_LOCATION`,
 and `VEO_MODEL_ID`, with `VEO_LOCATION` defaulting to the explicit Veo 3.1 processing region
 `us-central1`. OpenTofu must enable `aiplatform.googleapis.com`, explicitly provision the managed

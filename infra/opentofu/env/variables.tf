@@ -115,12 +115,6 @@ variable "github_repo" {
   default     = "ipace-owners"
 }
 
-variable "vin_pepper" {
-  description = "Secret pepper for VIN HMAC deduplication. Never commit a real value."
-  type        = string
-  sensitive   = true
-}
-
 variable "allowed_origins" {
   description = "Comma-separated browser origins allowed to call APIs."
   type        = string
@@ -192,19 +186,6 @@ variable "resend_from" {
   description = "Optional Resend sender address for custom passwordless Auth emails."
   type        = string
   default     = ""
-}
-
-variable "resend_api_key" {
-  description = "Optional Resend API key to bootstrap into the GitHub environment secret RESEND_API_KEY_<ENV>. Leave empty to manage the secret manually."
-  type        = string
-  default     = ""
-  sensitive   = true
-}
-
-variable "bootstrap_resend_api_key_secret" {
-  description = "Whether OpenTofu should create/update the GitHub environment secret RESEND_API_KEY_<ENV> from resend_api_key."
-  type        = bool
-  default     = false
 }
 
 variable "resend_reply_to" {

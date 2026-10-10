@@ -19,9 +19,8 @@ locals {
     "VEO_LOCATION_${local.github_actions_suffix}"                = var.veo_location
     "VEO_MODEL_ID_${local.github_actions_suffix}"                = var.veo_model_id
     }, var.instagram_publishing_enabled ? {
-    "INSTAGRAM_ACCESS_TOKEN_SECRET_${local.github_actions_suffix}" = google_secret_manager_secret.instagram_access_token.secret_id
-    "INSTAGRAM_GRAPH_API_VERSION_${local.github_actions_suffix}"   = var.instagram_graph_api_version
-    "INSTAGRAM_USER_ID_${local.github_actions_suffix}"             = var.instagram_user_id
+    "INSTAGRAM_GRAPH_API_VERSION_${local.github_actions_suffix}" = var.instagram_graph_api_version
+    "INSTAGRAM_USER_ID_${local.github_actions_suffix}"           = var.instagram_user_id
   } : {})
 
   github_actions_secrets = merge({
@@ -29,18 +28,14 @@ locals {
     "GCP_DEPLOYER_SERVICE_ACCOUNT_${local.github_actions_suffix}"   = google_service_account.github_deployer.email
     "GCP_FUNCTIONS_SERVICE_ACCOUNT_${local.github_actions_suffix}"  = google_service_account.runtime.email
     "GCP_WORKLOAD_IDENTITY_PROVIDER_${local.github_actions_suffix}" = google_iam_workload_identity_pool_provider.github.name
-    "VIN_PEPPER_${local.github_actions_suffix}"                     = var.vin_pepper
-    }, var.resend_api_key != "" ? {
-    "RESEND_API_KEY_${local.github_actions_suffix}" = var.resend_api_key
-  } : {})
+  })
 
-  github_actions_secret_names = toset(concat([
+  github_actions_secret_names = toset([
     "FIREBASE_WEB_API_KEY_${local.github_actions_suffix}",
     "GCP_DEPLOYER_SERVICE_ACCOUNT_${local.github_actions_suffix}",
     "GCP_FUNCTIONS_SERVICE_ACCOUNT_${local.github_actions_suffix}",
     "GCP_WORKLOAD_IDENTITY_PROVIDER_${local.github_actions_suffix}",
-    "VIN_PEPPER_${local.github_actions_suffix}",
-  ], var.bootstrap_resend_api_key_secret ? ["RESEND_API_KEY_${local.github_actions_suffix}"] : []))
+  ])
 }
 
 resource "github_repository_environment" "actions" {

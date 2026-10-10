@@ -152,7 +152,6 @@ jobs:
           GCP_REGION: ${{ vars.GCP_REGION || 'europe-west2' }}
           FUNCTIONS_SERVICE_ACCOUNT: ${{ secrets.GCP_FUNCTIONS_SERVICE_ACCOUNT_STAGING }}
           FIREBASE_WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY_STAGING }}
-          VIN_PEPPER: ${{ secrets.VIN_PEPPER_STAGING }}
           SNAPSHOT_BUCKET: ${{ vars.SNAPSHOT_BUCKET_STAGING }}
           CAMPAIGN_MEDIA_BUCKET: ${{ vars.CAMPAIGN_MEDIA_BUCKET_STAGING }}
           VEO_LOCATION: ${{ vars.VEO_LOCATION_STAGING }}
@@ -161,12 +160,9 @@ jobs:
           NEXT_STEPS_SURVEY_STATUS: "published"
           ALLOWED_ORIGINS: ${{ steps.hosting.outputs.url }}
           FIREBASE_EMAIL_CONTINUE_URL: ${{ format('{0}/member/account/', steps.hosting.outputs.url) }}
-          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY_STAGING }}
-          IDEAL_POSTCODES_API_KEY: ${{ secrets.IDEAL_POSTCODES_API_KEY_STAGING }}
           RESEND_FROM: ${{ vars.RESEND_FROM_STAGING }}
           RESEND_REPLY_TO: ${{ vars.RESEND_REPLY_TO_STAGING }}
           RESEND_ASSET_BASE_URL: ${{ vars.RESEND_ASSET_BASE_URL_STAGING }}
-          INSTAGRAM_ACCESS_TOKEN_SECRET: ${{ vars.INSTAGRAM_ACCESS_TOKEN_SECRET_STAGING }}
           INSTAGRAM_USER_ID: ${{ vars.INSTAGRAM_USER_ID_STAGING }}
           INSTAGRAM_GRAPH_API_VERSION: ${{ vars.INSTAGRAM_GRAPH_API_VERSION_STAGING }}
           INSTAGRAM_MEDIA_BASE_URL: ${{ steps.hosting.outputs.url }}

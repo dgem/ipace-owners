@@ -51,13 +51,9 @@ resend_reply_to       = "contact@ipace-owners.org"
 # Hosting assets, so staging delivery deliberately reuses the canonical public hero.
 resend_asset_base_url = "https://ipace-owners.org"
 
-# Set bootstrap_resend_api_key_secret=true and provide the real API key via
-# TF_VAR_resend_api_key or an uncommitted tfvars file if OpenTofu should bootstrap
-# the GitHub environment secret RESEND_API_KEY_STAGING. Leave false if you manage
-# that GitHub secret manually.
+# Set RESEND_API_KEY in the shell when OpenTofu manages a Resend domain or adds a
+# `resend-api-key` Secret Manager version.
 
-# bootstrap_resend_api_key_secret = true
-# resend_api_key = "re_replace_with_staging_resend_api_key"
 manage_resend_domain = true
 resend_domain        = "stage.ipace-owners.org"
 resend_region        = "eu-west-1"
@@ -72,5 +68,6 @@ firebase_hosting_custom_domains = {
 
 manage_github_actions = true
 
-# Set the real secret value via environment variables or an uncommitted tfvars file:
-# TF_VAR_vin_pepper=...
+# A local apply creates or rotates versions from any exported VIN_PEPPER,
+# RESEND_API_KEY, IDEAL_POSTCODES_API_KEY, or INSTAGRAM_ACCESS_TOKEN value.
+# Unset values are skipped and never enter OpenTofu state.
