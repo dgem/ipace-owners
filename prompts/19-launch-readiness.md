@@ -191,8 +191,9 @@ Branded Resend path:
 Required Resend configuration:
 
 - The environment's fixed `resend-api-key` Secret Manager version, mounted as
-  `RESEND_API_KEY` when Functions deploy. Create or rotate it from secure local operator input;
-  neither OpenTofu state nor GitHub Actions stores its value.
+  `RESEND_API_KEY` when Functions deploy. Each local OpenTofu apply examines any supplied secure
+  operator value and adds a version only when it differs from `latest`; missing values are skipped.
+  Neither OpenTofu state nor GitHub Actions stores its value or fingerprint.
 - `RESEND_FROM_<ENV>`, `RESEND_REPLY_TO_<ENV>`, and `RESEND_ASSET_BASE_URL_<ENV>` as GitHub
   environment variables, managed by OpenTofu where possible.
 - The Resend sending domain may be created/read by OpenTofu with

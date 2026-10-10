@@ -399,7 +399,7 @@ GitHub Actions environment settings automatically.
 
 OpenTofu creates the fixed Secret Manager containers `vin-pepper`, `resend-api-key`, `ideal-postcodes-api-key`, and `instagram-access-token`, with runtime access. It never stores their payloads in variables or state. Functions mount the first three by their fixed names; GitHub carries no application-secret value or secret-name pointer.
 
-For a local bootstrap or rotation, export the appropriate value and set a new non-secret `secret_version_rotation` label with `manage_local_secret_versions = true`; a local apply compares it with the latest version and creates one only when needed. Before applying the migration in each environment, remove only the legacy value-owning state entries; this retains the remote Secret Manager version and GitHub secret:
+Every local `tofu apply` checks the configured application-secret environment variables. When a value is present and differs from `latest`, it adds a Secret Manager version; unset values and matching versions are skipped. OpenTofu state contains neither values nor fingerprints. Before applying the migration in each environment, remove only the legacy value-owning state entries; this retains the remote Secret Manager version and GitHub secret:
 
 ```bash
 tofu state rm 'module.ipace_owners.google_secret_manager_secret_version.vin_pepper'
@@ -408,7 +408,7 @@ tofu state rm 'module.ipace_owners.github_actions_environment_secret.actions["VI
 tofu state rm 'module.ipace_owners.github_actions_environment_secret.actions["RESEND_API_KEY_STAGING"]'
 ```
 
-Use the matching production names in production. To add application-secret versions, export `VIN_PEPPER`, `RESEND_API_KEY`, and `IDEAL_POSTCODES_API_KEY` from secure operator storage, then apply with labels such as `secret_version_rotation = { resend_api_key = "2026-10-10" }`. `RESEND_API_KEY` also configures the Resend provider when its sending domain is managed. After a successful Functions deployment, remove the old GitHub Actions application secrets; retain only deployment bootstrap credentials and the dedicated staging E2E Resend key.
+Use the matching production names in production. To add application-secret versions, export any of `VIN_PEPPER`, `RESEND_API_KEY`, `IDEAL_POSTCODES_API_KEY`, and `INSTAGRAM_ACCESS_TOKEN` from secure operator storage, then run the normal local apply. `RESEND_API_KEY` also configures the Resend provider when its sending domain is managed. After a successful Functions deployment, remove the old GitHub Actions application secrets; retain only deployment bootstrap credentials and the dedicated staging E2E Resend key.
 
 ### Production monitoring and recovery
 

@@ -313,15 +313,14 @@ resource "google_secret_manager_secret" "instagram_access_token" {
 }
 
 resource "terraform_data" "local_secret_versions" {
-  count = var.manage_local_secret_versions && length(var.secret_version_rotation) > 0 ? 1 : 0
-
-  triggers_replace = [jsonencode(var.secret_version_rotation)]
+  # Runs locally on every apply. The Go helper skips unset values and does not
+  # expose values or fingerprints to OpenTofu state.
+  triggers_replace = [timestamp()]
 
   provisioner "local-exec" {
     command = "cd ${path.root}/../../../functions/firebase-go && go run ./cmd/secret-version-bootstrap"
     environment = {
-      GCP_PROJECT_ID           = var.project_id
-      SECRET_VERSION_ROTATIONS = jsonencode(var.secret_version_rotation)
+      GCP_PROJECT_ID = var.project_id
     }
   }
 

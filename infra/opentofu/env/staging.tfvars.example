@@ -68,11 +68,6 @@ firebase_hosting_custom_domains = {
 
 manage_github_actions = true
 
-# Add the VIN pepper directly to this environment's GCP Secret Manager `vin-pepper` secret.
-# OpenTofu manages only the secret container and runtime access.
-
-# Optional local-only secret bootstrap. Export VIN_PEPPER, RESEND_API_KEY,
-# IDEAL_POSTCODES_API_KEY (and, when used, INSTAGRAM_ACCESS_TOKEN),
-# then set a new non-secret label to add a version only when its value differs from latest.
-# manage_local_secret_versions = true
-# secret_version_rotation = { vin_pepper = "2026-10-10" }
+# A local apply creates or rotates versions from any exported VIN_PEPPER,
+# RESEND_API_KEY, IDEAL_POSTCODES_API_KEY, or INSTAGRAM_ACCESS_TOKEN value.
+# Unset values are skipped and never enter OpenTofu state.

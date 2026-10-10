@@ -107,18 +107,6 @@ variable "github_repo" {
   default     = "ipace-owners"
 }
 
-variable "manage_local_secret_versions" {
-  description = "Whether a local OpenTofu apply may create Secret Manager versions from operator environment variables. Secret bytes are never Terraform inputs or state."
-  type        = bool
-  default     = false
-}
-
-variable "secret_version_rotation" {
-  description = "Non-secret rotation labels keyed by vin_pepper, resend_api_key, ideal_postcodes_api_key, or instagram_access_token. Change a label to run the local version bootstrap."
-  type        = map(string)
-  default     = {}
-}
-
 variable "allowed_origins" {
   description = "Comma-separated browser origins allowed to call APIs."
   type        = string

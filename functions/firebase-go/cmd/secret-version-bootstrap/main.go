@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -20,31 +19,21 @@ func main() {
 	if project == "" {
 		fail("GCP_PROJECT_ID is required")
 	}
-	rotations := map[string]string{}
-	if err := json.Unmarshal([]byte(os.Getenv("SECRET_VERSION_ROTATIONS")), &rotations); err != nil {
-		fail("SECRET_VERSION_ROTATIONS must be JSON")
-	}
 	api, err := secretmanager.NewService(context.Background())
 	if err != nil {
 		fail("could not create Secret Manager client")
 	}
-	secrets := map[string]secret{
-		"vin_pepper":              {"vin-pepper", "VIN_PEPPER"},
-		"resend_api_key":          {"resend-api-key", "RESEND_API_KEY"},
-		"ideal_postcodes_api_key": {"ideal-postcodes-api-key", "IDEAL_POSTCODES_API_KEY"},
-		"instagram_access_token":  {"instagram-access-token", "INSTAGRAM_ACCESS_TOKEN"},
+	secrets := []secret{
+		{"vin-pepper", "VIN_PEPPER"},
+		{"resend-api-key", "RESEND_API_KEY"},
+		{"ideal-postcodes-api-key", "IDEAL_POSTCODES_API_KEY"},
+		{"instagram-access-token", "INSTAGRAM_ACCESS_TOKEN"},
 	}
-	for key, label := range rotations {
-		if label == "" {
-			continue
-		}
-		cfg, ok := secrets[key]
-		if !ok {
-			fail("unsupported secret rotation key: " + key)
-		}
+	for _, cfg := range secrets {
 		value := []byte(os.Getenv(cfg.Env))
 		if len(value) == 0 {
-			fail(cfg.Env + " must be set when rotating " + cfg.ID)
+			fmt.Println(cfg.ID + ": not set locally; skipping")
+			continue
 		}
 		name := fmt.Sprintf("projects/%s/secrets/%s", project, cfg.ID)
 		current, err := api.Projects.Secrets.Versions.Access(name + "/versions/latest").Do()

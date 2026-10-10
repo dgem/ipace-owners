@@ -67,3 +67,18 @@ test("application secret containers are protected from accidental removal", () =
     assert.match(main, new RegExp(`resource "google_secret_manager_secret" "${name}"[\\s\\S]*?deletion_policy\\s+=\\s+"ABANDON"[\\s\\S]*?deletion_protection\\s+=\\s+true`));
   }
 });
+
+test("local secret bootstrap is automatic, idempotent, and does not use Terraform inputs", () => {
+  const main = read("infra/opentofu/modules/ipace-owners/main.tf");
+  const variables = read("infra/opentofu/modules/ipace-owners/variables.tf");
+  const bootstrap = read("functions/firebase-go/cmd/secret-version-bootstrap/main.go");
+
+  assert.match(main, /resource "terraform_data" "local_secret_versions"[\s\S]*?triggers_replace\s+=\s+\[timestamp\(\)\]/);
+  assert.doesNotMatch(main, /SECRET_VERSION_ROTATIONS|secret_version_rotation|manage_local_secret_versions/);
+  assert.doesNotMatch(variables, /secret_version_rotation|manage_local_secret_versions/);
+  assert.doesNotMatch(bootstrap, /SECRET_VERSION_ROTATIONS/);
+  assert.match(bootstrap, /not set locally; skipping/);
+  for (const name of ["VIN_PEPPER", "RESEND_API_KEY", "IDEAL_POSTCODES_API_KEY", "INSTAGRAM_ACCESS_TOKEN"]) {
+    assert.match(bootstrap, new RegExp(`"${name}"`));
+  }
+});
