@@ -7,6 +7,7 @@ FUNCTION_ENTRYPOINTS ?= Api
 FIREBASE_PREVIEW_JSON ?= firebase-preview.json
 FIREBASE_PREVIEW_ERROR ?= firebase-preview-error.log
 GOVULNCHECK_VERSION ?= v1.6.0
+GOAUDIT_TOOLCHAIN ?= go1.26.9
 INFRA_ENV_SCRIPT := scripts/infra-env.sh
 
 .PHONY: help functions check-node install ci-install dev build clean lint lint-js lint-css lint-markdown lint-data lint-templates lint-shell lint-go lint-tofu lint-svg audit audit-node audit-go test test-node test-go test-visual test-e2e-responsive test-e2e-auth smoke join-reengagement update-service-providers write-functions-env authorize-preview-domain deploy-functions deploy-hosting-preview delete-hosting-preview deploy-hosting-production infra-config infra-auth infra-init infra-workspace infra-dns-records infra-resend-dns-records infra-email-domain infra-plan infra-apply deploy-hosting-env
@@ -76,7 +77,7 @@ audit-node: check-node ## Fail on new high or critical Node dependency vulnerabi
 	node scripts/audit-node.mjs
 
 audit-go: ## Check Go code for reachable known vulnerabilities.
-	cd functions/firebase-go && go run golang.org/x/vuln/cmd/govulncheck@$(GOVULNCHECK_VERSION) ./...
+	cd functions/firebase-go && GOTOOLCHAIN=$(GOAUDIT_TOOLCHAIN) go run golang.org/x/vuln/cmd/govulncheck@$(GOVULNCHECK_VERSION) ./...
 
 test: test-node test-go ## Run all local test suites.
 

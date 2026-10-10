@@ -601,7 +601,8 @@ and frozen headers. See prompt 17 for the audit mitigation.
   regeneration verified by smoke testing, branch-run cancellation, direct smoke testing,
   weekly Dependabot coverage, CodeQL `security-extended`, dependency review, a Node audit
   that warns for the explicit upstream-only advisory baseline but fails new high-or-critical
-  findings, pinned `govulncheck`, and the passive ZAP baseline described in prompt `17`.
+  findings, pinned `govulncheck` run with the deployed Go patch toolchain, and the passive ZAP
+  baseline described in prompt `17`.
 - Recreate Playwright public browser coverage for responsive desktop and mobile navigation and
   the signed-out member gate. Keep real passwordless browser coverage as a separate opt-in
   staging-preview job that uses a dedicated registered test inbox and Resend Receiving; it must
