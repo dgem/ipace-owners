@@ -18,9 +18,8 @@ The letter is otherwise unchanged. Our [assessment of JLR's response](/updates/j
 is also available.
 
 Thank you to everyone who has shared their experience. If you contact JLR's Executive Office,
-please record the dates, responses and outcome in your private member vehicle history. It gives
-the group structured evidence of whether the individual-review route works. You can add it from
-[your member dashboard](/member/dashboard/).
+please [add the dates, responses and outcome to your private member vehicle history](/member/dashboard/).
+It gives the group structured evidence of whether the individual-review route works.
 
 ## What we have heard so far
 
