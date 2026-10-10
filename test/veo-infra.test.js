@@ -59,3 +59,11 @@ test("Meta OAuth token storage is declared without putting token bytes in OpenTo
   assert.match(makefile, /RESEND_API_KEY=resend-api-key:latest/);
   assert.match(makefile, /IDEAL_POSTCODES_API_KEY=ideal-postcodes-api-key:latest/);
 });
+
+test("application secret containers are protected from accidental removal", () => {
+  const main = read("infra/opentofu/modules/ipace-owners/main.tf");
+
+  for (const name of ["vin_pepper", "resend_api_key", "ideal_postcodes_api_key", "instagram_access_token"]) {
+    assert.match(main, new RegExp(`resource "google_secret_manager_secret" "${name}"[\\s\\S]*?deletion_policy\\s+=\\s+"ABANDON"[\\s\\S]*?deletion_protection\\s+=\\s+true`));
+  }
+});

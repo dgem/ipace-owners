@@ -265,7 +265,9 @@ resource "google_secret_manager_secret_version" "firebase_web_api_key" {
 }
 
 resource "google_secret_manager_secret" "vin_pepper" {
-  secret_id = "vin-pepper"
+  secret_id           = "vin-pepper"
+  deletion_policy     = "ABANDON"
+  deletion_protection = true
 
   replication {
     auto {}
@@ -275,7 +277,9 @@ resource "google_secret_manager_secret" "vin_pepper" {
 }
 
 resource "google_secret_manager_secret" "resend_api_key" {
-  secret_id = "resend-api-key"
+  secret_id           = "resend-api-key"
+  deletion_policy     = "ABANDON"
+  deletion_protection = true
 
   replication {
     auto {}
@@ -285,7 +289,9 @@ resource "google_secret_manager_secret" "resend_api_key" {
 }
 
 resource "google_secret_manager_secret" "ideal_postcodes_api_key" {
-  secret_id = "ideal-postcodes-api-key"
+  secret_id           = "ideal-postcodes-api-key"
+  deletion_policy     = "ABANDON"
+  deletion_protection = true
 
   replication {
     auto {}
@@ -295,7 +301,9 @@ resource "google_secret_manager_secret" "ideal_postcodes_api_key" {
 }
 
 resource "google_secret_manager_secret" "instagram_access_token" {
-  secret_id = "instagram-access-token"
+  secret_id           = "instagram-access-token"
+  deletion_policy     = "ABANDON"
+  deletion_protection = true
 
   replication {
     auto {}
