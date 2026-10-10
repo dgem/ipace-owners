@@ -29,7 +29,7 @@ previous module replacements and recall restrictions to warranty questions and c
 One reported a final refusal of battery replacement and buy-back; the others who told us are still
 waiting. Nobody who has reported back has said the individual route resolved their concern.
 
-If you contact JLR, please [add the dates, response and outcome to your vehicle history](https://ipace-owners.org/member/dashboard/). There is no evidence yet that the individual route changes outcomes; recording cases helps us test whether it leads to fair and timely outcomes or simply prolongs disputes. Keep your VIN and correspondence private unless we ask for them securely.
+If you contact JLR, please [add the dates, response and outcome to your vehicle history](https://ipace-owners.org/member/dashboard/). After more than five years of repeated delays and piecemeal handling, members need a proper solution now. There is no evidence yet that the individual route changes outcomes; recording cases helps us test whether it leads to fair, timely and lasting outcomes or simply prolongs disputes. Keep your VIN and correspondence private unless we ask for them securely.
 
 Thank you,
 
