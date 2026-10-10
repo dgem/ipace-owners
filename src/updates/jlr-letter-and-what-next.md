@@ -19,7 +19,7 @@ is also available.
 
 Thank you to everyone who has shared their experience. If you contact JLR's Executive Office,
 please [add the dates, responses and outcome to your private member vehicle history](/member/dashboard/).
-It gives the group structured evidence of whether the individual-review route works.
+It helps us test whether Executive Office contact produces a fair resolution or simply prolongs an individual dispute.
 
 ## What we have heard so far
 
@@ -35,9 +35,10 @@ costs. Members are asking for a permanent remedy, clarity on warranty cover and 
 where appropriate, replacement or buy-back. Individual review should be able to deal with those
 differences; the question is whether it does so consistently and decisively.
 
-This is early, self-selected reporting, not a measure of every case. It does, however, explain why
-we need to test the individual route properly and decide what should happen if it does not deliver
-fair, lasting outcomes.
+This is early, self-selected reporting, not a measure of every case. But there is no evidence yet
+that Executive Office contact changes the outcome. Members may reasonably see more case-by-case
+review as delay or divide-and-conquer unless it produces fair, lasting resolutions. That is why we
+need to test the individual route properly and decide what should happen if it does not.
 
 ## What should we do next?
 

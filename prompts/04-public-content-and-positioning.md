@@ -439,3 +439,6 @@ offer a downloadable sample Excel workbook generated with fictional data only.
 ## Instagram discovery
 
 Promote the group’s public Instagram profile, `https://www.instagram.com/ipaceowners/`, as a follow destination rather than only offering social sharing. Keep joining as the primary homepage action. The launch homepage final CTA should invite visitors to follow `@ipaceowners` for owner updates and reels, and the footer’s social area should include a direct Instagram-profile link alongside share controls.
+
+
+For the October 2026 Executive Office evidence, explain that the reports are early and self-selected, and that there is no evidence yet that individual Executive Office contact changes outcomes. Recognise members may reasonably regard repeated case-by-case review as delay or divide-and-conquer unless it produces fair, lasting resolutions. Invite members to record dates, responses and outcomes in private vehicle history through the member dashboard so the group can test this claim.
