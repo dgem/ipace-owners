@@ -126,14 +126,16 @@ identity, sheet structure, representative totals, and chart parts.
 The account also offers one editable contact profile per authenticated member, with legal
 name, optional telephone number, freeform international postal address, and country. Address
 or postcode searches can use an optional server-side Ideal Postcodes lookup configured with
-`IDEAL_POSTCODES_API_KEY`; manual entry always remains available. Legal-representation consent
-is not currently offered. Keep the future UI behind `site.features.legalRepresentation` and the
-API behind `LEGAL_REPRESENTATION_ENABLED=true`; both must be deliberately enabled together after
-the mandate is settled. Until then, omit the legal wording and checkbox and preserve any historic
-representation choice unchanged when a member saves contact details. When enabled, its versioned
-wording authorises preparatory legal engagement with JLR, not issuing proceedings or accepting
-costs. Store identity verification in a separate admin-only collection; a member can neither set
-nor read it. Append each opt-in, withdrawal or change to the profile details under
+`IDEAL_POSTCODES_API_KEY`; manual entry always remains available. Legal name and address collection
+is private preparation that can reduce delay if this or a later member decision supports legal
+work; it is not legal consent. Legal-representation consent is not currently offered. Keep the
+future UI behind `site.features.legalRepresentation` and the API behind
+`LEGAL_REPRESENTATION_ENABLED=true`; both must be deliberately enabled together after the mandate
+is settled. Until then, omit the legal wording and checkbox and preserve any historic
+representation choice unchanged when a member saves contact details. When enabled, present a
+voluntary UK-only interest-registration preference, not authority to represent a member, issue
+proceedings or accept costs. Store identity verification in a separate admin-only collection; a
+member can neither set nor read it. Append each opt-in, withdrawal or change to the profile details under
 `memberProfiles/{uid}/representationChoices`, recording the wording version and time without
 duplicating contact PII; keep only the current choice in the parent profile.
 

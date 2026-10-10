@@ -54,17 +54,22 @@ These paths are not mutually exclusive. We want members to help set their priori
   ways that matter. We need a balance that gets attention without undermining constructive
   engagement with JLR.
 - **Prepare legal escalation.** With our advisers, we would need to assess the route,
-  likely costs and possible funding before inviting eligible UK members to register
-  interest in exploring it. A survey choice alone would not give the group authority
-  to represent anyone.
+  likely costs and possible funding before asking eligible UK members for a voluntary
+  interest-registration preference. A survey choice alone would not give the group
+  authority to represent anyone.
 
 We will contact members who offered legal, management, PR or media-relations skills soon.
 We will also ask some owners whether they would *want* to share their experience with the
 media. No personal story will be shared without that owner's agreement.
 
+Members can save their legal name and address in their private account now. This is
+preparation only: it can reduce delay if this survey, or a later decision after a defined
+wait, supports legal work.
+
 The **“what next?” survey** will help establish which steps have a group mandate. If a
-legal route merits further work, we will set out a separate, voluntary way for eligible
-UK members to register interest. We would confirm eligibility and identity before any
-further step. Registration would not authorise representation, proceedings or costs.
+legal route merits further work, we will ask eligible UK members for a separate, voluntary
+interest-registration preference. We would confirm eligibility and identity before any
+further step. Saving contact details or registering interest would not authorise
+representation, proceedings or costs.
 
 <p class="update-article__cta"><a class="btn btn--primary" href="/member/survey-response/?id=latest">Tell us what you think the group should do next</a></p>
