@@ -599,7 +599,9 @@ and frozen headers. See prompt 17 for the audit mitigation.
   job-scoped permissions, immutable third-party Action pins, Workload Identity Federation,
   serialized staging and production deployment, runtime-authorized public snapshot
   regeneration verified by smoke testing, branch-run cancellation, direct smoke testing,
-  weekly Dependabot coverage, CodeQL `security-extended`, dependency review, npm audit,
+  weekly Dependabot coverage, CodeQL `security-extended`, dependency review, a Node audit
+  that warns for the explicit upstream-only advisory baseline but fails new high-or-critical
+  findings, pinned `govulncheck`, and the passive ZAP baseline described in prompt `17`.
   pinned `govulncheck`, and the passive ZAP baseline described in prompt `17`.
 - Recreate Playwright public browser coverage for responsive desktop and mobile navigation and
   the signed-out member gate. Keep real passwordless browser coverage as a separate opt-in

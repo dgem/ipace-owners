@@ -127,8 +127,10 @@ and SVG/XML. Each check is also available through the corresponding `make lint-*
 make audit
 ```
 
-Runs `npm audit` with a high-severity failure threshold and pinned `govulncheck` analysis for
-reachable Go vulnerabilities. GitHub Actions additionally runs CodeQL and dependency review
+Runs the Node audit gate and pinned `govulncheck` analysis for reachable Go vulnerabilities.
+The Node gate warns about the reviewed, upstream-only advisory URLs in
+`security/npm-audit-baseline.json`, and fails on new high or critical findings or a severity
+increase in an accepted finding. GitHub Actions additionally runs CodeQL and dependency review
 on pull requests and a weekly schedule. Firebase PR previews receive a blocking passive OWASP
 ZAP baseline scan after deployment smoke tests pass. `package.json` may pin narrow transitive
 security overrides when a maintained direct dependency has not yet widened its range to a

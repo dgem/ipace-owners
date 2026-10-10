@@ -29,7 +29,7 @@ test('Makefile exposes reproducible Node and Go vulnerability audits', function 
 
   assert.match(makefile, /GOVULNCHECK_VERSION \?= v1\.6\.0/);
   assert.match(makefile, /audit: audit-node audit-go/);
-  assert.match(makefile, /npm audit --audit-level=high/);
+  assert.match(makefile, /node scripts\/audit-node\.mjs/);
   assert.match(makefile, /govulncheck@\$\(GOVULNCHECK_VERSION\)/);
 });
 

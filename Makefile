@@ -72,8 +72,8 @@ lint-svg: check-node ## Validate SVG/XML syntax.
 
 audit: audit-node audit-go ## Check Node and Go dependencies for known vulnerabilities.
 
-audit-node: check-node ## Fail on high or critical Node dependency vulnerabilities.
-	npm audit --audit-level=high
+audit-node: check-node ## Fail on new high or critical Node dependency vulnerabilities.
+	node scripts/audit-node.mjs
 
 audit-go: ## Check Go code for reachable known vulnerabilities.
 	cd functions/firebase-go && go run golang.org/x/vuln/cmd/govulncheck@$(GOVULNCHECK_VERSION) ./...
