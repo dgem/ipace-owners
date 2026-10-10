@@ -155,8 +155,9 @@ steps without implying that a survey choice is legal consent. Keep the proposed 
 options in `docs/next-steps-survey-draft.md`; staging seeds a published, editable survey record
 on first authenticated survey access, while production seeds an editable draft for an administrator
 to publish. The scheduled 10–23 October 2026 window accepts responses only after publication.
-Legal representation preferences are being prepared
-separately for the member account, with only preparatory engagement covered by the first choice.
+Legal representation preferences are not currently offered. Preserve the future account control
+behind matching site and API feature flags so a member cannot create a mandate until the group
+deliberately enables both.
 
 All update-page hero images use a shallow 16:7 crop above the mobile breakpoint and 16:9 on
 small screens, keeping the opening text closer to long multi-line headings without losing a
@@ -599,8 +600,10 @@ and frozen headers. See prompt 17 for the audit mitigation.
   job-scoped permissions, immutable third-party Action pins, Workload Identity Federation,
   serialized staging and production deployment, runtime-authorized public snapshot
   regeneration verified by smoke testing, branch-run cancellation, direct smoke testing,
-  weekly Dependabot coverage, CodeQL `security-extended`, dependency review, npm audit,
-  pinned `govulncheck`, and the passive ZAP baseline described in prompt `17`.
+  weekly Dependabot coverage, CodeQL `security-extended`, dependency review, a Node audit
+  that warns for the explicit upstream-only advisory baseline but fails new high-or-critical
+  findings, pinned `govulncheck` run with the deployed Go patch toolchain, and the passive ZAP
+  baseline described in prompt `17`.
 - Recreate Playwright public browser coverage for responsive desktop and mobile navigation and
   the signed-out member gate. Keep real passwordless browser coverage as a separate opt-in
   staging-preview job that uses a dedicated registered test inbox and Resend Receiving; it must

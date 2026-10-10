@@ -3,6 +3,7 @@
   var form = document.querySelector('[data-member-profile-form]');
   if (!form) return;
   var status = form.querySelector('[data-member-profile-status]');
+  var represent = form.elements.represent;
   var addresses = [];
 
   function uk() {
@@ -10,12 +11,13 @@
   }
 
   function updateEligibility() {
+    if (!represent) return;
     var eligible = uk();
-    form.elements.represent.disabled = !eligible;
-    if (!eligible) form.elements.represent.checked = false;
+    represent.disabled = !eligible;
+    if (!eligible) represent.checked = false;
     form.querySelector('[data-representation-hint]').textContent = eligible
-      ? 'A complete UK address is required. Identity verification is a separate review.'
-      : 'Representation is currently available only to members with a UK address.';
+      ? 'Currently available only with a complete UK address. Identity verification is a separate review.'
+      : 'Registering interest in legal options is currently available only to members with a UK address.';
   }
 
   function api(url, options) {
@@ -42,7 +44,8 @@
         if (form.elements[key].type === 'checkbox') form.elements[key].checked = !!data.profile[key];
         else form.elements[key].value = data.profile[key] || '';
       });
-      if (data.representationWording) form.querySelector('[data-representation-wording]').textContent = data.representationWording;
+      var wording = form.querySelector('[data-representation-wording]');
+      if (wording && data.representationWording) wording.textContent = data.representationWording;
       updateEligibility();
     }).catch(function (error) { status.textContent = error.message; });
   }
@@ -86,7 +89,7 @@
     ['name', 'phone', 'addressLine1', 'addressLine2', 'city', 'region', 'postalCode', 'country'].forEach(function (key) {
       payload[key] = form.elements[key].value;
     });
-    payload.represent = form.elements.represent.checked && !form.elements.represent.disabled;
+    if (represent) payload.represent = represent.checked && !represent.disabled;
     var button = form.querySelector('[type="submit"]');
     button.disabled = true;
     status.textContent = 'Saving…';
