@@ -440,7 +440,6 @@ offer a downloadable sample Excel workbook generated with fictional data only.
 
 Promote the group’s public Instagram profile, `https://www.instagram.com/ipaceowners/`, as a follow destination rather than only offering social sharing. Keep joining as the primary homepage action. The launch homepage final CTA should invite visitors to follow `@ipaceowners` for owner updates and reels, and the footer’s social area should include a direct Instagram-profile link alongside share controls.
 
-
 For the October 2026 Executive Office evidence, explain that the reports are early and self-selected, and that there is no evidence yet that individual Executive Office contact changes outcomes. Recognise members may reasonably regard repeated case-by-case review as delay or divide-and-conquer unless it produces fair, timely and lasting outcomes. Invite members to record dates, responses and outcomes in private vehicle history through the member dashboard so the group can test this claim.
 
 The 2 October JLR response update must direct members who contact the Executive Office to add a private service-history entry through the member dashboard. Ask for the date sent, acknowledgement or reply timing, offer, whether it resolved the concern, and any diagnosis or repair costs. Explain that this is how the group tests whether individual review delivers fair, timely and lasting outcomes.
