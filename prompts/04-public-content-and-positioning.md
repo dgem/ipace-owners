@@ -163,9 +163,10 @@ be tested for consistent, lasting results. Explain the four possible group prior
 and evidence, consider measured press engagement, and prepare legal escalation with
 advice on costs and funding. Raise the Type 01 battery comparison as a question, not a
 technical finding. Tell members a “what next?” survey and contact/consent features are
-being prepared. A survey preference is not authority to represent anyone. The account
-choice being prepared covers preparatory legal engagement only; identity and eligibility
-checks, and further authority for proceedings or costs, remain separate. Preserve the
+being prepared. A survey preference is not authority to represent anyone. Legal-interest
+registration is not currently offered; when deliberately enabled, it records only interest in
+exploring UK legal options, with identity and eligibility checks and further authority for
+proceedings or costs remaining separate. Preserve the
 proposed survey wording in `docs/next-steps-survey-draft.md`. In staging only, the
 survey is seeded into the existing authenticated member-survey flow for real test
 responses from 9 October to 9 November 2026. Do not describe it as live in production.

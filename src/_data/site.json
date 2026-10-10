@@ -8,5 +8,8 @@
   "socialImage": "/images/ipace-hero.png",
   "socialImageAlt": "A dark electric SUV representing I-PACE owners working together",
   "currentYear": 2026,
-  "defaultMode": "launch"
+  "defaultMode": "launch",
+  "features": {
+    "legalRepresentation": false
+  }
 }

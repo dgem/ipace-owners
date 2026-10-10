@@ -126,15 +126,16 @@ identity, sheet structure, representative totals, and chart parts.
 The account also offers one editable contact profile per authenticated member, with legal
 name, optional telephone number, freeform international postal address, and country. Address
 or postcode searches can use an optional server-side Ideal Postcodes lookup configured with
-`IDEAL_POSTCODES_API_KEY`; manual entry always remains available. A separate representation
-checkbox is available only with a complete UK address. Its versioned wording authorises
-preparatory legal engagement with JLR, not issuing proceedings or accepting costs. Record
-the choice and timestamp in the member profile. Store identity verification in a separate
-admin-only collection; a member can neither set nor read it. A member's checkbox is not
-itself verification or a count of verified mandates. International members may save contact
-details without this choice. Append each opt-in, withdrawal or change to the profile details
-under `memberProfiles/{uid}/representationChoices`, recording the wording version and time
-without duplicating contact PII; keep only the current choice in the parent profile.
+`IDEAL_POSTCODES_API_KEY`; manual entry always remains available. Legal-representation consent
+is not currently offered. Keep the future UI behind `site.features.legalRepresentation` and the
+API behind `LEGAL_REPRESENTATION_ENABLED=true`; both must be deliberately enabled together after
+the mandate is settled. Until then, omit the legal wording and checkbox and preserve any historic
+representation choice unchanged when a member saves contact details. When enabled, its versioned
+wording authorises preparatory legal engagement with JLR, not issuing proceedings or accepting
+costs. Store identity verification in a separate admin-only collection; a member can neither set
+nor read it. Append each opt-in, withdrawal or change to the profile details under
+`memberProfiles/{uid}/representationChoices`, recording the wording version and time without
+duplicating contact PII; keep only the current choice in the parent profile.
 
 Provide a protected member survey page at `/member/surveys/` and an admin CRUD workspace at
 `/admin/surveys/`. Administrators can create, edit, list, and delete a survey with a title,

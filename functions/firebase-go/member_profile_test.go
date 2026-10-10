@@ -77,6 +77,18 @@ func TestRepresentationChoiceHistoryTracksMandateChanges(t *testing.T) {
 	}
 }
 
+func TestMemberProfilePreservesHistoricRepresentationWhileFeatureIsDisabled(t *testing.T) {
+	t.Setenv("LEGAL_REPRESENTATION_ENABLED", "")
+	previous := memberContactProfile{Represent: true, RepresentationVersion: "2026-10-02-v1"}
+	updated := memberContactProfile{Represent: false}
+
+	preserveRepresentationWhenDisabled(previous, &updated)
+
+	if !updated.Represent || updated.RepresentationVersion != previous.RepresentationVersion {
+		t.Fatalf("historic representation was changed while feature is disabled: %+v", updated)
+	}
+}
+
 func TestAddressIDAcceptsInternationalSuggestionIDs(t *testing.T) {
 	for _, id := range []string{"paf_23747771", "usps_V122200597|1600||17ND", "herewe_pap|uEXlTCwRpMmtSYizTlZnQ|en"} {
 		if !addressID.MatchString(id) {

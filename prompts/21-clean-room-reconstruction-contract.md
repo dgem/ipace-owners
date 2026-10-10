@@ -155,8 +155,9 @@ steps without implying that a survey choice is legal consent. Keep the proposed 
 options in `docs/next-steps-survey-draft.md`; staging seeds a published, editable survey record
 on first authenticated survey access, while production seeds an editable draft for an administrator
 to publish. The scheduled 10–23 October 2026 window accepts responses only after publication.
-Legal representation preferences are being prepared
-separately for the member account, with only preparatory engagement covered by the first choice.
+Legal representation preferences are not currently offered. Preserve the future account control
+behind matching site and API feature flags so a member cannot create a mandate until the group
+deliberately enables both.
 
 All update-page hero images use a shallow 16:7 crop above the mobile breakpoint and 16:9 on
 small screens, keeping the opening text closer to long multi-line headings without losing a
