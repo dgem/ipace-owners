@@ -51,13 +51,9 @@ resend_reply_to       = "contact@ipace-owners.org"
 # Hosting assets, so staging delivery deliberately reuses the canonical public hero.
 resend_asset_base_url = "https://ipace-owners.org"
 
-# Set bootstrap_resend_api_key_secret=true and provide the real API key via
-# TF_VAR_resend_api_key or an uncommitted tfvars file if OpenTofu should bootstrap
-# the GitHub environment secret RESEND_API_KEY_STAGING. Leave false if you manage
-# that GitHub secret manually.
+# Set RESEND_API_KEY in the shell only when OpenTofu manages a Resend domain.
+# Manage RESEND_API_KEY_STAGING directly in GitHub Actions secrets.
 
-# bootstrap_resend_api_key_secret = true
-# resend_api_key = "re_replace_with_staging_resend_api_key"
 manage_resend_domain = true
 resend_domain        = "stage.ipace-owners.org"
 resend_region        = "eu-west-1"
@@ -72,5 +68,10 @@ firebase_hosting_custom_domains = {
 
 manage_github_actions = true
 
-# Set the real secret value via environment variables or an uncommitted tfvars file:
-# TF_VAR_vin_pepper=...
+# Add the VIN pepper directly to this environment's GCP Secret Manager `vin-pepper` secret.
+# OpenTofu manages only the secret container and runtime access.
+
+# Optional local-only secret bootstrap. Export VIN_PEPPER (and, when used, INSTAGRAM_ACCESS_TOKEN),
+# then set a new non-secret label to add a version only when its value differs from latest.
+# manage_local_secret_versions = true
+# secret_version_rotation = { vin_pepper = "2026-10-10" }

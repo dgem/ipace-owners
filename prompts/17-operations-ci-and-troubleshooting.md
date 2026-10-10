@@ -443,10 +443,7 @@ site-owned `/images/` paths; Freeform campaigns retain the generic hero.
   Auth email template inserts that value as `%APP_NAME%`; stale values such as a previous
   product name require an infra apply before new default emails change.
 - Resend is the custom email transport for branded passwordless emails. Configure
-  `RESEND_API_KEY_<ENV>` as a GitHub environment secret, either manually or by supplying the
-  sensitive `resend_api_key` OpenTofu variable during bootstrap with
-  `bootstrap_resend_api_key_secret = true`. Leave that boolean false to avoid creating or
-  overwriting the GitHub secret. Do not use sensitive values in OpenTofu `for_each` keys;
+  `RESEND_API_KEY_<ENV>` as a GitHub environment secret, manually, outside OpenTofu state. Do not use sensitive values in OpenTofu `for_each` keys;
   use the non-sensitive bootstrap boolean for resource shape and the sensitive variable only
   for the secret value. Manage non-secret `RESEND_FROM_<ENV>`, `RESEND_REPLY_TO_<ENV>`, and
   `RESEND_ASSET_BASE_URL_<ENV>` through OpenTofu/GitHub environment variables. The Function
@@ -475,8 +472,7 @@ site-owned `/images/` paths; Freeform campaigns retain the generic hero.
   account's daily/monthly Resend quota first: the free transactional daily quota is below a
   150-recipient campaign. Keep open/click tracking disabled for these authentication links.
 - OpenTofu can optionally create/read the Resend sending domain with
-  `manage_resend_domain = true`, `resend_domain`, `resend_region`, and a Resend API key
-  supplied through the sensitive `resend_api_key` variable or `TF_VAR_resend_api_key`.
+  `manage_resend_domain = true`, `resend_domain`, `resend_region`, and `RESEND_API_KEY` supplied only in the OpenTofu process environment.
   Because Fasthosts DNS is not managed by OpenTofu, use the `resend_email_domain` output or
   `make infra-resend-dns-records ENV=<environment>` to copy the required Resend SPF/DKIM/MX
   records into Fasthosts manually. Keep Resend open/click tracking disabled for

@@ -107,10 +107,16 @@ variable "github_repo" {
   default     = "ipace-owners"
 }
 
-variable "vin_pepper" {
-  description = "Secret pepper for VIN HMAC deduplication. Never commit a real value."
-  type        = string
-  sensitive   = true
+variable "manage_local_secret_versions" {
+  description = "Whether a local OpenTofu apply may create Secret Manager versions from operator environment variables. Secret bytes are never Terraform inputs or state."
+  type        = bool
+  default     = false
+}
+
+variable "secret_version_rotation" {
+  description = "Non-secret rotation labels keyed by vin_pepper or instagram_access_token. Change a label to run the local version bootstrap."
+  type        = map(string)
+  default     = {}
 }
 
 variable "allowed_origins" {
@@ -184,19 +190,6 @@ variable "resend_from" {
   description = "Optional Resend sender address for custom passwordless Auth emails, for example 'I-PACE Owners <members@ipace-owners.org>'."
   type        = string
   default     = ""
-}
-
-variable "resend_api_key" {
-  description = "Optional Resend API key to bootstrap into the GitHub environment secret RESEND_API_KEY_<ENV>. Leave empty to manage the secret manually."
-  type        = string
-  default     = ""
-  sensitive   = true
-}
-
-variable "bootstrap_resend_api_key_secret" {
-  description = "Whether OpenTofu should create/update the GitHub environment secret RESEND_API_KEY_<ENV> from resend_api_key."
-  type        = bool
-  default     = false
 }
 
 variable "resend_reply_to" {

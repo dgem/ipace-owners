@@ -144,8 +144,10 @@ deploy-functions: write-functions-env ## Deploy all Go Cloud Functions to GCP.
 	@if [ -z "$${FUNCTIONS_SERVICE_ACCOUNT}" ]; then echo "FUNCTIONS_SERVICE_ACCOUNT is required"; exit 1; fi
 	@for fn in $(FUNCTION_ENTRYPOINTS); do \
 		echo "Deploying Cloud Function $$fn"; \
-		secret_args=""; \
-		if [ -n "$${INSTAGRAM_ACCESS_TOKEN_SECRET}" ]; then secret_args="--set-secrets=INSTAGRAM_ACCESS_TOKEN=$${INSTAGRAM_ACCESS_TOKEN_SECRET}:latest"; fi; \
+		secret_values=""; \
+		if [ -n "$${VIN_PEPPER_SECRET}" ]; then secret_values="VIN_PEPPER=$${VIN_PEPPER_SECRET}:latest"; fi; \
+		if [ -n "$${INSTAGRAM_ACCESS_TOKEN_SECRET}" ]; then secret_values="$${secret_values}$${secret_values:+,}INSTAGRAM_ACCESS_TOKEN=$${INSTAGRAM_ACCESS_TOKEN_SECRET}:latest"; fi; \
+		secret_args=""; if [ -n "$${secret_values}" ]; then secret_args="--set-secrets=$${secret_values}"; fi; \
 		gcloud functions deploy "$$fn" \
 			--gen2 \
 			--project="$${GCP_PROJECT_ID}" \

@@ -284,9 +284,20 @@ resource "google_secret_manager_secret" "instagram_access_token" {
   depends_on = [google_project_service.required]
 }
 
-resource "google_secret_manager_secret_version" "vin_pepper" {
-  secret      = google_secret_manager_secret.vin_pepper.id
-  secret_data = var.vin_pepper
+resource "terraform_data" "local_secret_versions" {
+  count = var.manage_local_secret_versions ? 1 : 0
+
+  triggers_replace = [jsonencode(var.secret_version_rotation)]
+
+  provisioner "local-exec" {
+    command = "cd ${path.root}/../../../functions/firebase-go && go run ./cmd/secret-version-bootstrap"
+    environment = {
+      GCP_PROJECT_ID           = var.project_id
+      SECRET_VERSION_ROTATIONS = jsonencode(var.secret_version_rotation)
+    }
+  }
+
+  depends_on = [google_secret_manager_secret.vin_pepper, google_secret_manager_secret.instagram_access_token]
 }
 
 resource "google_service_account" "runtime" {
