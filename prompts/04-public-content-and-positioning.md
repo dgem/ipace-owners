@@ -155,8 +155,11 @@ group to share its 2 October letter. Link the three-page source-format PDF at
 `/docs/jlr-letter-2-october-2026-redacted.pdf`; remove personal names, the individual's
 email address, handwritten signature and identifying metadata without changing JLR's
 remaining wording. Thank members who report their individual JLR contact and invite
-outcome summaries without ordinary-email VINs or private correspondence. Explain the
-four possible group priorities: allow time for a clearer JLR response, grow membership
+outcome summaries without ordinary-email VINs or private correspondence. Record that at least
+seven members reported contacting the Executive Office: one reported a final refusal of replacement
+and buy-back, while the others who reported in were waiting, with no reported satisfactory outcome.
+Describe this as early, self-selected evidence and use it to explain why the individual route must
+be tested for consistent, lasting results. Explain the four possible group priorities: allow time for a clearer JLR response, grow membership
 and evidence, consider measured press engagement, and prepare legal escalation with
 advice on costs and funding. Raise the Type 01 battery comparison as a question, not a
 technical finding. Tell members a “what next?” survey and contact/consent features are

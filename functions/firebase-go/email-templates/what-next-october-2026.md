@@ -24,9 +24,13 @@ another route.
 Your survey answer is not consent to legal representation, proceedings, costs or sharing
 your details. Those decisions would require separate, explicit consent.
 
-Thank you to everyone who has emailed us about their experience and what they are doing.
-If you contact JLR, please tell us whether the outcome resolved your concern. A short
-summary is enough; keep your VIN and correspondence private unless we ask for them securely.
+At least seven members have told us they contacted the Executive Office. Their cases range from
+previous module replacements and recall restrictions to warranty questions and charging failures.
+One reported a final refusal of battery replacement and buy-back; the others who told us are still
+waiting. Nobody who has reported back has said the individual route resolved their concern.
+
+If you contact JLR, please tell us whether the outcome resolved your concern. A short summary is
+enough; keep your VIN and correspondence private unless we ask for them securely.
 
 Thank you,
 

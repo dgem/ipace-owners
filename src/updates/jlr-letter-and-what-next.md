@@ -22,12 +22,30 @@ please record the dates, responses and outcome in your private member vehicle hi
 the group structured evidence of whether the individual-review route works. You can add it from
 [your member dashboard](/member/dashboard/).
 
+## What we have heard so far
+
+At least seven members have told us that they contacted the Executive Office after JLR invited
+individual review. One reported that JLR declined both battery replacement and buy-back, calling
+that its final position while referring only to a future permanent solution. The other members who
+reported contact are still waiting for a response. So far, nobody who has reported back has said
+that the individual route resolved their concern.
+
+The reports span different countries and circumstances: previous module replacements, H570/H571/H572
+restrictions, warranty questions, recurring warnings, charging failures and potential diagnostic
+costs. Members are asking for a permanent remedy, clarity on warranty cover and timescales, and,
+where appropriate, replacement or buy-back. Individual review should be able to deal with those
+differences; the question is whether it does so consistently and decisively.
+
+This is early, self-selected reporting, not a measure of every case. It does, however, explain why
+we need to test the individual route properly and decide what should happen if it does not deliver
+fair, lasting outcomes.
+
 ## What should we do next?
 
 These paths are not mutually exclusive. We want members to help set their priority:
 
-- **Wait for a clearer response from JLR.** Keep the dialogue open and watch whether its
-  individual approach produces satisfactory, lasting outcomes.
+- **Wait for a clearer response from JLR.** Keep the dialogue open for a defined period and
+  watch whether individual reviews produce satisfactory, lasting outcomes.
 - **Grow the group and the evidence.** More owners and stronger, accurate records will
   make the scale and range of concerns harder to overlook.
 - **Consider a measured approach to the press.** Existing owners must not be left behind
