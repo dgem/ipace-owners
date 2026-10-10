@@ -60,3 +60,6 @@ deno.lock
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+# Browser-imported document-processing packages
+src/assets/vendor/
