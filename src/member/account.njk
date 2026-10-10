@@ -63,7 +63,7 @@ date: Last Modified
 						</div>
 
 						<div class="dashboard-panel account-layout__wide">
-							<div class="dashboard-panel__header"><div><h2 class="dashboard-panel__title">Contact details and representation</h2><p class="dashboard-panel__lede">Save one contact address for your membership. UK members can separately authorise preparatory legal representation.</p></div></div>
+							<div class="dashboard-panel__header"><div><h2 class="dashboard-panel__title">Contact details{% if site.features.legalRepresentation %} and legal options{% endif %}</h2><p class="dashboard-panel__lede">Save one contact address for your membership.</p></div></div>
 							<form data-member-profile-form class="member-form-panel">
 								<div class="member-form-grid">
 									<div class="form-group"><label for="profile-name">Full legal name</label><input id="profile-name" name="name" type="text" autocomplete="name" maxlength="160"></div>
@@ -77,8 +77,10 @@ date: Last Modified
 									<div class="form-group"><label for="profile-city">Town / city</label><input id="profile-city" name="city" type="text" autocomplete="address-level2" maxlength="100"></div>
 									<div class="form-group"><label for="profile-region">County / state / region (optional)</label><input id="profile-region" name="region" type="text" autocomplete="address-level1" maxlength="100"></div>
 								</div>
-								<label class="check-label"><input name="represent" type="checkbox"> <span data-representation-wording>I authorise the I-PACE Owners' Advocacy Group to represent my interests in preparatory legal engagement with JLR. This does not authorise issuing proceedings or accepting costs on my behalf.</span></label>
-								<p class="form-hint" data-representation-hint>Available only with a complete UK address. Identity verification is a separate review.</p>
+								{% if site.features.legalRepresentation %}
+									<label class="check-label"><input name="represent" type="checkbox"> <span data-representation-wording>Register my interest in exploring UK legal options. This does not authorise representation, proceedings or costs.</span></label>
+									<p class="form-hint" data-representation-hint>Currently available only to members with a complete UK address. Identity verification is a separate review.</p>
+								{% endif %}
 								<button class="btn btn--primary" type="submit">Save contact details</button>
 								<p data-member-profile-status role="status" aria-live="polite"></p>
 							</form>

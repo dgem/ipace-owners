@@ -332,6 +332,24 @@
       { key: 'totalEvents', label: 'Service records' },
       { key: 'eventsWithFinalFix', label: 'With a final-fix date', accent: true }
     ]);
+    var serviceModelYearBody = container.querySelector('[data-service-model-year-table] tbody');
+    if (serviceModelYearBody) {
+      serviceModelYearBody.innerHTML = '';
+      var serviceYears = serviceStats.modelYearBreakup || [];
+      for (var y = 0; y < serviceYears.length; y++) {
+        var year = serviceYears[y];
+        var yearRow = document.createElement('tr');
+        yearRow.innerHTML = '<th scope="row">' + escapeHtml(year.modelYear) + '</th>' +
+          '<td>' + escapeHtml(year.vehicles) + '</td>' +
+          '<td>' + escapeHtml(year.vehiclesWithEvents) + '</td>' +
+          '<td>' + escapeHtml(year.events) + '</td>' +
+          '<td>' + escapeHtml(year.faults) + '</td>' +
+          '<td>' + escapeHtml(year.repairs) + '</td>' +
+          '<td>' + escapeHtml(year.recalls) + '</td>' +
+          '<td>' + escapeHtml(year.batteryCampaigns) + '</td>';
+        serviceModelYearBody.appendChild(yearRow);
+      }
+    }
     renderServiceAggregates(container, '[data-service-event-type-aggregates]', serviceStats.eventTypeAggregates, TABLE_ROWS_LIMIT);
     renderServiceDisputes(container, serviceStats.disputeStatusBreakup);
     renderServiceAggregates(container, '[data-service-provider-aggregates]', serviceStats.providerAggregates, 20);

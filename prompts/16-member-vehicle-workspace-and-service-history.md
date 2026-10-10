@@ -150,15 +150,26 @@ identity, sheet structure, representative totals, and chart parts.
 The account also offers one editable contact profile per authenticated member, with legal
 name, optional telephone number, freeform international postal address, and country. Address
 or postcode searches can use an optional server-side Ideal Postcodes lookup configured with
-`IDEAL_POSTCODES_API_KEY`; manual entry always remains available. A separate representation
-checkbox is available only with a complete UK address. Its versioned wording authorises
-preparatory legal engagement with JLR, not issuing proceedings or accepting costs. Record
-the choice and timestamp in the member profile. Store identity verification in a separate
-admin-only collection; a member can neither set nor read it. A member's checkbox is not
-itself verification or a count of verified mandates. International members may save contact
-details without this choice. Append each opt-in, withdrawal or change to the profile details
-under `memberProfiles/{uid}/representationChoices`, recording the wording version and time
-without duplicating contact PII; keep only the current choice in the parent profile.
+`IDEAL_POSTCODES_API_KEY`; manual entry always remains available. Legal name and address collection
+is private preparation that can reduce delay if this or a later member decision supports legal
+work; it is not legal consent. Legal-representation consent is not currently offered. Keep the
+future UI behind `site.features.legalRepresentation` and the API behind
+`LEGAL_REPRESENTATION_ENABLED=true`; both must be deliberately enabled together after the mandate
+is settled. Until then, omit the legal wording and checkbox and preserve any historic
+representation choice unchanged when a member saves contact details. When enabled, present a
+voluntary UK-only interest-registration preference, not authority to represent a member, issue
+proceedings or accept costs. Store identity verification in a separate admin-only collection; a
+member can neither set nor read it. Append each opt-in, withdrawal or change to the profile details under
+`memberProfiles/{uid}/representationChoices`, recording the wording version and time without
+duplicating contact PII; keep only the current choice in the parent profile.
+
+Default new vehicle-history records to `Executive Office contact` while that is the active
+evidence focus. This version of the form shows date sent, optional mileage, JLR Client Care case
+reference, status, acknowledgement/reply dates, satisfaction, outcome and a concise request/details
+record. Hide and disable service-provider, campaign, repair, courtesy-car, parts-delay, mileage-while-
+faulty, goodwill, warranty and dispute fields for Executive Office entries; restore them for ordinary
+service, fault, repair, recall, inspection and other records. Put the case-reference field on its own
+full grid row so its validation help cannot disrupt the field alignment.
 
 Provide a protected member survey page at `/member/surveys/` and an admin CRUD workspace at
 `/admin/surveys/`. Administrators can create, edit, list, and delete a survey with a title,
@@ -311,3 +322,5 @@ exports, formula safety and frontend recovery. Add desktop/mobile visual checkpo
 ### Executive Office contact history
 
 The private vehicle timeline includes an `executive-office-contact` record type. Its event date is the date the member contacted JLR's Executive Office; it can also store acknowledgement and reply dates, the member's account of the outcome (up to 2,000 characters), and whether they are happy, partly happy, unhappy, or still awaiting an outcome. Show those fields only for this record type, validate that supplied dates are valid, not future dates, and no earlier than the contact date, and include them in the member's own CSV/XLSX export. This creates structured, member-controlled evidence of whether individual handling resolved matters.
+
+Service-history records include an optional JLR Client Care case reference whenever JLR assigns one. Validate the currently issued 10-digit `800` prefix format while keeping the field optional. Keep it with every service, fault, repair, recall and Executive Office entry so member history can be cross-referenced to JLR case records; include it in member and admin exports.

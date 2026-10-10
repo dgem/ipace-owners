@@ -126,3 +126,15 @@ test('the next-steps update explains the private follow-up and grows the group',
   assert.match(nextStepsUpdate, /heroImage: \/images\/jlr-next-steps-2026-hero\.jpg/);
   assert.equal(nextStepsUpdate.split('social-share__link').length - 1, 4);
 });
+
+test('the JLR letter update repeats its centred survey action after the full article', function () {
+  var letterUpdate = fs.readFileSync(
+    path.join(updatesDirectory, 'jlr-letter-and-what-next.md'),
+    'utf8'
+  );
+  var styles = fs.readFileSync(path.join(root, 'src', 'assets', 'css', 'site.css'), 'utf8');
+
+  assert.equal(letterUpdate.split('update-article__cta').length - 1, 2);
+  assert.equal(letterUpdate.split('/member/survey-response/?id=latest').length - 1, 2);
+  assert.match(styles, /\.update-article__cta\s*{[^}]*text-align:\s*center/s);
+});

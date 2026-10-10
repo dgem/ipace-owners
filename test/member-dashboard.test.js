@@ -17,8 +17,10 @@ test('member dashboard uses a full-width tabbed vehicle workspace', function () 
   assert.match(script, /Vehicle history/);
   assert.match(script, /Executive Office contact/);
   assert.match(script, /data-executive-office-fields/);
+  assert.match(script, /data-standard-service-fields/);
   assert.match(script, /syncExecutiveOfficeFields/);
-  assert.match(script, /<option value="fault" selected>Fault<\/option>/);
+  assert.match(script, /<option value="executive-office-contact" selected>Executive Office contact<\/option>/);
+  assert.match(script, /member-form-grid__wide"><label for="event-jlr-case-reference/);
   assert.match(script, /Related campaigns or recalls/);
   assert.match(script, /value="H441"/);
   assert.match(script, /value="H448"/);
