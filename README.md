@@ -399,7 +399,7 @@ GitHub Actions environment settings automatically.
 
 OpenTofu creates the fixed Secret Manager containers `vin-pepper`, `resend-api-key`, `ideal-postcodes-api-key`, and `instagram-access-token`, with runtime access. It never stores their payloads in variables or state. Functions mount the first three by their fixed names; GitHub carries no application-secret value or secret-name pointer.
 
-Every local `tofu apply` checks the configured application-secret environment variables. When a value is present and differs from `latest`, it adds a Secret Manager version; unset values and matching versions are skipped. OpenTofu state contains neither values nor fingerprints. Before applying the migration in each environment, remove only the legacy value-owning state entries; this retains the remote Secret Manager version and GitHub secret:
+`make infra-apply` builds the local Secret Manager bootstrap tool before it runs OpenTofu. Every local apply checks the configured application-secret environment variables. When a value is present and differs from `latest`, or the latest version is missing or destroyed, it adds a Secret Manager version; unset values and matching versions are skipped. OpenTofu state contains neither values nor fingerprints. Before applying the migration in each environment, remove only the legacy value-owning state entries; this retains the remote Secret Manager version and GitHub secret:
 
 ```bash
 tofu state rm 'module.ipace_owners.google_secret_manager_secret_version.vin_pepper'

@@ -45,7 +45,7 @@ func main() {
 				fmt.Println(cfg.ID + ": latest version already matches")
 				continue
 			}
-		} else if !notFound(err) {
+		} else if !missingOrDestroyed(err) {
 			fail(secretManagerError("read the latest version of "+cfg.ID, err))
 		}
 		_, err = api.Projects.Secrets.AddVersion(name, &secretmanager.AddSecretVersionRequest{Payload: &secretmanager.SecretPayload{Data: base64.StdEncoding.EncodeToString(value)}}).Do()
@@ -56,9 +56,12 @@ func main() {
 	}
 }
 func same(a, b []byte) bool { return sha256.Sum256(a) == sha256.Sum256(b) }
-func notFound(err error) bool {
+func missingOrDestroyed(err error) bool {
 	var apiErr *googleapi.Error
-	return errors.As(err, &apiErr) && apiErr.Code == 404
+	if !errors.As(err, &apiErr) {
+		return false
+	}
+	return apiErr.Code == 404 || (apiErr.Code == 400 && strings.Contains(strings.ToUpper(apiErr.Message), "DESTROYED STATE"))
 }
 
 func secretManagerError(action string, err error) string {

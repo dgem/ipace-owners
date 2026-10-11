@@ -324,7 +324,7 @@ resource "terraform_data" "local_secret_versions" {
   triggers_replace = [timestamp()]
 
   provisioner "local-exec" {
-    command = "cd ${path.root}/../../../functions/firebase-go && go build -o secret-version-bootstrap ./cmd/secret-version-bootstrap && ./secret-version-bootstrap"
+    command = "${path.root}/../../../functions/firebase-go/secret-version-bootstrap"
     environment = {
       GCP_PROJECT_ID = var.project_id
     }

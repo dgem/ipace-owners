@@ -438,8 +438,10 @@ OpenTofu creates the `instagram-access-token` Secret Manager container and grant
 runtime accessor permission, but must not create its secret version from a tfvars value. On every
 local apply, the bootstrap examines any supplied `VIN_PEPPER`, `RESEND_API_KEY`,
 `IDEAL_POSTCODES_API_KEY`, and `INSTAGRAM_ACCESS_TOKEN` operator environment values, adds a
-version only when it differs from `latest`, and skips absent values. It must never store a value or
-fingerprint in OpenTofu state. Once a version exists, `instagram_publishing_enabled` exposes only
+version when it differs from `latest` or when the latest version is missing or destroyed, and skips
+absent values. The normal `make infra-apply` target must build the local bootstrap binary before
+OpenTofu executes it. It must never store a value or fingerprint in OpenTofu state. Once a version
+exists, `instagram_publishing_enabled` exposes only
 its non-secret account ID/version to the deployment workflow; the Function deployment mounts the
 fixed secret name.
 Asynchronous campaign-video generation uses non-secret `CAMPAIGN_MEDIA_BUCKET`, `VEO_LOCATION`,

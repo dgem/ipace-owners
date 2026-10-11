@@ -72,9 +72,12 @@ test("local secret bootstrap is automatic, idempotent, and does not use Terrafor
   const main = read("infra/opentofu/modules/ipace-owners/main.tf");
   const variables = read("infra/opentofu/modules/ipace-owners/variables.tf");
   const bootstrap = read("functions/firebase-go/cmd/secret-version-bootstrap/main.go");
+  const makefile = read("Makefile");
 
   assert.match(main, /resource "terraform_data" "local_secret_versions"[\s\S]*?triggers_replace\s+=\s+\[timestamp\(\)\]/);
-  assert.match(main, /go build -o secret-version-bootstrap \.\/cmd\/secret-version-bootstrap && \.\/secret-version-bootstrap/);
+  assert.match(main, /command\s+=\s+"\$\{path\.root\}\/\.\.\/\.\.\/\.\.\/functions\/firebase-go\/secret-version-bootstrap"/);
+  assert.match(makefile, /^secret-version-bootstrap:.*\n\tcd functions\/firebase-go && go build -o secret-version-bootstrap \.\/cmd\/secret-version-bootstrap/m);
+  assert.match(makefile, /^infra-apply: secret-version-bootstrap /m);
   assert.doesNotMatch(main, /SECRET_VERSION_ROTATIONS|secret_version_rotation|manage_local_secret_versions/);
   assert.doesNotMatch(variables, /secret_version_rotation|manage_local_secret_versions/);
   assert.doesNotMatch(bootstrap, /SECRET_VERSION_ROTATIONS/);
