@@ -254,7 +254,9 @@ site-owned `/images/` paths; Freeform campaigns retain the generic hero.
   1. Build the site with staging Firebase web config.
   2. Deploy the Firebase Hosting preview channel and extract its generated URL.
   3. Add that preview hostname to Firebase Auth authorized domains, replacing stale PR
-     preview domains while preserving permanent domains.
+     preview domains while preserving permanent domains. The Identity Platform OpenTofu resource
+     must ignore subsequent `authorized_domains` drift: an infrastructure apply after this step
+     must never remove the active preview hostname and break magic-link continuations.
   4. Detect whether backend-related files changed.
   5. Deploy the Go `Api` Function only when backend code, Firebase rewrites, Function env
      generation, Make deploy logic, or deployment workflow files changed.

@@ -111,6 +111,12 @@ resource "google_identity_platform_config" "default" {
   project            = var.project_id
   authorized_domains = local.firebase_auth_authorized_domains
 
+  # Hosting preview deployments add a short-lived Firebase Auth continuation
+  # hostname. Do not remove it during an otherwise unrelated infrastructure apply.
+  lifecycle {
+    ignore_changes = [authorized_domains]
+  }
+
   sign_in {
     allow_duplicate_emails = false
 

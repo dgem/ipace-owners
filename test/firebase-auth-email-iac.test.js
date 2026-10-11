@@ -58,6 +58,7 @@ test('stores future email designs and manages supported settings through infrast
   const script = readFileSync(scriptPath, 'utf8');
 
   assert.match(moduleMain, /resource "terraform_data" "firebase_auth_email"/);
+  assert.match(moduleMain, /resource "google_identity_platform_config" "default"[\s\S]*?ignore_changes\s+=\s+\[authorized_domains\]/);
   assert.match(moduleMain, /configure-firebase-auth-email\.mjs/);
   assert.match(moduleMain, /filesha256\(local\.firebase_auth_email_script\)/);
   assert.match(moduleMain, /firebase_project_display_name/);
