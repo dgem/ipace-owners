@@ -82,10 +82,10 @@ test('footer exposes social share links', function () {
   var footer = fs.readFileSync(path.join(repoRoot, 'src/_includes/partials/footer.njk'), 'utf8');
 
   assert.match(footer, /aria-label="Share this site"/);
-  assert.match(footer, /twitter\.com\/intent\/tweet/);
-  assert.match(footer, /facebook\.com\/sharer\/sharer\.php/);
-  assert.match(footer, /linkedin\.com\/sharing\/share-offsite/);
-  assert.match(footer, /wa\.me\/\?text=/);
+  assert.ok(footer.includes('twitter.com/intent/tweet'));
+  assert.ok(footer.includes('facebook.com/sharer/sharer.php'));
+  assert.ok(footer.includes('linkedin.com/sharing/share-offsite/'));
+  assert.ok(footer.includes('wa.me/?text='));
   assert.ok(footer.includes('href="https://www.instagram.com/ipaceowners/"'));
 });
 

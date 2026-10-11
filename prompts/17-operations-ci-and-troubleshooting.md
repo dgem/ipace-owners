@@ -201,10 +201,12 @@ site-owned `/images/` paths; Freeform campaigns retain the generic hero.
   installation is newer. Keep that value aligned with the `go` directive in
   `functions/firebase-go/go.mod` and update both promptly for standard-library security fixes.
 - After a Firebase Hosting PR preview passes its smoke test, run a blocking passive OWASP ZAP
-  baseline scan against that preview. Use a versioned ZAP container, disable issue creation,
-  retain the report as an Actions artifact, and keep reviewed platform/CDN findings in the
-  committed `.zap/rules.tsv` baseline so new alert categories still fail the check. Do not run
-  active attacks against production or authenticated member data.
+  baseline scan against that preview. Use an immutable action revision and versioned ZAP
+  container, disable issue creation, retain the report as an Actions artifact, and keep only
+  reviewed platform/CDN findings in the committed `.zap/rules.tsv` baseline so new alert
+  categories still fail the check. Each exclusion must name the platform constraint or deliberate
+  public-data design it covers; do not exclude informational application-identification alerts.
+  Do not run active attacks against production or authenticated member data.
 - Shared passwordless login forms must declare `method="POST"` and
   `action="/api/send-magic-link"` even though JavaScript normally handles submission, so a
   script failure cannot fall back to a GET request that places a member email in the page URL.
