@@ -13,7 +13,7 @@
     "lint:js": "eslint .eleventy.js scripts test src/assets/js",
     "lint:css": "stylelint \"src/**/*.css\"",
     "lint:markdown": "markdownlint-cli2",
-    "lint:data": "prettier --check \"**/*.{json,yaml,yml}\" \"!node_modules/**\" \"!_site/**\" \"!firebase-preview.json\"",
+    "lint:data": "prettier --check \"**/*.{json,yaml,yml}\" \"!node_modules/**\" \"!_site/**\" \"!docs/no-git/**\" \"!firebase-preview.json\"",
     "test": "node --test",
     "test:visual": "node scripts/visual-check.mjs",
     "test:e2e:responsive": "playwright test --project=responsive-chromium --project=responsive-firefox --project=responsive-webkit --project=responsive-mobile-chrome --project=responsive-mobile-safari",

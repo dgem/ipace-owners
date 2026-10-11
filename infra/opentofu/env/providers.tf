@@ -16,6 +16,6 @@ provider "github" {
   owner = var.github_owner
 }
 
-provider "resend" {
-  api_key = var.resend_api_key
-}
+# The Resend provider reads RESEND_API_KEY from the operator environment. Keep its
+# value out of tfvars and OpenTofu state.
+provider "resend" {}
