@@ -7,8 +7,10 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"google.golang.org/api/googleapi"
+	"google.golang.org/api/option"
 	secretmanager "google.golang.org/api/secretmanager/v1"
 )
 
@@ -19,7 +21,7 @@ func main() {
 	if project == "" {
 		fail("GCP_PROJECT_ID is required")
 	}
-	api, err := secretmanager.NewService(context.Background())
+	api, err := secretmanager.NewService(context.Background(), option.WithQuotaProject(project))
 	if err != nil {
 		fail("could not create Secret Manager client")
 	}
@@ -44,11 +46,11 @@ func main() {
 				continue
 			}
 		} else if !notFound(err) {
-			fail("could not read the latest version of " + cfg.ID)
+			fail(secretManagerError("read the latest version of "+cfg.ID, err))
 		}
 		_, err = api.Projects.Secrets.AddVersion(name, &secretmanager.AddSecretVersionRequest{Payload: &secretmanager.SecretPayload{Data: base64.StdEncoding.EncodeToString(value)}}).Do()
 		if err != nil {
-			fail("could not add a version for " + cfg.ID)
+			fail(secretManagerError("add a version for "+cfg.ID, err))
 		}
 		fmt.Println(cfg.ID + ": added a new version")
 	}
@@ -58,4 +60,14 @@ func notFound(err error) bool {
 	var apiErr *googleapi.Error
 	return errors.As(err, &apiErr) && apiErr.Code == 404
 }
+
+func secretManagerError(action string, err error) string {
+	var apiErr *googleapi.Error
+	if errors.As(err, &apiErr) {
+		message := strings.NewReplacer("\r", " ", "\n", " ").Replace(apiErr.Message)
+		return fmt.Sprintf("could not %s (Secret Manager HTTP %d: %s)", action, apiErr.Code, message)
+	}
+	return fmt.Sprintf("could not %s (%T)", action, err)
+}
+
 func fail(s string) { fmt.Fprintln(os.Stderr, s); os.Exit(1) }

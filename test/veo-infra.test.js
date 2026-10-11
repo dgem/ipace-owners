@@ -74,9 +74,11 @@ test("local secret bootstrap is automatic, idempotent, and does not use Terrafor
   const bootstrap = read("functions/firebase-go/cmd/secret-version-bootstrap/main.go");
 
   assert.match(main, /resource "terraform_data" "local_secret_versions"[\s\S]*?triggers_replace\s+=\s+\[timestamp\(\)\]/);
+  assert.match(main, /go build -o secret-version-bootstrap \.\/cmd\/secret-version-bootstrap && \.\/secret-version-bootstrap/);
   assert.doesNotMatch(main, /SECRET_VERSION_ROTATIONS|secret_version_rotation|manage_local_secret_versions/);
   assert.doesNotMatch(variables, /secret_version_rotation|manage_local_secret_versions/);
   assert.doesNotMatch(bootstrap, /SECRET_VERSION_ROTATIONS/);
+  assert.match(bootstrap, /option\.WithQuotaProject\(project\)/);
   assert.match(bootstrap, /not set locally; skipping/);
   for (const name of ["VIN_PEPPER", "RESEND_API_KEY", "IDEAL_POSTCODES_API_KEY", "INSTAGRAM_ACCESS_TOKEN"]) {
     assert.match(bootstrap, new RegExp(`"${name}"`));
