@@ -23,7 +23,8 @@ For privacy questions or requests, email
 Depending on what you choose to provide, we may collect:
 
 - Your name, email address, country or region, relationship to an I-PACE, volunteering
-  interests, postal address, optional phone number, and consent choices.
+  interests, postal address, optional phone number, consent choices, and (if provided) a member's
+  willingness to help and description of relevant expertise or experience.
 - If this future option is enabled, your registered interest in exploring UK legal options and
   an administrator's separate identity-verification decision.
 - Vehicle registration, country, model year, mileage, ownership dates, and the final six
