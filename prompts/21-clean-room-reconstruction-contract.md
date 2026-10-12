@@ -500,6 +500,10 @@ forms explicitly use POST even when JavaScript intercepts them.
   with an owner Join CTA and prefill the same text in platform composers where supported;
   LinkedIn and Instagram retain the visible copy because their web share flows cannot reliably
   prefill it.
+- Route all Resend sends and sent-email feedback pagination through the official Go SDK,
+  retaining application-owned idempotency keys, the Firestore recipient ledger, and existing
+  bounded batch sizes. The SDK is not the retry or deduplication authority: uncertain provider
+  outcomes remain protected by the ledger.
 - Move every group-wide campaign to Mass Mailings: the September survey, JLR meeting
   update, member referral, evidence-growth message and newly composed messages. Use one
   canonical-email-deduplicated member audience made of verified historic Firebase Auth accounts

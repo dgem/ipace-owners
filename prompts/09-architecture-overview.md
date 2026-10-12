@@ -374,6 +374,11 @@ sheet and chart format without exposing member data.
   sender/reply-to/asset-base values may be managed as GitHub environment variables by
   OpenTofu. OpenTofu may also manage the Resend sending-domain resource and output DNS
   verification records; DNS remains manual while Fasthosts is authoritative.
+- Use Resend's official Go SDK (`github.com/resend/resend-go/v3`) for every application and
+  re-engagement CLI send and for paginated sent-email status reconciliation. Preserve the
+  existing per-recipient Firestore delivery ledger, explicit idempotency keys, and bounded
+  batches; do not assume the SDK retries provider failures or replace the ledger with batch
+  acceptance alone.
 - Custom magic-link, Join re-engagement and member-referral messages share one responsive
   inline-styled HTML shell with the established text masthead, hero image and pill-shaped action
   buttons. Do not insert the site logo image into transactional or campaign email templates.
