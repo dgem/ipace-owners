@@ -1,14 +1,11 @@
 package ipace
 
 import (
-	"bytes"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"html"
-	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -19,6 +16,7 @@ import (
 
 	"cloud.google.com/go/firestore"
 	"firebase.google.com/go/v4/auth"
+	"github.com/resend/resend-go/v3"
 	"google.golang.org/api/iterator"
 )
 
@@ -675,37 +673,15 @@ func sendCampaignEmail(ctx context.Context, person campaignRecipient, link strin
 }
 
 func sendCampaignPayload(ctx context.Context, email, subject, htmlBody, text, category, id string) (string, error) {
-	payload := map[string]any{"from": strings.TrimSpace(os.Getenv("RESEND_FROM")), "to": []string{email}, "subject": subject, "html": htmlBody, "text": text, "tags": []map[string]string{{"name": "category", "value": category}}}
+	request := &resend.SendEmailRequest{From: strings.TrimSpace(os.Getenv("RESEND_FROM")), To: []string{email}, Subject: subject, Html: htmlBody, Text: text, Tags: []resend.Tag{{Name: "category", Value: category}}}
 	if reply := strings.TrimSpace(os.Getenv("RESEND_REPLY_TO")); reply != "" {
-		payload["reply_to"] = reply
+		request.ReplyTo = reply
 	}
-	body, _ := json.Marshal(payload)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, "https://api.resend.com/emails", bytes.NewReader(body))
+	response, err := newResendEmailClient(strings.TrimSpace(os.Getenv("RESEND_API_KEY"))).Emails.SendWithOptions(ctx, request, &resend.SendEmailOptions{IdempotencyKey: id + "/" + campaignEmailFingerprint(email)})
 	if err != nil {
 		return "", err
 	}
-	req.Header.Set("Authorization", "Bearer "+strings.TrimSpace(os.Getenv("RESEND_API_KEY")))
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Idempotency-Key", id+"/"+campaignEmailFingerprint(email))
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer res.Body.Close()
-	data, err := io.ReadAll(io.LimitReader(res.Body, 4096))
-	if err != nil {
-		return "", err
-	}
-	if res.StatusCode < 200 || res.StatusCode > 299 {
-		return "", fmt.Errorf("resend returned %d", res.StatusCode)
-	}
-	var output struct {
-		ID string `json:"id"`
-	}
-	if err := json.Unmarshal(data, &output); err != nil {
-		return "", err
-	}
-	return output.ID, nil
+	return response.Id, nil
 }
 
 func campaignEmailBodies(person campaignRecipient, link string, memberCount, eligibleCount int) (string, string, string) {

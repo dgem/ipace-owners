@@ -2,9 +2,6 @@ package ipace
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -12,6 +9,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
+	"github.com/resend/resend-go/v3"
 )
 
 const (
@@ -23,6 +21,13 @@ const (
 var resendEmailsEndpoint = "https://api.resend.com/emails"
 var resendFeedbackHTTPClient = http.DefaultClient
 
+func resendFeedbackClient(apiKey string) *resend.Client {
+	client := resend.NewCustomClient(resendFeedbackHTTPClient, apiKey)
+	baseURL, _ := url.Parse(strings.TrimSuffix(resendEmailsEndpoint, "/emails") + "/")
+	client.BaseURL = baseURL
+	return client
+}
+
 type campaignDeliveryFeedback struct {
 	CampaignID     string
 	ResendID       string
@@ -30,6 +35,8 @@ type campaignDeliveryFeedback struct {
 	Ref            *firestore.DocumentRef
 }
 
+// These mirror only the provider fields retained by the delivery-feedback tests.
+// Production requests use Resend's official SDK types directly.
 type resendEmailStatus struct {
 	ID        string `json:"id"`
 	LastEvent string `json:"last_event"`
@@ -137,40 +144,21 @@ func fetchResendEmailStatuses(ctx context.Context, apiKey string, wanted map[str
 	found := make(map[string]string, len(wanted))
 	after := ""
 	for page := 0; page < resendFeedbackMaxPages; page++ {
-		endpoint, err := url.Parse(resendEmailsEndpoint)
-		if err != nil {
-			return nil, false, err
-		}
-		query := endpoint.Query()
-		query.Set("limit", fmt.Sprint(resendFeedbackPageLimit))
+		limit := resendFeedbackPageLimit
+		options := &resend.ListOptions{Limit: &limit}
 		if after != "" {
-			query.Set("after", after)
+			options.After = &after
 		}
-		endpoint.RawQuery = query.Encode()
-		request, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint.String(), nil)
+		result, err := resendFeedbackClient(apiKey).Emails.ListWithOptions(ctx, options)
 		if err != nil {
 			return nil, false, err
-		}
-		request.Header.Set("Authorization", "Bearer "+apiKey)
-		response, err := resendFeedbackHTTPClient.Do(request)
-		if err != nil {
-			return nil, false, err
-		}
-		var result resendEmailStatusPage
-		decodeErr := json.NewDecoder(io.LimitReader(response.Body, 2<<20)).Decode(&result)
-		response.Body.Close()
-		if response.StatusCode < 200 || response.StatusCode > 299 {
-			return nil, false, fmt.Errorf("resend returned %d", response.StatusCode)
-		}
-		if decodeErr != nil {
-			return nil, false, decodeErr
 		}
 		for _, email := range result.Data {
-			if _, ok := wanted[email.ID]; !ok {
+			if _, ok := wanted[email.Id]; !ok {
 				continue
 			}
 			if providerStatus := normaliseResendProviderStatus(email.LastEvent); providerStatus != "" {
-				found[email.ID] = providerStatus
+				found[email.Id] = providerStatus
 			}
 		}
 		if len(found) == len(wanted) {
@@ -179,7 +167,7 @@ func fetchResendEmailStatuses(ctx context.Context, apiKey string, wanted map[str
 		if !result.HasMore || len(result.Data) == 0 {
 			return found, len(found) == len(wanted), nil
 		}
-		after = result.Data[len(result.Data)-1].ID
+		after = result.Data[len(result.Data)-1].Id
 	}
 	return found, len(found) == len(wanted), nil
 }

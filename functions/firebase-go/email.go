@@ -1,24 +1,22 @@
 package ipace
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"html"
-	"io"
-	"net/http"
 	"net/url"
 	"os"
 	"strings"
 
 	"firebase.google.com/go/v4/auth"
 	"github.com/dgem/ipace-owners/functions/firebase-go/internal/authlink"
+	"github.com/resend/resend-go/v3"
 )
 
 var (
 	generateFirebaseEmailSignInLink = generateFirebaseEmailSignInLinkRequest
 	sendResendMagicLinkEmail        = sendResendMagicLinkEmailRequest
+	newResendEmailClient            = resend.NewClient
 )
 
 func resendEmailConfigured() bool {
@@ -54,30 +52,20 @@ func sendResendMagicLinkEmailRequest(ctx context.Context, email string, actionLi
 		return fmt.Errorf("RESEND_API_KEY is not configured")
 	}
 	payload := resendMagicLinkPayload(email, actionLink, continueURL)
-	body, err := json.Marshal(payload)
-	if err != nil {
-		return err
-	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, "https://api.resend.com/emails", bytes.NewReader(body))
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Authorization", "Bearer "+apiKey)
-	req.Header.Set("Content-Type", "application/json")
+	_, err := newResendEmailClient(apiKey).Emails.SendWithContext(ctx, resendRequestFromPayload(payload))
+	return err
+}
 
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return err
+func resendRequestFromPayload(payload map[string]any) *resend.SendEmailRequest {
+	request := &resend.SendEmailRequest{
+		From: payload["from"].(string), To: payload["to"].([]string), Subject: payload["subject"].(string),
+		Html: payload["html"].(string), Text: payload["text"].(string),
+		Tags: []resend.Tag{{Name: "category", Value: payload["tags"].([]map[string]string)[0]["value"]}},
 	}
-	defer res.Body.Close()
-	responseBody, readErr := io.ReadAll(io.LimitReader(res.Body, 4096))
-	if readErr != nil {
-		return fmt.Errorf("resend response read failed: %w", readErr)
+	if replyTo, ok := payload["reply_to"].(string); ok {
+		request.ReplyTo = replyTo
 	}
-	if res.StatusCode < 200 || res.StatusCode > 299 {
-		return fmt.Errorf("resend returned %d with %d response bytes", res.StatusCode, len(responseBody))
-	}
-	return nil
+	return request
 }
 
 func resendMagicLinkPayload(email string, actionLink string, continueURL string) map[string]any {

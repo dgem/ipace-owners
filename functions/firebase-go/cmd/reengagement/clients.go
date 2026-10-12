@@ -1,14 +1,11 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
-	"fmt"
-	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"sort"
 	"strings"
@@ -17,6 +14,7 @@ import (
 
 	"cloud.google.com/go/firestore"
 	"firebase.google.com/go/v4/auth"
+	"github.com/resend/resend-go/v3"
 	"google.golang.org/api/iterator"
 )
 
@@ -24,6 +22,13 @@ var (
 	resendEndpoint   = "https://api.resend.com/emails"
 	resendHTTPClient = http.DefaultClient
 )
+
+func newResendClient(apiKey string) *resend.Client {
+	client := resend.NewCustomClient(resendHTTPClient, apiKey)
+	baseURL, _ := url.Parse(strings.TrimSuffix(resendEndpoint, "/emails") + "/")
+	client.BaseURL = baseURL
+	return client
+}
 
 type authAccount struct {
 	Email string
@@ -168,35 +173,13 @@ func emailFingerprint(email string) string {
 
 func sendReengagementEmail(ctx context.Context, person recipient, actionLink string, memberCount int, eligibleCount int, config campaignConfig) (string, error) {
 	payload := reengagementPayload(person, actionLink, config.VehicleURL, memberCount, eligibleCount)
-	body, err := json.Marshal(payload)
+	request := &resend.SendEmailRequest{From: payload["from"].(string), To: payload["to"].([]string), Subject: payload["subject"].(string), Html: payload["html"].(string), Text: payload["text"].(string), Tags: []resend.Tag{{Name: "category", Value: "join-reengagement"}}}
+	if replyTo, ok := payload["reply_to"].(string); ok {
+		request.ReplyTo = replyTo
+	}
+	response, err := newResendClient(strings.TrimSpace(os.Getenv("RESEND_API_KEY"))).Emails.SendWithOptions(ctx, request, &resend.SendEmailOptions{IdempotencyKey: config.CampaignID + "/" + emailFingerprint(person.Email)})
 	if err != nil {
 		return "", err
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, resendEndpoint, bytes.NewReader(body))
-	if err != nil {
-		return "", err
-	}
-	req.Header.Set("Authorization", "Bearer "+strings.TrimSpace(os.Getenv("RESEND_API_KEY")))
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "ipace-owners-reengagement/1.0")
-	req.Header.Set("Idempotency-Key", config.CampaignID+"/"+emailFingerprint(person.Email))
-	response, err := resendHTTPClient.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer response.Body.Close()
-	data, readErr := io.ReadAll(io.LimitReader(response.Body, 4096))
-	if readErr != nil {
-		return "", readErr
-	}
-	if response.StatusCode < 200 || response.StatusCode > 299 {
-		return "", fmt.Errorf("Resend returned %d", response.StatusCode)
-	}
-	var result struct {
-		ID string `json:"id"`
-	}
-	if err := json.Unmarshal(data, &result); err != nil {
-		return "", err
-	}
-	return result.ID, nil
+	return response.Id, nil
 }
