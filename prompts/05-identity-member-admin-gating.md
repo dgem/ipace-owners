@@ -116,8 +116,9 @@ server-side by Go Cloud Functions that validate Firebase ID tokens.
 - Account preferences must display the latest saved Join consent and membership state from
   the member snapshot, including contact permission, anonymised aggregate-analysis consent,
   participation acknowledgement, relationship, and volunteering interests where present.
-  Members can update whether they are willing to help and a bounded description of relevant
-  expertise or experience through the authenticated preference update flow. These values remain
+  Members can update whether they are willing to help, whether they have a story they would be
+  happy to discuss with the press, and a bounded description of relevant expertise or experience
+  through the authenticated preference update flow. These values remain
   private member data and are available to authorised group administration only.
   Do not show placeholder copy saying preferences will be manageable in a future release.
   Preference editing needs a server-side audited account update flow before controls are

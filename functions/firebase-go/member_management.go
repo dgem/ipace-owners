@@ -49,6 +49,9 @@ func UpdateMemberPreferences(w http.ResponseWriter, r *http.Request) {
 		if req.Expertise != nil {
 			updates = append(updates, firestore.Update{Path: "membership.expertise", Value: cleanString(*req.Expertise, 500)})
 		}
+		if req.PressStory != nil {
+			updates = append(updates, firestore.Update{Path: "membership.pressStory", Value: *req.PressStory})
+		}
 		batch.Update(doc.Ref, updates)
 		count++
 	}

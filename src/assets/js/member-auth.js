@@ -284,6 +284,7 @@
       html += '<div class="preference-list__row"><dt>Volunteering interests</dt><dd>' + skills.map(escapeHtml).join(', ') + '</dd></div>';
     }
     html += preferenceRow('Willing to help', membership.willingToHelp, 'Yes', 'Not currently');
+    html += preferenceRow('Press story available', membership.pressStory, 'Yes, subject to discussion', 'Not currently');
     if (membership.expertise) {
       html += '<div class="preference-list__row"><dt>Expertise</dt><dd>' + escapeHtml(membership.expertise) + '</dd></div>';
     }
@@ -292,7 +293,7 @@
     }
     html += '</dl>';
     html += '<div class="cluster" style="margin-top:var(--space-4)"><button class="btn btn--secondary btn--sm" type="button" data-toggle-preferences>Edit preferences</button></div>';
-    html += '<form class="member-form-panel" data-preferences-form hidden><fieldset><legend>Update preferences</legend><label class="check-label"><input name="contact" type="checkbox"' + (consents.contact ? ' checked' : '') + '> Receive group contact</label><label class="check-label"><input name="anonymisedAnalysis" type="checkbox"' + (consents.anonymisedAnalysis ? ' checked' : '') + '> Allow my anonymised vehicle and evidence data in aggregate statistics</label><label class="check-label"><input name="willingToHelp" type="checkbox"' + (membership.willingToHelp ? ' checked' : '') + '> I would like to help the group</label><label for="member-expertise">Relevant expertise or experience</label><textarea id="member-expertise" name="expertise" maxlength="500" rows="3" placeholder="For example: solicitor, EV mechanic, battery engineer, journalist, or community organiser">' + escapeHtml(membership.expertise || '') + '</textarea><p class="form-hint">Share only what you are comfortable with. We will use this to understand who may be able to help with group work.</p></fieldset><div class="cluster"><button class="btn btn--primary btn--sm" type="submit">Save changes</button><button class="btn btn--secondary btn--sm" type="button" data-close-preferences>Cancel</button></div><p class="form-hint" data-form-status role="status" aria-live="polite"></p></form>';
+    html += '<form class="member-form-panel" data-preferences-form hidden><fieldset><legend>Update preferences</legend><label class="check-label"><input name="contact" type="checkbox"' + (consents.contact ? ' checked' : '') + '> Receive group contact</label><label class="check-label"><input name="anonymisedAnalysis" type="checkbox"' + (consents.anonymisedAnalysis ? ' checked' : '') + '> Allow my anonymised vehicle and evidence data in aggregate statistics</label><label class="check-label"><input name="willingToHelp" type="checkbox"' + (membership.willingToHelp ? ' checked' : '') + '> I would like to help the group</label><label class="check-label"><input name="pressStory" type="checkbox"' + (membership.pressStory ? ' checked' : '') + '> I have a story I would be happy to discuss with the press</label><label for="member-expertise">Relevant expertise or experience</label><textarea id="member-expertise" name="expertise" maxlength="500" rows="3" placeholder="For example: solicitor, EV mechanic, battery engineer, journalist, or community organiser">' + escapeHtml(membership.expertise || '') + '</textarea><p class="form-hint">This records interest only. We would discuss your story with you before sharing anything.</p></fieldset><div class="cluster"><button class="btn btn--primary btn--sm" type="submit">Save changes</button><button class="btn btn--secondary btn--sm" type="button" data-close-preferences>Cancel</button></div><p class="form-hint" data-form-status role="status" aria-live="polite"></p></form>';
     preferencesEl.innerHTML = html;
    }
 
@@ -549,7 +550,7 @@
       var membership = record.membership || {};
       var key = record.identityUserId || record.userEmailHash || '';
       var vehicleText = (byMember[key] || []).map(function (vehicle) { return [vehicle.registration, vehicle.modelYear, vehicle.country].join(' '); }).join(' ');
-      var text = [contact.name, contact.email, contact.country, membership.relationship, (membership.skills || []).join(' '), membership.willingToHelp ? 'willing to help' : '', membership.expertise, vehicleText].join(' ');
+      var text = [contact.name, contact.email, contact.country, membership.relationship, (membership.skills || []).join(' '), membership.willingToHelp ? 'willing to help' : '', membership.pressStory ? 'press story' : '', membership.expertise, vehicleText].join(' ');
       return normalisedSearchText(text).indexOf(needle) !== -1;
     });
     resultsEl.hidden = false;
@@ -561,6 +562,7 @@
       var key = record.identityUserId || record.userEmailHash || '';
       var regs = (byMember[key] || []).map(function (vehicle) { return vehicle.registration || vehicle.modelYear || ''; }).filter(Boolean).join(', ');
       var help = membership.willingToHelp ? 'Willing to help' : '—';
+      if (membership.pressStory) help += ' · Press story';
       if (membership.expertise) help += membership.willingToHelp ? ' · ' + membership.expertise : membership.expertise;
       html += '<tr><td>' + escapeHtml(contact.name || '—') + '</td><td>' + escapeHtml(contact.email || '—') + '</td><td>' + escapeHtml(regs || '—') + '</td><td>' + escapeHtml(help) + '</td></tr>';
     });
@@ -790,6 +792,7 @@
       payload.anonymisedAnalysis = form.elements.anonymisedAnalysis.checked;
       payload.willingToHelp = form.elements.willingToHelp.checked;
       payload.expertise = form.elements.expertise.value;
+      payload.pressStory = form.elements.pressStory.checked;
     } else {
       new FormData(form).forEach(function (value, key) { payload[key] = value; });
     }
