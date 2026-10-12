@@ -49,7 +49,7 @@ test('preview deployment runs a blocking passive OWASP ZAP scan', function () {
 
   var rules = read('.zap/rules.tsv');
   assert.match(rules, /^10015\tIGNORE\tHosting cache rules are defined in firebase\.json/m);
-  assert.doesNotMatch(rules, /^10109\tIGNORE\t/m);
+  assert.match(rules, /^10109\tIGNORE\tThe site uses JavaScript progressively/m);
   assert.match(rules, /^90004\tIGNORE\t/m);
 });
 
