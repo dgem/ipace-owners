@@ -111,6 +111,12 @@ resource "google_identity_platform_config" "default" {
   project            = var.project_id
   authorized_domains = local.firebase_auth_authorized_domains
 
+  # Hosting preview deployments add a short-lived Firebase Auth continuation
+  # hostname. Do not remove it during an otherwise unrelated infrastructure apply.
+  lifecycle {
+    ignore_changes = [authorized_domains]
+  }
+
   sign_in {
     allow_duplicate_emails = false
 
@@ -265,7 +271,33 @@ resource "google_secret_manager_secret_version" "firebase_web_api_key" {
 }
 
 resource "google_secret_manager_secret" "vin_pepper" {
-  secret_id = "vin-pepper"
+  secret_id           = "vin-pepper"
+  deletion_policy     = "ABANDON"
+  deletion_protection = true
+
+  replication {
+    auto {}
+  }
+
+  depends_on = [google_project_service.required]
+}
+
+resource "google_secret_manager_secret" "resend_api_key" {
+  secret_id           = "resend-api-key"
+  deletion_policy     = "ABANDON"
+  deletion_protection = true
+
+  replication {
+    auto {}
+  }
+
+  depends_on = [google_project_service.required]
+}
+
+resource "google_secret_manager_secret" "ideal_postcodes_api_key" {
+  secret_id           = "ideal-postcodes-api-key"
+  deletion_policy     = "ABANDON"
+  deletion_protection = true
 
   replication {
     auto {}
@@ -275,7 +307,9 @@ resource "google_secret_manager_secret" "vin_pepper" {
 }
 
 resource "google_secret_manager_secret" "instagram_access_token" {
-  secret_id = "instagram-access-token"
+  secret_id           = "instagram-access-token"
+  deletion_policy     = "ABANDON"
+  deletion_protection = true
 
   replication {
     auto {}
@@ -284,9 +318,24 @@ resource "google_secret_manager_secret" "instagram_access_token" {
   depends_on = [google_project_service.required]
 }
 
-resource "google_secret_manager_secret_version" "vin_pepper" {
-  secret      = google_secret_manager_secret.vin_pepper.id
-  secret_data = var.vin_pepper
+resource "terraform_data" "local_secret_versions" {
+  # Runs locally on every apply. The Go helper skips unset values and does not
+  # expose values or fingerprints to OpenTofu state.
+  triggers_replace = [timestamp()]
+
+  provisioner "local-exec" {
+    command = "${path.root}/../../../functions/firebase-go/secret-version-bootstrap"
+    environment = {
+      GCP_PROJECT_ID = var.project_id
+    }
+  }
+
+  depends_on = [
+    google_secret_manager_secret.vin_pepper,
+    google_secret_manager_secret.resend_api_key,
+    google_secret_manager_secret.ideal_postcodes_api_key,
+    google_secret_manager_secret.instagram_access_token,
+  ]
 }
 
 resource "google_service_account" "runtime" {
@@ -346,6 +395,18 @@ resource "google_secret_manager_secret_iam_member" "runtime_api_key" {
 
 resource "google_secret_manager_secret_iam_member" "runtime_vin_pepper" {
   secret_id = google_secret_manager_secret.vin_pepper.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.runtime.email}"
+}
+
+resource "google_secret_manager_secret_iam_member" "runtime_resend_api_key" {
+  secret_id = google_secret_manager_secret.resend_api_key.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.runtime.email}"
+}
+
+resource "google_secret_manager_secret_iam_member" "runtime_ideal_postcodes_api_key" {
+  secret_id = google_secret_manager_secret.ideal_postcodes_api_key.secret_id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${google_service_account.runtime.email}"
 }

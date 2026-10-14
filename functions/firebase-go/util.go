@@ -525,5 +525,9 @@ func logEvent(functionName string, level string, message string, fields map[stri
 		payload[key] = value
 	}
 	encoded, _ := json.Marshal(payload)
-	log.Print(string(encoded))
+	log.Print(sanitizeLogLine(string(encoded)))
+}
+
+func sanitizeLogLine(value string) string {
+	return strings.NewReplacer("\r", "\\r", "\n", "\\n").Replace(value)
 }

@@ -69,6 +69,12 @@ func TestAuthorizationRouteRetainsFunctionRoot(t *testing.T) {
 	}
 }
 
+func TestSanitizeLogLinePreventsForgedLogEntries(t *testing.T) {
+	if got := sanitizeLogLine("event\r\nforged"); got != "event\\r\\nforged" {
+		t.Fatalf("sanitizeLogLine() = %q", got)
+	}
+}
+
 func TestAuthDiagnosticsRecordsOnlyBoundedPIIFreeLifecycleEvents(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/api/auth-diagnostics", strings.NewReader(`{"traceCode":"IP-ABCD-2345","stage":"email-link-completion","outcome":"failed"}`))
 	req.Header.Set("Origin", "https://ipace-owners.org")

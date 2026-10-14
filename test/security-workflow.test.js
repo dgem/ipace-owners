@@ -15,12 +15,12 @@ test('security workflow runs SAST and dependency vulnerability checks', function
   var workflow = read('.github/workflows/security.yml');
 
   assert.match(workflow, /cron: "23 5 \* \* 1"/);
-  assert.match(workflow, /actions\/dependency-review-action@v5/);
+  assert.match(workflow, /actions\/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5\.0\.0/);
   assert.match(workflow, /fail-on-severity: moderate/);
   assert.match(workflow, /run: make audit-node/);
   assert.match(workflow, /run: make audit-go/);
   assert.match(workflow, /language: actions[\s\S]*language: javascript-typescript[\s\S]*language: go/);
-  assert.match(workflow, /github\/codeql-action\/init@v4/);
+  assert.match(workflow, /github\/codeql-action\/init@f3c49fd1ef3281abc41069b3dd22807a60c963f6 # v4/);
   assert.match(workflow, /queries: security-extended/);
 });
 
@@ -41,14 +41,15 @@ test('preview deployment runs a blocking passive OWASP ZAP scan', function () {
   var zapIndex = workflow.indexOf('name: OWASP ZAP baseline scan');
 
   assert.ok(smokeIndex >= 0 && zapIndex > smokeIndex);
-  assert.match(workflow, /zaproxy\/action-baseline@v0\.15\.0/);
+  assert.match(workflow, /zaproxy\/action-baseline@6c5a007541891231cd9e0ddec25d4f25c59c9874 # v0\.15\.0/);
   assert.match(workflow, /docker_name: ghcr\.io\/zaproxy\/zaproxy:2\.17\.0/);
   assert.match(workflow, /rules_file_name: \.zap\/rules\.tsv/);
   assert.match(workflow, /fail_action: true/);
   assert.match(workflow, /allow_issue_writing: false/);
 
   var rules = read('.zap/rules.tsv');
-  assert.match(rules, /^10015\tIGNORE\t/m);
+  assert.match(rules, /^10015\tIGNORE\tHosting cache rules are defined in firebase\.json/m);
+  assert.match(rules, /^10109\tIGNORE\tThe site uses JavaScript progressively/m);
   assert.match(rules, /^90004\tIGNORE\t/m);
 });
 

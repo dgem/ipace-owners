@@ -10,13 +10,16 @@ GOVULNCHECK_VERSION ?= v1.6.0
 GOAUDIT_TOOLCHAIN ?= go1.26.9
 INFRA_ENV_SCRIPT := scripts/infra-env.sh
 
-.PHONY: help functions check-node install ci-install dev build clean lint lint-js lint-css lint-markdown lint-data lint-templates lint-shell lint-go lint-tofu lint-svg audit audit-node audit-go test test-node test-go test-visual test-e2e-responsive test-e2e-auth smoke join-reengagement update-service-providers write-functions-env authorize-preview-domain deploy-functions deploy-hosting-preview delete-hosting-preview deploy-hosting-production infra-config infra-auth infra-init infra-workspace infra-dns-records infra-resend-dns-records infra-email-domain infra-plan infra-apply deploy-hosting-env
+.PHONY: help functions check-node install ci-install dev build clean lint lint-js lint-css lint-markdown lint-data lint-templates lint-shell lint-go lint-tofu lint-svg audit audit-node audit-go test test-node test-go test-visual test-e2e-responsive test-e2e-auth smoke join-reengagement update-service-providers write-functions-env authorize-preview-domain deploy-functions deploy-hosting-preview delete-hosting-preview deploy-hosting-production secret-version-bootstrap infra-config infra-auth infra-init infra-workspace infra-dns-records infra-resend-dns-records infra-email-domain infra-plan infra-apply deploy-hosting-env
 
 help: ## Show available make targets.
 	@awk 'BEGIN {FS = ":.*##"; printf "Available targets:\n"} /^[a-zA-Z0-9_.-]+:.*##/ {printf "  %-28s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 functions: ## List Cloud Function entrypoints deployed by deploy-functions.
 	@printf '%s\n' $(FUNCTION_ENTRYPOINTS)
+
+secret-version-bootstrap: ## Build the local Secret Manager version bootstrap tool.
+	cd functions/firebase-go && go build -o secret-version-bootstrap ./cmd/secret-version-bootstrap
 
 check-node: ## Verify the active Node.js major matches .nvmrc.
 	@required="$$(tr -d '[:space:]' < .nvmrc)"; \
@@ -129,7 +132,7 @@ infra-email-domain: ## Reconcile supported Firebase Auth email settings and send
 infra-plan: ## Authenticate and create an OpenTofu plan for ENV.
 	@ENV="$(ENV)" TFVARS="$(TFVARS)" $(INFRA_ENV_SCRIPT) plan
 
-infra-apply: ## Authenticate and apply OpenTofu infrastructure for ENV.
+infra-apply: secret-version-bootstrap ## Build the secret bootstrap tool, then authenticate and apply OpenTofu infrastructure for ENV.
 	@ENV="$(ENV)" TFVARS="$(TFVARS)" $(INFRA_ENV_SCRIPT) apply
 
 deploy-hosting-env: infra-apply ## Deploy all GCP/Firebase infrastructure for ENV.
@@ -145,8 +148,8 @@ deploy-functions: write-functions-env ## Deploy all Go Cloud Functions to GCP.
 	@if [ -z "$${FUNCTIONS_SERVICE_ACCOUNT}" ]; then echo "FUNCTIONS_SERVICE_ACCOUNT is required"; exit 1; fi
 	@for fn in $(FUNCTION_ENTRYPOINTS); do \
 		echo "Deploying Cloud Function $$fn"; \
-		secret_args=""; \
-		if [ -n "$${INSTAGRAM_ACCESS_TOKEN_SECRET}" ]; then secret_args="--set-secrets=INSTAGRAM_ACCESS_TOKEN=$${INSTAGRAM_ACCESS_TOKEN_SECRET}:latest"; fi; \
+		secret_values="VIN_PEPPER=vin-pepper:latest,RESEND_API_KEY=resend-api-key:latest,IDEAL_POSTCODES_API_KEY=ideal-postcodes-api-key:latest,INSTAGRAM_ACCESS_TOKEN=instagram-access-token:latest"; \
+		secret_args=""; if [ -n "$${secret_values}" ]; then secret_args="--set-secrets=$${secret_values}"; fi; \
 		gcloud functions deploy "$$fn" \
 			--gen2 \
 			--project="$${GCP_PROJECT_ID}" \

@@ -190,15 +190,15 @@ Branded Resend path:
 
 Required Resend configuration:
 
-- `RESEND_API_KEY_<ENV>` as a GitHub environment secret. This may be created manually, or
-  bootstrapped by setting `bootstrap_resend_api_key_secret = true` and supplying the
-  sensitive OpenTofu `resend_api_key` variable. Leave the bootstrap boolean false when the
-  GitHub secret is managed manually.
+- The environment's fixed `resend-api-key` Secret Manager version, mounted as
+  `RESEND_API_KEY` when Functions deploy. Each local OpenTofu apply examines any supplied secure
+  operator value and adds a version only when it differs from `latest`; missing values are skipped.
+  Neither OpenTofu state nor GitHub Actions stores its value or fingerprint.
 - `RESEND_FROM_<ENV>`, `RESEND_REPLY_TO_<ENV>`, and `RESEND_ASSET_BASE_URL_<ENV>` as GitHub
   environment variables, managed by OpenTofu where possible.
 - The Resend sending domain may be created/read by OpenTofu with
-  `manage_resend_domain = true` and `resend_api_key` supplied through an uncommitted tfvars
-  file or `TF_VAR_resend_api_key`. Use `make infra-resend-dns-records ENV=<environment>` to
+  `manage_resend_domain = true` and `RESEND_API_KEY` supplied only through the local OpenTofu
+  process environment. Use `make infra-resend-dns-records ENV=<environment>` to
   print the required Resend DNS records, then add them at Fasthosts while Fasthosts remains
   authoritative. Resend sender domain DNS must pass SPF/DKIM/DMARC checks before enabling
   production use.

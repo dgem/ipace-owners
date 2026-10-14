@@ -370,9 +370,7 @@ sheet and chart format without exposing member data.
   `I-PACE Owners`; staging uses `I-PACE Owners Staging`.
 - Custom branded passwordless emails use Resend only when the API key and sender are
   configured in the Function environment. The Resend API key must be a GitHub environment
-  secret; OpenTofu may bootstrap it from the sensitive `resend_api_key` variable when
-  `bootstrap_resend_api_key_secret` is true, but should leave it alone when that boolean is
-  false. Non-secret
+  secret; OpenTofu must not create or update it; manage the value directly in GitHub Actions. Non-secret
   sender/reply-to/asset-base values may be managed as GitHub environment variables by
   OpenTofu. OpenTofu may also manage the Resend sending-domain resource and output DNS
   verification records; DNS remains manual while Fasthosts is authoritative.

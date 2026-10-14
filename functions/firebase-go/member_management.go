@@ -38,11 +38,21 @@ func UpdateMemberPreferences(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Could not update preferences"})
 			return
 		}
-		batch.Update(doc.Ref, []firestore.Update{
+		updates := []firestore.Update{
 			{Path: "consents.contact", Value: *req.Contact},
 			{Path: "consents.anonymisedAnalysis", Value: *req.AnonymisedAnalysis},
 			{Path: "updatedAt", Value: time.Now().UTC()},
-		})
+		}
+		if req.WillingToHelp != nil {
+			updates = append(updates, firestore.Update{Path: "membership.willingToHelp", Value: *req.WillingToHelp})
+		}
+		if req.Expertise != nil {
+			updates = append(updates, firestore.Update{Path: "membership.expertise", Value: cleanString(*req.Expertise, 500)})
+		}
+		if req.PressStory != nil {
+			updates = append(updates, firestore.Update{Path: "membership.pressStory", Value: *req.PressStory})
+		}
+		batch.Update(doc.Ref, updates)
 		count++
 	}
 	consentRef := db.Collection(communicationsConsentCollection).Doc(emailFingerprint(user.Email))

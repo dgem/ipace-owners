@@ -277,7 +277,7 @@ change rather than assuming it exists.
 | `POST /api/submit-vehicle-basics` | Member | Optional `id` for an owned edit; otherwise `vin`, `registration`, `country`, `modelYear`, `mileage`, `ownedSince`, `firstReg`, plus optional initial `soh`, `sohDate`, `sohMileage`, `sohSource`. |
 | `POST /api/submit-soh` | Member/vehicle owner | Optional `id` for an owned edit plus `vehicleId`, `soh`, `sohDate`, `sohMileage`, `sohSource`; maintain the vehicle compatibility value. |
 | `POST /api/upsert-service-event` | Member/vehicle and record owner | `id`, `vehicleId`, `eventType`, `occurredAt`, `mileage`, `title`, `description`, `status`, `campaigns[]`, `serviceProviderId`, `serviceProviderName`, `serviceProviderPostcode`, `serviceProviderAuthorised`, `finalFixAt`, `courtesyVehicleOffered`, `courtesyVehicleProvided`, `partsDelay`, `goodwillPayment`, `milesDrivenWhilstFaulty`, `warrantyCover`, `disputeStatus`, `executiveOfficeAcknowledgedAt`, `executiveOfficeRepliedAt`, `executiveOfficeOutcome`, `executiveOfficeSatisfied`. Derive `daysToFinalFix` server-side. For Executive Office contacts, supplied acknowledgement/reply dates must be valid, non-future, and on or after `occurredAt`. |
-| `POST /api/update-member-preferences` | Member | Required booleans `contact`, `anonymisedAnalysis`; apply to every Join record sharing the authenticated email hash. |
+| `POST /api/update-member-preferences` | Member | Required booleans `contact`, `anonymisedAnalysis`; optional `willingToHelp`, `pressStory`, and bounded `expertise`; apply the preference update to every Join record sharing the authenticated email hash. |
 | `GET/POST /api/member-profile` | Member | One contact profile per Firebase UID; freeform international address, optional phone, and a versioned representation choice available only for a complete UK address. Append choice changes to a PII-free `representationChoices` subcollection. |
 | `GET /api/member-address-lookup` | Member | Optional address or postcode search and resolution through a server-side Ideal Postcodes key, with manual entry fallback. |
 | `POST /api/admin/member-verification` | Admin | Set an admin-only identity-verification decision, separate from member consent. |
@@ -424,8 +424,9 @@ Build-time Firebase web configuration uses `FIREBASE_WEB_API_KEY`,
 `SNAPSHOT_BUCKET`, `VIN_PEPPER`, `ALLOWED_ORIGINS`, `FIREBASE_WEB_API_KEY`,
 `FIREBASE_EMAIL_CONTINUE_URL`, optional `FIREBASE_EMAIL_LINK_DOMAIN`, and optional
 `RESEND_API_KEY`, `RESEND_FROM`, `RESEND_REPLY_TO`, `RESEND_ASSET_BASE_URL`, and
-`IDEAL_POSTCODES_API_KEY`. The latter is supplied by environment-specific GitHub secrets;
-without it, members enter addresses manually. Per-member address lookups are persistently
+`IDEAL_POSTCODES_API_KEY`. Application secrets are mounted from the environment's GCP Secret
+Manager versions, never copied through GitHub; without the Ideal Postcodes version, members
+enter addresses manually. Per-member address lookups are persistently
 rate-limited before the paid provider is called.
 The optional `SEED_NEXT_STEPS_SURVEY` flag creates the October survey automatically on the first
 authenticated survey access. `NEXT_STEPS_SURVEY_STATUS` is `published` in staging and `draft` in
@@ -434,9 +435,15 @@ Optional Instagram publishing additionally uses secret `INSTAGRAM_ACCESS_TOKEN` 
 `INSTAGRAM_USER_ID`, `INSTAGRAM_GRAPH_API_VERSION`, and `INSTAGRAM_MEDIA_BASE_URL`. Absence or
 invalidity must disable publishing while leaving local preview available.
 OpenTofu creates the `instagram-access-token` Secret Manager container and grants the Function
-runtime accessor permission, but must not create its secret version from a tfvars value. Only after
-an operator adds a version should `instagram_publishing_enabled` expose the secret name and
-non-secret account ID/version to the deployment workflow.
+runtime accessor permission, but must not create its secret version from a tfvars value. On every
+local apply, the bootstrap examines any supplied `VIN_PEPPER`, `RESEND_API_KEY`,
+`IDEAL_POSTCODES_API_KEY`, and `INSTAGRAM_ACCESS_TOKEN` operator environment values, adds a
+version when it differs from `latest` or when the latest version is missing or destroyed, and skips
+absent values. The normal `make infra-apply` target must build the local bootstrap binary before
+OpenTofu executes it. It must never store a value or fingerprint in OpenTofu state. Once a version
+exists, `instagram_publishing_enabled` exposes only
+its non-secret account ID/version to the deployment workflow; the Function deployment mounts the
+fixed secret name.
 Asynchronous campaign-video generation uses non-secret `CAMPAIGN_MEDIA_BUCKET`, `VEO_LOCATION`,
 and `VEO_MODEL_ID`, with `VEO_LOCATION` defaulting to the explicit Veo 3.1 processing region
 `us-central1`. OpenTofu must enable `aiplatform.googleapis.com`, explicitly provision the managed
@@ -597,7 +604,7 @@ and frozen headers. See prompt 17 for the audit mitigation.
   remove them once upstream dependency ranges include the patched releases.
 - Recreate staging and production workflows, read-only PR validation, repository-owner plus
   same-repository preview deployment gating, approval for all external contributors,
-  job-scoped permissions, immutable third-party Action pins, Workload Identity Federation,
+  job-scoped permissions, immutable Action pins including GitHub-maintained actions, Workload Identity Federation,
   serialized staging and production deployment, runtime-authorized public snapshot
   regeneration verified by smoke testing, branch-run cancellation, direct smoke testing,
   weekly Dependabot coverage, CodeQL `security-extended`, dependency review, a Node audit
