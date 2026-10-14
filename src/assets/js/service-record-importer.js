@@ -77,6 +77,8 @@
   }
   function previewImage(file) {
     if (file.type === 'application/pdf') return pdfPageImages(file).then(function (pages) { return pages[0]; });
+    var safeImageTypes = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/bmp'];
+    if (safeImageTypes.indexOf(file.type) === -1) return Promise.reject(new Error('Unsupported file type for preview.'));
     return Promise.resolve(URL.createObjectURL(file));
   }
   function recordCard(record, file, method, sourceURL) {
