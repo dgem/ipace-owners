@@ -604,7 +604,7 @@ and frozen headers. See prompt 17 for the audit mitigation.
   remove them once upstream dependency ranges include the patched releases.
 - Recreate staging and production workflows, read-only PR validation, repository-owner plus
   same-repository preview deployment gating, approval for all external contributors,
-  job-scoped permissions, immutable third-party Action pins, Workload Identity Federation,
+  job-scoped permissions, immutable Action pins including GitHub-maintained actions, Workload Identity Federation,
   serialized staging and production deployment, runtime-authorized public snapshot
   regeneration verified by smoke testing, branch-run cancellation, direct smoke testing,
   weekly Dependabot coverage, CodeQL `security-extended`, dependency review, a Node audit
