@@ -1,0 +1,26 @@
+---
+layout: base.njk
+title: Import Service Records
+description: "Extract and review local service documents before saving structured service records."
+noindex: true
+permalink: /member/import-service-records/
+memberNavigation: true
+memberBreadcrumb: Import service records
+serviceRecordImporter: true
+fullModeOnly: true
+---
+
+{% from "partials/auth-login-gate.njk" import authLoginGate %}
+
+<div class="page-header page-header--compact"><div class="container"><h1 class="page-header__title">Import service records</h1></div></div>
+<div class="section"><div class="container container--wide"><div data-auth-container>
+  {{ authLoginGate("import-magic-email", "Members only", "Sign in to review local documents and save structured service records to your vehicle history.") }}
+  <div class="auth-content" data-auth-content hidden>
+    <section class="service-importer" data-service-importer aria-labelledby="service-importer-title">
+      <div class="service-importer__intro"><div><h2 id="service-importer-title">Private document-to-record importer</h2><p>PDFs and images are analysed in this browser only. Original files are never uploaded; only records you review and submit are saved.</p></div><a class="btn btn--secondary btn--sm" href="/member/dashboard/">Back to My Data</a></div>
+      <div class="callout callout--info"><div class="callout__content"><p class="callout__title">Review is required</p><p>Text extraction and OCR can be wrong. Check the date, mileage, provider, record type and summary against the document before submitting.</p></div></div>
+      <div class="service-importer__controls"><div class="form-group"><label for="import-service-files">Choose PDFs or photos</label><input id="import-service-files" type="file" accept="application/pdf,image/jpeg,image/png,image/webp" multiple data-import-files><p class="form-hint">Select a small batch at a time. Duplicate files are identified by a local SHA-256 fingerprint.</p></div><p class="form-hint" data-import-status role="status" aria-live="polite"></p></div>
+      <div data-import-results></div>
+    </section>
+  </div>
+</div></div></div>
