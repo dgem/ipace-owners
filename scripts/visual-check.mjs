@@ -35,7 +35,9 @@ assert.equal(siteReady, true, `site did not become ready at ${baseURL}`);
 const browser = await chromium.launch({ executablePath, headless: true });
 const expectedAdminDestinations = [
   '/admin/',
+  '/admin/members/',
   '/admin/review-queue/',
+  '/admin/member-stories/',
   '/admin/outreach/',
   '/admin/email-campaigns/',
   '/admin/marketing-messages/',
@@ -393,15 +395,95 @@ async function checkAdminDashboard() {
   await page.locator('[data-campaign-summary-refresh]').click();
   await page.locator('.campaign-summary-card').first().waitFor({ state: 'visible' });
   assert.equal(await page.locator('.campaign-summary-card').count(), 3);
-  assert.equal(await page.locator('.admin-dashboard-grid .card').count(), 6);
-  assert.equal(await page.locator('.admin-dashboard-grid .admin-tool-logo svg').count(), 6);
-  assert.equal(await page.locator('.admin-dashboard-grid .btn--primary').count(), 6);
+  assert.equal(await page.locator('.admin-dashboard-grid .card').count(), 8);
+  assert.equal(await page.locator('.admin-dashboard-grid .admin-tool-logo svg').count(), 8);
+  assert.equal(await page.locator('.admin-dashboard-grid .btn--primary').count(), 8);
   assert.deepEqual(await page.locator('.admin-dashboard-grid .btn').allTextContents(), [
-    'Review Queue', 'Facebook Assistant', 'Registration Reminders', 'Mass Mailings', 'Instagram Campaigns', 'Member Surveys'
+    'Find members', 'Review Queue', 'Review stories', 'Facebook Assistant', 'Registration Reminders', 'Mass Mailings', 'Instagram Campaigns', 'Member Surveys'
   ]);
   assert.deepEqual(await page.locator('.admin-dashboard-grid a').evaluateAll((links) => links.map((link) => link.getAttribute('href'))), expectedAdminDestinations.slice(1));
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, 'admin-dashboard-desktop.png'), fullPage: true });
+  await page.close();
+}
+
+async function checkMemberStories(viewport, screenshotName) {
+  const page = await browser.newPage({ viewport });
+  await page.route('**/api/member/stories', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({
+    eligible: true,
+    profileName: 'Alex Owner',
+    limits: { images: 5, videos: 2, totalBytes: 262144000 },
+    vehicles: [{ id: 'vehicle-1', vehicle: { registration: 'AB12 CDE', modelYear: '2020' } }],
+    serviceEvents: [{ id: 'event-1', vehicleId: 'vehicle-1', occurredAt: '2026-05-04', eventType: 'executive-office-contact', title: 'Executive Office escalation' }],
+    sohReadings: [{ id: 'soh-1', vehicleId: 'vehicle-1', battery: { measuredAt: '2026-04-10', stateOfHealth: 78 } }],
+    stories: [{ id: 'story-1', title: 'Three modules and still waiting', bodyMarkdown: 'My I-PACE needed three battery modules replaced. One replacement later failed again and I am still waiting for a lasting resolution.', displayName: 'Alex Owner', status: 'needs-member-clarification', memberMessage: 'Please add the date of the replacement-module failure.', consent: { website: true, thirdParty: true, copyright: true, truthful: true }, evidence: { vehicleId: 'vehicle-1', serviceEventIds: ['event-1'], sohReadingIds: ['soh-1'] }, media: [] }]
+  }) }));
+  await page.goto(baseURL + '/member/stories/', { waitUntil: 'networkidle' });
+  await page.evaluate(() => {
+    window.ipaceGetIdentityToken = async () => 'visual-member-token';
+    document.querySelectorAll('[data-auth-content]').forEach((element) => { element.hidden = false; });
+    document.querySelectorAll('[data-auth-pending], [data-auth-login-gate], .cookie-notice').forEach((element) => { element.hidden = true; });
+    document.dispatchEvent(new CustomEvent('identity:login'));
+  });
+  await page.locator('[data-story-form]').waitFor({ state: 'attached' });
+  await page.evaluate(() => {
+    document.querySelectorAll('[data-auth-content]').forEach((element) => { element.hidden = false; });
+    document.querySelectorAll('[data-auth-pending], [data-auth-login-gate], .cookie-notice').forEach((element) => { element.hidden = true; });
+  });
+  await page.locator('[data-story-form]').waitFor({ state: 'visible' });
+  await page.locator('[name="vehicleId"]').selectOption('vehicle-1');
+  assert.equal(await page.getByRole('button', { name: 'Edit story' }).count(), 1);
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
+  await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
+  await page.close();
+}
+
+async function checkAdminMemberStories(viewport, screenshotName) {
+  const page = await browser.newPage({ viewport });
+  await page.route('**/api/admin/stories', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({
+    promptVersion: 'member-story-editor-v1', impact: { 'story-1': { readers: 42, views: 57, engaged: 31, ctas: 9, shares: 6, registrations: 3 } }, stories: [{
+      id: 'story-1', title: 'Three modules and still waiting', bodyMarkdown: 'My I-PACE needed three battery modules replaced. One replacement later failed again.', displayName: 'Alex Owner', contactName: 'Alex Owner', contactEmail: 'alex@example.com', status: 'submitted',
+      consent: { website: true, thirdParty: true, copyright: true, truthful: true }, evidence: { vehicleLabel: 'AB12 CDE', serviceEventCount: 3, sohReadingCount: 2 }, media: [], memberMessage: 'Please clarify the date of the repeat failure.',
+      analysis: { promptVersion: 'member-story-editor-v1', sentiment: 'frustrated', keywords: ['battery modules', 'repeat failure'], grammar: ['No corrections suggested.'], structure: ['Clarify the dates if known.'], claims: ['Three modules were replaced.'], privacyFlags: [] }
+    }]
+  }) }));
+  await page.goto(baseURL + '/admin/member-stories/', { waitUntil: 'networkidle' });
+  await page.evaluate(() => {
+    window.ipaceGetIdentityToken = async () => 'visual-admin-token';
+    document.dispatchEvent(new CustomEvent('identity:login'));
+  });
+  await revealAdminState(page);
+  await page.locator('[data-story-review]').waitFor({ state: 'visible' });
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
+  await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
+  await page.close();
+}
+
+async function checkAdminMemberSearch(viewport, screenshotName) {
+  const page = await browser.newPage({ viewport });
+  await page.route('**/api/admin/members?*', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ results: [{
+    name: 'Alex Owner', email: 'alex@example.com', country: 'United Kingdom', registrations: ['AB12 CDE'], expertise: 'Solicitor with consumer law experience', willingToHelp: true, pressStory: true, storyCount: 1, matched: ['name', 'expertise']
+  }] }) }));
+  await page.goto(baseURL + '/admin/members/', { waitUntil: 'networkidle' });
+  await page.evaluate(() => { window.ipaceGetIdentityToken = async () => 'visual-admin-token'; });
+  await revealAdminState(page);
+  await page.locator('#admin-member-query').fill('Alex');
+  await page.getByRole('button', { name: 'Search' }).click();
+  await page.locator('[data-results] .card').waitFor({ state: 'visible' });
+  assert.equal(await page.getByRole('heading', { name: 'Alex Owner' }).count(), 1);
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
+  await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
+  await page.close();
+}
+
+async function checkPublicMemberStory(viewport, screenshotName) {
+  const page = await browser.newPage({ viewport });
+  await page.route('**/api/stories', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ stories: [{ id: 'story-1', slug: 'three-modules-story-1', title: 'Three modules and still waiting', displayName: 'Alex Owner', bodyMarkdown: '## What happened\n\nMy I-PACE needed **three battery modules** replaced. One replacement later failed again.\n\n## The impact\n\nI want a fair, timely and lasting solution.', evidence: { vehicleLabel: 'I-PACE', modelYear: '2020', serviceEventCount: 3, sohReadingCount: 2 }, media: [] }] }) }));
+  await page.goto(baseURL + '/member-stories/?site-mode=full&story=three-modules-story-1', { waitUntil: 'networkidle' });
+  await page.locator('.member-story').waitFor({ state: 'visible' });
+  await page.evaluate(() => document.querySelectorAll('.cookie-notice').forEach((element) => { element.hidden = true; }));
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
+  await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
   await page.close();
 }
 
@@ -1214,6 +1296,14 @@ try {
   await checkDesktopAdminHeader();
   await checkMobileAdminDrawer();
   await checkAdminDashboard();
+  await checkMemberStories({ width: 1440, height: 1000 }, 'member-stories-desktop.png');
+  await checkMemberStories({ width: 390, height: 844 }, 'member-stories-mobile.png');
+  await checkAdminMemberStories({ width: 1440, height: 1000 }, 'admin-member-stories-desktop.png');
+  await checkAdminMemberStories({ width: 390, height: 844 }, 'admin-member-stories-mobile.png');
+  await checkAdminMemberSearch({ width: 1440, height: 1000 }, 'admin-members-desktop.png');
+  await checkAdminMemberSearch({ width: 390, height: 844 }, 'admin-members-mobile.png');
+  await checkPublicMemberStory({ width: 1440, height: 1000 }, 'public-member-story-desktop.png');
+  await checkPublicMemberStory({ width: 390, height: 844 }, 'public-member-story-mobile.png');
   await checkServiceExport({ width: 1440, height: 1000 }, 'desktop');
   await checkServiceExport({ width: 390, height: 844 }, 'mobile');
   await checkCampaignControls({ width: 1440, height: 1100 }, 'admin-email-campaigns-desktop.png');

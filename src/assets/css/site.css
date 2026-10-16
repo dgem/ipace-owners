@@ -4381,6 +4381,79 @@ details .details-body p:last-child {
   }
 }
 
+/* Member stories */
+.story-form,
+.story-guidance,
+.story-review-card,
+.member-story {
+  margin-bottom: var(--space-8);
+}
+
+.story-form fieldset,
+.story-review-card details,
+.story-evidence-summary {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+}
+
+.story-review-card {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.story-review-card label {
+  display: grid;
+  gap: var(--space-2);
+  font-weight: 600;
+}
+
+.story-review-media,
+.member-story figure img,
+.member-story video {
+  border-radius: var(--radius-md);
+  display: block;
+  max-height: 32rem;
+  max-width: 100%;
+}
+
+.story-grid {
+  display: grid;
+  gap: var(--space-6);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+}
+
+.story-markdown {
+  font-size: var(--text-lg);
+  line-height: 1.75;
+  margin-block: var(--space-8);
+}
+
+.story-evidence-summary {
+  background: var(--color-bg);
+  margin-block: var(--space-6);
+}
+
+.story-submission-list {
+  display: grid;
+  gap: var(--space-5);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.story-submission-list > li {
+  border-top: 1px solid var(--color-border);
+  display: grid;
+  gap: var(--space-3);
+  padding-top: var(--space-4);
+}
+
+.story-submission-list > li:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
 /* ------------------------------------------------------------
    19. SKIP LINK
    ------------------------------------------------------------ */

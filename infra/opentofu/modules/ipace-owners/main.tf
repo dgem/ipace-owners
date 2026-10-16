@@ -4,6 +4,7 @@ locals {
   firebase_app_name                 = var.firebase_web_app_display_name != "" ? var.firebase_web_app_display_name : "ipace-owners-${var.environment}"
   snapshot_bucket_name              = "${var.project_id}-member-snapshots"
   campaign_media_bucket_name        = "${var.project_id}-campaign-media"
+  member_story_media_bucket_name    = "${var.project_id}-member-story-media"
   deployer_account_id               = "github-deployer"
   firebase_hosting_site_id          = var.firebase_hosting_site_id != "" ? var.firebase_hosting_site_id : var.project_id
   email_continue_host               = regex("^https?://([^/]+)", var.site_url)[0]
@@ -255,6 +256,37 @@ resource "google_storage_bucket" "campaign_media" {
   depends_on = [google_project_service.required]
 }
 
+resource "google_storage_bucket" "member_story_media" {
+  name                        = local.member_story_media_bucket_name
+  location                    = upper(var.region)
+  uniform_bucket_level_access = true
+  public_access_prevention    = "enforced"
+
+  versioning {
+    enabled = true
+  }
+
+  cors {
+    origin          = distinct(compact([for origin in concat([var.site_url], split(",", var.allowed_origins)) : trimspace(origin)]))
+    method          = ["GET", "HEAD", "PUT"]
+    response_header = ["Content-Type", "ETag"]
+    max_age_seconds = 3600
+  }
+
+  lifecycle_rule {
+    condition {
+      age            = 2
+      matches_prefix = ["pending/"]
+    }
+
+    action {
+      type = "Delete"
+    }
+  }
+
+  depends_on = [google_project_service.required]
+}
+
 resource "google_secret_manager_secret" "firebase_web_api_key" {
   secret_id = "firebase-web-api-key"
 
@@ -379,6 +411,20 @@ resource "google_storage_bucket_iam_member" "runtime_campaign_media" {
   bucket = google_storage_bucket.campaign_media.name
   role   = "roles/storage.objectAdmin"
   member = "serviceAccount:${google_service_account.runtime.email}"
+}
+
+resource "google_storage_bucket_iam_member" "runtime_member_story_media" {
+  bucket = google_storage_bucket.member_story_media.name
+  role   = "roles/storage.objectAdmin"
+  member = "serviceAccount:${google_service_account.runtime.email}"
+}
+
+# Cloud Run uses short-lived service-account credentials. Signed upload and
+# review URLs therefore use IAM signBlob rather than a stored private key.
+resource "google_service_account_iam_member" "runtime_signed_urls" {
+  service_account_id = google_service_account.runtime.name
+  role               = "roles/iam.serviceAccountTokenCreator"
+  member             = "serviceAccount:${google_service_account.runtime.email}"
 }
 
 resource "google_storage_bucket_iam_member" "vertex_ai_campaign_media" {

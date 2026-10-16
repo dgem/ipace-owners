@@ -144,8 +144,16 @@ header.
 | `POST /api/delete-service-event` | `DeleteServiceEvent` | Member | Soft-delete an owned service/fault record after typed confirmation. |
 | `GET /api/member-data` | `MemberData` | Member | Return the signed-in user's generated snapshot. |
 | `GET /api/member-export?format=csv\|xlsx` | `MemberExport` | Member | Download that snapshot as separate CSV datasets in a ZIP or a formatted Excel workbook. |
+| `GET/POST /api/member/stories` | `MemberStories` | Member | Check eligibility, list owned evidence and save or submit a member story. |
+| `POST /api/member/story-upload` | `MemberStoryUpload` | Member | Reserve bounded private media and return an expiring signed upload URL. |
+| `POST /api/member/story-upload-complete` | `MemberStoryUploadComplete` | Member | Verify and promote a completed private media upload. |
+| `POST /api/member/story-withdraw` | `MemberStoryWithdraw` | Member | Remove publication permissions immediately and place the story into withdrawal review. |
 | `GET /api/admin/authorize` | `AdminAuthorize` | Admin | Verify an admin page gate without returning admin review records. |
 | `GET /api/admin-data` | `AdminData` | Admin | Return review data for administrators. |
+| `GET /api/admin/members` | `AdminMemberSearch` | Admin | Search member identity, vehicle, preference and story records. |
+| `GET/POST /api/admin/stories` | `AdminStories` | Admin | Review, analyse, edit, approve and publish member stories. |
+| `GET /api/stories` | `PublicStories` | Public | Return the publication-safe fields of website-consented stories. |
+| `POST /api/story-event` | `StoryEvent` | Public | Record a consent-gated pseudonymous story impact event. |
 | `GET /api/admin/stats` | `AdminStats` | Admin | Return public consent-filtered homepage counters alongside private all-record member, vehicle, SoH, and service-event statistics with `Cache-Control: private, no-store`; canonical emails are deduplicated at the first Join before the daily Join trend and country rows are calculated. Include an admin-only model-year service-record breakdown: registered cars, cars with records, all records, faults, repairs, recalls and records tagged H570–H572. It joins service records only to an owned, non-deleted vehicle; it is self-selected evidence, not a fleet fault rate. Derive country from the Join, one unambiguous vehicle country, or a strict UK registration, otherwise use `Unknown` (including conflicting vehicle countries). Magic-link-verified accounts have a separate daily line chart, and no per-vehicle evidence is returned. |
 | `POST /api/admin/reengagement-preview` | `AdminReengagementPreview` | Admin | Return aggregate counts for the consented, unsigned-in Join audience. |
 | `POST /api/admin/reengagement-send` | `AdminReengagementSend` | Admin | Confirm and send the next resumable batch of at most ten reminders. |
@@ -425,7 +433,8 @@ Keep these related prompts aligned when the architecture changes:
 - `15-firestore-static-json-data-model.md`
 - `17-operations-ci-and-troubleshooting.md`
 - `20-instagram-campaign-publishing.md`
-- `21-clean-room-reconstruction-contract.md`
+- `21-member-stories-and-impact.md`
+- `22-clean-room-reconstruction-contract.md`
 
 ## Private admin service export
 
