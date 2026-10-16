@@ -161,7 +161,7 @@ Defined in `:root` in `site.css`. Key tokens:
 - Treat `09-architecture-overview.md` as the canonical architecture reference and keep it
   aligned with README and the component prompts.
 - Treat the highest-numbered prompt, currently
-  `21-clean-room-reconstruction-contract.md`, as the final clean-room acceptance contract.
+  `22-clean-room-reconstruction-contract.md`, as the final clean-room acceptance contract.
   Feature prompts, including Instagram publishing, must precede it; when adding another
   feature prompt, renumber the contract so it remains last. Keep its route, API, schema,
   configuration, asset-preservation, and external backup inventories aligned with

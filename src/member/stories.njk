@@ -1,0 +1,20 @@
+---
+layout: base.njk
+title: Share your story
+description: "Share your I-PACE experience with the group."
+noindex: true
+memberNavigation: true
+memberBreadcrumb: Stories
+memberStories: true
+date: Last Modified
+---
+
+{% from "partials/auth-login-gate.njk" import authLoginGate %}
+
+<div class="page-header page-header--compact"><div class="container"><h1 class="page-header__title">Share your story</h1><p class="page-header__subtitle">Turn your experience into evidence the group can use.</p></div></div>
+<div class="section"><div class="container container--narrow"><div data-auth-container>
+  {{ authLoginGate("stories-magic-email", "Members only", "Sign in to write and manage your story.") }}
+  <div class="auth-content" data-auth-content hidden>
+    <div data-member-stories><p>Loading your records…</p></div>
+  </div>
+</div></div></div>

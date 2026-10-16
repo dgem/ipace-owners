@@ -29,7 +29,9 @@ Use these prompts as a maintainable product blueprint. They are ordered so a fre
     passwordless email delivery, DNS/auth readiness, data protection, and rollback planning.
 20. Use `20-instagram-campaign-publishing.md` for the launch Reel creative contract,
     asynchronous Veo generation, full-media review, and controlled organic publishing.
-21. Use `21-clean-room-reconstruction-contract.md` as the final authority for a from-scratch
+21. Use `21-member-stories-and-impact.md` to add member story submission, editorial review,
+    publication permissions, private media and impact measurement.
+22. Use `22-clean-room-reconstruction-contract.md` as the final authority for a from-scratch
     rebuild, exact route/API/data inventories, acceptance criteria, asset preservation, and
     the boundary between source reconstruction and production disaster recovery. It must
     remain the highest-numbered prompt; insert future feature prompts before it and renumber

@@ -35,6 +35,10 @@ Depending on what you choose to provide, we may collect:
   status, service-provider name and postcode, fix duration, courtesy vehicle information,
   parts delays, miles driven whilst faulty, goodwill support, warranty cover, and dispute
   status.
+- Member stories, publication permissions, linked evidence records, images and short videos,
+  editorial revisions, and optional AI-assisted editorial analysis.
+- With permission, a pseudonymous reader identifier and story views, engagement, campaign,
+  referral, sharing and call-to-action events. The identifier is not used for advertising.
 - Authentication, security, and technical information needed to operate the service,
   including Firebase account identifiers and standard hosting logs such as IP address,
   browser information, request time, and error details.
@@ -52,6 +56,8 @@ We use personal data only for the purposes described below:
 | Create and secure your member account; show you your private records; prevent duplicate or abusive submissions; and operate, troubleshoot, and protect the service. | Our legitimate interests in running a safe, reliable owners' group and maintaining an accurate evidence base. |
 | Send group updates or campaign messages. | Your consent. You can withdraw it at any time by contacting us. |
 | Include eligible records in anonymised aggregate analysis, reports, and public statistics. | Your consent. |
+| Publish a submitted member story on this website or use it in third-party media. | Your separate publication consents. |
+| Measure which member stories and campaigns lead readers to engage or take action. | Your consent to optional story analytics. |
 | Respond to privacy requests and meet applicable legal or regulatory duties. | Legal obligation where one applies; otherwise our legitimate interests in administering the group responsibly. |
 
 Joining and providing vehicle or evidence data is voluntary. The Join form needs your name,
@@ -98,15 +104,17 @@ defend legal rights. We do not sell personal data.
 
 ## Cookies and browser storage
 
-We do not use analytics or advertising cookies. Essential services may use cookies or browser
-storage:
+We do not use advertising cookies. Essential services may use cookies or browser storage,
+and optional story analytics use browser storage only after consent:
 
 - Firebase Authentication stores information needed to complete and remember sign-in.
 - The cookie/privacy notice stores whether you dismissed it.
+- If allowed, a random pseudonymous reader identifier connects story views and actions across
+  visits. We do not place it until the reader chooses “Allow story analytics”.
 - Hosting infrastructure keeps technical logs needed to provide and protect the site.
 
-If non-essential cookies are added later, we will update the site and request consent before
-setting them.
+Readers can decline optional story analytics and continue to use the site. Clearing site data
+resets the pseudonymous identifier and consent choice.
 
 ## How long we keep data
 

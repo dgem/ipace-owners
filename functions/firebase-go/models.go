@@ -12,6 +12,9 @@ type joinRequest struct {
 	ConsentContact  string      `json:"consent-contact"`
 	ConsentNotLegal string      `json:"consent-not-legal"`
 	ConsentData     string      `json:"consent-data"`
+	StoryID         string      `json:"storyId"`
+	Campaign        string      `json:"campaign"`
+	ReaderID        string      `json:"readerId"`
 }
 
 type vehicleRequest struct {
@@ -111,6 +114,12 @@ type consentRecord struct {
 	AnonymisedAnalysis bool `json:"anonymisedAnalysis" firestore:"anonymisedAnalysis"`
 }
 
+type attributionRecord struct {
+	StoryID  string `json:"storyId,omitempty" firestore:"storyId,omitempty"`
+	Campaign string `json:"campaign,omitempty" firestore:"campaign,omitempty"`
+	ReaderID string `json:"readerId,omitempty" firestore:"readerId,omitempty"`
+}
+
 type vehicleDetails struct {
 	VINHash               string `json:"vinHash,omitempty" firestore:"vinHash,omitempty"`
 	VINLast6              string `json:"vinLast6,omitempty" firestore:"vinLast6,omitempty"`
@@ -136,16 +145,17 @@ type reviewRecord struct {
 }
 
 type joinRecord struct {
-	ID             string           `json:"id" firestore:"id"`
-	Type           string           `json:"type" firestore:"type"`
-	CreatedAt      time.Time        `json:"createdAt" firestore:"createdAt"`
-	UpdatedAt      time.Time        `json:"updatedAt" firestore:"updatedAt"`
-	IdentityUserID string           `json:"identityUserId,omitempty" firestore:"identityUserId,omitempty"`
-	UserEmailHash  string           `json:"userEmailHash" firestore:"userEmailHash"`
-	Contact        contactRecord    `json:"contact" firestore:"contact"`
-	Membership     membershipRecord `json:"membership" firestore:"membership"`
-	Consents       consentRecord    `json:"consents" firestore:"consents"`
-	Review         reviewRecord     `json:"review" firestore:"review"`
+	ID             string            `json:"id" firestore:"id"`
+	Type           string            `json:"type" firestore:"type"`
+	CreatedAt      time.Time         `json:"createdAt" firestore:"createdAt"`
+	UpdatedAt      time.Time         `json:"updatedAt" firestore:"updatedAt"`
+	IdentityUserID string            `json:"identityUserId,omitempty" firestore:"identityUserId,omitempty"`
+	UserEmailHash  string            `json:"userEmailHash" firestore:"userEmailHash"`
+	Contact        contactRecord     `json:"contact" firestore:"contact"`
+	Membership     membershipRecord  `json:"membership" firestore:"membership"`
+	Consents       consentRecord     `json:"consents" firestore:"consents"`
+	Review         reviewRecord      `json:"review" firestore:"review"`
+	Attribution    attributionRecord `json:"attribution,omitempty" firestore:"attribution,omitempty"`
 }
 
 type vehicleRecord struct {

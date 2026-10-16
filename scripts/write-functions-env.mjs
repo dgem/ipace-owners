@@ -24,6 +24,7 @@ values.INSTAGRAM_USER_ID = process.env.INSTAGRAM_USER_ID || "";
 values.INSTAGRAM_GRAPH_API_VERSION = process.env.INSTAGRAM_GRAPH_API_VERSION || "";
 values.INSTAGRAM_MEDIA_BASE_URL = process.env.INSTAGRAM_MEDIA_BASE_URL || "";
 values.CAMPAIGN_MEDIA_BUCKET = process.env.CAMPAIGN_MEDIA_BUCKET || "";
+values.MEMBER_STORY_MEDIA_BUCKET = process.env.MEMBER_STORY_MEDIA_BUCKET || "";
 values.VEO_LOCATION = process.env.VEO_LOCATION || "";
 values.VEO_MODEL_ID = process.env.VEO_MODEL_ID || "";
 values.SEED_NEXT_STEPS_SURVEY = process.env.SEED_NEXT_STEPS_SURVEY || "";

@@ -211,9 +211,9 @@ The generated public route surface must include:
 - `/`, `/about/`, `/faq/`, `/join/`, `/contact/`, `/privacy/`, `/terms/`,
   `/methodology/`, `/evidence-dashboard/`, and `/updates/`;
 - dated or named update pages generated from `src/updates/`; every new update includes a relevant, accessible hero image and alt text so it reads as a considered editorial page rather than an unadorned notice;
-- `/member/dashboard/`, `/member/account/`, `/member/submit-vehicle-data/`,
+- `/member/dashboard/`, `/member/account/`, `/member/submit-vehicle-data/`, `/member/stories/`,
   `/member/surveys/`, `/member/survey-response/`, and `/member/survey-results/`;
-- `/admin/`, `/admin/review-queue/`, `/admin/outreach/`, `/admin/email-campaigns/`, and
+- `/member-stories/`, `/admin/`, `/admin/review-queue/`, `/admin/members/`, `/admin/member-stories/`, `/admin/outreach/`, `/admin/email-campaigns/`, and
   `/admin/instagram-campaigns/`, `/admin/marketing-messages/`, `/admin/surveys/`, `/admin/survey-preview/`, `/admin/survey-results/`, and `/admin/survey-insights/`;
 - permanent redirects from `/account/**` and `/submit-vehicle-data/**` to their member
   equivalents;
@@ -290,6 +290,13 @@ vehicle creation and vehicle editing. Keep United Kingdom as the default.
 
 | `GET /api/member-data` | Member | Return only that UID's private member snapshot. |
 | `GET /api/member-export?format=csv\|xlsx` | Member | Return a private no-store ZIP of four CSV datasets or a formatted five-sheet Excel workbook built from only that UID's snapshot; omit internal IDs/hashes and neutralise spreadsheet formulas. |
+| `GET/POST /api/member/stories` | Member | Return story eligibility and owned evidence records, save drafts, and submit a consented story linked only to the member's vehicle records. |
+| `POST /api/member/story-upload` and `/api/member/story-upload-complete` | Member | Reserve bounded private media, issue a short-lived upload URL, then verify and promote the object. |
+| `POST /api/member/story-withdraw` | Member | Remove website and third-party permissions immediately and hold the story for withdrawal review. |
+| `GET/POST /api/admin/stories` | Admin claim | Review, edit, manually analyse, approve and publish stories with versioned permissions and revisions. |
+| `GET /api/admin/members` | Admin claim | Search by name, email, registration, expertise, preferences and story activity. |
+| `GET /api/stories` | Public | Return only published story fields, evidence summaries and expiring media URLs. |
+| `POST /api/story-event` | Public | Record consent-gated pseudonymous view, engagement, CTA and share events for a published story. |
 | `GET /api/admin/authorize` | Admin claim | Verify access to an admin page and return only `{ "authorized": true }` with `Cache-Control: private, no-store`; never use the review-data route as a generic gate. |
 | `GET /api/admin-data` | Admin claim | Return Join and vehicle review records. |
 | `GET /api/admin/stats` | Admin claim | Return the consent-filtered homepage counters alongside private all-record member, vehicle, SoH, and service-event statistics with `Cache-Control: private, no-store`; canonical emails are deduplicated at the first Join before the daily Join trend and country rows are calculated. Derive country from the Join, one unambiguous vehicle country, or a strict UK registration, otherwise use `Unknown` (including conflicting vehicle countries). Magic-link-verified accounts have a separate daily line chart, and no per-vehicle evidence is returned. |
@@ -368,7 +375,7 @@ after an admin claim check, with no-store responses.
 
 Use these exact collection names: `joinSubmissions`, `members`, `memberProfiles`, `memberVerification`, `vehicles`,
 `batteryReadings`, `serviceEvents`, `memberSnapshots`, `emailCampaigns`, `campaignMetadata`,
-`instagramCampaigns`, and `instagramGenerationJobs`. The email collection stores
+`instagramCampaigns`, `instagramGenerationJobs`, `memberStories`, and `storyImpactEvents`. The email collection stores
 campaign delivery subdocuments keyed by a non-reversible email fingerprint, with no recipient
 address returned to the browser. Delivery documents may store a Resend provider ID, normalised
 delivery status and provider update time; ignore provider recipient fields. `campaignMetadata`
@@ -454,6 +461,9 @@ campaign-media bucket, expire only objects under `work/`, and retain/version app
 UK-resident. Google runtime identity replaces API keys. Generation and Instagram publishing remain
 separate confirmed actions. Provider failures must be recorded and shown to administrators through
 safe classifications rather than arbitrary raw provider messages.
+Member-story media uses non-secret `MEMBER_STORY_MEDIA_BUCKET`. Its dedicated private bucket is
+versioned, prevents public access, limits CORS to configured site origins, and allows the runtime
+service account to sign expiring upload and read URLs through IAM without storing a private key.
 
 Never commit real values. Provide `.tfvars.example` files for staging and production and
 derive non-secret GitHub environment variables from OpenTofu outputs. Production uses

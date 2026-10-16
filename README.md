@@ -221,6 +221,10 @@ src/
       member-profile.js  # Member contact profile, address lookup and representation choice
       member-dashboard.js # Vehicle tabs, SoH graph and service/fault editing
       member-export.js    # Authenticated CSV/Excel account downloads
+      member-stories.js   # Member story, evidence-link and private-media submission
+      public-member-stories.js # Published story rendering and consented impact events
+      admin-member-stories.js # Admin editorial, AI analysis and publication workflow
+      admin-member-search.js # Server-backed member lookup
       multistep-form.js  # Multi-step form controller
       outreach-assistant.js # Facebook search-link and reply helper; no automation
       instagram-campaigns.js # Instagram draft/history, insight, preview and publish controls
@@ -357,6 +361,8 @@ workflows:
 - `SNAPSHOT_BUCKET_*`, `ALLOWED_ORIGINS_*`, `FIREBASE_EMAIL_CONTINUE_URL_*`
 - `CAMPAIGN_MEDIA_BUCKET_*`, `VEO_LOCATION_*`, and `VEO_MODEL_ID_*` for asynchronous
   campaign-video generation through Vertex AI
+- `MEMBER_STORY_MEDIA_BUCKET_*` for private member images and short videos with expiring upload,
+  review, and publication URLs
 - `FIREBASE_EMAIL_LINK_DOMAIN_*`, which makes Firebase Auth action links use the
   environment's verified Firebase Hosting custom domain
 
@@ -821,6 +827,13 @@ behind the single Go `Api` Cloud Function:
   A committed fictional workbook demonstrates the production export format without exposing
   member data. Regenerate it after workbook-layout changes with
   `cd functions/firebase-go && GENERATE_MEMBER_EXPORT_SAMPLE=1 go test ./... -run '^TestGeneratePublicSampleWorkbook$' -count=1`.
+- `member/stories` saves drafts and consented submissions linked to records owned by the member.
+  `member/story-upload` and `member/story-upload-complete` provide bounded direct uploads to
+  private storage; `member/story-withdraw` removes publication permissions immediately.
+- `admin/members` provides server-backed member search. `admin/stories` provides editorial review,
+  manual AI suggestions, approval, publication and impact totals.
+- `stories` returns only public story fields and expiring media URLs. `story-event` records
+  consent-gated pseudonymous views, engagement, CTA clicks and shares.
 - `admin-data` returns Join and vehicle review records only when the Firebase token carries
   an accepted admin claim. It is used only by the Review Queue; other admin pages use the
   minimal `admin/authorize` gate, which verifies the claim without returning review data. Both
@@ -956,6 +969,10 @@ Configure the environment's `ideal-postcodes-api-key` Secret Manager version as
 the deployment value to enable lookup; without it, manual entry works.
 - `member-dashboard.js` — vehicle tabs, SoH history and service/fault editing
 - `member-export.js` — authenticated CSV-bundle and Excel-report downloads
+- `member-stories.js` — member story drafts, linked evidence, consent and private media uploads
+- `public-member-stories.js` — safe Markdown story rendering and consented impact measurement
+- `admin-member-stories.js` — admin editing, manual AI analysis, approval and publication
+- `admin-member-search.js` — server-backed member search by identity, vehicle and preferences
 - `multistep-form.js` — generic multi-step form (data-attribute driven)
 - `outreach-assistant.js` — admin-only Facebook search-link and editable reply helper; no retrieval or posting automation
 - `instagram-campaigns.js` — admin-only asynchronous Veo generation, full-media review, and
@@ -1021,14 +1038,14 @@ extended in a controlled order:
   readiness, Instagram generation/publishing, and reconstruction requirements.
 - `20-instagram-campaign-publishing.md` defines the creative, generation, review, and
   controlled-publishing boundary.
-- `21-clean-room-reconstruction-contract.md` is the final
+- `22-clean-room-reconstruction-contract.md` is the final
   route/API/schema/configuration and acceptance contract for rebuilding the product from
   scratch. It must remain the highest-numbered prompt as more feature prompts are added.
 
 When adding or refining prompts, keep the numeric prefix and make the prompt independently
 usable. Keep cross-layer implementation details canonical in
 `prompts/09-architecture-overview.md` and exact reconstruction inventories canonical in
-`prompts/21-clean-room-reconstruction-contract.md`; feature prompts may repeat only the
+`prompts/22-clean-room-reconstruction-contract.md`; feature prompts may repeat only the
 details needed to apply them safely.
 
 Keep prompts in sync with implemented behaviour so the project can be recreated from
@@ -1043,7 +1060,7 @@ checks catch structural drift; they do not prove that an agent can reproduce the
 from prose alone.
 
 For a genuine reproducibility test, follow the isolated clean-room procedure in
-`prompts/21-clean-room-reconstruction-contract.md`: provide only AGENTS.md, all numbered
+`prompts/22-clean-room-reconstruction-contract.md`: provide only AGENTS.md, all numbered
 prompt files, approved public assets, and separately secured configuration in a new
 repository, then run the full acceptance checklist and record every manual intervention.
 

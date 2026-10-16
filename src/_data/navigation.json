@@ -10,10 +10,12 @@
     { "label": "Methodology", "url": "/methodology/", "launchVisible": false },
     { "label": "FAQ", "url": "/faq/" },
     { "label": "Updates", "url": "/updates/" },
+    { "label": "Stories", "url": "/member-stories/", "launchVisible": false },
     { "label": "Join", "url": "/join/", "highlight": true }
   ],
   "member": [
     { "label": "My Data", "url": "/member/account/" },
-    { "label": "Add Vehicle", "url": "/member/submit-vehicle-data/" }
+    { "label": "Add Vehicle", "url": "/member/submit-vehicle-data/" },
+    { "label": "Share your story", "url": "/member/stories/" }
   ]
 }
