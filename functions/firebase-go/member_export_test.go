@@ -68,6 +68,18 @@ func memberExportFixture() memberSnapshot {
 	}
 }
 
+func memberExperienceExportFixture() memberStory {
+	now := time.Date(2026, 10, 18, 9, 30, 0, 0, time.UTC)
+	return memberStory{
+		ID: "story-internal", IdentityUserID: "internal-uid-must-not-export", ContactName: "Private Name", ContactEmail: "private@example.test",
+		Title: "Three modules and still waiting", DisplayName: "Alex Owner", BodyMarkdown: "The **battery failed** without warning.", Status: "submitted",
+		Consent:    memberStoryConsent{Website: true, ThirdParty: true, Copyright: true, Truthful: true, Version: storyConsentVersion, RecordedAt: now},
+		Evidence:   memberStoryEvidence{VehicleLabel: "IPACE1", ModelYear: "2020", ServiceEventCount: 3, SOHReadingCount: 2, ExecutiveContacts: 1},
+		Media:      []memberStoryMedia{{ID: "media-internal", Object: "private/member/story/photo.jpg", Name: "battery-warning.jpg", ContentType: "image/jpeg", Size: 1024, Status: "ready"}},
+		AdminNotes: "private admin note", MemberMessage: "Please add the date of the repeat failure.", CreatedAt: now, UpdatedAt: now,
+	}
+}
+
 func TestMemberExportRequiresAuthentication(t *testing.T) {
 	original := memberExportRequireUser
 	memberExportRequireUser = func(context.Context, *http.Request) (*firebaseUser, error) {
@@ -107,7 +119,7 @@ func TestMemberExportValidatesMethodAndFormat(t *testing.T) {
 }
 
 func TestMemberCSVBundleHasSeparateSafeDatasets(t *testing.T) {
-	body, err := buildMemberCSVBundle(memberExportFixture())
+	body, err := buildMemberCSVBundle(memberExportFixture(), memberExperienceExportFixture())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -134,12 +146,12 @@ func TestMemberCSVBundleHasSeparateSafeDatasets(t *testing.T) {
 		}
 	}
 	sort.Strings(names)
-	want := []string{"membership.csv", "service-and-fault-history.csv", "soh-readings.csv", "vehicles.csv"}
+	want := []string{"member-experiences.csv", "membership.csv", "service-and-fault-history.csv", "soh-readings.csv", "vehicles.csv"}
 	if strings.Join(names, ",") != strings.Join(want, ",") {
 		t.Fatalf("files = %v, want %v", names, want)
 	}
 	exported := combined.String()
-	for _, forbidden := range []string{"internal-uid-must-not-export", "secret-email-hash", "secret-vin-hash"} {
+	for _, forbidden := range []string{"internal-uid-must-not-export", "secret-email-hash", "secret-vin-hash", "private admin note", "private/member/story/photo.jpg", "private@example.test"} {
 		if strings.Contains(exported, forbidden) {
 			t.Fatalf("export exposed internal value %q", forbidden)
 		}
@@ -150,10 +162,13 @@ func TestMemberCSVBundleHasSeparateSafeDatasets(t *testing.T) {
 	if !strings.Contains(exported, "Executive Office acknowledgement") || !strings.Contains(exported, "Further inspection offered") {
 		t.Fatal("Executive Office history was not included in the member export")
 	}
+	if !strings.Contains(exported, "Experience (Markdown)") || !strings.Contains(exported, "The **battery failed** without warning.") || !strings.Contains(exported, "battery-warning.jpg") {
+		t.Fatal("member experience was not included in the member export")
+	}
 }
 
 func TestMemberWorkbookContainsSheetsAndNativeCharts(t *testing.T) {
-	body, err := buildMemberWorkbook(memberExportFixture())
+	body, err := buildMemberWorkbook(memberExportFixture(), memberExperienceExportFixture())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -162,7 +177,7 @@ func TestMemberWorkbookContainsSheetsAndNativeCharts(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer book.Close()
-	wantSheets := []string{"Summary", "Membership", "Vehicles", "SoH History", "Service & Faults"}
+	wantSheets := []string{"Summary", "Membership", "Vehicles", "SoH History", "Service & Faults", "Experiences"}
 	if strings.Join(book.GetSheetList(), ",") != strings.Join(wantSheets, ",") {
 		t.Fatalf("sheets = %v, want %v", book.GetSheetList(), wantSheets)
 	}
@@ -173,6 +188,14 @@ func TestMemberWorkbookContainsSheetsAndNativeCharts(t *testing.T) {
 	name, _ := book.GetCellValue("Membership", "B2")
 	if name != "'=FORMULA()" {
 		t.Fatalf("unsafe membership cell = %q", name)
+	}
+	experience, _ := book.GetCellValue("Experiences", "D2")
+	if experience != "The **battery failed** without warning." {
+		t.Fatalf("experience body = %q", experience)
+	}
+	count, _ := book.GetCellValue("Summary", "B10")
+	if count != "1" {
+		t.Fatalf("experience summary = %q", count)
 	}
 	if cellType, _ := book.GetCellType("SoH History", "C2"); cellType != excelize.CellTypeNumber && cellType != excelize.CellTypeUnset {
 		t.Fatalf("SoH chart source type = %v, want number", cellType)
@@ -219,7 +242,7 @@ func TestPublicSampleWorkbookUsesFictionalDataAndProductionLayout(t *testing.T) 
 	}
 	defer book.Close()
 
-	wantSheets := []string{"Summary", "Membership", "Vehicles", "SoH History", "Service & Faults"}
+	wantSheets := []string{"Summary", "Membership", "Vehicles", "SoH History", "Service & Faults", "Experiences"}
 	if strings.Join(book.GetSheetList(), ",") != strings.Join(wantSheets, ",") {
 		t.Fatalf("sample sheets = %v, want %v", book.GetSheetList(), wantSheets)
 	}
@@ -251,15 +274,20 @@ func TestPublicSampleWorkbookUsesFictionalDataAndProductionLayout(t *testing.T) 
 func TestMemberExportResponseHeaders(t *testing.T) {
 	originalUser := memberExportRequireUser
 	originalSnapshot := memberExportLoadSnapshot
+	originalStories := memberExportLoadStories
 	memberExportRequireUser = func(context.Context, *http.Request) (*firebaseUser, error) {
 		return &firebaseUser{UID: "uid", Email: "owner@example.test"}, nil
 	}
 	memberExportLoadSnapshot = func(context.Context, string, string) (memberSnapshot, error) {
 		return memberExportFixture(), nil
 	}
+	memberExportLoadStories = func(context.Context, string) ([]memberStory, error) {
+		return []memberStory{memberExperienceExportFixture()}, nil
+	}
 	t.Cleanup(func() {
 		memberExportRequireUser = originalUser
 		memberExportLoadSnapshot = originalSnapshot
+		memberExportLoadStories = originalStories
 	})
 
 	response := httptest.NewRecorder()
@@ -281,7 +309,7 @@ func TestMemberExportResponseHeaders(t *testing.T) {
 func TestMemberWorkbookUsesWorksheetFiltersAndExplicitBanding(t *testing.T) {
 	snapshot := memberExportFixture()
 	snapshot.ServiceEvents = append(snapshot.ServiceEvents, snapshot.ServiceEvents[0])
-	body, err := buildMemberWorkbook(snapshot)
+	body, err := buildMemberWorkbook(snapshot, memberExperienceExportFixture())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -327,7 +355,7 @@ func TestMemberWorkbookUsesWorksheetFiltersAndExplicitBanding(t *testing.T) {
 			filters++
 		}
 	}
-	if filters != 4 {
-		t.Fatalf("filterable sheets=%d want 4", filters)
+	if filters != 5 {
+		t.Fatalf("filterable sheets=%d want 5", filters)
 	}
 }

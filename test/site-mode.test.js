@@ -92,7 +92,7 @@ test('launch navigation and complete routes are marked declaratively', function 
   assert.equal(site.defaultMode, 'launch');
   assert.deepEqual(
     navigation.public.filter(function (item) { return item.launchVisible === false; }).map(function (item) { return item.label; }),
-    ['Evidence', 'Methodology', 'Stories']
+    ['Evidence', 'Methodology', 'Experiences']
   );
   assert.match(base, /data-site-mode="\{\{ site\.defaultMode or 'launch' \}\}"/);
   assert.match(base, /:root:not\(\[data-site-mode="full"\]\)\s+\[data-site-mode-only="full"\]/);

@@ -4386,7 +4386,7 @@ details .details-body p:last-child {
 .story-guidance,
 .story-review-card,
 .member-story {
-  margin-bottom: var(--space-8);
+  margin-bottom: var(--space-6);
 }
 
 .story-form fieldset,
@@ -4395,6 +4395,250 @@ details .details-body p:last-child {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: var(--space-5);
+}
+
+.story-guidance {
+  align-items: center;
+  display: flex;
+  gap: var(--space-4);
+  justify-content: space-between;
+}
+
+.story-guidance h2,
+.story-guidance p {
+  margin-bottom: var(--space-1);
+}
+
+.story-form {
+  padding: clamp(var(--space-4), 3vw, var(--space-6));
+}
+
+.story-editor {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.story-editor:focus-within {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 20%, transparent);
+}
+
+.story-editor__toolbar {
+  align-items: center;
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  padding: var(--space-2);
+}
+
+.story-editor__toolbar button {
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--color-primary);
+  cursor: pointer;
+  min-height: 2.5rem;
+  min-width: 2.5rem;
+  padding: var(--space-2) var(--space-3);
+}
+
+.story-editor__toolbar button:hover,
+.story-editor__toolbar button:focus-visible {
+  background: var(--color-surface-muted);
+}
+
+.story-editor__surface {
+  line-height: 1.6;
+  min-height: 16rem;
+  outline: 0;
+  overflow-wrap: anywhere;
+  padding: var(--space-4);
+}
+
+.story-editor__surface:empty::before {
+  color: var(--color-text-muted);
+  content: attr(data-placeholder);
+  pointer-events: none;
+}
+
+.story-editor__surface p,
+.story-editor__surface ul,
+.story-editor__surface ol {
+  margin-bottom: var(--space-3);
+}
+
+.story-editor__footer {
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  display: flex;
+  font-size: var(--text-xs);
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+}
+
+.story-media-picker {
+  align-items: center;
+  background: var(--color-surface);
+  border: 1.5px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  display: flex;
+  gap: var(--space-4);
+  justify-content: space-between;
+  padding: var(--space-4);
+}
+
+.story-media-picker.is-dragging {
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
+}
+
+.story-media-picker p {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  margin: 0;
+  max-width: 30rem;
+}
+
+.story-media-picker__button {
+  background: var(--color-primary);
+  border-radius: var(--radius-md);
+  color: #fff;
+  cursor: pointer;
+  flex: 0 0 auto;
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  text-align: center;
+}
+
+.story-media-picker__button span {
+  display: block;
+  font-size: var(--text-xs);
+  font-weight: 400;
+  margin-top: var(--space-1);
+}
+
+.story-media-previews {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
+  margin-top: var(--space-3);
+}
+
+.story-media-previews figure {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  margin: 0;
+  overflow: hidden;
+}
+
+.story-media-previews img,
+.story-media-previews video {
+  aspect-ratio: 1;
+  display: block;
+  object-fit: cover;
+  width: 100%;
+}
+
+.story-media-previews figcaption {
+  display: grid;
+  font-size: var(--text-xs);
+  gap: var(--space-1);
+  padding: var(--space-2);
+}
+
+.story-media-previews figcaption span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.story-media-previews button {
+  background: transparent;
+  border: 0;
+  color: var(--color-danger);
+  cursor: pointer;
+  justify-self: start;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.story-existing-media {
+  font-size: var(--text-sm);
+  margin-top: var(--space-3);
+}
+
+.story-existing-media li {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: space-between;
+}
+
+.story-evidence-picker {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  margin-block: var(--space-5);
+  padding: var(--space-4);
+}
+
+.story-evidence-picker summary {
+  color: var(--color-primary);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.story-evidence-picker summary span {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 400;
+}
+
+.story-evidence-picker > p,
+.story-evidence-picker > .form-group,
+.story-evidence-picker [data-story-evidence] {
+  margin-top: var(--space-4);
+}
+
+.story-evidence-picker h3 {
+  font-size: var(--text-base);
+  margin-block: var(--space-3) var(--space-2);
+}
+
+.story-publication-settings {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.story-publication-settings fieldset {
+  padding: var(--space-4);
+}
+
+.story-form__actions {
+  margin-top: var(--space-5);
+}
+
+.story-submissions {
+  padding: var(--space-5);
+}
+
+.story-submission-list__summary {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: space-between;
+}
+
+.story-member-message {
+  background: var(--color-surface-muted);
+  border-radius: var(--radius-md);
+  margin: 0;
+  padding: var(--space-3);
 }
 
 .story-review-card {
@@ -4452,6 +4696,40 @@ details .details-body p:last-child {
 .story-submission-list > li:first-child {
   border-top: 0;
   padding-top: 0;
+}
+
+@media (min-width: 48em) {
+  .story-publication-settings {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  }
+}
+
+@media (max-width: 39.99em) {
+  .story-guidance {
+    align-items: flex-start;
+    margin-bottom: var(--space-3);
+  }
+
+  .story-guidance p {
+    display: none;
+  }
+
+  .story-form {
+    padding: var(--space-3);
+  }
+
+  .story-media-picker {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .story-editor__surface {
+    min-height: 13rem;
+  }
+
+  .story-form__actions .btn {
+    flex: 1 1 auto;
+  }
 }
 
 /* ------------------------------------------------------------

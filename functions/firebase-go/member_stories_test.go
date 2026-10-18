@@ -90,6 +90,13 @@ func TestStoryApprovalRequiresPublicationConsentAndReadyMedia(t *testing.T) {
 	}
 }
 
+func TestStoryTitleIsDerivedFromFirstMeaningfulLine(t *testing.T) {
+	got := storyTitleFromMarkdown("\n\n## What happened\n\nThe battery failed without warning.")
+	if got != "The battery failed without warning." {
+		t.Fatalf("derived title = %q", got)
+	}
+}
+
 func containsJSONKey(value, key string) bool {
 	return len(value) > 0 && stringContains(value, `"`+key+`"`)
 }

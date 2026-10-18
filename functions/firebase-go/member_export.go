@@ -3,6 +3,7 @@ package ipace
 import (
 	"archive/zip"
 	"bytes"
+	"context"
 	"encoding/csv"
 	"fmt"
 	"net/http"
@@ -16,6 +17,7 @@ import (
 
 var memberExportRequireUser = requireUser
 var memberExportLoadSnapshot = loadMemberSnapshot
+var memberExportLoadStories = loadMemberStoriesForExport
 
 func MemberExport(w http.ResponseWriter, r *http.Request) {
 	if cors(w, r) {
@@ -44,16 +46,22 @@ func MemberExport(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Could not prepare your export"})
 		return
 	}
+	stories, err := memberExportLoadStories(r.Context(), user.UID)
+	if err != nil {
+		logEvent("member-export", "error", "experience load failed", map[string]any{})
+		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Could not prepare your export"})
+		return
+	}
 
 	var body []byte
 	var contentType string
 	var extension string
 	if format == "csv" {
-		body, err = buildMemberCSVBundle(snapshot)
+		body, err = buildMemberCSVBundle(snapshot, stories...)
 		contentType = "application/zip"
 		extension = "zip"
 	} else {
-		body, err = buildMemberWorkbook(snapshot)
+		body, err = buildMemberWorkbook(snapshot, stories...)
 		contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 		extension = "xlsx"
 	}
@@ -72,16 +80,31 @@ func MemberExport(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(body)
 }
 
-func buildMemberCSVBundle(snapshot memberSnapshot) ([]byte, error) {
+func loadMemberStoriesForExport(ctx context.Context, uid string) ([]memberStory, error) {
+	db, err := firestoreClient(ctx)
+	if err != nil {
+		return nil, err
+	}
+	stories := []memberStory{}
+	query := db.Collection("memberStories").Where("identityUserId", "==", uid)
+	if err := readCollection(ctx, query, &stories); err != nil {
+		return nil, err
+	}
+	sort.Slice(stories, func(i, j int) bool { return stories[i].UpdatedAt.After(stories[j].UpdatedAt) })
+	return stories, nil
+}
+
+func buildMemberCSVBundle(snapshot memberSnapshot, stories ...memberStory) ([]byte, error) {
 	files := map[string][][]string{
 		"membership.csv":                membershipRows(snapshot),
 		"vehicles.csv":                  vehicleRows(snapshot),
 		"soh-readings.csv":              sohRows(snapshot),
 		"service-and-fault-history.csv": serviceRows(snapshot),
+		"member-experiences.csv":        memberExperienceRows(stories),
 	}
 	var buffer bytes.Buffer
 	archive := zip.NewWriter(&buffer)
-	order := []string{"membership.csv", "vehicles.csv", "soh-readings.csv", "service-and-fault-history.csv"}
+	order := []string{"membership.csv", "vehicles.csv", "soh-readings.csv", "service-and-fault-history.csv", "member-experiences.csv"}
 	for _, name := range order {
 		writer, err := archive.Create(name)
 		if err != nil {
@@ -102,6 +125,40 @@ func buildMemberCSVBundle(snapshot memberSnapshot) ([]byte, error) {
 		return nil, err
 	}
 	return buffer.Bytes(), nil
+}
+
+func memberExperienceRows(stories []memberStory) [][]string {
+	rows := [][]string{{"Status", "Editorial title", "Published name", "Experience (Markdown)", "Vehicle", "Model year", "Linked service and JLR records", "Linked SoH readings", "Executive Office contacts", "Website permission", "Third-party permission", "Copyright confirmed", "Truthful confirmed", "Consent version", "Consent recorded", "Member message", "Media count", "Media names", "Created", "Updated", "Published"}}
+	for _, story := range stories {
+		mediaNames := make([]string, 0, len(story.Media))
+		for _, media := range story.Media {
+			mediaNames = append(mediaNames, media.Name)
+		}
+		rows = append(rows, []string{
+			story.Status,
+			story.Title,
+			story.DisplayName,
+			story.BodyMarkdown,
+			story.Evidence.VehicleLabel,
+			story.Evidence.ModelYear,
+			strconv.Itoa(story.Evidence.ServiceEventCount),
+			strconv.Itoa(story.Evidence.SOHReadingCount),
+			strconv.Itoa(story.Evidence.ExecutiveContacts),
+			strconv.FormatBool(story.Consent.Website),
+			strconv.FormatBool(story.Consent.ThirdParty),
+			strconv.FormatBool(story.Consent.Copyright),
+			strconv.FormatBool(story.Consent.Truthful),
+			story.Consent.Version,
+			exportTime(story.Consent.RecordedAt),
+			story.MemberMessage,
+			strconv.Itoa(len(story.Media)),
+			strings.Join(mediaNames, "; "),
+			exportTime(story.CreatedAt),
+			exportTime(story.UpdatedAt),
+			exportTime(story.PublishedAt),
+		})
+	}
+	return rows
 }
 
 func safeSpreadsheetRow(row []string) []string {
@@ -274,13 +331,13 @@ func exportBool(value *bool) string {
 	return "No"
 }
 
-func buildMemberWorkbook(snapshot memberSnapshot) ([]byte, error) {
+func buildMemberWorkbook(snapshot memberSnapshot, stories ...memberStory) ([]byte, error) {
 	book := excelize.NewFile()
 	defer book.Close()
 	if err := book.SetSheetName("Sheet1", "Summary"); err != nil {
 		return nil, err
 	}
-	for _, name := range []string{"Membership", "Vehicles", "SoH History", "Service & Faults"} {
+	for _, name := range []string{"Membership", "Vehicles", "SoH History", "Service & Faults", "Experiences"} {
 		if _, err := book.NewSheet(name); err != nil {
 			return nil, err
 		}
@@ -290,7 +347,7 @@ func buildMemberWorkbook(snapshot memberSnapshot) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := writeSummarySheet(book, snapshot, styles); err != nil {
+	if err := writeSummarySheet(book, snapshot, stories, styles); err != nil {
 		return nil, err
 	}
 	sheets := []struct {
@@ -301,6 +358,7 @@ func buildMemberWorkbook(snapshot memberSnapshot) ([]byte, error) {
 		{"Vehicles", vehicleRows(snapshot)},
 		{"SoH History", sohRows(snapshot)},
 		{"Service & Faults", serviceRows(snapshot)},
+		{"Experiences", memberExperienceRows(stories)},
 	}
 	for _, sheet := range sheets {
 		if err := writeDataSheet(book, sheet.name, sheet.rows, styles); err != nil {
@@ -367,7 +425,7 @@ func memberWorkbookStyles(book *excelize.File) (memberWorkbookStyleSet, error) {
 	return memberWorkbookStyleSet{title: title, header: header, label: label, note: note, stripe: stripe}, nil
 }
 
-func writeSummarySheet(book *excelize.File, snapshot memberSnapshot, styles memberWorkbookStyleSet) error {
+func writeSummarySheet(book *excelize.File, snapshot memberSnapshot, stories []memberStory, styles memberWorkbookStyleSet) error {
 	sheet := "Summary"
 	generatedAt := snapshot.GeneratedAt
 	if generatedAt.IsZero() {
@@ -391,7 +449,9 @@ func writeSummarySheet(book *excelize.File, snapshot memberSnapshot, styles memb
 	_ = book.SetCellValue(sheet, "B8", len(snapshot.BatteryReadings))
 	_ = book.SetCellValue(sheet, "A9", "Service and fault events")
 	_ = book.SetCellValue(sheet, "B9", len(snapshot.ServiceEvents))
-	_ = book.SetCellStyle(sheet, "A3", "A9", styles.label)
+	_ = book.SetCellValue(sheet, "A10", "Member experiences")
+	_ = book.SetCellValue(sheet, "B10", len(stories))
+	_ = book.SetCellStyle(sheet, "A3", "A10", styles.label)
 	_ = book.SetColWidth(sheet, "A", "A", 27)
 	_ = book.SetColWidth(sheet, "B", "B", 34)
 	_ = book.SetColWidth(sheet, "D", "K", 15)

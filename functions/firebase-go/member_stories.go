@@ -259,8 +259,12 @@ func memberStoriesSave(w http.ResponseWriter, r *http.Request, user *firebaseUse
 	if input.DisplayName == "" {
 		input.DisplayName = profileName
 	}
-	if input.Title == "" || len([]rune(input.BodyMarkdown)) < 80 || len([]rune(input.BodyMarkdown)) > 20000 {
-		writeJSON(w, 400, map[string]any{"error": "Add a title and a story between 80 and 20,000 characters"})
+	if input.BodyMarkdown == "" || len([]rune(input.BodyMarkdown)) > 20000 {
+		writeJSON(w, 400, map[string]any{"error": "Add your experience using no more than 20,000 characters"})
+		return
+	}
+	if input.Submit && len([]rune(input.BodyMarkdown)) < 80 {
+		writeJSON(w, 400, map[string]any{"error": "Please add a little more detail before submitting your experience"})
 		return
 	}
 	evidence, valid := storyEvidence(snapshot, input.VehicleID, input.ServiceEventIDs, input.SOHReadingIDs)
@@ -299,6 +303,12 @@ func memberStoriesSave(w http.ResponseWriter, r *http.Request, user *firebaseUse
 		story.MemberMessage = previous.MemberMessage
 		story.Revisions = append(previous.Revisions, memberStoryRevision{Title: previous.Title, BodyMarkdown: previous.BodyMarkdown, DisplayName: previous.DisplayName, Editor: "member", CreatedAt: now})
 		story.ConsentHistory = append(previous.ConsentHistory, previous.Consent)
+		if story.Title == "" {
+			story.Title = previous.Title
+		}
+	}
+	if story.Title == "" {
+		story.Title = storyTitleFromMarkdown(story.BodyMarkdown)
 	}
 	if input.Submit {
 		for _, media := range story.Media {
@@ -321,6 +331,26 @@ func memberStoriesSave(w http.ResponseWriter, r *http.Request, user *firebaseUse
 		return
 	}
 	writeJSON(w, 200, map[string]any{"ok": true, "story": story})
+}
+
+func storyTitleFromMarkdown(body string) string {
+	plain := strings.NewReplacer("#", "", "*", "", "_", "", "`", "").Replace(strings.TrimSpace(body))
+	for _, line := range strings.Split(plain, "\n") {
+		line = cleanString(strings.TrimSpace(strings.TrimLeft(line, "-+0123456789. ")), 180)
+		if line == "" {
+			continue
+		}
+		switch strings.ToLower(strings.TrimSuffix(line, ":")) {
+		case "what happened", "the impact", "how it affected me", "the response", "what happened next", "what i want to happen":
+			continue
+		}
+		runes := []rune(line)
+		if len(runes) > 90 {
+			line = strings.TrimSpace(string(runes[:87])) + "…"
+		}
+		return line
+	}
+	return "Member experience"
 }
 
 func storyEvidence(snapshot memberSnapshot, vehicleID string, serviceIDs, sohIDs []string) (memberStoryEvidence, bool) {

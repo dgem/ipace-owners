@@ -143,8 +143,8 @@ header.
 | `POST /api/delete-soh` | `DeleteSOH` | Member | Soft-delete an owned SoH reading after typed confirmation. |
 | `POST /api/delete-service-event` | `DeleteServiceEvent` | Member | Soft-delete an owned service/fault record after typed confirmation. |
 | `GET /api/member-data` | `MemberData` | Member | Return the signed-in user's generated snapshot. |
-| `GET /api/member-export?format=csv\|xlsx` | `MemberExport` | Member | Download that snapshot as separate CSV datasets in a ZIP or a formatted Excel workbook. |
-| `GET/POST /api/member/stories` | `MemberStories` | Member | Check eligibility, list owned evidence and save or submit a member story. |
+| `GET /api/member-export?format=csv\|xlsx` | `MemberExport` | Member | Download account records and member experiences as five CSV datasets in a ZIP or a six-sheet Excel workbook. |
+| `GET/POST /api/member/stories` | `MemberStories` | Member | Check eligibility, list owned evidence and save or submit a member experience. |
 | `POST /api/member/story-upload` | `MemberStoryUpload` | Member | Reserve bounded private media and return an expiring signed upload URL. |
 | `POST /api/member/story-upload-complete` | `MemberStoryUploadComplete` | Member | Verify and promote a completed private media upload. |
 | `POST /api/member/story-withdraw` | `MemberStoryWithdraw` | Member | Remove publication permissions immediately and place the story into withdrawal review. |
@@ -215,7 +215,7 @@ sheet and chart format without exposing member data.
   insight JSON/PPTX versions; future evidence blobs will use authenticated storage.
 - Member pages read a generated member snapshot through `MemberData`; the Function verifies
   auth before returning it.
-- Member exports are generated in memory from the same authenticated snapshot, exclude
+- Member exports are generated in memory from the authenticated snapshot plus experiences owned by the same UID, exclude
   internal UID and hash fields, neutralise spreadsheet formula injection, and use private
   no-store attachment responses.
 - Public dashboard pages read anonymised aggregate data through `PublicStats`. Aggregates

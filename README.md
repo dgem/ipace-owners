@@ -221,7 +221,7 @@ src/
       member-profile.js  # Member contact profile, address lookup and representation choice
       member-dashboard.js # Vehicle tabs, SoH graph and service/fault editing
       member-export.js    # Authenticated CSV/Excel account downloads
-      member-stories.js   # Member story, evidence-link and private-media submission
+      member-stories.js   # Member experience editor, evidence links and private-media submission
       public-member-stories.js # Published story rendering and consented impact events
       admin-member-stories.js # Admin editorial, AI analysis and publication workflow
       admin-member-search.js # Server-backed member lookup
@@ -821,18 +821,18 @@ behind the single Go `Api` Cloud Function:
   soft-deletes its dependent SoH and service records.
 - `member-data` returns only the authenticated member's generated private snapshot after
   Firebase ID-token verification, with `Cache-Control: private, no-store`.
-- `member-export` returns that same member's data as either a ZIP of separate CSV datasets
-  or a formatted Excel workbook with summary charts. Exports omit internal identity and
+- `member-export` returns that member's account data and submitted experiences as either a
+  ZIP of five separate CSV datasets or a six-sheet Excel workbook with summary charts. Exports omit internal identity and
   hash fields, neutralise spreadsheet formulas, and are served with private no-store headers.
   A committed fictional workbook demonstrates the production export format without exposing
   member data. Regenerate it after workbook-layout changes with
   `cd functions/firebase-go && GENERATE_MEMBER_EXPORT_SAMPLE=1 go test ./... -run '^TestGeneratePublicSampleWorkbook$' -count=1`.
-- `member/stories` saves drafts and consented submissions linked to records owned by the member.
+- `member/stories` provides the Member experiences editor and saves drafts and consented submissions linked to records owned by the member.
   `member/story-upload` and `member/story-upload-complete` provide bounded direct uploads to
   private storage; `member/story-withdraw` removes publication permissions immediately.
 - `admin/members` provides server-backed member search. `admin/stories` provides editorial review,
   manual AI suggestions, approval, publication and impact totals.
-- `stories` returns only public story fields and expiring media URLs. `story-event` records
+- `stories` returns only public experience fields and expiring media URLs. `story-event` records
   consent-gated pseudonymous views, engagement, CTA clicks and shares.
 - `admin-data` returns Join and vehicle review records only when the Firebase token carries
   an accepted admin claim. It is used only by the Review Queue; other admin pages use the

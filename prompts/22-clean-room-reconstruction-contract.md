@@ -289,7 +289,7 @@ The shared country allowlist and every corresponding selector include Greece as 
 vehicle creation and vehicle editing. Keep United Kingdom as the default.
 
 | `GET /api/member-data` | Member | Return only that UID's private member snapshot. |
-| `GET /api/member-export?format=csv\|xlsx` | Member | Return a private no-store ZIP of four CSV datasets or a formatted five-sheet Excel workbook built from only that UID's snapshot; omit internal IDs/hashes and neutralise spreadsheet formulas. |
+| `GET /api/member-export?format=csv\|xlsx` | Member | Return a private no-store ZIP of five CSV datasets or a formatted six-sheet Excel workbook built from only that UID's account records and member experiences; omit internal IDs/hashes, private editorial data and storage object names, and neutralise spreadsheet formulas. |
 | `GET/POST /api/member/stories` | Member | Return story eligibility and owned evidence records, save drafts, and submit a consented story linked only to the member's vehicle records. |
 | `POST /api/member/story-upload` and `/api/member/story-upload-complete` | Member | Reserve bounded private media, issue a short-lived upload URL, then verify and promote the object. |
 | `POST /api/member/story-withdraw` | Member | Remove website and third-party permissions immediately and hold the story for withdrawal review. |
@@ -564,7 +564,7 @@ committed the approved export as `public/ipace-owners-instagram-launch-reel.mp4`
 
 Preserve `public/downloads/sample-ipace-owner-data.xlsx` as the public, fictional
 demonstration of the member Excel export. Produce it with the production workbook builder,
-include no real member data, retain all five export sheets and native charts, and keep it
+include no real member data, retain all six export sheets and native charts, and keep it
 linked from both the member account and its launch Updates post.
 
 The live privacy notice is not a placeholder. Keep it aligned with collected data, purposes

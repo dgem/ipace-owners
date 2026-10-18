@@ -399,7 +399,7 @@ async function checkAdminDashboard() {
   assert.equal(await page.locator('.admin-dashboard-grid .admin-tool-logo svg').count(), 8);
   assert.equal(await page.locator('.admin-dashboard-grid .btn--primary').count(), 8);
   assert.deepEqual(await page.locator('.admin-dashboard-grid .btn').allTextContents(), [
-    'Find members', 'Review Queue', 'Review stories', 'Facebook Assistant', 'Registration Reminders', 'Mass Mailings', 'Instagram Campaigns', 'Member Surveys'
+    'Find members', 'Review Queue', 'Review experiences', 'Facebook Assistant', 'Registration Reminders', 'Mass Mailings', 'Instagram Campaigns', 'Member Surveys'
   ]);
   assert.deepEqual(await page.locator('.admin-dashboard-grid a').evaluateAll((links) => links.map((link) => link.getAttribute('href'))), expectedAdminDestinations.slice(1));
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
@@ -413,7 +413,7 @@ async function checkMemberStories(viewport, screenshotName) {
     eligible: true,
     profileName: 'Alex Owner',
     limits: { images: 5, videos: 2, totalBytes: 262144000 },
-    vehicles: [{ id: 'vehicle-1', vehicle: { registration: 'AB12 CDE', modelYear: '2020' } }],
+    vehicles: [{ id: 'vehicle-1', vehicle: { registration: 'AB12 CDE', modelYear: '2020' } }, { id: 'vehicle-2', vehicle: { registration: 'XY34 ZZZ', modelYear: '2022' } }],
     serviceEvents: [{ id: 'event-1', vehicleId: 'vehicle-1', occurredAt: '2026-05-04', eventType: 'executive-office-contact', title: 'Executive Office escalation' }],
     sohReadings: [{ id: 'soh-1', vehicleId: 'vehicle-1', battery: { measuredAt: '2026-04-10', stateOfHealth: 78 } }],
     stories: [{ id: 'story-1', title: 'Three modules and still waiting', bodyMarkdown: 'My I-PACE needed three battery modules replaced. One replacement later failed again and I am still waiting for a lasting resolution.', displayName: 'Alex Owner', status: 'needs-member-clarification', memberMessage: 'Please add the date of the replacement-module failure.', consent: { website: true, thirdParty: true, copyright: true, truthful: true }, evidence: { vehicleId: 'vehicle-1', serviceEventIds: ['event-1'], sohReadingIds: ['soh-1'] }, media: [] }]
@@ -431,8 +431,11 @@ async function checkMemberStories(viewport, screenshotName) {
     document.querySelectorAll('[data-auth-pending], [data-auth-login-gate], .cookie-notice').forEach((element) => { element.hidden = true; });
   });
   await page.locator('[data-story-form]').waitFor({ state: 'visible' });
-  await page.locator('[name="vehicleId"]').selectOption('vehicle-1');
-  assert.equal(await page.getByRole('button', { name: 'Edit story' }).count(), 1);
+  await page.locator('[name="vehicleId"]').selectOption('vehicle-1', { force: true });
+  assert.equal(await page.locator('[name="title"]').count(), 0);
+  assert.equal(await page.locator('[data-story-editor]').count(), 1);
+  assert.equal(await page.getByRole('link', { name: 'My Data' }).count() > 0, true);
+  assert.equal(await page.getByRole('button', { name: 'Edit' }).count(), 1);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
   await page.close();
@@ -1276,6 +1279,11 @@ async function checkSurveyInsights(viewport, suffix) {
 }
 
 try {
+  if (process.env.VISUAL_FOCUS === 'member-experiences') {
+    await checkMemberStories({ width: 1440, height: 1000 }, 'member-stories-desktop.png');
+    await checkMemberStories({ width: 402, height: 874 }, 'member-stories-mobile.png');
+    console.log(`Focused member-experience visual checks passed; screenshots written to ${outputDir}`);
+  } else {
   await checkSurveyInsights({ width: 1440, height: 1000 }, 'desktop');
   await checkSurveyInsights({ width: 390, height: 844 }, 'mobile');
   await checkSurveyReminder();
@@ -1297,7 +1305,7 @@ try {
   await checkMobileAdminDrawer();
   await checkAdminDashboard();
   await checkMemberStories({ width: 1440, height: 1000 }, 'member-stories-desktop.png');
-  await checkMemberStories({ width: 390, height: 844 }, 'member-stories-mobile.png');
+  await checkMemberStories({ width: 402, height: 874 }, 'member-stories-mobile.png');
   await checkAdminMemberStories({ width: 1440, height: 1000 }, 'admin-member-stories-desktop.png');
   await checkAdminMemberStories({ width: 390, height: 844 }, 'admin-member-stories-mobile.png');
   await checkAdminMemberSearch({ width: 1440, height: 1000 }, 'admin-members-desktop.png');
@@ -1338,6 +1346,7 @@ try {
   await checkPublicEvidenceCounters('/evidence-dashboard/?site-mode=full', { width: 1440, height: 1000 }, 'evidence-dashboard-desktop.png');
   await checkPublicEvidenceCounters('/evidence-dashboard/?site-mode=full', { width: 390, height: 844 }, 'evidence-dashboard-mobile.png');
   console.log(`Visual checks passed; screenshots written to ${outputDir}`);
+  }
 } finally {
   await browser.close();
 }
