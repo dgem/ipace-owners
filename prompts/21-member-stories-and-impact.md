@@ -24,6 +24,7 @@ Build a member-experience workflow that turns personal experience into consented
 - Public APIs return only published, website-consented fields and short-lived media URLs. Never expose member UID, email, private name, review notes or private model analysis.
 - Public pages show the member's story with an anonymised summary of the linked evidence and links inviting readers to register or add their own vehicle records.
 - Call the member-facing area “Member experiences”, keep explanatory copy compact on mobile, and link directly back to My Data.
+- Show a concise “What you can do next” callout on both My Data pages explaining why experiences matter, with a direct “Share your experience” action. Repeat that action beside Vehicle history so members can move from recording events to describing their impact.
 - Include the member's experience text, consent, evidence counts and safe media metadata in both CSV and workbook account exports. Exclude contact details, storage object names, admin notes and AI analysis.
 
 ## Impact measurement

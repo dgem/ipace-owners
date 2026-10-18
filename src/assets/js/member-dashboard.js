@@ -394,7 +394,7 @@
       '<header class="vehicle-workspace-header"><div><p class="page-header__eyebrow">Selected vehicle</p><h2>' + escapeHtml(vehicleName(record)) + '</h2><p class="vehicle-workspace-meta">' + escapeHtml(meta.join(' · ')) + '</p></div></header>' +
       '<section class="vehicle-data-section" aria-labelledby="soh-history-title"><div class="vehicle-section-header"><div><h2 id="soh-history-title">State of Health history</h2><p>Track battery health readings over time.</p></div><button class="btn btn--primary" type="button" data-open-panel="soh">Add reading</button></div>' +
       sohFormMarkup(record.id) + chartMarkup(readings) + readingsMarkup(readings) + '</section>' +
-      '<section class="vehicle-data-section" aria-labelledby="service-events-title"><div class="vehicle-section-header"><div><h2 id="service-events-title">Vehicle history</h2><p>Keep a dated record of servicing, recalls, faults, repairs and JLR contacts.</p></div><button class="btn btn--primary" type="button" data-open-panel="event">Add record</button></div>' +
+      '<section class="vehicle-data-section" aria-labelledby="service-events-title"><div class="vehicle-section-header"><div><h2 id="service-events-title">Vehicle history</h2><p>Keep a dated record of servicing, recalls, faults, repairs and JLR contacts.</p></div><div class="cluster cluster--sm"><a class="btn btn--secondary" href="/member/stories/">Share your experience</a><button class="btn btn--primary" type="button" data-open-panel="event">Add record</button></div></div>' +
       serviceEventFormMarkup(record.id) + serviceEventsMarkup(events) + '</section></div>';
   }
 

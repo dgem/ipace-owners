@@ -665,6 +665,7 @@ async function checkMemberAccountManagement(viewport, screenshotName) {
   });
   await page.goto(baseURL + '/member/account/', { waitUntil: 'networkidle' });
   await page.locator('[data-vehicle-list] .account-vehicle-card').waitFor({ state: 'visible' });
+  assert.equal(await page.locator('.member-experience-callout').getByRole('link', { name: 'Share your experience' }).count(), 1);
   assert.equal(await page.locator('[data-preferences-form]').isHidden(), true, 'preferences should be an explicit action');
   await page.getByRole('button', { name: 'Edit preferences' }).click();
   assert.equal(await page.locator('[data-preferences-form]').isVisible(), true);
@@ -706,7 +707,9 @@ async function checkServiceRecordForm(viewport, screenshotName) {
     }));
   });
   await page.waitForFunction(() => document.querySelector('[data-vehicle-workspace]').dataset.serviceProvidersReady === 'true');
+  assert.equal(await page.locator('.member-experience-callout').getByRole('link', { name: 'Share your experience' }).count(), 1);
   const history = page.getByRole('region', { name: 'Vehicle history' });
+  assert.equal(await history.getByRole('link', { name: 'Share your experience' }).count(), 1);
   await history.getByRole('button', { name: 'Add record' }).click();
   const recordType = page.getByLabel('Record type');
   await recordType.selectOption('service', { force: true });
@@ -1282,6 +1285,8 @@ try {
   if (process.env.VISUAL_FOCUS === 'member-experiences') {
     await checkMemberStories({ width: 1440, height: 1000 }, 'member-stories-desktop.png');
     await checkMemberStories({ width: 402, height: 874 }, 'member-stories-mobile.png');
+    await checkMemberAccountManagement({ width: 402, height: 874 }, 'member-account-experience-callout-mobile.png');
+    await checkServiceRecordForm({ width: 402, height: 874 }, 'member-vehicle-experience-actions-mobile.png');
     console.log(`Focused member-experience visual checks passed; screenshots written to ${outputDir}`);
   } else {
   await checkSurveyInsights({ width: 1440, height: 1000 }, 'desktop');

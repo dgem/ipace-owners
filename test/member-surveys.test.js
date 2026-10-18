@@ -101,6 +101,7 @@ test("member dashboard prominently links members to current and closed surveys",
   assert.match(script, /href="\/member\/surveys\/"/);
   assert.match(account, /data-member-survey-summary/);
   assert.match(account, /surveys: true/);
+  assert.match(account, /member-experience-callout\.njk/);
 });
 
 test("member survey choices are structured as prominent selectable cards", function () {
