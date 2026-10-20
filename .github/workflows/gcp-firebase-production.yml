@@ -99,6 +99,7 @@ jobs:
           SNAPSHOT_BUCKET: ${{ vars.SNAPSHOT_BUCKET_PRODUCTION }}
           CAMPAIGN_MEDIA_BUCKET: ${{ vars.CAMPAIGN_MEDIA_BUCKET_PRODUCTION }}
           MEMBER_STORY_MEDIA_BUCKET: ${{ vars.MEMBER_STORY_MEDIA_BUCKET_PRODUCTION }}
+          MEMBER_FEATURE_ACCESS: ${{ vars.MEMBER_FEATURE_ACCESS_PRODUCTION || '{"member-experiences":"admin,member-experiences-preview"}' }}
           VEO_LOCATION: ${{ vars.VEO_LOCATION_PRODUCTION }}
           VEO_MODEL_ID: ${{ vars.VEO_MODEL_ID_PRODUCTION }}
           SEED_NEXT_STEPS_SURVEY: "true"

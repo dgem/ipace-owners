@@ -218,6 +218,8 @@ src/
       main.js            # Mobile menu, nav helpers
       identity.js        # Firebase Auth email-link integration
       member-auth.js     # Server-verified member/admin data loading
+      member-features.js # Server-resolved member feature visibility
+      member-notifications.js # Persistent dismissible member notices
       member-profile.js  # Member contact profile, address lookup and representation choice
       member-dashboard.js # Vehicle tabs, SoH graph and service/fault editing
       member-export.js    # Authenticated CSV/Excel account downloads
@@ -921,6 +923,13 @@ Remove unwanted administrators from the map and apply before disabling managemen
 
 ## Known limitations
 
+Member-facing releases can be staged with the non-secret `MEMBER_FEATURE_ACCESS` JSON object.
+Rules accept `all`, `off`, `admin`, or comma-separated Firebase custom roles. Staging enables
+`member-experiences` for all members; production initially limits it to admins and the
+`member-experiences-preview` role. Functions enforce the same rule as the browser through
+`GET /api/member/features`. Versioned member callout dismissals are read and saved through
+`GET/POST /api/member/notifications` so they follow the signed-in member across devices.
+
 The following features are **not yet implemented** in this version:
 
 - **Full vehicle/evidence submission persistence** — Join submissions, vehicle basics, SoH
@@ -956,6 +965,8 @@ Plain vanilla JavaScript, no bundler. The current modules are:
 - `main.js` — mobile menu toggle, current-page nav highlighting
 - `identity.js` — Firebase Auth email-link and UI state
 - `member-auth.js` — authenticated member/admin data loading and account rendering
+- `member-features.js` — server-resolved release and role access for member-facing features
+- `member-notifications.js` — account-level dismissal of versioned member notices
 - `member-profile.js` — editable member contact profile, optional UK address lookup and representation choice
 
 Member contact details use `GET/POST /api/member-profile`. Signed-in members can use

@@ -20,6 +20,10 @@
   "member": [
     { "label": "My Data", "url": "/member/account/" },
     { "label": "Add Vehicle", "url": "/member/submit-vehicle-data/" },
-    { "label": "Member experiences", "url": "/member/stories/" }
+    {
+      "label": "Member experiences",
+      "url": "/member/stories/",
+      "feature": "member-experiences"
+    }
   ]
 }

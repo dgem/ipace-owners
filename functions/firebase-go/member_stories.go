@@ -161,6 +161,9 @@ func MemberStories(w http.ResponseWriter, r *http.Request) {
 		writeMemberAuthorizationError(w, err)
 		return
 	}
+	if !requireMemberFeature(w, user, "member-experiences") {
+		return
+	}
 	if r.Method == http.MethodGet {
 		memberStoriesGet(w, r, user)
 		return
@@ -430,6 +433,9 @@ func MemberStoryUpload(w http.ResponseWriter, r *http.Request) {
 		writeMemberAuthorizationError(w, err)
 		return
 	}
+	if !requireMemberFeature(w, user, "member-experiences") {
+		return
+	}
 	r.Body = http.MaxBytesReader(w, r.Body, 16*1024)
 	var input storyUploadRequest
 	if decodeJSON(r, &input) != nil {
@@ -517,6 +523,9 @@ func MemberStoryUploadComplete(w http.ResponseWriter, r *http.Request) {
 		writeMemberAuthorizationError(w, err)
 		return
 	}
+	if !requireMemberFeature(w, user, "member-experiences") {
+		return
+	}
 	var input struct {
 		StoryID string `json:"storyId"`
 		MediaID string `json:"mediaId"`
@@ -593,6 +602,9 @@ func MemberStoryWithdraw(w http.ResponseWriter, r *http.Request) {
 	user, err := requireUser(r.Context(), r)
 	if err != nil {
 		writeMemberAuthorizationError(w, err)
+		return
+	}
+	if !requireMemberFeature(w, user, "member-experiences") {
 		return
 	}
 	var input struct {

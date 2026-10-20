@@ -31,7 +31,12 @@
   }
 
   function load() {
-    return api('/api/member/stories').then(function (data) {
+    var enabled = window.ipaceMemberFeatureEnabled ? window.ipaceMemberFeatureEnabled('member-experiences') : Promise.resolve(true);
+    return enabled.then(function (allowed) {
+      if (!allowed) return null;
+      return api('/api/member/stories');
+    }).then(function (data) {
+      if (!data) return;
       state = data;
       render();
     }).catch(function (error) {

@@ -5,6 +5,7 @@ locals {
     "ALLOWED_ORIGINS_${local.github_actions_suffix}"             = var.allowed_origins
     "CAMPAIGN_MEDIA_BUCKET_${local.github_actions_suffix}"       = google_storage_bucket.campaign_media.name
     "MEMBER_STORY_MEDIA_BUCKET_${local.github_actions_suffix}"   = google_storage_bucket.member_story_media.name
+    "MEMBER_FEATURE_ACCESS_${local.github_actions_suffix}"       = jsonencode(var.member_feature_access)
     "FIREBASE_APP_ID_${local.github_actions_suffix}"             = google_firebase_web_app.default.app_id
     "FIREBASE_AUTH_DOMAIN_${local.github_actions_suffix}"        = data.google_firebase_web_app_config.default.auth_domain
     "FIREBASE_EMAIL_CONTINUE_URL_${local.github_actions_suffix}" = var.site_url

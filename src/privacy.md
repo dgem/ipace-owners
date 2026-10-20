@@ -42,6 +42,8 @@ Depending on what you choose to provide, we may collect:
 - Authentication, security, and technical information needed to operate the service,
   including Firebase account identifiers and standard hosting logs such as IP address,
   browser information, request time, and error details.
+- Notices you dismiss in the member area, so the same survey or action prompt stays hidden
+  on your other signed-in devices. A new version of a notice may appear again.
 
 Full VINs are not stored. If you provide a VIN, the server converts it to a keyed hash for
 deduplication and retains only the final six characters for your reference. We do not

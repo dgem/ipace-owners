@@ -1704,12 +1704,31 @@ textarea {
 }
 
 .survey-dashboard-callout {
+  position: relative;
   margin-bottom: var(--space-6);
   padding: var(--space-6);
   border: 2px solid var(--color-accent);
   border-radius: var(--radius-xl);
   background: color-mix(in srgb, var(--color-accent) 8%, var(--color-surface));
   box-shadow: var(--shadow-sm);
+}
+
+.member-notification__dismiss {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  border: 0;
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--text-sm);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.member-notification__dismiss:hover,
+.member-notification__dismiss:focus-visible {
+  color: var(--color-primary);
 }
 
 .survey-dashboard-callout__title {

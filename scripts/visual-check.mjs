@@ -78,6 +78,17 @@ async function revealAdminState(page) {
   });
 }
 
+async function mockMemberPresentation(page) {
+  await page.route('**/api/member/features', (route) => route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({ features: { 'member-experiences': true } })
+  }));
+  await page.route('**/api/member/notifications', (route) => route.fulfill({
+    contentType: 'application/json',
+    body: route.request().method() === 'GET' ? JSON.stringify({ dismissed: [] }) : JSON.stringify({ dismissed: 'ok' })
+  }));
+}
+
 async function assertAdminBreadcrumb(page, currentLabel) {
   const breadcrumb = page.locator('.site-context-nav');
   assert.equal(await breadcrumb.isVisible(), true);
@@ -409,6 +420,7 @@ async function checkAdminDashboard() {
 
 async function checkMemberStories(viewport, screenshotName) {
   const page = await browser.newPage({ viewport });
+  await mockMemberPresentation(page);
   await page.route('**/api/member/stories', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({
     eligible: true,
     profileName: 'Alex Owner',
@@ -432,6 +444,13 @@ async function checkMemberStories(viewport, screenshotName) {
   });
   await page.locator('[data-story-form]').waitFor({ state: 'visible' });
   await page.locator('[name="vehicleId"]').selectOption('vehicle-1', { force: true });
+  await page.locator('#story-media').setInputFiles({
+    name: 'owner-photo.png',
+    mimeType: 'image/png',
+    buffer: fs.readFileSync('public/images/racing-laurel-email.png')
+  });
+  await page.locator('[data-story-media-previews] img').waitFor({ state: 'visible' });
+  assert.equal(await page.locator('[data-story-media-previews] img').evaluate((image) => image.src.startsWith('blob:') && image.naturalWidth > 1), true);
   assert.equal(await page.locator('[name="title"]').count(), 0);
   assert.equal(await page.locator('[data-story-editor]').count(), 1);
   assert.equal(await page.getByRole('link', { name: 'My Data' }).count() > 0, true);
@@ -621,6 +640,7 @@ async function checkMemberExport(viewport, screenshotName) {
 
 async function checkMemberAccountManagement(viewport, screenshotName) {
   const page = await browser.newPage({ viewport });
+  await mockMemberPresentation(page);
   // The account script waits for Firebase's settled identity state before asking
   // the protected endpoint for member data. Supply that state here so this test
   // exercises the authenticated account, rather than the intentionally shown
@@ -666,6 +686,7 @@ async function checkMemberAccountManagement(viewport, screenshotName) {
   await page.goto(baseURL + '/member/account/', { waitUntil: 'networkidle' });
   await page.locator('[data-vehicle-list] .account-vehicle-card').waitFor({ state: 'visible' });
   assert.equal(await page.locator('.member-experience-callout').getByRole('link', { name: 'Share your experience' }).count(), 1);
+  assert.equal(await page.locator('.member-experience-callout').getByRole('button', { name: 'Dismiss this notice' }).count(), 1);
   assert.equal(await page.locator('[data-preferences-form]').isHidden(), true, 'preferences should be an explicit action');
   await page.getByRole('button', { name: 'Edit preferences' }).click();
   assert.equal(await page.locator('[data-preferences-form]').isVisible(), true);
@@ -682,8 +703,10 @@ async function checkMemberAccountManagement(viewport, screenshotName) {
 
 async function checkServiceRecordForm(viewport, screenshotName) {
   const page = await browser.newPage({ viewport });
+  await mockMemberPresentation(page);
   await page.goto(baseURL + '/member/dashboard/', { waitUntil: 'networkidle' });
   await page.evaluate(() => {
+    window.ipaceGetIdentityToken = async () => 'visual-member-token';
     document.querySelectorAll('[data-auth-content]').forEach((element) => { element.hidden = false; });
     document.querySelectorAll('[data-auth-pending], [data-auth-login-gate]').forEach((element) => { element.hidden = true; });
     document.querySelectorAll('[data-requires-auth]').forEach((element) => { element.style.display = ''; });

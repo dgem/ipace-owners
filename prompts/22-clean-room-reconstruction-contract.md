@@ -290,6 +290,8 @@ vehicle creation and vehicle editing. Keep United Kingdom as the default.
 
 | `GET /api/member-data` | Member | Return only that UID's private member snapshot. |
 | `GET /api/member-export?format=csv\|xlsx` | Member | Return a private no-store ZIP of five CSV datasets or a formatted six-sheet Excel workbook built from only that UID's account records and member experiences; omit internal IDs/hashes, private editorial data and storage object names, and neutralise spreadsheet formulas. |
+| `GET /api/member/features` | Member | Return booleans for recognised member-facing features after applying `all`, `off`, admin, or named Firebase-role access rules. The same decision must protect the feature's member APIs. |
+| `GET/POST /api/member/notifications` | Member | Return versioned notification IDs dismissed by that UID or store one validated dismissal. Survey IDs are survey-specific so new surveys remain visible. |
 | `GET/POST /api/member/stories` | Member | Return story eligibility and owned evidence records, save drafts, and submit a consented story linked only to the member's vehicle records. |
 | `POST /api/member/story-upload` and `/api/member/story-upload-complete` | Member | Reserve bounded private media, issue a short-lived upload URL, then verify and promote the object. |
 | `POST /api/member/story-withdraw` | Member | Remove website and third-party permissions immediately and hold the story for withdrawal review. |
@@ -375,7 +377,7 @@ after an admin claim check, with no-store responses.
 
 Use these exact collection names: `joinSubmissions`, `members`, `memberProfiles`, `memberVerification`, `vehicles`,
 `batteryReadings`, `serviceEvents`, `memberSnapshots`, `emailCampaigns`, `campaignMetadata`,
-`instagramCampaigns`, `instagramGenerationJobs`, `memberStories`, and `storyImpactEvents`. The email collection stores
+`instagramCampaigns`, `instagramGenerationJobs`, `memberStories`, `memberNotificationDismissals`, and `storyImpactEvents`. The notification collection stores one parent per UID and validated versioned IDs in its `items` subcollection; it contains no message copy or response data. The email collection stores
 campaign delivery subdocuments keyed by a non-reversible email fingerprint, with no recipient
 address returned to the browser. Delivery documents may store a Resend provider ID, normalised
 delivery status and provider update time; ignore provider recipient fields. `campaignMetadata`
@@ -438,6 +440,10 @@ rate-limited before the paid provider is called.
 The optional `SEED_NEXT_STEPS_SURVEY` flag creates the October survey automatically on the first
 authenticated survey access. `NEXT_STEPS_SURVEY_STATUS` is `published` in staging and `draft` in
 production, preserving an explicit production publication decision.
+`MEMBER_FEATURE_ACCESS` is a JSON object mapping recognised member features to `all`, `off`,
+or comma-separated Firebase roles. Staging sets `member-experiences` to `all`; production starts
+with `admin,member-experiences-preview`. Frontend visibility and member API authorization use
+the same server-resolved decision.
 Optional Instagram publishing additionally uses secret `INSTAGRAM_ACCESS_TOKEN` and non-secret
 `INSTAGRAM_USER_ID`, `INSTAGRAM_GRAPH_API_VERSION`, and `INSTAGRAM_MEDIA_BASE_URL`. Absence or
 invalidity must disable publishing while leaving local preview available.

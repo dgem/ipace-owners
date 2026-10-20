@@ -35,6 +35,16 @@ test('Makefile exposes reproducible Node and Go vulnerability audits', function 
   assert.match(makefile, /govulncheck@\$\(GOVULNCHECK_VERSION\)/);
 });
 
+test('content security policy permits only local browser media previews via blob URLs', function () {
+  var firebase = JSON.parse(read('firebase.json'));
+  var globalHeaders = firebase.hosting.headers.find(function (entry) { return entry.source === '**'; }).headers;
+  var policy = globalHeaders.find(function (header) { return header.key === 'Content-Security-Policy'; }).value;
+
+  assert.match(policy, /img-src 'self' blob: data: https:/);
+  assert.match(policy, /media-src 'self' blob: https:/);
+  assert.doesNotMatch(policy, /default-src[^;]*blob:/);
+});
+
 test('preview deployment runs a blocking passive OWASP ZAP scan', function () {
   var workflow = read('.github/workflows/gcp-firebase-staging.yml');
   var smokeIndex = workflow.indexOf('name: Smoke test preview');

@@ -144,6 +144,8 @@ header.
 | `POST /api/delete-service-event` | `DeleteServiceEvent` | Member | Soft-delete an owned service/fault record after typed confirmation. |
 | `GET /api/member-data` | `MemberData` | Member | Return the signed-in user's generated snapshot. |
 | `GET /api/member-export?format=csv\|xlsx` | `MemberExport` | Member | Download account records and member experiences as five CSV datasets in a ZIP or a six-sheet Excel workbook. |
+| `GET /api/member/features` | `MemberFeatures` | Member | Resolve server-enforced member feature access from release and Firebase-role rules. |
+| `GET/POST /api/member/notifications` | `MemberNotifications` | Member | List versioned notices dismissed by this member or persist one dismissal. |
 | `GET/POST /api/member/stories` | `MemberStories` | Member | Check eligibility, list owned evidence and save or submit a member experience. |
 | `POST /api/member/story-upload` | `MemberStoryUpload` | Member | Reserve bounded private media and return an expiring signed upload URL. |
 | `POST /api/member/story-upload-complete` | `MemberStoryUploadComplete` | Member | Verify and promote a completed private media upload. |

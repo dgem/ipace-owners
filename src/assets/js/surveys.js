@@ -1155,21 +1155,39 @@
         historyAction = closed.length
           ? '<a class="btn btn--secondary" href="/member/surveys/?filter=closed">Past surveys</a>'
           : "";
+      function setNotification(id) {
+        if (id) {
+          root.dataset.memberNotification = "";
+          root.dataset.notificationId = id;
+          root.hidden = true;
+        } else {
+          delete root.dataset.memberNotification;
+          delete root.dataset.notificationId;
+          delete root.dataset.notificationDismissed;
+          root.hidden = false;
+          var oldButton = root.querySelector("[data-dismiss-member-notification]");
+          if (oldButton) oldButton.remove();
+        }
+      }
       if (!active.length) {
         if (upcoming.length) {
+          setNotification("survey:upcoming:" + upcoming[0].survey.id);
           root.innerHTML =
             '<p class="dashboard-panel__eyebrow">Your voice matters</p><h2 class="survey-dashboard-callout__title">' +
             calloutHeading(upcoming[0].survey) +
             '</h2><p>This member survey opens soon. Tell us what you want the group to do next.</p><div class="cluster"><a class="btn btn--primary" href="/member/surveys/">View survey</a>' +
             historyAction +
             "</div>";
+          if (window.ipaceRefreshMemberNotifications) window.ipaceRefreshMemberNotifications();
           return;
         }
+        setNotification("");
         root.innerHTML =
           '<h2 class="survey-dashboard-callout__title">Member surveys</h2><p>There are no open surveys right now.</p>' +
           historyAction;
         return;
       }
+      setNotification("survey:open:" + active.map(function (result) { return result.survey.id; }).sort().join("."));
       var names = active
         .map(function (result) {
           return "<li>" + esc(result.survey.title) + "</li>";
@@ -1195,6 +1213,7 @@
         "</a>" +
         historyAction +
         "</div>";
+      if (window.ipaceRefreshMemberNotifications) window.ipaceRefreshMemberNotifications();
     }
     function load() {
       request("/api/member/surveys", "GET")

@@ -25,6 +25,7 @@ Build a member-experience workflow that turns personal experience into consented
 - Public pages show the member's story with an anonymised summary of the linked evidence and links inviting readers to register or add their own vehicle records.
 - Call the member-facing area “Member experiences”, keep explanatory copy compact on mobile, and link directly back to My Data.
 - Show a concise “What you can do next” callout on both My Data pages explaining why experiences matter, with a direct “Share your experience” action. Repeat that action beside Vehicle history so members can move from recording events to describing their impact.
+- Make member callouts reusable, versioned and dismissible. Store dismissals against the authenticated account so they follow the member across devices; use a survey-specific ID so a later survey can appear even when an earlier one was dismissed.
 - Include the member's experience text, consent, evidence counts and safe media metadata in both CSV and workbook account exports. Exclude contact details, storage object names, admin notes and AI analysis.
 
 ## Impact measurement
@@ -37,6 +38,8 @@ Build a member-experience workflow that turns personal experience into consented
 ## Security and infrastructure
 
 - Verify Firebase ID tokens server-side for member APIs and admin claims for editorial APIs.
+- Resolve member-facing feature access through an authenticated API and enforce the same rule on the protected feature APIs. Support `all`, `off`, `admin`, and future Firebase role names. Staging exposes member experiences to all members; production initially exposes authoring only to admins and the `member-experiences-preview` role.
+- Permit `blob:` only for CSP image and media sources so selected local files can be previewed before upload; do not allow blob scripts or a general blob default source.
 - Use a dedicated private, versioned member-story media bucket with public access prevention and CORS limited to configured site origins.
 - Give the runtime service account object access and self `signBlob` permission for signed URLs; do not store a signing key.
 - Clean abandoned pending uploads automatically. Keep published/original objects private and deliver them through expiring URLs.

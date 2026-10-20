@@ -15,6 +15,7 @@ date: Last Modified
 <div class="section"><div class="container container--narrow"><div data-auth-container>
   {{ authLoginGate("stories-magic-email", "Members only", "Sign in to write and manage your story.") }}
   <div class="auth-content" data-auth-content hidden>
-    <div data-member-stories><p>Loading your records…</p></div>
+    <div data-member-feature="member-experiences" hidden><div data-member-stories><p>Loading your records…</p></div></div>
+    <div class="callout callout--info" data-member-feature-denied="member-experiences" hidden><div class="callout__content"><p class="callout__title">Member experiences are not available yet</p><p>We are testing this feature with a small group before making it generally available.</p><p><a href="/member/account/">Return to My Data</a></p></div></div>
   </div>
 </div></div></div>

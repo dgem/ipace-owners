@@ -60,6 +60,8 @@ func init() {
 	functions.HTTP("DeleteServiceEvent", DeleteServiceEvent)
 	functions.HTTP("MemberData", MemberData)
 	functions.HTTP("MemberExport", MemberExport)
+	functions.HTTP("MemberFeatures", MemberFeatures)
+	functions.HTTP("MemberNotifications", MemberNotifications)
 	functions.HTTP("MemberStories", MemberStories)
 	functions.HTTP("MemberStoryUpload", MemberStoryUpload)
 	functions.HTTP("MemberStoryUploadComplete", MemberStoryUploadComplete)
@@ -109,6 +111,10 @@ func Api(w http.ResponseWriter, r *http.Request) {
 		MemberData(w, r)
 	case "/api/member-export":
 		MemberExport(w, r)
+	case "/api/member/features":
+		MemberFeatures(w, r)
+	case "/api/member/notifications":
+		MemberNotifications(w, r)
 	case "/api/member/stories":
 		MemberStories(w, r)
 	case "/api/member/story-upload":

@@ -155,6 +155,7 @@ jobs:
           SNAPSHOT_BUCKET: ${{ vars.SNAPSHOT_BUCKET_STAGING }}
           CAMPAIGN_MEDIA_BUCKET: ${{ vars.CAMPAIGN_MEDIA_BUCKET_STAGING }}
           MEMBER_STORY_MEDIA_BUCKET: ${{ vars.MEMBER_STORY_MEDIA_BUCKET_STAGING }}
+          MEMBER_FEATURE_ACCESS: ${{ vars.MEMBER_FEATURE_ACCESS_STAGING || '{"member-experiences":"all"}' }}
           VEO_LOCATION: ${{ vars.VEO_LOCATION_STAGING }}
           VEO_MODEL_ID: ${{ vars.VEO_MODEL_ID_STAGING }}
           SEED_NEXT_STEPS_SURVEY: "true"
