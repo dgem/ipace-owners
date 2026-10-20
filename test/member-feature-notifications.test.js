@@ -34,8 +34,8 @@ test('member calls to action and surveys have reusable versioned dismissal ident
 
 test('deployment passes member feature rules to functions', () => {
   const moduleActions = read('infra/opentofu/modules/ipace-owners/github-actions.tf');
-  const staging = read('infra/opentofu/env/staging.tfvars');
-  const production = read('infra/opentofu/env/production.tfvars');
+  const staging = read('infra/opentofu/env/staging.tfvars.example');
+  const production = read('infra/opentofu/env/production.tfvars.example');
   const stagingWorkflow = read('.github/workflows/gcp-firebase-staging.yml');
   const productionWorkflow = read('.github/workflows/gcp-firebase-production.yml');
 
