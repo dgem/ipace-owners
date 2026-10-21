@@ -30,7 +30,7 @@ test('Makefile exposes reproducible Node and Go vulnerability audits', function 
 
   assert.match(makefile, /GOVULNCHECK_VERSION \?= v1\.6\.0/);
   assert.ok(goVersion);
-  assert.match(makefile, new RegExp('GOAUDIT_TOOLCHAIN \\?= go' + goVersion[1].replace(/\./g, '\\.')));
+  assert.ok(makefile.includes('GOAUDIT_TOOLCHAIN ?= go' + goVersion[1]));
   assert.match(makefile, /audit: audit-node audit-go/);
   assert.match(makefile, /node scripts\/audit-node\.mjs/);
   assert.match(makefile, /GOTOOLCHAIN=\$\(GOAUDIT_TOOLCHAIN\) go run/);
