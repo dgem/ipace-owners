@@ -22,7 +22,7 @@ For privacy questions or requests, email
 
 Depending on what you choose to provide, we may collect:
 
-- Your name, email address, country or region, relationship to an I-PACE, volunteering
+- Your legal or contact name, non-unique public display name, email address, country or region, relationship to an I-PACE, volunteering
   interests, postal address, optional phone number, consent choices, and (if provided) a member's
   willingness to help, interest in discussing a story with the press, and description of relevant
   expertise or experience.
@@ -75,8 +75,10 @@ only after server-side Firebase Authentication checks.
 
 If you consent to anonymised analysis, counts, averages, changes, and distributions may be
 published on the evidence dashboard or used in reports and constructive engagement with JLR,
-consumer bodies, or the media. We do not publish your name, email address, registration,
+consumer bodies, or the media. We do not publish your legal or contact name, email address, registration,
 retained VIN characters, free-text notes, or documents without specific permission.
+When you submit a member experience with website permission, we publish the display name saved
+in your member preferences alongside it.
 
 For the September member survey, administrators may use Google Cloud's Vertex AI service to
 group optional comments by topic and sentiment alongside the outcomes each member selected.

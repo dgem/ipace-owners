@@ -277,7 +277,7 @@ change rather than assuming it exists.
 | `POST /api/submit-vehicle-basics` | Member | Optional `id` for an owned edit; otherwise `vin`, `registration`, `country`, `modelYear`, `mileage`, `ownedSince`, `firstReg`, plus optional initial `soh`, `sohDate`, `sohMileage`, `sohSource`. |
 | `POST /api/submit-soh` | Member/vehicle owner | Optional `id` for an owned edit plus `vehicleId`, `soh`, `sohDate`, `sohMileage`, `sohSource`; maintain the vehicle compatibility value. |
 | `POST /api/upsert-service-event` | Member/vehicle and record owner | `id`, `vehicleId`, `eventType`, `occurredAt`, `mileage`, `title`, `description`, `status`, `campaigns[]`, `serviceProviderId`, `serviceProviderName`, `serviceProviderPostcode`, `serviceProviderAuthorised`, `finalFixAt`, `courtesyVehicleOffered`, `courtesyVehicleProvided`, `partsDelay`, `goodwillPayment`, `milesDrivenWhilstFaulty`, `warrantyCover`, `disputeStatus`, `executiveOfficeAcknowledgedAt`, `executiveOfficeRepliedAt`, `executiveOfficeOutcome`, `executiveOfficeSatisfied`. Derive `daysToFinalFix` server-side. For Executive Office contacts, supplied acknowledgement/reply dates must be valid, non-future, and on or after `occurredAt`. |
-| `POST /api/update-member-preferences` | Member | Required booleans `contact`, `anonymisedAnalysis`; optional `willingToHelp`, `pressStory`, and bounded `expertise`; apply the preference update to every Join record sharing the authenticated email hash. |
+| `POST /api/update-member-preferences` | Member | Required booleans `contact`, `anonymisedAnalysis`; optional non-unique `displayName`, `willingToHelp`, `pressStory`, and bounded `expertise`; default a blank display name to the first part of the saved legal name and apply the preference update to every Join record sharing the authenticated email hash. |
 | `GET/POST /api/member-profile` | Member | One contact profile per Firebase UID; freeform international address, optional phone, and a versioned representation choice available only for a complete UK address. Append choice changes to a PII-free `representationChoices` subcollection. |
 | `GET /api/member-address-lookup` | Member | Optional address or postcode search and resolution through a server-side Ideal Postcodes key, with manual entry fallback. |
 | `POST /api/admin/member-verification` | Admin | Set an admin-only identity-verification decision, separate from member consent. |
@@ -400,7 +400,7 @@ keys where applicable, and `{ status, verificationLevel }` review metadata. Pres
 `createdAt` on edits.
 
 - Join records contain `identityUserId`, `userEmailHash`, contact `{ name, email, country }`,
-  membership `{ relationship, skills[] }`, and consents `{ contact, notLegalClaim,
+  membership `{ relationship, skills[], displayName, willingToHelp, expertise, pressStory }`, and consents `{ contact, notLegalClaim,
   anonymisedAnalysis }`.
 - Vehicle records contain `identityUserId`, `userEmailHash`, vehicle `{ vinHash, vinLast6,
   registration, country, modelYear, mileage, ownedSince, firstRegistrationDate }`, battery

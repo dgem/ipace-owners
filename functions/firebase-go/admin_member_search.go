@@ -12,6 +12,7 @@ import (
 type adminMemberSearchResult struct {
 	IdentityUserID string   `json:"identityUserId"`
 	Name           string   `json:"name"`
+	DisplayName    string   `json:"displayName"`
 	Email          string   `json:"email"`
 	Country        string   `json:"country"`
 	Registrations  []string `json:"registrations"`
@@ -62,7 +63,7 @@ func AdminMemberSearch(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 		if results[key] == nil {
-			results[key] = &adminMemberSearchResult{IdentityUserID: join.IdentityUserID, Name: join.Contact.Name, Email: join.Contact.Email, Country: join.Contact.Country, Expertise: join.Membership.Expertise, WillingToHelp: join.Membership.WillingToHelp, PressStory: join.Membership.PressStory, Registrations: []string{}, Matched: []string{}}
+			results[key] = &adminMemberSearchResult{IdentityUserID: join.IdentityUserID, Name: join.Contact.Name, DisplayName: join.Membership.DisplayName, Email: join.Contact.Email, Country: join.Contact.Country, Expertise: join.Membership.Expertise, WillingToHelp: join.Membership.WillingToHelp, PressStory: join.Membership.PressStory, Registrations: []string{}, Matched: []string{}}
 		}
 	}
 	profileIter := db.Collection("memberProfiles").Documents(r.Context())
@@ -100,7 +101,7 @@ func AdminMemberSearch(w http.ResponseWriter, r *http.Request) {
 	}
 	matched := []adminMemberSearchResult{}
 	for _, result := range results {
-		fields := map[string]string{"name": result.Name, "email": result.Email, "country": result.Country, "registration": strings.Join(result.Registrations, " "), "expertise": result.Expertise}
+		fields := map[string]string{"name": result.Name, "display name": result.DisplayName, "email": result.Email, "country": result.Country, "registration": strings.Join(result.Registrations, " "), "expertise": result.Expertise}
 		if result.WillingToHelp {
 			fields["preference"] = "willing to help volunteer"
 		}

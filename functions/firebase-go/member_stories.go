@@ -107,7 +107,6 @@ type storySaveRequest struct {
 	ID                 string      `json:"id"`
 	Title              string      `json:"title"`
 	BodyMarkdown       string      `json:"bodyMarkdown"`
-	DisplayName        string      `json:"displayName"`
 	VehicleID          string      `json:"vehicleId"`
 	ServiceEventIDs    stringArray `json:"serviceEventIds"`
 	SOHReadingIDs      stringArray `json:"sohReadingIds"`
@@ -186,16 +185,7 @@ func memberStoriesGet(w http.ResponseWriter, r *http.Request, user *firebaseUser
 		writeJSON(w, 500, map[string]any{"error": "Could not load member records"})
 		return
 	}
-	profileName := ""
-	if doc, profileErr := db.Collection("memberProfiles").Doc(user.UID).Get(r.Context()); profileErr == nil {
-		var profile memberContactProfile
-		if doc.DataTo(&profile) == nil {
-			profileName = profile.Name
-		}
-	}
-	if profileName == "" && len(snapshot.JoinRecords) > 0 {
-		profileName = snapshot.JoinRecords[0].Contact.Name
-	}
+	contactName, displayName := memberStoryNames(r.Context(), db, snapshot, user.UID)
 	stories := []memberStory{}
 	query := db.Collection("memberStories").Where("identityUserId", "==", user.UID)
 	if err := readCollection(r.Context(), query, &stories); err != nil {
@@ -208,7 +198,7 @@ func memberStoriesGet(w http.ResponseWriter, r *http.Request, user *firebaseUser
 	for index := range stories {
 		stories[index] = memberStoryForOwner(stories[index])
 	}
-	writeJSON(w, 200, map[string]any{"eligible": profileName != "" && len(snapshot.VehicleRecords) > 0, "profileName": profileName, "vehicles": snapshot.VehicleRecords, "serviceEvents": snapshot.ServiceEvents, "sohReadings": snapshot.BatteryReadings, "stories": stories, "limits": map[string]any{"images": storyMaxImages, "videos": storyMaxVideos, "totalBytes": storyMaxTotalBytes}})
+	writeJSON(w, 200, map[string]any{"eligible": contactName != "" && displayName != "" && len(snapshot.VehicleRecords) > 0, "displayName": displayName, "vehicles": snapshot.VehicleRecords, "serviceEvents": snapshot.ServiceEvents, "sohReadings": snapshot.BatteryReadings, "stories": stories, "limits": map[string]any{"images": storyMaxImages, "videos": storyMaxVideos, "totalBytes": storyMaxTotalBytes}})
 }
 
 func memberStoryForOwner(story memberStory) memberStory {
@@ -238,18 +228,13 @@ func memberStoriesSave(w http.ResponseWriter, r *http.Request, user *firebaseUse
 		writeJSON(w, 500, map[string]any{"error": "Could not load member records"})
 		return
 	}
-	profileName := ""
-	if doc, e := db.Collection("memberProfiles").Doc(user.UID).Get(r.Context()); e == nil {
-		var p memberContactProfile
-		if doc.DataTo(&p) == nil {
-			profileName = p.Name
-		}
-	}
-	if profileName == "" && len(snapshot.JoinRecords) > 0 {
-		profileName = snapshot.JoinRecords[0].Contact.Name
-	}
-	if profileName == "" {
+	contactName, displayName := memberStoryNames(r.Context(), db, snapshot, user.UID)
+	if contactName == "" {
 		writeJSON(w, 409, map[string]any{"error": "Add your name to your contact details before sharing a story"})
+		return
+	}
+	if displayName == "" {
+		writeJSON(w, 409, map[string]any{"error": "Add a display name to your member preferences before sharing a story"})
 		return
 	}
 	if len(snapshot.VehicleRecords) == 0 {
@@ -257,11 +242,7 @@ func memberStoriesSave(w http.ResponseWriter, r *http.Request, user *firebaseUse
 		return
 	}
 	input.Title = cleanString(input.Title, 180)
-	input.DisplayName = cleanString(input.DisplayName, 160)
 	input.BodyMarkdown = strings.TrimSpace(input.BodyMarkdown)
-	if input.DisplayName == "" {
-		input.DisplayName = profileName
-	}
 	if input.BodyMarkdown == "" || len([]rune(input.BodyMarkdown)) > 20000 {
 		writeJSON(w, 400, map[string]any{"error": "Add your experience using no more than 20,000 characters"})
 		return
@@ -280,7 +261,7 @@ func memberStoriesSave(w http.ResponseWriter, r *http.Request, user *firebaseUse
 		return
 	}
 	now := time.Now().UTC()
-	story := memberStory{ID: cleanString(input.ID, 100), IdentityUserID: user.UID, ContactName: profileName, ContactEmail: user.Email, DisplayName: input.DisplayName, Title: input.Title, BodyMarkdown: input.BodyMarkdown, Status: "draft", Evidence: evidence, UpdatedAt: now}
+	story := memberStory{ID: cleanString(input.ID, 100), IdentityUserID: user.UID, ContactName: contactName, ContactEmail: user.Email, DisplayName: displayName, Title: input.Title, BodyMarkdown: input.BodyMarkdown, Status: "draft", Evidence: evidence, UpdatedAt: now}
 	story.Consent = memberStoryConsent{Website: input.WebsiteConsent, ThirdParty: input.ThirdPartyConsent, Copyright: input.CopyrightConfirmed, Truthful: input.TruthfulConfirmed, Version: storyConsentVersion, RecordedAt: now}
 	var ref *firestore.DocumentRef
 	if story.ID == "" {
@@ -334,6 +315,31 @@ func memberStoriesSave(w http.ResponseWriter, r *http.Request, user *firebaseUse
 		return
 	}
 	writeJSON(w, 200, map[string]any{"ok": true, "story": story})
+}
+
+func memberStoryNames(ctx context.Context, db *firestore.Client, snapshot memberSnapshot, uid string) (string, string) {
+	legalName := ""
+	if doc, err := db.Collection("memberProfiles").Doc(uid).Get(ctx); err == nil {
+		var profile memberContactProfile
+		if doc.DataTo(&profile) == nil {
+			legalName = cleanString(profile.Name, 160)
+		}
+	}
+	return memberStoryNamesFromRecords(snapshot, legalName)
+}
+
+func memberStoryNamesFromRecords(snapshot memberSnapshot, legalName string) (string, string) {
+	contactName := cleanString(legalName, 160)
+	if contactName == "" && len(snapshot.JoinRecords) > 0 {
+		contactName = cleanString(snapshot.JoinRecords[0].Contact.Name, 160)
+	}
+	displayName := ""
+	for _, record := range snapshot.JoinRecords {
+		if displayName = cleanString(record.Membership.DisplayName, 80); displayName != "" {
+			break
+		}
+	}
+	return contactName, memberDisplayName(displayName, contactName)
 }
 
 func storyTitleFromMarkdown(body string) string {

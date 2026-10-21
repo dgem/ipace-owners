@@ -5,7 +5,7 @@ Build a member-experience workflow that turns personal experience into consented
 ## Member submission
 
 - Only authenticated members with a saved name and at least one registered vehicle may submit.
-- Use the saved member name as the default attribution while keeping contact details private.
+- Use the member's non-unique display-name preference as the attribution while keeping contact and legal names private. If the preference is empty and a legal name is saved, default to its first name. Manage this once in My Data rather than asking for a separate attribution on each experience.
 - Use a familiar, limited rich-text editor for bold, italics, lists and web links, and store its 80–20,000 character content as safe Markdown. Do not ask the member for a title; derive an editorial title from the experience and allow admins to refine it.
 - Require a linked vehicle, but show a vehicle chooser only when the member has more than one. Keep vehicle and optional evidence links after the main writing and media controls. Allow links to the member's existing service/fault, Executive Office and SoH records. References must be ownership-checked server-side.
 - Encourage members to complete missing vehicle and history records so their story strengthens aggregate evidence.

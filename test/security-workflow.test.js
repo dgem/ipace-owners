@@ -26,9 +26,11 @@ test('security workflow runs SAST and dependency vulnerability checks', function
 
 test('Makefile exposes reproducible Node and Go vulnerability audits', function () {
   var makefile = read('Makefile');
+  var goVersion = read('functions/firebase-go/go.mod').match(/^go ([0-9.]+)$/m);
 
   assert.match(makefile, /GOVULNCHECK_VERSION \?= v1\.6\.0/);
-  assert.match(makefile, /GOAUDIT_TOOLCHAIN \?= go1\.26\.9/);
+  assert.ok(goVersion);
+  assert.match(makefile, new RegExp('GOAUDIT_TOOLCHAIN \\?= go' + goVersion[1].replace(/\./g, '\\.')));
   assert.match(makefile, /audit: audit-node audit-go/);
   assert.match(makefile, /node scripts\/audit-node\.mjs/);
   assert.match(makefile, /GOTOOLCHAIN=\$\(GOAUDIT_TOOLCHAIN\) go run/);

@@ -44,6 +44,7 @@ type batteryReadingRequest struct {
 type preferenceRequest struct {
 	Contact            *bool   `json:"contact"`
 	AnonymisedAnalysis *bool   `json:"anonymisedAnalysis"`
+	DisplayName        *string `json:"displayName"`
 	WillingToHelp      *bool   `json:"willingToHelp"`
 	Expertise          *string `json:"expertise"`
 	PressStory         *bool   `json:"pressStory"`
@@ -103,6 +104,7 @@ type contactRecord struct {
 type membershipRecord struct {
 	Relationship  string   `json:"relationship,omitempty" firestore:"relationship,omitempty"`
 	Skills        []string `json:"skills,omitempty" firestore:"skills,omitempty"`
+	DisplayName   string   `json:"displayName,omitempty" firestore:"displayName,omitempty"`
 	WillingToHelp bool     `json:"willingToHelp,omitempty" firestore:"willingToHelp,omitempty"`
 	Expertise     string   `json:"expertise,omitempty" firestore:"expertise,omitempty"`
 	PressStory    bool     `json:"pressStory,omitempty" firestore:"pressStory,omitempty"`

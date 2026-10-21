@@ -815,8 +815,9 @@ behind the single Go `Api` Cloud Function:
   recall, or inspection record after server-side ownership verification. It stores structured
   service-provider references, parts-delay range, goodwill support, and miles driven whilst
   faulty, and derives days to resolution from the event and final-fix dates.
-- `update-member-preferences` updates the signed-in member's contact and anonymised-analysis
-  consent across their matching Join records.
+- `update-member-preferences` updates the signed-in member's display name, volunteering choices,
+  contact consent and anonymised-analysis consent across their matching Join records. Display
+  names are not unique and default to the first part of a saved legal name when left blank.
 - `delete-vehicle`, `delete-soh`, and `delete-service-event` require typed `DELETE`
   confirmation, soft-delete only the signed-in member's owned data, and immediately remove
   it from private snapshots and consent-filtered public aggregates. Deleting a vehicle also
@@ -829,7 +830,7 @@ behind the single Go `Api` Cloud Function:
   A committed fictional workbook demonstrates the production export format without exposing
   member data. Regenerate it after workbook-layout changes with
   `cd functions/firebase-go && GENERATE_MEMBER_EXPORT_SAMPLE=1 go test ./... -run '^TestGeneratePublicSampleWorkbook$' -count=1`.
-- `member/stories` provides the Member experiences editor and saves drafts and consented submissions linked to records owned by the member.
+- `member/stories` provides the Member experiences editor and saves drafts and consented submissions linked to records owned by the member. Member-authored stories use the account's display-name preference; contact and legal names remain private.
   `member/story-upload` and `member/story-upload-complete` provide bounded direct uploads to
   private storage; `member/story-withdraw` removes publication permissions immediately.
 - `admin/members` provides server-backed member search. `admin/stories` provides editorial review,

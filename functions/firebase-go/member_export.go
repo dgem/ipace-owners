@@ -178,11 +178,12 @@ func safeSpreadsheetText(value string) string {
 }
 
 func membershipRows(snapshot memberSnapshot) [][]string {
-	rows := [][]string{{"Email", "Name", "Country", "Relationship", "Skills", "Willing to help", "Expertise", "Press story", "Contact consent", "Anonymised analysis", "Participation acknowledged", "Joined", "Updated"}}
+	rows := [][]string{{"Email", "Name", "Display name", "Country", "Relationship", "Skills", "Willing to help", "Expertise", "Press story", "Contact consent", "Anonymised analysis", "Participation acknowledged", "Joined", "Updated"}}
 	for _, record := range snapshot.JoinRecords {
 		rows = append(rows, []string{
 			snapshot.Email,
 			record.Contact.Name,
+			safeSpreadsheetText(record.Membership.DisplayName),
 			record.Contact.Country,
 			record.Membership.Relationship,
 			strings.Join(record.Membership.Skills, "; "),
@@ -197,7 +198,7 @@ func membershipRows(snapshot memberSnapshot) [][]string {
 		})
 	}
 	if len(snapshot.JoinRecords) == 0 {
-		rows = append(rows, []string{snapshot.Email, "", "", "", "", "", "", "", "", "", "", ""})
+		rows = append(rows, []string{snapshot.Email, "", "", "", "", "", "", "", "", "", "", "", "", ""})
 	}
 	return rows
 }

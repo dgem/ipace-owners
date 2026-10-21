@@ -423,7 +423,7 @@ async function checkMemberStories(viewport, screenshotName) {
   await mockMemberPresentation(page);
   await page.route('**/api/member/stories', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({
     eligible: true,
-    profileName: 'Alex Owner',
+    displayName: 'Alex',
     limits: { images: 5, videos: 2, totalBytes: 262144000 },
     vehicles: [{ id: 'vehicle-1', vehicle: { registration: 'AB12 CDE', modelYear: '2020' } }, { id: 'vehicle-2', vehicle: { registration: 'XY34 ZZZ', modelYear: '2022' } }],
     serviceEvents: [{ id: 'event-1', vehicleId: 'vehicle-1', occurredAt: '2026-05-04', eventType: 'executive-office-contact', title: 'Executive Office escalation' }],
@@ -680,6 +680,7 @@ async function checkMemberAccountManagement(viewport, screenshotName) {
   await page.route('**/api/member-profile', async (route) => {
     await route.fulfill({ contentType: 'application/json', body: JSON.stringify({
       profile: { name: 'Alex Example', country: 'United Kingdom', represent: false },
+      defaultDisplayName: 'Alex',
       representationWording: "I authorise the I-PACE Owners' Advocacy Group to represent my interests in preparatory legal engagement with JLR. This does not authorise issuing proceedings or accepting costs on my behalf."
     }) });
   });
@@ -690,6 +691,9 @@ async function checkMemberAccountManagement(viewport, screenshotName) {
   assert.equal(await page.locator('[data-preferences-form]').isHidden(), true, 'preferences should be an explicit action');
   await page.getByRole('button', { name: 'Edit preferences' }).click();
   assert.equal(await page.locator('[data-preferences-form]').isVisible(), true);
+  assert.equal(await page.locator('[data-preferences-form] [name="displayName"]').inputValue(), 'Alex');
+  await page.locator('[data-preferences-form]').scrollIntoViewIfNeeded();
+  await page.screenshot({ path: path.join(outputDir, screenshotName.replace('.png', '-preferences.png')), fullPage: true });
   await page.getByRole('button', { name: 'Cancel' }).first().click();
   await page.getByRole('button', { name: 'Edit vehicle' }).click();
   const editor = page.locator('[data-vehicle-edit-panel]');

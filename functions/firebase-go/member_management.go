@@ -3,6 +3,7 @@ package ipace
 import (
 	"context"
 	"net/http"
+	"strings"
 	"time"
 
 	"cloud.google.com/go/firestore"
@@ -26,6 +27,17 @@ func UpdateMemberPreferences(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Could not update preferences"})
 		return
 	}
+	displayName := ""
+	if req.DisplayName != nil {
+		legalName := ""
+		if profileDoc, profileErr := db.Collection("memberProfiles").Doc(user.UID).Get(r.Context()); profileErr == nil {
+			var profile memberContactProfile
+			if profileDoc.DataTo(&profile) == nil {
+				legalName = profile.Name
+			}
+		}
+		displayName = memberDisplayName(*req.DisplayName, legalName)
+	}
 	iter := db.Collection("joinSubmissions").Where("userEmailHash", "==", emailFingerprint(user.Email)).Documents(r.Context())
 	batch := db.Batch()
 	count := 0
@@ -42,6 +54,9 @@ func UpdateMemberPreferences(w http.ResponseWriter, r *http.Request) {
 			{Path: "consents.contact", Value: *req.Contact},
 			{Path: "consents.anonymisedAnalysis", Value: *req.AnonymisedAnalysis},
 			{Path: "updatedAt", Value: time.Now().UTC()},
+		}
+		if req.DisplayName != nil {
+			updates = append(updates, firestore.Update{Path: "membership.displayName", Value: displayName})
 		}
 		if req.WillingToHelp != nil {
 			updates = append(updates, firestore.Update{Path: "membership.willingToHelp", Value: *req.WillingToHelp})
@@ -65,6 +80,17 @@ func UpdateMemberPreferences(w http.ResponseWriter, r *http.Request) {
 		regenerateMemberAndPublicSnapshots(r, user.UID, user.Email)
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"ok": true})
+}
+
+func memberDisplayName(saved, legalName string) string {
+	if value := cleanString(saved, 80); value != "" {
+		return value
+	}
+	parts := strings.Fields(cleanString(legalName, 160))
+	if len(parts) == 0 {
+		return ""
+	}
+	return cleanString(parts[0], 80)
 }
 
 func DeleteVehicle(w http.ResponseWriter, r *http.Request) {

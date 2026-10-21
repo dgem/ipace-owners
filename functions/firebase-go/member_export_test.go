@@ -35,7 +35,7 @@ func memberExportFixture() memberSnapshot {
 			UpdatedAt:     now,
 			UserEmailHash: "secret-email-hash",
 			Contact:       contactRecord{Name: "=FORMULA()", Country: "GB"},
-			Membership:    membershipRecord{Relationship: "current-owner-one", Skills: []string{"technical"}},
+			Membership:    membershipRecord{Relationship: "current-owner-one", Skills: []string{"technical"}, DisplayName: "=ALIAS()"},
 			Consents:      consentRecord{Contact: true, NotLegalClaim: true, AnonymisedAnalysis: true},
 		}},
 		VehicleRecords: []vehicleRecord{{
@@ -188,6 +188,10 @@ func TestMemberWorkbookContainsSheetsAndNativeCharts(t *testing.T) {
 	name, _ := book.GetCellValue("Membership", "B2")
 	if name != "'=FORMULA()" {
 		t.Fatalf("unsafe membership cell = %q", name)
+	}
+	displayName, _ := book.GetCellValue("Membership", "C2")
+	if displayName != "'=ALIAS()" {
+		t.Fatalf("unsafe display-name cell = %q", displayName)
 	}
 	experience, _ := book.GetCellValue("Experiences", "D2")
 	if experience != "The **battery failed** without warning." {

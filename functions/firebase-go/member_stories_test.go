@@ -97,6 +97,23 @@ func TestStoryTitleIsDerivedFromFirstMeaningfulLine(t *testing.T) {
 	}
 }
 
+func TestMemberStoryNamesUsePreferenceAndLegalNameFallback(t *testing.T) {
+	snapshot := memberSnapshot{JoinRecords: []joinRecord{{
+		Contact:    contactRecord{Name: "Join Name"},
+		Membership: membershipRecord{DisplayName: "BatteryFan"},
+	}}}
+	contact, display := memberStoryNamesFromRecords(snapshot, "Alexandra Owner")
+	if contact != "Alexandra Owner" || display != "BatteryFan" {
+		t.Fatalf("names = %q, %q", contact, display)
+	}
+
+	snapshot.JoinRecords[0].Membership.DisplayName = ""
+	contact, display = memberStoryNamesFromRecords(snapshot, "Alexandra Owner")
+	if contact != "Alexandra Owner" || display != "Alexandra" {
+		t.Fatalf("fallback names = %q, %q", contact, display)
+	}
+}
+
 func containsJSONKey(value, key string) bool {
 	return len(value) > 0 && stringContains(value, `"`+key+`"`)
 }

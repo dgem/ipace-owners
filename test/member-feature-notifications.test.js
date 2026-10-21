@@ -45,3 +45,13 @@ test('deployment passes member feature rules to functions', () => {
   assert.match(stagingWorkflow, /MEMBER_FEATURE_ACCESS_STAGING[\s\S]*member-experiences.*all/);
   assert.match(productionWorkflow, /MEMBER_FEATURE_ACCESS_PRODUCTION[\s\S]*member-experiences.*admin,member-experiences-preview/);
 });
+
+test('member experiences use the membership display name', () => {
+  const stories = read('src/assets/js/member-stories.js');
+  const preferences = read('src/assets/js/member-auth.js');
+
+  assert.match(stories, /Published as <strong>/);
+  assert.match(stories, /state\.displayName/);
+  assert.doesNotMatch(stories, /name="displayName"/);
+  assert.match(preferences, /payload\.displayName/);
+});
