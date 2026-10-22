@@ -1,13 +1,13 @@
 module github.com/dgem/ipace-owners/functions/firebase-go
 
-go 1.26.9
+go 1.26.10
 
 require (
 	cloud.google.com/go/firestore v1.26.0
 	cloud.google.com/go/storage v1.69.0
 	firebase.google.com/go/v4 v4.22.0
 	github.com/GoogleCloudPlatform/functions-framework-go v1.9.2
-	github.com/xuri/excelize/v2 v2.11.0
+	github.com/xuri/excelize/v2 v2.11.1-0.20261003002531-6258dcebc4e2
 	golang.org/x/oauth2 v0.37.0
 	google.golang.org/api v0.301.0
 	google.golang.org/grpc v1.84.0
@@ -45,11 +45,11 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
-	github.com/richardlehane/mscfb v1.0.7 // indirect
+	github.com/richardlehane/mscfb v1.0.8 // indirect
 	github.com/richardlehane/msoleps v1.0.6 // indirect
 	github.com/spiffe/go-spiffe/v2 v2.8.1 // indirect
 	github.com/tiendc/go-deepcopy v1.7.2 // indirect
-	github.com/xuri/efp v0.0.1 // indirect
+	github.com/xuri/efp v0.0.2 // indirect
 	github.com/xuri/nfp v0.0.2-0.20250530014748-2ddeb826f9a9 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/contrib/detectors/gcp v1.45.0 // indirect

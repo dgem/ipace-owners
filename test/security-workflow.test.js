@@ -26,13 +26,25 @@ test('security workflow runs SAST and dependency vulnerability checks', function
 
 test('Makefile exposes reproducible Node and Go vulnerability audits', function () {
   var makefile = read('Makefile');
+  var goVersion = read('functions/firebase-go/go.mod').match(/^go ([0-9.]+)$/m);
 
   assert.match(makefile, /GOVULNCHECK_VERSION \?= v1\.6\.0/);
-  assert.match(makefile, /GOAUDIT_TOOLCHAIN \?= go1\.26\.9/);
+  assert.ok(goVersion);
+  assert.ok(makefile.includes('GOAUDIT_TOOLCHAIN ?= go' + goVersion[1]));
   assert.match(makefile, /audit: audit-node audit-go/);
   assert.match(makefile, /node scripts\/audit-node\.mjs/);
   assert.match(makefile, /GOTOOLCHAIN=\$\(GOAUDIT_TOOLCHAIN\) go run/);
   assert.match(makefile, /govulncheck@\$\(GOVULNCHECK_VERSION\)/);
+});
+
+test('content security policy permits only local browser media previews via blob URLs', function () {
+  var firebase = JSON.parse(read('firebase.json'));
+  var globalHeaders = firebase.hosting.headers.find(function (entry) { return entry.source === '**'; }).headers;
+  var policy = globalHeaders.find(function (header) { return header.key === 'Content-Security-Policy'; }).value;
+
+  assert.match(policy, /img-src 'self' blob: data: https:/);
+  assert.match(policy, /media-src 'self' blob: https:/);
+  assert.doesNotMatch(policy, /default-src[^;]*blob:/);
 });
 
 test('preview deployment runs a blocking passive OWASP ZAP scan', function () {

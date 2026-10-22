@@ -39,6 +39,8 @@
   function load() {
     if (!window.ipaceIdentityUser) return;
     api('/api/member-profile').then(function (data) {
+      window.ipaceMemberDefaultDisplayName = data.defaultDisplayName || '';
+      document.dispatchEvent(new CustomEvent('member:profile', { detail: { defaultDisplayName: window.ipaceMemberDefaultDisplayName } }));
       Object.keys(data.profile || {}).forEach(function (key) {
         if (!form.elements[key]) return;
         if (form.elements[key].type === 'checkbox') form.elements[key].checked = !!data.profile[key];

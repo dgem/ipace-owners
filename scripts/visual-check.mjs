@@ -35,7 +35,9 @@ assert.equal(siteReady, true, `site did not become ready at ${baseURL}`);
 const browser = await chromium.launch({ executablePath, headless: true });
 const expectedAdminDestinations = [
   '/admin/',
+  '/admin/members/',
   '/admin/review-queue/',
+  '/admin/member-stories/',
   '/admin/outreach/',
   '/admin/email-campaigns/',
   '/admin/marketing-messages/',
@@ -74,6 +76,17 @@ async function revealAdminState(page) {
       element.hidden = true;
     });
   });
+}
+
+async function mockMemberPresentation(page) {
+  await page.route('**/api/member/features', (route) => route.fulfill({
+    contentType: 'application/json',
+    body: JSON.stringify({ features: { 'member-experiences': true } })
+  }));
+  await page.route('**/api/member/notifications', (route) => route.fulfill({
+    contentType: 'application/json',
+    body: route.request().method() === 'GET' ? JSON.stringify({ dismissed: [] }) : JSON.stringify({ dismissed: 'ok' })
+  }));
 }
 
 async function assertAdminBreadcrumb(page, currentLabel) {
@@ -393,15 +406,111 @@ async function checkAdminDashboard() {
   await page.locator('[data-campaign-summary-refresh]').click();
   await page.locator('.campaign-summary-card').first().waitFor({ state: 'visible' });
   assert.equal(await page.locator('.campaign-summary-card').count(), 3);
-  assert.equal(await page.locator('.admin-dashboard-grid .card').count(), 6);
-  assert.equal(await page.locator('.admin-dashboard-grid .admin-tool-logo svg').count(), 6);
-  assert.equal(await page.locator('.admin-dashboard-grid .btn--primary').count(), 6);
+  assert.equal(await page.locator('.admin-dashboard-grid .card').count(), 8);
+  assert.equal(await page.locator('.admin-dashboard-grid .admin-tool-logo svg').count(), 8);
+  assert.equal(await page.locator('.admin-dashboard-grid .btn--primary').count(), 8);
   assert.deepEqual(await page.locator('.admin-dashboard-grid .btn').allTextContents(), [
-    'Review Queue', 'Facebook Assistant', 'Registration Reminders', 'Mass Mailings', 'Instagram Campaigns', 'Member Surveys'
+    'Find members', 'Review Queue', 'Review experiences', 'Facebook Assistant', 'Registration Reminders', 'Mass Mailings', 'Instagram Campaigns', 'Member Surveys'
   ]);
   assert.deepEqual(await page.locator('.admin-dashboard-grid a').evaluateAll((links) => links.map((link) => link.getAttribute('href'))), expectedAdminDestinations.slice(1));
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, 'admin-dashboard-desktop.png'), fullPage: true });
+  await page.close();
+}
+
+async function checkMemberStories(viewport, screenshotName) {
+  const page = await browser.newPage({ viewport });
+  await mockMemberPresentation(page);
+  await page.route('**/api/member/stories', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({
+    eligible: true,
+    displayName: 'Alex',
+    limits: { images: 5, videos: 2, totalBytes: 262144000 },
+    vehicles: [{ id: 'vehicle-1', vehicle: { registration: 'AB12 CDE', modelYear: '2020' } }, { id: 'vehicle-2', vehicle: { registration: 'XY34 ZZZ', modelYear: '2022' } }],
+    serviceEvents: [{ id: 'event-1', vehicleId: 'vehicle-1', occurredAt: '2026-05-04', eventType: 'executive-office-contact', title: 'Executive Office escalation' }],
+    sohReadings: [{ id: 'soh-1', vehicleId: 'vehicle-1', battery: { measuredAt: '2026-04-10', stateOfHealth: 78 } }],
+    stories: [{ id: 'story-1', title: 'Three modules and still waiting', bodyMarkdown: 'My I-PACE needed three battery modules replaced. One replacement later failed again and I am still waiting for a lasting resolution.', displayName: 'Alex Owner', status: 'needs-member-clarification', memberMessage: 'Please add the date of the replacement-module failure.', consent: { website: true, thirdParty: true, copyright: true, truthful: true }, evidence: { vehicleId: 'vehicle-1', serviceEventIds: ['event-1'], sohReadingIds: ['soh-1'] }, media: [{ id: 'photo-1', name: 'battery-warning.png', contentType: 'image/png', status: 'ready', url: '/images/racing-laurel-email.png' }] }]
+  }) }));
+  await page.goto(baseURL + '/member/stories/', { waitUntil: 'networkidle' });
+  await page.evaluate(() => {
+    window.ipaceGetIdentityToken = async () => 'visual-member-token';
+    document.querySelectorAll('[data-auth-content]').forEach((element) => { element.hidden = false; });
+    document.querySelectorAll('[data-auth-pending], [data-auth-login-gate], .cookie-notice').forEach((element) => { element.hidden = true; });
+    document.dispatchEvent(new CustomEvent('identity:login'));
+  });
+  await page.locator('[data-story-form]').waitFor({ state: 'attached' });
+  await page.evaluate(() => {
+    document.querySelectorAll('[data-auth-content]').forEach((element) => { element.hidden = false; });
+    document.querySelectorAll('[data-auth-pending], [data-auth-login-gate], .cookie-notice').forEach((element) => { element.hidden = true; });
+  });
+  await page.locator('[data-story-form]').waitFor({ state: 'visible' });
+  await page.locator('[name="vehicleId"]').selectOption('vehicle-1', { force: true });
+  await page.locator('#story-media').setInputFiles({
+    name: 'owner-photo.png',
+    mimeType: 'image/png',
+    buffer: fs.readFileSync('public/images/racing-laurel-email.png')
+  });
+  await page.locator('[data-story-media-previews] img').waitFor({ state: 'visible' });
+  assert.equal(await page.locator('[data-story-media-previews] img').evaluate((image) => image.src.startsWith('blob:') && image.naturalWidth > 1), true);
+  assert.equal(await page.locator('[name="title"]').count(), 0);
+  assert.equal(await page.locator('[data-story-editor]').count(), 1);
+  assert.equal(await page.getByRole('link', { name: 'My Data' }).count() > 0, true);
+  assert.equal(await page.getByRole('button', { name: 'Edit' }).count(), 1);
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
+  await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
+  await page.getByRole('button', { name: 'Edit' }).click();
+  const insertImage = page.getByRole('button', { name: 'Insert in experience' });
+  await insertImage.waitFor({ state: 'visible' });
+  await insertImage.click();
+  assert.equal(await page.locator('[data-story-editor] img[data-story-media-id="photo-1"]').count(), 1);
+  await page.close();
+}
+
+async function checkAdminMemberStories(viewport, screenshotName) {
+  const page = await browser.newPage({ viewport });
+  await page.route('**/api/admin/stories', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({
+    promptVersion: 'member-story-editor-v1', impact: { 'story-1': { readers: 42, views: 57, engaged: 31, ctas: 9, shares: 6, registrations: 3 } }, stories: [{
+      id: 'story-1', title: 'Three modules and still waiting', bodyMarkdown: 'My I-PACE needed three battery modules replaced. One replacement later failed again.', displayName: 'Alex Owner', contactName: 'Alex Owner', contactEmail: 'alex@example.com', status: 'submitted',
+      consent: { website: true, thirdParty: true, copyright: true, truthful: true }, evidence: { vehicleLabel: 'AB12 CDE', serviceEventCount: 3, sohReadingCount: 2 }, media: [], memberMessage: 'Please clarify the date of the repeat failure.',
+      analysis: { promptVersion: 'member-story-editor-v1', sentiment: 'frustrated', keywords: ['battery modules', 'repeat failure'], grammar: ['No corrections suggested.'], structure: ['Clarify the dates if known.'], claims: ['Three modules were replaced.'], privacyFlags: [] }
+    }]
+  }) }));
+  await page.goto(baseURL + '/admin/member-stories/', { waitUntil: 'networkidle' });
+  await page.evaluate(() => {
+    window.ipaceGetIdentityToken = async () => 'visual-admin-token';
+    document.dispatchEvent(new CustomEvent('identity:login'));
+  });
+  await revealAdminState(page);
+  await page.locator('[data-story-review]').waitFor({ state: 'visible' });
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
+  await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
+  await page.close();
+}
+
+async function checkAdminMemberSearch(viewport, screenshotName) {
+  const page = await browser.newPage({ viewport });
+  await page.route('**/api/admin/members?*', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ results: [{
+    name: 'Alex Owner', email: 'alex@example.com', country: 'United Kingdom', registrations: ['AB12 CDE'], expertise: 'Solicitor with consumer law experience', willingToHelp: true, pressStory: true, storyCount: 1, matched: ['name', 'expertise']
+  }] }) }));
+  await page.goto(baseURL + '/admin/members/', { waitUntil: 'networkidle' });
+  await page.evaluate(() => { window.ipaceGetIdentityToken = async () => 'visual-admin-token'; });
+  await revealAdminState(page);
+  await page.locator('#admin-member-query').fill('Alex');
+  await page.getByRole('button', { name: 'Search' }).click();
+  await page.locator('[data-results] .card').waitFor({ state: 'visible' });
+  assert.equal(await page.getByRole('heading', { name: 'Alex Owner' }).count(), 1);
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
+  await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
+  await page.close();
+}
+
+async function checkPublicMemberStory(viewport, screenshotName) {
+  const page = await browser.newPage({ viewport });
+  await page.route('**/api/stories', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ stories: [{ id: 'story-1', slug: 'three-modules-story-1', title: 'Three modules and still waiting', displayName: 'Alex Owner', bodyMarkdown: '## What happened\n\nMy I-PACE needed **three battery modules** replaced. One replacement later failed again.\n\n## The impact\n\nI want a fair, timely and lasting solution.', evidence: { vehicleLabel: 'I-PACE', modelYear: '2020', serviceEventCount: 3, sohReadingCount: 2 }, media: [] }] }) }));
+  await page.goto(baseURL + '/member-stories/?site-mode=full&story=three-modules-story-1', { waitUntil: 'networkidle' });
+  await page.locator('.member-story').waitFor({ state: 'visible' });
+  await page.evaluate(() => document.querySelectorAll('.cookie-notice').forEach((element) => { element.hidden = true; }));
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
+  await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
   await page.close();
 }
 
@@ -536,6 +645,7 @@ async function checkMemberExport(viewport, screenshotName) {
 
 async function checkMemberAccountManagement(viewport, screenshotName) {
   const page = await browser.newPage({ viewport });
+  await mockMemberPresentation(page);
   // The account script waits for Firebase's settled identity state before asking
   // the protected endpoint for member data. Supply that state here so this test
   // exercises the authenticated account, rather than the intentionally shown
@@ -575,14 +685,28 @@ async function checkMemberAccountManagement(viewport, screenshotName) {
   await page.route('**/api/member-profile', async (route) => {
     await route.fulfill({ contentType: 'application/json', body: JSON.stringify({
       profile: { name: 'Alex Example', country: 'United Kingdom', represent: false },
+      defaultDisplayName: 'Alex',
       representationWording: "I authorise the I-PACE Owners' Advocacy Group to represent my interests in preparatory legal engagement with JLR. This does not authorise issuing proceedings or accepting costs on my behalf."
     }) });
   });
   await page.goto(baseURL + '/member/account/', { waitUntil: 'networkidle' });
   await page.locator('[data-vehicle-list] .account-vehicle-card').waitFor({ state: 'visible' });
+  await page.locator('[data-member-survey-summary]').evaluate((element) => {
+    element.hidden = false;
+    element.innerHTML = '<div class="survey-dashboard-callout__content"><p class="dashboard-panel__eyebrow">Your voice matters</p><div class="survey-dashboard-callout__message"><h2 class="survey-dashboard-callout__title">What do you think the group should do next?</h2><p>There is an open member survey waiting for you.</p></div></div><div class="survey-dashboard-callout__actions"><a class="btn btn--primary btn--sm" href="/member/survey-response/?id=survey_what_next_october_2026">Take the survey</a><a class="btn btn--secondary btn--sm" href="/member/surveys/?filter=closed">Past surveys</a></div><button class="member-notification__dismiss" type="button" aria-label="Dismiss this notice">Dismiss</button>';
+  });
+  const surveyCallout = page.locator('[data-member-survey-summary]');
+  await surveyCallout.getByRole('link', { name: 'Take the survey' }).waitFor({ state: 'visible' });
+  assert.equal(await surveyCallout.locator('ul').count(), 0, 'survey callout must not repeat its title as a bullet');
+  assert.equal(await surveyCallout.getByRole('link', { name: 'Past surveys' }).count(), 1);
+  assert.equal(await page.locator('.member-experience-callout').getByRole('link', { name: 'Share your experience' }).count(), 1);
+  assert.equal(await page.locator('.member-experience-callout').getByRole('button', { name: 'Dismiss this notice' }).count(), 1);
   assert.equal(await page.locator('[data-preferences-form]').isHidden(), true, 'preferences should be an explicit action');
   await page.getByRole('button', { name: 'Edit preferences' }).click();
   assert.equal(await page.locator('[data-preferences-form]').isVisible(), true);
+  assert.equal(await page.locator('[data-preferences-form] [name="displayName"]').inputValue(), 'Alex');
+  await page.locator('[data-preferences-form]').scrollIntoViewIfNeeded();
+  await page.screenshot({ path: path.join(outputDir, screenshotName.replace('.png', '-preferences.png')), fullPage: true });
   await page.getByRole('button', { name: 'Cancel' }).first().click();
   await page.getByRole('button', { name: 'Edit vehicle' }).click();
   const editor = page.locator('[data-vehicle-edit-panel]');
@@ -596,8 +720,10 @@ async function checkMemberAccountManagement(viewport, screenshotName) {
 
 async function checkServiceRecordForm(viewport, screenshotName) {
   const page = await browser.newPage({ viewport });
+  await mockMemberPresentation(page);
   await page.goto(baseURL + '/member/dashboard/', { waitUntil: 'networkidle' });
   await page.evaluate(() => {
+    window.ipaceGetIdentityToken = async () => 'visual-member-token';
     document.querySelectorAll('[data-auth-content]').forEach((element) => { element.hidden = false; });
     document.querySelectorAll('[data-auth-pending], [data-auth-login-gate]').forEach((element) => { element.hidden = true; });
     document.querySelectorAll('[data-requires-auth]').forEach((element) => { element.style.display = ''; });
@@ -621,7 +747,9 @@ async function checkServiceRecordForm(viewport, screenshotName) {
     }));
   });
   await page.waitForFunction(() => document.querySelector('[data-vehicle-workspace]').dataset.serviceProvidersReady === 'true');
+  assert.equal(await page.locator('.member-experience-callout').getByRole('link', { name: 'Share your experience' }).count(), 1);
   const history = page.getByRole('region', { name: 'Vehicle history' });
+  assert.equal(await history.getByRole('link', { name: 'Share your experience' }).count(), 1);
   await history.getByRole('button', { name: 'Add record' }).click();
   const recordType = page.getByLabel('Record type');
   await recordType.selectOption('service', { force: true });
@@ -1194,6 +1322,13 @@ async function checkSurveyInsights(viewport, suffix) {
 }
 
 try {
+  if (process.env.VISUAL_FOCUS === 'member-experiences') {
+    await checkMemberStories({ width: 1440, height: 1000 }, 'member-stories-desktop.png');
+    await checkMemberStories({ width: 402, height: 874 }, 'member-stories-mobile.png');
+    await checkMemberAccountManagement({ width: 402, height: 874 }, 'member-account-experience-callout-mobile.png');
+    await checkServiceRecordForm({ width: 402, height: 874 }, 'member-vehicle-experience-actions-mobile.png');
+    console.log(`Focused member-experience visual checks passed; screenshots written to ${outputDir}`);
+  } else {
   await checkSurveyInsights({ width: 1440, height: 1000 }, 'desktop');
   await checkSurveyInsights({ width: 390, height: 844 }, 'mobile');
   await checkSurveyReminder();
@@ -1214,6 +1349,14 @@ try {
   await checkDesktopAdminHeader();
   await checkMobileAdminDrawer();
   await checkAdminDashboard();
+  await checkMemberStories({ width: 1440, height: 1000 }, 'member-stories-desktop.png');
+  await checkMemberStories({ width: 402, height: 874 }, 'member-stories-mobile.png');
+  await checkAdminMemberStories({ width: 1440, height: 1000 }, 'admin-member-stories-desktop.png');
+  await checkAdminMemberStories({ width: 390, height: 844 }, 'admin-member-stories-mobile.png');
+  await checkAdminMemberSearch({ width: 1440, height: 1000 }, 'admin-members-desktop.png');
+  await checkAdminMemberSearch({ width: 390, height: 844 }, 'admin-members-mobile.png');
+  await checkPublicMemberStory({ width: 1440, height: 1000 }, 'public-member-story-desktop.png');
+  await checkPublicMemberStory({ width: 390, height: 844 }, 'public-member-story-mobile.png');
   await checkServiceExport({ width: 1440, height: 1000 }, 'desktop');
   await checkServiceExport({ width: 390, height: 844 }, 'mobile');
   await checkCampaignControls({ width: 1440, height: 1100 }, 'admin-email-campaigns-desktop.png');
@@ -1248,6 +1391,7 @@ try {
   await checkPublicEvidenceCounters('/evidence-dashboard/?site-mode=full', { width: 1440, height: 1000 }, 'evidence-dashboard-desktop.png');
   await checkPublicEvidenceCounters('/evidence-dashboard/?site-mode=full', { width: 390, height: 844 }, 'evidence-dashboard-mobile.png');
   console.log(`Visual checks passed; screenshots written to ${outputDir}`);
+  }
 } finally {
   await browser.close();
 }

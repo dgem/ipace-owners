@@ -23,7 +23,7 @@
   <div class="mobile-nav__identity">
     <p class="mobile-nav__identity-label">Member</p>
     {% for item in navigation.member %}
-    <a href="{{ item.url }}" class="btn btn--sm {% if item.url == '/member/account/' %}btn--primary{% else %}btn--secondary{% endif %} full-width" data-nav-link data-requires-auth style="display:none">{{ item.label }}</a>
+    <a href="{{ item.url }}" class="btn btn--sm {% if item.url == '/member/account/' %}btn--primary{% else %}btn--secondary{% endif %} full-width" data-nav-link data-requires-auth{% if item.feature %} data-member-feature="{{ item.feature }}" hidden{% endif %} style="display:none">{{ item.label }}</a>
     {% endfor %}
     <a href="/admin/" class="btn btn--sm btn--secondary full-width" data-nav-link data-requires-admin style="display:none">Admin</a>
     <a id="identity-mobile-login-btn" class="btn btn--sm btn--secondary full-width" href="/member/account/">Sign in</a>

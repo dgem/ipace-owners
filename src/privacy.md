@@ -22,7 +22,7 @@ For privacy questions or requests, email
 
 Depending on what you choose to provide, we may collect:
 
-- Your name, email address, country or region, relationship to an I-PACE, volunteering
+- Your legal or contact name, non-unique public display name, email address, country or region, relationship to an I-PACE, volunteering
   interests, postal address, optional phone number, consent choices, and (if provided) a member's
   willingness to help, interest in discussing a story with the press, and description of relevant
   expertise or experience.
@@ -35,9 +35,15 @@ Depending on what you choose to provide, we may collect:
   status, service-provider name and postcode, fix duration, courtesy vehicle information,
   parts delays, miles driven whilst faulty, goodwill support, warranty cover, and dispute
   status.
+- Member stories, publication permissions, linked evidence records, images and short videos,
+  editorial revisions, and optional AI-assisted editorial analysis.
+- With permission, a pseudonymous reader identifier and story views, engagement, campaign,
+  referral, sharing and call-to-action events. The identifier is not used for advertising.
 - Authentication, security, and technical information needed to operate the service,
   including Firebase account identifiers and standard hosting logs such as IP address,
   browser information, request time, and error details.
+- Notices you dismiss in the member area, so the same survey or action prompt stays hidden
+  on your other signed-in devices. A new version of a notice may appear again.
 
 Full VINs are not stored. If you provide a VIN, the server converts it to a keyed hash for
 deduplication and retains only the final six characters for your reference. We do not
@@ -52,6 +58,8 @@ We use personal data only for the purposes described below:
 | Create and secure your member account; show you your private records; prevent duplicate or abusive submissions; and operate, troubleshoot, and protect the service. | Our legitimate interests in running a safe, reliable owners' group and maintaining an accurate evidence base. |
 | Send group updates or campaign messages. | Your consent. You can withdraw it at any time by contacting us. |
 | Include eligible records in anonymised aggregate analysis, reports, and public statistics. | Your consent. |
+| Publish a submitted member story on this website or use it in third-party media. | Your separate publication consents. |
+| Measure which member stories and campaigns lead readers to engage or take action. | Your consent to optional story analytics. |
 | Respond to privacy requests and meet applicable legal or regulatory duties. | Legal obligation where one applies; otherwise our legitimate interests in administering the group responsibly. |
 
 Joining and providing vehicle or evidence data is voluntary. The Join form needs your name,
@@ -67,8 +75,10 @@ only after server-side Firebase Authentication checks.
 
 If you consent to anonymised analysis, counts, averages, changes, and distributions may be
 published on the evidence dashboard or used in reports and constructive engagement with JLR,
-consumer bodies, or the media. We do not publish your name, email address, registration,
+consumer bodies, or the media. We do not publish your legal or contact name, email address, registration,
 retained VIN characters, free-text notes, or documents without specific permission.
+When you submit a member experience with website permission, we publish the display name saved
+in your member preferences alongside it.
 
 For the September member survey, administrators may use Google Cloud's Vertex AI service to
 group optional comments by topic and sentiment alongside the outcomes each member selected.
@@ -98,15 +108,17 @@ defend legal rights. We do not sell personal data.
 
 ## Cookies and browser storage
 
-We do not use analytics or advertising cookies. Essential services may use cookies or browser
-storage:
+We do not use advertising cookies. Essential services may use cookies or browser storage,
+and optional story analytics use browser storage only after consent:
 
 - Firebase Authentication stores information needed to complete and remember sign-in.
 - The cookie/privacy notice stores whether you dismissed it.
+- If allowed, a random pseudonymous reader identifier connects story views and actions across
+  visits. We do not place it until the reader chooses “Allow story analytics”.
 - Hosting infrastructure keeps technical logs needed to provide and protect the site.
 
-If non-essential cookies are added later, we will update the site and request consent before
-setting them.
+Readers can decline optional story analytics and continue to use the site. Clearing site data
+resets the pseudonymous identifier and consent choice.
 
 ## How long we keep data
 

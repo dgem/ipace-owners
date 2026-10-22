@@ -906,6 +906,8 @@
       load();
     }
     document.addEventListener("member:data", start);
+    var authContainer = root.closest("[data-auth-container]");
+    if (authContainer && authContainer.dataset.memberData) start();
   }
   function setupMemberList(root) {
     var started = false;
@@ -1153,30 +1155,44 @@
           );
         }),
         historyAction = closed.length
-          ? '<a class="btn btn--secondary" href="/member/surveys/?filter=closed">Past surveys</a>'
+          ? '<a class="btn btn--secondary btn--sm" href="/member/surveys/?filter=closed">Past surveys</a>'
           : "";
+      function setNotification(id) {
+        if (id) {
+          root.dataset.memberNotification = "";
+          root.dataset.notificationId = id;
+          root.hidden = true;
+        } else {
+          delete root.dataset.memberNotification;
+          delete root.dataset.notificationId;
+          delete root.dataset.notificationDismissed;
+          root.hidden = false;
+          var oldButton = root.querySelector("[data-dismiss-member-notification]");
+          if (oldButton) oldButton.remove();
+        }
+      }
       if (!active.length) {
         if (upcoming.length) {
+          setNotification("survey:upcoming:" + upcoming[0].survey.id);
           root.innerHTML =
-            '<p class="dashboard-panel__eyebrow">Your voice matters</p><h2 class="survey-dashboard-callout__title">' +
+            '<div class="survey-dashboard-callout__content"><p class="dashboard-panel__eyebrow">Your voice matters</p><div class="survey-dashboard-callout__message"><h2 class="survey-dashboard-callout__title">' +
             calloutHeading(upcoming[0].survey) +
-            '</h2><p>This member survey opens soon. Tell us what you want the group to do next.</p><div class="cluster"><a class="btn btn--primary" href="/member/surveys/">View survey</a>' +
+            '</h2><p>This member survey opens soon. Tell us what you think the group should do next.</p></div></div><div class="survey-dashboard-callout__actions"><a class="btn btn--primary btn--sm" href="/member/surveys/">View survey</a>' +
             historyAction +
             "</div>";
+          if (window.ipaceRefreshMemberNotifications) window.ipaceRefreshMemberNotifications();
           return;
         }
+        setNotification("");
         root.innerHTML =
-          '<h2 class="survey-dashboard-callout__title">Member surveys</h2><p>There are no open surveys right now.</p>' +
-          historyAction;
+          '<div class="survey-dashboard-callout__content"><div class="survey-dashboard-callout__message"><h2 class="survey-dashboard-callout__title">Member surveys</h2><p>There are no open surveys right now.</p></div></div><div class="survey-dashboard-callout__actions">' +
+          historyAction +
+          "</div>";
         return;
       }
-      var names = active
-        .map(function (result) {
-          return "<li>" + esc(result.survey.title) + "</li>";
-        })
-        .join("");
+      setNotification("survey:open:" + active.map(function (result) { return result.survey.id; }).sort().join("."));
       root.innerHTML =
-        '<p class="dashboard-panel__eyebrow">Your voice matters</p><h2 class="survey-dashboard-callout__title">' +
+        '<div class="survey-dashboard-callout__content"><p class="dashboard-panel__eyebrow">Your voice matters</p><div class="survey-dashboard-callout__message"><h2 class="survey-dashboard-callout__title">' +
         (active.length === 1
           ? calloutHeading(active[0].survey)
           : "Tell us what you want the group to do next") +
@@ -1184,9 +1200,7 @@
         (active.length === 1
           ? "is an open member survey"
           : "are " + active.length + " open member surveys") +
-        " waiting for your response.</p><ul>" +
-        names +
-        '</ul><div class="cluster"><a class="btn btn--primary" href="' +
+        ' waiting for you.</p></div></div><div class="survey-dashboard-callout__actions"><a class="btn btn--primary btn--sm" href="' +
         (active.length === 1
           ? "/member/survey-response/?id=" + encodeURIComponent(active[0].survey.id)
           : "/member/surveys/") +
@@ -1195,6 +1209,7 @@
         "</a>" +
         historyAction +
         "</div>";
+      if (window.ipaceRefreshMemberNotifications) window.ipaceRefreshMemberNotifications();
     }
     function load() {
       request("/api/member/surveys", "GET")
@@ -1213,6 +1228,8 @@
       window.addEventListener("focus", load);
     }
     document.addEventListener("member:data", start);
+    var authContainer = root.closest("[data-auth-container]");
+    if (authContainer && authContainer.dataset.memberData) start();
   }
   document.querySelectorAll("[data-survey-admin]").forEach(setupAdmin);
   document

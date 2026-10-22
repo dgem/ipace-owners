@@ -135,7 +135,7 @@ header.
 | `POST /api/submit-vehicle-basics` | `SubmitVehicleBasics` | Member | Create or edit one owned vehicle basics record; creation may include an initial SoH reading. |
 | `POST /api/submit-soh` | `SubmitSOH` | Member | Create or edit an owned SoH reading after verifying vehicle ownership. |
 | `POST /api/upsert-service-event` | `UpsertServiceEvent` | Member | Add or edit an owned vehicle's service/fault timeline record. |
-| `POST /api/update-member-preferences` | `UpdateMemberPreferences` | Member | Update contact and anonymised-analysis consent for all Join records of the signed-in email. |
+| `POST /api/update-member-preferences` | `UpdateMemberPreferences` | Member | Update the non-unique display name, volunteering choices, contact consent and anonymised-analysis consent for all Join records of the signed-in email. |
 | `GET/POST /api/member-profile` | `MemberProfile` | Member | Read or update the member's sole contact profile and versioned UK representation choice. |
 | `GET /api/member-address-lookup` | `MemberAddressLookup` | Member | Optional server-side UK postcode lookup; requires an Ideal Postcodes API key. |
 | `POST /api/admin/member-verification` | `AdminMemberVerification` | Admin | Set a separate, admin-only identity-verification flag. |
@@ -143,9 +143,19 @@ header.
 | `POST /api/delete-soh` | `DeleteSOH` | Member | Soft-delete an owned SoH reading after typed confirmation. |
 | `POST /api/delete-service-event` | `DeleteServiceEvent` | Member | Soft-delete an owned service/fault record after typed confirmation. |
 | `GET /api/member-data` | `MemberData` | Member | Return the signed-in user's generated snapshot. |
-| `GET /api/member-export?format=csv\|xlsx` | `MemberExport` | Member | Download that snapshot as separate CSV datasets in a ZIP or a formatted Excel workbook. |
+| `GET /api/member-export?format=csv\|xlsx` | `MemberExport` | Member | Download account records and member experiences as five CSV datasets in a ZIP or a six-sheet Excel workbook. |
+| `GET /api/member/features` | `MemberFeatures` | Member | Resolve server-enforced member feature access from release and Firebase-role rules. |
+| `GET/POST /api/member/notifications` | `MemberNotifications` | Member | List versioned notices dismissed by this member or persist one dismissal. |
+| `GET/POST /api/member/stories` | `MemberStories` | Member | Check eligibility, list owned evidence and save or submit a member experience. |
+| `POST /api/member/story-upload` | `MemberStoryUpload` | Member | Reserve bounded private media and return an expiring signed upload URL. |
+| `POST /api/member/story-upload-complete` | `MemberStoryUploadComplete` | Member | Verify and promote a completed private media upload. |
+| `POST /api/member/story-withdraw` | `MemberStoryWithdraw` | Member | Remove publication permissions immediately and place the story into withdrawal review. |
 | `GET /api/admin/authorize` | `AdminAuthorize` | Admin | Verify an admin page gate without returning admin review records. |
 | `GET /api/admin-data` | `AdminData` | Admin | Return review data for administrators. |
+| `GET /api/admin/members` | `AdminMemberSearch` | Admin | Search member identity, vehicle, preference and story records. |
+| `GET/POST /api/admin/stories` | `AdminStories` | Admin | Review, analyse, edit, approve and publish member stories. |
+| `GET /api/stories` | `PublicStories` | Public | Return the publication-safe fields of website-consented stories. |
+| `POST /api/story-event` | `StoryEvent` | Public | Record a consent-gated pseudonymous story impact event. |
 | `GET /api/admin/stats` | `AdminStats` | Admin | Return public consent-filtered homepage counters alongside private all-record member, vehicle, SoH, and service-event statistics with `Cache-Control: private, no-store`; canonical emails are deduplicated at the first Join before the daily Join trend and country rows are calculated. Include an admin-only model-year service-record breakdown: registered cars, cars with records, all records, faults, repairs, recalls and records tagged H570–H572. It joins service records only to an owned, non-deleted vehicle; it is self-selected evidence, not a fleet fault rate. Derive country from the Join, one unambiguous vehicle country, or a strict UK registration, otherwise use `Unknown` (including conflicting vehicle countries). Magic-link-verified accounts have a separate daily line chart, and no per-vehicle evidence is returned. |
 | `POST /api/admin/reengagement-preview` | `AdminReengagementPreview` | Admin | Return aggregate counts for the consented, unsigned-in Join audience. |
 | `POST /api/admin/reengagement-send` | `AdminReengagementSend` | Admin | Confirm and send the next resumable batch of at most ten reminders. |
@@ -207,7 +217,7 @@ sheet and chart format without exposing member data.
   insight JSON/PPTX versions; future evidence blobs will use authenticated storage.
 - Member pages read a generated member snapshot through `MemberData`; the Function verifies
   auth before returning it.
-- Member exports are generated in memory from the same authenticated snapshot, exclude
+- Member exports are generated in memory from the authenticated snapshot plus experiences owned by the same UID, exclude
   internal UID and hash fields, neutralise spreadsheet formula injection, and use private
   no-store attachment responses.
 - Public dashboard pages read anonymised aggregate data through `PublicStats`. Aggregates
@@ -327,7 +337,7 @@ sheet and chart format without exposing member data.
 - GitHub Actions must delegate common operations through Make targets. Before deploying,
   run `make test-node`, `make test-go`, and `make build`; local verification can use
   `make test` and `make build`.
-- GitHub Actions should use the current Node.js Active LTS from `.nvmrc`, Go 1.26.6 / `go126` for
+- GitHub Actions should use the current Node.js Active LTS from `.nvmrc`, Go 1.26.10 / `go126` for
   Cloud Run functions, and current runtime-compatible action majors. Deploy Cloud Function runtime
   environment variables from an env vars file rather than comma-separated `--set-env-vars`,
   because values such as `ALLOWED_ORIGINS` contain commas.
@@ -425,7 +435,8 @@ Keep these related prompts aligned when the architecture changes:
 - `15-firestore-static-json-data-model.md`
 - `17-operations-ci-and-troubleshooting.md`
 - `20-instagram-campaign-publishing.md`
-- `21-clean-room-reconstruction-contract.md`
+- `21-member-stories-and-impact.md`
+- `22-clean-room-reconstruction-contract.md`
 
 ## Private admin service export
 

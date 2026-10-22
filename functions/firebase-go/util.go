@@ -499,15 +499,28 @@ func userFromToken(ctx context.Context, client *auth.Client, token *auth.Token) 
 }
 
 func isAdmin(user *firebaseUser) bool {
-	if user == nil {
+	return userHasRole(user, "admin")
+}
+
+func userHasRole(user *firebaseUser, wanted string) bool {
+	if user == nil || wanted == "" {
 		return false
 	}
-	if admin, ok := user.Claims["admin"].(bool); ok && admin {
-		return true
+	if wanted == "admin" {
+		if admin, ok := user.Claims["admin"].(bool); ok && admin {
+			return true
+		}
 	}
-	if roles, ok := user.Claims["roles"].([]any); ok {
+	switch roles := user.Claims["roles"].(type) {
+	case []any:
 		for _, role := range roles {
-			if role == "admin" {
+			if value, ok := role.(string); ok && value == wanted {
+				return true
+			}
+		}
+	case []string:
+		for _, role := range roles {
+			if role == wanted {
 				return true
 			}
 		}

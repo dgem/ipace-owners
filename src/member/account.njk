@@ -32,6 +32,7 @@ date: Last Modified
 					<section class="survey-dashboard-callout" data-member-survey-summary aria-live="polite">
 						<p>Loading member surveys…</p>
 					</section>
+					{% include "partials/member-experience-callout.njk" %}
 					<div class="account-layout">
 
 						<div class="dashboard-panel">
@@ -49,6 +50,7 @@ date: Last Modified
 							<div class="cluster" style="margin-top: var(--space-5); padding-top: var(--space-5); border-top: 1px solid var(--color-border);">
 								<a href="/member/dashboard/" class="btn btn--primary btn--sm">Vehicle Data</a>
 								<a href="/member/surveys/" class="btn btn--secondary btn--sm">Member surveys</a>
+								<a href="/member/stories/" class="btn btn--secondary btn--sm" data-member-feature="member-experiences" hidden>Share your experience</a>
 								<button id="account-logout-btn" class="btn btn--secondary btn--sm" type="button">Sign out</button>
 							</div>
 						</div>
@@ -105,14 +107,14 @@ date: Last Modified
 							<div class="dashboard-panel__header">
 								<div>
 									<h2 class="dashboard-panel__title">Export your data</h2>
-									<p class="dashboard-panel__lede">Download a portable copy of the membership, vehicle, battery and service information currently saved in your account.</p>
+									<p class="dashboard-panel__lede">Download a portable copy of the membership, vehicle, battery, service and experience information currently saved in your account.</p>
 								</div>
 							</div>
 							<div class="member-export-options">
 								<div class="member-export-option">
 									<div>
 										<h3>Separate CSV files</h3>
-										<p>Four straightforward CSV files in one ZIP: membership, vehicles, SoH readings, and service and fault history.</p>
+										<p>Five straightforward CSV files in one ZIP: membership, vehicles, SoH readings, service and fault history, and member experiences.</p>
 									</div>
 									<button class="btn btn--secondary" type="button" data-member-export="csv">Download CSV bundle</button>
 								</div>

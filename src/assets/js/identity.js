@@ -423,6 +423,20 @@
 		var formData = new FormData(form);
 		var payload = formDataToObject(formData);
 		var email = payload.email || '';
+		if (endpoint === '/api/submit-join') {
+			try {
+				var attribution = new URLSearchParams(window.location.search);
+				if (window.localStorage.getItem('ipace_analytics_consent') === 'yes') {
+					payload.storyId = attribution.get('story') || '';
+					payload.campaign = attribution.get('campaign') || '';
+					payload.readerId = window.localStorage.getItem('ipace_story_reader') || '';
+				}
+			} catch {
+				payload.storyId = '';
+				payload.campaign = '';
+				payload.readerId = '';
+			}
+		}
 
 		if (result && email) {
 			result.querySelectorAll('[data-registration-email]').forEach(function (el) {

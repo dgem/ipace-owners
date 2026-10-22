@@ -1,0 +1,19 @@
+---
+layout: base.njk
+title: Member experience review
+description: "Review member experiences and publication permissions."
+noindex: true
+adminNavigation: true
+adminBreadcrumb: Member experiences
+memberStoryAdmin: true
+date: Last Modified
+---
+
+{% from "partials/auth-login-gate.njk" import authLoginGate %}
+
+<div class="page-header page-header--compact"><div class="container"><h1 class="page-header__title">Member experience review</h1></div></div>
+<div class="section"><div class="container"><div data-admin-container>
+  {{ authLoginGate("story-admin-email", "Sign in required", "Enter your admin email address to review member experiences.", "admin", false) }}
+  <div class="auth-gate" data-admin-only-gate hidden><h2>Access restricted</h2><p>This page is for group administrators.</p></div>
+  <div class="auth-content" data-admin-content hidden><div data-admin-stories><p>Loading member experiences…</p></div></div>
+</div></div></div>
