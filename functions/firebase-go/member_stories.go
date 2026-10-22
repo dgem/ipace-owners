@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -28,6 +29,8 @@ var storyAllowedMedia = map[string]bool{
 	"image/jpeg": true, "image/png": true, "image/webp": true,
 	"video/mp4": true, "video/quicktime": true, "video/webm": true,
 }
+
+var storyMarkdownTarget = regexp.MustCompile(`!?\[[^\]]*\]\(([^)\s]+)\)`)
 
 type memberStoryConsent struct {
 	Website    bool      `json:"website" firestore:"website"`
@@ -198,6 +201,7 @@ func memberStoriesGet(w http.ResponseWriter, r *http.Request, user *firebaseUser
 	for index := range stories {
 		stories[index] = memberStoryForOwner(stories[index])
 	}
+	addStoryMediaURLs(r.Context(), stories, true)
 	writeJSON(w, 200, map[string]any{"eligible": contactName != "" && displayName != "" && len(snapshot.VehicleRecords) > 0, "displayName": displayName, "vehicles": snapshot.VehicleRecords, "serviceEvents": snapshot.ServiceEvents, "sohReadings": snapshot.BatteryReadings, "stories": stories, "limits": map[string]any{"images": storyMaxImages, "videos": storyMaxVideos, "totalBytes": storyMaxTotalBytes}})
 }
 
@@ -293,6 +297,10 @@ func memberStoriesSave(w http.ResponseWriter, r *http.Request, user *firebaseUse
 	}
 	if story.Title == "" {
 		story.Title = storyTitleFromMarkdown(story.BodyMarkdown)
+	}
+	if message := storyMarkdownMediaError(story.BodyMarkdown, story.Media); message != "" {
+		writeJSON(w, 400, map[string]any{"error": message})
+		return
 	}
 	if input.Submit {
 		for _, media := range story.Media {
@@ -711,6 +719,10 @@ func AdminStories(w http.ResponseWriter, r *http.Request) {
 		story.DisplayName = cleanString(input.DisplayName, 160)
 		story.AdminNotes = cleanString(input.AdminNotes, 2000)
 		story.MemberMessage = cleanString(input.MemberMessage, 2000)
+		if message := storyMarkdownMediaError(story.BodyMarkdown, story.Media); message != "" {
+			writeJSON(w, 400, map[string]any{"error": message})
+			return
+		}
 		switch input.Action {
 		case "save":
 			story.Status = "editing"
@@ -764,6 +776,25 @@ func storyApprovalError(story memberStory) string {
 	for _, media := range story.Media {
 		if media.Status != "ready" {
 			return "All media uploads must be complete"
+		}
+	}
+	if message := storyMarkdownMediaError(story.BodyMarkdown, story.Media); message != "" {
+		return message
+	}
+	return ""
+}
+
+func storyMarkdownMediaError(markdown string, media []memberStoryMedia) string {
+	images := map[string]bool{}
+	for _, item := range media {
+		if item.Status == "ready" && strings.HasPrefix(item.ContentType, "image/") {
+			images[item.ID] = true
+		}
+	}
+	for _, match := range storyMarkdownTarget.FindAllStringSubmatch(markdown, -1) {
+		target := match[1]
+		if !strings.HasPrefix(match[0], "![") || !strings.HasPrefix(target, "story-media:") || !images[strings.TrimPrefix(target, "story-media:")] {
+			return "Links may only insert photos uploaded to this experience"
 		}
 	}
 	return ""

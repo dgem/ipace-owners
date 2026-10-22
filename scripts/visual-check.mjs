@@ -428,7 +428,7 @@ async function checkMemberStories(viewport, screenshotName) {
     vehicles: [{ id: 'vehicle-1', vehicle: { registration: 'AB12 CDE', modelYear: '2020' } }, { id: 'vehicle-2', vehicle: { registration: 'XY34 ZZZ', modelYear: '2022' } }],
     serviceEvents: [{ id: 'event-1', vehicleId: 'vehicle-1', occurredAt: '2026-05-04', eventType: 'executive-office-contact', title: 'Executive Office escalation' }],
     sohReadings: [{ id: 'soh-1', vehicleId: 'vehicle-1', battery: { measuredAt: '2026-04-10', stateOfHealth: 78 } }],
-    stories: [{ id: 'story-1', title: 'Three modules and still waiting', bodyMarkdown: 'My I-PACE needed three battery modules replaced. One replacement later failed again and I am still waiting for a lasting resolution.', displayName: 'Alex Owner', status: 'needs-member-clarification', memberMessage: 'Please add the date of the replacement-module failure.', consent: { website: true, thirdParty: true, copyright: true, truthful: true }, evidence: { vehicleId: 'vehicle-1', serviceEventIds: ['event-1'], sohReadingIds: ['soh-1'] }, media: [] }]
+    stories: [{ id: 'story-1', title: 'Three modules and still waiting', bodyMarkdown: 'My I-PACE needed three battery modules replaced. One replacement later failed again and I am still waiting for a lasting resolution.', displayName: 'Alex Owner', status: 'needs-member-clarification', memberMessage: 'Please add the date of the replacement-module failure.', consent: { website: true, thirdParty: true, copyright: true, truthful: true }, evidence: { vehicleId: 'vehicle-1', serviceEventIds: ['event-1'], sohReadingIds: ['soh-1'] }, media: [{ id: 'photo-1', name: 'battery-warning.png', contentType: 'image/png', status: 'ready', url: '/images/racing-laurel-email.png' }] }]
   }) }));
   await page.goto(baseURL + '/member/stories/', { waitUntil: 'networkidle' });
   await page.evaluate(() => {
@@ -457,6 +457,11 @@ async function checkMemberStories(viewport, screenshotName) {
   assert.equal(await page.getByRole('button', { name: 'Edit' }).count(), 1);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
+  await page.getByRole('button', { name: 'Edit' }).click();
+  const insertImage = page.getByRole('button', { name: 'Insert in experience' });
+  await insertImage.waitFor({ state: 'visible' });
+  await insertImage.click();
+  assert.equal(await page.locator('[data-story-editor] img[data-story-media-id="photo-1"]').count(), 1);
   await page.close();
 }
 
@@ -686,6 +691,14 @@ async function checkMemberAccountManagement(viewport, screenshotName) {
   });
   await page.goto(baseURL + '/member/account/', { waitUntil: 'networkidle' });
   await page.locator('[data-vehicle-list] .account-vehicle-card').waitFor({ state: 'visible' });
+  await page.locator('[data-member-survey-summary]').evaluate((element) => {
+    element.hidden = false;
+    element.innerHTML = '<div class="survey-dashboard-callout__content"><p class="dashboard-panel__eyebrow">Your voice matters</p><div class="survey-dashboard-callout__message"><h2 class="survey-dashboard-callout__title">What do you think the group should do next?</h2><p>There is an open member survey waiting for you.</p></div></div><div class="survey-dashboard-callout__actions"><a class="btn btn--primary btn--sm" href="/member/survey-response/?id=survey_what_next_october_2026">Take the survey</a><a class="btn btn--secondary btn--sm" href="/member/surveys/?filter=closed">Past surveys</a></div><button class="member-notification__dismiss" type="button" aria-label="Dismiss this notice">Dismiss</button>';
+  });
+  const surveyCallout = page.locator('[data-member-survey-summary]');
+  await surveyCallout.getByRole('link', { name: 'Take the survey' }).waitFor({ state: 'visible' });
+  assert.equal(await surveyCallout.locator('ul').count(), 0, 'survey callout must not repeat its title as a bullet');
+  assert.equal(await surveyCallout.getByRole('link', { name: 'Past surveys' }).count(), 1);
   assert.equal(await page.locator('.member-experience-callout').getByRole('link', { name: 'Share your experience' }).count(), 1);
   assert.equal(await page.locator('.member-experience-callout').getByRole('button', { name: 'Dismiss this notice' }).count(), 1);
   assert.equal(await page.locator('[data-preferences-form]').isHidden(), true, 'preferences should be an explicit action');

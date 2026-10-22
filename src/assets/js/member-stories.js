@@ -7,6 +7,7 @@
   var state = null;
   var selectedFiles = [];
   var previewURLs = [];
+  var editorMedia = [];
   var mediaTypes = ['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/quicktime', 'video/webm'];
 
   function esc(value) {
@@ -52,7 +53,11 @@
 
   function inlineMarkdown(value) {
     return esc(value)
-      .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2">$1</a>')
+      .replace(/!\[([^\]]*)\]\(story-media:([a-zA-Z0-9_-]+)\)/g, function (match, alt, id) {
+        var item = editorMedia.find(function (media) { return media.id === id && media.status === 'ready' && media.contentType.indexOf('image/') === 0 && media.url; });
+        if (!item) return alt;
+        return '<a class="story-inline-image" href="' + esc(item.url) + '" target="_blank" rel="noopener noreferrer"><img src="' + esc(item.url) + '" alt="' + (alt || esc(item.name)) + '" data-story-media-id="' + esc(item.id) + '"></a>';
+      })
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.+?)\*/g, '<em>$1</em>');
   }
@@ -79,9 +84,13 @@
     if (tag === 'br') return '\n';
     if (tag === 'strong' || tag === 'b') return '**' + children + '**';
     if (tag === 'em' || tag === 'i') return '*' + children + '*';
+    if (tag === 'img') {
+      var mediaID = node.getAttribute('data-story-media-id') || '';
+      var alt = (node.getAttribute('alt') || '').replace(/\[/g, '').replace(/\]/g, '');
+      return /^[a-zA-Z0-9_-]+$/.test(mediaID) ? '![' + alt + '](story-media:' + mediaID + ')' : '';
+    }
     if (tag === 'a') {
-      var href = node.getAttribute('href') || '';
-      return /^https?:\/\//i.test(href) ? '[' + children + '](' + href + ')' : children;
+      return children;
     }
     if (tag === 'ul' || tag === 'ol') {
       return Array.from(node.children).filter(function (item) { return item.tagName.toLowerCase() === 'li'; }).map(function (item, index) {
@@ -118,6 +127,7 @@
     }
 
     editing = editing || {};
+    editorMedia = editing.media || [];
     var evidence = editing.evidence || {};
     var consent = editing.consent || {};
     var vehicles = state.vehicles || [];
@@ -125,8 +135,11 @@
     var vehicleControl = vehicles.length > 1
       ? '<div class="form-group"><label for="story-vehicle">Which car is this about?</label><select id="story-vehicle" name="vehicleId" required><option value="">Choose your car</option>' + vehicles.map(function (item) { return vehicleOption(item, item.id === selectedVehicle); }).join('') + '</select></div>'
       : '<input name="vehicleId" type="hidden" value="' + esc(selectedVehicle) + '">';
-    var existingMedia = (editing.media || []).filter(function (item) { return item.status === 'ready'; }).map(function (item) {
-      return '<li><span>' + esc(item.name) + '</span><span class="form-hint">Already uploaded</span></li>';
+    var existingMedia = editorMedia.filter(function (item) { return item.status === 'ready'; }).map(function (item) {
+      var insert = item.contentType.indexOf('image/') === 0
+        ? '<button class="btn btn--secondary btn--sm" type="button" data-insert-story-image="' + esc(item.id) + '">Insert in experience</button>'
+        : '<span class="form-hint">Uploaded video</span>';
+      return '<li><span>' + esc(item.name) + '</span>' + insert + '</li>';
     }).join('');
     var submissions = (state.stories || []).map(function (story) {
       var editable = story.status === 'draft' || story.status === 'needs-member-clarification';
@@ -138,8 +151,8 @@
 
     root.innerHTML = '<section class="story-guidance"><div><h2>Share your experience</h2><p>Tell us what happened, how it affected you and what you want to happen next.</p></div><a href="/member/account/">My Data</a></section>' +
       '<form class="member-form-panel story-form" data-story-form data-story-id="' + esc(editing.id || '') + '">' +
-      '<div class="form-group"><label id="story-body-label">Your experience</label><div class="story-editor" data-story-editor-shell><div class="story-editor__toolbar" role="toolbar" aria-label="Text formatting"><button type="button" data-editor-command="bold" aria-label="Bold"><strong>B</strong></button><button type="button" data-editor-command="italic" aria-label="Italic"><em>I</em></button><button type="button" data-editor-command="insertUnorderedList" aria-label="Bulleted list">• List</button><button type="button" data-editor-command="insertOrderedList" aria-label="Numbered list">1. List</button><button type="button" data-editor-link aria-label="Add link">Link</button></div><div class="story-editor__surface" data-story-editor contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="story-body-label" data-placeholder="What happened? How did it affect you? What response did you receive?">' + markdownToEditorHTML(editing.bodyMarkdown || '') + '</div><div class="story-editor__footer"><span>Bold, italics, lists and links</span><span data-story-character-count>0 / 20,000</span></div></div></div>' +
-      '<div class="form-group"><label>Photos and short videos <span class="form-hint">(optional)</span></label><div class="story-media-picker" data-story-dropzone><label class="story-media-picker__button" for="story-media">Choose photos or videos<span>Use your photo library, camera roll or files</span></label><input class="visually-hidden" id="story-media" name="media" type="file" accept="image/*,video/mp4,video/quicktime,video/webm" multiple><p>Up to 5 photos and 2 videos; 250 MB total. You can select several at once.</p></div>' + (existingMedia ? '<ul class="story-existing-media">' + existingMedia + '</ul>' : '') + '<div class="story-media-previews" data-story-media-previews></div><p class="form-hint" data-story-media-status role="status"></p></div>' +
+      '<div class="form-group"><label id="story-body-label">Your experience</label><div class="story-editor" data-story-editor-shell><div class="story-editor__toolbar" role="toolbar" aria-label="Text formatting"><button type="button" data-editor-command="bold" aria-label="Bold"><strong>B</strong></button><button type="button" data-editor-command="italic" aria-label="Italic"><em>I</em></button><button type="button" data-editor-command="insertUnorderedList" aria-label="Bulleted list">• List</button><button type="button" data-editor-command="insertOrderedList" aria-label="Numbered list">1. List</button></div><div class="story-editor__surface" data-story-editor contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="story-body-label" data-placeholder="What happened? How did it affect you? What response did you receive?">' + markdownToEditorHTML(editing.bodyMarkdown || '') + '</div><div class="story-editor__footer"><span>Bold, italics, lists and your uploaded images</span><span data-story-character-count>0 / 20,000</span></div></div></div>' +
+      '<div class="form-group"><label>Photos and short videos <span class="form-hint">(optional)</span></label><div class="story-media-picker" data-story-dropzone><label class="story-media-picker__button" for="story-media">Choose photos or videos<span>Use your photo library, camera roll or files</span></label><input class="visually-hidden" id="story-media" name="media" type="file" accept="image/*,video/mp4,video/quicktime,video/webm" multiple><p>Up to 5 photos and 2 videos; 250 MB total. You can select several at once.</p></div>' + (existingMedia ? '<p class="form-hint">Uploaded photos can be inserted into your experience. Select the image itself to open the full version.</p><ul class="story-existing-media">' + existingMedia + '</ul>' : '') + '<div class="story-media-previews" data-story-media-previews></div><p class="form-hint" data-story-media-status role="status"></p></div>' +
       '<div class="story-publication-settings"><p class="form-hint">Published as <strong>' + esc(state.displayName) + '</strong>. <a href="/member/account/">Change your display name in My Data</a>. Your contact details remain private.</p><fieldset><legend>Permissions</legend><label class="check-label"><input name="websiteConsent" type="checkbox" required' + checked(consent.website) + '> Publish this experience and selected media on this website.</label><label class="check-label"><input name="thirdPartyConsent" type="checkbox"' + checked(consent.thirdParty) + '> It may also be used in social media, press and publisher materials.</label><label class="check-label"><input name="copyrightConfirmed" type="checkbox"' + checked(consent.copyright) + '> I own, or have permission to supply, uploaded media.</label><label class="check-label"><input name="truthfulConfirmed" type="checkbox" required' + checked(consent.truthful) + '> This is true to the best of my knowledge.</label></fieldset></div>' +
       '<div class="story-vehicle-choice">' + vehicleControl + '</div>' +
       '<details class="story-evidence-picker"' + ((evidence.serviceEventIds || []).length || (evidence.sohReadingIds || []).length ? ' open' : '') + '><summary>Connect records from My Data <span>optional</span></summary><p>Linked records help turn individual experiences into evidence. <a href="/member/dashboard/">Add or check your records</a>.</p><div data-story-evidence><p class="form-hint">' + (selectedVehicle ? 'Loading records…' : 'Choose a car to see its records.') + '</p></div></details>' +
@@ -182,24 +195,15 @@
       button.addEventListener('mousedown', function (event) { event.preventDefault(); });
       button.addEventListener('click', function () { editor.focus(); document.execCommand(button.dataset.editorCommand, false); updateCount(); });
     });
-    var linkButton = root.querySelector('[data-editor-link]');
-    linkButton.addEventListener('mousedown', function (event) { event.preventDefault(); });
-    linkButton.addEventListener('click', function () {
-      var selection = window.getSelection();
-      var range = selection && selection.rangeCount ? selection.getRangeAt(0).cloneRange() : null;
-      var href = window.prompt('Paste a web link beginning with https://');
-      if (!href) return;
-      try {
-        var parsed = new URL(href);
-        if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') throw new Error('Unsupported link');
-      } catch {
-        window.alert('Please enter a complete http:// or https:// link.');
-        return;
-      }
-      editor.focus();
-      if (range) { selection.removeAllRanges(); selection.addRange(range); }
-      document.execCommand('createLink', false, href);
-      updateCount();
+    root.querySelectorAll('[data-insert-story-image]').forEach(function (button) {
+      button.addEventListener('mousedown', function (event) { event.preventDefault(); });
+      button.addEventListener('click', function () {
+        var item = editorMedia.find(function (media) { return media.id === button.dataset.insertStoryImage; });
+        if (!item || !item.url) return;
+        editor.focus();
+        document.execCommand('insertHTML', false, '<p><a class="story-inline-image" href="' + esc(item.url) + '" target="_blank" rel="noopener noreferrer"><img src="' + esc(item.url) + '" alt="' + esc(item.name) + '" data-story-media-id="' + esc(item.id) + '"></a></p>');
+        updateCount();
+      });
     });
     updateCount();
   }

@@ -6,7 +6,7 @@ Build a member-experience workflow that turns personal experience into consented
 
 - Only authenticated members with a saved name and at least one registered vehicle may submit.
 - Use the member's non-unique display-name preference as the attribution while keeping contact and legal names private. If the preference is empty and a legal name is saved, default to its first name. Manage this once in My Data rather than asking for a separate attribution on each experience.
-- Use a familiar, limited rich-text editor for bold, italics, lists and web links, and store its 80–20,000 character content as safe Markdown. Do not ask the member for a title; derive an editorial title from the experience and allow admins to refine it.
+- Use a familiar, limited rich-text editor for bold, italics and lists, and store its 80–20,000 character content as safe Markdown. Do not accept arbitrary web links. Members may insert only images already uploaded to that experience; store a stable media reference in Markdown and render it as a linked image so the full uploaded image remains available. Validate media references server-side. Do not ask the member for a title; derive an editorial title from the experience and allow admins to refine it.
 - Require a linked vehicle, but show a vehicle chooser only when the member has more than one. Keep vehicle and optional evidence links after the main writing and media controls. Allow links to the member's existing service/fault, Executive Office and SoH records. References must be ownership-checked server-side.
 - Encourage members to complete missing vehicle and history records so their story strengthens aggregate evidence.
 - Accept up to five JPEG/PNG/WebP images and two MP4/QuickTime/WebM short videos, with a combined 250 MB limit. Use a native multiple-file picker that can open device photo libraries or files, and show removable thumbnails before upload.
@@ -24,7 +24,7 @@ Build a member-experience workflow that turns personal experience into consented
 - Public APIs return only published, website-consented fields and short-lived media URLs. Never expose member UID, email, private name, review notes or private model analysis.
 - Public pages show the member's story with an anonymised summary of the linked evidence and links inviting readers to register or add their own vehicle records.
 - Call the member-facing area “Member experiences”, keep explanatory copy compact on mobile, and link directly back to My Data.
-- Show a concise “What you can do next” callout on both My Data pages explaining why experiences matter, with a direct “Share your experience” action. Repeat that action beside Vehicle history so members can move from recording events to describing their impact.
+- Show a concise “What you can do next” callout on both My Data pages explaining why experiences matter, with a direct “Share your experience” action. Keep it in one horizontal row when desktop space permits and compact on mobile. Repeat that action beside Vehicle history so members can move from recording events to describing their impact.
 - Make member callouts reusable, versioned and dismissible. Store dismissals against the authenticated account so they follow the member across devices; use a survey-specific ID so a later survey can appear even when an earlier one was dismissed.
 - Include the member's experience text, consent, evidence counts and safe media metadata in both CSV and workbook account exports. Exclude contact details, storage object names, admin notes and AI analysis.
 

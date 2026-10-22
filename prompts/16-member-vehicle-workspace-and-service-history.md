@@ -189,7 +189,9 @@ On both member landing pages—`/member/dashboard/` and `/member/account/` (the 
 signed-in `My Data` header action)—place a prominent, plain-language callout before the main
 workspace: when one survey is open, make its title the callout heading so the question itself is
 the call to action; when several are open, use the direct prompt “Tell us what you want the group
-to do next”. Provide a primary `Take the survey` action plus a `Past surveys` action only when
+to do next”. Keep these notices compact: use one horizontal row for message and actions when desktop
+space permits, reduce their spacing on mobile, and do not repeat survey titles as a bulleted list beneath
+the callout heading. Provide a primary `Take the survey` action plus a `Past surveys` action only when
 closed surveys exist. When exactly one survey is open, the primary action must link directly to
 its response page; with more than one, it may lead to the survey directory to avoid arbitrarily
 selecting one. When none is open but a published survey is scheduled, show its title, say that it

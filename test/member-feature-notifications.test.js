@@ -55,3 +55,15 @@ test('member experiences use the membership display name', () => {
   assert.doesNotMatch(stories, /name="displayName"/);
   assert.match(preferences, /payload\.displayName/);
 });
+
+test('member experience editor inserts uploaded images instead of arbitrary links', () => {
+  const stories = read('src/assets/js/member-stories.js');
+  const publicStories = read('src/assets/js/public-member-stories.js');
+
+  assert.match(stories, /data-insert-story-image/);
+  assert.match(stories, /story-media:/);
+  assert.match(stories, /data-story-media-id/);
+  assert.doesNotMatch(stories, /window\.prompt\('Paste a web link/);
+  assert.doesNotMatch(stories, /data-editor-link/);
+  assert.match(publicStories, /story-inline-image/);
+});

@@ -90,6 +90,28 @@ func TestStoryApprovalRequiresPublicationConsentAndReadyMedia(t *testing.T) {
 	}
 }
 
+func TestStoryMarkdownLinksOnlyReferenceReadyUploadedImages(t *testing.T) {
+	media := []memberStoryMedia{
+		{ID: "photo-1", ContentType: "image/jpeg", Status: "ready"},
+		{ID: "video-1", ContentType: "video/mp4", Status: "ready"},
+		{ID: "pending-photo", ContentType: "image/png", Status: "pending"},
+	}
+	if message := storyMarkdownMediaError("Before\n\n![Battery warning](story-media:photo-1)\n\nAfter", media); message != "" {
+		t.Fatalf("ready uploaded image was rejected: %s", message)
+	}
+	for _, markdown := range []string{
+		"[External site](https://example.com)",
+		"![Remote image](https://example.com/photo.jpg)",
+		"![Video](story-media:video-1)",
+		"![Pending](story-media:pending-photo)",
+		"![Unknown](story-media:missing-photo)",
+	} {
+		if message := storyMarkdownMediaError(markdown, media); message == "" {
+			t.Fatalf("unsupported link was accepted: %q", markdown)
+		}
+	}
+}
+
 func TestStoryTitleIsDerivedFromFirstMeaningfulLine(t *testing.T) {
 	got := storyTitleFromMarkdown("\n\n## What happened\n\nThe battery failed without warning.")
 	if got != "The battery failed without warning." {
