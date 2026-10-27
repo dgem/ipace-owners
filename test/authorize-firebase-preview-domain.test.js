@@ -26,7 +26,7 @@ test("rejects domains outside the current Firebase project", async () => {
   );
 });
 
-test("replaces stale PR domains without dropping permanent domains", async () => {
+test("preserves concurrent PR domains and permanent domains", async () => {
   const { mergeAuthorizedDomains } = await import("../scripts/authorize-firebase-preview-domain.mjs");
   const hostname = "ipace-owners-staging--pr-20-ef2wibc5.web.app";
 
@@ -39,8 +39,35 @@ test("replaces stale PR domains without dropping permanent domains", async () =>
         hostname,
       ],
       hostname,
-      "ipace-owners-staging",
     ),
-    ["ipace-owners-staging--pr-20-ef2wibc5.web.app", "ipace-owners-staging.web.app", "localhost"],
+    [
+      "ipace-owners-staging--pr-19-old.web.app",
+      "ipace-owners-staging--pr-20-ef2wibc5.web.app",
+      "ipace-owners-staging.web.app",
+      "localhost",
+    ],
+  );
+});
+
+test("removes only the closed PR preview domain", async () => {
+  const { removeAuthorizedPreviewDomains } = await import("../scripts/authorize-firebase-preview-domain.mjs");
+
+  assert.deepEqual(
+    removeAuthorizedPreviewDomains(
+      [
+        "localhost",
+        "ipace-owners-staging--pr-19-old.web.app",
+        "ipace-owners-staging--pr-20-current.web.app",
+        "ipace-owners-staging.web.app",
+      ],
+      "ipace-owners-staging",
+      "19",
+    ),
+    ["ipace-owners-staging--pr-20-current.web.app", "ipace-owners-staging.web.app", "localhost"],
+  );
+
+  assert.throws(
+    () => removeAuthorizedPreviewDomains([], "ipace-owners-staging", "not-a-number"),
+    /pull request number/,
   );
 });

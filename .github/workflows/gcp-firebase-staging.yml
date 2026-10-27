@@ -295,9 +295,15 @@ jobs:
           create_credentials_file: true
           export_environment_variables: true
           token_format: access_token
+      - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3
       - name: Delete merged pull request preview channel
         env:
           GCP_PROJECT_ID: ${{ vars.FIREBASE_STAGING_PROJECT_ID }}
           CHANNEL_ID: pr-${{ github.event.pull_request.number }}
           FIREBASE_CLI_ACCESS_TOKEN: ${{ steps.gcp-auth.outputs.access_token }}
         run: make delete-hosting-preview
+      - name: Remove merged pull request from Firebase Auth domains
+        env:
+          GCP_PROJECT_ID: ${{ vars.FIREBASE_STAGING_PROJECT_ID }}
+          FIREBASE_PREVIEW_PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: make unauthorize-preview-domain
