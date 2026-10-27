@@ -170,6 +170,17 @@ jobs:
           INSTAGRAM_MEDIA_BASE_URL: ${{ steps.hosting.outputs.url }}
         run: make deploy-functions
 
+      - name: Reconcile signed-URL IAM permission
+        if: steps.backend.outputs.deploy == 'true'
+        env:
+          GCP_PROJECT_ID: ${{ vars.FIREBASE_STAGING_PROJECT_ID }}
+          FUNCTIONS_SERVICE_ACCOUNT: ${{ secrets.GCP_FUNCTIONS_SERVICE_ACCOUNT_STAGING }}
+        run: |
+          gcloud iam service-accounts add-iam-policy-binding "$FUNCTIONS_SERVICE_ACCOUNT" \
+            --project="$GCP_PROJECT_ID" \
+            --member="serviceAccount:$FUNCTIONS_SERVICE_ACCOUNT" \
+            --role="roles/iam.serviceAccountTokenCreator"
+
       - name: Refresh Firebase Hosting preview with current Function revisions
         if: steps.backend.outputs.deploy == 'true'
         env:
