@@ -693,7 +693,7 @@ async function checkMemberAccountManagement(viewport, screenshotName) {
   await page.locator('[data-vehicle-list] .account-vehicle-card').waitFor({ state: 'visible' });
   await page.locator('[data-member-survey-summary]').evaluate((element) => {
     element.hidden = false;
-    element.innerHTML = '<div class="survey-dashboard-callout__content"><p class="dashboard-panel__eyebrow">Your voice matters</p><div class="survey-dashboard-callout__message"><h2 class="survey-dashboard-callout__title">What do you think the group should do next?</h2><p>There is an open member survey waiting for you.</p></div></div><div class="survey-dashboard-callout__actions"><a class="btn btn--primary btn--sm" href="/member/survey-response/?id=survey_what_next_october_2026">Take the survey</a><a class="btn btn--secondary btn--sm" href="/member/surveys/?filter=closed">Past surveys</a></div><button class="member-notification__dismiss" type="button" aria-label="Dismiss this notice">Dismiss</button>';
+    element.innerHTML = '<div class="survey-dashboard-callout__content"><p class="dashboard-panel__eyebrow">Your voice matters</p><div class="survey-dashboard-callout__message"><h2 class="survey-dashboard-callout__title">What do you think the group should do next?</h2><p>There is an open member survey waiting for you.</p></div></div><div class="survey-dashboard-callout__actions"><a class="btn btn--primary btn--sm" href="/member/survey-response/?id=survey_what_next_october_2026">Take the survey</a><a class="btn btn--primary btn--sm" href="/member/surveys/?filter=closed">Past surveys</a></div><button class="member-notification__dismiss" type="button" aria-label="Dismiss this notice">Dismiss</button>';
   });
   const surveyCallout = page.locator('[data-member-survey-summary]');
   await surveyCallout.getByRole('link', { name: 'Take the survey' }).waitFor({ state: 'visible' });
@@ -701,6 +701,21 @@ async function checkMemberAccountManagement(viewport, screenshotName) {
   assert.equal(await surveyCallout.getByRole('link', { name: 'Past surveys' }).count(), 1);
   assert.equal(await page.locator('.member-experience-callout').getByRole('link', { name: 'Share your experience' }).count(), 1);
   assert.equal(await page.locator('.member-experience-callout').getByRole('button', { name: 'Dismiss this notice' }).count(), 1);
+  const noticeLayout = await page.locator('.member-account-notices').evaluate((element) => ({
+    firstTop: element.children[0].getBoundingClientRect().top,
+    secondTop: element.children[1].getBoundingClientRect().top,
+    columns: getComputedStyle(element).gridTemplateColumns
+  }));
+  if (viewport.width >= 1025) {
+    assert.equal(noticeLayout.firstTop, noticeLayout.secondTop, 'account notices should share one desktop row');
+    assert.equal(noticeLayout.columns.split(' ').length, 2, 'account notices should use two desktop columns');
+    for (const notice of await page.locator('.member-account-notices .survey-dashboard-callout').all()) {
+      const regions = await notice.locator(':scope > .survey-dashboard-callout__content, :scope > .survey-dashboard-callout__actions').evaluateAll((elements) => elements.map((element) => element.getBoundingClientRect()).map((rect) => ({ top: rect.top, right: rect.right, bottom: rect.bottom, left: rect.left })));
+      assert.ok(regions.length < 2 || regions[0].bottom <= regions[1].top, 'notice content and actions must not overlap');
+    }
+  } else {
+    assert.notEqual(noticeLayout.firstTop, noticeLayout.secondTop, 'account notices should stack on small screens');
+  }
   assert.equal(await page.locator('[data-preferences-form]').isHidden(), true, 'preferences should be an explicit action');
   await page.getByRole('button', { name: 'Edit preferences' }).click();
   assert.equal(await page.locator('[data-preferences-form]').isVisible(), true);

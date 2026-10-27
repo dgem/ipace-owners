@@ -29,10 +29,12 @@ date: Last Modified
 
 				 <!-- Content — revealed by member-auth.js after server confirms auth -->
 				<div class="auth-content" data-auth-content hidden>
-					<section class="survey-dashboard-callout" data-member-survey-summary aria-live="polite">
-						<p>Loading member surveys…</p>
-					</section>
-					{% include "partials/member-experience-callout.njk" %}
+					<div class="member-account-notices">
+						<section class="survey-dashboard-callout" data-member-survey-summary aria-live="polite">
+							<p>Loading member surveys…</p>
+						</section>
+						{% include "partials/member-experience-callout.njk" %}
+					</div>
 					<div class="account-layout">
 
 						<div class="dashboard-panel">
@@ -49,8 +51,8 @@ date: Last Modified
 							</dl>
 							<div class="cluster" style="margin-top: var(--space-5); padding-top: var(--space-5); border-top: 1px solid var(--color-border);">
 								<a href="/member/dashboard/" class="btn btn--primary btn--sm">Vehicle Data</a>
-								<a href="/member/surveys/" class="btn btn--secondary btn--sm">Member surveys</a>
-								<a href="/member/stories/" class="btn btn--secondary btn--sm" data-member-feature="member-experiences" hidden>Share your experience</a>
+								<a href="/member/surveys/" class="btn btn--primary btn--sm">Member surveys</a>
+								<a href="/member/stories/" class="btn btn--primary btn--sm" data-member-feature="member-experiences" hidden>Share your experience</a>
 								<button id="account-logout-btn" class="btn btn--secondary btn--sm" type="button">Sign out</button>
 							</div>
 						</div>

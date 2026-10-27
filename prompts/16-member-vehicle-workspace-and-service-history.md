@@ -192,7 +192,10 @@ the call to action; when several are open, use the direct prompt “Tell us what
 to do next”. Keep these notices compact: use one horizontal row for message and actions when desktop
 space permits, reduce their spacing on mobile, and do not repeat survey titles as a bulleted list beneath
 the callout heading. Provide a primary `Take the survey` action plus a `Past surveys` action only when
-closed surveys exist. When exactly one survey is open, the primary action must link directly to
+closed surveys exist. On the account page, place the survey and member-experience notices side by
+side in two equal columns at desktop widths and stack them on smaller screens. Keep the pill-style
+links in account actions and notices consistently teal; reserve the outlined treatment for controls
+such as sign-out or dismissal rather than destination links. When exactly one survey is open, the primary action must link directly to
 its response page; with more than one, it may lead to the survey directory to avoid arbitrarily
 selecting one. When none is open but a published survey is scheduled, show its title, say that it
 opens soon and link to the survey directory. Refresh this summary after

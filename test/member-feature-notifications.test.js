@@ -32,6 +32,19 @@ test('member calls to action and surveys have reusable versioned dismissal ident
   assert.match(layout, /member-features\.js/);
 });
 
+test('account notices share a responsive two-column group with consistent links', () => {
+  const account = read('src/member/account.njk');
+  const surveys = read('src/assets/js/surveys.js');
+  const css = read('src/assets/css/site.css');
+
+  assert.match(account, /class="member-account-notices"/);
+  assert.match(css, /\.member-account-notices[\s\S]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(surveys, /historyAction[\s\S]*btn btn--primary btn--sm/);
+  assert.doesNotMatch(surveys, /btn btn--secondary btn--sm" href="\/member\/surveys\/\?filter=closed">Past surveys/);
+  assert.match(account, /href="\/member\/surveys\/" class="btn btn--primary btn--sm"/);
+  assert.match(account, /href="\/member\/stories\/" class="btn btn--primary btn--sm"/);
+});
+
 test('deployment passes member feature rules to functions', () => {
   const moduleActions = read('infra/opentofu/modules/ipace-owners/github-actions.tf');
   const staging = read('infra/opentofu/env/staging.tfvars.example');

@@ -1155,7 +1155,7 @@
           );
         }),
         historyAction = closed.length
-          ? '<a class="btn btn--secondary btn--sm" href="/member/surveys/?filter=closed">Past surveys</a>'
+          ? '<a class="btn btn--primary btn--sm" href="/member/surveys/?filter=closed">Past surveys</a>'
           : "";
       function setNotification(id) {
         if (id) {

@@ -1717,6 +1717,48 @@ textarea {
   box-shadow: var(--shadow-sm);
 }
 
+.member-account-notices {
+  display: grid;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.member-account-notices .survey-dashboard-callout {
+  height: 100%;
+  margin-bottom: 0;
+}
+
+@media (min-width: 64.01rem) {
+  .member-account-notices {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .member-account-notices .survey-dashboard-callout {
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+    padding: var(--space-4);
+  }
+
+  .member-account-notices .survey-dashboard-callout__content,
+  .member-account-notices .survey-dashboard-callout__message {
+    display: block;
+  }
+
+  .member-account-notices .survey-dashboard-callout__content {
+    padding-right: 4.5rem;
+  }
+
+  .member-account-notices .survey-dashboard-callout__content .dashboard-panel__eyebrow,
+  .member-account-notices .survey-dashboard-callout__title {
+    margin-bottom: var(--space-2);
+  }
+
+  .member-account-notices .survey-dashboard-callout__actions {
+    align-self: end;
+    padding-right: 0;
+  }
+}
+
 .survey-dashboard-callout__content,
 .survey-dashboard-callout__message,
 .survey-dashboard-callout__actions {
