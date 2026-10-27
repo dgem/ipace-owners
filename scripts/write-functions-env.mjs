@@ -43,5 +43,9 @@ try {
 }
 values.GOOGLE_CLOUD_PROJECT = values.FIREBASE_PROJECT_ID;
 values.GCP_PROJECT = values.FIREBASE_PROJECT_ID;
+// Signed Cloud Storage URLs need the runtime service account as the
+// authorising identity.  The deploy workflow already supplies this value to
+// gcloud; copy it into the Functions environment without storing a key.
+values.STORAGE_SIGNING_SERVICE_ACCOUNT = process.env.FUNCTIONS_SERVICE_ACCOUNT || "";
 
 writeFileSync("functions-env.json", `${JSON.stringify(values, null, 2)}\n`);

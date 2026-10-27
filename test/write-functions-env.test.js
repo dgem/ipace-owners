@@ -21,6 +21,7 @@ test("writes function env vars as JSON without splitting comma-separated origins
       ALLOWED_ORIGINS: "https://stage.ipace-owners.org,http://localhost:8080,http://localhost:5000",
       FIREBASE_EMAIL_CONTINUE_URL: "https://stage.ipace-owners.org/member/account/",
       FIREBASE_EMAIL_LINK_DOMAIN: "stage.ipace-owners.org",
+      FUNCTIONS_SERVICE_ACCOUNT: "ipace-functions@ipace-owners-staging.iam.gserviceaccount.com",
       RESEND_FROM: "I-PACE Owners <members@stage.ipace-owners.org>",
       RESEND_REPLY_TO: "contact@ipace-owners.org",
       RESEND_ASSET_BASE_URL: "https://stage.ipace-owners.org",
@@ -62,6 +63,7 @@ test("writes function env vars as JSON without splitting comma-separated origins
 	    NEXT_STEPS_SURVEY_STATUS: "published",
     GOOGLE_CLOUD_PROJECT: "ipace-owners-staging",
     GCP_PROJECT: "ipace-owners-staging",
+    STORAGE_SIGNING_SERVICE_ACCOUNT: "ipace-functions@ipace-owners-staging.iam.gserviceaccount.com",
   });
 });
 
@@ -112,4 +114,5 @@ test("derives the database ID while leaving the preview link domain unset", () =
   assert.equal(written.VEO_MODEL_ID, "");
   assert.equal(written.SEED_NEXT_STEPS_SURVEY, "");
   assert.equal(written.NEXT_STEPS_SURVEY_STATUS, "");
+  assert.equal(written.STORAGE_SIGNING_SERVICE_ACCOUNT, "");
 });

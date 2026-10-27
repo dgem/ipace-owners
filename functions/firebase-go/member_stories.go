@@ -153,6 +153,10 @@ func storyMediaBucket() string {
 	return strings.TrimSpace(os.Getenv("CAMPAIGN_MEDIA_BUCKET"))
 }
 
+func storySigningServiceAccount() string {
+	return strings.TrimSpace(os.Getenv("STORAGE_SIGNING_SERVICE_ACCOUNT"))
+}
+
 func MemberStories(w http.ResponseWriter, r *http.Request) {
 	if cors(w, r) || rejectDisallowedOrigin(w, r) {
 		return
@@ -509,7 +513,7 @@ func MemberStoryUpload(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, 503, map[string]any{"error": "Could not prepare upload"})
 		return
 	}
-	uploadURL, err := client.Bucket(bucket).SignedURL(object, &storage.SignedURLOptions{Scheme: storage.SigningSchemeV4, Method: http.MethodPut, Expires: time.Now().Add(15 * time.Minute), ContentType: input.ContentType})
+	uploadURL, err := client.Bucket(bucket).SignedURL(object, &storage.SignedURLOptions{GoogleAccessID: storySigningServiceAccount(), Scheme: storage.SigningSchemeV4, Method: http.MethodPut, Expires: time.Now().Add(15 * time.Minute), ContentType: input.ContentType})
 	if err != nil {
 		writeJSON(w, 503, map[string]any{"error": "Could not sign upload"})
 		return
@@ -974,7 +978,7 @@ func addStoryMediaURLs(ctx context.Context, stories []memberStory, includePendin
 				continue
 			}
 			if item.Status == "ready" {
-				item.URL, _ = client.Bucket(bucket).SignedURL(item.Object, &storage.SignedURLOptions{Scheme: storage.SigningSchemeV4, Method: http.MethodGet, Expires: time.Now().Add(time.Hour)})
+				item.URL, _ = client.Bucket(bucket).SignedURL(item.Object, &storage.SignedURLOptions{GoogleAccessID: storySigningServiceAccount(), Scheme: storage.SigningSchemeV4, Method: http.MethodGet, Expires: time.Now().Add(time.Hour)})
 			}
 			media = append(media, item)
 		}

@@ -41,6 +41,6 @@ Build a member-experience workflow that turns personal experience into consented
 - Resolve member-facing feature access through an authenticated API and enforce the same rule on the protected feature APIs. Support `all`, `off`, `admin`, and future Firebase role names. Staging exposes member experiences to all members; production initially exposes authoring only to admins and the `member-experiences-preview` role.
 - Permit `blob:` only for CSP image and media sources so selected local files can be previewed before upload; do not allow blob scripts or a general blob default source.
 - Use a dedicated private, versioned member-story media bucket with public access prevention and CORS limited to configured site origins.
-- Give the runtime service account object access and self `signBlob` permission for signed URLs; do not store a signing key.
+- Give the runtime service account object access and self `signBlob` permission for signed URLs; pass its email as the non-secret `STORAGE_SIGNING_SERVICE_ACCOUNT` runtime setting and do not store a signing key.
 - Clean abandoned pending uploads automatically. Keep published/original objects private and deliver them through expiring URLs.
 - Add tests for eligibility, record ownership, consent gates, media limits, admin authorization, public-field filtering and event validation.

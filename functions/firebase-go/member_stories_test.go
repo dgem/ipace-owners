@@ -7,6 +7,13 @@ import (
 	"time"
 )
 
+func TestStorySigningServiceAccountReadsRuntimeIdentity(t *testing.T) {
+	t.Setenv("STORAGE_SIGNING_SERVICE_ACCOUNT", "ipace-functions@example.iam.gserviceaccount.com")
+	if got := storySigningServiceAccount(); got != "ipace-functions@example.iam.gserviceaccount.com" {
+		t.Fatalf("storySigningServiceAccount() = %q", got)
+	}
+}
+
 func TestStoryEvidenceAcceptsOnlyOwnedLinkedRecords(t *testing.T) {
 	snapshot := memberSnapshot{
 		VehicleRecords: []vehicleRecord{{ID: "vehicle-1", Vehicle: vehicleDetails{Registration: "AB12 CDE", ModelYear: "2020"}}},
