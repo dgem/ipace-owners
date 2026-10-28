@@ -60,6 +60,19 @@ func TestAuthTraceCodeAcceptsOnlyOpaqueSupportCodes(t *testing.T) {
 	}
 }
 
+func TestRequestCorrelationIDPrefersCloudTraceWithoutReturningTraceOptions(t *testing.T) {
+	request := httptest.NewRequest(http.MethodPost, "/api/member/story-upload", nil)
+	request.Header.Set("X-Cloud-Trace-Context", "ABCDEF0123456789ABCDEF0123456789/7;o=1")
+	request.Header.Set("X-Ipace-Auth-Trace", "IP-ABCD-2345")
+	if got := requestCorrelationID(request); got != "abcdef0123456789abcdef0123456789" {
+		t.Fatalf("requestCorrelationID() = %q", got)
+	}
+	request.Header.Set("X-Cloud-Trace-Context", "invalid")
+	if got := requestCorrelationID(request); got != "IP-ABCD-2345" {
+		t.Fatalf("requestCorrelationID() fallback = %q", got)
+	}
+}
+
 func TestAuthorizationRouteRetainsFunctionRoot(t *testing.T) {
 	if got := authorizationRoute("/"); got != "/" {
 		t.Fatalf("root authorization route = %q, want /", got)

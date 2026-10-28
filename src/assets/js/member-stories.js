@@ -25,10 +25,19 @@
       return fetch(path, options);
     }).then(function (response) {
       return response.json().then(function (data) {
-        if (!response.ok) throw new Error(data.error || 'Request failed');
+        if (!response.ok) {
+          var error = new Error(data.error || 'Request failed');
+          error.traceId = data.traceId || '';
+          throw error;
+        }
         return data;
       });
     });
+  }
+
+  function displayError(error) {
+    var message = error && error.message ? error.message : 'Request failed';
+    return error && error.traceId ? message + ' (reference ' + error.traceId + ')' : message;
   }
 
   function load() {
@@ -295,7 +304,7 @@
         data.submit = true;
         return api('/api/member/stories', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
       });
-    }).then(function () { status.textContent = submit ? 'Submitted for review.' : 'Draft saved.'; return load(); }).catch(function (error) { status.textContent = error.message; });
+    }).then(function () { status.textContent = submit ? 'Submitted for review.' : 'Draft saved.'; return load(); }).catch(function (error) { status.textContent = displayError(error); });
   }
 
   document.addEventListener('member:data', load);

@@ -80,3 +80,10 @@ test('member experience editor inserts uploaded images instead of arbitrary link
   assert.doesNotMatch(stories, /data-editor-link/);
   assert.match(publicStories, /story-inline-image/);
 });
+
+test('member story upload errors retain a support correlation reference', () => {
+  const stories = read('src/assets/js/member-stories.js');
+
+  assert.match(stories, /error\.traceId = data\.traceId/);
+  assert.match(stories, /reference ' \+ error\.traceId/);
+});

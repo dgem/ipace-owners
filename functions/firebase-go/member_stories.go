@@ -510,12 +510,21 @@ func MemberStoryUpload(w http.ResponseWriter, r *http.Request) {
 	}
 	client, err := gcsClient(r.Context())
 	if err != nil {
-		writeJSON(w, 503, map[string]any{"error": "Could not prepare upload"})
+		traceID := requestCorrelationID(r)
+		logEvent("member-story-upload", "error", "storage client creation failed", map[string]any{"traceId": traceID, "error": err.Error()})
+		writeJSON(w, 503, map[string]any{"error": "Could not prepare upload", "traceId": traceID})
 		return
 	}
 	uploadURL, err := client.Bucket(bucket).SignedURL(object, &storage.SignedURLOptions{GoogleAccessID: storySigningServiceAccount(), Scheme: storage.SigningSchemeV4, Method: http.MethodPut, Expires: time.Now().Add(15 * time.Minute), ContentType: input.ContentType})
 	if err != nil {
-		writeJSON(w, 503, map[string]any{"error": "Could not sign upload"})
+		traceID := requestCorrelationID(r)
+		logEvent("member-story-upload", "error", "signed upload URL generation failed", map[string]any{
+			"traceId":                   traceID,
+			"error":                     err.Error(),
+			"bucketConfigured":          bucket != "",
+			"signingIdentityConfigured": storySigningServiceAccount() != "",
+		})
+		writeJSON(w, 503, map[string]any{"error": "Could not sign upload", "traceId": traceID})
 		return
 	}
 	media := memberStoryMedia{ID: mediaID, Object: object, Name: input.Name, ContentType: input.ContentType, Size: input.Size, Status: "pending", CreatedAt: time.Now().UTC()}
