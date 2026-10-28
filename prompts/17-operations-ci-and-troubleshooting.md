@@ -581,7 +581,7 @@ exported cells, five sheets, frozen headings, formula safety and charts. Do not 
 govulncheck or introduce spreadsheet import paths. Recheck the advisory before restoring
 structured tables. The archived fictional sample workbook remains a representative layout
 reference; its table parts are not used as an input when creating exports.
-- Deployments that issue Cloud Storage signed URLs must reconcile the runtime
-  service account's self `roles/iam.serviceAccountTokenCreator` binding before
-  the deployed revision is used. This grants signing permission only; no
-  private signing key is stored or passed to the Function.
+- Infrastructure apply must reconcile the runtime service account's self
+  `roles/iam.serviceAccountTokenCreator` binding before deploying Functions
+  that issue Cloud Storage signed URLs. The deployment workflow must not grant
+  IAM roles; no private signing key is stored or passed to the Function.

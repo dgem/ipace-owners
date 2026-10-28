@@ -143,18 +143,6 @@ jobs:
             echo "deploy=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Reconcile signed-URL IAM permission
-        if: steps.backend.outputs.deploy == 'true'
-        env:
-          GCP_PROJECT_ID: ${{ vars.FIREBASE_STAGING_PROJECT_ID }}
-          FUNCTIONS_SERVICE_ACCOUNT: ${{ secrets.GCP_FUNCTIONS_SERVICE_ACCOUNT_STAGING }}
-        run: |
-          gcloud services enable iamcredentials.googleapis.com --project="$GCP_PROJECT_ID"
-          gcloud iam service-accounts add-iam-policy-binding "$FUNCTIONS_SERVICE_ACCOUNT" \
-            --project="$GCP_PROJECT_ID" \
-            --member="serviceAccount:$FUNCTIONS_SERVICE_ACCOUNT" \
-            --role="roles/iam.serviceAccountTokenCreator"
-
       - name: Deploy Go Cloud Functions
         if: steps.backend.outputs.deploy == 'true'
         env:
