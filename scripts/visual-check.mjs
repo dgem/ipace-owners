@@ -471,7 +471,7 @@ async function checkAdminMemberStories(viewport, screenshotName) {
       id: 'story-1', title: 'Three modules and still waiting', bodyMarkdown: 'My I-PACE needed three battery modules replaced. One replacement later failed again.', displayName: 'Alex Owner', contactName: 'Alex Owner', contactEmail: 'alex@example.com', status: 'submitted',
       consent: { website: true, thirdParty: true, copyright: true, truthful: true }, evidence: { vehicleLabel: 'AB12 CDE', serviceEventCount: 3, sohReadingCount: 2 }, media: [], memberMessage: 'Please clarify the date of the repeat failure.',
       analysis: { promptVersion: 'member-story-editor-v1', sentiment: 'frustrated', keywords: ['battery modules', 'repeat failure'], grammar: ['No corrections suggested.'], structure: ['Clarify the dates if known.'], claims: ['Three modules were replaced.'], privacyFlags: [] }
-    }]
+    }], page: 1, pageSize: 20, total: 1, hasNext: false, hasPrevious: false
   }) }));
   await page.goto(baseURL + '/admin/member-stories/', { waitUntil: 'networkidle' });
   await page.evaluate(() => {
@@ -479,7 +479,9 @@ async function checkAdminMemberStories(viewport, screenshotName) {
     document.dispatchEvent(new CustomEvent('identity:login'));
   });
   await revealAdminState(page);
-  await page.locator('[data-story-review]').waitFor({ state: 'visible' });
+  await page.locator('[data-story-detail]').waitFor({ state: 'visible' });
+  await page.getByRole('button', { name: 'Three modules and still waiting' }).click();
+  await page.getByRole('button', { name: 'Run AI analysis' }).waitFor({ state: 'visible' });
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
   await page.close();
