@@ -8,7 +8,10 @@
   var selectedFiles = [];
   var previewURLs = [];
   var editorMedia = [];
+  var existingMediaUsage = { images: 0, videos: 0, bytes: 0 };
   var mediaTypes = ['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/quicktime', 'video/webm'];
+  var imageResizeBytes = 8 * 1024 * 1024;
+  var imageResizePixels = 4096;
 
   function esc(value) {
     var node = document.createElement('div');
@@ -137,6 +140,12 @@
 
     editing = editing || {};
     editorMedia = editing.media || [];
+    existingMediaUsage = editorMedia.filter(function (item) { return item.status === 'ready'; }).reduce(function (usage, item) {
+      usage.bytes += Number(item.size) || 0;
+      if (item.contentType && item.contentType.indexOf('image/') === 0) usage.images += 1;
+      else if (item.contentType && item.contentType.indexOf('video/') === 0) usage.videos += 1;
+      return usage;
+    }, { images: 0, videos: 0, bytes: 0 });
     var evidence = editing.evidence || {};
     var consent = editing.consent || {};
     var vehicles = state.vehicles || [];
@@ -228,6 +237,29 @@
 
   function addFiles(files) {
     var status = root.querySelector('[data-story-media-status]');
+    status.textContent = 'Preparing photos…';
+    Promise.all(files.map(prepareImage)).then(function (prepared) { addPreparedFiles(prepared, status); });
+  }
+
+  function prepareImage(file) {
+    if (!file || file.type.indexOf('image/') !== 0 || file.size <= imageResizeBytes || !window.createImageBitmap) return Promise.resolve(file);
+    return window.createImageBitmap(file).then(function (bitmap) {
+      var scale = Math.min(1, imageResizePixels / Math.max(bitmap.width, bitmap.height));
+      if (scale === 1) { bitmap.close(); return file; }
+      var canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+      canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+      canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+      bitmap.close();
+      return new Promise(function (resolve) {
+        canvas.toBlob(function (blob) {
+          resolve(blob ? new File([blob], file.name.replace(/\.[^.]+$/, '') + '.jpg', { type: 'image/jpeg', lastModified: file.lastModified }) : file);
+        }, 'image/jpeg', 0.88);
+      });
+    }).catch(function () { return file; });
+  }
+
+  function addPreparedFiles(files, status) {
     var next = selectedFiles.slice();
     files.forEach(function (file) {
       if (!next.some(function (item) { return item.name === file.name && item.size === file.size && item.lastModified === file.lastModified; })) next.push(file);
@@ -237,7 +269,7 @@
     var bytes = next.reduce(function (total, file) { return total + file.size; }, 0);
     var unsupported = next.find(function (file) { return mediaTypes.indexOf(file.type) === -1; });
     if (unsupported) { status.textContent = unsupported.name + ' is not a supported photo or video format.'; return; }
-    if (images > state.limits.images || videos > state.limits.videos || bytes > state.limits.totalBytes) { status.textContent = 'Choose no more than 5 photos and 2 videos, totalling 250 MB.'; return; }
+    if (existingMediaUsage.images + images > state.limits.images || existingMediaUsage.videos + videos > state.limits.videos || existingMediaUsage.bytes + bytes > state.limits.totalBytes) { status.textContent = 'This story can contain no more than 5 photos and 2 videos, totalling 250 MB.'; return; }
     selectedFiles = next;
     status.textContent = selectedFiles.length ? selectedFiles.length + (selectedFiles.length === 1 ? ' item selected.' : ' items selected.') : '';
     renderMediaPreviews();

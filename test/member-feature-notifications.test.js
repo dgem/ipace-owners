@@ -87,3 +87,11 @@ test('member story upload errors retain a support correlation reference', () => 
   assert.match(stories, /error\.traceId = data\.traceId/);
   assert.match(stories, /reference ' \+ error\.traceId/);
 });
+
+test('member story media preflights existing usage and resizes large browser images', () => {
+  const stories = read('src/assets/js/member-stories.js');
+
+  assert.match(stories, /existingMediaUsage\.bytes \+ bytes/);
+  assert.match(stories, /createImageBitmap/);
+  assert.match(stories, /imageResizePixels/);
+});
