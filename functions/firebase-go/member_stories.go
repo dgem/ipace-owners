@@ -23,6 +23,7 @@ const (
 	storyMaxImages      = 5
 	storyMaxVideos      = 2
 	storyMaxTotalBytes  = int64(250 * 1024 * 1024)
+	storyPendingTTL     = 30 * time.Minute
 )
 
 var storyAllowedMedia = map[string]bool{
@@ -125,6 +126,26 @@ type storyUploadRequest struct {
 	Name        string `json:"name"`
 	ContentType string `json:"contentType"`
 	Size        int64  `json:"size"`
+}
+
+func pruneExpiredStoryMedia(story *memberStory, now time.Time) bool {
+	if story == nil || len(story.Media) == 0 {
+		return false
+	}
+	cutoff := now.Add(-storyPendingTTL)
+	kept := story.Media[:0]
+	changed := false
+	for _, media := range story.Media {
+		if media.Status == "pending" && !media.CreatedAt.IsZero() && media.CreatedAt.Before(cutoff) {
+			changed = true
+			continue
+		}
+		kept = append(kept, media)
+	}
+	if changed {
+		story.Media = kept
+	}
+	return changed
 }
 
 type publicStoryEvidence struct {
@@ -483,6 +504,7 @@ func MemberStoryUpload(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, 403, map[string]any{"error": "Story cannot accept uploads"})
 		return
 	}
+	mediaPruned := pruneExpiredStoryMedia(&story, time.Now().UTC())
 	images, videos, total := 0, 0, int64(0)
 	for _, m := range story.Media {
 		total += m.Size
@@ -498,6 +520,9 @@ func MemberStoryUpload(w http.ResponseWriter, r *http.Request) {
 		videos++
 	}
 	if images > storyMaxImages || videos > storyMaxVideos || total+input.Size > storyMaxTotalBytes {
+		if mediaPruned {
+			_, _ = ref.Set(r.Context(), story)
+		}
 		writeJSON(w, 400, map[string]any{"error": "Story media limit exceeded"})
 		return
 	}

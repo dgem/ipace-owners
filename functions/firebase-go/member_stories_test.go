@@ -14,6 +14,18 @@ func TestStorySigningServiceAccountReadsRuntimeIdentity(t *testing.T) {
 	}
 }
 
+func TestPruneExpiredStoryMediaRemovesOnlyOldPendingItems(t *testing.T) {
+	now := time.Date(2026, 10, 28, 12, 0, 0, 0, time.UTC)
+	story := memberStory{Media: []memberStoryMedia{
+		{ID: "old-pending", Status: "pending", CreatedAt: now.Add(-31 * time.Minute)},
+		{ID: "recent-pending", Status: "pending", CreatedAt: now.Add(-5 * time.Minute)},
+		{ID: "old-ready", Status: "ready", CreatedAt: now.Add(-time.Hour)},
+	}}
+	if !pruneExpiredStoryMedia(&story, now) || len(story.Media) != 2 || story.Media[0].ID != "recent-pending" || story.Media[1].ID != "old-ready" {
+		t.Fatalf("unexpected media after pruning: %#v", story.Media)
+	}
+}
+
 func TestStoryEvidenceAcceptsOnlyOwnedLinkedRecords(t *testing.T) {
 	snapshot := memberSnapshot{
 		VehicleRecords: []vehicleRecord{{ID: "vehicle-1", Vehicle: vehicleDetails{Registration: "AB12 CDE", ModelYear: "2020"}}},
