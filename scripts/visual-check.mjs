@@ -36,7 +36,6 @@ const browser = await chromium.launch({ executablePath, headless: true });
 const expectedAdminDestinations = [
   '/admin/',
   '/admin/members/',
-  '/admin/review-queue/',
   '/admin/member-stories/',
   '/admin/outreach/',
   '/admin/email-campaigns/',

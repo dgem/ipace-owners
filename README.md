@@ -940,7 +940,7 @@ The following features are **not yet implemented** in this version:
 - **Evidence document uploads** — A placeholder message explains what will be supported.
   Requires Cloud Storage for files plus Firestore metadata and Functions integration.
 - **Admin review workflow** — The review queue can read server-side data for admins, but
-  review status updates, review-queue exports, and moderation actions are not yet implemented.
+  review status updates, exports, and moderation actions are not yet implemented.
 - **Legal/privacy review** — The plain-English pages reflect the live service, but still
   require human legal/privacy review before broader collection or a change in organisational
   structure.

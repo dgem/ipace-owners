@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -728,19 +729,94 @@ func AdminStories(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, 500, map[string]any{"error": "Could not load stories"})
 			return
 		}
-		addStoryMediaURLs(r.Context(), stories, true)
+		// Filtering and paging here keeps the admin response bounded even while the
+		// collection remains small enough for the existing Firestore read path. The
+		// media URLs are generated only for the visible page.
+		query := r.URL.Query()
+		status := cleanString(query.Get("status"), 60)
+		search := strings.ToLower(strings.TrimSpace(query.Get("q")))
+		sortBy := query.Get("sort")
+		if sortBy != "title" && sortBy != "status" && sortBy != "displayName" {
+			sortBy = "updatedAt"
+		}
+		sort.SliceStable(stories, func(i, j int) bool {
+			var left, right string
+			switch sortBy {
+			case "title":
+				left, right = stories[i].Title, stories[j].Title
+			case "status":
+				left, right = stories[i].Status, stories[j].Status
+			case "displayName":
+				left, right = stories[i].DisplayName, stories[j].DisplayName
+			default:
+				left, right = stories[i].UpdatedAt.String(), stories[j].UpdatedAt.String()
+			}
+			if query.Get("direction") == "asc" {
+				return strings.ToLower(left) < strings.ToLower(right)
+			}
+			return strings.ToLower(left) > strings.ToLower(right)
+		})
+		filtered := stories[:0]
+		for _, story := range stories {
+			if status != "" && story.Status != status {
+				continue
+			}
+			if search != "" && !strings.Contains(strings.ToLower(story.Title+" "+story.DisplayName+" "+story.ContactName+" "+story.ContactEmail), search) {
+				continue
+			}
+			filtered = append(filtered, story)
+		}
+		pageSize := 20
+		if n, e := strconv.Atoi(query.Get("pageSize")); e == nil && n >= 5 && n <= 50 {
+			pageSize = n
+		}
+		page := 1
+		if n, e := strconv.Atoi(query.Get("page")); e == nil && n > 0 {
+			page = n
+		}
+		start := (page - 1) * pageSize
+		if start > len(filtered) {
+			start = len(filtered)
+		}
+		end := start + pageSize
+		if end > len(filtered) {
+			end = len(filtered)
+		}
+		visible := append([]memberStory(nil), filtered[start:end]...)
+		addStoryMediaURLs(r.Context(), visible, true)
 		impact, _ := loadStoryImpact(r.Context(), db)
-		writeJSON(w, 200, map[string]any{"stories": stories, "impact": impact, "promptVersion": storyPromptVersion})
+		writeJSON(w, 200, map[string]any{"stories": visible, "impact": impact, "promptVersion": storyPromptVersion, "page": page, "pageSize": pageSize, "total": len(filtered), "hasNext": end < len(filtered), "hasPrevious": page > 1 && start > 0})
 		return
 	}
 	if r.Method != http.MethodPost {
 		writeJSON(w, 405, map[string]any{"error": "Method Not Allowed"})
 		return
 	}
-	var input struct{ ID, Action, Title, BodyMarkdown, DisplayName, AdminNotes, MemberMessage string }
+	var input struct {
+		ID, Action, Title, BodyMarkdown, DisplayName, AdminNotes, MemberMessage string
+		IDs                                                                     []string
+	}
 	r.Body = http.MaxBytesReader(w, r.Body, 128*1024)
 	if decodeJSON(r, &input) != nil {
 		writeJSON(w, 400, map[string]any{"error": "Invalid review"})
+		return
+	}
+	if input.Action == "archive" && len(input.IDs) > 0 {
+		for _, id := range input.IDs {
+			ref := db.Collection("memberStories").Doc(cleanString(id, 100))
+			doc, e := ref.Get(r.Context())
+			if e != nil {
+				continue
+			}
+			var story memberStory
+			if doc.DataTo(&story) != nil {
+				continue
+			}
+			story.Status = "archived"
+			story.UpdatedAt = time.Now().UTC()
+			_, _ = ref.Set(r.Context(), story)
+		}
+		writeJSON(w, 200, map[string]any{"ok": true})
 		return
 	}
 	ref := db.Collection("memberStories").Doc(cleanString(input.ID, 100))
@@ -773,6 +849,8 @@ func AdminStories(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		switch input.Action {
+		case "archive":
+			story.Status = "archived"
 		case "save":
 			story.Status = "editing"
 		case "request-changes":

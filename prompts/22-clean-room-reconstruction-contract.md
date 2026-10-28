@@ -213,7 +213,7 @@ The generated public route surface must include:
 - dated or named update pages generated from `src/updates/`; every new update includes a relevant, accessible hero image and alt text so it reads as a considered editorial page rather than an unadorned notice;
 - `/member/dashboard/`, `/member/account/`, `/member/submit-vehicle-data/`, `/member/stories/`,
   `/member/surveys/`, `/member/survey-response/`, and `/member/survey-results/`;
-- `/member-stories/`, `/admin/`, `/admin/review-queue/`, `/admin/members/`, `/admin/member-stories/`, `/admin/outreach/`, `/admin/email-campaigns/`, and
+- `/member-stories/`, `/admin/`, `/admin/members/`, `/admin/member-stories/`, `/admin/outreach/`, `/admin/email-campaigns/`, and
   `/admin/instagram-campaigns/`, `/admin/marketing-messages/`, `/admin/surveys/`, `/admin/survey-preview/`, `/admin/survey-results/`, and `/admin/survey-insights/`;
 - permanent redirects from `/account/**` and `/submit-vehicle-data/**` to their member
   equivalents;
