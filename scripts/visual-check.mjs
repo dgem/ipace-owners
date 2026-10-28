@@ -466,7 +466,7 @@ async function checkMemberStories(viewport, screenshotName) {
 
 async function checkAdminMemberStories(viewport, screenshotName) {
   const page = await browser.newPage({ viewport });
-  await page.route('**/api/admin/stories', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({
+  await page.route('**/api/admin/stories*', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({
     promptVersion: 'member-story-editor-v1', impact: { 'story-1': { readers: 42, views: 57, engaged: 31, ctas: 9, shares: 6, registrations: 3 } }, stories: [{
       id: 'story-1', title: 'Three modules and still waiting', bodyMarkdown: 'My I-PACE needed three battery modules replaced. One replacement later failed again.', displayName: 'Alex Owner', contactName: 'Alex Owner', contactEmail: 'alex@example.com', status: 'submitted',
       consent: { website: true, thirdParty: true, copyright: true, truthful: true }, evidence: { vehicleLabel: 'AB12 CDE', serviceEventCount: 3, sohReadingCount: 2 }, media: [], memberMessage: 'Please clarify the date of the repeat failure.',
@@ -480,7 +480,7 @@ async function checkAdminMemberStories(viewport, screenshotName) {
   });
   await revealAdminState(page);
   await page.locator('[data-story-detail]').waitFor({ state: 'visible' });
-  await page.getByRole('button', { name: 'Three modules and still waiting' }).click();
+  await page.locator('[data-open="story-1"]').first().click();
   await page.getByRole('button', { name: 'Run AI analysis' }).waitFor({ state: 'visible' });
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
