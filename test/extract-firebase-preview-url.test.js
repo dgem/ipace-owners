@@ -84,6 +84,8 @@ test('staging Functions use the current PR preview URL', function () {
   assert.match(readFileSync(resolve(__dirname, '../scripts/authorize-firebase-preview-domain.mjs'), 'utf8'), /verifyAuthorizedDomain/);
   assert.match(readFileSync(resolve(__dirname, '../scripts/authorize-firebase-preview-domain.mjs'), 'utf8'), /Firebase Auth authorization verified/);
   assert.match(workflow, /ALLOWED_ORIGINS: \$\{\{ steps\.hosting\.outputs\.url \}\}/);
+  assert.match(workflow, /Allow current preview to upload story media/);
+  assert.match(workflow, /gcloud storage buckets update[\s\S]*--cors-file/);
   assert.match(
     workflow,
     /FIREBASE_EMAIL_CONTINUE_URL: \$\{\{ format\('\{0\}\/member\/account\/', steps\.hosting\.outputs\.url\) \}\}/,
