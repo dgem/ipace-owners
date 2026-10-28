@@ -22,7 +22,7 @@ const (
 	storyPromptVersion  = "member-story-editor-v1"
 	storyMaxImages      = 5
 	storyMaxVideos      = 2
-	storyMaxTotalBytes  = int64(250 * 1024 * 1024)
+	storyMaxTotalBytes  = int64(500 * 1024 * 1024)
 	storyPendingTTL     = 30 * time.Minute
 )
 
@@ -126,6 +126,13 @@ type storyUploadRequest struct {
 	Name        string `json:"name"`
 	ContentType string `json:"contentType"`
 	Size        int64  `json:"size"`
+}
+
+func boolInt(value bool) int {
+	if value {
+		return 1
+	}
+	return 0
 }
 
 func pruneExpiredStoryMedia(story *memberStory, now time.Time) bool {
@@ -523,7 +530,11 @@ func MemberStoryUpload(w http.ResponseWriter, r *http.Request) {
 		if mediaPruned {
 			_, _ = ref.Set(r.Context(), story)
 		}
-		writeJSON(w, 400, map[string]any{"error": "Story media limit exceeded"})
+		writeJSON(w, 400, map[string]any{
+			"error":  "Story media limit exceeded",
+			"usage":  map[string]any{"images": images - boolInt(strings.HasPrefix(input.ContentType, "image/")), "videos": videos - boolInt(strings.HasPrefix(input.ContentType, "video/")), "bytes": total},
+			"limits": map[string]any{"images": storyMaxImages, "videos": storyMaxVideos, "bytes": storyMaxTotalBytes},
+		})
 		return
 	}
 	mediaID := db.Collection("memberStories").NewDoc().ID
@@ -559,7 +570,7 @@ func MemberStoryUpload(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, 500, map[string]any{"error": "Could not reserve upload"})
 		return
 	}
-	writeJSON(w, 200, map[string]any{"mediaId": mediaID, "uploadUrl": uploadURL, "contentType": input.ContentType})
+	writeJSON(w, 200, map[string]any{"mediaId": mediaID, "uploadUrl": uploadURL, "contentType": input.ContentType, "traceId": requestCorrelationID(r)})
 }
 
 func MemberStoryUploadComplete(w http.ResponseWriter, r *http.Request) {
