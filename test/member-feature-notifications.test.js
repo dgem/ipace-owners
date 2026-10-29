@@ -75,6 +75,8 @@ test('member experience editor inserts uploaded images instead of arbitrary link
 
   assert.match(stories, /data-insert-story-image/);
   assert.match(stories, /data-insert-story-media/);
+  assert.match(stories, /data-insert-pending-media/);
+  assert.match(stories, /attachUploadedMedia/);
   assert.match(stories, /story-media:/);
   assert.match(stories, /data-story-media-id/);
   assert.match(stories, /story.status === 'submitted'/);

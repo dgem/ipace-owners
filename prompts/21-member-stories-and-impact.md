@@ -10,6 +10,7 @@ Build a member-experience workflow that turns personal experience into consented
 - Require a linked vehicle, but show a vehicle chooser only when the member has more than one. Keep vehicle and optional evidence links after the main writing and media controls. Allow links to the member's existing service/fault, Executive Office and SoH records. References must be ownership-checked server-side.
 - Encourage members to complete missing vehicle and history records so their story strengthens aggregate evidence.
 - Accept up to five JPEG/PNG/WebP images and two MP4/QuickTime/WebM short videos, with a combined 500 MB limit. Resize oversized images in the browser before upload. Use a native multiple-file picker that can open device photo libraries or files, and show removable thumbnails before upload.
+- Let members insert a selected local image or video into the editor before saving. Use a temporary browser preview until the upload completes, then replace it with the verified `story-media:` reference in the saved Markdown.
 - Upload media directly to a private Cloud Storage bucket through short-lived, authenticated signed URLs. Verify size and content type before promoting a pending upload.
 - Require confirmation that the account is truthful to the member's knowledge and that they own or may supply uploaded media.
 - Record separate, versioned permission for publication on this website and for third-party social, press or publisher use.
