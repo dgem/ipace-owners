@@ -26,6 +26,14 @@ func TestPruneExpiredStoryMediaRemovesOnlyOldPendingItems(t *testing.T) {
 	}
 }
 
+func TestFilterStoryMediaKeepsOnlySubmittedMediaIDs(t *testing.T) {
+	media := []memberStoryMedia{{ID: "image-1"}, {ID: "video-1"}, {ID: "image-2"}}
+	filtered := filterStoryMedia(media, stringArray{" video-1 ", "missing"})
+	if len(filtered) != 1 || filtered[0].ID != "video-1" {
+		t.Fatalf("unexpected filtered media: %#v", filtered)
+	}
+}
+
 func TestStoryEvidenceAcceptsOnlyOwnedLinkedRecords(t *testing.T) {
 	snapshot := memberSnapshot{
 		VehicleRecords: []vehicleRecord{{ID: "vehicle-1", Vehicle: vehicleDetails{Registration: "AB12 CDE", ModelYear: "2020"}}},

@@ -11,6 +11,7 @@ Build a member-experience workflow that turns personal experience into consented
 - Encourage members to complete missing vehicle and history records so their story strengthens aggregate evidence.
 - Accept up to five JPEG/PNG/WebP images and two MP4/QuickTime/WebM short videos, with a combined 500 MB limit. Resize oversized images in the browser before upload. Use a native multiple-file picker that can open device photo libraries or files, and show removable thumbnails before upload.
 - Let members insert a selected local image or video into the editor before saving. Use a temporary browser preview until the upload completes, then replace it with the verified `story-media:` reference in the saved Markdown.
+- Keep uploaded media removable while editing, including media on an already submitted story. Show existing and newly selected media with the same thumbnail card, filename and insert/remove actions; send the retained media IDs when saving so removal persists.
 - Upload media directly to a private Cloud Storage bucket through short-lived, authenticated signed URLs. Verify size and content type before promoting a pending upload.
 - Require confirmation that the account is truthful to the member's knowledge and that they own or may supply uploaded media.
 - Record separate, versioned permission for publication on this website and for third-party social, press or publisher use.
@@ -24,6 +25,7 @@ Build a member-experience workflow that turns personal experience into consented
 - AI analysis is admin-triggered only. Store the prompt version, model and result. It suggests grammar, structure and keywords, identifies sentiment, claims needing evidence, and possible privacy, safety or defamation concerns. It must preserve the author's language and never publish automatically.
 - Public APIs return only published, website-consented fields and short-lived media URLs. Never expose member UID, email, private name, review notes or private model analysis.
 - Public pages show the member's story with an anonymised summary of the linked evidence and links inviting readers to register or add their own vehicle records.
+- Render inline media where it is referenced in the story, then show a thumbnail gallery for all attached media below the story. Keep the public experience grid and the editor wide on desktop, and use the same rounded green action-button treatment for member actions.
 - Call the member-facing area “Member experiences”, keep explanatory copy compact on mobile, and link directly back to My Data.
 - Show a concise “What you can do next” callout on both My Data pages explaining why experiences matter, with a direct “Share your experience” action. Keep it in one horizontal row when desktop space permits and compact on mobile. Repeat that action beside Vehicle history so members can move from recording events to describing their impact.
 - Make member callouts reusable, versioned and dismissible. Store dismissals against the authenticated account so they follow the member across devices; use a survey-specific ID so a later survey can appear even when an earlier one was dismissed.

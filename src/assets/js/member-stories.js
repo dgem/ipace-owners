@@ -9,6 +9,7 @@
   var previewURLs = [];
   var editorMedia = [];
   var existingMediaUsage = { images: 0, videos: 0, bytes: 0 };
+  var removedMediaIDs = {};
   var mediaTypes = ['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/quicktime', 'video/webm'];
   var imageResizeBytes = 8 * 1024 * 1024;
   var imageResizePixels = 4096;
@@ -142,13 +143,14 @@
 
   function render(editing) {
     clearPreviews();
+    removedMediaIDs = {};
     if (!state.eligible) {
       root.innerHTML = '<div class="callout callout--info"><h2>Complete your member record first</h2><p>Add your name and display name, then register at least one I-PACE before sharing an experience.</p><div class="cluster"><a class="btn btn--primary" href="/member/account/">Go to My Data</a><a class="btn btn--secondary" href="/member/submit-vehicle-data/">Register a car</a></div></div>';
       return;
     }
 
     editing = editing || {};
-    editorMedia = editing.media || [];
+    editorMedia = (editing.media || []).filter(function (item) { return !removedMediaIDs[item.id]; });
     existingMediaUsage = editorMedia.filter(function (item) { return item.status === 'ready'; }).reduce(function (usage, item) {
       usage.bytes += Number(item.size) || 0;
       if (item.contentType && item.contentType.indexOf('image/') === 0) usage.images += 1;
@@ -163,9 +165,9 @@
       ? '<div class="form-group"><label for="story-vehicle">Which car is this about?</label><select id="story-vehicle" name="vehicleId" required><option value="">Choose your car</option>' + vehicles.map(function (item) { return vehicleOption(item, item.id === selectedVehicle); }).join('') + '</select></div>'
       : '<input name="vehicleId" type="hidden" value="' + esc(selectedVehicle) + '">';
     var existingMedia = editorMedia.filter(function (item) { return item.status === 'ready'; }).map(function (item) {
-      var legacyImageHook = item.contentType.indexOf('image/') === 0 ? ' data-insert-story-image="' + esc(item.id) + '"' : '';
-      var insert = '<button class="btn btn--secondary btn--sm" type="button" data-insert-story-media="' + esc(item.id) + '"' + legacyImageHook + '>Insert ' + (item.contentType.indexOf('image/') === 0 ? 'image' : 'video') + '</button>';
-      return '<li><span>' + esc(item.name) + '</span>' + insert + '</li>';
+      var image = item.contentType.indexOf('image/') === 0;
+      var preview = image ? '<img src="' + esc(item.url) + '" alt="">' : '<video src="' + esc(item.url) + '" muted preload="metadata"></video>';
+      return '<figure class="story-media-card"><a href="' + esc(item.url) + '" target="_blank" rel="noopener noreferrer">' + preview + '</a><figcaption><span title="' + esc(item.name) + '">' + esc(item.name) + '</span><div class="cluster cluster--sm"><button class="btn btn--secondary btn--sm" type="button" data-insert-story-media="' + esc(item.id) + '"' + (image ? ' data-insert-story-image="' + esc(item.id) + '"' : '') + '>Insert ' + (image ? 'image' : 'video') + '</button><button class="btn btn--danger btn--sm" type="button" data-remove-existing-media="' + esc(item.id) + '">Remove</button></div></figcaption></figure>';
     }).join('');
     var submissions = (state.stories || []).map(function (story) {
       var editable = story.status === 'draft' || story.status === 'submitted' || story.status === 'editing' || story.status === 'needs-member-clarification';
@@ -179,8 +181,8 @@
 
     root.innerHTML = '<section class="story-guidance"><div><h2>Share your experience</h2><p>Tell us what happened, how it affected you and what you want to happen next.</p></div><a href="/member/account/">My Data</a></section>' +
       '<form class="member-form-panel story-form" data-story-form data-story-id="' + esc(editing.id || '') + '">' +
-      '<div class="form-group"><label id="story-body-label">Your experience</label><div class="story-editor" data-story-editor-shell><div class="story-editor__toolbar" role="toolbar" aria-label="Text formatting"><button type="button" data-editor-command="bold" aria-label="Bold"><strong>B</strong></button><button type="button" data-editor-command="italic" aria-label="Italic"><em>I</em></button><button type="button" data-editor-command="insertUnorderedList" aria-label="Bulleted list">• List</button><button type="button" data-editor-command="insertOrderedList" aria-label="Numbered list">1. List</button><button type="button" data-editor-command="formatBlock" data-editor-value="blockquote" aria-label="Blockquote">“ Quote</button></div><div class="story-editor__surface" data-story-editor contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="story-body-label" data-placeholder="What happened? How did it affect you? What response did you receive?">' + markdownToEditorHTML(editing.bodyMarkdown || '') + '</div><div class="story-editor__footer"><span>Bold, italics, lists, quotes and your uploaded media</span><span data-story-character-count>0 / 20,000</span></div></div></div>' +
-      '<div class="form-group"><label>Photos and short videos <span class="form-hint">(optional)</span></label><div class="story-media-picker" data-story-dropzone><label class="story-media-picker__button" for="story-media">Choose photos or videos<span>Use your photo library, camera roll or files</span></label><input class="visually-hidden" id="story-media" name="media" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime,video/webm" multiple><p>Up to 5 photos and 2 videos; 500 MB total. You can select several at once.</p><p class="form-hint">On Mac Photos, use <strong>File → Export → Export 1 Photo</strong> and choose JPEG or PNG. HEIC files need exporting first.</p></div>' + (existingMedia ? '<p class="form-hint">Uploaded photos can be inserted into your experience. Select the image itself to open the full version.</p><ul class="story-existing-media">' + existingMedia + '</ul>' : '') + '<div class="story-media-previews" data-story-media-previews></div><p class="form-hint" data-story-media-status role="status"></p></div>' +
+      '<div class="form-group"><label id="story-body-label">Your experience</label><div class="story-editor" data-story-editor-shell><div class="story-editor__toolbar" role="toolbar" aria-label="Text formatting"><button type="button" data-editor-command="bold" aria-label="Bold"><strong>B</strong><span class="visually-hidden">Bold</span></button><button type="button" data-editor-command="italic" aria-label="Italic"><em>I</em><span class="visually-hidden">Italic</span></button><button type="button" data-editor-command="insertUnorderedList" aria-label="Bulleted list"><span aria-hidden="true">☷</span><span class="visually-hidden">Bulleted list</span></button><button type="button" data-editor-command="insertOrderedList" aria-label="Numbered list"><span aria-hidden="true">☷</span><span class="visually-hidden">Numbered list</span></button><button type="button" data-editor-command="formatBlock" data-editor-value="blockquote" aria-label="Blockquote"><span aria-hidden="true">❝</span><span class="visually-hidden">Blockquote</span></button></div><div class="story-editor__surface" data-story-editor contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="story-body-label" data-placeholder="What happened? How did it affect you? What response did you receive?">' + markdownToEditorHTML(editing.bodyMarkdown || '') + '</div><div class="story-editor__footer"><span>Bold, italics, lists, quotes and your uploaded media</span><span data-story-character-count>0 / 20,000</span></div></div></div>' +
+      '<div class="form-group"><label>Photos and short videos <span class="form-hint">(optional)</span></label><div class="story-media-picker" data-story-dropzone><label class="story-media-picker__button" for="story-media">Choose photos or videos<span>Use your photo library, camera roll or files</span></label><input class="visually-hidden" id="story-media" name="media" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime,video/webm" multiple><p>Up to 5 photos and 2 videos; 500 MB total. You can select several at once.</p><p class="form-hint">On Mac Photos, use <strong>File → Export → Export 1 Photo</strong> and choose JPEG or PNG. HEIC files need exporting first.</p></div>' + (existingMedia ? '<p class="form-hint">Uploaded media can be inserted into your experience. Select a thumbnail to open the full version.</p><div class="story-media-previews story-existing-media">' + existingMedia + '</div>' : '') + '<div class="story-media-previews" data-story-media-previews></div><p class="form-hint" data-story-media-status role="status"></p></div>' +
       '<div class="story-publication-settings"><p class="form-hint">Published as <strong>' + esc(state.displayName) + '</strong>. <a href="/member/account/">Change your display name in My Data</a>. Your contact details remain private.</p><fieldset><legend>Permissions</legend><label class="check-label"><input name="websiteConsent" type="checkbox" required' + checked(consent.website) + '> Publish this experience and selected media on this website.</label><label class="check-label"><input name="thirdPartyConsent" type="checkbox"' + checked(consent.thirdParty) + '> It may also be used in social media, press and publisher materials.</label><label class="check-label"><input name="copyrightConfirmed" type="checkbox"' + checked(consent.copyright) + '> I own, or have permission to supply, uploaded media.</label><label class="check-label"><input name="truthfulConfirmed" type="checkbox" required' + checked(consent.truthful) + '> This is true to the best of my knowledge.</label></fieldset></div>' +
       '<div class="story-vehicle-choice">' + vehicleControl + '</div>' +
       '<details class="story-evidence-picker"' + ((evidence.serviceEventIds || []).length || (evidence.sohReadingIds || []).length ? ' open' : '') + '><summary>Connect records from My Data <span>optional</span></summary><p>Linked records help turn individual experiences into evidence. <a href="/member/dashboard/">Add or check your records</a>.</p><div data-story-evidence><p class="form-hint">' + (selectedVehicle ? 'Loading records…' : 'Choose a car to see its records.') + '</p></div></details>' +
@@ -222,6 +224,15 @@
     root.querySelectorAll('[data-editor-command]').forEach(function (button) {
       button.addEventListener('mousedown', function (event) { event.preventDefault(); });
       button.addEventListener('click', function () { editor.focus(); document.execCommand(button.dataset.editorCommand, false, button.dataset.editorValue || null); updateCount(); });
+    });
+    root.querySelectorAll('[data-remove-existing-media]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        removedMediaIDs[button.dataset.removeExistingMedia] = true;
+        editorMedia = editorMedia.filter(function (item) { return item.id !== button.dataset.removeExistingMedia; });
+        var card = button.closest('.story-media-card');
+        if (card) card.remove();
+        existingMediaUsage = editorMedia.filter(function (item) { return item.status === 'ready'; }).reduce(function (usage, item) { usage.bytes += Number(item.size) || 0; if (item.contentType.indexOf('image/') === 0) usage.images += 1; else if (item.contentType.indexOf('video/') === 0) usage.videos += 1; return usage; }, { images: 0, videos: 0, bytes: 0 });
+      });
     });
     root.querySelectorAll('[data-insert-story-media]').forEach(function (button) {
       button.addEventListener('mousedown', function (event) { event.preventDefault(); });
@@ -343,7 +354,7 @@
 
   function payload(form, submit) {
     var data = new FormData(form);
-    return { id: form.dataset.storyId, bodyMarkdown: editorMarkdown(), vehicleId: data.get('vehicleId'), serviceEventIds: data.getAll('serviceEventIds'), sohReadingIds: data.getAll('sohReadingIds'), websiteConsent: data.has('websiteConsent'), thirdPartyConsent: data.has('thirdPartyConsent'), copyrightConfirmed: data.has('copyrightConfirmed'), truthfulConfirmed: data.has('truthfulConfirmed'), submit: submit };
+    return { id: form.dataset.storyId, bodyMarkdown: editorMarkdown(), vehicleId: data.get('vehicleId'), serviceEventIds: data.getAll('serviceEventIds'), sohReadingIds: data.getAll('sohReadingIds'), mediaIds: editorMedia.filter(function (item) { return item.status === 'ready' && !removedMediaIDs[item.id]; }).map(function (item) { return item.id; }), websiteConsent: data.has('websiteConsent'), thirdPartyConsent: data.has('thirdPartyConsent'), copyrightConfirmed: data.has('copyrightConfirmed'), truthfulConfirmed: data.has('truthfulConfirmed'), submit: submit };
   }
 
   function upload(storyId, file) {

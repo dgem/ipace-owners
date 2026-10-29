@@ -115,11 +115,28 @@ type storySaveRequest struct {
 	VehicleID          string      `json:"vehicleId"`
 	ServiceEventIDs    stringArray `json:"serviceEventIds"`
 	SOHReadingIDs      stringArray `json:"sohReadingIds"`
+	MediaIDs           stringArray `json:"mediaIds"`
 	WebsiteConsent     bool        `json:"websiteConsent"`
 	ThirdPartyConsent  bool        `json:"thirdPartyConsent"`
 	CopyrightConfirmed bool        `json:"copyrightConfirmed"`
 	TruthfulConfirmed  bool        `json:"truthfulConfirmed"`
 	Submit             bool        `json:"submit"`
+}
+
+func filterStoryMedia(media []memberStoryMedia, ids stringArray) []memberStoryMedia {
+	allowed := make(map[string]bool, len(ids))
+	for _, id := range ids {
+		if clean := cleanString(id, 100); clean != "" {
+			allowed[clean] = true
+		}
+	}
+	filtered := make([]memberStoryMedia, 0, len(media))
+	for _, item := range media {
+		if allowed[item.ID] {
+			filtered = append(filtered, item)
+		}
+	}
+	return filtered
 }
 
 type storyUploadRequest struct {
@@ -326,6 +343,9 @@ func memberStoriesSave(w http.ResponseWriter, r *http.Request, user *firebaseUse
 		story.CreatedAt = previous.CreatedAt
 		previousStatus = previous.Status
 		story.Media = previous.Media
+		if input.MediaIDs != nil {
+			story.Media = filterStoryMedia(story.Media, input.MediaIDs)
+		}
 		story.Analysis = previous.Analysis
 		story.AdminNotes = previous.AdminNotes
 		story.MemberMessage = previous.MemberMessage
