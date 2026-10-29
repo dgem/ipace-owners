@@ -11,7 +11,7 @@
     { "label": "FAQ", "url": "/faq/" },
     { "label": "Updates", "url": "/updates/" },
     {
-      "label": "Owner stories",
+      "label": "Experiences",
       "url": "/member-stories/"
     },
     { "label": "Join", "url": "/join/", "highlight": true }

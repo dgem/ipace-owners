@@ -1032,6 +1032,7 @@ func PublicStories(w http.ResponseWriter, r *http.Request) {
 type storyEventRequest struct {
 	StoryID  string `json:"storyId"`
 	Event    string `json:"event"`
+	Platform string `json:"platform,omitempty"`
 	ReaderID string `json:"readerId"`
 	Campaign string `json:"campaign"`
 	Path     string `json:"path"`
@@ -1039,12 +1040,17 @@ type storyEventRequest struct {
 }
 
 type storyImpactSummary struct {
-	Views         int `json:"views"`
-	Engaged       int `json:"engaged"`
-	CTAs          int `json:"ctas"`
-	Shares        int `json:"shares"`
-	Readers       int `json:"readers"`
-	Registrations int `json:"registrations"`
+	Views          int            `json:"views"`
+	Engaged        int            `json:"engaged"`
+	CTAs           int            `json:"ctas"`
+	Shares         int            `json:"shares"`
+	Readers        int            `json:"readers"`
+	Registrations  int            `json:"registrations"`
+	SharePlatforms map[string]int `json:"sharePlatforms,omitempty"`
+}
+
+func validStorySharePlatform(platform string) bool {
+	return map[string]bool{"facebook": true, "x": true, "whatsapp": true, "linkedin": true, "instagram": true, "tiktok": true, "copy": true, "native": true}[platform]
 }
 
 func loadStoryImpact(ctx context.Context, db *firestore.Client) (map[string]storyImpactSummary, error) {
@@ -1074,6 +1080,12 @@ func loadStoryImpact(ctx context.Context, db *firestore.Client) (map[string]stor
 			summary.CTAs++
 		case "share":
 			summary.Shares++
+			if event.Platform != "" {
+				if summary.SharePlatforms == nil {
+					summary.SharePlatforms = map[string]int{}
+				}
+				summary.SharePlatforms[event.Platform]++
+			}
 		}
 		if readers[event.StoryID] == nil {
 			readers[event.StoryID] = map[string]bool{}
@@ -1112,9 +1124,10 @@ func StoryEvent(w http.ResponseWriter, r *http.Request) {
 	}
 	input.StoryID = cleanString(input.StoryID, 100)
 	input.Event = cleanString(input.Event, 40)
+	input.Platform = cleanString(input.Platform, 32)
 	input.ReaderID = cleanString(input.ReaderID, 100)
 	allowed := map[string]bool{"view": true, "engaged": true, "cta": true, "share": true}
-	if input.StoryID == "" || !allowed[input.Event] || len(input.ReaderID) < 16 {
+	if input.StoryID == "" || !allowed[input.Event] || len(input.ReaderID) < 16 || (input.Platform != "" && (!validStorySharePlatform(input.Platform) || input.Event != "share")) {
 		writeJSON(w, 400, map[string]any{"error": "Invalid event"})
 		return
 	}

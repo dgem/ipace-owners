@@ -14,6 +14,19 @@ func TestStorySigningServiceAccountReadsRuntimeIdentity(t *testing.T) {
 	}
 }
 
+func TestValidStorySharePlatforms(t *testing.T) {
+	for _, platform := range []string{"facebook", "x", "whatsapp", "linkedin", "instagram", "tiktok", "copy", "native"} {
+		if !validStorySharePlatform(platform) {
+			t.Errorf("valid share platform %q was rejected", platform)
+		}
+	}
+	for _, platform := range []string{"", "email", "https://example.com", "Facebook"} {
+		if validStorySharePlatform(platform) {
+			t.Errorf("invalid share platform %q was accepted", platform)
+		}
+	}
+}
+
 func TestPruneExpiredStoryMediaRemovesOnlyOldPendingItems(t *testing.T) {
 	now := time.Date(2026, 10, 28, 12, 0, 0, 0, time.UTC)
 	story := memberStory{Media: []memberStoryMedia{

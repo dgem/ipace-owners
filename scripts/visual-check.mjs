@@ -427,7 +427,10 @@ async function checkMemberStories(viewport, screenshotName) {
     vehicles: [{ id: 'vehicle-1', vehicle: { registration: 'AB12 CDE', modelYear: '2020' } }, { id: 'vehicle-2', vehicle: { registration: 'XY34 ZZZ', modelYear: '2022' } }],
     serviceEvents: [{ id: 'event-1', vehicleId: 'vehicle-1', occurredAt: '2026-05-04', eventType: 'executive-office-contact', title: 'Executive Office escalation' }],
     sohReadings: [{ id: 'soh-1', vehicleId: 'vehicle-1', battery: { measuredAt: '2026-04-10', stateOfHealth: 78 } }],
-    stories: [{ id: 'story-1', title: 'Three modules and still waiting', bodyMarkdown: 'My I-PACE needed three battery modules replaced. One replacement later failed again and I am still waiting for a lasting resolution.', displayName: 'Alex Owner', status: 'needs-member-clarification', memberMessage: 'Please add the date of the replacement-module failure.', consent: { website: true, thirdParty: true, copyright: true, truthful: true }, evidence: { vehicleId: 'vehicle-1', serviceEventIds: ['event-1'], sohReadingIds: ['soh-1'] }, media: [{ id: 'photo-1', name: 'battery-warning.png', contentType: 'image/png', status: 'ready', url: '/images/racing-laurel-email.png' }] }]
+    stories: [
+      { id: 'story-1', title: 'Three modules and still waiting', bodyMarkdown: 'My I-PACE needed three battery modules replaced. One replacement later failed again and I am still waiting for a lasting resolution.', displayName: 'Alex Owner', status: 'needs-member-clarification', memberMessage: 'Please add the date of the replacement-module failure.', consent: { website: true, thirdParty: true, copyright: true, truthful: true }, evidence: { vehicleId: 'vehicle-1', serviceEventIds: ['event-1'], sohReadingIds: ['soh-1'] }, media: [{ id: 'photo-1', name: 'battery-warning.png', contentType: 'image/png', status: 'ready', url: '/images/racing-laurel-email.png' }] },
+      { id: 'story-2', slug: 'published-experience', title: 'A published experience', bodyMarkdown: 'Published story.', displayName: 'Alex', status: 'published', publishedAt: '2026-10-28T12:00:00Z', consent: {}, evidence: {}, media: [] }
+    ]
   }) }));
   await page.goto(baseURL + '/member/stories/', { waitUntil: 'networkidle' });
   await page.evaluate(() => {
@@ -454,6 +457,8 @@ async function checkMemberStories(viewport, screenshotName) {
   assert.equal(await page.locator('[data-story-editor]').count(), 1);
   assert.equal(await page.getByRole('link', { name: 'My Data' }).count() > 0, true);
   assert.equal(await page.getByRole('button', { name: 'Edit' }).count(), 1);
+  assert.equal(await page.getByText('Published 28/10/2026').count(), 1);
+  assert.equal(await page.getByRole('link', { name: 'View published experience' }).getAttribute('href'), '/member-stories/published-experience/');
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
   await page.getByRole('button', { name: 'Edit' }).click();
@@ -467,7 +472,7 @@ async function checkMemberStories(viewport, screenshotName) {
 async function checkAdminMemberStories(viewport, screenshotName) {
   const page = await browser.newPage({ viewport });
   await page.route('**/api/admin/stories**', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({
-    promptVersion: 'member-story-editor-v1', impact: { 'story-1': { readers: 42, views: 57, engaged: 31, ctas: 9, shares: 6, registrations: 3 } }, stories: [{
+    promptVersion: 'member-story-editor-v1', impact: { 'story-1': { readers: 42, views: 57, engaged: 31, ctas: 9, shares: 6, registrations: 3, sharePlatforms: { facebook: 3, instagram: 2, copy: 1 } } }, stories: [{
       id: 'story-1', title: 'Three modules and still waiting', bodyMarkdown: 'My I-PACE needed three battery modules replaced. One replacement later failed again.', displayName: 'Alex Owner', contactName: 'Alex Owner', contactEmail: 'alex@example.com', status: 'submitted',
       consent: { website: true, thirdParty: true, copyright: true, truthful: true }, evidence: { vehicleLabel: 'AB12 CDE', serviceEventCount: 3, sohReadingCount: 2 }, media: [], memberMessage: 'Please clarify the date of the repeat failure.',
       analysis: { promptVersion: 'member-story-editor-v1', sentiment: 'frustrated', keywords: ['battery modules', 'repeat failure'], grammar: ['No corrections suggested.'], structure: ['Clarify the dates if known.'], claims: ['Three modules were replaced.'], privacyFlags: [] }
@@ -483,6 +488,9 @@ async function checkAdminMemberStories(viewport, screenshotName) {
   await page.locator('[data-open="story-1"]').first().waitFor({ state: 'visible' });
   await page.locator('[data-open="story-1"]').first().click();
   await page.getByRole('button', { name: 'Run AI analysis' }).waitFor({ state: 'visible' });
+  await page.locator('[data-select="story-1"]').check();
+  assert.equal(await page.getByRole('button', { name: 'Approve selected' }).isEnabled(), true);
+  assert.equal(await page.getByText('Share clicks by platform: copy: 1, facebook: 3, instagram: 2').count(), 1);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
   await page.close();
@@ -514,6 +522,11 @@ async function checkPublicMemberStory(viewport, screenshotName) {
   await page.goto(baseURL + storyPath, { waitUntil: 'networkidle' });
   await page.locator('.member-story').waitFor({ state: 'visible' });
   await page.evaluate(() => document.querySelectorAll('.cookie-notice').forEach((element) => { element.hidden = true; }));
+  await page.getByRole('button', { name: 'Share this experience' }).click();
+  await page.locator('[data-story-share-options]').waitFor({ state: 'visible' });
+  assert.equal(await page.locator('[data-story-share-options]').getByRole('link', { name: 'Facebook' }).getAttribute('href').then((href) => href.startsWith('https://www.facebook.com/sharer/')), true);
+  await page.getByRole('button', { name: 'Copy for Instagram' }).waitFor({ state: 'visible' });
+  await page.getByRole('button', { name: 'Copy for TikTok' }).waitFor({ state: 'visible' });
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
   await page.close();

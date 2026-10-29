@@ -298,7 +298,7 @@ vehicle creation and vehicle editing. Keep United Kingdom as the default.
 | `GET/POST /api/admin/stories` | Admin claim | Review, edit, manually analyse, approve and publish stories with versioned permissions and revisions. |
 | `GET /api/admin/members` | Admin claim | Search by name, email, registration, expertise, preferences and story activity. |
 | `GET /api/stories` | Public | Return only published story fields, evidence summaries and expiring media URLs. |
-| `POST /api/story-event` | Public | Record consent-gated pseudonymous view, engagement, CTA and share events for a published story. |
+| `POST /api/story-event` | Public | Record consent-gated pseudonymous view, engagement, CTA and share-link click events for a published story, including a validated platform identifier. |
 | `GET /api/admin/authorize` | Admin claim | Verify access to an admin page and return only `{ "authorized": true }` with `Cache-Control: private, no-store`; never use the review-data route as a generic gate. |
 | `GET /api/admin-data` | Admin claim | Return Join and vehicle review records. |
 | `GET /api/admin/stats` | Admin claim | Return the consent-filtered homepage counters alongside private all-record member, vehicle, SoH, and service-event statistics with `Cache-Control: private, no-store`; canonical emails are deduplicated at the first Join before the daily Join trend and country rows are calculated. Derive country from the Join, one unambiguous vehicle country, or a strict UK registration, otherwise use `Unknown` (including conflicting vehicle countries). Magic-link-verified accounts have a separate daily line chart, and no per-vehicle evidence is returned. |

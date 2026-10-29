@@ -25,9 +25,10 @@ Build a member-experience workflow that turns personal experience into consented
 - AI analysis is admin-triggered only. Store the prompt version, model and result. It suggests grammar, structure and keywords, identifies sentiment, claims needing evidence, and possible privacy, safety or defamation concerns. It must preserve the author's language and never publish automatically.
 - Public APIs return only published, website-consented fields and short-lived media URLs. Never expose member UID, email, private name, review notes or private model analysis.
 - Public pages show the member's story with an anonymised summary of the linked evidence and links inviting readers to register or add their own vehicle records.
-- Make the public story catalogue discoverable from the main navigation as “Owner stories” in both launch and full presentation modes.
+- Make the public story catalogue discoverable from the main navigation as “Experiences” in both launch and full presentation modes; title the catalogue page “Owner stories”.
 - Render inline media where it is referenced in the story, then show a thumbnail gallery for all attached media below the story. Keep the public experience grid and the editor wide on desktop, and use the same rounded green action-button treatment for member actions.
-- Give each published story a stable `/member-stories/<slug>/` URL, while retaining query-string links as a compatibility path. The hosting route serves the shared story page and the client resolves the final path segment against the published story list.
+- Give each published story a stable `/member-stories/<slug>/` URL, while retaining query-string links as a compatibility path. The hosting route serves the shared story page and the client resolves the final path segment against the published story list. Members can see each submission's current review state, clarification message and published date/link.
+- The public story share control opens working share actions for Facebook, X, WhatsApp and LinkedIn, plus copy-link actions for Instagram and TikTok and the native device share sheet where supported. Platform actions are tracked as consent-gated share-link clicks; they do not claim that a post was completed.
 - The admin review workspace keeps the selected story open after a save and supports bulk archive, approval and publication actions for selected stories. Bulk publication applies the same approval and consent validation as the individual action.
 - Call the member submission area “Member experiences” and the public catalogue “Owner stories”. Keep explanatory copy compact on mobile, and link directly back to My Data.
 - Show a concise “What you can do next” callout on both My Data pages explaining why experiences matter, with a direct “Share your experience” action. Keep it in one horizontal row when desktop space permits and compact on mobile. Repeat that action beside Vehicle history so members can move from recording events to describing their impact.
@@ -37,7 +38,7 @@ Build a member-experience workflow that turns personal experience into consented
 ## Impact measurement
 
 - Ask separately for optional story-analytics consent.
-- After consent, create a random pseudonymous reader identifier in browser storage and record story views, engagement, CTA clicks and share actions with campaign/referrer context.
+- After consent, create a random pseudonymous reader identifier in browser storage and record story views, engagement, CTA clicks and share actions with campaign/referrer and platform context. Admin analysis reports share-link clicks by platform, not confirmed posts or impressions.
 - Do not use story analytics for advertising. Do not store raw IP addresses in the analytics record.
 - Campaign-specific links should make it possible to compare which story and message led to registrations, survey participation or evidence contributions.
 

@@ -173,7 +173,8 @@
       var editable = story.status === 'draft' || story.status === 'submitted' || story.status === 'editing' || story.status === 'needs-member-clarification';
       var message = story.memberMessage ? '<p class="story-member-message"><strong>More detail requested:</strong> ' + esc(story.memberMessage) + '</p>' : '';
       var sentiment = story.analysis && story.analysis.sentiment ? '<p class="form-hint"><strong>Editorial sentiment:</strong> ' + esc(story.analysis.sentiment) + '</p>' : '';
-      return '<li><div class="story-submission-list__summary"><strong>' + esc(story.title) + '</strong><span class="badge">' + esc(statusLabel(story.status)) + '</span></div>' + message + '<div class="cluster">' +
+      var published = story.status === 'published' ? '<p class="form-hint">Published ' + esc(story.publishedAt ? new Date(story.publishedAt).toLocaleDateString('en-GB') : '') + ' · <a href="/member-stories/' + encodeURIComponent(story.slug || story.id) + '/">View published experience</a></p>' : '';
+      return '<li><div class="story-submission-list__summary"><strong>' + esc(story.title) + '</strong><span class="badge">' + esc(statusLabel(story.status)) + '</span></div>' + published + message + '<div class="cluster">' +
         sentiment +
         (editable ? '<button class="btn btn--secondary btn--sm" type="button" data-edit-story="' + esc(story.id) + '">Edit</button>' : '') +
         (story.status !== 'draft' && story.status !== 'withdrawal-requested' ? '<button class="btn btn--secondary btn--sm" type="button" data-withdraw-story="' + esc(story.id) + '">Withdraw permission</button>' : '') + '</div></li>';
