@@ -258,6 +258,27 @@
       '</div>';
   }
 
+  var memberCountries = [
+    ['GB', 'United Kingdom'], ['IE', 'Ireland'], ['DE', 'Germany'], ['FR', 'France'],
+    ['NL', 'Netherlands'], ['NO', 'Norway'], ['SE', 'Sweden'], ['DK', 'Denmark'],
+    ['AT', 'Austria'], ['CH', 'Switzerland'], ['BE', 'Belgium'], ['ES', 'Spain'],
+    ['IT', 'Italy'], ['GR', 'Greece'], ['PT', 'Portugal'], ['US', 'United States'],
+    ['CA', 'Canada'], ['AU', 'Australia'], ['NZ', 'New Zealand'], ['other', 'Other']
+  ];
+
+  function memberCountryName(code) {
+    for (var index = 0; index < memberCountries.length; index += 1) {
+      if (memberCountries[index][0] === code) return memberCountries[index][1];
+    }
+    return code || 'Not set';
+  }
+
+  function memberCountryOptions(selectedCountry) {
+    return '<option value="">Select a country</option>' + memberCountries.map(function (country) {
+      return '<option value="' + escapeHtml(country[0]) + '"' + (country[0] === selectedCountry ? ' selected' : '') + '>' + escapeHtml(country[1]) + '</option>';
+    }).join('');
+  }
+
   function populatePreferences(container, records) {
     var preferencesEl = container.querySelector('[data-preferences-container]');
     if (!preferencesEl) return;
@@ -274,6 +295,7 @@
     var skills = membership.skills || [];
 
     var html = '<dl class="preference-list">';
+    html += '<div class="preference-list__row"><dt>Country / region</dt><dd data-member-country>' + escapeHtml(memberCountryName((rec.contact || {}).country)) + '</dd></div>';
     html += '<div class="preference-list__row"><dt>Display name</dt><dd data-member-display-name>' + escapeHtml(membership.displayName || window.ipaceMemberDefaultDisplayName || 'Not set') + '</dd></div>';
     html += preferenceRow('Group contact', consents.contact, 'Enabled', 'Not enabled');
     html += preferenceRow('Anonymised aggregate analysis', consents.anonymisedAnalysis, 'Allowed', 'Not allowed');
@@ -294,7 +316,7 @@
     }
     html += '</dl>';
     html += '<div class="cluster" style="margin-top:var(--space-4)"><button class="btn btn--secondary btn--sm" type="button" data-toggle-preferences>Edit preferences</button></div>';
-    html += '<form class="member-form-panel" data-preferences-form hidden><fieldset><legend>Update preferences</legend><label for="member-display-name">Display name</label><input id="member-display-name" name="displayName" type="text" maxlength="80" value="' + escapeHtml(membership.displayName || window.ipaceMemberDefaultDisplayName || '') + '" placeholder="For example: Alex"><p class="form-hint">Shown with member experiences. It does not need to be unique. If left blank, we use the first name from your saved legal name.</p><label class="check-label"><input name="contact" type="checkbox"' + (consents.contact ? ' checked' : '') + '> Receive group contact</label><label class="check-label"><input name="anonymisedAnalysis" type="checkbox"' + (consents.anonymisedAnalysis ? ' checked' : '') + '> Allow my anonymised vehicle and evidence data in aggregate statistics</label><label class="check-label"><input name="willingToHelp" type="checkbox"' + (membership.willingToHelp ? ' checked' : '') + '> I would like to help the group</label><label class="check-label"><input name="pressStory" type="checkbox"' + (membership.pressStory ? ' checked' : '') + '> I have a story I would be happy to discuss with the press</label><label for="member-expertise">Relevant expertise or experience</label><textarea id="member-expertise" name="expertise" maxlength="500" rows="3" placeholder="For example: solicitor, EV mechanic, battery engineer, journalist, or community organiser">' + escapeHtml(membership.expertise || '') + '</textarea><p class="form-hint">This records interest only. We would discuss your story with you before sharing anything.</p></fieldset><div class="cluster"><button class="btn btn--primary btn--sm" type="submit">Save changes</button><button class="btn btn--secondary btn--sm" type="button" data-close-preferences>Cancel</button></div><p class="form-hint" data-form-status role="status" aria-live="polite"></p></form>';
+    html += '<form class="member-form-panel" data-preferences-form hidden><fieldset><legend>Update preferences</legend><label for="member-country">Country / region <span aria-hidden="true">*</span></label><select id="member-country" name="country" required autocomplete="country">' + memberCountryOptions((rec.contact || {}).country) + '</select><label for="member-display-name">Display name</label><input id="member-display-name" name="displayName" type="text" maxlength="80" value="' + escapeHtml(membership.displayName || window.ipaceMemberDefaultDisplayName || '') + '" placeholder="For example: Alex"><p class="form-hint">Shown with member experiences. It does not need to be unique. If left blank, we use the first name from your saved legal name.</p><label class="check-label"><input name="contact" type="checkbox"' + (consents.contact ? ' checked' : '') + '> Receive group contact</label><label class="check-label"><input name="anonymisedAnalysis" type="checkbox"' + (consents.anonymisedAnalysis ? ' checked' : '') + '> Allow my anonymised vehicle and evidence data in aggregate statistics</label><label class="check-label"><input name="willingToHelp" type="checkbox"' + (membership.willingToHelp ? ' checked' : '') + '> I would like to help the group</label><label class="check-label"><input name="pressStory" type="checkbox"' + (membership.pressStory ? ' checked' : '') + '> I have a story I would be happy to discuss with the press</label><label for="member-expertise">Relevant expertise or experience</label><textarea id="member-expertise" name="expertise" maxlength="500" rows="3" placeholder="For example: solicitor, EV mechanic, battery engineer, journalist, or community organiser">' + escapeHtml(membership.expertise || '') + '</textarea><p class="form-hint">This records interest only. We would discuss your story with you before sharing anything.</p></fieldset><div class="cluster"><button class="btn btn--primary btn--sm" type="submit">Save changes</button><button class="btn btn--secondary btn--sm" type="button" data-close-preferences>Cancel</button></div><p class="form-hint" data-form-status role="status" aria-live="polite"></p></form>';
     preferencesEl.innerHTML = html;
    }
 
@@ -789,6 +811,7 @@
     var url = form.matches('[data-preferences-form]') ? '/api/update-member-preferences' : form.matches('[data-vehicle-edit-form]') ? '/api/submit-vehicle-basics' : form.dataset.deleteUrl;
     var payload = {};
     if (form.matches('[data-preferences-form]')) {
+      payload.country = form.elements.country.value;
       payload.contact = form.elements.contact.checked;
       payload.anonymisedAnalysis = form.elements.anonymisedAnalysis.checked;
       payload.displayName = form.elements.displayName.value;

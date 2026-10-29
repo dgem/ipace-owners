@@ -46,3 +46,19 @@ func TestMemberDisplayNameDefaultsToFirstLegalName(t *testing.T) {
 		}
 	}
 }
+
+func TestValidMemberCountryRequiresSupportedCountryValue(t *testing.T) {
+	for _, test := range []struct {
+		country string
+		valid   bool
+	}{
+		{country: "GB", valid: true},
+		{country: "GR", valid: true},
+		{country: "", valid: false},
+		{country: "XX", valid: false},
+	} {
+		if got := validMemberCountry(test.country); got != test.valid {
+			t.Errorf("validMemberCountry(%q) = %v, want %v", test.country, got, test.valid)
+		}
+	}
+}

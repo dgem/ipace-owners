@@ -92,13 +92,13 @@ Provide accessible multi-step forms that collect membership interest now, help o
 The Join page has two presentation variants that post to the same `POST /api/submit-join`
 contract:
 
-- Default `launch` mode is a single-step minimum-data form containing name, email, contact
-  consent, the not-a-legal-claim acknowledgement, optional anonymised aggregate-publication
-  consent, and Privacy/Participation links. Country, relationship, and skills are omitted
-  and therefore retain their existing optional/empty backend defaults.
-- During launch, the public registration ask is intentionally limited to name, email, and
-  consent preferences. Do not describe vehicle data submission as the current public task; say
-  that vehicle details may be requested separately in the coming weeks if needed.
+- Default `launch` mode is a single-step minimum-data form containing name, email, required
+  country/region, contact consent, the not-a-legal-claim acknowledgement, optional anonymised
+  aggregate-publication consent, and Privacy/Participation links. Relationship and skills are
+  omitted and retain their optional/empty backend defaults.
+- During launch, the public registration ask is intentionally limited to name, email, country,
+  and consent preferences. Do not describe vehicle data submission as the current public task;
+  say that vehicle details may be requested separately in the coming weeks if needed.
 - `full` mode retains the complete four-step form described below. It is available through the
   session-persisted `?site-mode=full` presentation flag.
 
@@ -113,10 +113,10 @@ callout once the result is shown so it does not repeat the next-step guidance.
 Collect:
 
 - Contact details.
-- Default country / region to United Kingdom while keeping non-UK owner options available,
-  including Greece (`GR`) in Join, vehicle creation and vehicle editing.
-  Explain that launch is UK-led and that non-UK interest may be kept separate for regional
-  scope or future handoff.
+- Require members to select a country/region at Join and allow them to update it from account
+  preferences. Default the selection to United Kingdom while keeping non-UK owner options
+  available, including Greece (`GR`) in Join, vehicle creation and vehicle editing. Explain
+  that the group is currently UK-led.
 - One combined owner/relationship status field. Do not ask separate relationship and
   ownership questions that allow contradictory answers.
   Use options equivalent to:
