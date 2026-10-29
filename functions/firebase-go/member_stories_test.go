@@ -80,12 +80,15 @@ func TestStorySlugIsStableAndBounded(t *testing.T) {
 func TestMemberStoryResponseKeepsClarificationButOmitsPrivateReviewMaterial(t *testing.T) {
 	story := memberStory{
 		ContactName: "Private name", ContactEmail: "private@example.com", AdminNotes: "Internal",
-		MemberMessage: "Please clarify the date.", Analysis: &memberStoryAnalysis{Sentiment: "frustrated"},
+		MemberMessage: "Please clarify the date.", Analysis: &memberStoryAnalysis{Sentiment: "frustrated", Grammar: []string{"internal note"}},
 		Revisions: []memberStoryRevision{{Editor: "admin"}}, ConsentHistory: []memberStoryConsent{{Website: true}},
 	}
 	got := memberStoryForOwner(story)
-	if got.ContactName != "" || got.ContactEmail != "" || got.AdminNotes != "" || got.Analysis != nil || got.Revisions != nil || got.ConsentHistory != nil {
+	if got.ContactName != "" || got.ContactEmail != "" || got.AdminNotes != "" || got.Revisions != nil || got.ConsentHistory != nil {
 		t.Fatalf("member response retained private review data: %#v", got)
+	}
+	if got.Analysis == nil || got.Analysis.Sentiment != "frustrated" || len(got.Analysis.Grammar) != 0 {
+		t.Fatalf("member response did not retain only the useful analysis summary: %#v", got.Analysis)
 	}
 	if got.MemberMessage != "Please clarify the date." {
 		t.Fatalf("member clarification was removed: %#v", got)
@@ -121,13 +124,15 @@ func TestStoryMarkdownLinksOnlyReferenceReadyUploadedImages(t *testing.T) {
 	for _, markdown := range []string{
 		"[External site](https://example.com)",
 		"![Remote image](https://example.com/photo.jpg)",
-		"![Video](story-media:video-1)",
 		"![Pending](story-media:pending-photo)",
 		"![Unknown](story-media:missing-photo)",
 	} {
 		if message := storyMarkdownMediaError(markdown, media); message == "" {
 			t.Fatalf("unsupported link was accepted: %q", markdown)
 		}
+	}
+	if message := storyMarkdownMediaError("![Video](story-media:video-1)", media); message != "" {
+		t.Fatalf("ready uploaded video was rejected: %s", message)
 	}
 }
 

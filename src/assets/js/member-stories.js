@@ -66,8 +66,9 @@
   function inlineMarkdown(value) {
     return esc(value)
       .replace(/!\[([^\]]*)\]\(story-media:([a-zA-Z0-9_-]+)\)/g, function (match, alt, id) {
-        var item = editorMedia.find(function (media) { return media.id === id && media.status === 'ready' && media.contentType.indexOf('image/') === 0 && media.url; });
+        var item = editorMedia.find(function (media) { return media.id === id && media.status === 'ready' && media.url; });
         if (!item) return alt;
+        if (item.contentType.indexOf('video/') === 0) return '<video src="' + esc(item.url) + '" controls preload="metadata" data-story-media-id="' + esc(item.id) + '"></video>';
         return '<a class="story-inline-image" href="' + esc(item.url) + '" target="_blank" rel="noopener noreferrer"><img src="' + esc(item.url) + '" alt="' + (alt || esc(item.name)) + '" data-story-media-id="' + esc(item.id) + '"></a>';
       })
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
@@ -100,6 +101,10 @@
       var mediaID = node.getAttribute('data-story-media-id') || '';
       var alt = (node.getAttribute('alt') || '').replace(/\[/g, '').replace(/\]/g, '');
       return /^[a-zA-Z0-9_-]+$/.test(mediaID) ? '![' + alt + '](story-media:' + mediaID + ')' : '';
+    }
+    if (tag === 'video') {
+      var videoID = node.getAttribute('data-story-media-id') || '';
+      return /^[a-zA-Z0-9_-]+$/.test(videoID) ? '![Video](story-media:' + videoID + ')' : '';
     }
     if (tag === 'a') {
       return children;
@@ -154,15 +159,15 @@
       ? '<div class="form-group"><label for="story-vehicle">Which car is this about?</label><select id="story-vehicle" name="vehicleId" required><option value="">Choose your car</option>' + vehicles.map(function (item) { return vehicleOption(item, item.id === selectedVehicle); }).join('') + '</select></div>'
       : '<input name="vehicleId" type="hidden" value="' + esc(selectedVehicle) + '">';
     var existingMedia = editorMedia.filter(function (item) { return item.status === 'ready'; }).map(function (item) {
-      var insert = item.contentType.indexOf('image/') === 0
-        ? '<button class="btn btn--secondary btn--sm" type="button" data-insert-story-image="' + esc(item.id) + '">Insert in experience</button>'
-        : '<span class="form-hint">Uploaded video</span>';
+      var insert = '<button class="btn btn--secondary btn--sm" type="button" data-insert-story-media="' + esc(item.id) + '">Insert ' + (item.contentType.indexOf('image/') === 0 ? 'image' : 'video') + '</button>';
       return '<li><span>' + esc(item.name) + '</span>' + insert + '</li>';
     }).join('');
     var submissions = (state.stories || []).map(function (story) {
-      var editable = story.status === 'draft' || story.status === 'needs-member-clarification';
+      var editable = story.status === 'draft' || story.status === 'submitted' || story.status === 'editing' || story.status === 'needs-member-clarification';
       var message = story.memberMessage ? '<p class="story-member-message"><strong>More detail requested:</strong> ' + esc(story.memberMessage) + '</p>' : '';
+      var sentiment = story.analysis && story.analysis.sentiment ? '<p class="form-hint"><strong>Editorial sentiment:</strong> ' + esc(story.analysis.sentiment) + '</p>' : '';
       return '<li><div class="story-submission-list__summary"><strong>' + esc(story.title) + '</strong><span class="badge">' + esc(statusLabel(story.status)) + '</span></div>' + message + '<div class="cluster">' +
+        sentiment +
         (editable ? '<button class="btn btn--secondary btn--sm" type="button" data-edit-story="' + esc(story.id) + '">Edit</button>' : '') +
         (story.status !== 'draft' && story.status !== 'withdrawal-requested' ? '<button class="btn btn--secondary btn--sm" type="button" data-withdraw-story="' + esc(story.id) + '">Withdraw permission</button>' : '') + '</div></li>';
     }).join('');
@@ -213,13 +218,16 @@
       button.addEventListener('mousedown', function (event) { event.preventDefault(); });
       button.addEventListener('click', function () { editor.focus(); document.execCommand(button.dataset.editorCommand, false); updateCount(); });
     });
-    root.querySelectorAll('[data-insert-story-image]').forEach(function (button) {
+    root.querySelectorAll('[data-insert-story-media]').forEach(function (button) {
       button.addEventListener('mousedown', function (event) { event.preventDefault(); });
       button.addEventListener('click', function () {
-        var item = editorMedia.find(function (media) { return media.id === button.dataset.insertStoryImage; });
+        var item = editorMedia.find(function (media) { return media.id === button.dataset.insertStoryMedia; });
         if (!item || !item.url) return;
         editor.focus();
-        document.execCommand('insertHTML', false, '<p><a class="story-inline-image" href="' + esc(item.url) + '" target="_blank" rel="noopener noreferrer"><img src="' + esc(item.url) + '" alt="' + esc(item.name) + '" data-story-media-id="' + esc(item.id) + '"></a></p>');
+        var html = item.contentType.indexOf('video/') === 0
+          ? '<p><video src="' + esc(item.url) + '" controls preload="metadata" data-story-media-id="' + esc(item.id) + '"></video></p>'
+          : '<p><a class="story-inline-image" href="' + esc(item.url) + '" target="_blank" rel="noopener noreferrer"><img src="' + esc(item.url) + '" alt="' + esc(item.name) + '" data-story-media-id="' + esc(item.id) + '"></a></p>';
+        document.execCommand('insertHTML', false, html);
         updateCount();
       });
     });

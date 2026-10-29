@@ -4829,6 +4829,14 @@ details .details-body p:last-child {
   max-width: 100%;
 }
 
+.story-markdown-editor {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: var(--text-sm);
+  font-weight: 400;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
 .admin-story-toolbar { display:flex; justify-content:space-between; gap:var(--space-4); align-items:end; flex-wrap:wrap; margin-bottom:var(--space-5); padding:var(--space-4); background:var(--color-surface); border:1px solid var(--color-border); border-radius:var(--radius-lg); }
 .admin-story-toolbar label { display:flex; flex-direction:column; gap:var(--space-1); font-weight:700; font-size:.9rem; }
 .admin-story-toolbar input, .admin-story-toolbar select { min-width:10rem; }

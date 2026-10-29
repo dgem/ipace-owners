@@ -242,7 +242,12 @@ func memberStoryForOwner(story memberStory) memberStory {
 	story.ContactName = ""
 	story.ContactEmail = ""
 	story.AdminNotes = ""
-	story.Analysis = nil
+	// Share the useful, non-editorial part of the analysis with the author. The
+	// detailed notes remain admin-only, while sentiment helps members understand
+	// how their experience is being classified.
+	if story.Analysis != nil {
+		story.Analysis = &memberStoryAnalysis{Sentiment: story.Analysis.Sentiment, Keywords: append([]string(nil), story.Analysis.Keywords...)}
+	}
 	story.Revisions = nil
 	story.ConsentHistory = nil
 	return story
@@ -299,6 +304,7 @@ func memberStoriesSave(w http.ResponseWriter, r *http.Request, user *firebaseUse
 	}
 	now := time.Now().UTC()
 	story := memberStory{ID: cleanString(input.ID, 100), IdentityUserID: user.UID, ContactName: contactName, ContactEmail: user.Email, DisplayName: displayName, Title: input.Title, BodyMarkdown: input.BodyMarkdown, Status: "draft", Evidence: evidence, UpdatedAt: now}
+	previousStatus := ""
 	story.Consent = memberStoryConsent{Website: input.WebsiteConsent, ThirdParty: input.ThirdPartyConsent, Copyright: input.CopyrightConfirmed, Truthful: input.TruthfulConfirmed, Version: storyConsentVersion, RecordedAt: now}
 	var ref *firestore.DocumentRef
 	if story.ID == "" {
@@ -313,11 +319,12 @@ func memberStoriesSave(w http.ResponseWriter, r *http.Request, user *firebaseUse
 			return
 		}
 		var previous memberStory
-		if doc.DataTo(&previous) != nil || previous.IdentityUserID != user.UID || (previous.Status != "draft" && previous.Status != "needs-member-clarification") {
+		if doc.DataTo(&previous) != nil || previous.IdentityUserID != user.UID || (previous.Status != "draft" && previous.Status != "submitted" && previous.Status != "editing" && previous.Status != "needs-member-clarification") {
 			writeJSON(w, 403, map[string]any{"error": "This story cannot be edited"})
 			return
 		}
 		story.CreatedAt = previous.CreatedAt
+		previousStatus = previous.Status
 		story.Media = previous.Media
 		story.Analysis = previous.Analysis
 		story.AdminNotes = previous.AdminNotes
@@ -350,6 +357,14 @@ func memberStoriesSave(w http.ResponseWriter, r *http.Request, user *firebaseUse
 	if input.Submit {
 		story.Status = "submitted"
 		story.MemberMessage = ""
+	} else if story.ID != "" {
+		// Keep the review state visible while an author responds to a request for
+		// clarification, and mark edits to a submitted story as in progress.
+		if previousStatus == "needs-member-clarification" {
+			story.Status = previousStatus
+		} else if previousStatus == "submitted" || previousStatus == "editing" {
+			story.Status = "editing"
+		}
 	}
 	if _, err = ref.Set(r.Context(), story); err != nil {
 		writeJSON(w, 500, map[string]any{"error": "Could not save story"})
@@ -912,16 +927,16 @@ func storyApprovalError(story memberStory) string {
 }
 
 func storyMarkdownMediaError(markdown string, media []memberStoryMedia) string {
-	images := map[string]bool{}
+	allowed := map[string]bool{}
 	for _, item := range media {
-		if item.Status == "ready" && strings.HasPrefix(item.ContentType, "image/") {
-			images[item.ID] = true
+		if item.Status == "ready" && (strings.HasPrefix(item.ContentType, "image/") || strings.HasPrefix(item.ContentType, "video/")) {
+			allowed[item.ID] = true
 		}
 	}
 	for _, match := range storyMarkdownTarget.FindAllStringSubmatch(markdown, -1) {
 		target := match[1]
-		if !strings.HasPrefix(match[0], "![") || !strings.HasPrefix(target, "story-media:") || !images[strings.TrimPrefix(target, "story-media:")] {
-			return "Links may only insert photos uploaded to this experience"
+		if !strings.HasPrefix(match[0], "![") || !strings.HasPrefix(target, "story-media:") || !allowed[strings.TrimPrefix(target, "story-media:")] {
+			return "Media links may only reference photos or videos uploaded to this experience"
 		}
 	}
 	return ""
