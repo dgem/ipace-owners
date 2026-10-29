@@ -159,7 +159,8 @@
       ? '<div class="form-group"><label for="story-vehicle">Which car is this about?</label><select id="story-vehicle" name="vehicleId" required><option value="">Choose your car</option>' + vehicles.map(function (item) { return vehicleOption(item, item.id === selectedVehicle); }).join('') + '</select></div>'
       : '<input name="vehicleId" type="hidden" value="' + esc(selectedVehicle) + '">';
     var existingMedia = editorMedia.filter(function (item) { return item.status === 'ready'; }).map(function (item) {
-      var insert = '<button class="btn btn--secondary btn--sm" type="button" data-insert-story-media="' + esc(item.id) + '">Insert ' + (item.contentType.indexOf('image/') === 0 ? 'image' : 'video') + '</button>';
+      var legacyImageHook = item.contentType.indexOf('image/') === 0 ? ' data-insert-story-image="' + esc(item.id) + '"' : '';
+      var insert = '<button class="btn btn--secondary btn--sm" type="button" data-insert-story-media="' + esc(item.id) + '"' + legacyImageHook + '>Insert ' + (item.contentType.indexOf('image/') === 0 ? 'image' : 'video') + '</button>';
       return '<li><span>' + esc(item.name) + '</span>' + insert + '</li>';
     }).join('');
     var submissions = (state.stories || []).map(function (story) {
