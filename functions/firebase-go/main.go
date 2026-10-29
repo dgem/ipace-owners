@@ -71,6 +71,18 @@ func init() {
 
 func Api(w http.ResponseWriter, r *http.Request) {
 	switch strings.TrimRight(r.URL.Path, "/") {
+	case "/api/shop/catalogue":
+		MerchandiseCatalogue(w, r)
+	case "/api/shop/quote":
+		MerchandiseQuote(w, r)
+	case "/api/shop/checkout":
+		MerchandiseCheckout(w, r)
+	case "/api/shop/order":
+		MerchandiseOrder(w, r)
+	case "/api/shop/stripe-webhook":
+		MerchandiseStripeWebhook(w, r)
+	case "/api/shop/printify-webhook":
+		MerchandisePrintifyWebhook(w, r)
 	case "/api/send-magic-link":
 		SendMagicLink(w, r)
 	case "/api/auth-diagnostics":

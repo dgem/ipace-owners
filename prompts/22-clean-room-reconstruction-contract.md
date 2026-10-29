@@ -693,3 +693,49 @@ public repository.
 
 A prompt-only rebuild without those backups creates a new empty deployment. It is a product
 reconstruction, not production disaster recovery.
+
+## Public merchandise storefront
+
+`/shop/` and `/shop/terms/` implement the guest-accessible Printify shop with Stripe hosted
+Checkout in GBP. `merchandise.js` handles catalogue variants/images, basket, international
+delivery details, quotes, secure checkout redirects and private browser receipt status.
+There is no membership requirement. This is not intended for profit; surplus supports site
+running costs (currently around £30/month). Round every displayed merchandise price and final
+charge UP to `.49` or `.99`, using integer pence. Keep raw costs internal.
+
+API routes: `GET /api/shop/catalogue`, `POST /api/shop/quote`, `POST /api/shop/checkout`,
+`GET /api/shop/order`, `POST /api/shop/stripe-webhook`, `POST /api/shop/printify-webhook`.
+`merchandiseOrders` stores private guest orders, distinct from membership snapshots. Quote and
+checkout require an allowed Origin. Status/checkout require a random receipt bearer secret;
+provider webhooks require their own raw-body HMAC signatures. A signed paid Stripe event must
+match the saved session, shop, currency and total before Printify submission. Ambiguous provider
+submissions require operator reconciliation, never automatic duplicate creation.
+
+Non-secret configuration: `MERCH_CONFIG` (shop/origin, explicitly verified production and shipping
+currency conversion factors, payment-cost allowance, reviewed pricing expiry, destination tax
+allowances, seller identity and reviewed terms). Secrets: `PRINTIFY_API_TOKEN`,
+`PRINTIFY_WEBHOOK_SECRET`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`.
+`MERCH_SECRETS_ENABLED` optionally binds the four managed secrets during deployment;
+`MERCH_CONFIG_STAGING/PRODUCTION` and `MERCH_SECRETS_ENABLED_STAGING/PRODUCTION` are GitHub variables.
+No live checkout until Stripe, currency factors, destination tax settings and seller details
+are configured and tested. New sales stop on pricing-review expiry; paid orders still process.
+See `prompts/21-merchandise-storefront.md` for the schema, complete setup/reconciliation runbook,
+retention, external design/account backups and acceptance tests. Use separate staging accounts;
+Stripe test payments must never unintentionally trigger real Printify fulfilment.
+
+`MERCH_CONFIG.stripeLive` selects test/live payments and must match the Stripe secret key prefix
+and Checkout session livemode. Test payments are stored as `test-paid` and NEVER submitted to
+Printify. The storefront prominently labels test mode. Only explicitly configured live payments
+can create merchandise orders. Keep test/live Stripe endpoint signing secrets separate.
+
+The committed `src/_data/merchandisePreview.json` and `public/images/merchandise/*.jpg` show the
+four initial products when the live catalogue is unavailable; they are previews without prices
+or purchase buttons. Preserve the source Printify mockups and designs externally. The live
+catalogue replaces these cards and is authoritative for availability/options/prices.
+
+Subscribe the Printify webhook to product create/update/delete and `product:publish:started`
+as well as order events. Product events invalidate the short catalogue cache. Verified publish
+create/update requests re-read the configured shop product, then acknowledge publication with
+its `/shop/#product-<id>` handle; unpublish requests use Printify's unpublish endpoint. This
+completes custom-channel publication and releases the publishing lock. Existing locked products
+need publication retriggered after the webhook is installed; do not change them during inspection.

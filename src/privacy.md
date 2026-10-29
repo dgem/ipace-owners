@@ -108,6 +108,21 @@ storage:
 If non-essential cookies are added later, we will update the site and request consent before
 setting them.
 
+## Merchandise orders
+
+The public shop does not require membership. We store your basket, delivery name and address,
+email, optional carrier phone number, quote, payment reference and fulfilment status privately
+to process your purchase and provide support. Stripe handles card details; this website never
+receives or stores them. Printify and its print providers receive the contact and delivery
+information needed to make and ship your order. These providers may process data outside the UK.
+
+Order information is separate from membership and vehicle evidence, excluded from public
+statistics and member exports, and never used to enrol shoppers or send marketing. Order status
+on this browser uses a private receipt key stored in session storage. If you need a copy of an
+order or want to exercise a data right, contact us using the email address used for the purchase.
+We retain order records only as needed for fulfilment, returns, disputes and applicable accounting
+obligations; abandoned quotes can be deleted after seven days. Backups expire on their usual cycle.
+
 ## How long we keep data
 
 We keep membership and submitted vehicle records while the group operates and the records

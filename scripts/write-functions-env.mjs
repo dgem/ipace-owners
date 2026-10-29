@@ -20,6 +20,13 @@ values.FIREBASE_EMAIL_LINK_DOMAIN = process.env.FIREBASE_EMAIL_LINK_DOMAIN || ""
 values.RESEND_FROM = process.env.RESEND_FROM || "";
 values.RESEND_REPLY_TO = process.env.RESEND_REPLY_TO || "";
 values.RESEND_ASSET_BASE_URL = process.env.RESEND_ASSET_BASE_URL || "";
+try {
+  const merch = JSON.parse(process.env.MERCH_CONFIG || "{}");
+  if (!merch || Array.isArray(merch) || typeof merch !== "object") throw new Error();
+  values.MERCH_CONFIG = JSON.stringify(merch);
+} catch {
+  throw new Error("MERCH_CONFIG must be a JSON object");
+}
 values.INSTAGRAM_USER_ID = process.env.INSTAGRAM_USER_ID || "";
 values.INSTAGRAM_GRAPH_API_VERSION = process.env.INSTAGRAM_GRAPH_API_VERSION || "";
 values.INSTAGRAM_MEDIA_BASE_URL = process.env.INSTAGRAM_MEDIA_BASE_URL || "";

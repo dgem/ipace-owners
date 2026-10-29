@@ -149,6 +149,9 @@ deploy-functions: write-functions-env ## Deploy all Go Cloud Functions to GCP.
 	@for fn in $(FUNCTION_ENTRYPOINTS); do \
 		echo "Deploying Cloud Function $$fn"; \
 		secret_values="VIN_PEPPER=vin-pepper:latest,RESEND_API_KEY=resend-api-key:latest,IDEAL_POSTCODES_API_KEY=ideal-postcodes-api-key:latest,INSTAGRAM_ACCESS_TOKEN=instagram-access-token:latest"; \
+		if [ "$${MERCH_SECRETS_ENABLED:-false}" = "true" ]; then \
+			secret_values="$${secret_values},PRINTIFY_API_TOKEN=printify-api-token:latest,PRINTIFY_WEBHOOK_SECRET=printify-webhook-secret:latest,STRIPE_SECRET_KEY=stripe-secret-key:latest,STRIPE_WEBHOOK_SECRET=stripe-webhook-secret:latest"; \
+		fi; \
 		secret_args=""; if [ -n "$${secret_values}" ]; then secret_args="--set-secrets=$${secret_values}"; fi; \
 		gcloud functions deploy "$$fn" \
 			--gen2 \

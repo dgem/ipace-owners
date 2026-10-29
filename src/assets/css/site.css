@@ -4404,6 +4404,24 @@ details .details-body p:last-child {
 /* ------------------------------------------------------------
    20. PRINT
    ------------------------------------------------------------ */
+/* Merchandise storefront */
+.merch-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: var(--space-6, 1.5rem); }
+.merch-product { display: flex; flex-direction: column; overflow: hidden; padding: 0; }
+.merch-product > img { width: 100%; aspect-ratio: 1; object-fit: contain; background: var(--color-surface); }
+.merch-product__body { display: flex; flex-direction: column; flex: 1; padding: 1.5rem; }
+.merch-product__body > .btn { margin-top: auto; }
+.merch-product__body h2 { font-size: 1.25rem; }
+.merch-price { color: var(--color-primary); font-size: 1.125rem; font-weight: 700; }
+.merch-product select { width: 100%; min-width: 0; }
+.merch-basket { margin-top: 2rem; padding: clamp(1rem, 3vw, 2rem); }
+.merch-basket-line { display: flex; gap: 1rem; justify-content: space-between; align-items: center; padding-block: 1rem; border-bottom: 1px solid var(--color-border, #d1d5db); }
+.merch-address-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); gap: 1rem; }
+.merch-address-grid input, .merch-address-grid select { width: 100%; }
+[data-shop-quote-result], [data-shop-order] { margin-top: 1.5rem; }
+[data-shop-status] { margin-block: 1rem; }
+
+.merch-description { white-space: pre-line; overflow-wrap: anywhere; }
+
 @media print {
   .site-header,
   .mobile-nav,

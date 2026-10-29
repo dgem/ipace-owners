@@ -1,0 +1,18 @@
+{
+  "enabled": false,
+  "stripeLive": false,
+  "shopId": "",
+  "baseUrl": "https://ipace-owners.org",
+  "costToGbpMicros": 0,
+  "shippingToGbpMicros": 0,
+  "paymentFeeBps": 0,
+  "paymentFeePence": 0,
+  "reviewedUntil": "2026-01-01T00:00:00Z",
+  "countries": {
+    "GB": { "name": "United Kingdom", "supplierTaxBps": 0 },
+    "AU": { "name": "Australia", "supplierTaxBps": 0 }
+  },
+  "sellerName": "",
+  "sellerAddress": "",
+  "termsReviewed": false
+}

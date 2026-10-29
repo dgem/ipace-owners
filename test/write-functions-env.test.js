@@ -56,6 +56,7 @@ test("writes function env vars as JSON without splitting comma-separated origins
     VEO_MODEL_ID: "veo-3.1-generate-001",
     SEED_NEXT_STEPS_SURVEY: "true",
 	    NEXT_STEPS_SURVEY_STATUS: "published",
+    MERCH_CONFIG: "{}",
     GOOGLE_CLOUD_PROJECT: "ipace-owners-staging",
     GCP_PROJECT: "ipace-owners-staging",
   });
@@ -95,6 +96,8 @@ test("derives the database ID while leaving the preview link domain unset", () =
   assert.equal(written.FIRESTORE_DATABASE_ID, "ipace-owners-staging");
   assert.equal(written.FIREBASE_EMAIL_LINK_DOMAIN, "");
   assert.equal("RESEND_API_KEY" in written, false);
+  assert.equal(written.MERCH_CONFIG, "{}");
+  for (const key of ["PRINTIFY_API_TOKEN", "PRINTIFY_WEBHOOK_SECRET", "STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET"]) assert.equal(key in written, false);
   assert.equal("IDEAL_POSTCODES_API_KEY" in written, false);
   assert.equal(written.RESEND_FROM, "");
   assert.equal(written.RESEND_REPLY_TO, "");

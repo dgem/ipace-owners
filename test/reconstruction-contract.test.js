@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 
 const root = path.join(__dirname, '..');
 const promptFilenamePattern = /^\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*\.md$/;
-const reconstructionPrompt = 'prompts/21-clean-room-reconstruction-contract.md';
+const reconstructionPrompt = 'prompts/22-clean-room-reconstruction-contract.md';
 
 function read(relativePath) {
   return fs.readFileSync(path.join(root, relativePath), 'utf8');
@@ -44,6 +44,8 @@ test('clean-room route inventory maps to source pages and Hosting redirects', fu
     ['/contact/', 'src/contact.md'],
     ['/privacy/', 'src/privacy.md'],
     ['/terms/', 'src/terms.md'],
+    ['/shop/', 'src/shop.njk'],
+    ['/shop/terms/', 'src/shop/terms.md'],
     ['/methodology/', 'src/methodology.md'],
     ['/evidence-dashboard/', 'src/evidence-dashboard.njk'],
     ['/updates/', 'src/updates.njk'],

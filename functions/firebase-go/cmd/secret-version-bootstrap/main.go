@@ -30,6 +30,10 @@ func main() {
 		{"resend-api-key", "RESEND_API_KEY"},
 		{"ideal-postcodes-api-key", "IDEAL_POSTCODES_API_KEY"},
 		{"instagram-access-token", "INSTAGRAM_ACCESS_TOKEN"},
+		{"printify-api-token", "PRINTIFY_API_TOKEN"},
+		{"printify-webhook-secret", "PRINTIFY_WEBHOOK_SECRET"},
+		{"stripe-secret-key", "STRIPE_SECRET_KEY"},
+		{"stripe-webhook-secret", "STRIPE_WEBHOOK_SECRET"},
 	}
 	for _, cfg := range secrets {
 		value := []byte(os.Getenv(cfg.Env))

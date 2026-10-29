@@ -1,19 +1,49 @@
 {
   "public": [
-    { "label": "Home", "url": "/" },
-    { "label": "About", "url": "/about/" },
+    {
+      "label": "Home",
+      "url": "/"
+    },
+    {
+      "label": "About",
+      "url": "/about/"
+    },
     {
       "label": "Evidence",
       "url": "/evidence-dashboard/",
       "launchVisible": false
     },
-    { "label": "Methodology", "url": "/methodology/", "launchVisible": false },
-    { "label": "FAQ", "url": "/faq/" },
-    { "label": "Updates", "url": "/updates/" },
-    { "label": "Join", "url": "/join/", "highlight": true }
+    {
+      "label": "Methodology",
+      "url": "/methodology/",
+      "launchVisible": false
+    },
+    {
+      "label": "FAQ",
+      "url": "/faq/"
+    },
+    {
+      "label": "Updates",
+      "url": "/updates/"
+    },
+    {
+      "label": "Shop",
+      "url": "/shop/"
+    },
+    {
+      "label": "Join",
+      "url": "/join/",
+      "highlight": true
+    }
   ],
   "member": [
-    { "label": "My Data", "url": "/member/account/" },
-    { "label": "Add Vehicle", "url": "/member/submit-vehicle-data/" }
+    {
+      "label": "My Data",
+      "url": "/member/account/"
+    },
+    {
+      "label": "Add Vehicle",
+      "url": "/member/submit-vehicle-data/"
+    }
   ]
 }

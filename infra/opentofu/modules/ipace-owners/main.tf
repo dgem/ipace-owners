@@ -318,6 +318,25 @@ resource "google_secret_manager_secret" "instagram_access_token" {
   depends_on = [google_project_service.required]
 }
 
+# Values are bootstrapped locally and never placed in OpenTofu state.
+resource "google_secret_manager_secret" "merchandise" {
+  for_each            = toset(["printify-api-token", "printify-webhook-secret", "stripe-secret-key", "stripe-webhook-secret"])
+  secret_id           = each.value
+  deletion_policy     = "ABANDON"
+  deletion_protection = true
+  replication {
+    auto {}
+  }
+  depends_on = [google_project_service.required]
+}
+
+resource "google_secret_manager_secret_iam_member" "runtime_merchandise" {
+  for_each  = google_secret_manager_secret.merchandise
+  secret_id = each.value.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.runtime.email}"
+}
+
 resource "terraform_data" "local_secret_versions" {
   # Runs locally on every apply. The Go helper skips unset values and does not
   # expose values or fingerprints to OpenTofu state.
@@ -335,6 +354,7 @@ resource "terraform_data" "local_secret_versions" {
     google_secret_manager_secret.resend_api_key,
     google_secret_manager_secret.ideal_postcodes_api_key,
     google_secret_manager_secret.instagram_access_token,
+    google_secret_manager_secret.merchandise,
   ]
 }
 

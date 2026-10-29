@@ -581,3 +581,7 @@ exported cells, five sheets, frozen headings, formula safety and charts. Do not 
 govulncheck or introduce spreadsheet import paths. Recheck the advisory before restoring
 structured tables. The archived fictional sample workbook remains a representative layout
 reference; its table parts are not used as an input when creating exports.
+
+## Merchandise
+
+Merchandise uses optional Secret Manager bindings via `MERCH_SECRETS_ENABLED` and environment-specific `MERCH_CONFIG`. Keep test/live payment and fulfilment environments separate. Reconcile ambiguous Printify submissions before replay; do not create duplicate orders. The full setup and recovery runbook is in `21-merchandise-storefront.md`.
