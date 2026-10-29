@@ -1,0 +1,18 @@
+---
+layout: base.njk
+title: Find members
+description: "Search member records securely."
+noindex: true
+adminNavigation: true
+adminBreadcrumb: Find members
+adminMemberSearch: true
+date: Last Modified
+---
+
+{% from "partials/auth-login-gate.njk" import authLoginGate %}
+<div class="page-header page-header--compact"><div class="container"><h1 class="page-header__title">Find members</h1></div></div>
+<div class="section"><div class="container"><div data-admin-container>
+  {{ authLoginGate("member-search-email", "Sign in required", "Enter your admin email address to search member records.", "admin", false) }}
+  <div class="auth-gate" data-admin-only-gate hidden><h2>Access restricted</h2></div>
+  <div class="auth-content" data-admin-content hidden><section class="dashboard-panel" data-admin-member-search><form class="cluster"><label for="admin-member-query">Name, display name, email, registration, expertise or preference</label><input id="admin-member-query" type="search" minlength="2" required autocomplete="off"><button class="btn btn--primary" type="submit">Search</button></form><p class="form-hint">Search runs server-side and returns private data only after an admin-role check.</p><div data-results></div></section></div>
+</div></div></div>

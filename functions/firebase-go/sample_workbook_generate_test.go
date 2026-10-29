@@ -29,6 +29,7 @@ func TestGeneratePublicSampleWorkbook(t *testing.T) {
 			Membership: membershipRecord{
 				Relationship: "Current owner",
 				Skills:       []string{"Community support", "Technical"},
+				DisplayName:  "Alex",
 			},
 			Consents: consentRecord{
 				Contact:            true,

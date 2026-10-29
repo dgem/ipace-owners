@@ -30,3 +30,19 @@ func TestDeletedVehicleSetsSoftDeleteState(t *testing.T) {
 		t.Fatalf("deleted vehicle = %#v", got)
 	}
 }
+
+func TestMemberDisplayNameDefaultsToFirstLegalName(t *testing.T) {
+	for _, test := range []struct {
+		saved string
+		legal string
+		want  string
+	}{
+		{saved: "Roadrunner", legal: "Alex Example", want: "Roadrunner"},
+		{legal: "  Alex   Example  ", want: "Alex"},
+		{legal: "", want: ""},
+	} {
+		if got := memberDisplayName(test.saved, test.legal); got != test.want {
+			t.Errorf("memberDisplayName(%q, %q) = %q, want %q", test.saved, test.legal, got, test.want)
+		}
+	}
+}

@@ -121,6 +121,12 @@ variable "allowed_origins" {
   default     = ""
 }
 
+variable "member_feature_access" {
+  description = "Member frontend feature access rules: all, off, or comma-separated Firebase roles."
+  type        = map(string)
+  default     = {}
+}
+
 variable "site_url" {
   description = "Canonical URL for this environment, used as the Firebase email-link continue URL."
   type        = string

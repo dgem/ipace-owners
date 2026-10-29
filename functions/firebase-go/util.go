@@ -25,6 +25,7 @@ import (
 var emailRE = regexp.MustCompile(`^[^\s@]+@[^\s@]+\.[^\s@]+$`)
 var vinRE = regexp.MustCompile(`^[A-HJ-NPR-Z0-9]{17}$`)
 var authTraceRE = regexp.MustCompile(`^IP-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$`)
+var cloudTraceRE = regexp.MustCompile(`^[a-fA-F0-9]{32}$`)
 
 type authTraceContextKey struct{}
 
@@ -89,6 +90,23 @@ func authTraceFields(r *http.Request) map[string]any {
 		return map[string]any{}
 	}
 	return map[string]any{"authTrace": traceCode}
+}
+
+// requestCorrelationID returns a safe identifier that can be quoted to
+// support without exposing request data. Cloud Run supplies the trace header
+// on production requests; the opaque auth trace is a useful fallback in
+// local and preview requests.
+func requestCorrelationID(r *http.Request) string {
+	if r == nil {
+		return ""
+	}
+	if raw := strings.TrimSpace(r.Header.Get("X-Cloud-Trace-Context")); raw != "" {
+		traceID := strings.SplitN(raw, "/", 2)[0]
+		if cloudTraceRE.MatchString(traceID) {
+			return strings.ToLower(traceID)
+		}
+	}
+	return authTraceCode(r.Header.Get("X-Ipace-Auth-Trace"))
 }
 
 func addAuthTrace(fields map[string]any, r *http.Request) map[string]any {
@@ -499,15 +517,28 @@ func userFromToken(ctx context.Context, client *auth.Client, token *auth.Token) 
 }
 
 func isAdmin(user *firebaseUser) bool {
-	if user == nil {
+	return userHasRole(user, "admin")
+}
+
+func userHasRole(user *firebaseUser, wanted string) bool {
+	if user == nil || wanted == "" {
 		return false
 	}
-	if admin, ok := user.Claims["admin"].(bool); ok && admin {
-		return true
+	if wanted == "admin" {
+		if admin, ok := user.Claims["admin"].(bool); ok && admin {
+			return true
+		}
 	}
-	if roles, ok := user.Claims["roles"].([]any); ok {
+	switch roles := user.Claims["roles"].(type) {
+	case []any:
 		for _, role := range roles {
-			if role == "admin" {
+			if value, ok := role.(string); ok && value == wanted {
+				return true
+			}
+		}
+	case []string:
+		for _, role := range roles {
+			if role == wanted {
 				return true
 			}
 		}

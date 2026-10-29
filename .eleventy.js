@@ -2,6 +2,10 @@ require("nunjucks");
 const dateFilter = require('nunjucks-date-filter');
 
 module.exports = function (eleventyConfig) {
+  eleventyConfig.setServerOptions({
+    middleware: [require('./scripts/member-story-dev-middleware.js')],
+  });
+
   // Passthrough copies
   eleventyConfig.addPassthroughCopy("src/assets");
   eleventyConfig.addPassthroughCopy({ "node_modules/pptxgenjs/dist/pptxgen.bundle.js": "assets/js/vendor/pptxgen.bundle.js" });

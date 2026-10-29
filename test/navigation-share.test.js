@@ -45,7 +45,6 @@ test('header exposes one My Data account action without exposing the member emai
 test('every admin page uses the compact Admin breadcrumb pattern', function () {
   var pages = {
     'index.njk': 'Dashboard',
-    'review-queue.njk': 'Review queue',
     'outreach.njk': 'Facebook outreach',
     'email-campaigns.njk': 'Registration reminders',
     'instagram-campaigns.njk': 'Instagram campaigns',

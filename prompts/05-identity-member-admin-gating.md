@@ -118,7 +118,9 @@ server-side by Go Cloud Functions that validate Firebase ID tokens.
   participation acknowledgement, relationship, and volunteering interests where present.
   Members can update whether they are willing to help, whether they have a story they would be
   happy to discuss with the press, and a bounded description of relevant expertise or experience
-  through the authenticated preference update flow. These values remain
+  through the authenticated preference update flow. They can also set a non-unique display name;
+  default it to the first part of their saved legal name when available and use it to attribute
+  member experiences without exposing the legal name. These values remain
   private member data and are available to authorised group administration only.
   Do not show placeholder copy saying preferences will be manageable in a future release.
   Preference editing needs a server-side audited account update flow before controls are

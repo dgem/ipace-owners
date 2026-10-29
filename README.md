@@ -218,9 +218,15 @@ src/
       main.js            # Mobile menu, nav helpers
       identity.js        # Firebase Auth email-link integration
       member-auth.js     # Server-verified member/admin data loading
+      member-features.js # Server-resolved member feature visibility
+      member-notifications.js # Persistent dismissible member notices
       member-profile.js  # Member contact profile, address lookup and representation choice
       member-dashboard.js # Vehicle tabs, SoH graph and service/fault editing
       member-export.js    # Authenticated CSV/Excel account downloads
+      member-stories.js   # Member experience editor, evidence links and private-media submission
+      public-member-stories.js # Published story rendering and consented impact events
+      admin-member-stories.js # Admin editorial, AI analysis and publication workflow
+      admin-member-search.js # Server-backed member lookup
       multistep-form.js  # Multi-step form controller
       outreach-assistant.js # Facebook search-link and reply helper; no automation
       instagram-campaigns.js # Instagram draft/history, insight, preview and publish controls
@@ -357,6 +363,8 @@ workflows:
 - `SNAPSHOT_BUCKET_*`, `ALLOWED_ORIGINS_*`, `FIREBASE_EMAIL_CONTINUE_URL_*`
 - `CAMPAIGN_MEDIA_BUCKET_*`, `VEO_LOCATION_*`, and `VEO_MODEL_ID_*` for asynchronous
   campaign-video generation through Vertex AI
+- `MEMBER_STORY_MEDIA_BUCKET_*` for private member images and short videos with expiring upload,
+  review, and publication URLs
 - `FIREBASE_EMAIL_LINK_DOMAIN_*`, which makes Firebase Auth action links use the
   environment's verified Firebase Hosting custom domain
 
@@ -807,20 +815,28 @@ behind the single Go `Api` Cloud Function:
   recall, or inspection record after server-side ownership verification. It stores structured
   service-provider references, parts-delay range, goodwill support, and miles driven whilst
   faulty, and derives days to resolution from the event and final-fix dates.
-- `update-member-preferences` updates the signed-in member's contact and anonymised-analysis
-  consent across their matching Join records.
+- `update-member-preferences` updates the signed-in member's display name, volunteering choices,
+  contact consent and anonymised-analysis consent across their matching Join records. Display
+  names are not unique and default to the first part of a saved legal name when left blank.
 - `delete-vehicle`, `delete-soh`, and `delete-service-event` require typed `DELETE`
   confirmation, soft-delete only the signed-in member's owned data, and immediately remove
   it from private snapshots and consent-filtered public aggregates. Deleting a vehicle also
   soft-deletes its dependent SoH and service records.
 - `member-data` returns only the authenticated member's generated private snapshot after
   Firebase ID-token verification, with `Cache-Control: private, no-store`.
-- `member-export` returns that same member's data as either a ZIP of separate CSV datasets
-  or a formatted Excel workbook with summary charts. Exports omit internal identity and
+- `member-export` returns that member's account data and submitted experiences as either a
+  ZIP of five separate CSV datasets or a six-sheet Excel workbook with summary charts. Exports omit internal identity and
   hash fields, neutralise spreadsheet formulas, and are served with private no-store headers.
   A committed fictional workbook demonstrates the production export format without exposing
   member data. Regenerate it after workbook-layout changes with
   `cd functions/firebase-go && GENERATE_MEMBER_EXPORT_SAMPLE=1 go test ./... -run '^TestGeneratePublicSampleWorkbook$' -count=1`.
+- `member/stories` provides the Member experiences editor and saves drafts and consented submissions linked to records owned by the member. Member-authored stories use the account's display-name preference; contact and legal names remain private.
+  `member/story-upload` and `member/story-upload-complete` provide bounded direct uploads to
+  private storage; `member/story-withdraw` removes publication permissions immediately.
+- `admin/members` provides server-backed member search. `admin/stories` provides editorial review,
+  manual AI suggestions, approval, publication and impact totals.
+- `stories` returns only public experience fields and expiring media URLs. `story-event` records
+  consent-gated pseudonymous views, engagement, CTA clicks and shares.
 - `admin-data` returns Join and vehicle review records only when the Firebase token carries
   an accepted admin claim. It is used only by the Review Queue; other admin pages use the
   minimal `admin/authorize` gate, which verifies the claim without returning review data. Both
@@ -908,6 +924,13 @@ Remove unwanted administrators from the map and apply before disabling managemen
 
 ## Known limitations
 
+Member-facing releases can be staged with the non-secret `MEMBER_FEATURE_ACCESS` JSON object.
+Rules accept `all`, `off`, `admin`, or comma-separated Firebase custom roles. Staging enables
+`member-experiences` for all members; production initially limits it to admins and the
+`member-experiences-preview` role. Functions enforce the same rule as the browser through
+`GET /api/member/features`. Versioned member callout dismissals are read and saved through
+`GET/POST /api/member/notifications` so they follow the signed-in member across devices.
+
 The following features are **not yet implemented** in this version:
 
 - **Full vehicle/evidence submission persistence** — Join submissions, vehicle basics, SoH
@@ -917,7 +940,7 @@ The following features are **not yet implemented** in this version:
 - **Evidence document uploads** — A placeholder message explains what will be supported.
   Requires Cloud Storage for files plus Firestore metadata and Functions integration.
 - **Admin review workflow** — The review queue can read server-side data for admins, but
-  review status updates, review-queue exports, and moderation actions are not yet implemented.
+  review status updates, exports, and moderation actions are not yet implemented.
 - **Legal/privacy review** — The plain-English pages reflect the live service, but still
   require human legal/privacy review before broader collection or a change in organisational
   structure.
@@ -943,6 +966,8 @@ Plain vanilla JavaScript, no bundler. The current modules are:
 - `main.js` — mobile menu toggle, current-page nav highlighting
 - `identity.js` — Firebase Auth email-link and UI state
 - `member-auth.js` — authenticated member/admin data loading and account rendering
+- `member-features.js` — server-resolved release and role access for member-facing features
+- `member-notifications.js` — account-level dismissal of versioned member notices
 - `member-profile.js` — editable member contact profile, optional UK address lookup and representation choice
 
 Member contact details use `GET/POST /api/member-profile`. Signed-in members can use
@@ -956,6 +981,10 @@ Configure the environment's `ideal-postcodes-api-key` Secret Manager version as
 the deployment value to enable lookup; without it, manual entry works.
 - `member-dashboard.js` — vehicle tabs, SoH history and service/fault editing
 - `member-export.js` — authenticated CSV-bundle and Excel-report downloads
+- `member-stories.js` — member story drafts, linked evidence, consent and private media uploads
+- `public-member-stories.js` — safe Markdown story rendering and consented impact measurement
+- `admin-member-stories.js` — admin editing, manual AI analysis, approval and publication
+- `admin-member-search.js` — server-backed member search by identity, vehicle and preferences
 - `multistep-form.js` — generic multi-step form (data-attribute driven)
 - `outreach-assistant.js` — admin-only Facebook search-link and editable reply helper; no retrieval or posting automation
 - `instagram-campaigns.js` — admin-only asynchronous Veo generation, full-media review, and
@@ -1021,14 +1050,14 @@ extended in a controlled order:
   readiness, Instagram generation/publishing, and reconstruction requirements.
 - `20-instagram-campaign-publishing.md` defines the creative, generation, review, and
   controlled-publishing boundary.
-- `21-clean-room-reconstruction-contract.md` is the final
+- `22-clean-room-reconstruction-contract.md` is the final
   route/API/schema/configuration and acceptance contract for rebuilding the product from
   scratch. It must remain the highest-numbered prompt as more feature prompts are added.
 
 When adding or refining prompts, keep the numeric prefix and make the prompt independently
 usable. Keep cross-layer implementation details canonical in
 `prompts/09-architecture-overview.md` and exact reconstruction inventories canonical in
-`prompts/21-clean-room-reconstruction-contract.md`; feature prompts may repeat only the
+`prompts/22-clean-room-reconstruction-contract.md`; feature prompts may repeat only the
 details needed to apply them safely.
 
 Keep prompts in sync with implemented behaviour so the project can be recreated from
@@ -1043,7 +1072,7 @@ checks catch structural drift; they do not prove that an agent can reproduce the
 from prose alone.
 
 For a genuine reproducibility test, follow the isolated clean-room procedure in
-`prompts/21-clean-room-reconstruction-contract.md`: provide only AGENTS.md, all numbered
+`prompts/22-clean-room-reconstruction-contract.md`: provide only AGENTS.md, all numbered
 prompt files, approved public assets, and separately secured configuration in a new
 repository, then run the full acceptance checklist and record every manual intervention.
 

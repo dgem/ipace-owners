@@ -17,5 +17,6 @@ test('mobile launch layout prevents horizontal clipping and keeps cookie notice 
   assert.match(css, /\.launch-registration-callout\s*\{\s*margin-top: var\(--space-10\);/);
   assert.match(css, /@media \(max-width: 39\.99em\)\s*\{[\s\S]*\.site-header \.identity-controls\s*\{[\s\S]*display: none;/);
   assert.match(css, /@media \(max-width: 39\.99em\)\s*\{[\s\S]*\.cookie-notice\s*\{[\s\S]*max-height: 34vh;/);
-  assert.match(baseLayout, /We use essential cookies only for sign-in and to remember this notice/);
+  assert.match(baseLayout, /pseudonymous identifier to understand which member stories lead people to take action/);
+  assert.match(baseLayout, /data-cookie-decline/);
 });

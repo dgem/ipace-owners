@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 
 const root = path.join(__dirname, '..');
 const promptFilenamePattern = /^\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*\.md$/;
-const reconstructionPrompt = 'prompts/21-clean-room-reconstruction-contract.md';
+const reconstructionPrompt = 'prompts/22-clean-room-reconstruction-contract.md';
 
 function read(relativePath) {
   return fs.readFileSync(path.join(root, relativePath), 'utf8');
@@ -53,7 +53,10 @@ test('clean-room route inventory maps to source pages and Hosting redirects', fu
     ['/member/surveys/', 'src/member/surveys.njk'],
     ['/member/survey-response/', 'src/member/survey-response.njk'],
     ['/member/survey-results/', 'src/member/survey-results.njk'],
-    ['/admin/review-queue/', 'src/admin/review-queue.njk'],
+    ['/member/stories/', 'src/member/stories.njk'],
+    ['/member-stories/', 'src/member-stories.njk'],
+    ['/admin/members/', 'src/admin/members.njk'],
+    ['/admin/member-stories/', 'src/admin/member-stories.njk'],
     ['/admin/outreach/', 'src/admin/outreach.njk'],
     ['/admin/email-campaigns/', 'src/admin/email-campaigns.njk'],
     ['/admin/instagram-campaigns/', 'src/admin/instagram-campaigns.njk'],
@@ -96,6 +99,8 @@ test('clean-room API and Firestore inventories match implemented handlers', func
     'emailCampaigns',
     'instagramCampaigns',
     'instagramGenerationJobs',
+    'memberStories',
+    'storyImpactEvents',
   ];
 
   for (const route of routes) {
@@ -135,6 +140,7 @@ test('clean-room configuration and preservation-critical asset inventories stay 
     'RESEND_REPLY_TO',
     'RESEND_ASSET_BASE_URL',
     'CAMPAIGN_MEDIA_BUCKET',
+    'MEMBER_STORY_MEDIA_BUCKET',
     'VEO_LOCATION',
     'VEO_MODEL_ID',
     'INSTAGRAM_ACCESS_TOKEN',

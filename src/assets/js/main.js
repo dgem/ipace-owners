@@ -55,11 +55,12 @@
   // ── Cookie notice ──────────────────────────────────────────────────────────
   const cookieNotice = document.querySelector('[data-cookie-notice]');
   const cookieAccept = document.querySelector('[data-cookie-accept]');
-  const cookieStorageKey = 'ipace_cookie_notice_accepted';
+  const cookieDecline = document.querySelector('[data-cookie-decline]');
+  const cookieStorageKey = 'ipace_analytics_consent';
 
   if (cookieNotice && cookieAccept) {
     try {
-      if (window.localStorage.getItem(cookieStorageKey) !== 'true') {
+      if (!window.localStorage.getItem(cookieStorageKey)) {
         cookieNotice.hidden = false;
       }
     } catch {
@@ -68,9 +69,15 @@
 
     cookieAccept.addEventListener('click', function () {
       try {
-        window.localStorage.setItem(cookieStorageKey, 'true');
+        window.localStorage.setItem(cookieStorageKey, 'yes');
       } catch {
         // Storage may be unavailable; still dismiss for the current page view.
+      }
+      cookieNotice.hidden = true;
+    });
+    if (cookieDecline) cookieDecline.addEventListener('click', function () {
+      try { window.localStorage.setItem(cookieStorageKey, 'no'); } catch {
+        cookieDecline.dataset.storageUnavailable = 'true';
       }
       cookieNotice.hidden = true;
     });

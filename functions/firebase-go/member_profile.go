@@ -143,7 +143,7 @@ func MemberProfile(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, 500, map[string]any{"error": "Could not load profile"})
 			return
 		}
-		response := map[string]any{"profile": profile, "legalRepresentationEnabled": legalRepresentationEnabled()}
+		response := map[string]any{"profile": profile, "defaultDisplayName": memberDisplayName("", profile.Name), "legalRepresentationEnabled": legalRepresentationEnabled()}
 		if legalRepresentationEnabled() {
 			response["representationWording"] = representationWording
 		}

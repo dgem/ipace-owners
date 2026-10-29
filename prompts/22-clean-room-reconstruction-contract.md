@@ -211,10 +211,14 @@ The generated public route surface must include:
 - `/`, `/about/`, `/faq/`, `/join/`, `/contact/`, `/privacy/`, `/terms/`,
   `/methodology/`, `/evidence-dashboard/`, and `/updates/`;
 - dated or named update pages generated from `src/updates/`; every new update includes a relevant, accessible hero image and alt text so it reads as a considered editorial page rather than an unadorned notice;
-- `/member/dashboard/`, `/member/account/`, `/member/submit-vehicle-data/`,
+- `/member/dashboard/`, `/member/account/`, `/member/submit-vehicle-data/`, `/member/stories/`,
   `/member/surveys/`, `/member/survey-response/`, and `/member/survey-results/`;
-- `/admin/`, `/admin/review-queue/`, `/admin/outreach/`, `/admin/email-campaigns/`, and
+- `/member-stories/`, `/admin/`, `/admin/members/`, `/admin/member-stories/`, `/admin/outreach/`, `/admin/email-campaigns/`, and
   `/admin/instagram-campaigns/`, `/admin/marketing-messages/`, `/admin/surveys/`, `/admin/survey-preview/`, `/admin/survey-results/`, and `/admin/survey-insights/`;
+- Firebase Hosting rewrites `/member-stories/<slug>/` directly to
+  `/member-stories/index.html`; Eleventy’s dev server uses matching middleware, and deployment
+  smoke tests verify a representative story URL. Label the public navigation and catalogue
+  “Owners’ stories”; keep the signed-in submission workspace labelled “Member experiences”;
 - permanent redirects from `/account/**` and `/submit-vehicle-data/**` to their member
   equivalents;
 - a generated 404 page, clean URLs, trailing slashes, and a final Hosting fallback to
@@ -277,7 +281,7 @@ change rather than assuming it exists.
 | `POST /api/submit-vehicle-basics` | Member | Optional `id` for an owned edit; otherwise `vin`, `registration`, `country`, `modelYear`, `mileage`, `ownedSince`, `firstReg`, plus optional initial `soh`, `sohDate`, `sohMileage`, `sohSource`. |
 | `POST /api/submit-soh` | Member/vehicle owner | Optional `id` for an owned edit plus `vehicleId`, `soh`, `sohDate`, `sohMileage`, `sohSource`; maintain the vehicle compatibility value. |
 | `POST /api/upsert-service-event` | Member/vehicle and record owner | `id`, `vehicleId`, `eventType`, `occurredAt`, `mileage`, `title`, `description`, `status`, `campaigns[]`, `serviceProviderId`, `serviceProviderName`, `serviceProviderPostcode`, `serviceProviderAuthorised`, `finalFixAt`, `courtesyVehicleOffered`, `courtesyVehicleProvided`, `partsDelay`, `goodwillPayment`, `milesDrivenWhilstFaulty`, `warrantyCover`, `disputeStatus`, `executiveOfficeAcknowledgedAt`, `executiveOfficeRepliedAt`, `executiveOfficeOutcome`, `executiveOfficeSatisfied`. Derive `daysToFinalFix` server-side. For Executive Office contacts, supplied acknowledgement/reply dates must be valid, non-future, and on or after `occurredAt`. |
-| `POST /api/update-member-preferences` | Member | Required booleans `contact`, `anonymisedAnalysis`; optional `willingToHelp`, `pressStory`, and bounded `expertise`; apply the preference update to every Join record sharing the authenticated email hash. |
+| `POST /api/update-member-preferences` | Member | Required booleans `contact`, `anonymisedAnalysis`; optional non-unique `displayName`, `willingToHelp`, `pressStory`, and bounded `expertise`; default a blank display name to the first part of the saved legal name and apply the preference update to every Join record sharing the authenticated email hash. |
 | `GET/POST /api/member-profile` | Member | One contact profile per Firebase UID; freeform international address, optional phone, and a versioned representation choice available only for a complete UK address. Append choice changes to a PII-free `representationChoices` subcollection. |
 | `GET /api/member-address-lookup` | Member | Optional address or postcode search and resolution through a server-side Ideal Postcodes key, with manual entry fallback. |
 | `POST /api/admin/member-verification` | Admin | Set an admin-only identity-verification decision, separate from member consent. |
@@ -289,7 +293,16 @@ The shared country allowlist and every corresponding selector include Greece as 
 vehicle creation and vehicle editing. Keep United Kingdom as the default.
 
 | `GET /api/member-data` | Member | Return only that UID's private member snapshot. |
-| `GET /api/member-export?format=csv\|xlsx` | Member | Return a private no-store ZIP of four CSV datasets or a formatted five-sheet Excel workbook built from only that UID's snapshot; omit internal IDs/hashes and neutralise spreadsheet formulas. |
+| `GET /api/member-export?format=csv\|xlsx` | Member | Return a private no-store ZIP of five CSV datasets or a formatted six-sheet Excel workbook built from only that UID's account records and member experiences; omit internal IDs/hashes, private editorial data and storage object names, and neutralise spreadsheet formulas. |
+| `GET /api/member/features` | Member | Return booleans for recognised member-facing features after applying `all`, `off`, admin, or named Firebase-role access rules. The same decision must protect the feature's member APIs. |
+| `GET/POST /api/member/notifications` | Member | Return versioned notification IDs dismissed by that UID or store one validated dismissal. Survey IDs are survey-specific so new surveys remain visible. |
+| `GET/POST /api/member/stories` | Member | Return story eligibility and owned evidence records, save drafts, and submit a consented story linked only to the member's vehicle records. |
+| `POST /api/member/story-upload` and `/api/member/story-upload-complete` | Member | Reserve bounded private media, issue a short-lived upload URL, then verify and promote the object. |
+| `POST /api/member/story-withdraw` | Member | Remove website and third-party permissions immediately and hold the story for withdrawal review. |
+| `GET/POST /api/admin/stories` | Admin claim | Review, edit, manually analyse, approve and publish stories with versioned permissions and revisions. |
+| `GET /api/admin/members` | Admin claim | Search by name, email, registration, expertise, preferences and story activity. |
+| `GET /api/stories` | Public | Return only published story fields, evidence summaries and expiring media URLs. |
+| `POST /api/story-event` | Public | Record consent-gated pseudonymous view, engagement, CTA and share-link click events for a published story, including a validated platform identifier. |
 | `GET /api/admin/authorize` | Admin claim | Verify access to an admin page and return only `{ "authorized": true }` with `Cache-Control: private, no-store`; never use the review-data route as a generic gate. |
 | `GET /api/admin-data` | Admin claim | Return Join and vehicle review records. |
 | `GET /api/admin/stats` | Admin claim | Return the consent-filtered homepage counters alongside private all-record member, vehicle, SoH, and service-event statistics with `Cache-Control: private, no-store`; canonical emails are deduplicated at the first Join before the daily Join trend and country rows are calculated. Derive country from the Join, one unambiguous vehicle country, or a strict UK registration, otherwise use `Unknown` (including conflicting vehicle countries). Magic-link-verified accounts have a separate daily line chart, and no per-vehicle evidence is returned. |
@@ -368,7 +381,7 @@ after an admin claim check, with no-store responses.
 
 Use these exact collection names: `joinSubmissions`, `members`, `memberProfiles`, `memberVerification`, `vehicles`,
 `batteryReadings`, `serviceEvents`, `memberSnapshots`, `emailCampaigns`, `campaignMetadata`,
-`instagramCampaigns`, and `instagramGenerationJobs`. The email collection stores
+`instagramCampaigns`, `instagramGenerationJobs`, `memberStories`, `memberNotificationDismissals`, and `storyImpactEvents`. The notification collection stores one parent per UID and validated versioned IDs in its `items` subcollection; it contains no message copy or response data. The email collection stores
 campaign delivery subdocuments keyed by a non-reversible email fingerprint, with no recipient
 address returned to the browser. Delivery documents may store a Resend provider ID, normalised
 delivery status and provider update time; ignore provider recipient fields. `campaignMetadata`
@@ -391,7 +404,7 @@ keys where applicable, and `{ status, verificationLevel }` review metadata. Pres
 `createdAt` on edits.
 
 - Join records contain `identityUserId`, `userEmailHash`, contact `{ name, email, country }`,
-  membership `{ relationship, skills[] }`, and consents `{ contact, notLegalClaim,
+  membership `{ relationship, skills[], displayName, willingToHelp, expertise, pressStory }`, and consents `{ contact, notLegalClaim,
   anonymisedAnalysis }`.
 - Vehicle records contain `identityUserId`, `userEmailHash`, vehicle `{ vinHash, vinLast6,
   registration, country, modelYear, mileage, ownedSince, firstRegistrationDate }`, battery
@@ -431,6 +444,10 @@ rate-limited before the paid provider is called.
 The optional `SEED_NEXT_STEPS_SURVEY` flag creates the October survey automatically on the first
 authenticated survey access. `NEXT_STEPS_SURVEY_STATUS` is `published` in staging and `draft` in
 production, preserving an explicit production publication decision.
+`MEMBER_FEATURE_ACCESS` is a JSON object mapping recognised member features to `all`, `off`,
+or comma-separated Firebase roles. Staging sets `member-experiences` to `all`; production starts
+with `admin,member-experiences-preview`. Frontend visibility and member API authorization use
+the same server-resolved decision.
 Optional Instagram publishing additionally uses secret `INSTAGRAM_ACCESS_TOKEN` and non-secret
 `INSTAGRAM_USER_ID`, `INSTAGRAM_GRAPH_API_VERSION`, and `INSTAGRAM_MEDIA_BASE_URL`. Absence or
 invalidity must disable publishing while leaving local preview available.
@@ -454,6 +471,9 @@ campaign-media bucket, expire only objects under `work/`, and retain/version app
 UK-resident. Google runtime identity replaces API keys. Generation and Instagram publishing remain
 separate confirmed actions. Provider failures must be recorded and shown to administrators through
 safe classifications rather than arbitrary raw provider messages.
+Member-story media uses non-secret `MEMBER_STORY_MEDIA_BUCKET`. Its dedicated private bucket is
+versioned, prevents public access, limits CORS to configured site origins, and allows the runtime
+service account to sign expiring upload and read URLs through IAM without storing a private key.
 
 Never commit real values. Provide `.tfvars.example` files for staging and production and
 derive non-secret GitHub environment variables from OpenTofu outputs. Production uses
@@ -554,7 +574,7 @@ committed the approved export as `public/ipace-owners-instagram-launch-reel.mp4`
 
 Preserve `public/downloads/sample-ipace-owner-data.xlsx` as the public, fictional
 demonstration of the member Excel export. Produce it with the production workbook builder,
-include no real member data, retain all five export sheets and native charts, and keep it
+include no real member data, retain all six export sheets and native charts, and keep it
 linked from both the member account and its launch Updates post.
 
 The live privacy notice is not a placeholder. Keep it aligned with collected data, purposes

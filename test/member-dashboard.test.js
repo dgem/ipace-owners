@@ -9,12 +9,14 @@ test('member dashboard uses a full-width tabbed vehicle workspace', function () 
   const script = read('src/assets/js/member-dashboard.js');
 
   assert.match(dashboard, /data-vehicle-workspace/);
+  assert.match(dashboard, /member-experience-callout\.njk/);
   assert.match(dashboard, /role="tablist"/);
   assert.doesNotMatch(dashboard, /<div class="grid">/);
   assert.match(script, /role="tab"/);
   assert.match(script, /State of Health history/);
   assert.match(script, /<svg[^>]+role="img"/);
   assert.match(script, /Vehicle history/);
+  assert.match(script, /href="\/member\/stories\/"[^>]*>Share your experience/);
   assert.match(script, /Executive Office contact/);
   assert.match(script, /data-executive-office-fields/);
   assert.match(script, /data-standard-service-fields/);
