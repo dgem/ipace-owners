@@ -21,6 +21,7 @@ test("writes function env vars as JSON without splitting comma-separated origins
       ALLOWED_ORIGINS: "https://stage.ipace-owners.org,http://localhost:8080,http://localhost:5000",
       FIREBASE_EMAIL_CONTINUE_URL: "https://stage.ipace-owners.org/member/account/",
       FIREBASE_EMAIL_LINK_DOMAIN: "stage.ipace-owners.org",
+      FUNCTIONS_SERVICE_ACCOUNT: "ipace-functions@ipace-owners-staging.iam.gserviceaccount.com",
       RESEND_FROM: "I-PACE Owners <members@stage.ipace-owners.org>",
       RESEND_REPLY_TO: "contact@ipace-owners.org",
       RESEND_ASSET_BASE_URL: "https://stage.ipace-owners.org",
@@ -28,6 +29,8 @@ test("writes function env vars as JSON without splitting comma-separated origins
       INSTAGRAM_GRAPH_API_VERSION: "v99.0",
       INSTAGRAM_MEDIA_BASE_URL: "https://stage.ipace-owners.org",
       CAMPAIGN_MEDIA_BUCKET: "ipace-owners-staging-campaign-media",
+      MEMBER_STORY_MEDIA_BUCKET: "ipace-owners-staging-member-story-media",
+      MEMBER_FEATURE_ACCESS: '{"member-experiences":"all"}',
       VEO_LOCATION: "global",
       VEO_MODEL_ID: "veo-3.1-generate-001",
       SEED_NEXT_STEPS_SURVEY: "true",
@@ -52,6 +55,8 @@ test("writes function env vars as JSON without splitting comma-separated origins
     INSTAGRAM_GRAPH_API_VERSION: "v99.0",
     INSTAGRAM_MEDIA_BASE_URL: "https://stage.ipace-owners.org",
     CAMPAIGN_MEDIA_BUCKET: "ipace-owners-staging-campaign-media",
+    MEMBER_STORY_MEDIA_BUCKET: "ipace-owners-staging-member-story-media",
+    MEMBER_FEATURE_ACCESS: '{"member-experiences":"all"}',
     VEO_LOCATION: "global",
     VEO_MODEL_ID: "veo-3.1-generate-001",
     SEED_NEXT_STEPS_SURVEY: "true",
@@ -59,6 +64,7 @@ test("writes function env vars as JSON without splitting comma-separated origins
     MERCH_CONFIG: "{}",
     GOOGLE_CLOUD_PROJECT: "ipace-owners-staging",
     GCP_PROJECT: "ipace-owners-staging",
+    STORAGE_SIGNING_SERVICE_ACCOUNT: "ipace-functions@ipace-owners-staging.iam.gserviceaccount.com",
   });
 });
 
@@ -106,8 +112,10 @@ test("derives the database ID while leaving the preview link domain unset", () =
   assert.equal(written.INSTAGRAM_GRAPH_API_VERSION, "");
   assert.equal(written.INSTAGRAM_MEDIA_BASE_URL, "");
   assert.equal(written.CAMPAIGN_MEDIA_BUCKET, "");
+  assert.equal(written.MEMBER_FEATURE_ACCESS, "{}");
   assert.equal(written.VEO_LOCATION, "");
   assert.equal(written.VEO_MODEL_ID, "");
   assert.equal(written.SEED_NEXT_STEPS_SURVEY, "");
   assert.equal(written.NEXT_STEPS_SURVEY_STATUS, "");
+  assert.equal(written.STORAGE_SIGNING_SERVICE_ACCOUNT, "");
 });

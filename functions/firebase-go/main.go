@@ -60,6 +60,16 @@ func init() {
 	functions.HTTP("DeleteServiceEvent", DeleteServiceEvent)
 	functions.HTTP("MemberData", MemberData)
 	functions.HTTP("MemberExport", MemberExport)
+	functions.HTTP("MemberFeatures", MemberFeatures)
+	functions.HTTP("MemberNotifications", MemberNotifications)
+	functions.HTTP("MemberStories", MemberStories)
+	functions.HTTP("MemberStoryUpload", MemberStoryUpload)
+	functions.HTTP("MemberStoryUploadComplete", MemberStoryUploadComplete)
+	functions.HTTP("MemberStoryWithdraw", MemberStoryWithdraw)
+	functions.HTTP("AdminStories", AdminStories)
+	functions.HTTP("AdminMemberSearch", AdminMemberSearch)
+	functions.HTTP("PublicStories", PublicStories)
+	functions.HTTP("StoryEvent", StoryEvent)
 	functions.HTTP("AdminData", AdminData)
 	functions.HTTP("AdminAuthorize", AdminAuthorize)
 	functions.HTTP("PublicStats", PublicStats)
@@ -113,6 +123,26 @@ func Api(w http.ResponseWriter, r *http.Request) {
 		MemberData(w, r)
 	case "/api/member-export":
 		MemberExport(w, r)
+	case "/api/member/features":
+		MemberFeatures(w, r)
+	case "/api/member/notifications":
+		MemberNotifications(w, r)
+	case "/api/member/stories":
+		MemberStories(w, r)
+	case "/api/member/story-upload":
+		MemberStoryUpload(w, r)
+	case "/api/member/story-upload-complete":
+		MemberStoryUploadComplete(w, r)
+	case "/api/member/story-withdraw":
+		MemberStoryWithdraw(w, r)
+	case "/api/admin/stories":
+		AdminStories(w, r)
+	case "/api/admin/members":
+		AdminMemberSearch(w, r)
+	case "/api/stories":
+		PublicStories(w, r)
+	case "/api/story-event":
+		StoryEvent(w, r)
 	case "/api/admin-data":
 		AdminData(w, r)
 	case "/api/admin/authorize":
@@ -381,6 +411,9 @@ func SubmitJoin(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusUnauthorized, map[string]any{"error": "Invalid sign-in token"})
 		return
 	}
+	if req.StoryID != "" && !validPublishedStoryAttribution(r.Context(), req.StoryID) {
+		req.StoryID, req.Campaign, req.ReaderID = "", "", ""
+	}
 
 	record := joinRecordFromRequest(req, name, email, time.Now().UTC())
 	if user != nil {
@@ -440,6 +473,19 @@ func SubmitJoin(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func validPublishedStoryAttribution(ctx context.Context, storyID string) bool {
+	db, err := firestoreClient(ctx)
+	if err != nil {
+		return false
+	}
+	doc, err := db.Collection("memberStories").Doc(cleanString(storyID, 100)).Get(ctx)
+	if err != nil {
+		return false
+	}
+	var story memberStory
+	return doc.DataTo(&story) == nil && story.Status == "published"
+}
+
 func joinRecordFromRequest(req joinRequest, name string, email string, now time.Time) joinRecord {
 	return joinRecord{
 		ID:             submissionID("join"),
@@ -462,7 +508,8 @@ func joinRecordFromRequest(req joinRequest, name string, email string, now time.
 			NotLegalClaim:      true,
 			AnonymisedAnalysis: req.ConsentData == "yes",
 		},
-		Review: reviewRecord{Status: "new", VerificationLevel: "self-reported"},
+		Review:      reviewRecord{Status: "new", VerificationLevel: "self-reported"},
+		Attribution: attributionRecord{StoryID: cleanString(req.StoryID, 100), Campaign: cleanString(req.Campaign, 120), ReaderID: cleanString(req.ReaderID, 100)},
 	}
 }
 

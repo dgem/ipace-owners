@@ -252,4 +252,4 @@ Keep rollback simple:
 
 ## Merchandise
 
-The public `/shop/` is open to guests. Checkout stays unavailable until Stripe and Printify secrets, verified GBP conversion and international tax/delivery settings, seller identity and reviewed shop terms are configured. Run provider test-mode validation without creating real Printify orders. See `21-merchandise-storefront.md`.
+The public `/shop/` is open to guests. Checkout stays unavailable until Stripe and Printify secrets, verified GBP conversion and international tax/delivery settings, seller identity and reviewed shop terms are configured. Run provider test-mode validation without creating real Printify orders. See `22-merchandise-storefront.md`.

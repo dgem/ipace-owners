@@ -12,6 +12,9 @@ type joinRequest struct {
 	ConsentContact  string      `json:"consent-contact"`
 	ConsentNotLegal string      `json:"consent-not-legal"`
 	ConsentData     string      `json:"consent-data"`
+	StoryID         string      `json:"storyId"`
+	Campaign        string      `json:"campaign"`
+	ReaderID        string      `json:"readerId"`
 }
 
 type vehicleRequest struct {
@@ -41,6 +44,7 @@ type batteryReadingRequest struct {
 type preferenceRequest struct {
 	Contact            *bool   `json:"contact"`
 	AnonymisedAnalysis *bool   `json:"anonymisedAnalysis"`
+	DisplayName        *string `json:"displayName"`
 	WillingToHelp      *bool   `json:"willingToHelp"`
 	Expertise          *string `json:"expertise"`
 	PressStory         *bool   `json:"pressStory"`
@@ -100,6 +104,7 @@ type contactRecord struct {
 type membershipRecord struct {
 	Relationship  string   `json:"relationship,omitempty" firestore:"relationship,omitempty"`
 	Skills        []string `json:"skills,omitempty" firestore:"skills,omitempty"`
+	DisplayName   string   `json:"displayName,omitempty" firestore:"displayName,omitempty"`
 	WillingToHelp bool     `json:"willingToHelp,omitempty" firestore:"willingToHelp,omitempty"`
 	Expertise     string   `json:"expertise,omitempty" firestore:"expertise,omitempty"`
 	PressStory    bool     `json:"pressStory,omitempty" firestore:"pressStory,omitempty"`
@@ -109,6 +114,12 @@ type consentRecord struct {
 	Contact            bool `json:"contact" firestore:"contact"`
 	NotLegalClaim      bool `json:"notLegalClaim" firestore:"notLegalClaim"`
 	AnonymisedAnalysis bool `json:"anonymisedAnalysis" firestore:"anonymisedAnalysis"`
+}
+
+type attributionRecord struct {
+	StoryID  string `json:"storyId,omitempty" firestore:"storyId,omitempty"`
+	Campaign string `json:"campaign,omitempty" firestore:"campaign,omitempty"`
+	ReaderID string `json:"readerId,omitempty" firestore:"readerId,omitempty"`
 }
 
 type vehicleDetails struct {
@@ -136,16 +147,17 @@ type reviewRecord struct {
 }
 
 type joinRecord struct {
-	ID             string           `json:"id" firestore:"id"`
-	Type           string           `json:"type" firestore:"type"`
-	CreatedAt      time.Time        `json:"createdAt" firestore:"createdAt"`
-	UpdatedAt      time.Time        `json:"updatedAt" firestore:"updatedAt"`
-	IdentityUserID string           `json:"identityUserId,omitempty" firestore:"identityUserId,omitempty"`
-	UserEmailHash  string           `json:"userEmailHash" firestore:"userEmailHash"`
-	Contact        contactRecord    `json:"contact" firestore:"contact"`
-	Membership     membershipRecord `json:"membership" firestore:"membership"`
-	Consents       consentRecord    `json:"consents" firestore:"consents"`
-	Review         reviewRecord     `json:"review" firestore:"review"`
+	ID             string            `json:"id" firestore:"id"`
+	Type           string            `json:"type" firestore:"type"`
+	CreatedAt      time.Time         `json:"createdAt" firestore:"createdAt"`
+	UpdatedAt      time.Time         `json:"updatedAt" firestore:"updatedAt"`
+	IdentityUserID string            `json:"identityUserId,omitempty" firestore:"identityUserId,omitempty"`
+	UserEmailHash  string            `json:"userEmailHash" firestore:"userEmailHash"`
+	Contact        contactRecord     `json:"contact" firestore:"contact"`
+	Membership     membershipRecord  `json:"membership" firestore:"membership"`
+	Consents       consentRecord     `json:"consents" firestore:"consents"`
+	Review         reviewRecord      `json:"review" firestore:"review"`
+	Attribution    attributionRecord `json:"attribution,omitempty" firestore:"attribution,omitempty"`
 }
 
 type vehicleRecord struct {

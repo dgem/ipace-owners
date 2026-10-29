@@ -81,6 +81,13 @@ async function main() {
   const vehicle = await fetchText('/member/submit-vehicle-data/');
   assertIncludes(vehicle, 'data-magic-link-form', 'vehicle page');
 
+  const publicStories = await fetchText('/member-stories/');
+  assertIncludes(publicStories, 'data-public-stories', 'member experiences page');
+
+  const storyPath = '/member-stories/smoke-story-slug-Av9rBPh9/';
+  const storyPage = await fetchText(storyPath);
+  assertIncludes(storyPage, 'data-public-stories', `published story route ${storyPath}`);
+
   const identityJs = await fetchText('/assets/js/identity.js');
   assertIncludes(identityJs, '/api/send-magic-link', 'identity.js');
   assertNotIncludes(identityJs, 'identity.open(', 'identity.js');

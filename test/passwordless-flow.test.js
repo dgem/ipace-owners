@@ -16,7 +16,7 @@ test('site UI uses Firebase passwordless magic-link forms', function () {
     'src/member/account.njk',
     'src/member/dashboard.njk',
     'src/member/submit-vehicle-data.njk',
-    'src/admin/review-queue.njk',
+    'src/admin/member-stories.njk',
     'src/assets/js/identity.js',
   ];
 
@@ -32,7 +32,7 @@ test('site UI uses Firebase passwordless magic-link forms', function () {
   assert.match(read('src/member/account.njk'), /authLoginGate\("account-magic-email"/);
   assert.match(read('src/member/dashboard.njk'), /authLoginGate\("dashboard-magic-email"/);
   assert.match(read('src/member/submit-vehicle-data.njk'), /authLoginGate\("vehicle-magic-email"/);
-  assert.match(read('src/admin/review-queue.njk'), /authLoginGate\("admin-magic-email"/);
+  assert.match(read('src/admin/member-stories.njk'), /authLoginGate\("story-admin-email"/);
   assert.match(read('src/assets/js/identity.js'), /\/api\/send-magic-link/);
   assert.match(read('src/assets/js/identity.js'), /\/api\/auth-diagnostics/);
   assert.match(read('src/assets/js/identity.js'), /X-Ipace-Auth-Trace/);
@@ -116,7 +116,7 @@ test('member data fetches include Identity bearer tokens', function () {
   assert.match(memberAuth, /function adminVerificationRequest/);
   assert.match(memberAuth, /data-admin-data-required/);
   assert.match(memberAuth, /adminVerificationRequest\(container, true\)/);
-  assert.match(read('src/admin/review-queue.njk'), /data-admin-data-required/);
+  assert.match(read('src/admin/member-stories.njk'), /data-admin-container/);
   assert.match(read('src/assets/js/identity.js'), /identity:ready/);
   assert.match(memberAuth, /addEventListener\('identity:ready'/);
   assert.doesNotMatch(read('src/assets/js/identity.js'), /window\.location\.reload/);
@@ -133,6 +133,9 @@ test('account preferences render from saved member data', function () {
   assert.match(memberAuth, /Group contact/);
   assert.match(memberAuth, /Anonymised aggregate analysis/);
   assert.match(memberAuth, /Participation acknowledgement/);
+  assert.match(memberAuth, /Display name/);
+  assert.match(memberAuth, /name="displayName"/);
+  assert.match(memberAuth, /does not need to be unique/);
   assert.match(memberAuth, /data-preferences-form/);
   assert.match(memberAuth, /\/api\/update-member-preferences/);
   assert.match(css, /\.preference-list/);
@@ -145,7 +148,7 @@ test('protected pages do not show login gates before auth verification completes
     'src/member/dashboard.njk',
     'src/member/account.njk',
     'src/member/submit-vehicle-data.njk',
-    'src/admin/review-queue.njk',
+    'src/admin/member-stories.njk',
   ].forEach(function (file) {
     var source = read(file);
     assert.match(source, /import authLoginGate/, file);

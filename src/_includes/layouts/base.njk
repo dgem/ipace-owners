@@ -80,13 +80,14 @@
     <div class="cookie-notice__content">
       <p class="cookie-notice__title">Cookies and privacy</p>
       <p>
-        We use essential cookies only for sign-in and to remember this notice. No analytics
-        or advertising cookies.
+        We use essential browser storage for sign-in. With your permission, we also use a
+        pseudonymous identifier to understand which member stories lead people to take action.
       </p>
     </div>
     <div class="cookie-notice__actions">
       <a href="/privacy/" class="btn btn--sm btn--ghost">Privacy</a>
-      <button type="button" class="btn btn--sm btn--primary" data-cookie-accept>OK</button>
+      <button type="button" class="btn btn--sm btn--ghost" data-cookie-decline>Essential only</button>
+      <button type="button" class="btn btn--sm btn--primary" data-cookie-accept>Allow story analytics</button>
     </div>
   </div>
   <noscript>
@@ -95,8 +96,8 @@
         <p class="cookie-notice__title">Cookies and privacy</p>
         <p>
           We use essential site services only. Firebase Authentication may use cookies
-          or browser storage for sign-in. We do not use analytics or advertising
-          cookies.
+          or browser storage for sign-in. Optional story analytics remain disabled without
+          JavaScript and consent.
         </p>
       </div>
       <div class="cookie-notice__actions">
@@ -108,6 +109,8 @@
   <!-- Scripts -->
   <script src="/assets/js/main.js" defer></script>
   <script src="/assets/js/identity.js" defer></script>
+  <script src="/assets/js/member-features.js" defer></script>
+  <script src="/assets/js/member-notifications.js" defer></script>
   <script src="/assets/js/member-auth.js" defer></script>
   <script src="/assets/js/member-dashboard.js" defer></script>
   <script src="/assets/js/public-stats.js" defer></script>
@@ -145,6 +148,10 @@
   <script src="/assets/js/member-export.js" defer></script>
   {% endif %}
   {% if memberProfile %}<script src="/assets/js/member-profile.js" defer></script>{% endif %}
+  {% if memberStories %}<script src="/assets/js/member-stories.js" defer></script>{% endif %}
+  {% if memberStoryAdmin %}<script src="/assets/js/admin-member-stories.js" defer></script>{% endif %}
+  {% if adminMemberSearch %}<script src="/assets/js/admin-member-search.js" defer></script>{% endif %}
+  {% if memberStoriesPublic %}<script src="/assets/js/public-member-stories.js" defer></script>{% endif %}
   {% if merchandise %}<script src="/assets/js/merchandise.js" defer></script>{% endif %}
 </body>
 </html>

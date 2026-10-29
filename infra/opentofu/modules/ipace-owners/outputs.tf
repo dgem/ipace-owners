@@ -14,6 +14,10 @@ output "campaign_media_bucket" {
   value = google_storage_bucket.campaign_media.name
 }
 
+output "member_story_media_bucket" {
+  value = google_storage_bucket.member_story_media.name
+}
+
 output "veo_generation" {
   description = "Non-secret Vertex AI configuration for asynchronous campaign-video generation."
   value = {

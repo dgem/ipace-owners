@@ -126,6 +126,19 @@ jobs:
           FIREBASE_CLI_ACCESS_TOKEN: ${{ steps.gcp-auth.outputs.access_token }}
         run: make deploy-hosting-preview
 
+      - name: Allow current preview to upload story media
+        env:
+          GCP_PROJECT_ID: ${{ vars.FIREBASE_STAGING_PROJECT_ID }}
+          MEMBER_STORY_MEDIA_BUCKET: ${{ vars.MEMBER_STORY_MEDIA_BUCKET_STAGING }}
+          PREVIEW_URL: ${{ steps.hosting.outputs.url }}
+        run: |
+          cors_file="$(mktemp)"
+          trap 'rm -f "$cors_file"' EXIT
+          cat > "$cors_file" <<EOF
+          [{"origin":["$PREVIEW_URL","https://stage.ipace-owners.org","http://localhost:8080","http://localhost:5000"],"method":["GET","HEAD","PUT"],"responseHeader":["Content-Type","ETag"],"maxAgeSeconds":3600}]
+          EOF
+          gcloud storage buckets update "gs://$MEMBER_STORY_MEDIA_BUCKET" --project="$GCP_PROJECT_ID" --cors-file="$cors_file"
+
       - name: Authorize Firebase Hosting preview for passwordless sign-in
         env:
           GCP_PROJECT_ID: ${{ vars.FIREBASE_STAGING_PROJECT_ID }}
@@ -154,6 +167,8 @@ jobs:
           FIREBASE_WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY_STAGING }}
           SNAPSHOT_BUCKET: ${{ vars.SNAPSHOT_BUCKET_STAGING }}
           CAMPAIGN_MEDIA_BUCKET: ${{ vars.CAMPAIGN_MEDIA_BUCKET_STAGING }}
+          MEMBER_STORY_MEDIA_BUCKET: ${{ vars.MEMBER_STORY_MEDIA_BUCKET_STAGING }}
+          MEMBER_FEATURE_ACCESS: ${{ vars.MEMBER_FEATURE_ACCESS_STAGING || '{"member-experiences":"all"}' }}
           VEO_LOCATION: ${{ vars.VEO_LOCATION_STAGING }}
           VEO_MODEL_ID: ${{ vars.VEO_MODEL_ID_STAGING }}
           SEED_NEXT_STEPS_SURVEY: "true"

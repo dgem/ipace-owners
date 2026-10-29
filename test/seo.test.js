@@ -35,7 +35,7 @@ test('private account, vehicle, member and admin pages opt out of indexing', fun
     'src/member/account.njk',
     'src/member/submit-vehicle-data.njk',
     'src/member/dashboard.njk',
-    'src/admin/review-queue.njk',
+    'src/admin/member-stories.njk',
     'src/admin/survey-results.njk',
     'src/admin/survey-preview.njk',
   ].forEach(function (file) {

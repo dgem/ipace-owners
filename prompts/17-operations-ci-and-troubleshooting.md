@@ -582,6 +582,14 @@ govulncheck or introduce spreadsheet import paths. Recheck the advisory before r
 structured tables. The archived fictional sample workbook remains a representative layout
 reference; its table parts are not used as an input when creating exports.
 
-## Merchandise
+## Merchandise deployment and reconciliation
 
-Merchandise uses optional Secret Manager bindings via `MERCH_SECRETS_ENABLED` and environment-specific `MERCH_CONFIG`. Keep test/live payment and fulfilment environments separate. Reconcile ambiguous Printify submissions before replay; do not create duplicate orders. The full setup and recovery runbook is in `21-merchandise-storefront.md`.
+Use optional Secret Manager bindings through `MERCH_SECRETS_ENABLED` and environment-specific
+`MERCH_CONFIG`. Keep Stripe test/live settings and fulfilment separated. Reconcile ambiguous
+Printify submissions before replay; never create a duplicate order. Follow the complete setup
+and recovery procedure in `22-merchandise-storefront.md`.
+
+- Infrastructure apply must reconcile the runtime service account's self
+  `roles/iam.serviceAccountTokenCreator` binding before deploying Functions
+  that issue Cloud Storage signed URLs. The deployment workflow must not grant
+  IAM roles; no private signing key is stored or passed to the Function.
