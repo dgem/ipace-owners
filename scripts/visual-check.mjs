@@ -405,11 +405,11 @@ async function checkAdminDashboard() {
   await page.locator('[data-campaign-summary-refresh]').click();
   await page.locator('.campaign-summary-card').first().waitFor({ state: 'visible' });
   assert.equal(await page.locator('.campaign-summary-card').count(), 3);
-  assert.equal(await page.locator('.admin-dashboard-grid .card').count(), 8);
-  assert.equal(await page.locator('.admin-dashboard-grid .admin-tool-logo svg').count(), 8);
-  assert.equal(await page.locator('.admin-dashboard-grid .btn--primary').count(), 8);
+  assert.equal(await page.locator('.admin-dashboard-grid .card').count(), 7);
+  assert.equal(await page.locator('.admin-dashboard-grid .admin-tool-logo svg').count(), 7);
+  assert.equal(await page.locator('.admin-dashboard-grid .btn--primary').count(), 7);
   assert.deepEqual(await page.locator('.admin-dashboard-grid .btn').allTextContents(), [
-    'Find members', 'Review Queue', 'Review experiences', 'Facebook Assistant', 'Registration Reminders', 'Mass Mailings', 'Instagram Campaigns', 'Member Surveys'
+    'Find members', 'Review experiences', 'Facebook Assistant', 'Registration Reminders', 'Mass Mailings', 'Instagram Campaigns', 'Member Surveys'
   ]);
   assert.deepEqual(await page.locator('.admin-dashboard-grid a').evaluateAll((links) => links.map((link) => link.getAttribute('href'))), expectedAdminDestinations.slice(1));
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
