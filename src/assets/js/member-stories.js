@@ -85,6 +85,9 @@
       if (lines.every(function (line) { return /^\d+[.)] /.test(line); })) {
         return '<ol>' + lines.map(function (line) { return '<li>' + inlineMarkdown(line.replace(/^\d+[.)] /, '')) + '</li>'; }).join('') + '</ol>';
       }
+      if (lines.every(function (line) { return /^> ?/.test(line); })) {
+        return '<blockquote>' + lines.map(function (line) { return inlineMarkdown(line.replace(/^> ?/, '')); }).join('<br>') + '</blockquote>';
+      }
       return '<p>' + inlineMarkdown(block.replace(/^#{1,3} /, '')).replace(/\n/g, '<br>') + '</p>';
     }).join('');
   }
@@ -115,6 +118,7 @@
       }).join('\n') + '\n\n';
     }
     if (tag === 'li') return children;
+    if (tag === 'blockquote') return children.split('\n').map(function (line) { return '> ' + line.trim(); }).join('\n') + '\n\n';
     if (tag === 'p' || tag === 'div') return children.trim() + '\n\n';
     return children;
   }
@@ -175,7 +179,7 @@
 
     root.innerHTML = '<section class="story-guidance"><div><h2>Share your experience</h2><p>Tell us what happened, how it affected you and what you want to happen next.</p></div><a href="/member/account/">My Data</a></section>' +
       '<form class="member-form-panel story-form" data-story-form data-story-id="' + esc(editing.id || '') + '">' +
-      '<div class="form-group"><label id="story-body-label">Your experience</label><div class="story-editor" data-story-editor-shell><div class="story-editor__toolbar" role="toolbar" aria-label="Text formatting"><button type="button" data-editor-command="bold" aria-label="Bold"><strong>B</strong></button><button type="button" data-editor-command="italic" aria-label="Italic"><em>I</em></button><button type="button" data-editor-command="insertUnorderedList" aria-label="Bulleted list">• List</button><button type="button" data-editor-command="insertOrderedList" aria-label="Numbered list">1. List</button></div><div class="story-editor__surface" data-story-editor contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="story-body-label" data-placeholder="What happened? How did it affect you? What response did you receive?">' + markdownToEditorHTML(editing.bodyMarkdown || '') + '</div><div class="story-editor__footer"><span>Bold, italics, lists and your uploaded media</span><span data-story-character-count>0 / 20,000</span></div></div></div>' +
+      '<div class="form-group"><label id="story-body-label">Your experience</label><div class="story-editor" data-story-editor-shell><div class="story-editor__toolbar" role="toolbar" aria-label="Text formatting"><button type="button" data-editor-command="bold" aria-label="Bold"><strong>B</strong></button><button type="button" data-editor-command="italic" aria-label="Italic"><em>I</em></button><button type="button" data-editor-command="insertUnorderedList" aria-label="Bulleted list">• List</button><button type="button" data-editor-command="insertOrderedList" aria-label="Numbered list">1. List</button><button type="button" data-editor-command="formatBlock" data-editor-value="blockquote" aria-label="Blockquote">“ Quote</button></div><div class="story-editor__surface" data-story-editor contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="story-body-label" data-placeholder="What happened? How did it affect you? What response did you receive?">' + markdownToEditorHTML(editing.bodyMarkdown || '') + '</div><div class="story-editor__footer"><span>Bold, italics, lists, quotes and your uploaded media</span><span data-story-character-count>0 / 20,000</span></div></div></div>' +
       '<div class="form-group"><label>Photos and short videos <span class="form-hint">(optional)</span></label><div class="story-media-picker" data-story-dropzone><label class="story-media-picker__button" for="story-media">Choose photos or videos<span>Use your photo library, camera roll or files</span></label><input class="visually-hidden" id="story-media" name="media" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime,video/webm" multiple><p>Up to 5 photos and 2 videos; 500 MB total. You can select several at once.</p><p class="form-hint">On Mac Photos, use <strong>File → Export → Export 1 Photo</strong> and choose JPEG or PNG. HEIC files need exporting first.</p></div>' + (existingMedia ? '<p class="form-hint">Uploaded photos can be inserted into your experience. Select the image itself to open the full version.</p><ul class="story-existing-media">' + existingMedia + '</ul>' : '') + '<div class="story-media-previews" data-story-media-previews></div><p class="form-hint" data-story-media-status role="status"></p></div>' +
       '<div class="story-publication-settings"><p class="form-hint">Published as <strong>' + esc(state.displayName) + '</strong>. <a href="/member/account/">Change your display name in My Data</a>. Your contact details remain private.</p><fieldset><legend>Permissions</legend><label class="check-label"><input name="websiteConsent" type="checkbox" required' + checked(consent.website) + '> Publish this experience and selected media on this website.</label><label class="check-label"><input name="thirdPartyConsent" type="checkbox"' + checked(consent.thirdParty) + '> It may also be used in social media, press and publisher materials.</label><label class="check-label"><input name="copyrightConfirmed" type="checkbox"' + checked(consent.copyright) + '> I own, or have permission to supply, uploaded media.</label><label class="check-label"><input name="truthfulConfirmed" type="checkbox" required' + checked(consent.truthful) + '> This is true to the best of my knowledge.</label></fieldset></div>' +
       '<div class="story-vehicle-choice">' + vehicleControl + '</div>' +
@@ -217,7 +221,7 @@
     });
     root.querySelectorAll('[data-editor-command]').forEach(function (button) {
       button.addEventListener('mousedown', function (event) { event.preventDefault(); });
-      button.addEventListener('click', function () { editor.focus(); document.execCommand(button.dataset.editorCommand, false); updateCount(); });
+      button.addEventListener('click', function () { editor.focus(); document.execCommand(button.dataset.editorCommand, false, button.dataset.editorValue || null); updateCount(); });
     });
     root.querySelectorAll('[data-insert-story-media]').forEach(function (button) {
       button.addEventListener('mousedown', function (event) { event.preventDefault(); });

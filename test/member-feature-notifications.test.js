@@ -77,6 +77,8 @@ test('member experience editor inserts uploaded images instead of arbitrary link
   assert.match(stories, /data-insert-story-media/);
   assert.match(stories, /data-insert-pending-media/);
   assert.match(stories, /attachUploadedMedia/);
+  assert.match(stories, /data-editor-value="blockquote"/);
+  assert.match(stories, /tag === 'blockquote'/);
   assert.match(stories, /story-media:/);
   assert.match(stories, /data-story-media-id/);
   assert.match(stories, /story.status === 'submitted'/);
@@ -85,6 +87,7 @@ test('member experience editor inserts uploaded images instead of arbitrary link
   assert.doesNotMatch(stories, /data-editor-link/);
   assert.match(publicStories, /story-inline-image/);
   assert.match(publicStories, /<video src=/);
+  assert.match(publicStories, /<blockquote>/);
 });
 
 test('member story upload errors retain a support correlation reference', () => {
