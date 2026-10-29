@@ -836,22 +836,43 @@ func AdminStories(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, 400, map[string]any{"error": "Invalid review"})
 		return
 	}
-	if input.Action == "archive" && len(input.IDs) > 0 {
+	if (input.Action == "archive" || input.Action == "approve" || input.Action == "publish") && len(input.IDs) > 0 {
+		failed := make([]string, 0)
 		for _, id := range input.IDs {
 			ref := db.Collection("memberStories").Doc(cleanString(id, 100))
 			doc, e := ref.Get(r.Context())
 			if e != nil {
+				failed = append(failed, id)
 				continue
 			}
 			var story memberStory
 			if doc.DataTo(&story) != nil {
+				failed = append(failed, id)
 				continue
 			}
-			story.Status = "archived"
+			if input.Action == "approve" {
+				if message := storyApprovalError(story); message != "" {
+					failed = append(failed, id)
+					continue
+				}
+				story.Status = "approved"
+			} else if input.Action == "publish" {
+				if story.Status != "approved" || storyApprovalError(story) != "" {
+					failed = append(failed, id)
+					continue
+				}
+				story.Status = "published"
+				story.PublishedAt = time.Now().UTC()
+				story.Slug = storySlug(story.Title, story.ID)
+			} else {
+				story.Status = "archived"
+			}
 			story.UpdatedAt = time.Now().UTC()
-			_, _ = ref.Set(r.Context(), story)
+			if _, e = ref.Set(r.Context(), story); e != nil {
+				failed = append(failed, id)
+			}
 		}
-		writeJSON(w, 200, map[string]any{"ok": true})
+		writeJSON(w, 200, map[string]any{"ok": len(failed) == 0, "failed": failed})
 		return
 	}
 	ref := db.Collection("memberStories").Doc(cleanString(input.ID, 100))

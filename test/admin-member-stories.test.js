@@ -10,12 +10,12 @@ test('member story admin workspace is paged, filterable and supports bulk archiv
   var go = fs.readFileSync(path.join(root, 'functions/firebase-go/member_stories.go'), 'utf8');
   assert.match(js, /pageSize/);
   assert.match(js, /data-select-all/);
-  assert.match(js, /action:'archive',ids/);
+  assert.match(js, /action: action, ids/);
   assert.match(js, /data-story-detail/);
   assert.match(js, /Story \(Markdown source\)/);
   assert.match(js, /story-markdown-editor/);
   assert.match(js, /Sentiment:/);
   assert.match(go, /hasNext/);
   assert.match(go, /query.Get\("status"\)/);
-  assert.match(go, /input.Action == "archive" && len\(input.IDs\) > 0/);
+  assert.match(go, /input.Action == "archive" \|\| input.Action == "approve" \|\| input.Action == "publish"/);
 });

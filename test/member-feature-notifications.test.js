@@ -86,6 +86,8 @@ test('member experience editor inserts uploaded images instead of arbitrary link
   assert.doesNotMatch(stories, /window\.prompt\('Paste a web link/);
   assert.doesNotMatch(stories, /data-editor-link/);
   assert.match(publicStories, /story-inline-image/);
+  assert.match(publicStories, /pathname.split\('\/'\)/);
+  assert.match(publicStories, /member-stories\/\'\+encodeURIComponent/);
   assert.match(publicStories, /<video src=/);
   assert.match(publicStories, /<blockquote>/);
 });

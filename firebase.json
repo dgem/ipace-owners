@@ -129,6 +129,10 @@
         }
       },
       {
+        "source": "/member-stories/*",
+        "destination": "/member-stories/"
+      },
+      {
         "source": "**",
         "destination": "/404.html"
       }
