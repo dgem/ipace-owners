@@ -130,7 +130,7 @@
       },
       {
         "source": "/member-stories/**",
-        "destination": "/member-stories/"
+        "destination": "/member-stories/index.html"
       },
       {
         "source": "**",

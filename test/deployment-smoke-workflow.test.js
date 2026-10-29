@@ -55,6 +55,16 @@ test('deployment smoke requires the current regenerated public statistics schema
   assert.match(smoke, /Number\.isFinite\(publicStatsData\.joinedOwners\)/);
 });
 
+test('deployment smoke checks the published story path rewrite', function () {
+  const smoke = readFileSync(resolve(__dirname, '../scripts/smoke-test-deployment.mjs'), 'utf8');
+  const firebase = JSON.parse(readFileSync(resolve(__dirname, '../firebase.json'), 'utf8'));
+  const storyRewrite = firebase.hosting.rewrites.find((rewrite) => rewrite.source === '/member-stories/**');
+
+  assert.equal(storyRewrite?.destination, '/member-stories/index.html');
+  assert.match(smoke, /\/member-stories\/smoke-story-slug-Av9rBPh9\//);
+  assert.match(smoke, /data-public-stories/);
+});
+
 test('Firebase deploy workflows skip Function deploys when backend is unchanged', function () {
   const stagingWorkflow = readFileSync(stagingWorkflowPath, 'utf8');
   const productionWorkflow = readFileSync(productionWorkflowPath, 'utf8');
