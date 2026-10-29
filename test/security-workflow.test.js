@@ -53,7 +53,7 @@ test('preview deployment runs a blocking passive OWASP ZAP scan', function () {
   var zapIndex = workflow.indexOf('name: OWASP ZAP baseline scan');
 
   assert.ok(smokeIndex >= 0 && zapIndex > smokeIndex);
-  assert.match(workflow, /zaproxy\/action-baseline@6c5a007541891231cd9e0ddec25d4f25c59c9874 # v0\.15\.0/);
+  assert.match(workflow, /zaproxy\/action-baseline@de8ad967d3548d44ef623df22cf95c3b0baf8b25 # v0\.15\.0/);
   assert.match(workflow, /docker_name: ghcr\.io\/zaproxy\/zaproxy:2\.17\.0/);
   assert.match(workflow, /rules_file_name: \.zap\/rules\.tsv/);
   assert.match(workflow, /fail_action: true/);
