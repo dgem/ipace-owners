@@ -11,9 +11,8 @@
     { "label": "FAQ", "url": "/faq/" },
     { "label": "Updates", "url": "/updates/" },
     {
-      "label": "Experiences",
-      "url": "/member-stories/",
-      "launchVisible": false
+      "label": "Member Stories",
+      "url": "/member-stories/"
     },
     { "label": "Join", "url": "/join/", "highlight": true }
   ],
