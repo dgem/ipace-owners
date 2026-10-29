@@ -1,13 +1,13 @@
 ---
 layout: update.njk
 title: Share your I-PACE experience
-description: Help build a record of what I-PACE owners have experienced with their cars, batteries and repairs.
+summary: Help build a record of what I-PACE owners have experienced with their cars, batteries and repairs.
 date: 2026-10-29
 heroImage: /images/member-experiences-hero.png
 heroImageAlt: "A parked electric SUV beside a home charger on a British driveway, with owner records ready to share."
 ---
 
-We have opened **Member experiences**, a place for I-PACE owners to describe what happened in their own words.
+We are building [Owners’ stories](/member-stories/): a collection of I-PACE owners’ personal accounts, in their own words.
 
 We are building a catalogue of personal experiences around high-voltage battery faults, recalls, range limits, public charging, delays and the effort needed to get problems fixed. Your story can help show the human impact behind the vehicle and service records we are collecting.
 
