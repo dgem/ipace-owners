@@ -216,7 +216,8 @@ The generated public route surface must include:
 - `/member-stories/`, `/admin/`, `/admin/members/`, `/admin/member-stories/`, `/admin/outreach/`, `/admin/email-campaigns/`, and
   `/admin/instagram-campaigns/`, `/admin/marketing-messages/`, `/admin/surveys/`, `/admin/survey-preview/`, `/admin/survey-results/`, and `/admin/survey-insights/`;
 - Firebase Hosting rewrites `/member-stories/<slug>/` directly to
-  `/member-stories/index.html`, and deployment smoke tests verify a representative story URL;
+  `/member-stories/index.html`; Eleventy’s dev server uses matching middleware, and deployment
+  smoke tests verify a representative story URL;
 - permanent redirects from `/account/**` and `/submit-vehicle-data/**` to their member
   equivalents;
 - a generated 404 page, clean URLs, trailing slashes, and a final Hosting fallback to

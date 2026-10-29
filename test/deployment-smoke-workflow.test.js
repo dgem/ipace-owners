@@ -8,6 +8,7 @@ const deploymentSmokeWorkflowPath = resolve(__dirname, '../.github/workflows/dep
 const stagingWorkflowPath = resolve(__dirname, '../.github/workflows/gcp-firebase-staging.yml');
 const productionWorkflowPath = resolve(__dirname, '../.github/workflows/gcp-firebase-production.yml');
 const firebaseAccessTokenPreloadPath = resolve(__dirname, '../scripts/firebase-access-token-preload.cjs');
+const memberStoryDevMiddleware = require('../scripts/member-story-dev-middleware.js');
 
 test('deployment smoke tests run inside Firebase deploy workflows', function () {
   const stagingWorkflow = readFileSync(stagingWorkflowPath, 'utf8');
@@ -63,6 +64,21 @@ test('deployment smoke checks the published story path rewrite', function () {
   assert.equal(storyRewrite?.destination, '/member-stories/index.html');
   assert.match(smoke, /\/member-stories\/smoke-story-slug-Av9rBPh9\//);
   assert.match(smoke, /data-public-stories/);
+});
+
+test('Eleventy dev server resolves story slugs to the shared story page', function () {
+  const config = readFileSync(resolve(__dirname, '../.eleventy.js'), 'utf8');
+  assert.match(config, /member-story-dev-middleware/);
+
+  const req = { url: '/member-stories/example-story-AbCd1234/?campaign=test' };
+  let nextCalled = false;
+  memberStoryDevMiddleware(req, {}, function () { nextCalled = true; });
+  assert.equal(req.url, '/member-stories/?campaign=test');
+  assert.equal(nextCalled, true);
+
+  const catalogue = { url: '/member-stories/' };
+  memberStoryDevMiddleware(catalogue, {}, function () {});
+  assert.equal(catalogue.url, '/member-stories/');
 });
 
 test('Firebase deploy workflows skip Function deploys when backend is unchanged', function () {
