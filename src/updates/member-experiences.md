@@ -3,6 +3,8 @@ layout: update.njk
 title: Share your I-PACE experience
 description: Help build a record of what I-PACE owners have experienced with their cars, batteries and repairs.
 date: 2026-10-29
+heroImage: /images/member-experiences-hero.png
+heroImageAlt: "A parked electric SUV beside a home charger on a British driveway, with owner records ready to share."
 ---
 
 We have opened **Member experiences**, a place for I-PACE owners to describe what happened in their own words.
