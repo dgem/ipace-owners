@@ -457,7 +457,7 @@ async function checkMemberStories(viewport, screenshotName) {
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
   await page.getByRole('button', { name: 'Edit' }).click();
-  const insertImage = page.getByRole('button', { name: 'Insert in experience' });
+  const insertImage = page.getByRole('button', { name: 'Insert image' });
   await insertImage.waitFor({ state: 'visible' });
   await insertImage.click();
   assert.equal(await page.locator('[data-story-editor] img[data-story-media-id="photo-1"]').count(), 1);
