@@ -522,7 +522,7 @@ async function checkPublicMemberStory(viewport, screenshotName) {
   await page.goto(baseURL + storyPath, { waitUntil: 'networkidle' });
   await page.locator('.member-story').waitFor({ state: 'visible' });
   await page.evaluate(() => document.querySelectorAll('.cookie-notice').forEach((element) => { element.hidden = true; }));
-  await page.getByRole('button', { name: 'Share this experience' }).click();
+  await page.getByRole('button', { name: 'Share this story' }).click();
   await page.locator('[data-story-share-options]').waitFor({ state: 'visible' });
   assert.equal(await page.locator('[data-story-share-options]').getByRole('link', { name: 'Facebook' }).getAttribute('href').then((href) => href.startsWith('https://www.facebook.com/sharer/')), true);
   await page.getByRole('button', { name: 'Copy for Instagram' }).waitFor({ state: 'visible' });
