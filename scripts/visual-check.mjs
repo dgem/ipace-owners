@@ -508,7 +508,10 @@ async function checkAdminMemberSearch(viewport, screenshotName) {
 async function checkPublicMemberStory(viewport, screenshotName) {
   const page = await browser.newPage({ viewport });
   await page.route('**/api/stories', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ stories: [{ id: 'story-1', slug: 'three-modules-story-1', title: 'Three modules and still waiting', displayName: 'Alex Owner', bodyMarkdown: '## What happened\n\nMy I-PACE needed **three battery modules** replaced. One replacement later failed again.\n\n## The impact\n\nI want a fair, timely and lasting solution.', evidence: { vehicleLabel: 'I-PACE', modelYear: '2020', serviceEventCount: 3, sohReadingCount: 2 }, media: [] }] }) }));
-  await page.goto(baseURL + '/member-stories/three-modules-story-1/?site-mode=full', { waitUntil: 'networkidle' });
+  const storyPath = baseURL.startsWith('http://127.0.0.1') || baseURL.startsWith('http://localhost')
+    ? '/member-stories/?site-mode=full&story=three-modules-story-1'
+    : '/member-stories/three-modules-story-1/?site-mode=full';
+  await page.goto(baseURL + storyPath, { waitUntil: 'networkidle' });
   await page.locator('.member-story').waitFor({ state: 'visible' });
   await page.evaluate(() => document.querySelectorAll('.cookie-notice').forEach((element) => { element.hidden = true; }));
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
