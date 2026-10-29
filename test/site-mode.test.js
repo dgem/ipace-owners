@@ -94,7 +94,7 @@ test('launch navigation and complete routes are marked declaratively', function 
     navigation.public.filter(function (item) { return item.launchVisible === false; }).map(function (item) { return item.label; }),
     ['Evidence', 'Methodology']
   );
-  assert.equal(navigation.public.some(function (item) { return item.label === 'Member Stories' && item.url === '/member-stories/'; }), true);
+  assert.equal(navigation.public.some(function (item) { return item.label === 'Owner stories' && item.url === '/member-stories/'; }), true);
   assert.match(base, /data-site-mode="\{\{ site\.defaultMode or 'launch' \}\}"/);
   assert.match(base, /:root:not\(\[data-site-mode="full"\]\)\s+\[data-site-mode-only="full"\]/);
   assert.match(base, /script src="\/assets\/js\/site-mode\.js"/);
