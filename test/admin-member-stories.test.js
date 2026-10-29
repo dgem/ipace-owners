@@ -12,6 +12,9 @@ test('member story admin workspace is paged, filterable and supports bulk archiv
   assert.match(js, /data-select-all/);
   assert.match(js, /action:'archive',ids/);
   assert.match(js, /data-story-detail/);
+  assert.match(js, /Story \(Markdown source\)/);
+  assert.match(js, /story-markdown-editor/);
+  assert.match(js, /Sentiment:/);
   assert.match(go, /hasNext/);
   assert.match(go, /query.Get\("status"\)/);
   assert.match(go, /input.Action == "archive" && len\(input.IDs\) > 0/);

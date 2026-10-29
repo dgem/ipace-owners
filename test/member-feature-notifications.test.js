@@ -74,11 +74,15 @@ test('member experience editor inserts uploaded images instead of arbitrary link
   const publicStories = read('src/assets/js/public-member-stories.js');
 
   assert.match(stories, /data-insert-story-image/);
+  assert.match(stories, /data-insert-story-media/);
   assert.match(stories, /story-media:/);
   assert.match(stories, /data-story-media-id/);
+  assert.match(stories, /story.status === 'submitted'/);
+  assert.match(stories, /story.analysis && story.analysis.sentiment/);
   assert.doesNotMatch(stories, /window\.prompt\('Paste a web link/);
   assert.doesNotMatch(stories, /data-editor-link/);
   assert.match(publicStories, /story-inline-image/);
+  assert.match(publicStories, /<video src=/);
 });
 
 test('member story upload errors retain a support correlation reference', () => {
