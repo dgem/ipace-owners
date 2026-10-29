@@ -255,8 +255,8 @@ site-owned `/images/` paths; Freeform campaigns retain the generic hero.
 - Deploy sequence matters:
   1. Build the site with staging Firebase web config.
   2. Deploy the Firebase Hosting preview channel and extract its generated URL.
-  3. Add that preview hostname to Firebase Auth authorized domains, replacing stale PR
-     preview domains while preserving permanent domains. The Identity Platform OpenTofu resource
+  3. Add that preview hostname to Firebase Auth authorized domains, preserving other active PR
+     preview domains and permanent domains. The Identity Platform OpenTofu resource
      must ignore subsequent `authorized_domains` drift: an infrastructure apply after this step
      must never remove the active preview hostname and break magic-link continuations.
   4. Detect whether backend-related files changed.
@@ -281,7 +281,8 @@ site-owned `/images/` paths; Freeform campaigns retain the generic hero.
   and staging Functions.
 - When a repository-owner pull request is merged, trigger a closed-PR cleanup job that uses the
   same staging deployment credentials and serialized concurrency group to delete exactly its
-  `pr-<number>` Firebase Hosting preview channel. Do not delete previews for closed-but-unmerged
+  `pr-<number>` Firebase Hosting preview channel and remove that PR's generated hostname from
+  Firebase Auth authorized domains. Do not delete previews for closed-but-unmerged
   pull requests or external contributors.
 - Before pushing additional commits to an existing PR branch, cancel any in-progress staging
   deployment for that same branch so obsolete code does not continue through the deployment
