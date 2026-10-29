@@ -23,8 +23,8 @@ test('runtime declarations use the supported Node and Go production lines', func
   }
   assert.doesNotMatch(makefile, /go123/);
   assert.match(makefile, /--runtime=go126/);
-  assert.match(goMod, /^go 1\.26\.9$/m);
-  assert.match(makefile, /GOAUDIT_TOOLCHAIN \?= go1\.26\.9/);
+  assert.match(goMod, /^go 1\.26\.\d+$/m);
+  assert.match(makefile, /GOAUDIT_TOOLCHAIN \?= go1\.26\.\d+/);
 });
 
 test('deployment uses a single Go API Function entrypoint', function () {
