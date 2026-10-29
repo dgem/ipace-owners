@@ -90,7 +90,7 @@
 
   function shareOptions(story) {
     var url = shareURL();
-    var text = story.title + ' — an I-PACE owner experience';
+    var text = story.title + ' — an I-PACE owner story';
     var encodedURL = encodeURIComponent(url);
     var encodedText = encodeURIComponent(text);
     return '<section class="story-share-options" data-story-share-options hidden aria-label="Share this experience">' +
@@ -152,7 +152,7 @@
         return;
       }
       track(story, 'share', 'native');
-      navigator.share({ title: story.title, text: 'An I-PACE owner experience', url: shareURL() }).catch(function () {});
+      navigator.share({ title: story.title, text: 'An I-PACE owner story', url: shareURL() }).catch(function () {});
     });
   }
 
@@ -165,7 +165,7 @@
     var selected = stories.find(function (story) { return story.slug === requested || story.id === requested; });
     if (selected) {
       var joinLink = '/join/?story=' + encodeURIComponent(selected.id) + (campaign ? '&campaign=' + encodeURIComponent(campaign) : '');
-      root.innerHTML = '<article class="member-story"><p class="eyebrow">Owner experience</p><h2>' + esc(selected.title) + '</h2><p class="lede">By ' + esc(selected.displayName) + '</p><div class="story-markdown">' + markdown(selected.bodyMarkdown, selected.media) + '</div><section class="story-media-gallery" aria-label="Attached media">' + mediaGallery(selected.media) + '</section><aside class="story-evidence-summary"><h2>Records behind this experience</h2><p>' + esc(selected.evidence.vehicleLabel || 'Registered I-PACE') + (selected.evidence.modelYear ? ' · model year ' + esc(selected.evidence.modelYear) : '') + '</p><p>' + Number(selected.evidence.serviceEventCount || 0) + ' linked service, fault or JLR contact records · ' + Number(selected.evidence.sohReadingCount || 0) + ' linked SoH readings.</p><p><a href="/member/dashboard/">Add your own vehicle evidence</a></p></aside><div class="cluster"><a class="btn btn--primary" data-story-cta href="' + joinLink + '">Add your voice</a><button class="btn btn--secondary" data-story-share type="button" aria-expanded="false">Share this experience</button></div>' + shareOptions(selected) + '</article>';
+      root.innerHTML = '<article class="member-story"><p class="eyebrow">Owners’ story</p><h2>' + esc(selected.title) + '</h2><p class="lede">By ' + esc(selected.displayName) + '</p><div class="story-markdown">' + markdown(selected.bodyMarkdown, selected.media) + '</div><section class="story-media-gallery" aria-label="Attached media">' + mediaGallery(selected.media) + '</section><aside class="story-evidence-summary"><h2>Evidence behind this story</h2><p>' + esc(selected.evidence.vehicleLabel || 'Registered I-PACE') + (selected.evidence.modelYear ? ' · model year ' + esc(selected.evidence.modelYear) : '') + '</p><p>' + Number(selected.evidence.serviceEventCount || 0) + ' linked service, fault or JLR contact records · ' + Number(selected.evidence.sohReadingCount || 0) + ' linked SoH readings.</p><p><a href="/member/dashboard/">Add your own vehicle evidence</a></p></aside><div class="cluster"><a class="btn btn--primary" data-story-cta href="' + joinLink + '">Add your voice</a><button class="btn btn--secondary" data-story-share type="button" aria-expanded="false">Share this story</button></div>' + shareOptions(selected) + '</article>';
       track(selected, 'view');
       setTimeout(function () { track(selected, 'engaged'); }, 30000);
       root.querySelector('[data-story-cta]').addEventListener('click', function () { track(selected, 'cta'); });
@@ -174,7 +174,7 @@
     }
     root.innerHTML = '<div class="story-grid">' + stories.map(function (story) {
       var href = '/member-stories/' + encodeURIComponent(story.slug || story.id) + '/';
-      return '<article class="card"><h2><a href="' + href + '">' + esc(story.title) + '</a></h2><p>By ' + esc(story.displayName) + '</p><p>' + esc(story.bodyMarkdown.slice(0, 220)) + '…</p><a href="' + href + '">Read this experience</a></article>';
+      return '<article class="card"><h2><a href="' + href + '">' + esc(story.title) + '</a></h2><p>By ' + esc(story.displayName) + '</p><p>' + esc(story.bodyMarkdown.slice(0, 220)) + '…</p><a href="' + href + '">Read this story</a></article>';
     }).join('') + '</div>';
-  }).catch(function () { root.innerHTML = '<p>Owner stories are temporarily unavailable.</p>'; });
+  }).catch(function () { root.innerHTML = '<p>Owners’ stories are temporarily unavailable.</p>'; });
 })();

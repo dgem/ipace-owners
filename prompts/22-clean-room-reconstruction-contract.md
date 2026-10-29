@@ -217,7 +217,8 @@ The generated public route surface must include:
   `/admin/instagram-campaigns/`, `/admin/marketing-messages/`, `/admin/surveys/`, `/admin/survey-preview/`, `/admin/survey-results/`, and `/admin/survey-insights/`;
 - Firebase Hosting rewrites `/member-stories/<slug>/` directly to
   `/member-stories/index.html`; Eleventy’s dev server uses matching middleware, and deployment
-  smoke tests verify a representative story URL;
+  smoke tests verify a representative story URL. Label the public navigation and catalogue
+  “Owners’ stories”; keep the signed-in submission workspace labelled “Member experiences”;
 - permanent redirects from `/account/**` and `/submit-vehicle-data/**` to their member
   equivalents;
 - a generated 404 page, clean URLs, trailing slashes, and a final Hosting fallback to

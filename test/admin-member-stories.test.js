@@ -33,6 +33,9 @@ test('public story sharing provides platform actions and records platform click 
   }
   assert.match(js, /navigator\.share/);
   assert.match(js, /platform: platform \|\| ''/);
+  assert.match(js, /Owners’ story/);
+  assert.match(js, /Read this story/);
+  assert.match(js, /An I-PACE owner story/);
   assert.match(go, /SharePlatforms map\[string\]int/);
   assert.match(go, /validStorySharePlatform\(input\.Platform\)/);
 });
