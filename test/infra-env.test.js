@@ -53,7 +53,7 @@ test('rejects tfvars for a different environment', function () {
   assert.match(result.stderr, /does not match environment/);
 });
 
-test('local infra commands source ignored environment-scoped commerce credentials', function () {
+test('local infra commands source only ignored environment-scoped application and commerce credentials', function () {
   const script = readFileSync(scriptPath, 'utf8');
   const example = readFileSync(resolve(repoRoot, '.env.example'), 'utf8');
   const ignore = readFileSync(resolve(repoRoot, '.gitignore'), 'utf8');
@@ -61,7 +61,12 @@ test('local infra commands source ignored environment-scoped commerce credential
   assert.match(ignore, /^\.env$/m);
   assert.match(script, /source "\$\{repo_root\}\/\.env"/);
   assert.match(script, /scoped_name=.*secret_name.*secret_suffix/);
-  assert.match(script, /Never fall back to an unscoped Stripe key or signing secret/);
+  assert.match(script, /Never fall back to an unscoped secret from another shell\/session/);
+  for (const name of ['VIN_PEPPER', 'RESEND_API_KEY', 'IDEAL_POSTCODES_API_KEY', 'INSTAGRAM_ACCESS_TOKEN', 'PRINTIFY_API_TOKEN', 'PRINTIFY_WEBHOOK_SECRET', 'STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET']) {
+    assert.match(script, new RegExp(`for secret_name in[^\\n]*${name}`));
+    assert.match(example, new RegExp(`${name}_STAGING`));
+    assert.match(example, new RegExp(`${name}_PRODUCTION`));
+  }
   assert.match(example, /STRIPE_SECRET_KEY_STAGING=sk_test_/);
   assert.match(example, /STRIPE_SECRET_KEY_PRODUCTION=sk_live_/);
   assert.match(example, /PRINTIFY_WEBHOOK_SECRET_STAGING/);

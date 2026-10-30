@@ -84,8 +84,10 @@ Secrets: `PRINTIFY_API_TOKEN`, `PRINTIFY_WEBHOOK_SECRET`, `STRIPE_SECRET_KEY`,
 assets, Functions JSON env files, logs or OpenTofu state. Secret resources and runtime IAM are
 managed in OpenTofu; the local bootstrap helper imports values into Secret Manager. The ignored
 repo-root `.env` is loaded by `scripts/infra-env.sh` for `make infra-apply`; use `_STAGING` and
-`_PRODUCTION` suffixes for commerce credentials so each apply only imports the matching set.
-Existing shared secrets such as `RESEND_API_KEY` may use an unsuffixed name. OpenTofu's
+`_PRODUCTION` suffixes for every bootstrap credential, including the existing application
+secrets `VIN_PEPPER`, `RESEND_API_KEY`, `IDEAL_POSTCODES_API_KEY`, and `INSTAGRAM_ACCESS_TOKEN`.
+Each apply imports only matching values; unscoped values are removed and never used as fallback.
+Preserve the existing production VIN pepper because it determines stored vehicle HMACs. OpenTofu's
 `merchandise_config` and `merchandise_secrets_enabled` variables write the corresponding
 `MERCH_CONFIG_STAGING/PRODUCTION` and `MERCH_SECRETS_ENABLED_STAGING/PRODUCTION` GitHub environment
 variables. Secret bindings default off and must be enabled explicitly after secret versions exist.

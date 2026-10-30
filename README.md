@@ -416,7 +416,7 @@ tofu state rm 'module.ipace_owners.github_actions_environment_secret.actions["VI
 tofu state rm 'module.ipace_owners.github_actions_environment_secret.actions["RESEND_API_KEY_STAGING"]'
 ```
 
-Use the matching production names in production. To add application-secret versions, export any of `VIN_PEPPER`, `RESEND_API_KEY`, `IDEAL_POSTCODES_API_KEY`, and `INSTAGRAM_ACCESS_TOKEN` from secure operator storage, then run the normal local apply. `RESEND_API_KEY` also configures the Resend provider when its sending domain is managed. After a successful Functions deployment, remove the old GitHub Actions application secrets; retain only deployment bootstrap credentials and the dedicated staging E2E Resend key.
+Use the matching production names in production. For local application-secret bootstrapping, put the credentials in the ignored repo-root `.env` using `_STAGING` or `_PRODUCTION` suffixes; `scripts/infra-env.sh` selects the suffix matching `ENV` before the normal local apply. Never use unsuffixed fallback values. `RESEND_API_KEY` also configures the Resend provider when its sending domain is managed. After a successful Functions deployment, remove the old GitHub Actions application secrets; retain only deployment bootstrap credentials and the dedicated staging E2E Resend key.
 
 ### Production monitoring and recovery
 
@@ -1206,10 +1206,12 @@ after its four Secret Manager versions are present. `stripeLive: false` requires
 opening sales. The Printify webhook also completes custom-channel product publication.
 
 For local credential bootstrapping, copy `.env.example` to the ignored repo-root `.env` and fill
-the environment-scoped commerce variables there. `make infra-apply ENV=staging` (or `production`)
-loads that file, selects only the matching `_STAGING` or `_PRODUCTION` commerce secrets, and adds
-new Secret Manager versions without placing values in OpenTofu state. Existing shared application
-secrets such as `RESEND_API_KEY` can also be kept in this file. Review the plan before applying;
+the environment-scoped application and commerce variables there. `make infra-apply ENV=staging`
+(or `production`) loads that file, selects only the matching `_STAGING` or `_PRODUCTION` secrets,
+and adds new Secret Manager versions without placing values in OpenTofu state. All eight
+application and provider secrets use environment suffixes; there is no unscoped-secret fallback.
+Preserve the current production `VIN_PEPPER` value as `VIN_PEPPER_PRODUCTION`, since changing it
+changes existing VIN HMACs. Review the plan before applying;
 the commerce JSON is non-secret configuration and is stored in OpenTofu state. Stripe webhook
 endpoints and Printify webhook subscriptions are registered with those providers, not by this
 OpenTofu setup.

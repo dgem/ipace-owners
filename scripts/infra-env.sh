@@ -16,22 +16,22 @@ if [[ -f "${repo_root}/.env" ]]; then
 	set +a
 fi
 
-# Prefer environment-scoped commerce credentials so applying one environment
-# cannot accidentally publish the other environment's Stripe/webhook secrets.
+# Map only the selected environment's secret values to the generic names expected
+# by OpenTofu providers and the Secret Manager bootstrap helper.
 case "${environment}" in
 	staging) secret_suffix="STAGING" ;;
 	production) secret_suffix="PRODUCTION" ;;
 	*) secret_suffix="" ;;
 esac
 if [[ -n "${secret_suffix}" ]]; then
-	for secret_name in PRINTIFY_API_TOKEN PRINTIFY_WEBHOOK_SECRET STRIPE_SECRET_KEY STRIPE_WEBHOOK_SECRET; do
+	for secret_name in VIN_PEPPER RESEND_API_KEY IDEAL_POSTCODES_API_KEY INSTAGRAM_ACCESS_TOKEN PRINTIFY_API_TOKEN PRINTIFY_WEBHOOK_SECRET STRIPE_SECRET_KEY STRIPE_WEBHOOK_SECRET; do
 		scoped_name="${secret_name}_${secret_suffix}"
 		scoped_value="${!scoped_name:-}"
 		if [[ -n "${scoped_value}" ]]; then
 			printf -v "${secret_name}" '%s' "${scoped_value}"
 			export "${secret_name}"
-		elif [[ "${secret_name}" != "PRINTIFY_API_TOKEN" ]]; then
-			# Never fall back to an unscoped Stripe key or signing secret.
+		else
+			# Never fall back to an unscoped secret from another shell/session.
 			unset "${secret_name}"
 		fi
 	done
