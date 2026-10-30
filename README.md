@@ -1177,9 +1177,11 @@ payment-cost allowance, reviewed pricing expiry, destination tax allowances, sel
 reviewed terms) is configured by the `merchandise_config` OpenTofu variable. OpenTofu writes it
 and the `merchandise_secrets_enabled` switch to the matching GitHub Actions environment variables
 `MERCH_CONFIG_STAGING/PRODUCTION` and `MERCH_SECRETS_ENABLED_STAGING/PRODUCTION`.
-Provider credentials are `PRINTIFY_API_TOKEN`, `PRINTIFY_WEBHOOK_SECRET`, `STRIPE_SECRET_KEY`,
-and `STRIPE_WEBHOOK_SECRET`. Secret Manager containers and runtime access are managed by
-OpenTofu; local values are imported by the bootstrap helper and never stored in OpenTofu state.
+Provider credentials are `PRINTIFY_API_TOKEN` and `STRIPE_SECRET_KEY`. Secret Manager containers
+and runtime access are managed by OpenTofu; the local bootstrap imports those API credentials
+without storing them in OpenTofu state. During `make infra-apply`, a local reconciler registers
+Stripe and Printify webhooks from `MERCH_CONFIG` and stores their signing secrets directly in
+Secret Manager. Generated signing secrets are never written to OpenTofu state or logs.
 No live checkout until Stripe, currency factors, destination tax settings and seller details
 are configured and tested. New sales stop on pricing-review expiry; paid orders still process.
 See `prompts/22-merchandise-storefront.md` for the schema, complete setup/reconciliation runbook,
@@ -1202,19 +1204,21 @@ set `merchandise_config = file("merchandise-config.staging.json")` in `staging.t
 after its four Secret Manager versions are present. `stripeLive: false` requires an `sk_test_` key;
 `stripeLive: true` requires an `sk_live_` key. The fixed webhook URLs are
 `https://<environment-origin>/api/shop/stripe-webhook` and
-`https://<environment-origin>/api/shop/printify-webhook`. Register and test signatures before
-opening sales. The Printify webhook also completes custom-channel product publication.
+`https://<environment-origin>/api/shop/printify-webhook`; OpenTofu reconciles those registrations
+on apply. It subscribes Stripe to paid Checkout session events and Printify to product publication,
+order status and shipment events. The Printify webhook also completes custom-channel product
+publication.
 
 For local credential bootstrapping, copy `.env.example` to the ignored repo-root `.env` and fill
 the environment-scoped application and commerce variables there. `make infra-apply ENV=staging`
 (or `production`) loads that file, selects only the matching `_STAGING` or `_PRODUCTION` secrets,
-and adds new Secret Manager versions without placing values in OpenTofu state. All eight
-application and provider secrets use environment suffixes; there is no unscoped-secret fallback.
+and adds new Secret Manager versions without placing values in OpenTofu state. All six
+application and provider API credentials use environment suffixes; there is no unscoped-secret fallback.
 Preserve the current production `VIN_PEPPER` value as `VIN_PEPPER_PRODUCTION`, since changing it
 changes existing VIN HMACs. Review the plan before applying;
 the commerce JSON is non-secret configuration and is stored in OpenTofu state. Stripe webhook
-endpoints and Printify webhook subscriptions are registered with those providers, not by this
-OpenTofu setup.
+endpoints and Printify webhook subscriptions are managed by the local OpenTofu apply reconciler;
+their signing secrets are written directly to Secret Manager, outside OpenTofu state.
 
 For frontend-only development, `make dev` shows the real product previews with checkout
 unavailable. `VISUAL_SHOP_ONLY=1 make test-visual` exercises deterministic catalogue, Australian

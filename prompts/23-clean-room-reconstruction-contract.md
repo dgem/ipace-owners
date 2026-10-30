@@ -454,13 +454,12 @@ invalidity must disable publishing while leaving local preview available.
 OpenTofu creates the `instagram-access-token` Secret Manager container and grants the Function
 runtime accessor permission, but must not create its secret version from a tfvars value. On every
 local apply, the bootstrap examines any supplied `VIN_PEPPER`, `RESEND_API_KEY`,
-`IDEAL_POSTCODES_API_KEY`, `INSTAGRAM_ACCESS_TOKEN`, `PRINTIFY_API_TOKEN`,
-`PRINTIFY_WEBHOOK_SECRET`, `STRIPE_SECRET_KEY`, and `STRIPE_WEBHOOK_SECRET` operator environment
-values, adds a version when it differs from `latest` or when the latest version is missing or
-destroyed, and skips absent values. Local setup uses the ignored repo-root `.env` with every key
-suffixed `_STAGING` or `_PRODUCTION`; `scripts/infra-env.sh` maps only the suffix selected by
-`ENV` to the generic names consumed by the bootstrap and OpenTofu providers, and never falls back
-to unsuffixed values. Preserve the existing production `VIN_PEPPER` when populating
+`IDEAL_POSTCODES_API_KEY`, `INSTAGRAM_ACCESS_TOKEN`, `PRINTIFY_API_TOKEN`, and `STRIPE_SECRET_KEY`
+operator environment values, adds a version when it differs from `latest` or when the latest
+version is missing or destroyed, and skips absent values. Local setup uses the ignored repo-root
+`.env` with every key suffixed `_STAGING` or `_PRODUCTION`; `scripts/infra-env.sh` maps only the
+suffix selected by `ENV` to the generic names consumed by the bootstrap and OpenTofu providers,
+and never falls back to unsuffixed values. Preserve the existing production `VIN_PEPPER` when populating
 `VIN_PEPPER_PRODUCTION` because it determines existing vehicle HMACs. The normal `make infra-apply`
 target must build the local bootstrap binary before
 OpenTofu executes it. It must never store a value or fingerprint in OpenTofu state. Once a version
@@ -741,10 +740,14 @@ Non-secret configuration: `MERCH_CONFIG` (shop/origin, verified production and s
 conversion, payment-cost allowance, reviewed pricing expiry, destination tax allowances, seller
 identity and reviewed terms). OpenTofu variables `merchandise_config` and
 `merchandise_secrets_enabled` manage its environment-specific GitHub Actions variables. Secrets:
-`PRINTIFY_API_TOKEN`, `PRINTIFY_WEBHOOK_SECRET`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`.
-Secret Manager resources and runtime IAM are managed by OpenTofu, while the local bootstrap helper
-imports values without saving them in state. `scripts/infra-env.sh` loads ignored repo-root `.env`
-for `make infra-apply` and selects commerce secrets suffixed for the chosen environment.
+`PRINTIFY_API_TOKEN` and `STRIPE_SECRET_KEY`. Secret Manager resources and runtime IAM are managed
+by OpenTofu, while the local bootstrap imports API credentials without saving them in state. A
+separate local-exec reconciler registers Stripe Checkout and Printify product/order webhook events
+on every apply when the environment has a configured shop, stable HTTPS origin and provider
+credentials. It writes the Stripe endpoint signing secret and generated Printify shared secret
+directly to Secret Manager, never to OpenTofu state, plan output, logs or GitHub variables.
+`scripts/infra-env.sh` loads ignored repo-root `.env` for `make infra-apply` and selects provider
+API credentials suffixed for the chosen environment.
 No live checkout until Stripe, currency factors, destination tax settings and seller details
 are configured and tested. New sales stop on pricing-review expiry; paid orders still process.
 See `prompts/22-merchandise-storefront.md` for the schema, complete setup/reconciliation runbook,

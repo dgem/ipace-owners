@@ -79,10 +79,13 @@ error and return a retryable webhook response. Payment success is not inferred f
 - `sellerName`, `sellerAddress`, `termsReviewed`: seller identity is displayed before payment;
   checkout remains unavailable until these are supplied and shop terms are reviewed.
 
-Secrets: `PRINTIFY_API_TOKEN`, `PRINTIFY_WEBHOOK_SECRET`, `STRIPE_SECRET_KEY`,
-`STRIPE_WEBHOOK_SECRET`. Keep them in Secret Manager; never commit values or put them in browser
-assets, Functions JSON env files, logs or OpenTofu state. Secret resources and runtime IAM are
-managed in OpenTofu; the local bootstrap helper imports values into Secret Manager. The ignored
+Provider credentials are `PRINTIFY_API_TOKEN` and `STRIPE_SECRET_KEY`. Keep them in the ignored
+environment-scoped `.env`; never commit values or put them in browser assets, Functions JSON env
+files, logs or OpenTofu state. Secret resources and runtime IAM are managed in OpenTofu; the local
+bootstrap helper imports these API credentials into Secret Manager. During every `make infra-apply`,
+OpenTofu's local reconciler creates or updates the environment's Stripe and Printify webhook
+registrations and stores generated signing secrets directly in Secret Manager, never in OpenTofu
+state or logs. The ignored
 repo-root `.env` is loaded by `scripts/infra-env.sh` for `make infra-apply`; use `_STAGING` and
 `_PRODUCTION` suffixes for every bootstrap credential, including the existing application
 secrets `VIN_PEPPER`, `RESEND_API_KEY`, `IDEAL_POSTCODES_API_KEY`, and `INSTAGRAM_ACCESS_TOKEN`.
@@ -103,10 +106,12 @@ unless explicitly exercising it with approved test merchandise. Configure Stripe
 order confirmation terms, and Printify shipment notifications before launch. Webhook endpoints
 must use a stable environment origin, not an expiring preview URL.
 
-Register Stripe `checkout.session.completed` and `checkout.session.async_payment_succeeded`;
-register Printify order status/shipment events with the shared secret. Ensure the Printify account
-has funding. Order submission is followed by explicit send-to-production once the provider ID is
-saved, so auto-approval settings are not relied on.
+OpenTofu registers Stripe `checkout.session.completed` and
+`checkout.session.async_payment_succeeded`, plus Printify product, publication, order and shipment
+events. Signing secrets are generated or received during the API calls and written directly to
+the environment's Secret Manager versions. Ensure the Printify account has funding. Order
+submission is followed by explicit send-to-production once the provider ID is saved, so
+auto-approval settings are not relied on.
 
 ## Operations and acceptance
 
@@ -143,7 +148,9 @@ delivery fields and ordering stay hidden until `checkoutEnabled` is true. Preser
 Printify mockups and designs externally.
 
 Subscribe the Printify webhook to product create/update/delete and `product:publish:started`
-as well as order events. Product events invalidate the short catalogue cache. Verified publish
+as well as order created/updated/cancelled/sent/shipments events. OpenTofu performs this
+reconciliation through the Printify API using the configured shop ID and stable origin. Product
+events invalidate the short catalogue cache. Verified publish
 create/update requests re-read the configured shop product, then acknowledge publication with
 its `/shop/#product-<id>` handle; unpublish requests use Printify's unpublish endpoint. This
 completes custom-channel publication and releases the publishing lock. Existing locked products

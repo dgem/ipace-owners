@@ -390,6 +390,26 @@ resource "terraform_data" "local_secret_versions" {
   ]
 }
 
+resource "terraform_data" "merchandise_webhooks" {
+  # Provider registrations and signing secrets are reconciled locally, so
+  # webhook credentials never enter OpenTofu state or plan output.
+  triggers_replace = [timestamp()]
+
+  provisioner "local-exec" {
+    command = "${path.root}/../../../functions/firebase-go/merchandise-webhooks"
+    environment = {
+      GCP_PROJECT_ID        = var.project_id
+      MERCH_CONFIG          = var.merchandise_config
+      MERCH_SECRETS_ENABLED = tostring(var.merchandise_secrets_enabled)
+    }
+  }
+
+  depends_on = [
+    terraform_data.local_secret_versions,
+    google_secret_manager_secret.merchandise,
+  ]
+}
+
 resource "google_service_account" "runtime" {
   account_id   = "ipace-functions"
   display_name = "I-PACE Owners Cloud Functions runtime"
