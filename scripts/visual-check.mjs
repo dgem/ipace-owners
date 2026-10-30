@@ -670,7 +670,7 @@ async function checkJoinCountry(viewport, mode, screenshotName) {
   const country = form.locator('[name="country"]');
   assert.equal(await country.isVisible(), true, 'country should be visible in both Join variants');
   assert.equal(await country.getAttribute('required'), '');
-  assert.equal(await country.inputValue(), 'GB', 'country should default to the UK');
+  assert.equal(await country.inputValue(), '', 'members should actively choose their country');
   assert.equal(await country.locator('option[value="GR"]').textContent(), 'Greece');
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });

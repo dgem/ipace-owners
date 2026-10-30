@@ -113,10 +113,10 @@ callout once the result is shown so it does not repeat the next-step guidance.
 Collect:
 
 - Contact details.
-- Require members to select a country/region at Join and allow them to update it from account
-  preferences. Default the selection to United Kingdom while keeping non-UK owner options
-  available, including Greece (`GR`) in Join, vehicle creation and vehicle editing. Explain
-  that the group is currently UK-led.
+- Require members to actively select a country/region at Join and allow them to update it from
+  account preferences. Do not preselect a country. Keep non-UK owner options available,
+  including Greece (`GR`) in Join, vehicle creation and vehicle editing. Explain that the group
+  is currently UK-led.
 - One combined owner/relationship status field. Do not ask separate relationship and
   ownership questions that allow contradictory answers.
   Use options equivalent to:
