@@ -41,4 +41,6 @@ module "ipace_owners" {
   monitoring_enabled                   = var.monitoring_enabled
   monitoring_alert_email               = var.monitoring_alert_email
   manage_github_actions                = var.manage_github_actions
+  merchandise_config                   = var.merchandise_config
+  merchandise_secrets_enabled          = var.merchandise_secrets_enabled
 }

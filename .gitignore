@@ -54,6 +54,8 @@ deno.lock
 *.tfstate.*
 *.tfvars
 !*.tfvars.example
+infra/opentofu/env/merchandise-config.staging.json
+infra/opentofu/env/merchandise-config.production.json
 
 # Playwright
 /test-results/

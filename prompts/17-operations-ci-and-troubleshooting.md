@@ -584,10 +584,12 @@ reference; its table parts are not used as an input when creating exports.
 
 ## Merchandise deployment and reconciliation
 
-Use optional Secret Manager bindings through `MERCH_SECRETS_ENABLED` and environment-specific
-`MERCH_CONFIG`. Keep Stripe test/live settings and fulfilment separated. Reconcile ambiguous
-Printify submissions before replay; never create a duplicate order. Follow the complete setup
-and recovery procedure in `22-merchandise-storefront.md`.
+Use OpenTofu's `merchandise_secrets_enabled` and `merchandise_config` variables to write the
+environment-scoped GitHub Actions deployment variables. Keep provider values in Secret Manager;
+`make infra-apply ENV=staging|production` loads the ignored repo-root `.env` and bootstraps only
+that environment's suffixed Stripe/Printify secrets. Keep Stripe test/live settings and fulfilment
+separated. Reconcile ambiguous Printify submissions before replay; never create a duplicate order.
+Follow the complete setup and recovery procedure in `22-merchandise-storefront.md`.
 
 - Infrastructure apply must reconcile the runtime service account's self
   `roles/iam.serviceAccountTokenCreator` binding before deploying Functions

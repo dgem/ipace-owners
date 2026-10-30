@@ -7,6 +7,36 @@ infra_dir="${repo_root}/infra/opentofu/env"
 environment="${ENV:-}"
 action="${1:-config}"
 
+# Local-only provider/API credentials can be kept in the ignored repo-root .env.
+# Shell syntax is intentional (the file may be sourced manually as well).
+if [[ -f "${repo_root}/.env" ]]; then
+	set -a
+	# shellcheck disable=SC1091
+	source "${repo_root}/.env"
+	set +a
+fi
+
+# Prefer environment-scoped commerce credentials so applying one environment
+# cannot accidentally publish the other environment's Stripe/webhook secrets.
+case "${environment}" in
+	staging) secret_suffix="STAGING" ;;
+	production) secret_suffix="PRODUCTION" ;;
+	*) secret_suffix="" ;;
+esac
+if [[ -n "${secret_suffix}" ]]; then
+	for secret_name in PRINTIFY_API_TOKEN PRINTIFY_WEBHOOK_SECRET STRIPE_SECRET_KEY STRIPE_WEBHOOK_SECRET; do
+		scoped_name="${secret_name}_${secret_suffix}"
+		scoped_value="${!scoped_name:-}"
+		if [[ -n "${scoped_value}" ]]; then
+			printf -v "${secret_name}" '%s' "${scoped_value}"
+			export "${secret_name}"
+		elif [[ "${secret_name}" != "PRINTIFY_API_TOKEN" ]]; then
+			# Never fall back to an unscoped Stripe key or signing secret.
+			unset "${secret_name}"
+		fi
+	done
+fi
+
 fail() {
 	echo "Error: $*" >&2
 	exit 1

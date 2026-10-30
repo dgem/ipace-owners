@@ -1172,12 +1172,14 @@ provider webhooks require their own raw-body HMAC signatures. A signed paid Stri
 match the saved session, shop, currency and total before Printify submission. Ambiguous provider
 submissions require operator reconciliation, never automatic duplicate creation.
 
-Non-secret configuration: `MERCH_CONFIG` (shop/origin, explicitly verified production and shipping
-currency conversion factors, payment-cost allowance, reviewed pricing expiry, destination tax
-allowances, seller identity and reviewed terms). Secrets: `PRINTIFY_API_TOKEN`,
-`PRINTIFY_WEBHOOK_SECRET`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`.
-`MERCH_SECRETS_ENABLED` optionally binds the four managed secrets during deployment;
-`MERCH_CONFIG_STAGING/PRODUCTION` and `MERCH_SECRETS_ENABLED_STAGING/PRODUCTION` are GitHub variables.
+Non-secret `MERCH_CONFIG` (shop/origin, verified production and shipping currency conversion,
+payment-cost allowance, reviewed pricing expiry, destination tax allowances, seller identity and
+reviewed terms) is configured by the `merchandise_config` OpenTofu variable. OpenTofu writes it
+and the `merchandise_secrets_enabled` switch to the matching GitHub Actions environment variables
+`MERCH_CONFIG_STAGING/PRODUCTION` and `MERCH_SECRETS_ENABLED_STAGING/PRODUCTION`.
+Provider credentials are `PRINTIFY_API_TOKEN`, `PRINTIFY_WEBHOOK_SECRET`, `STRIPE_SECRET_KEY`,
+and `STRIPE_WEBHOOK_SECRET`. Secret Manager containers and runtime access are managed by
+OpenTofu; local values are imported by the bootstrap helper and never stored in OpenTofu state.
 No live checkout until Stripe, currency factors, destination tax settings and seller details
 are configured and tested. New sales stop on pricing-review expiry; paid orders still process.
 See `prompts/22-merchandise-storefront.md` for the schema, complete setup/reconciliation runbook,
@@ -1192,11 +1194,25 @@ can create merchandise orders. Keep test/live Stripe endpoint signing secrets se
 Start configuration from `infra/opentofu/env/merchandise-config.example.json`. Its zero rates,
 blank seller/shop fields, expired review and disabled switches deliberately prevent checkout;
 they are placeholders, not recommended exchange rates, payment fees or tax treatment. Set
-`MERCH_CONFIG` to the reviewed JSON object. `stripeLive: false` requires an `sk_test_` key;
+`merchandise_config` in the ignored environment tfvars file to the reviewed JSON object. For
+example, copy it to the ignored `merchandise-config.staging.json`, edit the reviewed values, and
+set `merchandise_config = file("merchandise-config.staging.json")` in `staging.tfvars`; use
+`merchandise-config.production.json` from `production.tfvars` for live configuration.
+`merchandise_secrets_enabled` defaults to false and must be explicitly enabled for that environment
+after its four Secret Manager versions are present. `stripeLive: false` requires an `sk_test_` key;
 `stripeLive: true` requires an `sk_live_` key. The fixed webhook URLs are
 `https://<environment-origin>/api/shop/stripe-webhook` and
 `https://<environment-origin>/api/shop/printify-webhook`. Register and test signatures before
 opening sales. The Printify webhook also completes custom-channel product publication.
+
+For local credential bootstrapping, copy `.env.example` to the ignored repo-root `.env` and fill
+the environment-scoped commerce variables there. `make infra-apply ENV=staging` (or `production`)
+loads that file, selects only the matching `_STAGING` or `_PRODUCTION` commerce secrets, and adds
+new Secret Manager versions without placing values in OpenTofu state. Existing shared application
+secrets such as `RESEND_API_KEY` can also be kept in this file. Review the plan before applying;
+the commerce JSON is non-secret configuration and is stored in OpenTofu state. Stripe webhook
+endpoints and Printify webhook subscriptions are registered with those providers, not by this
+OpenTofu setup.
 
 For frontend-only development, `make dev` shows the real product previews with checkout
 unavailable. `VISUAL_SHOP_ONLY=1 make test-visual` exercises deterministic catalogue, Australian

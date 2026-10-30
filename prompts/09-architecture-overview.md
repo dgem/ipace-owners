@@ -451,9 +451,11 @@ The routes are `GET /api/shop/catalogue`, `POST /api/shop/quote`, `POST /api/sho
 `GET /api/shop/order`, `POST /api/shop/stripe-webhook` and `POST /api/shop/printify-webhook`.
 Webhooks use provider signatures; a verified live paid Stripe event creates the Printify order.
 Test Stripe payments are recorded without fulfilment. `MERCH_CONFIG` carries reviewed pricing,
-tax, seller and environment settings; managed secrets are optional deployment bindings. Checkout
-must stay disabled until provider currency, Stripe keys, seller identity and shop terms are
-verified. See `22-merchandise-storefront.md` for exact configuration and recovery procedures.
+tax, seller and environment settings; OpenTofu writes it and the secret-binding switch to the
+environment's GitHub Actions variables. Managed provider secrets live in Google Secret Manager,
+with local values bootstrapped from the ignored repo-root `.env` without entering OpenTofu state.
+Checkout must stay disabled until provider currency, Stripe keys, seller identity and shop terms
+are verified. See `22-merchandise-storefront.md` for exact configuration and recovery procedures.
 
 ## Private admin service export
 

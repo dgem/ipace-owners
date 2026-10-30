@@ -2,6 +2,7 @@ const assert = require('node:assert/strict');
 const { spawnSync } = require('node:child_process');
 const { resolve } = require('node:path');
 const { test } = require('node:test');
+const { readFileSync } = require('node:fs');
 
 const repoRoot = resolve(__dirname, '..');
 const scriptPath = resolve(repoRoot, 'scripts/infra-env.sh');
@@ -50,4 +51,35 @@ test('rejects tfvars for a different environment', function () {
 
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /does not match environment/);
+});
+
+test('local infra commands source ignored environment-scoped commerce credentials', function () {
+  const script = readFileSync(scriptPath, 'utf8');
+  const example = readFileSync(resolve(repoRoot, '.env.example'), 'utf8');
+  const ignore = readFileSync(resolve(repoRoot, '.gitignore'), 'utf8');
+
+  assert.match(ignore, /^\.env$/m);
+  assert.match(script, /source "\$\{repo_root\}\/\.env"/);
+  assert.match(script, /scoped_name=.*secret_name.*secret_suffix/);
+  assert.match(script, /Never fall back to an unscoped Stripe key or signing secret/);
+  assert.match(example, /STRIPE_SECRET_KEY_STAGING=sk_test_/);
+  assert.match(example, /STRIPE_SECRET_KEY_PRODUCTION=sk_live_/);
+  assert.match(example, /PRINTIFY_WEBHOOK_SECRET_STAGING/);
+  assert.match(example, /PRINTIFY_WEBHOOK_SECRET_PRODUCTION/);
+});
+
+test('OpenTofu owns merchandise deployment variables without taking provider secrets as inputs', function () {
+  const actions = readFileSync(resolve(repoRoot, 'infra/opentofu/modules/ipace-owners/github-actions.tf'), 'utf8');
+  const envVariables = readFileSync(resolve(repoRoot, 'infra/opentofu/env/variables.tf'), 'utf8');
+  const moduleVariables = readFileSync(resolve(repoRoot, 'infra/opentofu/modules/ipace-owners/variables.tf'), 'utf8');
+  const ignore = readFileSync(resolve(repoRoot, '.gitignore'), 'utf8');
+
+  assert.match(actions, /"MERCH_CONFIG_\$\{local\.github_actions_suffix\}"\s*=\s*var\.merchandise_config/);
+  assert.match(actions, /"MERCH_SECRETS_ENABLED_\$\{local\.github_actions_suffix\}"\s*=\s*tostring\(var\.merchandise_secrets_enabled\)/);
+  assert.match(envVariables, /variable "merchandise_config"/);
+  assert.match(envVariables, /variable "merchandise_secrets_enabled"/);
+  assert.match(moduleVariables, /Never put provider credentials or webhook signing secrets in this value/);
+  assert.match(ignore, /merchandise-config\.staging\.json/);
+  assert.match(ignore, /merchandise-config\.production\.json/);
+  assert.doesNotMatch(envVariables, /variable "(?:stripe_secret|printify_api_token)/i);
 });

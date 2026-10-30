@@ -731,12 +731,14 @@ provider webhooks require their own raw-body HMAC signatures. A signed paid Stri
 match the saved session, shop, currency and total before Printify submission. Ambiguous provider
 submissions require operator reconciliation, never automatic duplicate creation.
 
-Non-secret configuration: `MERCH_CONFIG` (shop/origin, explicitly verified production and shipping
-currency conversion factors, payment-cost allowance, reviewed pricing expiry, destination tax
-allowances, seller identity and reviewed terms). Secrets: `PRINTIFY_API_TOKEN`,
-`PRINTIFY_WEBHOOK_SECRET`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`.
-`MERCH_SECRETS_ENABLED` optionally binds the four managed secrets during deployment;
-`MERCH_CONFIG_STAGING/PRODUCTION` and `MERCH_SECRETS_ENABLED_STAGING/PRODUCTION` are GitHub variables.
+Non-secret configuration: `MERCH_CONFIG` (shop/origin, verified production and shipping currency
+conversion, payment-cost allowance, reviewed pricing expiry, destination tax allowances, seller
+identity and reviewed terms). OpenTofu variables `merchandise_config` and
+`merchandise_secrets_enabled` manage its environment-specific GitHub Actions variables. Secrets:
+`PRINTIFY_API_TOKEN`, `PRINTIFY_WEBHOOK_SECRET`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`.
+Secret Manager resources and runtime IAM are managed by OpenTofu, while the local bootstrap helper
+imports values without saving them in state. `scripts/infra-env.sh` loads ignored repo-root `.env`
+for `make infra-apply` and selects commerce secrets suffixed for the chosen environment.
 No live checkout until Stripe, currency factors, destination tax settings and seller details
 are configured and tested. New sales stop on pricing-review expiry; paid orders still process.
 See `prompts/22-merchandise-storefront.md` for the schema, complete setup/reconciliation runbook,

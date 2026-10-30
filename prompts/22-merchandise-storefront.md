@@ -82,11 +82,13 @@ error and return a retryable webhook response. Payment success is not inferred f
 Secrets: `PRINTIFY_API_TOKEN`, `PRINTIFY_WEBHOOK_SECRET`, `STRIPE_SECRET_KEY`,
 `STRIPE_WEBHOOK_SECRET`. Keep them in Secret Manager; never commit values or put them in browser
 assets, Functions JSON env files, logs or OpenTofu state. Secret resources and runtime IAM are
-managed in OpenTofu; the existing local bootstrap helper imports set environment variables.
-`MERCH_SECRETS_ENABLED=true` attaches these four secrets when deploying the existing Api function.
-It defaults false so environments without secret versions continue to deploy normally.
-GitHub variables `MERCH_CONFIG_STAGING/PRODUCTION` and
-`MERCH_SECRETS_ENABLED_STAGING/PRODUCTION` control each environment independently.
+managed in OpenTofu; the local bootstrap helper imports values into Secret Manager. The ignored
+repo-root `.env` is loaded by `scripts/infra-env.sh` for `make infra-apply`; use `_STAGING` and
+`_PRODUCTION` suffixes for commerce credentials so each apply only imports the matching set.
+Existing shared secrets such as `RESEND_API_KEY` may use an unsuffixed name. OpenTofu's
+`merchandise_config` and `merchandise_secrets_enabled` variables write the corresponding
+`MERCH_CONFIG_STAGING/PRODUCTION` and `MERCH_SECRETS_ENABLED_STAGING/PRODUCTION` GitHub environment
+variables. Secret bindings default off and must be enabled explicitly after secret versions exist.
 
 At initial implementation, the user supplied a local Printify token and has a custom-integration
 shop with a tote, T-shirt, car magnet and mug. The Stripe account's continued availability and
