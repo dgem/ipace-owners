@@ -749,9 +749,12 @@ Printify. The storefront prominently labels test mode. Only explicitly configure
 can create merchandise orders. Keep test/live Stripe endpoint signing secrets separate.
 
 The committed `src/_data/merchandisePreview.json` and `public/images/merchandise/*.jpg` show the
-four initial products when the live catalogue is unavailable; they are previews without prices
-or purchase buttons. Preserve the source Printify mockups and designs externally. The live
-catalogue replaces these cards and is authoritative for availability/options/prices.
+four initial products when the live catalogue is unavailable. These cards can be added to a
+local preview basket, but have no variants, prices, delivery form, or ordering action. The
+browser must show a friendly preparation message instead of surfacing API errors. When the API
+returns live catalogue products, those products are authoritative for availability/options/prices;
+delivery fields and ordering stay hidden until `checkoutEnabled` is true. Preserve the source
+Printify mockups and designs externally.
 
 Subscribe the Printify webhook to product create/update/delete and `product:publish:started`
 as well as order events. Product events invalidate the short catalogue cache. Verified publish

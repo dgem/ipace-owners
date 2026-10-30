@@ -18,6 +18,7 @@ merchandise: true
     <p data-shop-seller></p>
     <div class="callout callout--warning" data-shop-test hidden><p><strong>Test shop:</strong> payments use Stripe test mode. No merchandise will be made or shipped.</p></div>
     <p data-shop-status role="status" aria-live="polite">Loading merchandise…</p>
+    <div class="callout callout--info" data-shop-checkout-note><p>Checkout is being prepared. Add previews to your basket; options, pricing and ordering will be available soon.</p></div>
     <p><a href="#basket-title" class="btn btn--secondary" data-shop-basket-link hidden>View basket</a></p>
     <div class="merch-grid" data-shop-products>
       {% for product in merchandisePreview %}
@@ -30,8 +31,8 @@ merchandise: true
     <section class="card merch-basket" data-shop-basket hidden aria-labelledby="basket-title">
       <h2 id="basket-title">Your basket</h2>
       <div data-shop-lines></div>
-      <p>Prices are in GBP. Product prices show the starting production price; your final delivered price includes delivery, supplier tax and payment costs. We round prices up to the nearest .49 or .99. Your bank may charge currency-conversion fees.</p>
-      <form data-shop-form class="stack" method="post">
+      <p data-shop-basket-note>Preview items cannot yet be ordered. Pricing and checkout are being prepared.</p>
+      <form data-shop-form class="stack" method="post" hidden>
         <fieldset><legend>Delivery details</legend><div class="merch-address-grid">
           <div class="form-group"><label for="shop-first">First name</label><input type="text" id="shop-first" name="first_name" autocomplete="given-name" required maxlength="100"></div>
           <div class="form-group"><label for="shop-last">Last name</label><input type="text" id="shop-last" name="last_name" autocomplete="family-name" required maxlength="100"></div>

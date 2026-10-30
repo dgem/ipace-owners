@@ -7,6 +7,7 @@
   var form = root.querySelector('[data-shop-form]');
   var quotePanel = root.querySelector('[data-shop-quote-result]');
   var basketPanel = root.querySelector('[data-shop-basket]');
+  var checkoutNote = root.querySelector('[data-shop-checkout-note]');
   function esc(value) { var node = document.createElement('span'); node.textContent = String(value == null ? '' : value); return node.innerHTML; }
   function money(pence) { return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(pence / 100); }
   function api(path, options) {
@@ -17,6 +18,7 @@
   function invalidateQuote() { receipt = ''; quotePanel.hidden = true; quotePanel.innerHTML = ''; }
   function renderBasket() {
     invalidateQuote(); basketPanel.hidden = basket.length === 0;
+    root.querySelector('[data-shop-basket-note]').textContent = ready ? 'Prices are in GBP. Product prices show the starting production price; your final delivered price includes delivery, supplier tax and payment costs. We round prices up to the nearest .49 or .99. Your bank may charge currency-conversion fees.' : 'Preview items cannot yet be ordered. Pricing and checkout are being prepared.';
     root.querySelector('[data-shop-basket-link]').hidden = !basket.length;
     root.querySelector('[data-shop-lines]').innerHTML = basket.map(function (line, i) {
       return '<div class="merch-basket-line"><p><strong>' + esc(line.title) + '</strong><br>' + esc(line.variant) + ' · Quantity: ' + line.quantity + '</p><button type="button" class="btn btn--secondary" data-remove="' + i + '" aria-label="Remove ' + esc(line.title + ' ' + line.variant) + '">Remove</button></div>';
@@ -25,15 +27,24 @@
   function renderProducts() {
     root.querySelector('[data-shop-products]').innerHTML = products.map(function (p, i) {
       var image = p.images.find(function (im) { return im.is_default; }) || p.images[0];
-      return '<article class="card merch-product" id="product-' + esc(p.id) + '">' + (image ? '<img src="' + esc(image.src) + '" alt="' + esc(p.title) + '" loading="lazy" width="600" height="600">' : '') + '<div class="merch-product__body stack"><h2>' + esc(p.title) + '</h2><p class="merch-price" data-production-price="' + i + '">From ' + money(p.variants[0].productionPrice) + '</p><label for="shop-variant-' + i + '">Choose option</label><select id="shop-variant-' + i + '" data-variant="' + i + '">' + p.variants.map(function (v) { return '<option value="' + v.id + '">' + esc(v.title) + '</option>'; }).join('') + '</select><details><summary>Product details and sizing</summary><p class="merch-description">' + esc(p.description) + '</p></details><p>Production price; delivered total calculated below.</p><button type="button" class="btn btn--primary" data-add="' + i + '"' + (ready ? '' : ' disabled') + '>Add to basket</button></div></article>';
+      var details = p.preview ? '<p>Options and pricing are being prepared.</p>' : '<p class="merch-price" data-production-price="' + i + '">From ' + money(p.variants[0].productionPrice) + '</p><label for="shop-variant-' + i + '">Choose option</label><select id="shop-variant-' + i + '" data-variant="' + i + '">' + p.variants.map(function (v) { return '<option value="' + v.id + '">' + esc(v.title) + '</option>'; }).join('') + '</select><details><summary>Product details and sizing</summary><p class="merch-description">' + esc(p.description) + '</p></details><p>Production price; delivered total calculated below.</p>';
+      return '<article class="card merch-product" id="product-' + esc(p.id) + '">' + (image ? '<img src="' + esc(image.src) + '" alt="' + esc(p.title) + '" loading="lazy" width="600" height="600">' : '') + '<div class="merch-product__body stack"><h2>' + esc(p.title) + '</h2>' + details + '<button type="button" class="btn btn--primary" data-add="' + i + '">Add to basket</button></div></article>';
     }).join('');
+  }
+  function usePreviewProducts() {
+    products = Array.from(root.querySelectorAll('[data-shop-products] .merch-product')).map(function (card, i) {
+      var image = card.querySelector('img');
+      return { id: image ? image.getAttribute('src').split('/').pop().replace(/\.jpg$/, '') : 'preview-' + i, title: card.querySelector('h2').textContent.trim(), description: '', images: image ? [{ src: image.getAttribute('src') }] : [], variants: [{ id: 0, title: 'Options and pricing being prepared', productionPrice: 0 }], preview: true };
+    });
+    renderProducts();
   }
   root.addEventListener('click', function (event) {
     var add = event.target.closest('[data-add]'), remove = event.target.closest('[data-remove]');
     if (busy) return;
     if (add) {
       var index = Number(add.dataset.add), p = products[index];
-      var id = Number(root.querySelector('[data-variant="' + index + '"]').value);
+      var selector = root.querySelector('[data-variant="' + index + '"]');
+      var id = selector ? Number(selector.value) : 0;
       var variant = p.variants.find(function (v) { return v.id === id; });
       var count = basket.reduce(function (sum, line) { return sum + line.quantity; }, 0);
       if (count >= 20) { status.textContent = 'Please order no more than 20 items at a time.'; return; }
@@ -58,7 +69,7 @@
   });
   form.addEventListener('input', invalidateQuote);
   form.addEventListener('submit', function (event) {
-    event.preventDefault(); if (busy || !basket.length) return;
+    event.preventDefault(); if (busy || !ready || !basket.length) return;
     busy = true; invalidateQuote(); root.querySelector('[data-shop-feedback]').textContent = ''; status.textContent = 'Checking availability and delivery…';
     var data = new FormData(form), address = {};
     ['first_name', 'last_name', 'email', 'phone', 'country', 'region', 'address1', 'address2', 'city', 'zip'].forEach(function (key) { address[key] = String(data.get(key) || '').trim(); });
@@ -95,11 +106,18 @@
   if (new URLSearchParams(window.location.search).has('order')) loadOrder();
   api('catalogue').then(function (data) {
     products = data.products; ready = data.checkoutEnabled;
+    form.hidden = !ready;
+    checkoutNote.hidden = ready;
+    root.querySelector('[data-shop-basket-note]').textContent = ready ? 'Prices are in GBP. Product prices show the starting production price; your final delivered price includes delivery, supplier tax and payment costs. We round prices up to the nearest .49 or .99. Your bank may charge currency-conversion fees.' : 'Preview items cannot yet be ordered. Pricing and checkout are being prepared.';
     root.querySelector('[data-shop-seller]').textContent = data.sellerName && data.sellerAddress ? 'Seller: ' + data.sellerName + ' — ' + data.sellerAddress : '';
     var countries = form.querySelector('[name="country"]');
     data.countries.forEach(function (country) { var option = document.createElement('option'); option.value = country.code; option.textContent = country.name; countries.appendChild(option); });
     root.querySelector('[data-shop-test]').hidden = !data.testMode;
     renderProducts(); status.textContent = ready ? (products.length ? 'Choose your merchandise below. No sign-in needed.' : 'New merchandise is on its way. Please check back soon.') : 'You can browse merchandise now. Checkout is being prepared.';
     if (new URLSearchParams(window.location.search).has('cancelled')) status.textContent = 'Checkout was cancelled. You can choose your merchandise again when you are ready.';
-  }).catch(function (error) { status.textContent = error.message; });
+  }).catch(function () {
+    ready = false; form.hidden = true; checkoutNote.hidden = false;
+    usePreviewProducts();
+    status.textContent = 'Product options, pricing and checkout are being prepared. You can still add previews to your basket.';
+  });
 }());

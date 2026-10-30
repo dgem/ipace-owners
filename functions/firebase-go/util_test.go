@@ -677,3 +677,20 @@ func TestApiRoutesKnownAndUnknownPaths(t *testing.T) {
 		t.Fatalf("unknown route status = %d, want 404", unknownRec.Code)
 	}
 }
+
+func TestApiShopCatalogueRouteIsRegisteredWhenShopIsUnconfigured(t *testing.T) {
+	t.Setenv("MERCH_CONFIG", `{}`)
+	t.Setenv("PRINTIFY_API_TOKEN", "")
+	req := httptest.NewRequest(http.MethodGet, "/api/shop/catalogue", nil)
+	req.Header.Set("Origin", "https://ipace-owners.org")
+	rec := httptest.NewRecorder()
+
+	Api(rec, req)
+
+	if rec.Code != http.StatusServiceUnavailable {
+		t.Fatalf("shop catalogue status = %d, want 503 (route must be registered); body=%s", rec.Code, rec.Body)
+	}
+	if strings.Contains(rec.Body.String(), "API route not found") {
+		t.Fatalf("shop catalogue fell through API router: %s", rec.Body)
+	}
+}
