@@ -108,6 +108,8 @@ Join records include:
 - `id`, `type`, `createdAt`, `updatedAt`.
 - optional `identityUserId`.
 - `contact`: name, email, country.
+- Country is required and must be a value from the shared country allowlist. Country is also
+  editable from account preferences, which updates the member's Join records.
 - `membership`: one combined relationship/ownership value plus skills.
 - `consents`: contact, not-legal-claim acknowledgement, anonymised analysis.
 - `review`: status and verification level.
