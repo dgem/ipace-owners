@@ -79,6 +79,7 @@ test("fails when required function env vars are missing", () => {
 
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /Missing required function environment values/);
+  assert.match(result.stderr, /MEMBER_STORY_MEDIA_BUCKET/);
 });
 
 test("derives the database ID while leaving the preview link domain unset", () => {
@@ -91,6 +92,7 @@ test("derives the database ID while leaving the preview link domain unset", () =
       FIREBASE_PROJECT_ID: "ipace-owners-staging",
       FIREBASE_WEB_API_KEY: "api-key",
       SNAPSHOT_BUCKET: "snapshots",
+      MEMBER_STORY_MEDIA_BUCKET: "story-media",
       ALLOWED_ORIGINS: "https://stage.ipace-owners.org",
       FIREBASE_EMAIL_CONTINUE_URL: "https://stage.ipace-owners.org/member/account/",
     },
@@ -100,6 +102,7 @@ test("derives the database ID while leaving the preview link domain unset", () =
 
   assert.equal(written.FIRESTORE_DATABASE_ID, "ipace-owners-staging");
   assert.equal(written.FIREBASE_EMAIL_LINK_DOMAIN, "");
+  assert.equal(written.MEMBER_STORY_MEDIA_BUCKET, "story-media");
   assert.equal("RESEND_API_KEY" in written, false);
   assert.equal("IDEAL_POSTCODES_API_KEY" in written, false);
   assert.equal(written.RESEND_FROM, "");

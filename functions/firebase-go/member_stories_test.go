@@ -7,6 +7,18 @@ import (
 	"time"
 )
 
+func TestStoryMediaBucketUsesDedicatedBucketOnly(t *testing.T) {
+	t.Setenv("MEMBER_STORY_MEDIA_BUCKET", "")
+	t.Setenv("CAMPAIGN_MEDIA_BUCKET", "campaign-media")
+	if got := storyMediaBucket(); got != "" {
+		t.Fatalf("storyMediaBucket() = %q, want empty when dedicated bucket is missing", got)
+	}
+	t.Setenv("MEMBER_STORY_MEDIA_BUCKET", "member-story-media")
+	if got := storyMediaBucket(); got != "member-story-media" {
+		t.Fatalf("storyMediaBucket() = %q, want dedicated bucket", got)
+	}
+}
+
 func TestStorySigningServiceAccountReadsRuntimeIdentity(t *testing.T) {
 	t.Setenv("STORAGE_SIGNING_SERVICE_ACCOUNT", "ipace-functions@example.iam.gserviceaccount.com")
 	if got := storySigningServiceAccount(); got != "ipace-functions@example.iam.gserviceaccount.com" {
