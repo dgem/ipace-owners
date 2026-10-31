@@ -724,8 +724,10 @@ reconstruction, not production disaster recovery.
 
 ## Public merchandise storefront
 
-`/shop/` and `/shop/terms/` implement the guest-accessible Printify shop with Stripe hosted
-Checkout in GBP. `merchandise.js` handles catalogue variants/images, basket, international
+`/shop/` and `/shop/terms/` implement the guest-accessible Merchandise page with Printify and
+Stripe hosted Checkout in GBP. Keep Merchandise as the public label and page title while
+preserving the existing `/shop/` and `/api/shop/` routes. `merchandise.js` handles catalogue
+variants/images, the basket above the catalogue, international
 delivery details, quotes, secure checkout redirects and private browser receipt status.
 There is no membership requirement. This is not intended for profit; surplus supports site
 running costs (currently around £30/month). Round every displayed merchandise price and final
@@ -769,11 +771,13 @@ Printify. The storefront prominently labels test mode. Only explicitly configure
 can create merchandise orders. Keep test/live Stripe endpoint signing secrets separate.
 
 The committed `src/_data/merchandisePreview.json` and `public/images/merchandise/*.jpg` show the
-four initial products when the live catalogue is unavailable. These cards can be added to a
-local preview basket, but have no variants, prices, delivery form, or ordering action. The
-browser must show a friendly preparation message instead of surfacing API errors. When the API
-returns live catalogue products, those products are authoritative for availability/options/prices;
-delivery fields and ordering stay hidden until `checkoutEnabled` is true. Preserve the source
+four initial products when the live catalogue is unavailable. Preview cards have no add-to-basket
+action, variants, prices, delivery form, or ordering action. The page must state that orders and
+payments cannot be placed in that environment, instead of inviting shoppers into a dead-end
+preview basket or surfacing API errors. When the API returns live catalogue products, those
+products are authoritative for availability/options/prices; add-to-basket, delivery fields and
+ordering stay hidden or disabled until `checkoutEnabled` is true. When the first real item is added,
+focus the basket heading and provide a link back to the catalogue. Preserve the source
 Printify mockups and designs externally.
 
 Subscribe the Printify webhook to product create/update/delete and `product:publish:started`

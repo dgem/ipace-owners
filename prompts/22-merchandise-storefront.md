@@ -2,7 +2,7 @@
 
 ## Product decisions
 
-Build `/shop/` for everyone, including guests. Do not require Firebase sign-in or membership,
+Build the public Merchandise page at `/shop/` for everyone, including guests. Keep “Merchandise” as the customer-facing page and navigation label; `/shop/` and `/api/shop/` remain stable internal routes. Do not require Firebase sign-in or membership,
 create membership records, enrol shoppers in campaigns, or mix order data with vehicle evidence.
 Use the site's Eleventy/Nunjucks templates, vanilla `merchandise.js` and custom CSS.
 
@@ -11,7 +11,7 @@ hosted Checkout for one-off payments in GBP. Support international destinations 
 explicit configured destination list and a real Printify shipping quote for each basket/address.
 Never advertise worldwide availability where a provider cannot deliver.
 
-The shop is not intended to generate profit or revenue for its own sake. Keep prices as close
+The merchandise service is not intended to generate profit or revenue for its own sake. Keep prices as close
 to cost as practicable. Any surplus, including rounding, contributes to site running costs,
 currently around £30 per month. Do not describe purchases as charitable donations.
 
@@ -23,7 +23,11 @@ allowance and configured payment-cost recovery. No percentage profit margin is a
 
 ## Implementation and privacy
 
-Routes: `/shop/`, `/shop/terms/`; public navigation includes Shop.
+Routes: `/shop/`, `/shop/terms/`; public navigation and page titles say Merchandise. Keep the
+basket above the catalogue. When a first real item is added, focus the basket heading; offer a
+“Continue browsing merchandise” link back to the catalogue. When the catalogue is only a local
+preview or checkout is disabled, do not offer add-to-basket controls. State clearly that orders
+and payments are unavailable in this environment; never imply a preview basket can be purchased.
 The API router serves these endpoints through the existing `Api` function:
 
 - `GET /api/shop/catalogue`: enabled/available variants, provider images, plain-text product

@@ -259,7 +259,7 @@ func MerchandiseCatalogue(w http.ResponseWriter, r *http.Request) {
 	}
 	c, err := loadMerchConfig()
 	if err != nil {
-		writeJSON(w, 503, map[string]any{"error": "The shop is being prepared. Please check back soon."})
+		writeJSON(w, 503, map[string]any{"error": "The merchandise catalogue is being prepared. Please check back soon."})
 		return
 	}
 	products, err := merchProducts(r.Context(), c)
@@ -326,7 +326,7 @@ func merchCalculate(items, shipping int64, c merchConfig, country merchCountry) 
 }
 func validateMerchRequest(q merchQuoteRequest, c merchConfig) error {
 	if !q.Terms || q.Website != "" || len(q.Lines) == 0 || len(q.Lines) > 10 {
-		return errors.New("Choose merchandise and accept the shop terms.")
+		return errors.New("Choose merchandise and accept the merchandise terms.")
 	}
 	if _, ok := c.Countries[q.Address.Country]; !ok {
 		return errors.New("Choose a supported delivery country.")
@@ -401,7 +401,7 @@ func MerchandiseQuote(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		if !found {
-			writeJSON(w, 409, map[string]any{"error": "An item is no longer available. Refresh the shop and choose again."})
+			writeJSON(w, 409, map[string]any{"error": "An item is no longer available. Refresh the Merchandise page and choose again."})
 			return
 		}
 	}

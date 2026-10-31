@@ -1395,7 +1395,7 @@ async function checkMerchandise(viewport, suffix) {
     else data = { status: 'test-paid', reference: 'bbbbbbbbbbbb', summary: '2 × Cotton canvas tote bag — Standard', totals: { total: 3449 } };
     await route.fulfill({ status: endpoint.endsWith('/checkout') ? 503 : 200, contentType: 'application/json', body: JSON.stringify(data) });
   });
-  await page.addInitScript(() => window.localStorage.setItem('ipace_cookie_notice_accepted', 'true'));
+  await page.addInitScript(() => window.localStorage.setItem('ipace_analytics_consent', 'no'));
   await page.goto(baseURL + '/shop/', { waitUntil: 'networkidle' });
   await expect(page.locator('[data-add]')).toHaveCount(4);
   await page.locator('.merch-product img').evaluateAll((images) => images.forEach((im) => { im.loading = 'eager'; }));
@@ -1423,9 +1423,11 @@ async function checkMerchandise(viewport, suffix) {
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({ path: path.join(outputDir, 'shop-order-' + suffix + '.png'), fullPage: true });
   await page.unroute('**/api/shop/**');
-  await page.route('**/api/shop/catalogue', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'The shop is being prepared. Please check back soon.' }) }));
+  await page.route('**/api/shop/catalogue', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'The merchandise catalogue is being prepared. Please check back soon.' }) }));
   await page.goto(baseURL + '/shop/', { waitUntil: 'networkidle' });
-  await expect(page.locator('[data-shop-status]')).toContainText('being prepared');
+  await expect(page.locator('[data-shop-status]')).toContainText('preview images are shown');
+  await expect(page.locator('[data-add]')).toHaveCount(0);
+  await expect(page.locator('[data-shop-products] button[disabled]')).toHaveCount(4);
   await page.screenshot({ path: path.join(outputDir, 'shop-unavailable-' + suffix + '.png'), fullPage: true });
   await page.close();
 }

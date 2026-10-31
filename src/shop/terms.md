@@ -1,18 +1,18 @@
 ---
 layout: page.njk
-title: Shop terms
+title: Merchandise terms
 description: "Ordering, delivery, cancellation and returns for I-PACE Owners merchandise."
 ---
 
 ## Who can order
 
 Anyone can order; membership is not required. The seller’s name and postal address are
-shown in the shop before checkout. For all order enquiries, email
+shown on the Merchandise page before checkout. For all order enquiries, email
 [contact@ipace-owners.org](mailto:contact@ipace-owners.org).
 
 ## Prices and payment
 
-Prices and payments are in GBP. This shop is not intended to generate profit. Prices cover
+Prices and payments are in GBP. This merchandise service is not intended to generate profit. Prices cover
 production, delivery, supplier taxes and payment costs, with prices rounded up to end in
 .49 or .99. Any surplus contributes to the website’s running costs, currently around £30
 per month. This is a purchase of merchandise, not a charitable donation.

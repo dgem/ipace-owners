@@ -12,7 +12,7 @@
   function money(pence) { return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(pence / 100); }
   function api(path, options) {
     return fetch('/api/shop/' + path, options).then(function (response) {
-      return response.json().then(function (data) { if (!response.ok) throw new Error(data.error || 'The shop is temporarily unavailable. Please try again.'); return data; });
+      return response.json().then(function (data) { if (!response.ok) throw new Error(data.error || 'Merchandise is temporarily unavailable. Please try again.'); return data; });
     });
   }
   function invalidateQuote() { receipt = ''; quotePanel.hidden = true; quotePanel.innerHTML = ''; }
@@ -28,7 +28,8 @@
     root.querySelector('[data-shop-products]').innerHTML = products.map(function (p, i) {
       var image = p.images.find(function (im) { return im.is_default; }) || p.images[0];
       var details = p.preview ? '<p>Options and pricing are being prepared.</p>' : '<p class="merch-price" data-production-price="' + i + '">From ' + money(p.variants[0].productionPrice) + '</p><label for="shop-variant-' + i + '">Choose option</label><select id="shop-variant-' + i + '" data-variant="' + i + '">' + p.variants.map(function (v) { return '<option value="' + v.id + '">' + esc(v.title) + '</option>'; }).join('') + '</select><details><summary>Product details and sizing</summary><p class="merch-description">' + esc(p.description) + '</p></details><p>Production price; delivered total calculated below.</p>';
-      return '<article class="card merch-product" id="product-' + esc(p.id) + '">' + (image ? '<img src="' + esc(image.src) + '" alt="' + esc(p.title) + '" loading="lazy" width="600" height="600">' : '') + '<div class="merch-product__body stack"><h2>' + esc(p.title) + '</h2>' + details + '<button type="button" class="btn btn--primary" data-add="' + i + '">Add to basket</button></div></article>';
+      var action = ready && !p.preview ? '<button type="button" class="btn btn--primary" data-add="' + i + '">Add to basket</button>' : '<button type="button" class="btn btn--primary" disabled>Ordering unavailable</button>';
+      return '<article class="card merch-product" id="product-' + esc(p.id) + '">' + (image ? '<img src="' + esc(image.src) + '" alt="' + esc(p.title) + '" loading="lazy" width="600" height="600">' : '') + '<div class="merch-product__body stack"><h2>' + esc(p.title) + '</h2>' + details + action + '</div></article>';
     }).join('');
   }
   function usePreviewProducts() {
@@ -42,6 +43,7 @@
     var add = event.target.closest('[data-add]'), remove = event.target.closest('[data-remove]');
     if (busy) return;
     if (add) {
+      var wasEmpty = basket.length === 0;
       var index = Number(add.dataset.add), p = products[index];
       var selector = root.querySelector('[data-variant="' + index + '"]');
       var id = selector ? Number(selector.value) : 0;
@@ -52,6 +54,7 @@
       if (line) { if (line.quantity >= 10) { status.textContent = 'Maximum 10 of each option per order.'; return; } line.quantity += 1; }
       else { if (basket.length >= 10) { status.textContent = 'Maximum 10 different options per order.'; return; } basket.push({ product_id: p.id, variant_id: id, quantity: 1, title: p.title, variant: variant.title }); }
       renderBasket(); status.textContent = p.title + ' added to your basket. ' + (count + 1) + ' items.';
+      if (wasEmpty) { root.querySelector('#basket-title').focus(); }
     }
     if (remove) { basket.splice(Number(remove.dataset.remove), 1); renderBasket(); status.textContent = 'Item removed.'; }
     if (event.target.closest('[data-pay]')) pay();
@@ -108,16 +111,16 @@
     products = data.products; ready = data.checkoutEnabled;
     form.hidden = !ready;
     checkoutNote.hidden = ready;
-    root.querySelector('[data-shop-basket-note]').textContent = ready ? 'Prices are in GBP. Product prices show the starting production price; your final delivered price includes delivery, supplier tax and payment costs. We round prices up to the nearest .49 or .99. Your bank may charge currency-conversion fees.' : 'Preview items cannot yet be ordered. Pricing and checkout are being prepared.';
+    root.querySelector('[data-shop-basket-note]').textContent = ready ? 'Prices are in GBP. Product prices show the starting production price; your final delivered price includes delivery, supplier tax and payment costs. We round prices up to the nearest .49 or .99. Your bank may charge currency-conversion fees.' : 'Ordering is unavailable until checkout is enabled for this environment.';
     root.querySelector('[data-shop-seller]').textContent = data.sellerName && data.sellerAddress ? 'Seller: ' + data.sellerName + ' — ' + data.sellerAddress : '';
     var countries = form.querySelector('[name="country"]');
     data.countries.forEach(function (country) { var option = document.createElement('option'); option.value = country.code; option.textContent = country.name; countries.appendChild(option); });
     root.querySelector('[data-shop-test]').hidden = !data.testMode;
-    renderProducts(); status.textContent = ready ? (products.length ? 'Choose your merchandise below. No sign-in needed.' : 'New merchandise is on its way. Please check back soon.') : 'You can browse merchandise now. Checkout is being prepared.';
+    renderProducts(); status.textContent = ready ? (products.length ? 'Choose your merchandise below. No sign-in needed.' : 'New merchandise is on its way. Please check back soon.') : 'Merchandise is available to browse, but checkout is not enabled here yet.';
     if (new URLSearchParams(window.location.search).has('cancelled')) status.textContent = 'Checkout was cancelled. You can choose your merchandise again when you are ready.';
   }).catch(function () {
     ready = false; form.hidden = true; checkoutNote.hidden = false;
     usePreviewProducts();
-    status.textContent = 'Product options, pricing and checkout are being prepared. You can still add previews to your basket.';
+    status.textContent = 'The live catalogue is unavailable; preview images are shown below.';
   });
 }());

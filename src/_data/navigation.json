@@ -14,7 +14,7 @@
       "label": "Owners’ stories",
       "url": "/member-stories/"
     },
-    { "label": "Shop", "url": "/shop/" },
+    { "label": "Merchandise", "url": "/shop/" },
     { "label": "Join", "url": "/join/", "highlight": true }
   ],
   "member": [

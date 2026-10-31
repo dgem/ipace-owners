@@ -1157,8 +1157,9 @@ charts and frozen headers are preserved; the security audit remains enabled.
 
 ## Public merchandise storefront
 
-`/shop/` and `/shop/terms/` implement the guest-accessible Printify shop with Stripe hosted
-Checkout in GBP. `merchandise.js` handles catalogue variants/images, basket, international
+`/shop/` and `/shop/terms/` implement the guest-accessible Merchandise page with Printify and
+Stripe hosted Checkout in GBP. The customer-facing navigation and page title use Merchandise.
+`merchandise.js` handles catalogue variants/images, basket above the catalogue, international
 delivery details, quotes, secure checkout redirects and private browser receipt status.
 There is no membership requirement. This is not intended for profit; surplus supports site
 running costs (currently around £30/month). Round every displayed merchandise price and final
@@ -1228,7 +1229,9 @@ the commerce JSON is non-secret configuration and is stored in OpenTofu state. S
 endpoints and Printify webhook subscriptions are managed by the local OpenTofu apply reconciler;
 their signing secrets are written directly to Secret Manager, outside OpenTofu state.
 
-For frontend-only development, `make dev` shows the real product previews with checkout
-unavailable. `VISUAL_SHOP_ONLY=1 make test-visual` exercises deterministic catalogue, Australian
+For frontend-only development, `make dev` shows product previews with ordering unavailable;
+preview products cannot be added to a non-purchasable basket. In deployed environments with
+checkout disabled, the page explains that orders and payments are not available there.
+`VISUAL_SHOP_ONLY=1 make test-visual` exercises deterministic catalogue, Australian
 shipping-address quote, payment-provider failure, quote invalidation and order receipt fixtures
 at desktop/mobile widths without contacting payment or fulfilment providers.
