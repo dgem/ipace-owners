@@ -471,9 +471,12 @@ campaign-media bucket, expire only objects under `work/`, and retain/version app
 UK-resident. Google runtime identity replaces API keys. Generation and Instagram publishing remain
 separate confirmed actions. Provider failures must be recorded and shown to administrators through
 safe classifications rather than arbitrary raw provider messages.
-Member-story media uses non-secret `MEMBER_STORY_MEDIA_BUCKET`. Its dedicated private bucket is
-versioned, prevents public access, limits CORS to configured site origins, and allows the runtime
-service account to sign expiring upload and read URLs through IAM without storing a private key.
+Member-story media uses required non-secret `MEMBER_STORY_MEDIA_BUCKET`, separate from the
+campaign-media bucket. Its dedicated private bucket is versioned, prevents public access, limits
+CORS to configured site origins, and allows the runtime service account to sign expiring upload and
+read URLs through IAM without storing a private key. Never fall back to the campaign bucket when
+the story bucket is missing; fail deployment validation and return the existing storage-not-configured
+response instead.
 
 Never commit real values. Provide `.tfvars.example` files for staging and production and
 derive non-secret GitHub environment variables from OpenTofu outputs. Production uses
