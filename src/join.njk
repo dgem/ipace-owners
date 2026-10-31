@@ -62,6 +62,34 @@ date: Last Modified
           </div>
         </div>
 
+        <div class="form-group">
+          <label for="launch-join-country">Country / region <span aria-hidden="true">*</span></label>
+          <select id="launch-join-country" name="country" required autocomplete="country" aria-describedby="launch-join-country-hint">
+            <option value="">Select a country</option>
+            <option value="GB">United Kingdom</option>
+            <option value="IE">Ireland</option>
+            <option value="DE">Germany</option>
+            <option value="FR">France</option>
+            <option value="NL">Netherlands</option>
+            <option value="NO">Norway</option>
+            <option value="SE">Sweden</option>
+            <option value="DK">Denmark</option>
+            <option value="AT">Austria</option>
+            <option value="CH">Switzerland</option>
+            <option value="BE">Belgium</option>
+            <option value="ES">Spain</option>
+            <option value="IT">Italy</option>
+            <option value="GR">Greece</option>
+            <option value="PT">Portugal</option>
+            <option value="US">United States</option>
+            <option value="CA">Canada</option>
+            <option value="AU">Australia</option>
+            <option value="NZ">New Zealand</option>
+            <option value="other">Other</option>
+          </select>
+          <span class="form-hint" id="launch-join-country-hint">We ask for your country to understand where members are based. The group is currently UK-led.</span>
+        </div>
+
         <div class="check-group">
           <label class="check-label">
             <input type="checkbox" name="consent-contact" value="yes" required>
@@ -175,10 +203,10 @@ date: Last Modified
       </div>
 
       <div class="form-group">
-        <label for="join-country">Country / region</label>
-        <select id="join-country" name="country" aria-describedby="join-country-hint">
+        <label for="join-country">Country / region <span aria-hidden="true">*</span></label>
+        <select id="join-country" name="country" required autocomplete="country" aria-describedby="join-country-hint">
           <option value="">Select a country</option>
-          <option value="GB" selected>United Kingdom</option>
+          <option value="GB">United Kingdom</option>
           <option value="IE">Ireland</option>
           <option value="DE">Germany</option>
           <option value="FR">France</option>

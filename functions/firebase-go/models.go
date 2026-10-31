@@ -42,6 +42,7 @@ type batteryReadingRequest struct {
 }
 
 type preferenceRequest struct {
+	Country            *string `json:"country"`
 	Contact            *bool   `json:"contact"`
 	AnonymisedAnalysis *bool   `json:"anonymisedAnalysis"`
 	DisplayName        *string `json:"displayName"`

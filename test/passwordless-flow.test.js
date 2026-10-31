@@ -137,6 +137,9 @@ test('account preferences render from saved member data', function () {
   assert.match(memberAuth, /name="displayName"/);
   assert.match(memberAuth, /does not need to be unique/);
   assert.match(memberAuth, /data-preferences-form/);
+  assert.match(memberAuth, /name="country" required autocomplete="country"/);
+  assert.match(memberAuth, /payload\.country = form\.elements\.country\.value/);
+  assert.match(memberAuth, /data-member-country/);
   assert.match(memberAuth, /\/api\/update-member-preferences/);
   assert.match(css, /\.preference-list/);
 });
