@@ -754,6 +754,12 @@ See `prompts/22-merchandise-storefront.md` for the schema, complete setup/reconc
 retention, external design/account backups and acceptance tests. Use separate staging accounts;
 Stripe test payments must never unintentionally trigger real Printify fulfilment.
 
+Keep `MERCH_CONFIG.baseUrl` at the stable environment origin for provider webhook registrations
+and canonical Printify product URLs. For Stripe Checkout, derive success/cancel URLs from the
+validated request `Origin`; the shopper's receipt is in origin-scoped session storage and a PR
+preview payment must return to that same preview. Staging CI passes the active preview origin via
+`ALLOWED_ORIGINS`; never point provider webhooks at expiring Firebase preview channels.
+
 `MERCH_CONFIG.stripeLive` selects test/live payments and must match the Stripe secret key prefix
 and Checkout session livemode. Test payments are stored as `test-paid` and NEVER submitted to
 Printify. The storefront prominently labels test mode. Only explicitly configured live payments

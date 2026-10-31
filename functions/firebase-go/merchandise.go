@@ -460,6 +460,11 @@ func MerchandiseCheckout(w http.ResponseWriter, r *http.Request) {
 	if !merchPublicRequest(w, r, http.MethodPost) {
 		return
 	}
+	returnOrigin, err := merchCheckoutReturnOrigin(r)
+	if err != nil {
+		writeJSON(w, http.StatusForbidden, map[string]string{"error": "Checkout origin is invalid."})
+		return
+	}
 	c, err := loadMerchConfig()
 	if err != nil || !merchReady(c) || !c.TermsReviewed || c.SellerName == "" || c.SellerAddress == "" {
 		writeJSON(w, 503, map[string]any{"error": "Checkout is temporarily unavailable."})
@@ -478,7 +483,7 @@ func MerchandiseCheckout(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, 200, map[string]any{"url": o.CheckoutURL})
 		return
 	}
-	form := url.Values{"mode": {"payment"}, "payment_method_types[0]": {"card"}, "customer_email": {o.Address.Email}, "client_reference_id": {o.ID}, "metadata[orderId]": {o.ID}, "success_url": {c.BaseURL + "/shop/?order=" + o.ID}, "cancel_url": {c.BaseURL + "/shop/?cancelled=1"}, "expires_at": {strconv.FormatInt(o.CreatedAt.Add(time.Hour).Unix(), 10)}, "line_items[0][price_data][currency]": {"gbp"}, "line_items[0][price_data][unit_amount]": {strconv.FormatInt(o.Totals.Total, 10)}, "line_items[0][price_data][product_data][name]": {"I-PACE Owners merchandise including delivery"}, "line_items[0][price_data][product_data][description]": {cleanString(o.Summary, 500)}, "line_items[0][quantity]": {"1"}}
+	form := url.Values{"mode": {"payment"}, "payment_method_types[0]": {"card"}, "customer_email": {o.Address.Email}, "client_reference_id": {o.ID}, "metadata[orderId]": {o.ID}, "success_url": {returnOrigin + "/shop/?order=" + o.ID}, "cancel_url": {returnOrigin + "/shop/?cancelled=1"}, "expires_at": {strconv.FormatInt(o.CreatedAt.Add(time.Hour).Unix(), 10)}, "line_items[0][price_data][currency]": {"gbp"}, "line_items[0][price_data][unit_amount]": {strconv.FormatInt(o.Totals.Total, 10)}, "line_items[0][price_data][product_data][name]": {"I-PACE Owners merchandise including delivery"}, "line_items[0][price_data][product_data][description]": {cleanString(o.Summary, 500)}, "line_items[0][quantity]": {"1"}}
 	// The fixed expiry keeps repeated idempotent requests identical and leaves
 	// at least 30 minutes for Checkout when the quote is still valid.
 	var session struct {
@@ -497,6 +502,19 @@ func MerchandiseCheckout(w http.ResponseWriter, r *http.Request) {
 	}
 	writeJSON(w, 200, map[string]any{"url": session.URL})
 }
+
+// Checkout returns to the same allowed site origin that started the payment.
+// The receipt is kept in sessionStorage, which is isolated between preview and
+// stable staging hosts. Provider webhooks continue to use the stable BaseURL.
+func merchCheckoutReturnOrigin(r *http.Request) (string, error) {
+	origin := r.Header.Get("Origin")
+	parsed, err := url.Parse(origin)
+	if err != nil || parsed.Scheme == "" || parsed.Host == "" || parsed.User != nil || parsed.Path != "" || parsed.RawQuery != "" || parsed.Fragment != "" {
+		return "", errors.New("invalid checkout origin")
+	}
+	return strings.TrimRight(origin, "/"), nil
+}
+
 func MerchandiseOrder(w http.ResponseWriter, r *http.Request) {
 	if !merchPublicRequest(w, r, http.MethodGet) {
 		return

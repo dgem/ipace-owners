@@ -1193,6 +1193,14 @@ and Checkout session livemode. Test payments are stored as `test-paid` and NEVER
 Printify. The storefront prominently labels test mode. Only explicitly configured live payments
 can create merchandise orders. Keep test/live Stripe endpoint signing secrets separate.
 
+`MERCH_CONFIG.baseUrl` is the stable HTTPS origin for that environment. OpenTofu registers
+Stripe and Printify webhook endpoints there, and Printify product handles use it as their canonical
+shop URL. Stripe Checkout success/cancel redirects instead use the validated request `Origin`, so
+customers return to the exact Firebase PR preview that started checkout. The staging workflow
+allows the current preview origin dynamically; preview URLs must not be used as provider webhook
+destinations because they expire. Keep the `baseUrl` stable (for example, `https://stage.ipace-owners.org`)
+while CI supplies each preview origin through `ALLOWED_ORIGINS`.
+
 Start configuration from `infra/opentofu/env/merchandise-config.example.json`. Its zero rates,
 blank seller/shop fields, expired review and disabled switches deliberately prevent checkout;
 they are placeholders, not recommended exchange rates, payment fees or tax treatment. Set

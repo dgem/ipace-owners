@@ -177,6 +177,7 @@ func TestMerchPublicEndpointsAndReceiptProtection(t *testing.T) {
 }
 func TestMerchCheckoutUsesSavedTotalAndIdempotency(t *testing.T) {
 	merchTestConfig(t)
+	t.Setenv("ALLOWED_ORIGINS", "https://preview.example,https://shop.example/path")
 	oldRead, oldStripe, oldSave := merchReceiptOrder, merchCallStripe, merchSaveSession
 	t.Cleanup(func() { merchReceiptOrder = oldRead; merchCallStripe = oldStripe; merchSaveSession = oldSave })
 	order := merchOrder{ID: strings.Repeat("a", 64), Status: "quoted", CreatedAt: time.Now(), ExpiresAt: time.Now().Add(20 * time.Minute), Totals: merchTotals{Total: 2499}, Address: merchAddress{Email: "shopper@example.com"}}
@@ -184,7 +185,7 @@ func TestMerchCheckoutUsesSavedTotalAndIdempotency(t *testing.T) {
 	calls := 0
 	merchCallStripe = func(_ context.Context, method, path string, form url.Values, key string, out any) error {
 		calls++
-		if form.Get("line_items[0][price_data][unit_amount]") != "2499" || form.Get("line_items[0][price_data][currency]") != "gbp" || key != "merch-"+order.ID || form.Get("metadata[orderId]") != order.ID {
+		if form.Get("line_items[0][price_data][unit_amount]") != "2499" || form.Get("line_items[0][price_data][currency]") != "gbp" || key != "merch-"+order.ID || form.Get("metadata[orderId]") != order.ID || form.Get("success_url") != "https://preview.example/shop/?order="+order.ID || form.Get("cancel_url") != "https://preview.example/shop/?cancelled=1" {
 			t.Fatalf("unexpected checkout %v", form)
 		}
 		return json.Unmarshal([]byte(`{"id":"cs_test_123","url":"https://checkout.stripe.com/c/pay/test"}`), out)
@@ -196,7 +197,7 @@ func TestMerchCheckoutUsesSavedTotalAndIdempotency(t *testing.T) {
 	}
 	for i := 0; i < 2; i++ {
 		req := httptest.NewRequest("POST", "/api/shop/checkout", strings.NewReader(`{"total":1}`))
-		req.Header.Set("Origin", "https://shop.example")
+		req.Header.Set("Origin", "https://preview.example")
 		res := httptest.NewRecorder()
 		MerchandiseCheckout(res, req)
 		if res.Code != 200 {
@@ -206,9 +207,16 @@ func TestMerchCheckoutUsesSavedTotalAndIdempotency(t *testing.T) {
 	if calls != 1 {
 		t.Fatal("checkout session duplicated")
 	}
+	badOrigin := httptest.NewRequest("POST", "/api/shop/checkout", nil)
+	badOrigin.Header.Set("Origin", "https://shop.example/path")
+	badOriginResult := httptest.NewRecorder()
+	MerchandiseCheckout(badOriginResult, badOrigin)
+	if badOriginResult.Code != http.StatusForbidden {
+		t.Fatalf("path-bearing origin accepted: status=%d body=%s", badOriginResult.Code, badOriginResult.Body)
+	}
 	order.ExpiresAt = time.Now().Add(-time.Minute)
 	req := httptest.NewRequest("POST", "/api/shop/checkout", nil)
-	req.Header.Set("Origin", "https://shop.example")
+	req.Header.Set("Origin", "https://preview.example")
 	res := httptest.NewRecorder()
 	MerchandiseCheckout(res, req)
 	if res.Code != 409 {

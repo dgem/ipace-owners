@@ -65,6 +65,11 @@ error and return a retryable webhook response. Payment success is not inferred f
 `MERCH_CONFIG` is a non-secret JSON object containing:
 
 - `enabled`, `shopId`, `baseUrl` (fixed HTTPS site origin).
+- `baseUrl` is the stable environment origin used for Stripe/Printify webhook registration and
+  canonical Printify product handles. Stripe Checkout success/cancel URLs must use the validated
+  request `Origin`, so a payment started on a Firebase PR preview returns to that same preview
+  (the private receipt lives in origin-scoped `sessionStorage`). Staging CI adds the current preview
+  origin to `ALLOWED_ORIGINS`; never register provider webhooks against expiring preview URLs.
 - `costToGbpMicros` and `shippingToGbpMicros`: explicitly verified conversion factors in
   millionths, separately for API production costs and shipping. One source unit to one GBP is
   1000000. Printify catalogue, billing and retail currencies differ: never infer these factors
