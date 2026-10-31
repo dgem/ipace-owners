@@ -1,0 +1,60 @@
+---
+layout: base.njk
+title: Merchandise
+description: "I-PACE Owners merchandise for everyone. Priced close to cost, with any surplus helping cover the website's running costs."
+merchandise: true
+---
+<div class="page-header"><div class="container">
+  <h1 class="page-header__title">Wear it. Carry it. Spread the word.</h1>
+  <p class="page-header__description">I-PACE Owners merchandise, available to everyone.</p>
+</div></div>
+<section class="section"><div class="container stack">
+  <div class="callout callout--info"><div class="callout__content">
+    <h2 class="callout__title">Made to order. Priced close to cost.</h2>
+    <p>This merchandise is not intended to generate profit. Prices cover making and delivering your order, supplier taxes and payment costs. Any surplus, including small amounts from rounding prices, helps cover the website’s running costs — currently around £30 per month.</p>
+    <p>No membership or sign-in needed. We offer international delivery where our print providers can fulfil your order.</p>
+  </div></div>
+  <div data-shop>
+    <p data-shop-seller></p>
+    <div class="callout callout--warning" data-shop-test hidden><p><strong>Test mode:</strong> payments use Stripe test mode. No merchandise will be made or shipped.</p></div>
+    <p data-shop-status role="status" aria-live="polite">Loading merchandise…</p>
+    <div class="callout callout--info" data-shop-checkout-note><p>Orders and payments are not available in this environment yet. Preview products are shown for browsing only; they cannot be ordered here.</p></div>
+    <section class="card merch-basket" data-shop-basket hidden aria-labelledby="basket-title">
+      <h2 id="basket-title" tabindex="-1">Your basket</h2>
+      <div data-shop-lines></div>
+      <p data-shop-basket-note>Prices and checkout are being prepared.</p>
+      <p><a href="#merchandise-catalogue" data-shop-basket-link hidden>Continue browsing merchandise</a></p>
+      <form data-shop-form class="stack" method="post" hidden>
+        <fieldset><legend>Delivery details</legend><div class="merch-address-grid">
+          <div class="form-group"><label for="shop-first">First name</label><input type="text" id="shop-first" name="first_name" autocomplete="given-name" required maxlength="100"></div>
+          <div class="form-group"><label for="shop-last">Last name</label><input type="text" id="shop-last" name="last_name" autocomplete="family-name" required maxlength="100"></div>
+          <div class="form-group"><label for="shop-email">Email for your order</label><input id="shop-email" name="email" type="email" autocomplete="email" required maxlength="254"></div>
+          <div class="form-group"><label for="shop-phone">Phone (for the carrier)</label><input id="shop-phone" name="phone" type="tel" autocomplete="tel" maxlength="50"></div>
+          <div class="form-group"><label for="shop-country">Country</label><select id="shop-country" name="country" autocomplete="country" required><option value="">Choose country</option></select></div>
+          <div class="form-group"><label for="shop-address1">Address</label><input type="text" id="shop-address1" name="address1" autocomplete="address-line1" required maxlength="200"></div>
+          <div class="form-group"><label for="shop-address2">Apartment, suite, etc. (optional)</label><input type="text" id="shop-address2" name="address2" autocomplete="address-line2" maxlength="200"></div>
+          <div class="form-group"><label for="shop-city">Town or city</label><input type="text" id="shop-city" name="city" autocomplete="address-level2" required maxlength="100"></div>
+          <div class="form-group"><label for="shop-region">State, province or county</label><input type="text" id="shop-region" name="region" autocomplete="address-level1" maxlength="100"></div>
+          <div class="form-group"><label for="shop-zip">Postcode / ZIP (where applicable)</label><input type="text" id="shop-zip" name="zip" autocomplete="postal-code" maxlength="30"></div>
+        </div></fieldset>
+        <div hidden><label>Leave empty <input name="website" tabindex="-1" autocomplete="off"></label></div>
+        <label class="checkbox-label"><input type="checkbox" name="terms" required> I agree to the <a href="/shop/terms/" target="_blank" rel="noopener">merchandise terms</a> and have read how my order details are used in the <a href="/privacy/" target="_blank" rel="noopener">privacy policy</a>.</label>
+        <p>Printify and its print providers make and ship your order. Delivery times depend on the product and destination; items may arrive separately. Import duties or local charges may be collected by the carrier.</p>
+        <p data-shop-feedback role="status"></p>
+        <button type="submit" class="btn btn--primary" data-shop-quote>Get delivered price</button>
+      </form>
+      <div data-shop-quote-result class="callout callout--info" hidden tabindex="-1"></div>
+    </section>
+    <div class="merch-grid" id="merchandise-catalogue" data-shop-products>
+      {% for product in merchandisePreview %}
+      <article class="card merch-product">
+        <img src="/images/merchandise/{{ product.id }}.jpg" alt="{{ product.title }}" width="600" height="600" loading="lazy">
+        <div class="merch-product__body stack"><h2>{{ product.title }}</h2><p>Preview — options and ordering are being prepared.</p></div>
+      </article>
+      {% endfor %}
+    </div>
+    <section class="card" data-shop-order hidden tabindex="-1" aria-label="Order status"></section>
+  </div>
+  <noscript><p>Enable JavaScript to browse products and order. For help, <a href="/contact/">contact the group</a>.</p></noscript>
+  <p><a href="/shop/terms/">Merchandise delivery and returns</a> · <a href="/contact/">Ask about an order</a></p>
+</div></section>

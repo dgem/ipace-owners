@@ -439,7 +439,26 @@ Keep these related prompts aligned when the architecture changes:
 - `17-operations-ci-and-troubleshooting.md`
 - `20-instagram-campaign-publishing.md`
 - `21-member-stories-and-impact.md`
-- `22-clean-room-reconstruction-contract.md`
+- `22-merchandise-storefront.md`
+- `23-clean-room-reconstruction-contract.md`
+
+## Public merchandise storefront
+
+`/shop/` and `/shop/terms/` are public guest checkout pages backed by the Go API, Printify
+custom-storefront fulfilment and Stripe Checkout in GBP. Anyone may order without member
+authentication. Prices and final charges use integer pence rounded upward to `.49` or `.99`;
+provider costs, shipping, configured destination tax and payment allowance are used to avoid
+profit markup. Merchandise orders are kept in private `merchandiseOrders` Firestore documents.
+
+The routes are `GET /api/shop/catalogue`, `POST /api/shop/quote`, `POST /api/shop/checkout`,
+`GET /api/shop/order`, `POST /api/shop/stripe-webhook` and `POST /api/shop/printify-webhook`.
+Webhooks use provider signatures; a verified live paid Stripe event creates the Printify order.
+Test Stripe payments are recorded without fulfilment. `MERCH_CONFIG` carries reviewed pricing,
+tax, seller and environment settings; OpenTofu writes it and the secret-binding switch to the
+environment's GitHub Actions variables. Managed provider secrets live in Google Secret Manager,
+with local values bootstrapped from the ignored repo-root `.env` without entering OpenTofu state.
+Checkout must stay disabled until provider currency, Stripe keys, seller identity and shop terms
+are verified. See `22-merchandise-storefront.md` for exact configuration and recovery procedures.
 
 ## Private admin service export
 

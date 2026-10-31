@@ -454,9 +454,14 @@ invalidity must disable publishing while leaving local preview available.
 OpenTofu creates the `instagram-access-token` Secret Manager container and grants the Function
 runtime accessor permission, but must not create its secret version from a tfvars value. On every
 local apply, the bootstrap examines any supplied `VIN_PEPPER`, `RESEND_API_KEY`,
-`IDEAL_POSTCODES_API_KEY`, and `INSTAGRAM_ACCESS_TOKEN` operator environment values, adds a
-version when it differs from `latest` or when the latest version is missing or destroyed, and skips
-absent values. The normal `make infra-apply` target must build the local bootstrap binary before
+`IDEAL_POSTCODES_API_KEY`, `INSTAGRAM_ACCESS_TOKEN`, `PRINTIFY_API_TOKEN`, and `STRIPE_SECRET_KEY`
+operator environment values, adds a version when it differs from `latest` or when the latest
+version is missing or destroyed, and skips absent values. Local setup uses the ignored repo-root
+`.env` with every key suffixed `_STAGING` or `_PRODUCTION`; `scripts/infra-env.sh` maps only the
+suffix selected by `ENV` to the generic names consumed by the bootstrap and OpenTofu providers,
+and never falls back to unsuffixed values. Preserve the existing production `VIN_PEPPER` when populating
+`VIN_PEPPER_PRODUCTION` because it determines existing vehicle HMACs. The normal `make infra-apply`
+target must build the local bootstrap binary before
 OpenTofu executes it. It must never store a value or fingerprint in OpenTofu state. Once a version
 exists, `instagram_publishing_enabled` exposes only
 its non-secret account ID/version to the deployment workflow; the Function deployment mounts the
@@ -716,3 +721,68 @@ public repository.
 
 A prompt-only rebuild without those backups creates a new empty deployment. It is a product
 reconstruction, not production disaster recovery.
+
+## Public merchandise storefront
+
+`/shop/` and `/shop/terms/` implement the guest-accessible Merchandise page with Printify and
+Stripe hosted Checkout in GBP. Keep Merchandise as the public label and page title while
+preserving the existing `/shop/` and `/api/shop/` routes. `merchandise.js` handles catalogue
+variants/images, the basket above the catalogue, international
+delivery details, quotes, secure checkout redirects and private browser receipt status.
+There is no membership requirement. This is not intended for profit; surplus supports site
+running costs (currently around £30/month). Round every displayed merchandise price and final
+charge UP to `.49` or `.99`, using integer pence. Keep raw costs internal.
+
+API routes: `GET /api/shop/catalogue`, `POST /api/shop/quote`, `POST /api/shop/checkout`,
+`GET /api/shop/order`, `POST /api/shop/stripe-webhook`, `POST /api/shop/printify-webhook`.
+`merchandiseOrders` stores private guest orders, distinct from membership snapshots. Quote and
+checkout require an allowed Origin. Status/checkout require a random receipt bearer secret;
+provider webhooks require their own raw-body HMAC signatures. A signed paid Stripe event must
+match the saved session, shop, currency and total before Printify submission. Ambiguous provider
+submissions require operator reconciliation, never automatic duplicate creation.
+
+Non-secret configuration: `MERCH_CONFIG` (shop/origin, verified production and shipping currency
+conversion, payment-cost allowance, reviewed pricing expiry, destination tax allowances, seller
+identity and reviewed terms). OpenTofu variables `merchandise_config` and
+`merchandise_secrets_enabled` manage its environment-specific GitHub Actions variables. Secrets:
+`PRINTIFY_API_TOKEN` and `STRIPE_SECRET_KEY`. Secret Manager resources and runtime IAM are managed
+by OpenTofu, while the local bootstrap imports API credentials without saving them in state. A
+separate local-exec reconciler registers Stripe Checkout and Printify product/order webhook events
+on every apply when the environment has a configured shop, stable HTTPS origin and provider
+credentials. It writes the Stripe endpoint signing secret and generated Printify shared secret
+directly to Secret Manager, never to OpenTofu state, plan output, logs or GitHub variables.
+`scripts/infra-env.sh` loads ignored repo-root `.env` for `make infra-apply` and selects provider
+API credentials suffixed for the chosen environment.
+No live checkout until Stripe, currency factors, destination tax settings and seller details
+are configured and tested. New sales stop on pricing-review expiry; paid orders still process.
+See `prompts/22-merchandise-storefront.md` for the schema, complete setup/reconciliation runbook,
+retention, external design/account backups and acceptance tests. Use separate staging accounts;
+Stripe test payments must never unintentionally trigger real Printify fulfilment.
+
+Keep `MERCH_CONFIG.baseUrl` at the stable environment origin for provider webhook registrations
+and canonical Printify product URLs. For Stripe Checkout, derive success/cancel URLs from the
+validated request `Origin`; the shopper's receipt is in origin-scoped session storage and a PR
+preview payment must return to that same preview. Staging CI passes the active preview origin via
+`ALLOWED_ORIGINS`; never point provider webhooks at expiring Firebase preview channels.
+
+`MERCH_CONFIG.stripeLive` selects test/live payments and must match the Stripe secret key prefix
+and Checkout session livemode. Test payments are stored as `test-paid` and NEVER submitted to
+Printify. The storefront prominently labels test mode. Only explicitly configured live payments
+can create merchandise orders. Keep test/live Stripe endpoint signing secrets separate.
+
+The committed `src/_data/merchandisePreview.json` and `public/images/merchandise/*.jpg` show the
+four initial products when the live catalogue is unavailable. Preview cards have no add-to-basket
+action, variants, prices, delivery form, or ordering action. The page must state that orders and
+payments cannot be placed in that environment, instead of inviting shoppers into a dead-end
+preview basket or surfacing API errors. When the API returns live catalogue products, those
+products are authoritative for availability/options/prices; add-to-basket, delivery fields and
+ordering stay hidden or disabled until `checkoutEnabled` is true. When the first real item is added,
+focus the basket heading and provide a link back to the catalogue. Preserve the source
+Printify mockups and designs externally.
+
+Subscribe the Printify webhook to product create/update/delete and `product:publish:started`
+as well as order events. Product events invalidate the short catalogue cache. Verified publish
+create/update requests re-read the configured shop product, then acknowledge publication with
+its `/shop/#product-<id>` handle; unpublish requests use Printify's unpublish endpoint. This
+completes custom-channel publication and releases the publishing lock. Existing locked products
+need publication retriggered after the webhook is installed; do not change them during inspection.

@@ -1370,8 +1370,75 @@ async function checkSurveyInsights(viewport, suffix) {
   await page.close();
 }
 
+async function checkMerchandise(viewport, suffix) {
+  const page = await browser.newPage({ viewport });
+  const ids = ['6ae37a4c9785a28da905a9b4', '6ae379e70d95ee75ad0fb231', '6ae36430e33d6bffec073721', '6ae36397959255efe105e914'];
+  const titles = ['Cotton canvas tote bag', 'I-PACE graphic T-shirt', 'Car magnet', 'Ceramic mug'];
+  const prices = [1349, 1849, 299, 449];
+  let quoteRequests = 0;
+  let checkoutRequests = 0;
+  await page.route('**/api/shop/**', async (route) => {
+    const endpoint = new URL(route.request().url()).pathname;
+    let data;
+    if (endpoint.endsWith('/catalogue')) data = {
+      products: ids.map((id, i) => ({ id, title: titles[i], description: 'Made to order with the group design. Choose the option that suits you. Product dimensions and care details are provided by the print provider.', images: [{ src: '/images/merchandise/' + id + '.jpg', is_default: true, variant_ids: [10, 11] }], variants: [{ id: 10, title: i === 1 ? 'White / M' : 'Standard', productionPrice: prices[i] }, { id: 11, title: i === 1 ? 'White / L' : 'Alternative', productionPrice: prices[i] + 50 }] })),
+      countries: [{ code: 'GB', name: 'United Kingdom' }, { code: 'AU', name: 'Australia' }], checkoutEnabled: true, testMode: true, sellerName: 'Example seller', sellerAddress: 'Example postal address'
+    };
+    else if (endpoint.endsWith('/quote')) {
+      quoteRequests += 1;
+      const body = route.request().postDataJSON();
+      assert.equal(body.address_to.country, 'AU');
+      assert.equal(body.line_items[0].quantity, 2);
+      assert.equal(Object.hasOwn(body, 'price'), false);
+      data = { receipt: 'a'.repeat(64), orderId: 'b'.repeat(64), totals: { total: 3449 }, summary: '2 × Cotton canvas tote bag — Standard' };
+    } else if (endpoint.endsWith('/checkout')) { checkoutRequests += 1; data = { error: 'Checkout is temporarily unavailable. Please try again.' }; }
+    else data = { status: 'test-paid', reference: 'bbbbbbbbbbbb', summary: '2 × Cotton canvas tote bag — Standard', totals: { total: 3449 } };
+    await route.fulfill({ status: endpoint.endsWith('/checkout') ? 503 : 200, contentType: 'application/json', body: JSON.stringify(data) });
+  });
+  await page.addInitScript(() => window.localStorage.setItem('ipace_analytics_consent', 'no'));
+  await page.goto(baseURL + '/shop/', { waitUntil: 'networkidle' });
+  await expect(page.locator('[data-add]')).toHaveCount(4);
+  await page.locator('.merch-product img').evaluateAll((images) => images.forEach((im) => { im.loading = 'eager'; }));
+  await page.waitForFunction(() => Array.from(document.querySelectorAll('.merch-product img')).every((im) => im.complete && im.naturalWidth > 0));
+  assert.equal(await page.locator('body').evaluate((node) => node.scrollWidth <= window.innerWidth), true);
+  await page.screenshot({ path: path.join(outputDir, 'shop-catalogue-' + suffix + '.png'), fullPage: true });
+  await page.locator('[data-add="0"]').click();
+  await page.locator('[data-add="0"]').click();
+  for (const [name, value] of Object.entries({ first_name: 'Test', last_name: 'Shopper', email: 'test@example.com', address1: '1 Example Street', city: 'Sydney', zip: '2000' })) await page.locator('[data-shop-form] [name="' + name + '"]').fill(value);
+  await page.locator('[name="country"]').selectOption('AU');
+  await page.locator('[name="terms"]').check();
+  await page.locator('[data-shop-quote]').click();
+  await expect(page.locator('[data-pay]')).toHaveText('Pay £34.49 securely');
+  assert.equal(quoteRequests, 1);
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.screenshot({ path: path.join(outputDir, 'shop-quote-' + suffix + '.png'), fullPage: true });
+  await page.locator('[data-pay]').click();
+  await expect(page.locator('[data-shop-status]')).toHaveText('Checkout is temporarily unavailable. Please try again.');
+  assert.equal(checkoutRequests, 1);
+  await expect(page.locator('[data-pay]')).toBeEnabled();
+  await page.locator('[name="city"]').fill('Melbourne');
+  await expect(page.locator('[data-shop-quote-result]')).toBeHidden();
+  await page.goto(baseURL + '/shop/?order=' + 'b'.repeat(64), { waitUntil: 'networkidle' });
+  await expect(page.locator('[data-shop-order]')).toContainText('Test payment recorded');
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.screenshot({ path: path.join(outputDir, 'shop-order-' + suffix + '.png'), fullPage: true });
+  await page.unroute('**/api/shop/**');
+  await page.route('**/api/shop/catalogue', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'The merchandise catalogue is being prepared. Please check back soon.' }) }));
+  await page.goto(baseURL + '/shop/', { waitUntil: 'networkidle' });
+  await expect(page.locator('[data-shop-status]')).toContainText('preview images are shown');
+  await expect(page.locator('[data-add]')).toHaveCount(0);
+  await expect(page.locator('[data-shop-products] button[disabled]')).toHaveCount(4);
+  await page.screenshot({ path: path.join(outputDir, 'shop-unavailable-' + suffix + '.png'), fullPage: true });
+  await page.close();
+}
+
+
 try {
-  if (process.env.VISUAL_FOCUS === 'member-experiences') {
+  if (process.env.VISUAL_SHOP_ONLY) {
+    await checkMerchandise({ width: 1440, height: 1000 }, 'desktop');
+    await checkMerchandise({ width: 390, height: 844 }, 'mobile');
+    console.log(`Shop visual checks passed; screenshots written to ${outputDir}`);
+  } else if (process.env.VISUAL_FOCUS === 'member-experiences') {
     await checkJoinCountry({ width: 1440, height: 1000 }, 'launch', 'join-country-launch-desktop.png');
     await checkJoinCountry({ width: 390, height: 844 }, 'launch', 'join-country-launch-mobile.png');
     await checkJoinCountry({ width: 1440, height: 1000 }, 'full', 'join-country-full-desktop.png');
@@ -1443,6 +1510,8 @@ try {
   await checkPublicEvidenceCounters('/', { width: 490, height: 874 }, 'public-evidence-member-cta-firefox-android.png', true);
   await checkPublicEvidenceCounters('/evidence-dashboard/?site-mode=full', { width: 1440, height: 1000 }, 'evidence-dashboard-desktop.png');
   await checkPublicEvidenceCounters('/evidence-dashboard/?site-mode=full', { width: 390, height: 844 }, 'evidence-dashboard-mobile.png');
+  await checkMerchandise({ width: 1440, height: 1000 }, 'desktop');
+  await checkMerchandise({ width: 390, height: 844 }, 'mobile');
   console.log(`Visual checks passed; screenshots written to ${outputDir}`);
   }
 } finally {

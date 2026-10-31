@@ -30,6 +30,8 @@ func main() {
 		{"resend-api-key", "RESEND_API_KEY"},
 		{"ideal-postcodes-api-key", "IDEAL_POSTCODES_API_KEY"},
 		{"instagram-access-token", "INSTAGRAM_ACCESS_TOKEN"},
+		{"printify-api-token", "PRINTIFY_API_TOKEN"},
+		{"stripe-secret-key", "STRIPE_SECRET_KEY"},
 	}
 	for _, cfg := range secrets {
 		value := []byte(os.Getenv(cfg.Env))

@@ -462,6 +462,13 @@ site-owned `/images/` paths; Freeform campaigns retain the generic hero.
   otherwise it uses Firebase's default sender. If Resend generation or delivery fails, log a
   sanitized warning and fall back to Firebase default delivery so users still get a sign-in
   link.
+- The local repo-root `.env` is ignored and may hold environment-scoped bootstrap credentials.
+  Use `_STAGING` and `_PRODUCTION` suffixes for `VIN_PEPPER`, `RESEND_API_KEY`,
+  `IDEAL_POSTCODES_API_KEY`, `INSTAGRAM_ACCESS_TOKEN`, `PRINTIFY_API_TOKEN`, and
+  `STRIPE_SECRET_KEY`. The infra helper selects only the suffix matching `ENV`; do not set an
+  unscoped fallback. OpenTofu reconciles Stripe and Printify webhook registrations during apply
+  and writes generated signing secrets directly to Secret Manager, never OpenTofu state. Preserve
+  the existing production VIN pepper because it determines stored vehicle HMACs.
 - Resend emails should include both HTML and plain text. The HTML email uses the public
   launch hero image at `/images/ipace-hero.png` through an absolute HTTPS asset URL. For PR
   previews, use that PR's generated Firebase Hosting preview origin for assets because the
@@ -581,6 +588,16 @@ exported cells, five sheets, frozen headings, formula safety and charts. Do not 
 govulncheck or introduce spreadsheet import paths. Recheck the advisory before restoring
 structured tables. The archived fictional sample workbook remains a representative layout
 reference; its table parts are not used as an input when creating exports.
+
+## Merchandise deployment and reconciliation
+
+Use OpenTofu's `merchandise_secrets_enabled` and `merchandise_config` variables to write the
+environment-scoped GitHub Actions deployment variables. Keep provider values in Secret Manager;
+`make infra-apply ENV=staging|production` loads the ignored repo-root `.env` and bootstraps only
+that environment's suffixed Stripe/Printify secrets. Keep Stripe test/live settings and fulfilment
+separated. Reconcile ambiguous Printify submissions before replay; never create a duplicate order.
+Follow the complete setup and recovery procedure in `22-merchandise-storefront.md`.
+
 - Infrastructure apply must reconcile the runtime service account's self
   `roles/iam.serviceAccountTokenCreator` binding before deploying Functions
   that issue Cloud Storage signed URLs. The deployment workflow must not grant

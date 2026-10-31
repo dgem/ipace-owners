@@ -233,3 +233,19 @@ variable "manage_github_actions" {
   type        = bool
   default     = true
 }
+
+variable "merchandise_config" {
+  description = "Non-secret JSON configuration for the public merchandise shop, written to this environment's GitHub Actions variable."
+  type        = string
+  default     = "{}"
+  validation {
+    condition     = can(jsondecode(var.merchandise_config))
+    error_message = "merchandise_config must be valid JSON. Never put provider credentials or webhook signing secrets in this value."
+  }
+}
+
+variable "merchandise_secrets_enabled" {
+  description = "Whether the Functions deployment should bind the four merchandise Secret Manager secrets."
+  type        = bool
+  default     = false
+}

@@ -40,6 +40,7 @@ profile.cov
 go.work
 go.work.sum
 functions/firebase-go/secret-version-bootstrap
+functions/firebase-go/merchandise-webhooks
 
 tmp/
 docs/topix/
@@ -54,6 +55,8 @@ deno.lock
 *.tfstate.*
 *.tfvars
 !*.tfvars.example
+infra/opentofu/env/merchandise-config.staging.json
+infra/opentofu/env/merchandise-config.production.json
 
 # Playwright
 /test-results/

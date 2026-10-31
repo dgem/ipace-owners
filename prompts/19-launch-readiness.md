@@ -249,3 +249,7 @@ Keep rollback simple:
   authorization boundary.
 - Changing the public default back from launch to full mode should require only the central
   site-mode configuration edit and deployment.
+
+## Merchandise
+
+The public `/shop/` is open to guests. Checkout stays unavailable until Stripe and Printify secrets, verified GBP conversion and international tax/delivery settings, seller identity and reviewed shop terms are configured. Run provider test-mode validation without creating real Printify orders. See `22-merchandise-storefront.md`.

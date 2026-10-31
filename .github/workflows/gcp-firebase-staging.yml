@@ -178,6 +178,8 @@ jobs:
           RESEND_FROM: ${{ vars.RESEND_FROM_STAGING }}
           RESEND_REPLY_TO: ${{ vars.RESEND_REPLY_TO_STAGING }}
           RESEND_ASSET_BASE_URL: ${{ vars.RESEND_ASSET_BASE_URL_STAGING }}
+          MERCH_CONFIG: ${{ vars.MERCH_CONFIG_STAGING || '{}' }}
+          MERCH_SECRETS_ENABLED: ${{ vars.MERCH_SECRETS_ENABLED_STAGING || 'false' }}
           INSTAGRAM_USER_ID: ${{ vars.INSTAGRAM_USER_ID_STAGING }}
           INSTAGRAM_GRAPH_API_VERSION: ${{ vars.INSTAGRAM_GRAPH_API_VERSION_STAGING }}
           INSTAGRAM_MEDIA_BASE_URL: ${{ steps.hosting.outputs.url }}
