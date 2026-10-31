@@ -135,7 +135,7 @@ header.
 | `POST /api/submit-vehicle-basics` | `SubmitVehicleBasics` | Member | Create or edit one owned vehicle basics record; creation may include an initial SoH reading. |
 | `POST /api/submit-soh` | `SubmitSOH` | Member | Create or edit an owned SoH reading after verifying vehicle ownership. |
 | `POST /api/upsert-service-event` | `UpsertServiceEvent` | Member | Add or edit an owned vehicle's service/fault timeline record. |
-| `POST /api/update-member-preferences` | `UpdateMemberPreferences` | Member | Update the non-unique display name, volunteering choices, contact consent and anonymised-analysis consent for all Join records of the signed-in email. |
+| `POST /api/update-member-preferences` | `UpdateMemberPreferences` | Member | Update country, the non-unique display name, volunteering choices, contact consent and anonymised-analysis consent for all Join records of the signed-in email. |
 | `GET/POST /api/member-profile` | `MemberProfile` | Member | Read or update the member's sole contact profile and versioned UK representation choice. |
 | `GET /api/member-address-lookup` | `MemberAddressLookup` | Member | Optional server-side UK postcode lookup; requires an Ideal Postcodes API key. |
 | `POST /api/admin/member-verification` | `AdminMemberVerification` | Admin | Set a separate, admin-only identity-verification flag. |
@@ -279,9 +279,12 @@ sheet and chart format without exposing member data.
   deriving `${project_id_prefix}-${environment}` by default while still allowing an explicit
   project ID for existing projects or global ID collisions.
 - Required resources include Firebase project enablement, Firestore native mode, Cloud
-  Web App config, Firestore native mode, Cloud Storage snapshot and private campaign-media
+  Web App config, Cloud Storage snapshot, private campaign-media and dedicated member-story-media
   buckets, Vertex AI API enablement, Secret Manager
   secrets, Function runtime service account, and GitHub Workload Identity Federation.
+- Pass `MEMBER_STORY_MEDIA_BUCKET` to the Function deployment as a required value. It must name
+  the dedicated private story-media bucket, never the campaign-media bucket; fail the deployment
+  environment generation if it is missing so story uploads cannot silently target the wrong bucket.
 - OpenTofu must configure Firebase Authentication / Identity Platform for passwordless
   email sign-in, with email sign-in enabled, password-required disabled, and authorized
   domains derived from `site_url` plus any explicit extra auth domains.

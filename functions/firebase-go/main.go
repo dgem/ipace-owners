@@ -405,6 +405,10 @@ func SubmitJoin(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "Participation acknowledgement is required"})
 		return
 	}
+	if !validMemberCountry(req.Country) {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "Choose a valid country or region"})
+		return
+	}
 
 	user, err := optionalUser(r.Context(), r)
 	if err != nil {
@@ -484,6 +488,10 @@ func validPublishedStoryAttribution(ctx context.Context, storyID string) bool {
 	}
 	var story memberStory
 	return doc.DataTo(&story) == nil && story.Status == "published"
+}
+
+func validMemberCountry(country string) bool {
+	return cleanEnum(country, countryValues) != ""
 }
 
 func joinRecordFromRequest(req joinRequest, name string, email string, now time.Time) joinRecord {

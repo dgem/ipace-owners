@@ -193,10 +193,7 @@ type publicMemberStory struct {
 }
 
 func storyMediaBucket() string {
-	if value := strings.TrimSpace(os.Getenv("MEMBER_STORY_MEDIA_BUCKET")); value != "" {
-		return value
-	}
-	return strings.TrimSpace(os.Getenv("CAMPAIGN_MEDIA_BUCKET"))
+	return strings.TrimSpace(os.Getenv("MEMBER_STORY_MEDIA_BUCKET"))
 }
 
 func storySigningServiceAccount() string {

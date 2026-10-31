@@ -277,11 +277,11 @@ change rather than assuming it exists.
 |---|---|---|
 | `POST /api/send-magic-link` | Public | JSON `email`, optional `name`; send only for a matching Join submission or existing Firebase Auth account and return enumeration-resistant `{ "ok": true }` for syntactically valid requests. |
 | `POST /api/auth-diagnostics` | Public, same-origin | JSON `traceCode`, bounded `stage`, and bounded `outcome`; accept only a valid opaque support code and never accept email, Firebase tokens, URLs, exception text, or free-form client diagnostics. |
-| `POST /api/submit-join` | Optional Firebase token | `name`, `email`, `country`, `relationship`, `skills[]`, `consent-contact`, `consent-not-legal`, `consent-data`, and `bot-field`; save the Join record and initiate guest activation. |
+| `POST /api/submit-join` | Optional Firebase token | `name`, `email`, required allowlisted `country`, `relationship`, `skills[]`, `consent-contact`, `consent-not-legal`, `consent-data`, and `bot-field`; save the Join record and initiate guest activation. |
 | `POST /api/submit-vehicle-basics` | Member | Optional `id` for an owned edit; otherwise `vin`, `registration`, `country`, `modelYear`, `mileage`, `ownedSince`, `firstReg`, plus optional initial `soh`, `sohDate`, `sohMileage`, `sohSource`. |
 | `POST /api/submit-soh` | Member/vehicle owner | Optional `id` for an owned edit plus `vehicleId`, `soh`, `sohDate`, `sohMileage`, `sohSource`; maintain the vehicle compatibility value. |
 | `POST /api/upsert-service-event` | Member/vehicle and record owner | `id`, `vehicleId`, `eventType`, `occurredAt`, `mileage`, `title`, `description`, `status`, `campaigns[]`, `serviceProviderId`, `serviceProviderName`, `serviceProviderPostcode`, `serviceProviderAuthorised`, `finalFixAt`, `courtesyVehicleOffered`, `courtesyVehicleProvided`, `partsDelay`, `goodwillPayment`, `milesDrivenWhilstFaulty`, `warrantyCover`, `disputeStatus`, `executiveOfficeAcknowledgedAt`, `executiveOfficeRepliedAt`, `executiveOfficeOutcome`, `executiveOfficeSatisfied`. Derive `daysToFinalFix` server-side. For Executive Office contacts, supplied acknowledgement/reply dates must be valid, non-future, and on or after `occurredAt`. |
-| `POST /api/update-member-preferences` | Member | Required booleans `contact`, `anonymisedAnalysis`; optional non-unique `displayName`, `willingToHelp`, `pressStory`, and bounded `expertise`; default a blank display name to the first part of the saved legal name and apply the preference update to every Join record sharing the authenticated email hash. |
+| `POST /api/update-member-preferences` | Member | Required allowlisted `country` and booleans `contact`, `anonymisedAnalysis`; optional non-unique `displayName`, `willingToHelp`, `pressStory`, and bounded `expertise`; default a blank display name to the first part of the saved legal name and apply the country and preference update to every Join record sharing the authenticated email hash. |
 | `GET/POST /api/member-profile` | Member | One contact profile per Firebase UID; freeform international address, optional phone, and a versioned representation choice available only for a complete UK address. Append choice changes to a PII-free `representationChoices` subcollection. |
 | `GET /api/member-address-lookup` | Member | Optional address or postcode search and resolution through a server-side Ideal Postcodes key, with manual entry fallback. |
 | `POST /api/admin/member-verification` | Admin | Set an admin-only identity-verification decision, separate from member consent. |
@@ -476,9 +476,12 @@ campaign-media bucket, expire only objects under `work/`, and retain/version app
 UK-resident. Google runtime identity replaces API keys. Generation and Instagram publishing remain
 separate confirmed actions. Provider failures must be recorded and shown to administrators through
 safe classifications rather than arbitrary raw provider messages.
-Member-story media uses non-secret `MEMBER_STORY_MEDIA_BUCKET`. Its dedicated private bucket is
-versioned, prevents public access, limits CORS to configured site origins, and allows the runtime
-service account to sign expiring upload and read URLs through IAM without storing a private key.
+Member-story media uses required non-secret `MEMBER_STORY_MEDIA_BUCKET`, separate from the
+campaign-media bucket. Its dedicated private bucket is versioned, prevents public access, limits
+CORS to configured site origins, and allows the runtime service account to sign expiring upload and
+read URLs through IAM without storing a private key. Never fall back to the campaign bucket when
+the story bucket is missing; fail deployment validation and return the existing storage-not-configured
+response instead.
 
 Never commit real values. Provide `.tfvars.example` files for staging and production and
 derive non-secret GitHub environment variables from OpenTofu outputs. Production uses

@@ -661,6 +661,22 @@ async function checkMemberExport(viewport, screenshotName) {
   await page.close();
 }
 
+async function checkJoinCountry(viewport, mode, screenshotName) {
+  const page = await browser.newPage({ viewport });
+  const query = mode === 'full' ? '?site-mode=full' : '';
+  await page.goto(baseURL + '/join/' + query, { waitUntil: 'networkidle' });
+  const form = page.locator(mode === 'full' ? 'form[name="join"]' : 'form[name="join-launch"]');
+  await form.waitFor({ state: 'visible' });
+  const country = form.locator('[name="country"]');
+  assert.equal(await country.isVisible(), true, 'country should be visible in both Join variants');
+  assert.equal(await country.getAttribute('required'), '');
+  assert.equal(await country.inputValue(), '', 'members should actively choose their country');
+  assert.equal(await country.locator('option[value="GR"]').textContent(), 'Greece');
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
+  await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
+  await page.close();
+}
+
 async function checkMemberAccountManagement(viewport, screenshotName) {
   const page = await browser.newPage({ viewport });
   await mockMemberPresentation(page);
@@ -1421,6 +1437,10 @@ try {
     await checkMerchandise({ width: 390, height: 844 }, 'mobile');
     console.log(`Shop visual checks passed; screenshots written to ${outputDir}`);
   } else if (process.env.VISUAL_FOCUS === 'member-experiences') {
+    await checkJoinCountry({ width: 1440, height: 1000 }, 'launch', 'join-country-launch-desktop.png');
+    await checkJoinCountry({ width: 390, height: 844 }, 'launch', 'join-country-launch-mobile.png');
+    await checkJoinCountry({ width: 1440, height: 1000 }, 'full', 'join-country-full-desktop.png');
+    await checkJoinCountry({ width: 390, height: 844 }, 'full', 'join-country-full-mobile.png');
     await checkMemberStories({ width: 1440, height: 1000 }, 'member-stories-desktop.png');
     await checkMemberStories({ width: 402, height: 874 }, 'member-stories-mobile.png');
     await checkMemberAccountManagement({ width: 402, height: 874 }, 'member-account-experience-callout-mobile.png');

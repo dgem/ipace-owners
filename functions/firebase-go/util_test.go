@@ -521,6 +521,9 @@ func TestJoinRecordFromRequestCapturesOptionalAggregateConsent(t *testing.T) {
 	if record.Contact.Email != "driver@example.com" {
 		t.Fatalf("email = %q", record.Contact.Email)
 	}
+	if record.Contact.Country != "GB" {
+		t.Fatalf("country = %q", record.Contact.Country)
+	}
 	if record.Consents.Contact != true {
 		t.Fatalf("contact consent = %v", record.Consents.Contact)
 	}

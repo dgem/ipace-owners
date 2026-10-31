@@ -18,8 +18,8 @@ func UpdateMemberPreferences(w http.ResponseWriter, r *http.Request) {
 	}
 	user, _ := requireUser(r.Context(), r)
 	var req preferenceRequest
-	if err := decodeJSON(r, &req); err != nil || req.Contact == nil || req.AnonymisedAnalysis == nil {
-		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "Both preferences are required"})
+	if err := decodeJSON(r, &req); err != nil || req.Country == nil || req.Contact == nil || req.AnonymisedAnalysis == nil || !validMemberCountry(*req.Country) {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "Country and both preferences are required"})
 		return
 	}
 	db, err := firestoreClient(r.Context())
@@ -51,6 +51,7 @@ func UpdateMemberPreferences(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		updates := []firestore.Update{
+			{Path: "contact.country", Value: cleanEnum(*req.Country, countryValues)},
 			{Path: "consents.contact", Value: *req.Contact},
 			{Path: "consents.anonymisedAnalysis", Value: *req.AnonymisedAnalysis},
 			{Path: "updatedAt", Value: time.Now().UTC()},
