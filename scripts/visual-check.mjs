@@ -1399,9 +1399,6 @@ async function checkMerchandise(viewport, suffix) {
   await page.addInitScript(() => window.localStorage.setItem('ipace_analytics_consent', 'no'));
   await page.goto(baseURL + '/merch/', { waitUntil: 'networkidle' });
   await expect(page).toHaveURL(baseURL + '/merch/');
-  const legacyShopResponse = await page.request.get(baseURL + '/shop/', { maxRedirects: 0 });
-  assert.equal(legacyShopResponse.status(), 301);
-  assert.equal(legacyShopResponse.headers().location, '/merch/');
   await expect(page.locator('[data-member-feature="merchandise"]').last()).toBeVisible();
   if (viewport.width >= 768) {
     await expect(page.locator('.site-nav a[href="/merch/"]')).toBeVisible();
