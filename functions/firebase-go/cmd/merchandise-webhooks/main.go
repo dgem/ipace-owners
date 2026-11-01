@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
@@ -169,30 +170,31 @@ func (s *gcpSecretStore) write(ctx context.Context, id string, value []byte) err
 	return err
 }
 
-func signingSecret(ctx context.Context, store secretStore, id string) ([]byte, error) {
+func signingSecret(ctx context.Context, store secretStore, id string) ([]byte, bool, error) {
 	value, err := store.read(ctx, id)
 	if err != nil {
-		return nil, errors.New("could not read signing secret from Secret Manager")
+		return nil, false, errors.New("could not read signing secret from Secret Manager")
 	}
 	if len(value) != 0 {
-		return value, nil
+		return value, false, nil
 	}
 	value = make([]byte, 20)
 	if _, err := rand.Read(value); err != nil {
-		return nil, errors.New("could not generate webhook signing secret")
+		return nil, false, errors.New("could not generate webhook signing secret")
 	}
 	value = []byte(hex.EncodeToString(value))
 	if err := store.write(ctx, id, value); err != nil {
-		return nil, errors.New("could not store webhook signing secret in Secret Manager")
+		return nil, false, errors.New("could not store webhook signing secret in Secret Manager")
 	}
-	return value, nil
+	return value, true, nil
 }
 
 type stripeEndpoint struct {
-	ID            string   `json:"id"`
-	URL           string   `json:"url"`
-	Secret        string   `json:"secret"`
-	EnabledEvents []string `json:"enabled_events"`
+	ID            string            `json:"id"`
+	URL           string            `json:"url"`
+	Secret        string            `json:"secret"`
+	EnabledEvents []string          `json:"enabled_events"`
+	Metadata      map[string]string `json:"metadata"`
 }
 
 type stripeEndpointList struct {
@@ -201,7 +203,7 @@ type stripeEndpointList struct {
 }
 
 func reconcileStripe(ctx context.Context, client *http.Client, apiBase, key, endpointURL string, store secretStore) error {
-	endpoints, err := listStripeEndpoints(ctx, client, apiBase, key, endpointURL)
+	endpoints, err := listStripeEndpoints(ctx, client, apiBase, key)
 	if err != nil {
 		return errors.New("could not list Stripe webhook endpoints")
 	}
@@ -209,13 +211,25 @@ func reconcileStripe(ctx context.Context, client *http.Client, apiBase, key, end
 	if err != nil {
 		return errors.New("could not read Stripe signing secret from Secret Manager")
 	}
-	if len(endpoints) > 0 && len(secret) > 0 {
-		if err := updateStripeEndpoint(ctx, client, apiBase, key, endpoints[0].ID, endpointURL); err != nil {
+	storedID, idErr := store.read(ctx, "stripe-webhook-endpoint-id")
+	storedScope, scopeErr := store.read(ctx, "stripe-webhook-key-scope")
+	if idErr != nil || scopeErr != nil {
+		return errors.New("could not read Stripe webhook endpoint association from Secret Manager")
+	}
+	scopeHash := sha256.Sum256([]byte(key))
+	keyScope := hex.EncodeToString(scopeHash[:])
+	for _, endpoint := range endpoints {
+		if endpoint.ID != string(storedID) || len(secret) == 0 || string(storedScope) != keyScope {
+			continue
+		}
+		if err := updateStripeEndpoint(ctx, client, apiBase, key, endpoint.ID, endpointURL); err != nil {
 			return errors.New("could not update Stripe webhook endpoint")
 		}
-		for _, duplicate := range endpoints[1:] {
-			if err := deleteStripeEndpoint(ctx, client, apiBase, key, duplicate.ID); err != nil {
-				return errors.New("could not remove a duplicate Stripe webhook endpoint")
+		for _, duplicate := range endpoints {
+			if duplicate.ID != endpoint.ID && duplicate.Metadata["ipace_owners_managed"] == "merchandise" {
+				if err := deleteStripeEndpoint(ctx, client, apiBase, key, duplicate.ID); err != nil {
+					return errors.New("could not remove an obsolete managed Stripe webhook endpoint")
+				}
 			}
 		}
 		return nil
@@ -228,15 +242,23 @@ func reconcileStripe(ctx context.Context, client *http.Client, apiBase, key, end
 		// The endpoint remains created but is not usable until the secret is saved.
 		return errors.New("Stripe created an endpoint, but its signing secret could not be stored; re-apply to reconcile")
 	}
+	if err := store.write(ctx, "stripe-webhook-endpoint-id", []byte(created.ID)); err != nil {
+		return errors.New("Stripe endpoint is ready, but its ID could not be stored; re-apply to reconcile")
+	}
+	if err := store.write(ctx, "stripe-webhook-key-scope", []byte(keyScope)); err != nil {
+		return errors.New("Stripe endpoint is ready, but its account association could not be stored; re-apply to reconcile")
+	}
 	for _, prior := range endpoints {
-		if err := deleteStripeEndpoint(ctx, client, apiBase, key, prior.ID); err != nil {
-			return errors.New("new Stripe endpoint is ready, but an old matching endpoint could not be removed")
+		if prior.Metadata["ipace_owners_managed"] == "merchandise" || prior.URL == endpointURL {
+			if err := deleteStripeEndpoint(ctx, client, apiBase, key, prior.ID); err != nil {
+				return errors.New("new Stripe endpoint is ready, but an old managed endpoint could not be removed")
+			}
 		}
 	}
 	return nil
 }
 
-func listStripeEndpoints(ctx context.Context, client *http.Client, apiBase, key, targetURL string) ([]stripeEndpoint, error) {
+func listStripeEndpoints(ctx context.Context, client *http.Client, apiBase, key string) ([]stripeEndpoint, error) {
 	var matches []stripeEndpoint
 	startingAfter := ""
 	for page := 0; page < 10; page++ {
@@ -250,11 +272,7 @@ func listStripeEndpoints(ctx context.Context, client *http.Client, apiBase, key,
 		if err := doJSON(client, req, &response); err != nil {
 			return nil, err
 		}
-		for _, endpoint := range response.Data {
-			if endpoint.URL == targetURL {
-				matches = append(matches, endpoint)
-			}
-		}
+		matches = append(matches, response.Data...)
 		if !response.HasMore || len(response.Data) == 0 {
 			return matches, nil
 		}
@@ -264,7 +282,7 @@ func listStripeEndpoints(ctx context.Context, client *http.Client, apiBase, key,
 }
 
 func createStripeEndpoint(ctx context.Context, client *http.Client, apiBase, key, endpointURL string) (stripeEndpoint, error) {
-	form := url.Values{"url": {endpointURL}}
+	form := url.Values{"url": {endpointURL}, "metadata[ipace_owners_managed]": {"merchandise"}}
 	for _, event := range stripeEvents {
 		form.Add("enabled_events[]", event)
 	}
@@ -303,7 +321,7 @@ type printifyWebhook struct {
 }
 
 func reconcilePrintify(ctx context.Context, client *http.Client, apiBase, token, shopID, endpointURL string, store secretStore) error {
-	secret, err := signingSecret(ctx, store, "printify-webhook-secret")
+	secret, generated, err := signingSecret(ctx, store, "printify-webhook-secret")
 	if err != nil {
 		return err
 	}
@@ -314,6 +332,17 @@ func reconcilePrintify(ctx context.Context, client *http.Client, apiBase, token,
 	req.Header.Set("Authorization", "Bearer "+token)
 	if err := doJSON(client, req, &installed); err != nil {
 		return errors.New("could not list Printify webhooks")
+	}
+	if generated {
+		for _, webhook := range installed {
+			if webhook.ID == "" {
+				return errors.New("Printify signing secret was regenerated, but an existing webhook has no ID; remove and recreate the shop webhooks manually")
+			}
+			if err := deletePrintifyWebhook(ctx, client, webhooksEndpoint, token, webhook.ID); err != nil {
+				return errors.New("Printify signing secret was regenerated, but an old webhook could not be removed; retry after removing the old subscription")
+			}
+		}
+		installed = nil
 	}
 	for _, topic := range printifyEvents {
 		found := false
@@ -352,6 +381,15 @@ func writePrintifyWebhook(ctx context.Context, client *http.Client, method, endp
 	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Content-Type", "application/json")
 	return doJSON(client, req, &map[string]any{})
+}
+
+func deletePrintifyWebhook(ctx context.Context, client *http.Client, endpoint, token, id string) error {
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, endpoint+"/"+url.PathEscape(id)+".json", nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Authorization", "Bearer "+token)
+	return doJSON(client, req, nil)
 }
 
 func doJSON(client *http.Client, req *http.Request, target any) error {

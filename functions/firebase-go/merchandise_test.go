@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -292,6 +293,138 @@ func TestMerchPaymentClaims(t *testing.T) {
 	}
 	if merchPaymentMatches(o, s, "999") == nil {
 		t.Fatal("cross-shop order accepted")
+	}
+}
+
+type fakeMerchFulfilStore struct {
+	mu            sync.Mutex
+	order         merchOrder
+	createCount   int
+	providerID    string
+	createErr     error
+	saveErr       error
+	needsReview   bool
+	productionID  []string
+	createStarted chan struct{}
+	createRelease <-chan struct{}
+}
+
+func (s *fakeMerchFulfilStore) claim(_ context.Context, session merchPaidSession, c merchConfig) (merchOrder, bool, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	next, err := merchPaymentDecision(s.order, session, c)
+	if err != nil || next == "" {
+		return s.order, false, err
+	}
+	s.order.Status = next
+	return s.order, next == "submitting", nil
+}
+
+func (s *fakeMerchFulfilStore) markNeedsReview(context.Context) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.needsReview = true
+	s.order.Status = "needs-review"
+	return nil
+}
+
+func (s *fakeMerchFulfilStore) create(context.Context, merchConfig, merchOrder) (string, error) {
+	s.mu.Lock()
+	s.createCount++
+	s.mu.Unlock()
+	if s.createStarted != nil {
+		close(s.createStarted)
+	}
+	if s.createRelease != nil {
+		<-s.createRelease
+	}
+	return s.providerID, s.createErr
+}
+
+func (s *fakeMerchFulfilStore) saveProviderID(_ context.Context, id string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.saveErr != nil {
+		return s.saveErr
+	}
+	s.order.PrintifyID = id
+	s.order.Status = "submitted"
+	return nil
+}
+
+func (s *fakeMerchFulfilStore) production(_ context.Context, _ merchConfig, id string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.productionID = append(s.productionID, id)
+	s.order.Status = "in-production"
+	return nil
+}
+
+func merchPaidFixture() (merchOrder, merchPaidSession, merchConfig) {
+	order := merchOrder{ID: strings.Repeat("a", 64), ShopID: "123", SessionID: "cs_test", Status: "quoted", Totals: merchTotals{Total: 2499}}
+	session := merchPaidSession{ID: order.SessionID, PaymentStatus: "paid", Currency: "gbp", AmountTotal: order.Totals.Total, LiveMode: true}
+	session.Metadata.OrderID = order.ID
+	config := merchConfig{ShopID: "123", StripeLive: true}
+	return order, session, config
+}
+
+func TestMerchFulfilSequenceIsIdempotentAndRetriesExistingProviderID(t *testing.T) {
+	order, session, config := merchPaidFixture()
+	store := &fakeMerchFulfilStore{order: order, providerID: "printify-123"}
+	if err := fulfilMerchOrderWithStore(context.Background(), session, config, store); err != nil {
+		t.Fatal(err)
+	}
+	if err := fulfilMerchOrderWithStore(context.Background(), session, config, store); err != nil {
+		t.Fatal(err)
+	}
+	if store.createCount != 1 || store.order.PrintifyID != "printify-123" || len(store.productionID) != 2 || store.order.Status != "in-production" {
+		t.Fatalf("repeated webhook did not reuse persisted provider ID: creates=%d order=%+v production=%v", store.createCount, store.order, store.productionID)
+	}
+}
+
+func TestMerchFulfilAmbiguousAndFailedPersistenceNeverRepeatCreate(t *testing.T) {
+	order, session, config := merchPaidFixture()
+	store := &fakeMerchFulfilStore{order: order, createErr: errors.New("provider timed out")}
+	if err := fulfilMerchOrderWithStore(context.Background(), session, config, store); err == nil || !store.needsReview || store.order.Status != "needs-review" {
+		t.Fatalf("ambiguous provider result was not sent for review: err=%v state=%+v", err, store)
+	}
+	if err := fulfilMerchOrderWithStore(context.Background(), session, config, store); err == nil {
+		t.Fatal("ambiguous submission was silently retried")
+	}
+	if store.createCount != 1 {
+		t.Fatalf("ambiguous order was created %d times", store.createCount)
+	}
+
+	order, session, config = merchPaidFixture()
+	saveFailure := &fakeMerchFulfilStore{order: order, providerID: "printify-created", saveErr: errors.New("Firestore unavailable")}
+	if err := fulfilMerchOrderWithStore(context.Background(), session, config, saveFailure); err == nil {
+		t.Fatal("provider ID persistence failure was ignored")
+	}
+	if err := fulfilMerchOrderWithStore(context.Background(), session, config, saveFailure); err == nil {
+		t.Fatal("ambiguous create was retried after persistence failed")
+	}
+	if saveFailure.createCount != 1 || saveFailure.order.PrintifyID != "" || saveFailure.order.Status != "submitting" {
+		t.Fatalf("failed persistence could duplicate Printify order: creates=%d state=%+v", saveFailure.createCount, saveFailure.order)
+	}
+}
+
+func TestConcurrentMerchFulfilEventsClaimOnlyOneProviderCreate(t *testing.T) {
+	order, session, config := merchPaidFixture()
+	started := make(chan struct{})
+	release := make(chan struct{})
+	store := &fakeMerchFulfilStore{order: order, providerID: "printify-concurrent", createStarted: started, createRelease: release}
+	first := make(chan error, 1)
+	go func() { first <- fulfilMerchOrderWithStore(context.Background(), session, config, store) }()
+	<-started
+	if err := fulfilMerchOrderWithStore(context.Background(), session, config, store); err == nil {
+		t.Fatal("concurrent event bypassed the in-progress claim")
+	}
+	close(release)
+	if err := <-first; err != nil {
+		t.Fatal(err)
+	}
+	if store.createCount != 1 || store.order.PrintifyID != "printify-concurrent" {
+		t.Fatalf("concurrent events duplicated or lost the order: creates=%d order=%+v", store.createCount, store.order)
 	}
 }
 func TestMerchStripeSignaturesAndWebhook(t *testing.T) {

@@ -1209,7 +1209,7 @@ Provider credentials are `PRINTIFY_API_TOKEN` and `STRIPE_SECRET_KEY`. Secret Ma
 and runtime access are managed by OpenTofu; the local bootstrap imports those API credentials
 without storing them in OpenTofu state. During `make infra-apply`, a local reconciler registers
 Stripe and Printify webhooks from `MERCH_CONFIG` and stores their signing secrets directly in
-Secret Manager. Generated signing secrets are never written to OpenTofu state or logs.
+Secret Manager. Generated signing secrets and Stripe endpoint associations are never written to OpenTofu state or logs. The reconciler updates the associated Stripe endpoint when the staging origin changes and rotates it when its Stripe API-key scope changes; the association metadata remains in Secret Manager. If a Printify signing secret is missing, the reconciler removes and recreates the shop subscriptions with the replacement secret.
 No live checkout until Stripe, currency factors, destination tax settings and seller details
 are configured and tested. New sales stop on pricing-review expiry; paid orders still process.
 See `prompts/22-merchandise-storefront.md` for the schema, complete setup/reconciliation runbook,
@@ -1219,7 +1219,7 @@ Stripe test payments must never unintentionally trigger real Printify fulfilment
 `MERCH_CONFIG.stripeLive` selects test/live payments and must match the Stripe secret key prefix
 and Checkout session livemode. Test payments are stored as `test-paid` and NEVER submitted to
 Printify. The storefront prominently labels test mode. Only explicitly configured live payments
-can create merchandise orders. Keep test/live Stripe endpoint signing secrets separate.
+can create merchandise orders. OpenTofu keeps the Stripe endpoint ID and API-key scope in separate Secret Manager entries so dynamic preview URL changes update the correct endpoint and mode changes do not reuse a secret from another Stripe account.
 
 `MERCH_CONFIG.baseUrl` is the HTTPS origin used for Stripe/Printify webhooks and Printify product
 handles. Production uses its stable site origin. Staging uses the active Firebase PR preview URL,

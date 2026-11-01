@@ -365,6 +365,19 @@ resource "google_secret_manager_secret" "merchandise" {
   depends_on = [google_project_service.required]
 }
 
+# The Stripe endpoint ID and API-key scope bind the generated signing secret
+# to the managed endpoint without granting runtime Functions access to them.
+resource "google_secret_manager_secret" "merchandise_webhook_association" {
+  for_each            = toset(["stripe-webhook-endpoint-id", "stripe-webhook-key-scope"])
+  secret_id           = each.value
+  deletion_policy     = "ABANDON"
+  deletion_protection = true
+  replication {
+    auto {}
+  }
+  depends_on = [google_project_service.required]
+}
+
 resource "google_secret_manager_secret_iam_member" "runtime_merchandise" {
   for_each  = google_secret_manager_secret.merchandise
   secret_id = each.value.secret_id

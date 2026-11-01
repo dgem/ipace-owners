@@ -22,6 +22,7 @@ func TestPrintifyWebhookReconcileCreatesAndUpdatesSubscriptions(t *testing.T) {
 	secrets := memorySecrets{}
 	installed := map[string]printifyWebhook{}
 	methods := map[string]int{}
+	deleted := 0
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("Authorization") != "Bearer printify-test-token" {
 			t.Errorf("authorization header was not set correctly")
@@ -39,7 +40,7 @@ func TestPrintifyWebhookReconcileCreatesAndUpdatesSubscriptions(t *testing.T) {
 			if err := json.NewDecoder(r.Body).Decode(&webhook); err != nil {
 				t.Error(err)
 			}
-			if webhook.Secret == "" || webhook.URL != "https://shop.example/api/shop/printify-webhook" {
+			if webhook.Secret == "" || !strings.HasSuffix(webhook.URL, "/api/shop/printify-webhook") {
 				t.Errorf("webhook secret or URL missing: %+v", webhook)
 			}
 			webhook.ID = fmt.Sprintf("id-%d", len(installed))
@@ -62,6 +63,16 @@ func TestPrintifyWebhookReconcileCreatesAndUpdatesSubscriptions(t *testing.T) {
 					prior.URL = webhook.URL
 					prior.Secret = webhook.Secret
 					installed[topic] = prior
+				}
+			}
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(`{}`))
+		case http.MethodDelete:
+			deleted++
+			id := strings.TrimSuffix(strings.TrimPrefix(r.URL.Path, "/v1/shops/42/webhooks/"), ".json")
+			for topic, webhook := range installed {
+				if webhook.ID == id {
+					delete(installed, topic)
 				}
 			}
 			w.WriteHeader(http.StatusOK)
@@ -101,6 +112,13 @@ func TestPrintifyWebhookReconcileCreatesAndUpdatesSubscriptions(t *testing.T) {
 	if methods[http.MethodPost] != len(printifyEvents) || methods[http.MethodPut] != len(printifyEvents) {
 		t.Fatalf("URL changes were not reconciled: POST=%d PUT=%d", methods[http.MethodPost], methods[http.MethodPut])
 	}
+	delete(secrets, "printify-webhook-secret")
+	if err := reconcilePrintify(context.Background(), client, server.URL+"/v1", "printify-test-token", "42", "https://new-shop.example/api/shop/printify-webhook", secrets); err != nil {
+		t.Fatal(err)
+	}
+	if deleted != len(printifyEvents) || methods[http.MethodPost] != len(printifyEvents)*2 {
+		t.Fatalf("missing signing secret did not replace subscriptions: DELETE=%d POST=%d", deleted, methods[http.MethodPost])
+	}
 }
 
 func TestStripeWebhookReconcileCreatesSecretWithoutPrintingItAndThenUpdatesEndpoint(t *testing.T) {
@@ -122,7 +140,7 @@ func TestStripeWebhookReconcileCreatesSecretWithoutPrintingItAndThenUpdatesEndpo
 			}
 			if r.URL.Path == "/v1/webhook_endpoints" {
 				created++
-				endpoint = stripeEndpoint{ID: "we_test", URL: r.Form.Get("url"), Secret: "whsec_generated_only_once"}
+				endpoint = stripeEndpoint{ID: "we_test", URL: r.Form.Get("url"), Secret: "whsec_generated_only_once", Metadata: map[string]string{"ipace_owners_managed": r.Form.Get("metadata[ipace_owners_managed]")}}
 				if got := r.Form["enabled_events[]"]; len(got) != len(stripeEvents) {
 					t.Errorf("enabled events = %v", got)
 				}
@@ -130,9 +148,10 @@ func TestStripeWebhookReconcileCreatesSecretWithoutPrintingItAndThenUpdatesEndpo
 				return
 			}
 			updated++
-			if r.URL.Path != "/v1/webhook_endpoints/we_test" || r.Form.Get("url") != endpoint.URL {
+			if r.URL.Path != "/v1/webhook_endpoints/we_test" {
 				t.Errorf("unexpected update path or URL: %s %s", r.URL.Path, r.Form.Get("url"))
 			}
+			endpoint.URL = r.Form.Get("url")
 			w.WriteHeader(http.StatusOK)
 			_, _ = w.Write([]byte(`{}`))
 		default:
@@ -158,6 +177,16 @@ func TestStripeWebhookReconcileCreatesSecretWithoutPrintingItAndThenUpdatesEndpo
 	}
 	if created != 1 || updated != 1 {
 		t.Fatalf("not idempotent: created=%d updated=%d", created, updated)
+	}
+	if string(secrets["stripe-webhook-endpoint-id"]) != "we_test" || string(secrets["stripe-webhook-key-scope"]) == "" {
+		t.Fatal("Stripe endpoint association was not persisted")
+	}
+	newURL := "https://preview.example/api/shop/stripe-webhook"
+	if err := reconcileStripe(context.Background(), client, server.URL+"/v1", "sk_test_example", newURL, secrets); err != nil {
+		t.Fatal(err)
+	}
+	if created != 1 || updated != 2 || endpoint.URL != newURL {
+		t.Fatalf("URL change created a new endpoint: created=%d updated=%d endpoint=%+v", created, updated, endpoint)
 	}
 }
 

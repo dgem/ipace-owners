@@ -457,6 +457,10 @@ Test Stripe payments are recorded without fulfilment. `MERCH_CONFIG` carries rev
 tax, seller and environment settings; OpenTofu writes it and the secret-binding switch to the
 environment's GitHub Actions variables. Managed provider secrets live in Google Secret Manager,
 with local values bootstrapped from the ignored repo-root `.env` without entering OpenTofu state.
+The webhook reconciler records the Stripe endpoint ID and API-key scope alongside its signing secret,
+updates that endpoint when the callback URL changes, and replaces stale Printify subscriptions when
+their shared secret must be regenerated. Fulfilment claims paid orders transactionally before calling
+Printify and persists the provider ID before sending an order to production.
 Checkout must stay disabled until provider currency, Stripe keys, seller identity and shop terms
 are verified. See `22-merchandise-storefront.md` for exact configuration and recovery procedures.
 

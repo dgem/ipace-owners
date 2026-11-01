@@ -759,6 +759,11 @@ separate local-exec reconciler registers Stripe Checkout and Printify product/or
 on every apply when the environment has a configured shop, stable HTTPS origin and provider
 credentials. It writes the Stripe endpoint signing secret and generated Printify shared secret
 directly to Secret Manager, never to OpenTofu state, plan output, logs or GitHub variables.
+It also stores `stripe-webhook-endpoint-id` and `stripe-webhook-key-scope` in separate Secret Manager
+entries, updates the managed endpoint as staging preview URLs change, and replaces old managed
+subscriptions when a Printify signing secret has to be generated again. Paid fulfilment claims the
+order transactionally before creating it at Printify and stores the provider order ID before
+requesting production; retries must never create a duplicate after an ambiguous provider response.
 `scripts/infra-env.sh` loads ignored repo-root `.env` for `make infra-apply` and selects provider
 API credentials suffixed for the chosen environment.
 The environment root supports `merchandise_config_file` for ignored per-environment JSON files,
@@ -781,7 +786,8 @@ active preview origin via `ALLOWED_ORIGINS`.
 `MERCH_CONFIG.stripeLive` selects test/live payments and must match the Stripe secret key prefix
 and Checkout session livemode. Test payments are stored as `test-paid` and NEVER submitted to
 Printify. The storefront prominently labels test mode. Only explicitly configured live payments
-can create merchandise orders. Keep test/live Stripe endpoint signing secrets separate.
+can create merchandise orders. Bind the webhook endpoint association to the Stripe API-key scope so
+test/live account changes cannot reuse the wrong signing secret.
 
 The catalogue is fetched from the audience-gated API and is not embedded in the static page. If
 the configured audience denies access, show an early-access message and keep catalogue, basket,

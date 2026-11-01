@@ -651,10 +651,32 @@ func fulfilMerchOrder(ctx context.Context, session merchPaidSession) error {
 	if err != nil {
 		return err
 	}
-	ref := db.Collection("merchandiseOrders").Doc(session.Metadata.OrderID)
+	store := firestoreMerchFulfilStore{db: db, orderID: session.Metadata.OrderID}
+	return fulfilMerchOrderWithStore(ctx, session, c, store)
+}
+
+type merchFulfilStore interface {
+	claim(context.Context, merchPaidSession, merchConfig) (merchOrder, bool, error)
+	markNeedsReview(context.Context) error
+	create(context.Context, merchConfig, merchOrder) (string, error)
+	saveProviderID(context.Context, string) error
+	production(context.Context, merchConfig, string) error
+}
+
+type firestoreMerchFulfilStore struct {
+	db      *firestore.Client
+	orderID string
+}
+
+func (s firestoreMerchFulfilStore) ref() *firestore.DocumentRef {
+	return s.db.Collection("merchandiseOrders").Doc(s.orderID)
+}
+
+func (s firestoreMerchFulfilStore) claim(ctx context.Context, session merchPaidSession, c merchConfig) (merchOrder, bool, error) {
+	ref := s.ref()
 	var order merchOrder
 	claimed := false
-	err = db.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+	err := s.db.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
 		claimed = false
 		snap, err := tx.Get(ref)
 		if status.Code(err) == codes.NotFound {
@@ -673,30 +695,56 @@ func fulfilMerchOrder(ctx context.Context, session merchPaidSession) error {
 		claimed = next == "submitting"
 		return tx.Update(ref, []firestore.Update{{Path: "status", Value: next}})
 	})
+	return order, claimed, err
+}
+
+func (s firestoreMerchFulfilStore) markNeedsReview(ctx context.Context) error {
+	_, err := s.ref().Update(ctx, []firestore.Update{{Path: "status", Value: "needs-review"}})
+	return err
+}
+
+func (firestoreMerchFulfilStore) create(ctx context.Context, c merchConfig, order merchOrder) (string, error) {
+	var result struct {
+		ID string `json:"id"`
+	}
+	err := merchCallPrintify(ctx, c, "POST", "orders.json", map[string]any{"external_id": order.ID, "label": "IPACE-" + order.ID[:12], "line_items": order.Lines, "shipping_method": 1, "send_shipping_notification": true, "address_to": order.Address}, &result)
+	if err != nil || result.ID == "" {
+		return "", errors.New("Printify submission returned no order ID")
+	}
+	return result.ID, nil
+}
+
+func (s firestoreMerchFulfilStore) saveProviderID(ctx context.Context, id string) error {
+	_, err := s.ref().Update(ctx, []firestore.Update{{Path: "printifyId", Value: id}, {Path: "status", Value: "submitted"}})
+	return err
+}
+
+func (s firestoreMerchFulfilStore) production(ctx context.Context, c merchConfig, id string) error {
+	return merchProduction(ctx, c, s.ref(), id)
+}
+
+func fulfilMerchOrderWithStore(ctx context.Context, session merchPaidSession, c merchConfig, store merchFulfilStore) error {
+	order, claimed, err := store.claim(ctx, session, c)
 	if err != nil {
 		return err
 	}
 	if !claimed {
 		if order.PrintifyID != "" {
-			return merchProduction(ctx, c, ref, order.PrintifyID)
+			return store.production(ctx, c, order.PrintifyID)
 		}
 		return nil
 	}
 	// Persist the claim BEFORE the external side effect. Never blindly repeat a
 	// timed-out Printify order creation: external_id is not a documented idempotency key.
-	var result struct {
-		ID string `json:"id"`
-	}
-	err = merchCallPrintify(ctx, c, "POST", "orders.json", map[string]any{"external_id": order.ID, "label": "IPACE-" + order.ID[:12], "line_items": order.Lines, "shipping_method": 1, "send_shipping_notification": true, "address_to": order.Address}, &result)
-	if err != nil || result.ID == "" {
-		_, _ = ref.Update(ctx, []firestore.Update{{Path: "status", Value: "needs-review"}})
+	providerID, err := store.create(ctx, c, order)
+	if err != nil || providerID == "" {
+		_ = store.markNeedsReview(ctx)
 		return errors.New("Printify submission requires review")
 	}
-	_, err = ref.Update(ctx, []firestore.Update{{Path: "printifyId", Value: result.ID}, {Path: "status", Value: "submitted"}})
-	if err != nil {
+	if err := store.saveProviderID(ctx, providerID); err != nil {
 		return err
 	}
-	return merchProduction(ctx, c, ref, result.ID)
+	return store.production(ctx, c, providerID)
 }
 func MerchandisePrintifyWebhook(w http.ResponseWriter, r *http.Request) {
 	body, err := merchWebhookBody(w, r)

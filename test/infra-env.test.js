@@ -86,6 +86,8 @@ test('OpenTofu invokes a local webhook reconciler without placing provider secre
   assert.match(helper, /func reconcilePrintify/);
   assert.match(helper, /stripe-webhook-secret/);
   assert.match(helper, /printify-webhook-secret/);
+  assert.match(tofu, /stripe-webhook-endpoint-id/);
+  assert.match(tofu, /stripe-webhook-key-scope/);
   assert.match(makefile, /infra-apply: secret-version-bootstrap merchandise-webhook-tool/);
 });
 

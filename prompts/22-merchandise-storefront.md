@@ -174,7 +174,11 @@ including shop catalogue, basket/quote, unavailable checkout and order-status st
 `MERCH_CONFIG.stripeLive` selects test/live payments and must match the Stripe secret key prefix
 and Checkout session livemode. Test payments are stored as `test-paid` and NEVER submitted to
 Printify. The storefront prominently labels test mode. Only explicitly configured live payments
-can create merchandise orders. Keep test/live Stripe endpoint signing secrets separate.
+can create merchandise orders. Store the Stripe webhook endpoint ID and a hash of its API-key scope
+in separate Secret Manager entries; this lets the reconciler update a callback URL without replacing
+its signing secret, and prevents reusing the association when switching Stripe accounts or modes.
+When a stored Printify signing secret is missing, delete and recreate the shop's subscriptions with
+the replacement secret so existing callbacks cannot silently retain a stale signature key.
 
 The committed `src/_data/merchandisePreview.json` and `public/images/merchandise/*.jpg` show the
 four initial products when the live catalogue is unavailable. These cards can be added to a
