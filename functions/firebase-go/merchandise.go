@@ -488,11 +488,15 @@ func MerchandiseCheckout(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, 409, map[string]any{"error": "This quote has expired or has already been paid. Request a new quote if needed."})
 		return
 	}
+	if o.ShopID != c.ShopID {
+		writeJSON(w, http.StatusConflict, map[string]any{"error": "This quote belongs to an earlier catalogue. Request a new quote."})
+		return
+	}
 	if o.SessionID != "" {
 		writeJSON(w, 200, map[string]any{"url": o.CheckoutURL})
 		return
 	}
-	form := url.Values{"mode": {"payment"}, "payment_method_types[0]": {"card"}, "customer_email": {o.Address.Email}, "client_reference_id": {o.ID}, "metadata[orderId]": {o.ID}, "success_url": {returnOrigin + "/shop/?order=" + o.ID}, "cancel_url": {returnOrigin + "/shop/?cancelled=1"}, "expires_at": {strconv.FormatInt(o.CreatedAt.Add(time.Hour).Unix(), 10)}, "line_items[0][price_data][currency]": {"gbp"}, "line_items[0][price_data][unit_amount]": {strconv.FormatInt(o.Totals.Total, 10)}, "line_items[0][price_data][product_data][name]": {"I-PACE Owners merchandise including delivery"}, "line_items[0][price_data][product_data][description]": {cleanString(o.Summary, 500)}, "line_items[0][quantity]": {"1"}}
+	form := url.Values{"mode": {"payment"}, "payment_method_types[0]": {"card"}, "customer_email": {o.Address.Email}, "client_reference_id": {o.ID}, "metadata[orderId]": {o.ID}, "success_url": {returnOrigin + "/merch/?order=" + o.ID}, "cancel_url": {returnOrigin + "/merch/?cancelled=1"}, "expires_at": {strconv.FormatInt(o.CreatedAt.Add(time.Hour).Unix(), 10)}, "line_items[0][price_data][currency]": {"gbp"}, "line_items[0][price_data][unit_amount]": {strconv.FormatInt(o.Totals.Total, 10)}, "line_items[0][price_data][product_data][name]": {"I-PACE Owners merchandise including delivery"}, "line_items[0][price_data][product_data][description]": {cleanString(o.Summary, 500)}, "line_items[0][quantity]": {"1"}}
 	// The fixed expiry keeps repeated idempotent requests identical and leaves
 	// at least 30 minutes for Checkout when the quote is still valid.
 	var session struct {
@@ -864,7 +868,7 @@ func merchPublishProduct(ctx context.Context, c merchConfig, id, action string) 
 	if p.ID != id || !p.Visible {
 		return errors.New("product is not visible")
 	}
-	return merchCallPrintify(ctx, c, "POST", "products/"+id+"/publishing_succeeded.json", map[string]any{"external": map[string]string{"id": id, "handle": strings.TrimRight(c.BaseURL, "/") + "/shop/#product-" + id}}, nil)
+	return merchCallPrintify(ctx, c, "POST", "products/"+id+"/publishing_succeeded.json", map[string]any{"external": map[string]string{"id": id, "handle": strings.TrimRight(c.BaseURL, "/") + "/merch/#product-" + id}}, nil)
 }
 
 func merchPaymentDecision(order merchOrder, session merchPaidSession, c merchConfig) (string, error) {

@@ -728,10 +728,11 @@ reconstruction, not production disaster recovery.
 
 ## Public merchandise storefront
 
-`/shop/` and `/shop/terms/` implement the audience-gated Merchandise page with Printify and
+`/merch/` and `/merch/terms/` implement the audience-gated Merchandise page with Printify and
 Stripe hosted Checkout in GBP. Staging configures `merchandise` as unauthenticated; production limits
 access to admins and early adopters until launch. Keep Merchandise as the navigation label and
-page title while preserving `/shop/` and `/api/shop/`. `merchandise.js` handles catalogue
+page title using `/merch/`, with legacy `/shop/` requests redirected. Keep `/api/shop/` as the API
+prefix. `merchandise.js` handles catalogue
 variants/images, the basket above the catalogue, international
 delivery details, quotes, secure checkout redirects and private browser receipt status.
 Public orders require no membership. This is not intended for profit; surplus supports site
@@ -792,6 +793,6 @@ catalogue. Preserve the source Printify mockups and designs externally.
 Subscribe the Printify webhook to product create/update/delete and `product:publish:started`
 as well as order events. Product events invalidate the short catalogue cache. Verified publish
 create/update requests re-read the configured shop product, then acknowledge publication with
-its `/shop/#product-<id>` handle; unpublish requests use Printify's unpublish endpoint. This
+its `/merch/#product-<id>` handle; unpublish requests use Printify's unpublish endpoint. This
 completes custom-channel publication and releases the publishing lock. Existing locked products
 need publication retriggered after the webhook is installed; do not change them during inspection.

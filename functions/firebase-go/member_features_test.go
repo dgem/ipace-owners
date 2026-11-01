@@ -43,6 +43,25 @@ func TestMemberFeatureAccessSupportsReleaseAndRoleRules(t *testing.T) {
 	if featureEnabledForUser("member-experiences", nil) {
 		t.Fatal("signed-in audience rule was available anonymously")
 	}
+	t.Setenv("FEATURE_ACCESS", `{"member-experiences":"all,public"}`)
+	if !featureEnabledForUser("member-experiences", nil) {
+		t.Fatal("anonymous audience after all was ignored")
+	}
+}
+
+func TestMemberFeaturesIncludesKnownAdminBypassKeysWhenUnconfigured(t *testing.T) {
+	original := memberFeaturesOptionalUser
+	t.Cleanup(func() { memberFeaturesOptionalUser = original })
+	memberFeaturesOptionalUser = func(context.Context, *http.Request) (*firebaseUser, error) {
+		return &firebaseUser{UID: "admin", Claims: map[string]any{"admin": true}}, nil
+	}
+	t.Setenv("FEATURE_ACCESS", `{}`)
+	request := httptest.NewRequest(http.MethodGet, "/api/member/features", nil)
+	response := httptest.NewRecorder()
+	MemberFeatures(response, request)
+	if response.Code != http.StatusOK || !strings.Contains(response.Body.String(), `"merchandise":true`) {
+		t.Fatalf("admin feature discovery omitted merchandise: status=%d body=%s", response.Code, response.Body)
+	}
 }
 
 func TestMalformedMemberFeatureConfigFailsClosed(t *testing.T) {

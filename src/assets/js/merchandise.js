@@ -8,12 +8,14 @@
   var quotePanel = root.querySelector('[data-shop-quote-result]');
   var basketPanel = root.querySelector('[data-shop-basket]');
   var checkoutNote = root.querySelector('[data-shop-checkout-note]');
-  function esc(value) { var node = document.createElement('span'); node.textContent = String(value == null ? '' : value); return node.innerHTML; }
+  function esc(value) { var node = document.createElement('span'); node.textContent = String(value == null ? '' : value); return node.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
   function money(pence) { return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(pence / 100); }
   function api(path, options) {
     options = options || {};
     options.headers = Object.assign({}, options.headers || {});
-    return Promise.resolve(window.ipaceGetIdentityToken ? window.ipaceGetIdentityToken() : '').then(function (idToken) {
+    return Promise.resolve(window.ipaceIdentityReadyPromise).then(function () {
+      return window.ipaceGetIdentityToken ? window.ipaceGetIdentityToken() : '';
+    }).then(function (idToken) {
       if (idToken) options.headers['X-Firebase-ID-Token'] = idToken;
       return fetch('/api/shop/' + path, options);
     }).then(function (response) {
@@ -88,11 +90,12 @@
   function pay() {
     if (!receipt || busy) return;
     busy = true; var button = root.querySelector('[data-pay]'); button.disabled = true;
+    var fields = Array.from(form.elements); fields.forEach(function (field) { field.disabled = true; });
     var previousError = quotePanel.querySelector('[role="alert"]'); if (previousError) previousError.remove();
     api('checkout', { method: 'POST', headers: { Authorization: 'Bearer ' + receipt } }).then(function (data) {
       var target = new URL(data.url); if (target.protocol !== 'https:' || target.hostname !== 'checkout.stripe.com') throw new Error('Invalid checkout link. Please contact us.');
       window.location.assign(target.href);
-    }).catch(function (error) { status.textContent = error.message; quotePanel.insertAdjacentHTML('beforeend', '<p role="alert">' + esc(error.message) + '</p>'); busy = false; button.disabled = false; });
+    }).catch(function (error) { status.textContent = error.message; quotePanel.insertAdjacentHTML('beforeend', '<p role="alert">' + esc(error.message) + '</p>'); busy = false; button.disabled = false; fields.forEach(function (field) { field.disabled = false; }); });
   }
   function loadOrder() {
     var saved = ''; try { saved = sessionStorage.getItem('ipace-shop-receipt-' + new URLSearchParams(window.location.search).get('order')) || ''; } catch { /* No saved browser receipt. */ }

@@ -1,5 +1,6 @@
 ---
 layout: page.njk
+permalink: merch/terms/index.html
 title: Merchandise terms
 description: "Ordering, delivery, cancellation and returns for I-PACE Owners merchandise."
 ---

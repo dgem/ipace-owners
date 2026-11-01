@@ -5,7 +5,9 @@
   var loading = null;
 
   function token() {
-    return window.ipaceGetIdentityToken ? window.ipaceGetIdentityToken() : Promise.resolve('');
+    return Promise.resolve(window.ipaceIdentityReadyPromise).then(function () {
+      return window.ipaceGetIdentityToken ? window.ipaceGetIdentityToken() : '';
+    });
   }
 
   function apply() {
@@ -54,4 +56,5 @@
   document.addEventListener('identity:login', function () { load(true); });
   document.addEventListener('identity:logout', function () { state = null; loading = null; load(true); });
   apply();
+  token().then(function () { load(false); });
 }());

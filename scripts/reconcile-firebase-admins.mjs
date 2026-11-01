@@ -101,7 +101,8 @@ export function buildAdminUpdates(users, desiredAdminUsers, desiredRoleUsers = {
     const current = parseClaims(user);
     const next = { ...current };
     const managedRoles = Array.isArray(current.managedRoles) ? current.managedRoles.filter((role) => typeof role === "string") : [];
-    let roles = Array.isArray(current.roles) ? current.roles.filter((role) => !managedRoles.includes(role)) : [];
+    const configuredRoles = new Set([...managedRoles, ...Object.keys(desiredRoleUsers)]);
+    let roles = Array.isArray(current.roles) ? current.roles.filter((role) => !configuredRoles.has(role)) : [];
     const currentlyAdmin = current.admin === true || roles.includes("admin");
     const shouldBeAdmin = desiredUids.has(user.localId);
 

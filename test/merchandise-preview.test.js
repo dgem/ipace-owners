@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 test('merchandise storefront and navigation use the server-resolved audience gate', function () {
-  const shop = fs.readFileSync(path.join(__dirname, '../src/shop.njk'), 'utf8');
+  const shop = fs.readFileSync(path.join(__dirname, '../src/merch.njk'), 'utf8');
   const script = fs.readFileSync(path.join(__dirname, '../src/assets/js/merchandise.js'), 'utf8');
   const navigation = JSON.parse(fs.readFileSync(path.join(__dirname, '../src/_data/navigation.json'), 'utf8'));
 
@@ -13,7 +13,7 @@ test('merchandise storefront and navigation use the server-resolved audience gat
   assert.match(shop, /data-member-feature-denied="merchandise"/);
   assert.match(shop, /data-shop-form[^>]*hidden/);
   assert.ok(shop.indexOf('data-shop-basket') < shop.indexOf('id="merchandise-catalogue"'));
-  const merchandiseNav = navigation.public.find(function (item) { return item.url === '/shop/'; });
+  const merchandiseNav = navigation.public.find(function (item) { return item.url === '/merch/'; });
   assert.equal(merchandiseNav.label, 'Merchandise');
   assert.equal(merchandiseNav.feature, 'merchandise');
   assert.match(script, /disabled>Ordering unavailable/);

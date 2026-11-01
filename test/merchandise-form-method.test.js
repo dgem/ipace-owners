@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 test('shop delivery details use POST so scanners and no-script forms do not place PII in URLs', function () {
-  const shop = fs.readFileSync(path.join(__dirname, '../src/shop.njk'), 'utf8');
+  const shop = fs.readFileSync(path.join(__dirname, '../src/merch.njk'), 'utf8');
   const form = shop.match(/<form\b[^>]*data-shop-form[^>]*>/);
 
   assert.ok(form, 'the shop delivery form exists');

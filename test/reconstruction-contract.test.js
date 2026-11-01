@@ -44,8 +44,8 @@ test('clean-room route inventory maps to source pages and Hosting redirects', fu
     ['/contact/', 'src/contact.md'],
     ['/privacy/', 'src/privacy.md'],
     ['/terms/', 'src/terms.md'],
-    ['/shop/', 'src/shop.njk'],
-    ['/shop/terms/', 'src/shop/terms.md'],
+    ['/merch/', 'src/merch.njk'],
+    ['/merch/terms/', 'src/merch/terms.md'],
     ['/methodology/', 'src/methodology.md'],
     ['/evidence-dashboard/', 'src/evidence-dashboard.njk'],
     ['/updates/', 'src/updates.njk'],
@@ -76,6 +76,10 @@ test('clean-room route inventory maps to source pages and Hosting redirects', fu
   for (const legacyRoute of ['/account', '/submit-vehicle-data']) {
     assert.ok(firebase.includes(`"source": "${legacyRoute}"`));
     assert.ok(contract.includes(`${legacyRoute}/**`));
+  }
+  for (const [legacyRoute, destination] of [['/shop', '/merch/'], ['/shop/terms', '/merch/terms/']]) {
+    assert.ok(firebase.includes(`"source": "${legacyRoute}"`));
+    assert.ok(firebase.includes(`"destination": "${destination}"`));
   }
   assert.match(firebase, /"destination": "\/404\.html"/);
 });

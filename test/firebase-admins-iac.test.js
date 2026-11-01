@@ -90,6 +90,20 @@ test('reconciles only OpenTofu-managed Firebase roles and preserves unrelated cl
   assert.deepEqual(former.managedRoles, ['early-adopter']);
 });
 
+test('removes configured roles from existing users when assignments are first adopted', async function () {
+  const { buildAdminUpdates } = await import(scriptPath);
+  const users = [
+    { localId: 'dan', email: 'dan@kanzi.co.uk', customAttributes: JSON.stringify({ admin: true }) },
+    { localId: 'preview', email: 'preview@example.org', customAttributes: '{}' },
+    { localId: 'former', email: 'former@example.org', customAttributes: JSON.stringify({ roles: ['early-adopter', 'moderator'] }) },
+  ];
+  const updates = buildAdminUpdates(users, { dan: 'dan@kanzi.co.uk' }, { 'early-adopter': ['preview@example.org'] });
+  assert.deepEqual(JSON.parse(updates.find((update) => update.uid === 'former').customAttributes), {
+    roles: ['moderator'],
+    managedRoles: ['early-adopter'],
+  });
+});
+
 test('OpenTofu always includes the required owner and reconciles through Identity Platform', function () {
   const moduleMain = readFileSync(resolve(repoRoot, 'infra/opentofu/modules/ipace-owners/main.tf'), 'utf8');
   const moduleVariables = readFileSync(resolve(repoRoot, 'infra/opentofu/modules/ipace-owners/variables.tf'), 'utf8');

@@ -48,7 +48,9 @@ func featureEnabledForUser(name string, user *firebaseUser) bool {
 		case "public", "anonymous", "unauthenticated":
 			return true
 		case "all":
-			return user != nil && user.UID != ""
+			if user != nil && user.UID != "" {
+				return true
+			}
 		case "off", "":
 			continue
 		case "early-adopter":
@@ -109,7 +111,14 @@ func MemberFeatures(w http.ResponseWriter, r *http.Request) {
 			access = map[string]string{}
 		}
 	}
-	features := make(map[string]bool, len(access))
+	features := make(map[string]bool, len(access)+2)
+	// Admins bypass feature rules, so the browser must learn about known gated
+	// features even when an older environment has not configured them yet.
+	for _, name := range []string{"member-experiences", "merchandise"} {
+		if _, exists := access[name]; !exists {
+			access[name] = ""
+		}
+	}
 	for name := range access {
 		features[name] = featureEnabledForUser(name, user)
 	}

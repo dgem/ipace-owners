@@ -1377,12 +1377,6 @@ async function checkMerchandise(viewport, suffix) {
   const prices = [1349, 1849, 299, 449];
   let quoteRequests = 0;
   let checkoutRequests = 0;
-  async function refreshFeatureDecision() {
-    await page.evaluate(() => new Promise((resolve) => {
-      document.addEventListener('member:features', resolve, { once: true });
-      document.dispatchEvent(new Event('identity:login'));
-    }));
-  }
   await page.route('**/api/member/features', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ features: { merchandise: true } }) }));
   await page.route('**/api/shop/**', async (route) => {
     const endpoint = new URL(route.request().url()).pathname;
@@ -1403,14 +1397,17 @@ async function checkMerchandise(viewport, suffix) {
     await route.fulfill({ status: endpoint.endsWith('/checkout') ? 503 : 200, contentType: 'application/json', body: JSON.stringify(data) });
   });
   await page.addInitScript(() => window.localStorage.setItem('ipace_analytics_consent', 'no'));
-  await page.goto(baseURL + '/shop/', { waitUntil: 'networkidle' });
-  await refreshFeatureDecision();
-  await page.locator('[data-member-feature="merchandise"]').evaluateAll((nodes) => nodes.forEach((node) => { node.hidden = false; }));
+  await page.goto(baseURL + '/merch/', { waitUntil: 'networkidle' });
+  await expect(page).toHaveURL(baseURL + '/merch/');
+  const legacyShopResponse = await page.request.get(baseURL + '/shop/', { maxRedirects: 0 });
+  assert.equal(legacyShopResponse.status(), 301);
+  assert.equal(legacyShopResponse.headers().location, '/merch/');
+  await expect(page.locator('[data-member-feature="merchandise"]').last()).toBeVisible();
   if (viewport.width >= 768) {
-    await expect(page.locator('.site-nav a[href="/shop/"]')).toBeVisible();
+    await expect(page.locator('.site-nav a[href="/merch/"]')).toBeVisible();
   } else {
     await page.locator('#mobile-menu-toggle').click();
-    await expect(page.locator('#mobile-nav a[href="/shop/"]')).toBeVisible();
+    await expect(page.locator('#mobile-nav a[href="/merch/"]')).toBeVisible();
     await page.locator('#mobile-menu-toggle').click();
   }
   await expect(page.locator('[data-add]')).toHaveCount(4);
@@ -1434,13 +1431,13 @@ async function checkMerchandise(viewport, suffix) {
   await expect(page.locator('[data-pay]')).toBeEnabled();
   await page.locator('[name="city"]').fill('Melbourne');
   await expect(page.locator('[data-shop-quote-result]')).toBeHidden();
-  await page.goto(baseURL + '/shop/?order=' + 'b'.repeat(64), { waitUntil: 'networkidle' });
+  await page.goto(baseURL + '/merch/?order=' + 'b'.repeat(64), { waitUntil: 'networkidle' });
   await expect(page.locator('[data-shop-order]')).toContainText('Test payment recorded');
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({ path: path.join(outputDir, 'shop-order-' + suffix + '.png'), fullPage: true });
   await page.unroute('**/api/shop/**');
   await page.route('**/api/shop/catalogue', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'The merchandise catalogue is being prepared. Please check back soon.' }) }));
-  await page.goto(baseURL + '/shop/', { waitUntil: 'networkidle' });
+  await page.goto(baseURL + '/merch/', { waitUntil: 'networkidle' });
   await expect(page.locator('[data-shop-status]')).toContainText('unavailable right now');
   await expect(page.locator('[data-add]')).toHaveCount(0);
   await expect(page.locator('[data-shop-products] button[disabled]')).toHaveCount(0);
@@ -1449,16 +1446,13 @@ async function checkMerchandise(viewport, suffix) {
   await page.route('**/api/member/features', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ features: { merchandise: false } }) }));
   await page.unroute('**/api/shop/catalogue');
   await page.route('**/api/shop/catalogue', (route) => route.fulfill({ status: 404, contentType: 'application/json', body: JSON.stringify({ error: 'Feature unavailable' }) }));
-  await page.goto(baseURL + '/shop/', { waitUntil: 'networkidle' });
-  await refreshFeatureDecision();
-  await page.locator('[data-member-feature="merchandise"]').evaluateAll((nodes) => nodes.forEach((node) => { node.hidden = true; }));
-  await page.locator('[data-member-feature-denied="merchandise"]').evaluate((node) => { node.hidden = false; });
+  await page.goto(baseURL + '/merch/', { waitUntil: 'networkidle' });
   await expect(page.locator('[data-member-feature-denied="merchandise"]')).toBeVisible();
   if (viewport.width >= 768) {
-    await expect(page.locator('.site-nav a[href="/shop/"]')).toBeHidden();
+    await expect(page.locator('.site-nav a[href="/merch/"]')).toBeHidden();
   } else {
     await page.locator('#mobile-menu-toggle').click();
-    await expect(page.locator('#mobile-nav a[href="/shop/"]')).toBeHidden();
+    await expect(page.locator('#mobile-nav a[href="/merch/"]')).toBeHidden();
   }
   await page.screenshot({ path: path.join(outputDir, 'shop-early-access-denied-' + suffix + '.png'), fullPage: true });
   await page.close();

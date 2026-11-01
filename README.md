@@ -1181,7 +1181,7 @@ charts and frozen headers are preserved; the security audit remains enabled.
 
 ## Public merchandise storefront
 
-`/shop/` and `/shop/terms/` implement the audience-gated Merchandise page with Printify and
+`/merch/` and `/merch/terms/` implement the audience-gated Merchandise page with Printify and
 Stripe hosted Checkout in GBP. The customer-facing navigation and page title use Merchandise.
 `merchandise.js` handles catalogue variants/images, basket above the catalogue, international
 delivery details, quotes, secure checkout redirects and private browser receipt status.

@@ -208,12 +208,12 @@ func TestMerchCheckoutUsesSavedTotalAndIdempotency(t *testing.T) {
 	t.Setenv("ALLOWED_ORIGINS", "https://preview.example,https://shop.example/path")
 	oldRead, oldStripe, oldSave := merchReceiptOrder, merchCallStripe, merchSaveSession
 	t.Cleanup(func() { merchReceiptOrder = oldRead; merchCallStripe = oldStripe; merchSaveSession = oldSave })
-	order := merchOrder{ID: strings.Repeat("a", 64), Status: "quoted", CreatedAt: time.Now(), ExpiresAt: time.Now().Add(20 * time.Minute), Totals: merchTotals{Total: 2499}, Address: merchAddress{Email: "shopper@example.com"}}
+	order := merchOrder{ID: strings.Repeat("a", 64), ShopID: "123", Status: "quoted", CreatedAt: time.Now(), ExpiresAt: time.Now().Add(20 * time.Minute), Totals: merchTotals{Total: 2499}, Address: merchAddress{Email: "shopper@example.com"}}
 	merchReceiptOrder = func(*http.Request) (*firestore.DocumentRef, merchOrder, error) { return nil, order, nil }
 	calls := 0
 	merchCallStripe = func(_ context.Context, method, path string, form url.Values, key string, out any) error {
 		calls++
-		if form.Get("line_items[0][price_data][unit_amount]") != "2499" || form.Get("line_items[0][price_data][currency]") != "gbp" || key != "merch-"+order.ID || form.Get("metadata[orderId]") != order.ID || form.Get("success_url") != "https://preview.example/shop/?order="+order.ID || form.Get("cancel_url") != "https://preview.example/shop/?cancelled=1" {
+		if form.Get("line_items[0][price_data][unit_amount]") != "2499" || form.Get("line_items[0][price_data][currency]") != "gbp" || key != "merch-"+order.ID || form.Get("metadata[orderId]") != order.ID || form.Get("success_url") != "https://preview.example/merch/?order="+order.ID || form.Get("cancel_url") != "https://preview.example/merch/?cancelled=1" {
 			t.Fatalf("unexpected checkout %v", form)
 		}
 		return json.Unmarshal([]byte(`{"id":"cs_test_123","url":"https://checkout.stripe.com/c/pay/test"}`), out)
@@ -235,6 +235,16 @@ func TestMerchCheckoutUsesSavedTotalAndIdempotency(t *testing.T) {
 	if calls != 1 {
 		t.Fatal("checkout session duplicated")
 	}
+	order.ShopID = "previous-shop"
+	order.SessionID = ""
+	wrongShop := httptest.NewRequest("POST", "/api/shop/checkout", nil)
+	wrongShop.Header.Set("Origin", "https://preview.example")
+	wrongShopResult := httptest.NewRecorder()
+	MerchandiseCheckout(wrongShopResult, wrongShop)
+	if wrongShopResult.Code != http.StatusConflict || calls != 1 {
+		t.Fatalf("cross-shop quote accepted: status=%d calls=%d", wrongShopResult.Code, calls)
+	}
+	order.ShopID = "123"
 	badOrigin := httptest.NewRequest("POST", "/api/shop/checkout", nil)
 	badOrigin.Header.Set("Origin", "https://shop.example/path")
 	badOriginResult := httptest.NewRecorder()
@@ -423,7 +433,7 @@ func TestMerchProductPublishAcknowledgement(t *testing.T) {
 			t.Fatal(path)
 		}
 		external := input.(map[string]any)["external"].(map[string]string)
-		if external["handle"] != "https://shop.example/shop/#product-"+id {
+		if external["handle"] != "https://shop.example/merch/#product-"+id {
 			t.Fatal("invalid external handle")
 		}
 		return nil

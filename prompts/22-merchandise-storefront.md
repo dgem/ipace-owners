@@ -2,10 +2,12 @@
 
 ## Product decisions
 
-Build the Merchandise page at `/shop/` with access controlled by the generic feature audience
+Build the Merchandise page at `/merch/` with access controlled by the generic feature audience
 policy. Staging uses the `unauthenticated` audience for anonymous preview and ordering; production uses
 `admin,early-adopter` until the store is ready to open. Keep “Merchandise” as the customer-facing
-page and navigation label; `/shop/` and `/api/shop/` remain stable routes. Do not create
+page and navigation label; `/merch/` is the storefront route and `/api/shop/` remains the API prefix.
+Firebase Hosting canonicalizes static routes with trailing slashes. Redirect legacy `/shop/` links
+to `/merch/`. Do not create
 membership records, enrol shoppers in campaigns, or mix order data with vehicle evidence.
 Use the site's Eleventy/Nunjucks templates, vanilla `merchandise.js` and custom CSS.
 
@@ -26,7 +28,7 @@ allowance and configured payment-cost recovery. No percentage profit margin is a
 
 ## Implementation and privacy
 
-Routes: `/shop/`, `/shop/terms/`; public navigation and page titles say Merchandise. Keep the
+Routes: `/merch/`, `/merch/terms/`; public navigation and page titles say Merchandise. Keep the
 basket above the catalogue. When a first real item is added, focus the basket heading; offer a
 “Continue browsing merchandise” link back to the catalogue. When checkout is disabled, do not
 offer add-to-basket controls. If the catalogue API is unavailable, show a clear retry message
@@ -187,6 +189,6 @@ as well as order created/updated/cancelled/sent/shipments events. OpenTofu perfo
 reconciliation through the Printify API using the configured shop ID and stable origin. Product
 events invalidate the short catalogue cache. Verified publish
 create/update requests re-read the configured shop product, then acknowledge publication with
-its `/shop/#product-<id>` handle; unpublish requests use Printify's unpublish endpoint. This
+its `/merch/#product-<id>` handle; unpublish requests use Printify's unpublish endpoint. This
 completes custom-channel publication and releases the publishing lock. Existing locked products
 need publication retriggered after the webhook is installed; do not change them during inspection.

@@ -444,7 +444,7 @@ Keep these related prompts aligned when the architecture changes:
 
 ## Public merchandise storefront
 
-`/shop/` and `/shop/terms/` are public guest checkout pages backed by the Go API, Printify
+`/merch/` and `/merch/terms/` are audience-gated Merchandise pages backed by the Go API, Printify
 custom-storefront fulfilment and Stripe Checkout in GBP. Anyone may order without member
 authentication. Prices and final charges use integer pence rounded upward to `.49` or `.99`;
 provider costs, shipping, configured destination tax and payment allowance are used to avoid
