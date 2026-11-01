@@ -112,11 +112,12 @@ func TestPrintifyWebhookReconcileCreatesAndUpdatesSubscriptions(t *testing.T) {
 	if methods[http.MethodPost] != len(printifyEvents) || methods[http.MethodPut] != len(printifyEvents) {
 		t.Fatalf("URL changes were not reconciled: POST=%d PUT=%d", methods[http.MethodPost], methods[http.MethodPut])
 	}
+	installed["external"] = printifyWebhook{ID: "external-id", Topic: "custom:external", URL: "https://elsewhere.example/webhook", Secret: "third-party-secret"}
 	delete(secrets, "printify-webhook-secret")
 	if err := reconcilePrintify(context.Background(), client, server.URL+"/v1", "printify-test-token", "42", "https://new-shop.example/api/shop/printify-webhook", secrets); err != nil {
 		t.Fatal(err)
 	}
-	if deleted != len(printifyEvents) || methods[http.MethodPost] != len(printifyEvents)*2 {
+	if deleted != len(printifyEvents) || methods[http.MethodPost] != len(printifyEvents)*2 || installed["external"].Secret != "third-party-secret" {
 		t.Fatalf("missing signing secret did not replace subscriptions: DELETE=%d POST=%d", deleted, methods[http.MethodPost])
 	}
 }

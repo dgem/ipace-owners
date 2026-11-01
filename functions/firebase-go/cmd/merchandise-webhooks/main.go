@@ -335,6 +335,9 @@ func reconcilePrintify(ctx context.Context, client *http.Client, apiBase, token,
 	}
 	if generated {
 		for _, webhook := range installed {
+			if !managedPrintifyTopic(webhook.Topic) {
+				continue
+			}
 			if webhook.ID == "" {
 				return errors.New("Printify signing secret was regenerated, but an existing webhook has no ID; remove and recreate the shop webhooks manually")
 			}
@@ -381,6 +384,15 @@ func writePrintifyWebhook(ctx context.Context, client *http.Client, method, endp
 	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Content-Type", "application/json")
 	return doJSON(client, req, &map[string]any{})
+}
+
+func managedPrintifyTopic(topic string) bool {
+	for _, managed := range printifyEvents {
+		if topic == managed {
+			return true
+		}
+	}
+	return false
 }
 
 func deletePrintifyWebhook(ctx context.Context, client *http.Client, endpoint, token, id string) error {
