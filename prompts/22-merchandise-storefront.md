@@ -3,7 +3,7 @@
 ## Product decisions
 
 Build the Merchandise page at `/shop/` with access controlled by the generic feature audience
-policy. Staging uses the `public` audience for anonymous preview and ordering; production uses
+policy. Staging uses the `unauthenticated` audience for anonymous preview and ordering; production uses
 `admin,early-adopter` until the store is ready to open. Keep “Merchandise” as the customer-facing
 page and navigation label; `/shop/` and `/api/shop/` remain stable routes. Do not create
 membership records, enrol shoppers in campaigns, or mix order data with vehicle evidence.
@@ -78,7 +78,7 @@ error and return a retryable webhook response. Payment success is not inferred f
 Feature audiences are configured through OpenTofu's `feature_access` map and also control the
 main navigation. OpenTofu assigns Firebase custom roles through `firebase_role_users`; add an
 early adopter with `early-adopter = ["account@example.org"]` after that account has signed in to
-the environment. Admin claims always bypass feature gates. Staging sets `merchandise = "public"`;
+the environment. Admin claims always bypass feature gates. Staging sets `merchandise = "unauthenticated"`;
 production sets `merchandise = "admin,early-adopter"` until the public launch. Provider webhook
 callbacks are not gated by storefront audiences.
 

@@ -10,7 +10,7 @@ instagram_publishing_enabled = false
 
 feature_access = {
   member-experiences      = "all"
-  merchandise             = "public"
+  merchandise             = "unauthenticated"
 }
 
 # OpenTofu resolves these addresses to Firebase UIDs and reconciles only the

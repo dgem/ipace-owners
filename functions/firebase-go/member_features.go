@@ -45,7 +45,7 @@ func featureEnabledForUser(name string, user *firebaseUser) bool {
 	for _, value := range strings.Split(strings.ToLower(rule), ",") {
 		role := strings.TrimSpace(value)
 		switch role {
-		case "public", "anonymous":
+		case "public", "anonymous", "unauthenticated":
 			return true
 		case "all":
 			return user != nil && user.UID != ""

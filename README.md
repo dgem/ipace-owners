@@ -939,7 +939,7 @@ assignment changes, the user should sign out and back in to refresh their ID tok
 
 Feature audiences are configured per environment through the non-secret `feature_access` map
 (sent to Functions as `FEATURE_ACCESS`). Comma-separated values combine access groups: `admin`,
-`early-adopter`, `all` (any signed-in user), `public` / `anonymous` (signed-in or not), and `off`.
+`early-adopter`, `all` (any signed-in user), `public` / `anonymous` / `unauthenticated` (signed-in or not), and `off`.
 Administrators always bypass feature rules. OpenTofu-managed early adopters receive the
 `early-adopter` value in the Firebase token's `roles` claim. Staging makes Merchandise public
 for preview; production gates it to admins and early adopters until launch. The storefront

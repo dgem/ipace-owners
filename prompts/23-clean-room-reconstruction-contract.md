@@ -294,7 +294,7 @@ vehicle creation and vehicle editing. Keep United Kingdom as the default.
 
 | `GET /api/member-data` | Member | Return only that UID's private member snapshot. |
 | `GET /api/member-export?format=csv\|xlsx` | Member | Return a private no-store ZIP of five CSV datasets or a formatted six-sheet Excel workbook built from only that UID's account records and member experiences; omit internal IDs/hashes, private editorial data and storage object names, and neutralise spreadsheet formulas. |
-| `GET /api/member/features` | Public feature metadata | Accept an optional ID token and return booleans for configured features using `admin`, `early-adopter`, signed-in `all`, `public`/`anonymous`, and `off` audiences. Admins always bypass feature rules. Member-data APIs must still require sign-in and apply their feature rule server-side. |
+| `GET /api/member/features` | Public feature metadata | Accept an optional ID token and return booleans for configured features using `admin`, `early-adopter`, signed-in `all`, `public`/`anonymous`/`unauthenticated`, and `off` audiences. Admins always bypass feature rules. Member-data APIs must still require sign-in and apply their feature rule server-side. |
 | `GET/POST /api/member/notifications` | Member | Return versioned notification IDs dismissed by that UID or store one validated dismissal. Survey IDs are survey-specific so new surveys remain visible. |
 | `GET/POST /api/member/stories` | Member | Return story eligibility and owned evidence records, save drafts, and submit a consented story linked only to the member's vehicle records. |
 | `POST /api/member/story-upload` and `/api/member/story-upload-complete` | Member | Reserve bounded private media, issue a short-lived upload URL, then verify and promote the object. |
@@ -445,10 +445,10 @@ The optional `SEED_NEXT_STEPS_SURVEY` flag creates the October survey automatica
 authenticated survey access. `NEXT_STEPS_SURVEY_STATUS` is `published` in staging and `draft` in
 production, preserving an explicit production publication decision.
 `FEATURE_ACCESS` is a JSON object mapping feature names to comma-separated audiences: `admin`,
-`early-adopter`, `all` (signed-in), `public`/`anonymous`, or `off`. Admin claims bypass feature
+`early-adopter`, `all` (signed-in), `public`/`anonymous`/`unauthenticated`, or `off`. Admin claims bypass feature
 rules. OpenTofu manages named custom roles from `firebase_role_users`, preserving unrelated claims;
 users must exist in Firebase Auth before apply and refresh their token after role assignments.
-Staging sets `member-experiences` to `all` and `merchandise` to `public`. Production restricts
+Staging sets `member-experiences` to `all` and `merchandise` to `unauthenticated`. Production restricts
 both to `early-adopter` (admins always bypass). Main navigation and the storefront use the
 resolved feature response, and catalogue, quote, checkout and order-status endpoints enforce the
 Merchandise audience. Provider webhook endpoints remain accessible and signature-validated.
@@ -729,7 +729,7 @@ reconstruction, not production disaster recovery.
 ## Public merchandise storefront
 
 `/shop/` and `/shop/terms/` implement the audience-gated Merchandise page with Printify and
-Stripe hosted Checkout in GBP. Staging configures `merchandise` as public; production limits
+Stripe hosted Checkout in GBP. Staging configures `merchandise` as unauthenticated; production limits
 access to admins and early adopters until launch. Keep Merchandise as the navigation label and
 page title while preserving `/shop/` and `/api/shop/`. `merchandise.js` handles catalogue
 variants/images, the basket above the catalogue, international

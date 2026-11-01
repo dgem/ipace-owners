@@ -55,9 +55,9 @@ test('deployment passes member feature rules to functions', () => {
   assert.match(moduleActions, /FEATURE_ACCESS_/);
   assert.match(staging, /member-experiences\s*=\s*"all"/);
   assert.match(production, /member-experiences\s*=\s*"early-adopter"/);
-  assert.match(staging, /merchandise\s*=\s*"public"/);
+  assert.match(staging, /merchandise\s*=\s*"unauthenticated"/);
   assert.match(production, /merchandise\s*=\s*"admin,early-adopter"/);
-  assert.match(stagingWorkflow, /FEATURE_ACCESS_STAGING[\s\S]*merchandise.*public/);
+  assert.match(stagingWorkflow, /FEATURE_ACCESS_STAGING[\s\S]*merchandise.*unauthenticated/);
   assert.match(productionWorkflow, /FEATURE_ACCESS_PRODUCTION[\s\S]*merchandise.*admin,early-adopter/);
 });
 

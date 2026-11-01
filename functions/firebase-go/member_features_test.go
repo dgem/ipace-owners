@@ -35,9 +35,9 @@ func TestMemberFeatureAccessSupportsReleaseAndRoleRules(t *testing.T) {
 		t.Fatal("disabled feature was available to an ordinary member")
 	}
 
-	t.Setenv("FEATURE_ACCESS", `{"member-experiences":"public"}`)
+	t.Setenv("FEATURE_ACCESS", `{"member-experiences":"unauthenticated"}`)
 	if !featureEnabledForUser("member-experiences", nil) {
-		t.Fatal("public feature was unavailable to an anonymous visitor")
+		t.Fatal("unauthenticated feature was unavailable to an anonymous visitor")
 	}
 	t.Setenv("FEATURE_ACCESS", `{"member-experiences":"all"}`)
 	if featureEnabledForUser("member-experiences", nil) {
