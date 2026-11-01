@@ -2,8 +2,11 @@
 
 ## Product decisions
 
-Build the public Merchandise page at `/shop/` for everyone, including guests. Keep “Merchandise” as the customer-facing page and navigation label; `/shop/` and `/api/shop/` remain stable internal routes. Do not require Firebase sign-in or membership,
-create membership records, enrol shoppers in campaigns, or mix order data with vehicle evidence.
+Build the Merchandise page at `/shop/` with access controlled by the generic feature audience
+policy. Staging uses the `public` audience for anonymous preview and ordering; production uses
+`admin,early-adopter` until the store is ready to open. Keep “Merchandise” as the customer-facing
+page and navigation label; `/shop/` and `/api/shop/` remain stable routes. Do not create
+membership records, enrol shoppers in campaigns, or mix order data with vehicle evidence.
 Use the site's Eleventy/Nunjucks templates, vanilla `merchandise.js` and custom CSS.
 
 Use the existing Printify custom-integration shop for catalogue and fulfilment, and Stripe
@@ -25,14 +28,16 @@ allowance and configured payment-cost recovery. No percentage profit margin is a
 
 Routes: `/shop/`, `/shop/terms/`; public navigation and page titles say Merchandise. Keep the
 basket above the catalogue. When a first real item is added, focus the basket heading; offer a
-“Continue browsing merchandise” link back to the catalogue. When the catalogue is only a local
-preview or checkout is disabled, do not offer add-to-basket controls. State clearly that orders
-and payments are unavailable in this environment; never imply a preview basket can be purchased.
+“Continue browsing merchandise” link back to the catalogue. When checkout is disabled, do not
+offer add-to-basket controls. If the catalogue API is unavailable, show a clear retry message
+without static preview products or a fake basket.
 The API router serves these endpoints through the existing `Api` function:
 
-- `GET /api/shop/catalogue`: enabled/available variants, provider images, plain-text product
-  descriptions and production prices; a one-minute in-process catalogue cache. No token,
-  private order fields or provider HTML is exposed.
+- `GET /api/shop/catalogue`: apply the configured `merchandise` audience, then return
+  enabled/available variants, provider images, plain-text product descriptions and production
+  prices; a one-minute in-process catalogue cache. No provider token, private order fields or
+  provider HTML is exposed. Production requests carry a Firebase ID token in the separate
+  `X-Firebase-ID-Token` header; Checkout keeps its receipt in `Authorization`.
 - `POST /api/shop/quote`: validate a maximum of ten distinct lines, ten units per line and
   twenty units total, address, supported country, terms and honeypot. Re-fetch each product
   and quote standard shipping with Printify. Store a private quote, return its rounded total
@@ -40,8 +45,10 @@ The API router serves these endpoints through the existing `Api` function:
 - `POST /api/shop/checkout`: accept the receipt in `Authorization: Bearer`; use only persisted
   quote details and total. Create a GBP, card-only Stripe Checkout Session with an order-specific
   idempotency key and a fixed one-hour expiry. Quote initiation expires after 30 minutes.
-  Browser-supplied totals, product descriptions and redirect URLs are not trusted.
-- `GET /api/shop/order`: receipt-authorised status, item summary, rounded total and reference.
+  Apply the same `merchandise` audience before accepting requests. Browser-supplied totals,
+  product descriptions and redirect URLs are not trusted.
+- `GET /api/shop/order`: receipt-authorised status, item summary, rounded total and reference;
+  require the configured `merchandise` audience as well.
   Do not return email, delivery address, provider credentials or other shoppers' orders.
 - `POST /api/shop/stripe-webhook`: raw-body HMAC validation, multiple v1 signature support,
   five-minute timestamp tolerance; only paid Checkout events can trigger fulfilment. Verify
@@ -68,9 +75,18 @@ error and return a retryable webhook response. Payment success is not inferred f
 
 `MERCH_CONFIG` is a non-secret JSON object containing:
 
+Feature audiences are configured through OpenTofu's `feature_access` map and also control the
+main navigation. OpenTofu assigns Firebase custom roles through `firebase_role_users`; add an
+early adopter with `early-adopter = ["account@example.org"]` after that account has signed in to
+the environment. Admin claims always bypass feature gates. Staging sets `merchandise = "public"`;
+production sets `merchandise = "admin,early-adopter"` until the public launch. Provider webhook
+callbacks are not gated by storefront audiences.
+
 - `enabled`, `shopId`, `baseUrl` (fixed HTTPS site origin).
-- `baseUrl` is the stable environment origin used for Stripe/Printify webhook registration and
-  canonical Printify product handles. Stripe Checkout success/cancel URLs must use the validated
+- `baseUrl` is the webhook origin used for Stripe/Printify registration and canonical Printify
+  product handles. Production uses its stable site origin. Staging uses the active Firebase PR
+  preview URL because staging has no stable storefront host; update the ignored staging JSON and
+  apply OpenTofu whenever that preview changes. Stripe Checkout success/cancel URLs must use the validated
   request `Origin`, so a payment started on a Firebase PR preview returns to that same preview
   (the private receipt lives in origin-scoped `sessionStorage`). Staging CI adds the current preview
   origin to `ALLOWED_ORIGINS`; never register provider webhooks against expiring preview URLs.
@@ -104,10 +120,19 @@ Preserve the existing production VIN pepper because it determines stored vehicle
 `MERCH_CONFIG_STAGING/PRODUCTION` and `MERCH_SECRETS_ENABLED_STAGING/PRODUCTION` GitHub environment
 variables. Secret bindings default off and must be enabled explicitly after secret versions exist.
 
-At initial implementation, the user supplied a local Printify token and has a custom-integration
-shop with a tote, T-shirt, car magnet and mug. The Stripe account's continued availability and
-Printify API currency factors are not yet confirmed. Live checkout must remain disabled until
-setup and end-to-end validation are complete. Never create sample orders as a read-only check.
+The user supplied a local Printify token and has a custom-integration shop with a tote, T-shirt,
+car magnet and mug. Staging uses Stripe test mode and must never submit paid test orders to
+Printify. Production live checkout remains disabled until its account, currency factors, seller
+details and end-to-end validation are reviewed. Never create sample live orders as a read-only
+check.
+
+For local configuration, copy `merchandise-config.example.json` to the ignored
+`merchandise-config.staging.json` or `merchandise-config.production.json`. Set the matching
+ignored tfvars `merchandise_config_file` to that filename. The root environment reads it with the
+`hashicorp/local` provider `local_file` data source (relative to `infra/opentofu/env`) and passes
+the non-secret JSON to the module. The JSON reaches OpenTofu state and the matching GitHub Actions
+environment variable; never place credentials or webhook secrets in it. The legacy direct
+`merchandise_config` JSON variable remains available for CI and non-file configurations.
 
 Use a separate staging Printify shop and Stripe test keys; Printify order submission/production
 can incur real charges even when a Stripe test payment is used. Disable fulfilment in staging
@@ -137,7 +162,8 @@ handle customer access/deletion requests via order email, separately from member
 Preserve Printify designs/source artwork, shop/product/variant configuration, provider webhook
 registrations, Stripe account settings and secret recovery material outside the repository.
 
-Add tests for guest access, receipt protection, malformed/oversized input, destination/quantity
+Add tests for staging public access, production early-adopter/admin gating, receipt protection,
+malformed/oversized input, destination/quantity
 validation, stale products, price tampering, GBP rounding boundaries, provider errors, signature
 forgery/replay, unpaid events, duplicate/ambiguous order handling and persisted session matching.
 Run `make test`, `make build`, `make dev` and `make test-visual`; inspect all desktop/mobile images,

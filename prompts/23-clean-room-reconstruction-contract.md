@@ -294,7 +294,7 @@ vehicle creation and vehicle editing. Keep United Kingdom as the default.
 
 | `GET /api/member-data` | Member | Return only that UID's private member snapshot. |
 | `GET /api/member-export?format=csv\|xlsx` | Member | Return a private no-store ZIP of five CSV datasets or a formatted six-sheet Excel workbook built from only that UID's account records and member experiences; omit internal IDs/hashes, private editorial data and storage object names, and neutralise spreadsheet formulas. |
-| `GET /api/member/features` | Member | Return booleans for recognised member-facing features after applying `all`, `off`, admin, or named Firebase-role access rules. The same decision must protect the feature's member APIs. |
+| `GET /api/member/features` | Public feature metadata | Accept an optional ID token and return booleans for configured features using `admin`, `early-adopter`, signed-in `all`, `public`/`anonymous`, and `off` audiences. Admins always bypass feature rules. Member-data APIs must still require sign-in and apply their feature rule server-side. |
 | `GET/POST /api/member/notifications` | Member | Return versioned notification IDs dismissed by that UID or store one validated dismissal. Survey IDs are survey-specific so new surveys remain visible. |
 | `GET/POST /api/member/stories` | Member | Return story eligibility and owned evidence records, save drafts, and submit a consented story linked only to the member's vehicle records. |
 | `POST /api/member/story-upload` and `/api/member/story-upload-complete` | Member | Reserve bounded private media, issue a short-lived upload URL, then verify and promote the object. |
@@ -444,10 +444,14 @@ rate-limited before the paid provider is called.
 The optional `SEED_NEXT_STEPS_SURVEY` flag creates the October survey automatically on the first
 authenticated survey access. `NEXT_STEPS_SURVEY_STATUS` is `published` in staging and `draft` in
 production, preserving an explicit production publication decision.
-`MEMBER_FEATURE_ACCESS` is a JSON object mapping recognised member features to `all`, `off`,
-or comma-separated Firebase roles. Staging sets `member-experiences` to `all`; production starts
-with `admin,member-experiences-preview`. Frontend visibility and member API authorization use
-the same server-resolved decision.
+`FEATURE_ACCESS` is a JSON object mapping feature names to comma-separated audiences: `admin`,
+`early-adopter`, `all` (signed-in), `public`/`anonymous`, or `off`. Admin claims bypass feature
+rules. OpenTofu manages named custom roles from `firebase_role_users`, preserving unrelated claims;
+users must exist in Firebase Auth before apply and refresh their token after role assignments.
+Staging sets `member-experiences` to `all` and `merchandise` to `public`. Production restricts
+both to `early-adopter` (admins always bypass). Main navigation and the storefront use the
+resolved feature response, and catalogue, quote, checkout and order-status endpoints enforce the
+Merchandise audience. Provider webhook endpoints remain accessible and signature-validated.
 Optional Instagram publishing additionally uses secret `INSTAGRAM_ACCESS_TOKEN` and non-secret
 `INSTAGRAM_USER_ID`, `INSTAGRAM_GRAPH_API_VERSION`, and `INSTAGRAM_MEDIA_BASE_URL`. Absence or
 invalidity must disable publishing while leaving local preview available.
@@ -724,19 +728,22 @@ reconstruction, not production disaster recovery.
 
 ## Public merchandise storefront
 
-`/shop/` and `/shop/terms/` implement the guest-accessible Merchandise page with Printify and
-Stripe hosted Checkout in GBP. Keep Merchandise as the public label and page title while
-preserving the existing `/shop/` and `/api/shop/` routes. `merchandise.js` handles catalogue
+`/shop/` and `/shop/terms/` implement the audience-gated Merchandise page with Printify and
+Stripe hosted Checkout in GBP. Staging configures `merchandise` as public; production limits
+access to admins and early adopters until launch. Keep Merchandise as the navigation label and
+page title while preserving `/shop/` and `/api/shop/`. `merchandise.js` handles catalogue
 variants/images, the basket above the catalogue, international
 delivery details, quotes, secure checkout redirects and private browser receipt status.
-There is no membership requirement. This is not intended for profit; surplus supports site
+Public orders require no membership. This is not intended for profit; surplus supports site
 running costs (currently around £30/month). Round every displayed merchandise price and final
 charge UP to `.49` or `.99`, using integer pence. Keep raw costs internal.
 
 API routes: `GET /api/shop/catalogue`, `POST /api/shop/quote`, `POST /api/shop/checkout`,
 `GET /api/shop/order`, `POST /api/shop/stripe-webhook`, `POST /api/shop/printify-webhook`.
-`merchandiseOrders` stores private guest orders, distinct from membership snapshots. Quote and
-checkout require an allowed Origin. Status/checkout require a random receipt bearer secret;
+Catalogue, quote, checkout and order-status routes enforce the configured `merchandise` audience;
+provider webhooks remain accessible and validate signatures. `merchandiseOrders` stores private
+orders, distinct from membership snapshots. Quote and checkout require an allowed Origin.
+Status/checkout require a random receipt bearer secret;
 provider webhooks require their own raw-body HMAC signatures. A signed paid Stripe event must
 match the saved session, shop, currency and total before Printify submission. Ambiguous provider
 submissions require operator reconciliation, never automatic duplicate creation.
@@ -753,32 +760,34 @@ credentials. It writes the Stripe endpoint signing secret and generated Printify
 directly to Secret Manager, never to OpenTofu state, plan output, logs or GitHub variables.
 `scripts/infra-env.sh` loads ignored repo-root `.env` for `make infra-apply` and selects provider
 API credentials suffixed for the chosen environment.
+The environment root supports `merchandise_config_file` for ignored per-environment JSON files,
+loaded with the `hashicorp/local` provider's `local_file` data source relative to
+`infra/opentofu/env`; the non-secret contents are passed to the shared module and therefore enter
+OpenTofu state. Keep credentials and webhook signing secrets out of these files.
 No live checkout until Stripe, currency factors, destination tax settings and seller details
 are configured and tested. New sales stop on pricing-review expiry; paid orders still process.
 See `prompts/22-merchandise-storefront.md` for the schema, complete setup/reconciliation runbook,
 retention, external design/account backups and acceptance tests. Use separate staging accounts;
 Stripe test payments must never unintentionally trigger real Printify fulfilment.
 
-Keep `MERCH_CONFIG.baseUrl` at the stable environment origin for provider webhook registrations
-and canonical Printify product URLs. For Stripe Checkout, derive success/cancel URLs from the
-validated request `Origin`; the shopper's receipt is in origin-scoped session storage and a PR
-preview payment must return to that same preview. Staging CI passes the active preview origin via
-`ALLOWED_ORIGINS`; never point provider webhooks at expiring Firebase preview channels.
+Use `MERCH_CONFIG.baseUrl` for provider webhook registrations and canonical Printify product URLs.
+Production uses its stable site origin. Staging has no stable storefront host, so configure the
+active Firebase PR preview URL and reapply OpenTofu when it changes. For Stripe Checkout, derive
+success/cancel URLs from the validated request `Origin`; the shopper's receipt is in origin-scoped
+session storage and a PR preview payment must return to that same preview. Staging CI passes the
+active preview origin via `ALLOWED_ORIGINS`.
 
 `MERCH_CONFIG.stripeLive` selects test/live payments and must match the Stripe secret key prefix
 and Checkout session livemode. Test payments are stored as `test-paid` and NEVER submitted to
 Printify. The storefront prominently labels test mode. Only explicitly configured live payments
 can create merchandise orders. Keep test/live Stripe endpoint signing secrets separate.
 
-The committed `src/_data/merchandisePreview.json` and `public/images/merchandise/*.jpg` show the
-four initial products when the live catalogue is unavailable. Preview cards have no add-to-basket
-action, variants, prices, delivery form, or ordering action. The page must state that orders and
-payments cannot be placed in that environment, instead of inviting shoppers into a dead-end
-preview basket or surfacing API errors. When the API returns live catalogue products, those
-products are authoritative for availability/options/prices; add-to-basket, delivery fields and
-ordering stay hidden or disabled until `checkoutEnabled` is true. When the first real item is added,
-focus the basket heading and provide a link back to the catalogue. Preserve the source
-Printify mockups and designs externally.
+The catalogue is fetched from the audience-gated API and is not embedded in the static page. If
+the configured audience denies access, show an early-access message and keep catalogue, basket,
+delivery and ordering controls hidden. When the API returns live products, they are authoritative
+for availability/options/prices; ordering stays hidden or disabled until `checkoutEnabled` is
+true. When the first real item is added, focus the basket heading and provide a link back to the
+catalogue. Preserve the source Printify mockups and designs externally.
 
 Subscribe the Printify webhook to product create/update/delete and `product:publish:started`
 as well as order events. Product events invalidate the short catalogue cache. Verified publish

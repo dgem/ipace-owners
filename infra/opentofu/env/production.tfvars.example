@@ -8,8 +8,13 @@ campaign_media_work_retention_days = 30
 # before enabling. Keep the token itself out of tfvars and OpenTofu state.
 instagram_publishing_enabled = false
 
-member_feature_access = {
-  member-experiences = "admin,member-experiences-preview"
+feature_access = {
+  member-experiences = "early-adopter"
+  merchandise        = "admin,early-adopter"
+}
+
+firebase_role_users = {
+  early-adopter = []
 }
 # instagram_user_id          = "17841400000000000"
 # instagram_graph_api_version = "vNN.0"
@@ -76,9 +81,5 @@ manage_github_actions = true
 merchandise_config          = "{}"
 merchandise_secrets_enabled = false
 # For local setup, copy merchandise-config.example.json to the ignored
-# merchandise-config.production.json and set merchandise_config = file("merchandise-config.production.json").
-
-# A local apply creates or rotates versions from any exported VIN_PEPPER,
-# RESEND_API_KEY, IDEAL_POSTCODES_API_KEY, INSTAGRAM_ACCESS_TOKEN, or merchandise
-# secret value loaded from the ignored repo-root .env. Values are added to Secret
-# Manager and never enter OpenTofu state.
+# merchandise-config.production.json and set merchandise_config_file to its path.
+# merchandise_config_file = "merchandise-config.production.json"

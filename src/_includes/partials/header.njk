@@ -24,6 +24,7 @@
               href="{{ item.url }}"
               class="site-nav__link"
               data-nav-link
+              {% if item.feature %}data-member-feature="{{ item.feature }}" hidden{% endif %}
               {% if item.launchVisible == false %}data-site-mode-only="full"{% endif %}
             >{{ item.label }}</a>
           {% endif %}

@@ -34,11 +34,13 @@ values.INSTAGRAM_MEDIA_BASE_URL = process.env.INSTAGRAM_MEDIA_BASE_URL || "";
 values.CAMPAIGN_MEDIA_BUCKET = process.env.CAMPAIGN_MEDIA_BUCKET || "";
 values.MEMBER_STORY_MEDIA_BUCKET = process.env.MEMBER_STORY_MEDIA_BUCKET || "";
 try {
-  const featureAccess = JSON.parse(process.env.MEMBER_FEATURE_ACCESS || "{}");
+  const featureAccess = JSON.parse(process.env.FEATURE_ACCESS || process.env.MEMBER_FEATURE_ACCESS || "{}");
   if (!featureAccess || Array.isArray(featureAccess) || typeof featureAccess !== "object") throw new Error();
+  values.FEATURE_ACCESS = JSON.stringify(featureAccess);
+  // Retain the old name while deployments roll forward from existing settings.
   values.MEMBER_FEATURE_ACCESS = JSON.stringify(featureAccess);
 } catch {
-  throw new Error("MEMBER_FEATURE_ACCESS must be a JSON object");
+  throw new Error("FEATURE_ACCESS must be a JSON object");
 }
 values.VEO_LOCATION = process.env.VEO_LOCATION || "";
 values.VEO_MODEL_ID = process.env.VEO_MODEL_ID || "";

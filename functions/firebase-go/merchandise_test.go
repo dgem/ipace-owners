@@ -20,6 +20,8 @@ import (
 
 func merchTestConfig(t *testing.T) merchConfig {
 	t.Helper()
+	t.Setenv("FEATURE_ACCESS", `{"merchandise":"public"}`)
+	t.Setenv("MEMBER_FEATURE_ACCESS", "")
 	c := merchConfig{Enabled: true, ShopID: "123", BaseURL: "https://shop.example", CostToGBP: 800000, ShippingToGBP: 800000, FeeBPS: 300, FeeFixed: 20, ReviewedUntil: time.Now().Add(24 * time.Hour), Countries: map[string]merchCountry{"GB": {Name: "United Kingdom", SupplierTaxBPS: 2000}, "AU": {Name: "Australia", SupplierTaxBPS: 1000}}, TermsReviewed: true, SellerName: "Example seller", SellerAddress: "Example postal address"}
 	data, _ := json.Marshal(c)
 	t.Setenv("MERCH_CONFIG", string(data))
@@ -29,6 +31,32 @@ func merchTestConfig(t *testing.T) merchConfig {
 	t.Setenv("PRINTIFY_WEBHOOK_SECRET", "printify-signing")
 	t.Setenv("ALLOWED_ORIGINS", "https://shop.example")
 	return c
+}
+
+func TestMerchandiseAudienceGateBlocksUnauthenticatedProductionAccess(t *testing.T) {
+	t.Setenv("FEATURE_ACCESS", `{"merchandise":"admin,early-adopter"}`)
+	t.Setenv("ALLOWED_ORIGINS", "https://shop.example")
+	req := httptest.NewRequest(http.MethodGet, "/api/shop", nil)
+	res := httptest.NewRecorder()
+	MerchandiseCatalogue(res, req)
+	if res.Code != http.StatusNotFound {
+		t.Fatalf("unauthenticated catalogue request got %d: %s", res.Code, res.Body)
+	}
+	for _, handler := range []http.HandlerFunc{MerchandiseQuote, MerchandiseCheckout} {
+		req := httptest.NewRequest(http.MethodPost, "/api/shop", strings.NewReader(`{}`))
+		req.Header.Set("Origin", "https://shop.example")
+		res := httptest.NewRecorder()
+		handler(res, req)
+		if res.Code != http.StatusNotFound {
+			t.Fatalf("unauthenticated order request got %d: %s", res.Code, res.Body)
+		}
+	}
+	req = httptest.NewRequest(http.MethodGet, "/api/shop/order", nil)
+	res = httptest.NewRecorder()
+	MerchandiseOrder(res, req)
+	if res.Code != http.StatusNotFound {
+		t.Fatalf("unauthenticated order-status request got %d: %s", res.Code, res.Body)
+	}
 }
 func merchTestRequest() merchQuoteRequest {
 	return merchQuoteRequest{Lines: []merchLine{{ProductID: strings.Repeat("a", 24), VariantID: 10, Quantity: 2}}, Address: merchAddress{FirstName: "Test", LastName: "Shopper", Email: "shopper@example.com", Country: "GB", Address1: "1 Example Road", City: "London", Zip: "SW1A 1AA"}, Terms: true}

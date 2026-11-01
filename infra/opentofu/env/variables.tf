@@ -122,8 +122,20 @@ variable "allowed_origins" {
 }
 
 variable "member_feature_access" {
-  description = "Member frontend feature access rules: all, off, or comma-separated Firebase roles."
+  description = "Deprecated alias for feature_access, retained for existing local tfvars files."
   type        = map(string)
+  default     = {}
+}
+
+variable "feature_access" {
+  description = "Feature audience rules: admin, early-adopter, all (signed-in), public, or off."
+  type        = map(string)
+  default     = {}
+}
+
+variable "firebase_role_users" {
+  description = "Firebase custom role names mapped to email addresses assigned each role. OpenTofu manages only roles listed here."
+  type        = map(list(string))
   default     = {}
 }
 
@@ -250,6 +262,12 @@ variable "merchandise_config" {
     condition     = can(jsondecode(var.merchandise_config))
     error_message = "merchandise_config must be valid JSON. Never put provider credentials or webhook signing secrets in this value."
   }
+}
+
+variable "merchandise_config_file" {
+  description = "Optional local JSON file containing non-secret merchandise configuration. Use this for ignored per-environment config files."
+  type        = string
+  default     = ""
 }
 
 variable "merchandise_secrets_enabled" {

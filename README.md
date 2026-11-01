@@ -920,15 +920,39 @@ when authentication succeeds.
 Disabling `manage_firebase_admins` stops reconciliation but does not revoke existing claims.
 Remove unwanted administrators from the map and apply before disabling management.
 
+The same OpenTofu reconciliation can assign named Firebase custom roles to invited accounts.
+Users must have completed sign-in in that Firebase environment before apply:
+
+```hcl
+firebase_role_users = {
+  early-adopter = ["preview-user@example.org"]
+}
+```
+
+Role maps are environment-specific. OpenTofu manages only the role names listed in this map,
+preserves unrelated claims, and removes a managed role from users no longer listed. After an
+assignment changes, the user should sign out and back in to refresh their ID token.
+
 ---
 
 ## Known limitations
 
-Member-facing releases can be staged with the non-secret `MEMBER_FEATURE_ACCESS` JSON object.
-Rules accept `all`, `off`, `admin`, or comma-separated Firebase custom roles. Staging enables
-`member-experiences` for all members; production initially limits it to admins and the
-`member-experiences-preview` role. Functions enforce the same rule as the browser through
-`GET /api/member/features`. Versioned member callout dismissals are read and saved through
+Feature audiences are configured per environment through the non-secret `feature_access` map
+(sent to Functions as `FEATURE_ACCESS`). Comma-separated values combine access groups: `admin`,
+`early-adopter`, `all` (any signed-in user), `public` / `anonymous` (signed-in or not), and `off`.
+Administrators always bypass feature rules. OpenTofu-managed early adopters receive the
+`early-adopter` value in the Firebase token's `roles` claim. Staging makes Merchandise public
+for preview; production gates it to admins and early adopters until launch. The storefront
+catalogue, quote, checkout, and order-status APIs enforce the same audience. Stripe and Printify
+webhook callbacks remain public for provider delivery and validate their signatures separately.
+When production is ready to open, change `feature_access.merchandise` to `public` and apply the
+production environment; keep `member-experiences` on its own audience rule.
+
+Member Experiences remains a signed-in feature: production limits it to admins and early
+adopters, while staging enables it for all members. The feature discovery endpoint
+`GET /api/member/features` accepts an optional token so public features can be discovered by
+anonymous visitors. Member data APIs continue to require authentication and enforce feature
+access server-side. Versioned member callout dismissals are read and saved through
 `GET/POST /api/member/notifications` so they follow the signed-in member across devices.
 
 The following features are **not yet implemented** in this version:
@@ -1157,18 +1181,21 @@ charts and frozen headers are preserved; the security audit remains enabled.
 
 ## Public merchandise storefront
 
-`/shop/` and `/shop/terms/` implement the guest-accessible Merchandise page with Printify and
+`/shop/` and `/shop/terms/` implement the audience-gated Merchandise page with Printify and
 Stripe hosted Checkout in GBP. The customer-facing navigation and page title use Merchandise.
 `merchandise.js` handles catalogue variants/images, basket above the catalogue, international
 delivery details, quotes, secure checkout redirects and private browser receipt status.
-There is no membership requirement. This is not intended for profit; surplus supports site
+Staging allows anonymous preview and ordering; production limits access to admins and early
+adopters until launch. Public orders will not require membership. This is not intended for profit; surplus supports site
 running costs (currently around £30/month). Round every displayed merchandise price and final
 charge UP to `.49` or `.99`, using integer pence. Keep raw costs internal.
 
 API routes: `GET /api/shop/catalogue`, `POST /api/shop/quote`, `POST /api/shop/checkout`,
 `GET /api/shop/order`, `POST /api/shop/stripe-webhook`, `POST /api/shop/printify-webhook`.
-`merchandiseOrders` stores private guest orders, distinct from membership snapshots. Quote and
-checkout require an allowed Origin. Status/checkout require a random receipt bearer secret;
+Catalogue, quote, checkout and order-status routes enforce the `merchandise` feature audience.
+Provider webhooks remain accessible and validate signatures. `merchandiseOrders` stores private
+orders, distinct from membership snapshots. Quote and checkout require an allowed Origin.
+Status/checkout require a random receipt bearer secret;
 provider webhooks require their own raw-body HMAC signatures. A signed paid Stripe event must
 match the saved session, shop, currency and total before Printify submission. Ambiguous provider
 submissions require operator reconciliation, never automatic duplicate creation.
@@ -1194,21 +1221,25 @@ and Checkout session livemode. Test payments are stored as `test-paid` and NEVER
 Printify. The storefront prominently labels test mode. Only explicitly configured live payments
 can create merchandise orders. Keep test/live Stripe endpoint signing secrets separate.
 
-`MERCH_CONFIG.baseUrl` is the stable HTTPS origin for that environment. OpenTofu registers
-Stripe and Printify webhook endpoints there, and Printify product handles use it as their canonical
-shop URL. Stripe Checkout success/cancel redirects instead use the validated request `Origin`, so
-customers return to the exact Firebase PR preview that started checkout. The staging workflow
-allows the current preview origin dynamically; preview URLs must not be used as provider webhook
-destinations because they expire. Keep the `baseUrl` stable (for example, `https://stage.ipace-owners.org`)
-while CI supplies each preview origin through `ALLOWED_ORIGINS`.
+`MERCH_CONFIG.baseUrl` is the HTTPS origin used for Stripe/Printify webhooks and Printify product
+handles. Production uses its stable site origin. Staging uses the active Firebase PR preview URL,
+because staging has no stable storefront host; read it from the deployment workflow and update the
+ignored staging JSON before applying OpenTofu whenever the active preview changes. Stripe Checkout
+success/cancel redirects still use the validated request `Origin`, so customers return to the exact
+preview that started checkout. CI also allows that preview origin dynamically through
+`ALLOWED_ORIGINS`.
 
 Start configuration from `infra/opentofu/env/merchandise-config.example.json`. Its zero rates,
 blank seller/shop fields, expired review and disabled switches deliberately prevent checkout;
 they are placeholders, not recommended exchange rates, payment fees or tax treatment. Set
-`merchandise_config` in the ignored environment tfvars file to the reviewed JSON object. For
+`merchandise_config_file` in the ignored environment tfvars file to the reviewed JSON file. For
 example, copy it to the ignored `merchandise-config.staging.json`, edit the reviewed values, and
-set `merchandise_config = file("merchandise-config.staging.json")` in `staging.tfvars`; use
-`merchandise-config.production.json` from `production.tfvars` for live configuration.
+set `merchandise_config_file = "merchandise-config.staging.json"` in `staging.tfvars`; use
+`merchandise-config.production.json` from `production.tfvars` for live configuration. The root
+OpenTofu environment reads the file through the `hashicorp/local` provider's `local_file` data
+source; the file path is relative to `infra/opentofu/env`. Its non-secret JSON content is passed
+to the shared module and recorded in OpenTofu/GitHub Actions configuration, so keep credentials
+and webhook secrets out of this file.
 `merchandise_secrets_enabled` defaults to false and must be explicitly enabled for that environment
 after its four Secret Manager versions are present. `stripeLive: false` requires an `sk_test_` key;
 `stripeLive: true` requires an `sk_live_` key. The fixed webhook URLs are

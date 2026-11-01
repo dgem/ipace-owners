@@ -45,7 +45,7 @@ Build a member-experience workflow that turns personal experience into consented
 ## Security and infrastructure
 
 - Verify Firebase ID tokens server-side for member APIs and admin claims for editorial APIs.
-- Resolve member-facing feature access through an authenticated API and enforce the same rule on the protected feature APIs. Support `all`, `off`, `admin`, and future Firebase role names. Staging exposes member experiences to all members; production initially exposes authoring only to admins and the `member-experiences-preview` role.
+- Resolve feature audiences through an API that accepts an optional Firebase ID token. Admin claims always bypass gates; `early-adopter` is a Firebase role managed by OpenTofu; `all` means any signed-in user; `public`/`anonymous` means signed-in or not. Keep member story APIs authenticated and enforce feature access server-side. Staging exposes member experiences to all members; production limits them to admins and early adopters.
 - Permit `blob:` only for CSP image and media sources so selected local files can be previewed before upload; do not allow blob scripts or a general blob default source.
 - Use a dedicated private, versioned member-story media bucket with public access prevention and CORS limited to configured site origins.
 - Give the runtime service account object access and self `signBlob` permission for signed URLs; pass its email as the non-secret `STORAGE_SIGNING_SERVICE_ACCOUNT` runtime setting and do not store a signing key.

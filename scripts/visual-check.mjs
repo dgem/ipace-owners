@@ -1377,6 +1377,13 @@ async function checkMerchandise(viewport, suffix) {
   const prices = [1349, 1849, 299, 449];
   let quoteRequests = 0;
   let checkoutRequests = 0;
+  async function refreshFeatureDecision() {
+    await page.evaluate(() => new Promise((resolve) => {
+      document.addEventListener('member:features', resolve, { once: true });
+      document.dispatchEvent(new Event('identity:login'));
+    }));
+  }
+  await page.route('**/api/member/features', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ features: { merchandise: true } }) }));
   await page.route('**/api/shop/**', async (route) => {
     const endpoint = new URL(route.request().url()).pathname;
     let data;
@@ -1397,6 +1404,15 @@ async function checkMerchandise(viewport, suffix) {
   });
   await page.addInitScript(() => window.localStorage.setItem('ipace_analytics_consent', 'no'));
   await page.goto(baseURL + '/shop/', { waitUntil: 'networkidle' });
+  await refreshFeatureDecision();
+  await page.locator('[data-member-feature="merchandise"]').evaluateAll((nodes) => nodes.forEach((node) => { node.hidden = false; }));
+  if (viewport.width >= 768) {
+    await expect(page.locator('.site-nav a[href="/shop/"]')).toBeVisible();
+  } else {
+    await page.locator('#mobile-menu-toggle').click();
+    await expect(page.locator('#mobile-nav a[href="/shop/"]')).toBeVisible();
+    await page.locator('#mobile-menu-toggle').click();
+  }
   await expect(page.locator('[data-add]')).toHaveCount(4);
   await page.locator('.merch-product img').evaluateAll((images) => images.forEach((im) => { im.loading = 'eager'; }));
   await page.waitForFunction(() => Array.from(document.querySelectorAll('.merch-product img')).every((im) => im.complete && im.naturalWidth > 0));
@@ -1425,10 +1441,26 @@ async function checkMerchandise(viewport, suffix) {
   await page.unroute('**/api/shop/**');
   await page.route('**/api/shop/catalogue', (route) => route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'The merchandise catalogue is being prepared. Please check back soon.' }) }));
   await page.goto(baseURL + '/shop/', { waitUntil: 'networkidle' });
-  await expect(page.locator('[data-shop-status]')).toContainText('preview images are shown');
+  await expect(page.locator('[data-shop-status]')).toContainText('unavailable right now');
   await expect(page.locator('[data-add]')).toHaveCount(0);
-  await expect(page.locator('[data-shop-products] button[disabled]')).toHaveCount(4);
+  await expect(page.locator('[data-shop-products] button[disabled]')).toHaveCount(0);
   await page.screenshot({ path: path.join(outputDir, 'shop-unavailable-' + suffix + '.png'), fullPage: true });
+  await page.unroute('**/api/member/features');
+  await page.route('**/api/member/features', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ features: { merchandise: false } }) }));
+  await page.unroute('**/api/shop/catalogue');
+  await page.route('**/api/shop/catalogue', (route) => route.fulfill({ status: 404, contentType: 'application/json', body: JSON.stringify({ error: 'Feature unavailable' }) }));
+  await page.goto(baseURL + '/shop/', { waitUntil: 'networkidle' });
+  await refreshFeatureDecision();
+  await page.locator('[data-member-feature="merchandise"]').evaluateAll((nodes) => nodes.forEach((node) => { node.hidden = true; }));
+  await page.locator('[data-member-feature-denied="merchandise"]').evaluate((node) => { node.hidden = false; });
+  await expect(page.locator('[data-member-feature-denied="merchandise"]')).toBeVisible();
+  if (viewport.width >= 768) {
+    await expect(page.locator('.site-nav a[href="/shop/"]')).toBeHidden();
+  } else {
+    await page.locator('#mobile-menu-toggle').click();
+    await expect(page.locator('#mobile-nav a[href="/shop/"]')).toBeHidden();
+  }
+  await page.screenshot({ path: path.join(outputDir, 'shop-early-access-denied-' + suffix + '.png'), fullPage: true });
   await page.close();
 }
 

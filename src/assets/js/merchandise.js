@@ -11,7 +11,12 @@
   function esc(value) { var node = document.createElement('span'); node.textContent = String(value == null ? '' : value); return node.innerHTML; }
   function money(pence) { return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(pence / 100); }
   function api(path, options) {
-    return fetch('/api/shop/' + path, options).then(function (response) {
+    options = options || {};
+    options.headers = Object.assign({}, options.headers || {});
+    return Promise.resolve(window.ipaceGetIdentityToken ? window.ipaceGetIdentityToken() : '').then(function (idToken) {
+      if (idToken) options.headers['X-Firebase-ID-Token'] = idToken;
+      return fetch('/api/shop/' + path, options);
+    }).then(function (response) {
       return response.json().then(function (data) { if (!response.ok) throw new Error(data.error || 'Merchandise is temporarily unavailable. Please try again.'); return data; });
     });
   }
@@ -31,13 +36,6 @@
       var action = ready && !p.preview ? '<button type="button" class="btn btn--primary" data-add="' + i + '">Add to basket</button>' : '<button type="button" class="btn btn--primary" disabled>Ordering unavailable</button>';
       return '<article class="card merch-product" id="product-' + esc(p.id) + '">' + (image ? '<img src="' + esc(image.src) + '" alt="' + esc(p.title) + '" loading="lazy" width="600" height="600">' : '') + '<div class="merch-product__body stack"><h2>' + esc(p.title) + '</h2>' + details + action + '</div></article>';
     }).join('');
-  }
-  function usePreviewProducts() {
-    products = Array.from(root.querySelectorAll('[data-shop-products] .merch-product')).map(function (card, i) {
-      var image = card.querySelector('img');
-      return { id: image ? image.getAttribute('src').split('/').pop().replace(/\.jpg$/, '') : 'preview-' + i, title: card.querySelector('h2').textContent.trim(), description: '', images: image ? [{ src: image.getAttribute('src') }] : [], variants: [{ id: 0, title: 'Options and pricing being prepared', productionPrice: 0 }], preview: true };
-    });
-    renderProducts();
   }
   root.addEventListener('click', function (event) {
     var add = event.target.closest('[data-add]'), remove = event.target.closest('[data-remove]');
@@ -107,20 +105,23 @@
     }).catch(function (error) { panel.textContent = error.message; });
   }
   if (new URLSearchParams(window.location.search).has('order')) loadOrder();
-  api('catalogue').then(function (data) {
-    products = data.products; ready = data.checkoutEnabled;
-    form.hidden = !ready;
-    checkoutNote.hidden = ready;
-    root.querySelector('[data-shop-basket-note]').textContent = ready ? 'Prices are in GBP. Product prices show the starting production price; your final delivered price includes delivery, supplier tax and payment costs. We round prices up to the nearest .49 or .99. Your bank may charge currency-conversion fees.' : 'Ordering is unavailable until checkout is enabled for this environment.';
-    root.querySelector('[data-shop-seller]').textContent = data.sellerName && data.sellerAddress ? 'Seller: ' + data.sellerName + ' — ' + data.sellerAddress : '';
-    var countries = form.querySelector('[name="country"]');
-    data.countries.forEach(function (country) { var option = document.createElement('option'); option.value = country.code; option.textContent = country.name; countries.appendChild(option); });
-    root.querySelector('[data-shop-test]').hidden = !data.testMode;
-    renderProducts(); status.textContent = ready ? (products.length ? 'Choose your merchandise below. No sign-in needed.' : 'New merchandise is on its way. Please check back soon.') : 'Merchandise is available to browse, but checkout is not enabled here yet.';
-    if (new URLSearchParams(window.location.search).has('cancelled')) status.textContent = 'Checkout was cancelled. You can choose your merchandise again when you are ready.';
-  }).catch(function () {
-    ready = false; form.hidden = true; checkoutNote.hidden = false;
-    usePreviewProducts();
-    status.textContent = 'The live catalogue is unavailable; preview images are shown below.';
-  });
+  function loadCatalogue() {
+    api('catalogue').then(function (data) {
+      products = data.products; ready = data.checkoutEnabled;
+      form.hidden = !ready;
+      checkoutNote.hidden = ready;
+      root.querySelector('[data-shop-basket-note]').textContent = ready ? 'Prices are in GBP. Product prices show the starting production price; your final delivered price includes delivery, supplier tax and payment costs. We round prices up to the nearest .49 or .99. Your bank may charge currency-conversion fees.' : 'Ordering is unavailable until checkout is enabled for this environment.';
+      root.querySelector('[data-shop-seller]').textContent = data.sellerName && data.sellerAddress ? 'Seller: ' + data.sellerName + ' — ' + data.sellerAddress : '';
+      var countries = form.querySelector('[name="country"]');
+      data.countries.forEach(function (country) { var option = document.createElement('option'); option.value = country.code; option.textContent = country.name; countries.appendChild(option); });
+      root.querySelector('[data-shop-test]').hidden = !data.testMode;
+      renderProducts(); status.textContent = ready ? (products.length ? 'Choose your merchandise below.' : 'New merchandise is on its way. Please check back soon.') : 'Merchandise is available to browse, but checkout is not enabled here yet.';
+      if (new URLSearchParams(window.location.search).has('cancelled')) status.textContent = 'Checkout was cancelled. You can choose your merchandise again when you are ready.';
+    }).catch(function () {
+      ready = false; form.hidden = true; checkoutNote.hidden = false;
+      status.textContent = 'Merchandise is unavailable right now. Please try again later.';
+    });
+  }
+  document.addEventListener('identity:login', loadCatalogue);
+  loadCatalogue();
 }());

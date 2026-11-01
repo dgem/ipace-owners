@@ -18,5 +18,9 @@ terraform {
       source  = "y0n0zawa/resend"
       version = "~> 1.0"
     }
+    local = {
+      source  = "hashicorp/local"
+      version = "~> 2.5"
+    }
   }
 }

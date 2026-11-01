@@ -30,6 +30,7 @@ test("writes function env vars as JSON without splitting comma-separated origins
       INSTAGRAM_MEDIA_BASE_URL: "https://stage.ipace-owners.org",
       CAMPAIGN_MEDIA_BUCKET: "ipace-owners-staging-campaign-media",
       MEMBER_STORY_MEDIA_BUCKET: "ipace-owners-staging-member-story-media",
+      FEATURE_ACCESS: '{"member-experiences":"all"}',
       MEMBER_FEATURE_ACCESS: '{"member-experiences":"all"}',
       VEO_LOCATION: "global",
       VEO_MODEL_ID: "veo-3.1-generate-001",
@@ -56,6 +57,7 @@ test("writes function env vars as JSON without splitting comma-separated origins
     INSTAGRAM_MEDIA_BASE_URL: "https://stage.ipace-owners.org",
     CAMPAIGN_MEDIA_BUCKET: "ipace-owners-staging-campaign-media",
     MEMBER_STORY_MEDIA_BUCKET: "ipace-owners-staging-member-story-media",
+    FEATURE_ACCESS: '{"member-experiences":"all"}',
     MEMBER_FEATURE_ACCESS: '{"member-experiences":"all"}',
     VEO_LOCATION: "global",
     VEO_MODEL_ID: "veo-3.1-generate-001",
@@ -115,6 +117,7 @@ test("derives the database ID while leaving the preview link domain unset", () =
   assert.equal(written.INSTAGRAM_GRAPH_API_VERSION, "");
   assert.equal(written.INSTAGRAM_MEDIA_BASE_URL, "");
   assert.equal(written.CAMPAIGN_MEDIA_BUCKET, "");
+  assert.equal(written.FEATURE_ACCESS, "{}");
   assert.equal(written.MEMBER_FEATURE_ACCESS, "{}");
   assert.equal(written.VEO_LOCATION, "");
   assert.equal(written.VEO_MODEL_ID, "");

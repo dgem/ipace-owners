@@ -11,6 +11,7 @@ locals {
   firebase_auth_email_action_domain = var.firebase_auth_email_action_domain != "" ? var.firebase_auth_email_action_domain : local.email_continue_host
   firebase_auth_email_script        = abspath("${path.module}/../../../../scripts/configure-firebase-auth-email.mjs")
   firebase_admins_script            = abspath("${path.module}/../../../../scripts/reconcile-firebase-admins.mjs")
+  firebase_role_users               = var.firebase_role_users
   firebase_admin_users = merge(var.firebase_admin_users, {
     dan = "dan@kanzi.co.uk"
   })
@@ -164,6 +165,7 @@ resource "terraform_data" "firebase_admins" {
   triggers_replace = [
     var.project_id,
     jsonencode(local.firebase_admin_users),
+    jsonencode(local.firebase_role_users),
     filesha256(local.firebase_admins_script),
   ]
 
@@ -173,6 +175,7 @@ resource "terraform_data" "firebase_admins" {
     environment = {
       GCP_PROJECT_ID            = var.project_id
       FIREBASE_ADMIN_USERS_JSON = jsonencode(local.firebase_admin_users)
+      FIREBASE_ROLE_USERS_JSON  = jsonencode(local.firebase_role_users)
     }
   }
 

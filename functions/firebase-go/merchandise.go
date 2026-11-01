@@ -257,6 +257,9 @@ func MerchandiseCatalogue(w http.ResponseWriter, r *http.Request) {
 	if !merchPublicRequest(w, r, http.MethodGet) {
 		return
 	}
+	if !requireFeatureAudience(w, r, "merchandise") {
+		return
+	}
 	c, err := loadMerchConfig()
 	if err != nil {
 		writeJSON(w, 503, map[string]any{"error": "The merchandise catalogue is being prepared. Please check back soon."})
@@ -365,6 +368,9 @@ func MerchandiseQuote(w http.ResponseWriter, r *http.Request) {
 	if !merchPublicRequest(w, r, http.MethodPost) {
 		return
 	}
+	if !requireFeatureAudience(w, r, "merchandise") {
+		return
+	}
 	c, err := loadMerchConfig()
 	if err != nil || !merchReady(c) || !c.TermsReviewed || c.SellerName == "" || c.SellerAddress == "" {
 		writeJSON(w, 503, map[string]any{"error": "Checkout is not available yet."})
@@ -460,6 +466,9 @@ func MerchandiseCheckout(w http.ResponseWriter, r *http.Request) {
 	if !merchPublicRequest(w, r, http.MethodPost) {
 		return
 	}
+	if !requireFeatureAudience(w, r, "merchandise") {
+		return
+	}
 	returnOrigin, err := merchCheckoutReturnOrigin(r)
 	if err != nil {
 		writeJSON(w, http.StatusForbidden, map[string]string{"error": "Checkout origin is invalid."})
@@ -517,6 +526,9 @@ func merchCheckoutReturnOrigin(r *http.Request) (string, error) {
 
 func MerchandiseOrder(w http.ResponseWriter, r *http.Request) {
 	if !merchPublicRequest(w, r, http.MethodGet) {
+		return
+	}
+	if !requireFeatureAudience(w, r, "merchandise") {
 		return
 	}
 	_, o, err := merchReceiptOrder(r)

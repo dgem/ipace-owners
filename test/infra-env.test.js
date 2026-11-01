@@ -98,6 +98,10 @@ test('OpenTofu owns merchandise deployment variables without taking provider sec
   assert.match(actions, /"MERCH_CONFIG_\$\{local\.github_actions_suffix\}"\s*=\s*var\.merchandise_config/);
   assert.match(actions, /"MERCH_SECRETS_ENABLED_\$\{local\.github_actions_suffix\}"\s*=\s*tostring\(var\.merchandise_secrets_enabled\)/);
   assert.match(envVariables, /variable "merchandise_config"/);
+  assert.match(envVariables, /variable "merchandise_config_file"/);
+  assert.match(readFileSync(resolve(repoRoot, 'infra/opentofu/env/main.tf'), 'utf8'), /data "local_file" "merchandise_config"/);
+  assert.match(readFileSync(resolve(repoRoot, 'infra/opentofu/env/staging.tfvars.example'), 'utf8'), /merchandise_config_file\s*=\s*"merchandise-config\.staging\.json"/);
+  assert.match(readFileSync(resolve(repoRoot, 'infra/opentofu/env/production.tfvars.example'), 'utf8'), /merchandise_config_file\s*=\s*"merchandise-config\.production\.json"/);
   assert.match(envVariables, /variable "merchandise_secrets_enabled"/);
   assert.match(moduleVariables, /Never put provider credentials or webhook signing secrets in this value/);
   assert.match(ignore, /merchandise-config\.staging\.json/);

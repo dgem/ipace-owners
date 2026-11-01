@@ -46,9 +46,15 @@ func TestPrintifyWebhookReconcileCreatesAndUpdatesSubscriptions(t *testing.T) {
 			installed[webhook.Topic] = webhook
 			_ = json.NewEncoder(w).Encode(webhook)
 		case http.MethodPut:
+			if !strings.HasPrefix(r.URL.Path, "/v1/shops/42/webhooks/") || strings.Contains(r.URL.Path, "webhooks.json/") {
+				t.Errorf("unexpected webhook update path: %s", r.URL.Path)
+			}
 			var webhook printifyWebhook
 			if err := json.NewDecoder(r.Body).Decode(&webhook); err != nil {
 				t.Error(err)
+			}
+			if webhook.Secret != "" {
+				t.Errorf("webhook update unexpectedly attempted to change the signing secret")
 			}
 			id := strings.TrimSuffix(strings.TrimPrefix(r.URL.Path, "/v1/shops/42/webhooks/"), ".json")
 			for topic, prior := range installed {
@@ -86,8 +92,14 @@ func TestPrintifyWebhookReconcileCreatesAndUpdatesSubscriptions(t *testing.T) {
 	if err := reconcilePrintify(context.Background(), client, server.URL+"/v1", "printify-test-token", "42", "https://shop.example/api/shop/printify-webhook", secrets); err != nil {
 		t.Fatal(err)
 	}
-	if methods[http.MethodPost] != len(printifyEvents) || methods[http.MethodPut] != len(printifyEvents) {
+	if methods[http.MethodPost] != len(printifyEvents) || methods[http.MethodPut] != 0 {
 		t.Fatalf("second reconcile was not idempotent: POST=%d PUT=%d", methods[http.MethodPost], methods[http.MethodPut])
+	}
+	if err := reconcilePrintify(context.Background(), client, server.URL+"/v1", "printify-test-token", "42", "https://new-shop.example/api/shop/printify-webhook", secrets); err != nil {
+		t.Fatal(err)
+	}
+	if methods[http.MethodPost] != len(printifyEvents) || methods[http.MethodPut] != len(printifyEvents) {
+		t.Fatalf("URL changes were not reconciled: POST=%d PUT=%d", methods[http.MethodPost], methods[http.MethodPut])
 	}
 }
 

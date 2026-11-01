@@ -308,7 +308,8 @@ func reconcilePrintify(ctx context.Context, client *http.Client, apiBase, token,
 		return err
 	}
 	var installed []printifyWebhook
-	endpoint := apiBase + "/shops/" + url.PathEscape(shopID) + "/webhooks.json"
+	webhooksEndpoint := apiBase + "/shops/" + url.PathEscape(shopID) + "/webhooks"
+	endpoint := webhooksEndpoint + ".json"
 	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
 	req.Header.Set("Authorization", "Bearer "+token)
 	if err := doJSON(client, req, &installed); err != nil {
@@ -317,20 +318,22 @@ func reconcilePrintify(ctx context.Context, client *http.Client, apiBase, token,
 	for _, topic := range printifyEvents {
 		found := false
 		for _, webhook := range installed {
-			if webhook.Topic == topic && webhook.URL == endpointURL {
+			if webhook.Topic == topic {
 				found = true
 				if webhook.ID == "" {
 					return errors.New("Printify returned a webhook without an ID")
 				}
-				if err := writePrintifyWebhook(ctx, client, http.MethodPut, endpoint+"/"+url.PathEscape(webhook.ID)+".json", token, printifyWebhook{URL: endpointURL, Secret: string(secret)}); err != nil {
-					return errors.New("could not update a Printify webhook")
+				if webhook.URL != endpointURL {
+					if err := writePrintifyWebhook(ctx, client, http.MethodPut, webhooksEndpoint+"/"+url.PathEscape(webhook.ID)+".json", token, printifyWebhook{URL: endpointURL}); err != nil {
+						return fmt.Errorf("could not update a Printify webhook: %w", err)
+					}
 				}
 				break
 			}
 		}
 		if !found {
 			if err := writePrintifyWebhook(ctx, client, http.MethodPost, endpoint, token, printifyWebhook{Topic: topic, URL: endpointURL, Secret: string(secret)}); err != nil {
-				return errors.New("could not create a Printify webhook")
+				return fmt.Errorf("could not create a Printify webhook: %w", err)
 			}
 		}
 	}

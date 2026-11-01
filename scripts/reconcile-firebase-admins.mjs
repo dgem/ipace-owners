@@ -30,6 +30,32 @@ export function parseAdminUsers(value) {
   return users;
 }
 
+export function parseRoleUsers(value) {
+  let roles;
+  try {
+    roles = JSON.parse(String(value || "{}"));
+  } catch {
+    throw new Error("FIREBASE_ROLE_USERS_JSON must be a JSON object of role names to email lists");
+  }
+  if (!roles || Array.isArray(roles) || typeof roles !== "object") {
+    throw new Error("FIREBASE_ROLE_USERS_JSON must be a JSON object of role names to email lists");
+  }
+  const normalised = {};
+  for (const [role, rawEmails] of Object.entries(roles)) {
+    if (!/^[a-z][a-z0-9-]{0,63}$/.test(role) || role === "admin") {
+      throw new Error(`Firebase custom role ${role} has an invalid name`);
+    }
+    if (!Array.isArray(rawEmails)) throw new Error(`Firebase custom role ${role} must map to an email list`);
+    const emails = rawEmails.map((value) => String(value || "").trim().toLowerCase());
+    if (emails.some((email) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254)) {
+      throw new Error(`Firebase custom role ${role} has an invalid email address`);
+    }
+    if (new Set(emails).size !== emails.length) throw new Error(`Firebase custom role ${role} email addresses must be unique`);
+    normalised[role] = emails;
+  }
+  return normalised;
+}
+
 function parseClaims(user) {
   if (!user.customAttributes) return {};
   try {
@@ -51,7 +77,7 @@ function stableJson(value) {
   return JSON.stringify(sortValue(value));
 }
 
-export function buildAdminUpdates(users, desiredAdminUsers) {
+export function buildAdminUpdates(users, desiredAdminUsers, desiredRoleUsers = {}) {
   const usersByEmail = new Map(users.filter((user) => user.email).map((user) => [user.email.toLowerCase(), user]));
   const missingLabels = Object.entries(desiredAdminUsers)
     .filter(([, email]) => !usersByEmail.has(email))
@@ -61,12 +87,21 @@ export function buildAdminUpdates(users, desiredAdminUsers) {
   }
   const desiredUids = new Set(Object.values(desiredAdminUsers).map((email) => usersByEmail.get(email).localId));
   if (desiredUids.size === 0) throw new Error("Refusing to remove the final Firebase administrator");
+  const roleUids = new Map();
+  for (const [role, emails] of Object.entries(desiredRoleUsers)) {
+    for (const email of emails) {
+      const user = usersByEmail.get(email);
+      if (!user) throw new Error(`Firebase custom role ${role} account does not exist: ${email}`);
+      roleUids.set(user.localId, [...(roleUids.get(user.localId) || []), role]);
+    }
+  }
 
   const updates = [];
   for (const user of users) {
     const current = parseClaims(user);
     const next = { ...current };
-    const roles = Array.isArray(current.roles) ? current.roles.slice() : [];
+    const managedRoles = Array.isArray(current.managedRoles) ? current.managedRoles.filter((role) => typeof role === "string") : [];
+    let roles = Array.isArray(current.roles) ? current.roles.filter((role) => !managedRoles.includes(role)) : [];
     const currentlyAdmin = current.admin === true || roles.includes("admin");
     const shouldBeAdmin = desiredUids.has(user.localId);
 
@@ -75,11 +110,17 @@ export function buildAdminUpdates(users, desiredAdminUsers) {
     } else if (currentlyAdmin) {
       delete next.admin;
       if (Array.isArray(current.roles)) {
-        const remainingRoles = roles.filter((role) => role !== "admin");
-        if (remainingRoles.length) next.roles = remainingRoles;
-        else delete next.roles;
+        roles = roles.filter((role) => role !== "admin");
       }
     }
+
+    const assignedRoles = roleUids.get(user.localId) || [];
+    const nextRoles = [...new Set([...roles, ...assignedRoles])].sort();
+    if (nextRoles.length) next.roles = nextRoles;
+    else delete next.roles;
+    const nextManagedRoles = Object.keys(desiredRoleUsers).sort();
+    if (nextManagedRoles.length) next.managedRoles = nextManagedRoles;
+    else delete next.managedRoles;
 
     if (stableJson(current) !== stableJson(next)) {
       updates.push({ uid: user.localId, customAttributes: JSON.stringify(next), grant: shouldBeAdmin });
@@ -115,6 +156,7 @@ async function main() {
   const projectId = String(process.env.GCP_PROJECT_ID || "").trim();
   if (!projectId) throw new Error("GCP_PROJECT_ID is required");
   const desiredAdminUsers = parseAdminUsers(process.env.FIREBASE_ADMIN_USERS_JSON);
+  const desiredRoleUsers = parseRoleUsers(process.env.FIREBASE_ROLE_USERS_JSON);
   const token = execFileSync("gcloud", ["auth", "print-access-token"], { encoding: "utf8" }).trim();
   const headers = {
     Authorization: `Bearer ${token}`,
@@ -122,7 +164,7 @@ async function main() {
     "X-Goog-User-Project": projectId,
   };
   const users = await listUsers(projectId, headers);
-  const updates = buildAdminUpdates(users, desiredAdminUsers);
+  const updates = buildAdminUpdates(users, desiredAdminUsers, desiredRoleUsers);
 
   for (const update of updates) {
     await request(
