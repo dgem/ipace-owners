@@ -8,6 +8,7 @@
   var quotePanel = root.querySelector('[data-shop-quote-result]');
   var basketPanel = root.querySelector('[data-shop-basket]');
   var checkoutNote = root.querySelector('[data-shop-checkout-note]');
+  var memberProfile = null;
   function esc(value) { var node = document.createElement('span'); node.textContent = String(value == null ? '' : value); return node.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
   function money(pence) { return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(pence / 100); }
   function api(path, options) {
@@ -20,6 +21,57 @@
       return fetch('/api/shop/' + path, options);
     }).then(function (response) {
       return response.json().then(function (data) { if (!response.ok) throw new Error(data.error || 'Merchandise is temporarily unavailable. Please try again.'); return data; });
+    });
+  }
+  function identityToken() {
+    return Promise.resolve(window.ipaceIdentityReadyPromise).then(function () {
+      return window.ipaceGetIdentityToken ? window.ipaceGetIdentityToken() : '';
+    });
+  }
+  function profileRequest(token, method, profile) {
+    return fetch('/api/member-profile', { method: method, headers: Object.assign({ Authorization: 'Bearer ' + token }, profile ? { 'Content-Type': 'application/json' } : {}), body: profile ? JSON.stringify(profile) : undefined }).then(function (response) {
+      return response.json().then(function (data) {
+        if (!response.ok) throw new Error(data.error || 'Could not update your member profile.');
+        return data;
+      });
+    });
+  }
+  function prefillMemberProfile() {
+    identityToken().then(function (token) {
+      if (!token) return;
+      var updateLabel = root.querySelector('[data-member-profile-update]');
+      var updateNote = root.querySelector('[data-member-profile-note]');
+      updateLabel.hidden = false; updateNote.hidden = false;
+      return profileRequest(token, 'GET').then(function (data) {
+        memberProfile = data.profile || {};
+        var name = String(memberProfile.name || '').trim().split(/\s+/);
+        var initial = {
+          first_name: name.shift() || '', last_name: name.join(' '), phone: memberProfile.phone || '',
+          country: memberProfile.country || '', address1: memberProfile.addressLine1 || '', address2: memberProfile.addressLine2 || '',
+          city: memberProfile.city || '', region: memberProfile.region || '', zip: memberProfile.postalCode || ''
+        };
+        Object.keys(initial).forEach(function (key) {
+          var field = form.elements[key];
+          if (!field || field.value || !initial[key]) return;
+          if (key === 'country') {
+            var country = Array.from(field.options).find(function (option) { return option.value.toLowerCase() === String(initial[key]).toLowerCase() || option.textContent.toLowerCase() === String(initial[key]).toLowerCase(); });
+            if (country) field.value = country.value;
+          } else field.value = initial[key];
+        });
+        if (form.elements.email && !form.elements.email.value && window.ipaceIdentityUser && window.ipaceIdentityUser.email) form.elements.email.value = window.ipaceIdentityUser.email;
+      }).catch(function () { /* Profile prefill is optional; checkout remains available. */ });
+    }).catch(function () { /* Anonymous checkout remains available. */ });
+  }
+  function updateMemberProfileFromOrder(token, fields) {
+    if (!form.elements.update_member_profile || !form.elements.update_member_profile.checked) return Promise.resolve();
+    var fullName = [fields.first_name, fields.last_name].map(function (value) { return String(value || '').trim(); }).filter(Boolean).join(' ');
+    return profileRequest(token, 'GET').then(function (data) {
+      var updated = Object.assign({}, data.profile || memberProfile || {}, {
+        name: fullName, phone: String(fields.phone || '').trim(), country: String(fields.country || '').trim(),
+        addressLine1: String(fields.address1 || '').trim(), addressLine2: String(fields.address2 || '').trim(),
+        city: String(fields.city || '').trim(), region: String(fields.region || '').trim(), postalCode: String(fields.zip || '').trim()
+      });
+      return profileRequest(token, 'POST', updated);
     });
   }
   function invalidateQuote() { receipt = ''; quotePanel.hidden = true; quotePanel.innerHTML = ''; }
@@ -89,10 +141,16 @@
   });
   function pay() {
     if (!receipt || busy) return;
+    var orderFields = {};
+    ['first_name', 'last_name', 'phone', 'country', 'address1', 'address2', 'city', 'region', 'zip'].forEach(function (key) { orderFields[key] = form.elements[key].value; });
     busy = true; var button = root.querySelector('[data-pay]'); button.disabled = true;
     var fields = Array.from(form.elements); fields.forEach(function (field) { field.disabled = true; });
     var previousError = quotePanel.querySelector('[role="alert"]'); if (previousError) previousError.remove();
-    api('checkout', { method: 'POST', headers: { Authorization: 'Bearer ' + receipt } }).then(function (data) {
+    identityToken().then(function (token) {
+      return updateMemberProfileFromOrder(token, orderFields).catch(function (error) {
+        status.textContent = error.message + ' Your order can still continue.';
+      });
+    }).then(function () { return api('checkout', { method: 'POST', headers: { Authorization: 'Bearer ' + receipt } }); }).then(function (data) {
       var target = new URL(data.url); if (target.protocol !== 'https:' || target.hostname !== 'checkout.stripe.com') throw new Error('Invalid checkout link. Please contact us.');
       window.location.assign(target.href);
     }).catch(function (error) { status.textContent = error.message; quotePanel.insertAdjacentHTML('beforeend', '<p role="alert">' + esc(error.message) + '</p>'); busy = false; button.disabled = false; fields.forEach(function (field) { field.disabled = false; }); });
@@ -116,7 +174,11 @@
       root.querySelector('[data-shop-basket-note]').textContent = ready ? 'Prices are in GBP. Product prices show the starting production price; your final delivered price includes delivery, supplier tax and payment costs. We round prices up to the nearest .49 or .99. Your bank may charge currency-conversion fees.' : 'Ordering is unavailable until checkout is enabled for this environment.';
       root.querySelector('[data-shop-seller]').textContent = data.sellerName && data.sellerAddress ? 'Seller: ' + data.sellerName + ' — ' + data.sellerAddress : '';
       var countries = form.querySelector('[name="country"]');
+      var selectedCountry = countries.value;
+      countries.replaceChildren(new Option('Choose country', ''));
       data.countries.forEach(function (country) { var option = document.createElement('option'); option.value = country.code; option.textContent = country.name; countries.appendChild(option); });
+      if (Array.from(countries.options).some(function (option) { return option.value === selectedCountry; })) countries.value = selectedCountry;
+      prefillMemberProfile();
       root.querySelector('[data-shop-test]').hidden = !data.testMode;
       renderProducts(); status.textContent = ready ? (products.length ? 'Choose your merchandise below.' : 'New merchandise is on its way. Please check back soon.') : 'Merchandise is available to browse, but checkout is not enabled here yet.';
       if (new URLSearchParams(window.location.search).has('cancelled')) status.textContent = 'Checkout was cancelled. You can choose your merchandise again when you are ready.';

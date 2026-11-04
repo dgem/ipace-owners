@@ -188,6 +188,15 @@ returns live catalogue products, those products are authoritative for availabili
 delivery fields and ordering stay hidden until `checkoutEnabled` is true. Preserve the source
 Printify mockups and designs externally.
 
+When a signed-in member opens the delivery form, request their private `/api/member-profile` and
+prefill the matching name, phone, country and address fields without overwriting anything they have
+already typed. Use the Firebase account email for the order email when available; it is not stored
+in the member contact profile. Map the saved country name onto the catalogue's country option.
+Anonymous shoppers can order without signing in. For members, offer an unchecked opt-in to update
+their saved contact profile with the delivery details. Only perform that authenticated update after
+they proceed to payment, preserve existing profile fields such as representation consent, and allow
+checkout to continue if the optional profile update fails.
+
 Subscribe the Printify webhook to product create/update/delete and `product:publish:started`
 as well as order created/updated/cancelled/sent/shipments events. OpenTofu performs this
 reconciliation through the Printify API using the configured shop ID and stable origin. Product

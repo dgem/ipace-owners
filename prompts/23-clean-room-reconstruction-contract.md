@@ -738,6 +738,10 @@ delivery details, quotes, secure checkout redirects and private browser receipt 
 Public orders require no membership. This is not intended for profit; surplus supports site
 running costs (currently around £30/month). Round every displayed merchandise price and final
 charge UP to `.49` or `.99`, using integer pence. Keep raw costs internal.
+For signed-in members, prefill delivery details from their private member contact profile without
+overwriting typed values. Offer an unchecked opt-in to update that profile from the order details;
+preserve existing consent fields, perform the update only on proceeding to payment, and do not block
+checkout if the optional update fails. Anonymous orders remain available.
 
 API routes: `GET /api/shop/catalogue`, `POST /api/shop/quote`, `POST /api/shop/checkout`,
 `GET /api/shop/order`, `POST /api/shop/stripe-webhook`, `POST /api/shop/printify-webhook`.

@@ -23,6 +23,14 @@ test('merchandise storefront and navigation use the server-resolved audience gat
   assert.match(script, /if \(wasEmpty\) \{ root\.querySelector\('#basket-title'\)\.focus\(\); \}/);
   assert.match(script, /X-Firebase-ID-Token/);
   assert.match(script, /Authorization: 'Bearer ' \+ receipt/);
+  assert.match(shop, /data-member-profile-update hidden/);
+  assert.match(shop, /Also update my member contact details/);
+  assert.match(script, /profileRequest\(token, 'GET'\)/);
+  assert.match(script, /address1: memberProfile\.addressLine1/);
+  assert.match(script, /updateMemberProfileFromOrder\(token, orderFields\)/);
+  assert.match(script, /if \(!form\.elements\.update_member_profile \|\| !form\.elements\.update_member_profile\.checked\) return Promise\.resolve\(\)/);
+  assert.match(script, /profileRequest\(token, 'POST', updated\)/);
+  assert.match(script, /Your order can still continue/);
   assert.match(script, /Merchandise is unavailable right now/);
   assert.doesNotMatch(shop, /for product in merchandisePreview/);
 });
