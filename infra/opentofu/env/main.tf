@@ -21,7 +21,8 @@ module "ipace_owners" {
   github_repo                        = var.github_repo
 
   allowed_origins                      = var.allowed_origins
-  member_feature_access                = var.member_feature_access
+  feature_access                       = merge(var.member_feature_access, var.feature_access)
+  firebase_role_users                  = var.firebase_role_users
   site_url                             = var.site_url
   firebase_auth_authorized_domains     = var.firebase_auth_authorized_domains
   manage_firebase_admins               = var.manage_firebase_admins
@@ -41,4 +42,15 @@ module "ipace_owners" {
   monitoring_enabled                   = var.monitoring_enabled
   monitoring_alert_email               = var.monitoring_alert_email
   manage_github_actions                = var.manage_github_actions
+  merchandise_config                   = local.effective_merchandise_config
+  merchandise_secrets_enabled          = var.merchandise_secrets_enabled
+}
+
+data "local_file" "merchandise_config" {
+  count    = var.merchandise_config_file != "" ? 1 : 0
+  filename = var.merchandise_config_file
+}
+
+locals {
+  effective_merchandise_config = var.merchandise_config_file != "" ? data.local_file.merchandise_config[0].content : var.merchandise_config
 }

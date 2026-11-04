@@ -163,3 +163,7 @@ Update or add tests for:
 - Run `make build`.
 - Run `GOCACHE=/tmp/ipace-owners-go-build make test-go` or `go test ./...` in `functions/firebase-go`.
 - Confirm no private member/account JSON appears under `_site/`.
+
+## Merchandise
+
+`merchandiseOrders` stores private guest fulfilment/payment records; it is not included in public aggregates, member snapshots or member exports. See prompt 21 for schema and retention.

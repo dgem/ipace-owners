@@ -282,7 +282,7 @@ change rather than assuming it exists.
 | `POST /api/submit-soh` | Member/vehicle owner | Optional `id` for an owned edit plus `vehicleId`, `soh`, `sohDate`, `sohMileage`, `sohSource`; maintain the vehicle compatibility value. |
 | `POST /api/upsert-service-event` | Member/vehicle and record owner | `id`, `vehicleId`, `eventType`, `occurredAt`, `mileage`, `title`, `description`, `status`, `campaigns[]`, `serviceProviderId`, `serviceProviderName`, `serviceProviderPostcode`, `serviceProviderAuthorised`, `finalFixAt`, `courtesyVehicleOffered`, `courtesyVehicleProvided`, `partsDelay`, `goodwillPayment`, `milesDrivenWhilstFaulty`, `warrantyCover`, `disputeStatus`, `executiveOfficeAcknowledgedAt`, `executiveOfficeRepliedAt`, `executiveOfficeOutcome`, `executiveOfficeSatisfied`. Derive `daysToFinalFix` server-side. For Executive Office contacts, supplied acknowledgement/reply dates must be valid, non-future, and on or after `occurredAt`. |
 | `POST /api/update-member-preferences` | Member | Required allowlisted `country` and booleans `contact`, `anonymisedAnalysis`; optional non-unique `displayName`, `willingToHelp`, `pressStory`, and bounded `expertise`; default a blank display name to the first part of the saved legal name and apply the country and preference update to every Join record sharing the authenticated email hash. |
-| `GET/POST /api/member-profile` | Member | One contact profile per Firebase UID; freeform international address, optional phone, and a versioned representation choice available only for a complete UK address. Append choice changes to a PII-free `representationChoices` subcollection. |
+| `GET/POST /api/member-profile` | Member | One contact profile per Firebase UID; separate `forenames` and `familyName`, freeform international address, optional phone, and a versioned representation choice available only for a complete UK address. Read legacy full-name records by splitting at the last word; continue retaining combined `name` for existing internal consumers. Append choice changes to a PII-free `representationChoices` subcollection. |
 | `GET /api/member-address-lookup` | Member | Optional address or postcode search and resolution through a server-side Ideal Postcodes key, with manual entry fallback. |
 | `POST /api/admin/member-verification` | Admin | Set an admin-only identity-verification decision, separate from member consent. |
 | `POST /api/delete-vehicle` | Member/vehicle owner | `id`, `confirmation: "DELETE"`; soft-delete the vehicle and its dependent SoH and service records. |
@@ -294,7 +294,7 @@ vehicle creation and vehicle editing. Keep United Kingdom as the default.
 
 | `GET /api/member-data` | Member | Return only that UID's private member snapshot. |
 | `GET /api/member-export?format=csv\|xlsx` | Member | Return a private no-store ZIP of five CSV datasets or a formatted six-sheet Excel workbook built from only that UID's account records and member experiences; omit internal IDs/hashes, private editorial data and storage object names, and neutralise spreadsheet formulas. |
-| `GET /api/member/features` | Member | Return booleans for recognised member-facing features after applying `all`, `off`, admin, or named Firebase-role access rules. The same decision must protect the feature's member APIs. |
+| `GET /api/member/features` | Public feature metadata | Accept an optional ID token and return booleans for configured features using `admin`, `early-adopter`, signed-in `all`, `public`/`anonymous`/`unauthenticated`, and `off` audiences. Admins always bypass feature rules. Member-data APIs must still require sign-in and apply their feature rule server-side. |
 | `GET/POST /api/member/notifications` | Member | Return versioned notification IDs dismissed by that UID or store one validated dismissal. Survey IDs are survey-specific so new surveys remain visible. |
 | `GET/POST /api/member/stories` | Member | Return story eligibility and owned evidence records, save drafts, and submit a consented story linked only to the member's vehicle records. |
 | `POST /api/member/story-upload` and `/api/member/story-upload-complete` | Member | Reserve bounded private media, issue a short-lived upload URL, then verify and promote the object. |
@@ -444,19 +444,28 @@ rate-limited before the paid provider is called.
 The optional `SEED_NEXT_STEPS_SURVEY` flag creates the October survey automatically on the first
 authenticated survey access. `NEXT_STEPS_SURVEY_STATUS` is `published` in staging and `draft` in
 production, preserving an explicit production publication decision.
-`MEMBER_FEATURE_ACCESS` is a JSON object mapping recognised member features to `all`, `off`,
-or comma-separated Firebase roles. Staging sets `member-experiences` to `all`; production starts
-with `admin,member-experiences-preview`. Frontend visibility and member API authorization use
-the same server-resolved decision.
+`FEATURE_ACCESS` is a JSON object mapping feature names to comma-separated audiences: `admin`,
+`early-adopter`, `all` (signed-in), `public`/`anonymous`/`unauthenticated`, or `off`. Admin claims bypass feature
+rules. OpenTofu manages named custom roles from `firebase_role_users`, preserving unrelated claims;
+users must exist in Firebase Auth before apply and refresh their token after role assignments.
+Staging sets `member-experiences` to `all` and `merchandise` to `unauthenticated`. Production restricts
+both to `early-adopter` (admins always bypass). Main navigation and the storefront use the
+resolved feature response, and catalogue, quote, checkout and order-status endpoints enforce the
+Merchandise audience. Provider webhook endpoints remain accessible and signature-validated.
 Optional Instagram publishing additionally uses secret `INSTAGRAM_ACCESS_TOKEN` and non-secret
 `INSTAGRAM_USER_ID`, `INSTAGRAM_GRAPH_API_VERSION`, and `INSTAGRAM_MEDIA_BASE_URL`. Absence or
 invalidity must disable publishing while leaving local preview available.
 OpenTofu creates the `instagram-access-token` Secret Manager container and grants the Function
 runtime accessor permission, but must not create its secret version from a tfvars value. On every
 local apply, the bootstrap examines any supplied `VIN_PEPPER`, `RESEND_API_KEY`,
-`IDEAL_POSTCODES_API_KEY`, and `INSTAGRAM_ACCESS_TOKEN` operator environment values, adds a
-version when it differs from `latest` or when the latest version is missing or destroyed, and skips
-absent values. The normal `make infra-apply` target must build the local bootstrap binary before
+`IDEAL_POSTCODES_API_KEY`, `INSTAGRAM_ACCESS_TOKEN`, `PRINTIFY_API_TOKEN`, and `STRIPE_SECRET_KEY`
+operator environment values, adds a version when it differs from `latest` or when the latest
+version is missing or destroyed, and skips absent values. Local setup uses the ignored repo-root
+`.env` with every key suffixed `_STAGING` or `_PRODUCTION`; `scripts/infra-env.sh` maps only the
+suffix selected by `ENV` to the generic names consumed by the bootstrap and OpenTofu providers,
+and never falls back to unsuffixed values. Preserve the existing production `VIN_PEPPER` when populating
+`VIN_PEPPER_PRODUCTION` because it determines existing vehicle HMACs. The normal `make infra-apply`
+target must build the local bootstrap binary before
 OpenTofu executes it. It must never store a value or fingerprint in OpenTofu state. Once a version
 exists, `instagram_publishing_enabled` exposes only
 its non-secret account ID/version to the deployment workflow; the Function deployment mounts the
@@ -716,3 +725,84 @@ public repository.
 
 A prompt-only rebuild without those backups creates a new empty deployment. It is a product
 reconstruction, not production disaster recovery.
+
+## Public merchandise storefront
+
+`/merch/` and `/merch/terms/` implement the audience-gated Merchandise page with Printify and
+Stripe hosted Checkout in GBP. Staging configures `merchandise` as unauthenticated; production limits
+access to admins and early adopters until launch. Keep Merchandise as the navigation label and
+page title using `/merch/`, with legacy `/shop/` requests redirected. Keep `/api/shop/` as the API
+prefix. `merchandise.js` handles catalogue
+variants/images, the basket above the catalogue, international
+delivery details, quotes, secure checkout redirects and private browser receipt status.
+Public orders require no membership. This is not intended for profit; surplus supports site
+running costs (currently around £30/month). Round every displayed merchandise price and final
+charge UP to `.49` or `.99`, using integer pence. Keep raw costs internal.
+For signed-in members, prefill delivery details from their private member contact profile without
+overwriting typed values. Offer an unchecked opt-in to update that profile from the order details;
+preserve existing consent fields, perform the update only on proceeding to payment, and do not block
+checkout if the optional update fails. Anonymous orders remain available.
+
+API routes: `GET /api/shop/catalogue`, `POST /api/shop/quote`, `POST /api/shop/checkout`,
+`GET /api/shop/order`, `POST /api/shop/stripe-webhook`, `POST /api/shop/printify-webhook`.
+Catalogue, quote, checkout and order-status routes enforce the configured `merchandise` audience;
+provider webhooks remain accessible and validate signatures. `merchandiseOrders` stores private
+orders, distinct from membership snapshots. Quote and checkout require an allowed Origin.
+Status/checkout require a random receipt bearer secret;
+provider webhooks require their own raw-body HMAC signatures. A signed paid Stripe event must
+match the saved session, shop, currency and total before Printify submission. Ambiguous provider
+submissions require operator reconciliation, never automatic duplicate creation.
+
+Non-secret configuration: `MERCH_CONFIG` (shop/origin, verified production and shipping currency
+conversion, payment-cost allowance, reviewed pricing expiry, destination tax allowances, seller
+identity and reviewed terms). OpenTofu variables `merchandise_config` and
+`merchandise_secrets_enabled` manage its environment-specific GitHub Actions variables. Secrets:
+`PRINTIFY_API_TOKEN` and `STRIPE_SECRET_KEY`. Secret Manager resources and runtime IAM are managed
+by OpenTofu, while the local bootstrap imports API credentials without saving them in state. A
+separate local-exec reconciler registers Stripe Checkout and Printify product/order webhook events
+on every apply when the environment has a configured shop, stable HTTPS origin and provider
+credentials. It writes the Stripe endpoint signing secret and generated Printify shared secret
+directly to Secret Manager, never to OpenTofu state, plan output, logs or GitHub variables.
+It also stores `stripe-webhook-endpoint-id` and `stripe-webhook-key-scope` in separate Secret Manager
+entries, updates the managed endpoint as staging preview URLs change, and replaces old managed
+subscriptions when a Printify signing secret has to be generated again. Paid fulfilment claims the
+order transactionally before creating it at Printify and stores the provider order ID before
+requesting production; retries must never create a duplicate after an ambiguous provider response.
+`scripts/infra-env.sh` loads ignored repo-root `.env` for `make infra-apply` and selects provider
+API credentials suffixed for the chosen environment.
+The environment root supports `merchandise_config_file` for ignored per-environment JSON files,
+loaded with the `hashicorp/local` provider's `local_file` data source relative to
+`infra/opentofu/env`; the non-secret contents are passed to the shared module and therefore enter
+OpenTofu state. Keep credentials and webhook signing secrets out of these files.
+No live checkout until Stripe, currency factors, destination tax settings and seller details
+are configured and tested. New sales stop on pricing-review expiry; paid orders still process.
+See `prompts/22-merchandise-storefront.md` for the schema, complete setup/reconciliation runbook,
+retention, external design/account backups and acceptance tests. Use separate staging accounts;
+Stripe test payments must never unintentionally trigger real Printify fulfilment.
+
+Use `MERCH_CONFIG.baseUrl` for provider webhook registrations and canonical Printify product URLs.
+Production uses its stable site origin. Staging has no stable storefront host, so configure the
+active Firebase PR preview URL and reapply OpenTofu when it changes. For Stripe Checkout, derive
+success/cancel URLs from the validated request `Origin`; the shopper's receipt is in origin-scoped
+session storage and a PR preview payment must return to that same preview. Staging CI passes the
+active preview origin via `ALLOWED_ORIGINS`.
+
+`MERCH_CONFIG.stripeLive` selects test/live payments and must match the Stripe secret key prefix
+and Checkout session livemode. Test payments are stored as `test-paid` and NEVER submitted to
+Printify. The storefront prominently labels test mode. Only explicitly configured live payments
+can create merchandise orders. Bind the webhook endpoint association to the Stripe API-key scope so
+test/live account changes cannot reuse the wrong signing secret.
+
+The catalogue is fetched from the audience-gated API and is not embedded in the static page. If
+the configured audience denies access, show an early-access message and keep catalogue, basket,
+delivery and ordering controls hidden. When the API returns live products, they are authoritative
+for availability/options/prices; ordering stays hidden or disabled until `checkoutEnabled` is
+true. When the first real item is added, focus the basket heading and provide a link back to the
+catalogue. Preserve the source Printify mockups and designs externally.
+
+Subscribe the Printify webhook to product create/update/delete and `product:publish:started`
+as well as order events. Product events invalidate the short catalogue cache. Verified publish
+create/update requests re-read the configured shop product, then acknowledge publication with
+its `/merch/#product-<id>` handle; unpublish requests use Printify's unpublish endpoint. This
+completes custom-channel publication and releases the publishing lock. Existing locked products
+need publication retriggered after the webhook is installed; do not change them during inspection.

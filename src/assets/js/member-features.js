@@ -5,7 +5,9 @@
   var loading = null;
 
   function token() {
-    return window.ipaceGetIdentityToken ? window.ipaceGetIdentityToken() : Promise.resolve('');
+    return Promise.resolve(window.ipaceIdentityReadyPromise).then(function () {
+      return window.ipaceGetIdentityToken ? window.ipaceGetIdentityToken() : '';
+    });
   }
 
   function apply() {
@@ -21,9 +23,11 @@
     if (state && !force) return Promise.resolve(state);
     if (loading && !force) return loading;
     loading = token().then(function (idToken) {
-      if (!idToken) return {};
-      var headers = { Authorization: 'Bearer ' + idToken };
-      if (window.ipaceAuthHeaders) headers = window.ipaceAuthHeaders(headers);
+      var headers = {};
+      if (idToken) {
+        headers.Authorization = 'Bearer ' + idToken;
+        if (window.ipaceAuthHeaders) headers = window.ipaceAuthHeaders(headers);
+      }
       return fetch('/api/member/features', { headers: headers }).then(function (response) {
         if (!response.ok) return {};
         return response.json().then(function (data) { return data.features || {}; });
@@ -50,6 +54,7 @@
 
   document.addEventListener('member:data', function () { load(false); });
   document.addEventListener('identity:login', function () { load(true); });
-  document.addEventListener('identity:logout', function () { state = {}; loading = null; apply(); });
+  document.addEventListener('identity:logout', function () { state = null; loading = null; load(true); });
   apply();
+  token().then(function () { load(false); });
 }());

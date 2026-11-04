@@ -88,7 +88,7 @@
   form.addEventListener('submit', function (event) {
     event.preventDefault();
     var payload = {};
-    ['name', 'phone', 'addressLine1', 'addressLine2', 'city', 'region', 'postalCode', 'country'].forEach(function (key) {
+    ['forenames', 'familyName', 'phone', 'addressLine1', 'addressLine2', 'city', 'region', 'postalCode', 'country'].forEach(function (key) {
       payload[key] = form.elements[key].value;
     });
     if (represent) payload.represent = represent.checked && !represent.disabled;

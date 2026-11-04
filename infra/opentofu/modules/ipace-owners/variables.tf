@@ -113,8 +113,8 @@ variable "allowed_origins" {
   default     = ""
 }
 
-variable "member_feature_access" {
-  description = "Member frontend feature access rules: all, off, or comma-separated Firebase roles."
+variable "feature_access" {
+  description = "Feature audience rules: admin, early-adopter, all (signed-in), public, or off."
   type        = map(string)
   default     = {}
 }
@@ -139,6 +139,12 @@ variable "manage_firebase_admins" {
 variable "firebase_admin_users" {
   description = "Additional administrator labels mapped to Firebase Auth email addresses. The reconciler resolves environment-specific UIDs."
   type        = map(string)
+  default     = {}
+}
+
+variable "firebase_role_users" {
+  description = "Firebase custom role names mapped to email addresses assigned each role. OpenTofu manages only roles listed here."
+  type        = map(list(string))
   default     = {}
 }
 
@@ -232,4 +238,20 @@ variable "manage_github_actions" {
   description = "Whether this module should create/update GitHub Actions environments, variables and secrets."
   type        = bool
   default     = true
+}
+
+variable "merchandise_config" {
+  description = "Non-secret JSON configuration for the public merchandise shop, written to this environment's GitHub Actions variable."
+  type        = string
+  default     = "{}"
+  validation {
+    condition     = can(jsondecode(var.merchandise_config))
+    error_message = "merchandise_config must be valid JSON. Never put provider credentials or webhook signing secrets in this value."
+  }
+}
+
+variable "merchandise_secrets_enabled" {
+  description = "Whether the Functions deployment should bind the four merchandise Secret Manager secrets."
+  type        = bool
+  default     = false
 }

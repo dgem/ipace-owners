@@ -136,7 +136,7 @@ header.
 | `POST /api/submit-soh` | `SubmitSOH` | Member | Create or edit an owned SoH reading after verifying vehicle ownership. |
 | `POST /api/upsert-service-event` | `UpsertServiceEvent` | Member | Add or edit an owned vehicle's service/fault timeline record. |
 | `POST /api/update-member-preferences` | `UpdateMemberPreferences` | Member | Update country, the non-unique display name, volunteering choices, contact consent and anonymised-analysis consent for all Join records of the signed-in email. |
-| `GET/POST /api/member-profile` | `MemberProfile` | Member | Read or update the member's sole contact profile and versioned UK representation choice. |
+| `GET/POST /api/member-profile` | `MemberProfile` | Member | Read or update the member's sole contact profile, including separate forenames and family name, and versioned UK representation choice. |
 | `GET /api/member-address-lookup` | `MemberAddressLookup` | Member | Optional server-side UK postcode lookup; requires an Ideal Postcodes API key. |
 | `POST /api/admin/member-verification` | `AdminMemberVerification` | Admin | Set a separate, admin-only identity-verification flag. |
 | `POST /api/delete-vehicle` | `DeleteVehicle` | Member | Soft-delete an owned vehicle and its dependent SoH and service records after typed confirmation. |
@@ -144,7 +144,7 @@ header.
 | `POST /api/delete-service-event` | `DeleteServiceEvent` | Member | Soft-delete an owned service/fault record after typed confirmation. |
 | `GET /api/member-data` | `MemberData` | Member | Return the signed-in user's generated snapshot. |
 | `GET /api/member-export?format=csv\|xlsx` | `MemberExport` | Member | Download account records and member experiences as five CSV datasets in a ZIP or a six-sheet Excel workbook. |
-| `GET /api/member/features` | `MemberFeatures` | Member | Resolve server-enforced member feature access from release and Firebase-role rules. |
+| `GET /api/member/features` | `MemberFeatures` | Public feature metadata | Accept an optional Firebase ID token and resolve configured `admin`, `early-adopter`, signed-in `all`, and public audiences; member-data APIs still require sign-in. |
 | `GET/POST /api/member/notifications` | `MemberNotifications` | Member | List versioned notices dismissed by this member or persist one dismissal. |
 | `GET/POST /api/member/stories` | `MemberStories` | Member | Check eligibility, list owned evidence and save or submit a member experience. |
 | `POST /api/member/story-upload` | `MemberStoryUpload` | Member | Reserve bounded private media and return an expiring signed upload URL. |
@@ -439,7 +439,30 @@ Keep these related prompts aligned when the architecture changes:
 - `17-operations-ci-and-troubleshooting.md`
 - `20-instagram-campaign-publishing.md`
 - `21-member-stories-and-impact.md`
-- `22-clean-room-reconstruction-contract.md`
+- `22-merchandise-storefront.md`
+- `23-clean-room-reconstruction-contract.md`
+
+## Public merchandise storefront
+
+`/merch/` and `/merch/terms/` are audience-gated Merchandise pages backed by the Go API, Printify
+custom-storefront fulfilment and Stripe Checkout in GBP. Anyone may order without member
+authentication. Prices and final charges use integer pence rounded upward to `.49` or `.99`;
+provider costs, shipping, configured destination tax and payment allowance are used to avoid
+profit markup. Merchandise orders are kept in private `merchandiseOrders` Firestore documents.
+
+The routes are `GET /api/shop/catalogue`, `POST /api/shop/quote`, `POST /api/shop/checkout`,
+`GET /api/shop/order`, `POST /api/shop/stripe-webhook` and `POST /api/shop/printify-webhook`.
+Webhooks use provider signatures; a verified live paid Stripe event creates the Printify order.
+Test Stripe payments are recorded without fulfilment. `MERCH_CONFIG` carries reviewed pricing,
+tax, seller and environment settings; OpenTofu writes it and the secret-binding switch to the
+environment's GitHub Actions variables. Managed provider secrets live in Google Secret Manager,
+with local values bootstrapped from the ignored repo-root `.env` without entering OpenTofu state.
+The webhook reconciler records the Stripe endpoint ID and API-key scope alongside its signing secret,
+updates that endpoint when the callback URL changes, and replaces stale Printify subscriptions when
+their shared secret must be regenerated. Fulfilment claims paid orders transactionally before calling
+Printify and persists the provider ID before sending an order to production.
+Checkout must stay disabled until provider currency, Stripe keys, seller identity and shop terms
+are verified. See `22-merchandise-storefront.md` for exact configuration and recovery procedures.
 
 ## Private admin service export
 

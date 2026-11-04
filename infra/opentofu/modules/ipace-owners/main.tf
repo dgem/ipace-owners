@@ -11,6 +11,7 @@ locals {
   firebase_auth_email_action_domain = var.firebase_auth_email_action_domain != "" ? var.firebase_auth_email_action_domain : local.email_continue_host
   firebase_auth_email_script        = abspath("${path.module}/../../../../scripts/configure-firebase-auth-email.mjs")
   firebase_admins_script            = abspath("${path.module}/../../../../scripts/reconcile-firebase-admins.mjs")
+  firebase_role_users               = var.firebase_role_users
   firebase_admin_users = merge(var.firebase_admin_users, {
     dan = "dan@kanzi.co.uk"
   })
@@ -164,6 +165,7 @@ resource "terraform_data" "firebase_admins" {
   triggers_replace = [
     var.project_id,
     jsonencode(local.firebase_admin_users),
+    jsonencode(local.firebase_role_users),
     filesha256(local.firebase_admins_script),
   ]
 
@@ -173,6 +175,7 @@ resource "terraform_data" "firebase_admins" {
     environment = {
       GCP_PROJECT_ID            = var.project_id
       FIREBASE_ADMIN_USERS_JSON = jsonencode(local.firebase_admin_users)
+      FIREBASE_ROLE_USERS_JSON  = jsonencode(local.firebase_role_users)
     }
   }
 
@@ -350,6 +353,38 @@ resource "google_secret_manager_secret" "instagram_access_token" {
   depends_on = [google_project_service.required]
 }
 
+# Values are bootstrapped locally and never placed in OpenTofu state.
+resource "google_secret_manager_secret" "merchandise" {
+  for_each            = toset(["printify-api-token", "printify-webhook-secret", "stripe-secret-key", "stripe-webhook-secret"])
+  secret_id           = each.value
+  deletion_policy     = "ABANDON"
+  deletion_protection = true
+  replication {
+    auto {}
+  }
+  depends_on = [google_project_service.required]
+}
+
+# The Stripe endpoint ID and API-key scope bind the generated signing secret
+# to the managed endpoint without granting runtime Functions access to them.
+resource "google_secret_manager_secret" "merchandise_webhook_association" {
+  for_each            = toset(["stripe-webhook-endpoint-id", "stripe-webhook-key-scope"])
+  secret_id           = each.value
+  deletion_policy     = "ABANDON"
+  deletion_protection = true
+  replication {
+    auto {}
+  }
+  depends_on = [google_project_service.required]
+}
+
+resource "google_secret_manager_secret_iam_member" "runtime_merchandise" {
+  for_each  = google_secret_manager_secret.merchandise
+  secret_id = each.value.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.runtime.email}"
+}
+
 resource "terraform_data" "local_secret_versions" {
   # Runs locally on every apply. The Go helper skips unset values and does not
   # expose values or fingerprints to OpenTofu state.
@@ -367,6 +402,27 @@ resource "terraform_data" "local_secret_versions" {
     google_secret_manager_secret.resend_api_key,
     google_secret_manager_secret.ideal_postcodes_api_key,
     google_secret_manager_secret.instagram_access_token,
+    google_secret_manager_secret.merchandise,
+  ]
+}
+
+resource "terraform_data" "merchandise_webhooks" {
+  # Provider registrations and signing secrets are reconciled locally, so
+  # webhook credentials never enter OpenTofu state or plan output.
+  triggers_replace = [timestamp()]
+
+  provisioner "local-exec" {
+    command = "${path.root}/../../../functions/firebase-go/merchandise-webhooks"
+    environment = {
+      GCP_PROJECT_ID        = var.project_id
+      MERCH_CONFIG          = var.merchandise_config
+      MERCH_SECRETS_ENABLED = tostring(var.merchandise_secrets_enabled)
+    }
+  }
+
+  depends_on = [
+    terraform_data.local_secret_versions,
+    google_secret_manager_secret.merchandise,
   ]
 }
 

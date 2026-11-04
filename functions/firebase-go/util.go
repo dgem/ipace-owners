@@ -182,7 +182,7 @@ func cors(w http.ResponseWriter, r *http.Request) bool {
 		w.Header().Set("Vary", "Origin")
 	}
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Ipace-Auth-Trace")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Firebase-ID-Token, X-Ipace-Auth-Trace")
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusNoContent)
 		return true

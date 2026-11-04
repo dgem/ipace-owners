@@ -204,3 +204,7 @@ the API confirms auth.
   `functions/firebase-go` for backend/auth changes.
 - Test logged-out, logged-in, and admin states.
 - Confirm no private data appears in `_site/`.
+
+## Merchandise
+
+Public merchandise orders require no Firebase identity. Protect private guest order status and checkout with receipt bearer secrets; never expose order PII through public catalogue endpoints.

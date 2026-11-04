@@ -99,7 +99,7 @@ jobs:
           SNAPSHOT_BUCKET: ${{ vars.SNAPSHOT_BUCKET_PRODUCTION }}
           CAMPAIGN_MEDIA_BUCKET: ${{ vars.CAMPAIGN_MEDIA_BUCKET_PRODUCTION }}
           MEMBER_STORY_MEDIA_BUCKET: ${{ vars.MEMBER_STORY_MEDIA_BUCKET_PRODUCTION }}
-          MEMBER_FEATURE_ACCESS: ${{ vars.MEMBER_FEATURE_ACCESS_PRODUCTION || '{"member-experiences":"admin,member-experiences-preview"}' }}
+          FEATURE_ACCESS: ${{ vars.FEATURE_ACCESS_PRODUCTION || '{"member-experiences":"early-adopter","merchandise":"admin,early-adopter"}' }}
           VEO_LOCATION: ${{ vars.VEO_LOCATION_PRODUCTION }}
           VEO_MODEL_ID: ${{ vars.VEO_MODEL_ID_PRODUCTION }}
           SEED_NEXT_STEPS_SURVEY: "true"
@@ -110,6 +110,8 @@ jobs:
           RESEND_FROM: ${{ vars.RESEND_FROM_PRODUCTION }}
           RESEND_REPLY_TO: ${{ vars.RESEND_REPLY_TO_PRODUCTION }}
           RESEND_ASSET_BASE_URL: ${{ vars.RESEND_ASSET_BASE_URL_PRODUCTION }}
+          MERCH_CONFIG: ${{ vars.MERCH_CONFIG_PRODUCTION || '{}' }}
+          MERCH_SECRETS_ENABLED: ${{ vars.MERCH_SECRETS_ENABLED_PRODUCTION || 'false' }}
           INSTAGRAM_USER_ID: ${{ vars.INSTAGRAM_USER_ID_PRODUCTION }}
           INSTAGRAM_GRAPH_API_VERSION: ${{ vars.INSTAGRAM_GRAPH_API_VERSION_PRODUCTION }}
           INSTAGRAM_MEDIA_BASE_URL: https://ipace-owners.org

@@ -168,7 +168,7 @@ jobs:
           SNAPSHOT_BUCKET: ${{ vars.SNAPSHOT_BUCKET_STAGING }}
           CAMPAIGN_MEDIA_BUCKET: ${{ vars.CAMPAIGN_MEDIA_BUCKET_STAGING }}
           MEMBER_STORY_MEDIA_BUCKET: ${{ vars.MEMBER_STORY_MEDIA_BUCKET_STAGING }}
-          MEMBER_FEATURE_ACCESS: ${{ vars.MEMBER_FEATURE_ACCESS_STAGING || '{"member-experiences":"all"}' }}
+          FEATURE_ACCESS: ${{ vars.FEATURE_ACCESS_STAGING || '{"member-experiences":"all","merchandise":"unauthenticated"}' }}
           VEO_LOCATION: ${{ vars.VEO_LOCATION_STAGING }}
           VEO_MODEL_ID: ${{ vars.VEO_MODEL_ID_STAGING }}
           SEED_NEXT_STEPS_SURVEY: "true"
@@ -178,6 +178,8 @@ jobs:
           RESEND_FROM: ${{ vars.RESEND_FROM_STAGING }}
           RESEND_REPLY_TO: ${{ vars.RESEND_REPLY_TO_STAGING }}
           RESEND_ASSET_BASE_URL: ${{ vars.RESEND_ASSET_BASE_URL_STAGING }}
+          MERCH_CONFIG: ${{ vars.MERCH_CONFIG_STAGING || '{}' }}
+          MERCH_SECRETS_ENABLED: ${{ vars.MERCH_SECRETS_ENABLED_STAGING || 'false' }}
           INSTAGRAM_USER_ID: ${{ vars.INSTAGRAM_USER_ID_STAGING }}
           INSTAGRAM_GRAPH_API_VERSION: ${{ vars.INSTAGRAM_GRAPH_API_VERSION_STAGING }}
           INSTAGRAM_MEDIA_BASE_URL: ${{ steps.hosting.outputs.url }}

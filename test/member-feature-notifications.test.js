@@ -52,11 +52,13 @@ test('deployment passes member feature rules to functions', () => {
   const stagingWorkflow = read('.github/workflows/gcp-firebase-staging.yml');
   const productionWorkflow = read('.github/workflows/gcp-firebase-production.yml');
 
-  assert.match(moduleActions, /MEMBER_FEATURE_ACCESS_/);
+  assert.match(moduleActions, /FEATURE_ACCESS_/);
   assert.match(staging, /member-experiences\s*=\s*"all"/);
-  assert.match(production, /member-experiences\s*=\s*"admin,member-experiences-preview"/);
-  assert.match(stagingWorkflow, /MEMBER_FEATURE_ACCESS_STAGING[\s\S]*member-experiences.*all/);
-  assert.match(productionWorkflow, /MEMBER_FEATURE_ACCESS_PRODUCTION[\s\S]*member-experiences.*admin,member-experiences-preview/);
+  assert.match(production, /member-experiences\s*=\s*"early-adopter"/);
+  assert.match(staging, /merchandise\s*=\s*"unauthenticated"/);
+  assert.match(production, /merchandise\s*=\s*"admin,early-adopter"/);
+  assert.match(stagingWorkflow, /FEATURE_ACCESS_STAGING[\s\S]*merchandise.*unauthenticated/);
+  assert.match(productionWorkflow, /FEATURE_ACCESS_PRODUCTION[\s\S]*merchandise.*admin,early-adopter/);
 });
 
 test('member experiences use the membership display name', () => {

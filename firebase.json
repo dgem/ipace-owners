@@ -118,6 +118,26 @@
         "source": "/submit-vehicle-data/**",
         "destination": "/member/submit-vehicle-data/",
         "type": 301
+      },
+      {
+        "source": "/shop/terms",
+        "destination": "/merch/terms/",
+        "type": 301
+      },
+      {
+        "source": "/shop/terms/**",
+        "destination": "/merch/terms/",
+        "type": 301
+      },
+      {
+        "source": "/shop",
+        "destination": "/merch/",
+        "type": 301
+      },
+      {
+        "source": "/shop/**",
+        "destination": "/merch/",
+        "type": 301
       }
     ],
     "rewrites": [
