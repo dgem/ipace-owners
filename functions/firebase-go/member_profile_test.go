@@ -23,6 +23,22 @@ func TestMemberProfileRepresentationRequiresUKAddress(t *testing.T) {
 	}
 }
 
+func TestMemberProfileSeparatesForenamesAndFamilyName(t *testing.T) {
+	legacy := memberContactProfile{Name: "Daniel Gregory Edmund Murphy"}
+	normaliseMemberName(&legacy)
+	if legacy.Forenames != "Daniel Gregory Edmund" || legacy.FamilyName != "Murphy" || legacy.Name != "Daniel Gregory Edmund Murphy" {
+		t.Fatalf("legacy full name split incorrectly: %+v", legacy)
+	}
+
+	explicit := memberContactProfile{Forenames: "Alex Morgan", FamilyName: "Smith"}
+	if got := validateMemberContactProfile(&explicit); got != "Choose a country" {
+		t.Fatalf("expected country validation after normalising names, got %q", got)
+	}
+	if explicit.Name != "Alex Morgan Smith" {
+		t.Fatalf("combined legal name = %q", explicit.Name)
+	}
+}
+
 func TestMemberProfileNormalisesUKConstituentCountries(t *testing.T) {
 	for _, country := range []string{"GB", "GBR", "England", "Scotland", "Wales", "Northern Ireland"} {
 		profile := memberContactProfile{Name: "Alex Owner", AddressLine1: "1 Example Road", City: "London", PostalCode: "SW1A 1AA", Country: country, Represent: true}

@@ -189,8 +189,9 @@ delivery fields and ordering stay hidden until `checkoutEnabled` is true. Preser
 Printify mockups and designs externally.
 
 When a signed-in member opens the delivery form, request their private `/api/member-profile` and
-prefill the matching name, phone, country and address fields without overwriting anything they have
-already typed. Use the Firebase account email for the order email when available; it is not stored
+prefill forenames and family name separately, plus phone, country and address, without overwriting
+anything they have already typed. Delivery details may diverge from the saved member profile; never
+copy order edits back unless the member explicitly checks the optional update box. Use the Firebase account email for the order email when available; it is not stored
 in the member contact profile. Map the saved country name onto the catalogue's country option.
 Anonymous shoppers can order without signing in. For members, offer an unchecked opt-in to update
 their saved contact profile with the delivery details. Only perform that authenticated update after

@@ -70,7 +70,8 @@ date: Last Modified
 							<div class="dashboard-panel__header"><div><h2 class="dashboard-panel__title">Contact details{% if site.features.legalRepresentation %} and legal options{% endif %}</h2><p class="dashboard-panel__lede">Save one contact address for your membership.</p></div></div>
 							<form data-member-profile-form class="member-form-panel">
 								<div class="member-form-grid">
-									<div class="form-group"><label for="profile-name">Full legal name</label><input id="profile-name" name="name" type="text" autocomplete="name" maxlength="160"></div>
+									<div class="form-group"><label for="profile-forenames">Forename(s)</label><input id="profile-forenames" name="forenames" type="text" autocomplete="given-name" maxlength="120"></div>
+									<div class="form-group"><label for="profile-family-name">Family name</label><input id="profile-family-name" name="familyName" type="text" autocomplete="family-name" maxlength="80"></div>
 									<div class="form-group"><label for="profile-phone">Phone (optional)</label><input id="profile-phone" name="phone" type="tel" autocomplete="tel" maxlength="40"></div>
 									<div class="form-group"><label for="profile-country">Country</label><input id="profile-country" name="country" type="text" autocomplete="country-name" required maxlength="100" placeholder="United Kingdom"></div>
 									<div class="form-group"><label for="profile-postal">Postcode / ZIP code</label><input id="profile-postal" name="postalCode" type="text" autocomplete="postal-code" maxlength="24"></div>

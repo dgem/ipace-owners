@@ -25,6 +25,8 @@ func legalRepresentationEnabled() bool {
 
 type memberContactProfile struct {
 	Name                    string    `json:"name" firestore:"name"`
+	Forenames               string    `json:"forenames" firestore:"forenames"`
+	FamilyName              string    `json:"familyName" firestore:"familyName"`
 	Phone                   string    `json:"phone" firestore:"phone"`
 	AddressLine1            string    `json:"addressLine1" firestore:"addressLine1"`
 	AddressLine2            string    `json:"addressLine2" firestore:"addressLine2"`
@@ -64,8 +66,30 @@ func normaliseMemberCountry(country string) string {
 	return cleanString(country, 100)
 }
 
+// splitLegacyMemberName keeps existing full-name records usable while the
+// profile transitions to explicit forenames and family name fields.
+func splitLegacyMemberName(name string) (string, string) {
+	parts := strings.Fields(cleanString(name, 160))
+	if len(parts) < 2 {
+		if len(parts) == 1 {
+			return parts[0], ""
+		}
+		return "", ""
+	}
+	return strings.Join(parts[:len(parts)-1], " "), parts[len(parts)-1]
+}
+
+func normaliseMemberName(p *memberContactProfile) {
+	p.Forenames = cleanString(p.Forenames, 120)
+	p.FamilyName = cleanString(p.FamilyName, 80)
+	if p.Forenames == "" && p.FamilyName == "" {
+		p.Forenames, p.FamilyName = splitLegacyMemberName(p.Name)
+	}
+	p.Name = strings.TrimSpace(p.Forenames + " " + p.FamilyName)
+}
+
 func validateMemberContactProfile(p *memberContactProfile) string {
-	p.Name = cleanString(p.Name, 160)
+	normaliseMemberName(p)
 	p.Phone = cleanString(p.Phone, 40)
 	p.AddressLine1 = cleanString(p.AddressLine1, 160)
 	p.AddressLine2 = cleanString(p.AddressLine2, 160)
@@ -73,6 +97,9 @@ func validateMemberContactProfile(p *memberContactProfile) string {
 	p.Region = cleanString(p.Region, 100)
 	p.PostalCode = strings.ToUpper(cleanString(p.PostalCode, 24))
 	p.Country = normaliseMemberCountry(p.Country)
+	if len(p.Name) > 160 {
+		return "Your full name must be 160 characters or fewer"
+	}
 	if p.Country == "" {
 		return "Choose a country"
 	}
@@ -139,6 +166,7 @@ func MemberProfile(w http.ResponseWriter, r *http.Request) {
 				writeJSON(w, 500, map[string]any{"error": "Could not load profile"})
 				return
 			}
+			normaliseMemberName(&profile)
 		} else if status.Code(err) != codes.NotFound {
 			writeJSON(w, 500, map[string]any{"error": "Could not load profile"})
 			return

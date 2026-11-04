@@ -25,8 +25,13 @@ test('merchandise storefront and navigation use the server-resolved audience gat
   assert.match(script, /Authorization: 'Bearer ' \+ receipt/);
   assert.match(shop, /data-member-profile-update hidden/);
   assert.match(shop, /Also update my member contact details/);
+  assert.match(shop, /Your delivery name can differ from your member profile/);
+  assert.doesNotMatch(shop.match(/data-member-profile-update hidden[^>]*>[^<]*<input[^>]*>/)[0], /\bchecked\b/);
   assert.match(script, /profileRequest\(token, 'GET'\)/);
   assert.match(script, /address1: memberProfile\.addressLine1/);
+  assert.match(script, /memberProfile\.forenames/);
+  assert.match(script, /memberProfile\.familyName/);
+  assert.match(script, /familyName: familyName/);
   assert.match(script, /updateMemberProfileFromOrder\(token, orderFields\)/);
   assert.match(script, /if \(!form\.elements\.update_member_profile \|\| !form\.elements\.update_member_profile\.checked\) return Promise\.resolve\(\)/);
   assert.match(script, /profileRequest\(token, 'POST', updated\)/);

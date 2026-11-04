@@ -41,12 +41,17 @@
       if (!token) return;
       var updateLabel = root.querySelector('[data-member-profile-update]');
       var updateNote = root.querySelector('[data-member-profile-note]');
-      updateLabel.hidden = false; updateNote.hidden = false;
+        updateLabel.hidden = false; updateNote.hidden = false;
       return profileRequest(token, 'GET').then(function (data) {
         memberProfile = data.profile || {};
-        var name = String(memberProfile.name || '').trim().split(/\s+/);
+        var legacyName = String(memberProfile.name || '').trim().split(/\s+/);
+        var forenames = String(memberProfile.forenames || ''), familyName = String(memberProfile.familyName || '');
+        if (!forenames && !familyName && legacyName[0]) {
+          familyName = legacyName.length > 1 ? legacyName.pop() : '';
+          forenames = legacyName.join(' ');
+        }
         var initial = {
-          first_name: name.shift() || '', last_name: name.join(' '), phone: memberProfile.phone || '',
+          first_name: forenames, last_name: familyName, phone: memberProfile.phone || '',
           country: memberProfile.country || '', address1: memberProfile.addressLine1 || '', address2: memberProfile.addressLine2 || '',
           city: memberProfile.city || '', region: memberProfile.region || '', zip: memberProfile.postalCode || ''
         };
@@ -64,10 +69,11 @@
   }
   function updateMemberProfileFromOrder(token, fields) {
     if (!form.elements.update_member_profile || !form.elements.update_member_profile.checked) return Promise.resolve();
-    var fullName = [fields.first_name, fields.last_name].map(function (value) { return String(value || '').trim(); }).filter(Boolean).join(' ');
+    var forenames = String(fields.first_name || '').trim(), familyName = String(fields.last_name || '').trim();
+    var fullName = [forenames, familyName].filter(Boolean).join(' ');
     return profileRequest(token, 'GET').then(function (data) {
       var updated = Object.assign({}, data.profile || memberProfile || {}, {
-        name: fullName, phone: String(fields.phone || '').trim(), country: String(fields.country || '').trim(),
+        name: fullName, forenames: forenames, familyName: familyName, phone: String(fields.phone || '').trim(), country: String(fields.country || '').trim(),
         addressLine1: String(fields.address1 || '').trim(), addressLine2: String(fields.address2 || '').trim(),
         city: String(fields.city || '').trim(), region: String(fields.region || '').trim(), postalCode: String(fields.zip || '').trim()
       });
