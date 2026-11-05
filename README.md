@@ -225,7 +225,8 @@ src/
       member-export.js    # Authenticated CSV/Excel account downloads
       member-stories.js   # Member experience editor, evidence links and private-media submission
       public-member-stories.js # Published story rendering and consented impact events
-      admin-member-stories.js # Admin editorial, AI analysis and publication workflow
+      admin-member-stories.js # Paged admin story list and bulk actions
+      admin-member-story-edit.js # Separate admin editorial page using authorized list data
       admin-member-search.js # Server-backed member lookup
       multistep-form.js  # Multi-step form controller
       outreach-assistant.js # Facebook search-link and reply helper; no automation
@@ -830,10 +831,11 @@ behind the single Go `Api` Cloud Function:
   A committed fictional workbook demonstrates the production export format without exposing
   member data. Regenerate it after workbook-layout changes with
   `cd functions/firebase-go && GENERATE_MEMBER_EXPORT_SAMPLE=1 go test ./... -run '^TestGeneratePublicSampleWorkbook$' -count=1`.
-- `member/stories` provides the Member experiences editor and saves drafts and consented submissions linked to records owned by the member. Member-authored stories use the account's display-name preference; contact and legal names remain private.
+- `member/stories` provides a private Member experiences list; `/member/stories/edit/?id=<uuid>` contains the separate editor. Saves reuse the same UUID so retries do not create duplicate stories. Member-authored stories use the account's display-name preference; contact and legal names remain private.
   `member/story-upload` and `member/story-upload-complete` provide bounded direct uploads to
   private storage; `member/story-withdraw` removes publication permissions immediately.
-- `admin/members` provides server-backed member search. `admin/stories` provides editorial review,
+- `admin/members` provides server-backed member search. `admin/stories` provides a paged review list
+  with previews, and `/admin/member-stories/edit/?id=<id>` provides the separate editorial page for
   manual AI suggestions, approval, publication and impact totals.
 - `stories` returns only public experience fields and expiring media URLs. `story-event` records
   consent-gated pseudonymous views, engagement, CTA clicks and shares.
@@ -983,7 +985,8 @@ the deployment value to enable lookup; without it, manual entry works.
 - `member-export.js` — authenticated CSV-bundle and Excel-report downloads
 - `member-stories.js` — member story drafts, linked evidence, consent and private media uploads
 - `public-member-stories.js` — safe Markdown story rendering and consented impact measurement
-- `admin-member-stories.js` — admin editing, manual AI analysis, approval and publication
+- `admin-member-stories.js` — paged admin story list, filters, selection and bulk actions
+- `admin-member-story-edit.js` — separate editorial page for review, analysis, approval and publication
 - `admin-member-search.js` — server-backed member search by identity, vehicle and preferences
 - `multistep-form.js` — generic multi-step form (data-attribute driven)
 - `outreach-assistant.js` — admin-only Facebook search-link and editable reply helper; no retrieval or posting automation
@@ -1050,14 +1053,16 @@ extended in a controlled order:
   readiness, Instagram generation/publishing, and reconstruction requirements.
 - `20-instagram-campaign-publishing.md` defines the creative, generation, review, and
   controlled-publishing boundary.
-- `22-clean-room-reconstruction-contract.md` is the final
+- `21-member-stories-and-impact.md` and `22-member-story-editor-workflow.md` define story
+  submission, impact, stable IDs and separate editorial routes.
+- `23-clean-room-reconstruction-contract.md` is the final
   route/API/schema/configuration and acceptance contract for rebuilding the product from
   scratch. It must remain the highest-numbered prompt as more feature prompts are added.
 
 When adding or refining prompts, keep the numeric prefix and make the prompt independently
 usable. Keep cross-layer implementation details canonical in
 `prompts/09-architecture-overview.md` and exact reconstruction inventories canonical in
-`prompts/22-clean-room-reconstruction-contract.md`; feature prompts may repeat only the
+`prompts/23-clean-room-reconstruction-contract.md`; feature prompts may repeat only the
 details needed to apply them safely.
 
 Keep prompts in sync with implemented behaviour so the project can be recreated from
@@ -1072,7 +1077,7 @@ checks catch structural drift; they do not prove that an agent can reproduce the
 from prose alone.
 
 For a genuine reproducibility test, follow the isolated clean-room procedure in
-`prompts/22-clean-room-reconstruction-contract.md`: provide only AGENTS.md, all numbered
+`prompts/23-clean-room-reconstruction-contract.md`: provide only AGENTS.md, all numbered
 prompt files, approved public assets, and separately secured configuration in a new
 repository, then run the full acceptance checklist and record every manual intervention.
 

@@ -7,6 +7,24 @@ import (
 	"time"
 )
 
+func TestValidStoryUUID(t *testing.T) {
+	tests := []struct {
+		id    string
+		valid bool
+	}{
+		{"0f8fad5b-d9cb-469f-a165-70867728950e", true},
+		{"0f8fad5b-d9cb-469f-a165-70867728950E", true},
+		{"story-123", false},
+		{"0f8fad5b-d9cb-169f-a165-70867728950e", false},
+		{"0f8fad5b-d9cb-469f-7165-70867728950e", false},
+	}
+	for _, test := range tests {
+		if got := validStoryUUID(test.id); got != test.valid {
+			t.Errorf("validStoryUUID(%q) = %v, want %v", test.id, got, test.valid)
+		}
+	}
+}
+
 func TestStoryMediaBucketUsesDedicatedBucketOnly(t *testing.T) {
 	t.Setenv("MEMBER_STORY_MEDIA_BUCKET", "")
 	t.Setenv("CAMPAIGN_MEDIA_BUCKET", "campaign-media")

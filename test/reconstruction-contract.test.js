@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 
 const root = path.join(__dirname, '..');
 const promptFilenamePattern = /^\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*\.md$/;
-const reconstructionPrompt = 'prompts/22-clean-room-reconstruction-contract.md';
+const reconstructionPrompt = 'prompts/23-clean-room-reconstruction-contract.md';
 
 function read(relativePath) {
   return fs.readFileSync(path.join(root, relativePath), 'utf8');
@@ -54,9 +54,11 @@ test('clean-room route inventory maps to source pages and Hosting redirects', fu
     ['/member/survey-response/', 'src/member/survey-response.njk'],
     ['/member/survey-results/', 'src/member/survey-results.njk'],
     ['/member/stories/', 'src/member/stories.njk'],
+    ['/member/stories/edit/', 'src/member/stories/edit.njk'],
     ['/member-stories/', 'src/member-stories.njk'],
     ['/admin/members/', 'src/admin/members.njk'],
     ['/admin/member-stories/', 'src/admin/member-stories.njk'],
+    ['/admin/member-stories/edit/', 'src/admin/member-stories/edit.njk'],
     ['/admin/outreach/', 'src/admin/outreach.njk'],
     ['/admin/email-campaigns/', 'src/admin/email-campaigns.njk'],
     ['/admin/instagram-campaigns/', 'src/admin/instagram-campaigns.njk'],

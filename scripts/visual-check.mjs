@@ -417,7 +417,7 @@ async function checkAdminDashboard() {
   await page.close();
 }
 
-async function checkMemberStories(viewport, screenshotName) {
+async function checkMemberStories(viewport, screenshotName, editorScreenshotName) {
   const page = await browser.newPage({ viewport });
   await mockMemberPresentation(page);
   await page.route('**/api/member/stories', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({
@@ -439,10 +439,29 @@ async function checkMemberStories(viewport, screenshotName) {
     document.querySelectorAll('[data-auth-pending], [data-auth-login-gate], .cookie-notice').forEach((element) => { element.hidden = true; });
     document.dispatchEvent(new CustomEvent('identity:login'));
   });
+  await page.locator('[data-member-stories]').waitFor({ state: 'attached' });
+  await page.evaluate(() => {
+    document.querySelectorAll('[data-auth-content], [data-member-feature]').forEach((element) => { element.hidden = false; });
+    document.querySelectorAll('[data-auth-pending], [data-auth-login-gate], [data-member-feature-denied], .cookie-notice').forEach((element) => { element.hidden = true; });
+  });
+  await page.locator('[data-member-stories]').waitFor({ state: 'visible' });
+  await page.locator('h1.page-header__title').waitFor({ state: 'visible' });
+  assert.equal(await page.getByText('Please add the date of the replacement-module failure.').count(), 1);
+  assert.equal(await page.getByRole('link', { name: 'View published experience' }).getAttribute('href'), '/member-stories/published-experience/');
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
+  await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
+
+  await page.goto(baseURL + '/member/stories/edit/?id=story-1', { waitUntil: 'networkidle' });
+  await page.evaluate(() => {
+    window.ipaceGetIdentityToken = async () => 'visual-member-token';
+    document.querySelectorAll('[data-auth-content], [data-member-feature]').forEach((element) => { element.hidden = false; });
+    document.querySelectorAll('[data-auth-pending], [data-auth-login-gate], [data-member-feature-denied], .cookie-notice').forEach((element) => { element.hidden = true; });
+    document.dispatchEvent(new CustomEvent('identity:login'));
+  });
   await page.locator('[data-story-form]').waitFor({ state: 'attached' });
   await page.evaluate(() => {
-    document.querySelectorAll('[data-auth-content]').forEach((element) => { element.hidden = false; });
-    document.querySelectorAll('[data-auth-pending], [data-auth-login-gate], .cookie-notice').forEach((element) => { element.hidden = true; });
+    document.querySelectorAll('[data-auth-content], [data-member-feature]').forEach((element) => { element.hidden = false; });
+    document.querySelectorAll('[data-auth-pending], [data-auth-login-gate], [data-member-feature-denied], .cookie-notice').forEach((element) => { element.hidden = true; });
   });
   await page.locator('[data-story-form]').waitFor({ state: 'visible' });
   await page.locator('[name="vehicleId"]').selectOption('vehicle-1', { force: true });
@@ -455,44 +474,50 @@ async function checkMemberStories(viewport, screenshotName) {
   assert.equal(await page.locator('[data-story-media-previews] img').evaluate((image) => image.src.startsWith('blob:') && image.naturalWidth > 1), true);
   assert.equal(await page.locator('[name="title"]').count(), 0);
   assert.equal(await page.locator('[data-story-editor]').count(), 1);
-  assert.equal(await page.getByRole('link', { name: 'My Data' }).count() > 0, true);
-  assert.equal(await page.getByRole('button', { name: 'Edit' }).count(), 1);
-  assert.equal(await page.getByText('Published 28/10/2026').count(), 1);
-  assert.equal(await page.getByRole('link', { name: 'View published experience' }).getAttribute('href'), '/member-stories/published-experience/');
-  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
-  await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
-  await page.getByRole('button', { name: 'Edit' }).click();
-  const insertImage = page.getByRole('button', { name: 'Insert image' });
-  await insertImage.waitFor({ state: 'visible' });
-  await insertImage.click();
+  assert.equal(await page.getByRole('button', { name: 'Insert image' }).count(), 2);
+  assert.equal(await page.getByRole('button', { name: 'Remove' }).first().evaluate((button) => getComputedStyle(button).backgroundColor), 'rgb(185, 28, 28)');
+  await page.screenshot({ path: path.join(outputDir, editorScreenshotName), fullPage: true });
+  await page.getByRole('button', { name: 'Insert image' }).first().click();
   assert.equal(await page.locator('[data-story-editor] img[data-story-media-id="photo-1"]').count(), 1);
   await page.close();
 }
 
-async function checkAdminMemberStories(viewport, screenshotName) {
+async function checkAdminMemberStories(viewport, screenshotName, editorScreenshotName) {
   const page = await browser.newPage({ viewport });
-  await page.route('**/api/admin/stories**', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({
-    promptVersion: 'member-story-editor-v1', impact: { 'story-1': { readers: 42, views: 57, engaged: 31, ctas: 9, shares: 6, registrations: 3, sharePlatforms: { facebook: 3, instagram: 2, copy: 1 } } }, stories: [{
+  await page.route('**/api/admin/stories**', (route) => {
+    const url = new URL(route.request().url());
+    const editor = url.searchParams.get('pageSize') === '50';
+    const story = {
       id: 'story-1', title: 'Three modules and still waiting', bodyMarkdown: 'My I-PACE needed three battery modules replaced. One replacement later failed again.', displayName: 'Alex Owner', contactName: 'Alex Owner', contactEmail: 'alex@example.com', status: 'submitted',
-      consent: { website: true, thirdParty: true, copyright: true, truthful: true }, evidence: { vehicleLabel: 'AB12 CDE', serviceEventCount: 3, sohReadingCount: 2 }, media: [], memberMessage: 'Please clarify the date of the repeat failure.',
+      consent: { website: true, thirdParty: true, copyright: true, truthful: true }, evidence: { vehicleLabel: 'AB12 CDE', serviceEventCount: 3, sohReadingCount: 2 }, media: [{ id: 'photo-1', name: 'battery-warning.png', contentType: 'image/png', status: 'ready', url: '/images/racing-laurel-email.png' }], memberMessage: 'Please clarify the date of the repeat failure.',
       analysis: { promptVersion: 'member-story-editor-v1', sentiment: 'frustrated', keywords: ['battery modules', 'repeat failure'], grammar: ['No corrections suggested.'], structure: ['Clarify the dates if known.'], claims: ['Three modules were replaced.'], privacyFlags: [] }
-    }], page: 1, pageSize: 20, total: 1, hasNext: false, hasPrevious: false
-  }) }));
+    };
+    return route.fulfill({ contentType: 'application/json', body: JSON.stringify(editor
+      ? { stories: [story], page: 1, pageSize: 50, total: 1, hasNext: false, hasPrevious: false, impact: { 'story-1': { readers: 42, views: 57, engaged: 31, ctas: 9, shares: 6, registrations: 3, sharePlatforms: { facebook: 3, instagram: 2, copy: 1 } } }, promptVersion: 'member-story-editor-v1' }
+      : { stories: [story], page: 1, pageSize: 20, total: 1, hasNext: false, hasPrevious: false }) });
+  });
   await page.goto(baseURL + '/admin/member-stories/', { waitUntil: 'networkidle' });
   await page.evaluate(() => {
     window.ipaceGetIdentityToken = async () => 'visual-admin-token';
     document.dispatchEvent(new CustomEvent('identity:login'));
   });
   await revealAdminState(page);
-  await page.locator('[data-story-detail]').waitFor({ state: 'visible' });
-  await page.locator('[data-open="story-1"]').first().waitFor({ state: 'visible' });
-  await page.locator('[data-open="story-1"]').first().click();
-  await page.getByRole('button', { name: 'Run AI analysis' }).waitFor({ state: 'visible' });
+  await page.getByRole('link', { name: 'Open editorial page' }).waitFor({ state: 'visible' });
   await page.locator('[data-select="story-1"]').check();
   assert.equal(await page.getByRole('button', { name: 'Approve selected' }).isEnabled(), true);
-  assert.equal(await page.getByText('Share clicks by platform: copy: 1, facebook: 3, instagram: 2').count(), 1);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
+  await page.goto(baseURL + '/admin/member-stories/edit/?id=story-1', { waitUntil: 'networkidle' });
+  await page.evaluate(() => {
+    window.ipaceGetIdentityToken = async () => 'visual-admin-token';
+    document.dispatchEvent(new CustomEvent('identity:login'));
+  });
+  await revealAdminState(page);
+  await page.locator('[data-admin-story-editor]').waitFor({ state: 'visible' });
+  await page.getByRole('button', { name: 'Run AI analysis' }).waitFor({ state: 'visible' });
+  assert.equal(await page.getByText('Share clicks by platform: copy: 1, facebook: 3, instagram: 2').count(), 1);
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
+  await page.screenshot({ path: path.join(outputDir, editorScreenshotName), fullPage: true });
   await page.close();
 }
 
@@ -1376,8 +1401,10 @@ try {
     await checkJoinCountry({ width: 390, height: 844 }, 'launch', 'join-country-launch-mobile.png');
     await checkJoinCountry({ width: 1440, height: 1000 }, 'full', 'join-country-full-desktop.png');
     await checkJoinCountry({ width: 390, height: 844 }, 'full', 'join-country-full-mobile.png');
-    await checkMemberStories({ width: 1440, height: 1000 }, 'member-stories-desktop.png');
-    await checkMemberStories({ width: 402, height: 874 }, 'member-stories-mobile.png');
+    await checkMemberStories({ width: 1440, height: 1000 }, 'member-stories-desktop.png', 'member-story-editor-desktop.png');
+    await checkMemberStories({ width: 402, height: 874 }, 'member-stories-mobile.png', 'member-story-editor-mobile.png');
+    await checkAdminMemberStories({ width: 1440, height: 1000 }, 'admin-member-stories-desktop.png', 'admin-member-story-editor-desktop.png');
+    await checkAdminMemberStories({ width: 390, height: 844 }, 'admin-member-stories-mobile.png', 'admin-member-story-editor-mobile.png');
     await checkMemberAccountManagement({ width: 402, height: 874 }, 'member-account-experience-callout-mobile.png');
     await checkServiceRecordForm({ width: 402, height: 874 }, 'member-vehicle-experience-actions-mobile.png');
     console.log(`Focused member-experience visual checks passed; screenshots written to ${outputDir}`);
@@ -1402,10 +1429,10 @@ try {
   await checkDesktopAdminHeader();
   await checkMobileAdminDrawer();
   await checkAdminDashboard();
-  await checkMemberStories({ width: 1440, height: 1000 }, 'member-stories-desktop.png');
-  await checkMemberStories({ width: 402, height: 874 }, 'member-stories-mobile.png');
-  await checkAdminMemberStories({ width: 1440, height: 1000 }, 'admin-member-stories-desktop.png');
-  await checkAdminMemberStories({ width: 390, height: 844 }, 'admin-member-stories-mobile.png');
+  await checkMemberStories({ width: 1440, height: 1000 }, 'member-stories-desktop.png', 'member-story-editor-desktop.png');
+  await checkMemberStories({ width: 402, height: 874 }, 'member-stories-mobile.png', 'member-story-editor-mobile.png');
+  await checkAdminMemberStories({ width: 1440, height: 1000 }, 'admin-member-stories-desktop.png', 'admin-member-story-editor-desktop.png');
+  await checkAdminMemberStories({ width: 390, height: 844 }, 'admin-member-stories-mobile.png', 'admin-member-story-editor-mobile.png');
   await checkAdminMemberSearch({ width: 1440, height: 1000 }, 'admin-members-desktop.png');
   await checkAdminMemberSearch({ width: 390, height: 844 }, 'admin-members-mobile.png');
   await checkPublicMemberStory({ width: 1440, height: 1000 }, 'public-member-story-desktop.png');

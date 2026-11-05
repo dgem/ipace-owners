@@ -16,6 +16,8 @@ import (
 	"cloud.google.com/go/firestore"
 	"cloud.google.com/go/storage"
 	"google.golang.org/api/iterator"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 const (
@@ -33,6 +35,11 @@ var storyAllowedMedia = map[string]bool{
 }
 
 var storyMarkdownTarget = regexp.MustCompile(`!?\[[^\]]*\]\(([^)\s]+)\)`)
+var storyUUIDPattern = regexp.MustCompile(`(?i)^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$`)
+
+func validStoryUUID(id string) bool {
+	return storyUUIDPattern.MatchString(id)
+}
 
 type memberStoryConsent struct {
 	Website    bool      `json:"website" firestore:"website"`
@@ -328,28 +335,35 @@ func memberStoriesSave(w http.ResponseWriter, r *http.Request, user *firebaseUse
 	} else {
 		ref = db.Collection("memberStories").Doc(story.ID)
 		doc, e := ref.Get(r.Context())
-		if e != nil {
-			writeJSON(w, 404, map[string]any{"error": "Story not found"})
+		if status.Code(e) == codes.NotFound {
+			if !validStoryUUID(story.ID) {
+				writeJSON(w, 400, map[string]any{"error": "New stories require a valid story ID"})
+				return
+			}
+			story.CreatedAt = now
+		} else if e != nil {
+			writeJSON(w, 500, map[string]any{"error": "Could not load story"})
 			return
-		}
-		var previous memberStory
-		if doc.DataTo(&previous) != nil || previous.IdentityUserID != user.UID || (previous.Status != "draft" && previous.Status != "submitted" && previous.Status != "editing" && previous.Status != "needs-member-clarification") {
-			writeJSON(w, 403, map[string]any{"error": "This story cannot be edited"})
-			return
-		}
-		story.CreatedAt = previous.CreatedAt
-		previousStatus = previous.Status
-		story.Media = previous.Media
-		if input.MediaIDs != nil {
-			story.Media = filterStoryMedia(story.Media, input.MediaIDs)
-		}
-		story.Analysis = previous.Analysis
-		story.AdminNotes = previous.AdminNotes
-		story.MemberMessage = previous.MemberMessage
-		story.Revisions = append(previous.Revisions, memberStoryRevision{Title: previous.Title, BodyMarkdown: previous.BodyMarkdown, DisplayName: previous.DisplayName, Editor: "member", CreatedAt: now})
-		story.ConsentHistory = append(previous.ConsentHistory, previous.Consent)
-		if story.Title == "" {
-			story.Title = previous.Title
+		} else {
+			var previous memberStory
+			if doc.DataTo(&previous) != nil || previous.IdentityUserID != user.UID || (previous.Status != "draft" && previous.Status != "submitted" && previous.Status != "editing" && previous.Status != "needs-member-clarification") {
+				writeJSON(w, 403, map[string]any{"error": "This story cannot be edited"})
+				return
+			}
+			story.CreatedAt = previous.CreatedAt
+			previousStatus = previous.Status
+			story.Media = previous.Media
+			if input.MediaIDs != nil {
+				story.Media = filterStoryMedia(story.Media, input.MediaIDs)
+			}
+			story.Analysis = previous.Analysis
+			story.AdminNotes = previous.AdminNotes
+			story.MemberMessage = previous.MemberMessage
+			story.Revisions = append(previous.Revisions, memberStoryRevision{Title: previous.Title, BodyMarkdown: previous.BodyMarkdown, DisplayName: previous.DisplayName, Editor: "member", CreatedAt: now})
+			story.ConsentHistory = append(previous.ConsentHistory, previous.Consent)
+			if story.Title == "" {
+				story.Title = previous.Title
+			}
 		}
 	}
 	if story.Title == "" {
