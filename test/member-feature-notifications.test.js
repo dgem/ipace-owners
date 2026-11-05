@@ -92,6 +92,28 @@ test('member experience editor inserts uploaded images instead of arbitrary link
   assert.match(publicStories, /<blockquote>/);
 });
 
+test('member and admin story lists link to separate editors and new story IDs are retry-stable', () => {
+  const listPage = read('src/member/stories.njk');
+  const editorPage = read('src/member/stories/edit.njk');
+  const memberJS = read('src/assets/js/member-stories.js');
+  const adminListJS = read('src/assets/js/admin-member-stories.js');
+  const adminEditorJS = read('src/assets/js/admin-member-story-edit.js');
+  const adminEditorPage = read('src/admin/member-stories/edit.njk');
+  const styles = read('src/assets/css/site.css');
+
+  assert.match(listPage, /data-view="list"/);
+  assert.match(editorPage, /data-view="editor"/);
+  assert.match(memberJS, /member\/stories\/edit\/\?id=/);
+  assert.match(memberJS, /crypto\.randomUUID/);
+  assert.match(memberJS, /if \(saving\) return/);
+  assert.match(memberJS, /class="btn btn--secondary btn--sm" type="button" data-insert-pending-media/);
+  assert.match(memberJS, /class="btn btn--danger btn--sm" type="button" data-remove-media/);
+  assert.match(adminListJS, /admin-story-row__preview/);
+  assert.match(adminEditorPage, /data-admin-story-editor/);
+  assert.match(adminEditorJS, /Story \(Markdown source\)/);
+  assert.doesNotMatch(styles, /\.story-media-card \.btn--danger\s*\{\s*background:\s*var\(--color-accent\)/);
+});
+
 test('member story upload errors retain a support correlation reference', () => {
   const stories = read('src/assets/js/member-stories.js');
 

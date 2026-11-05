@@ -5,13 +5,13 @@ const test = require('node:test');
 
 const root = path.join(__dirname, '..');
 const promptFilenamePattern = /^\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*\.md$/;
-const reconstructionPrompt = 'prompts/22-clean-room-reconstruction-contract.md';
+const reconstructionPrompt = 'prompts/23-clean-room-reconstruction-contract.md';
 
 function read(relativePath) {
   return fs.readFileSync(path.join(root, relativePath), 'utf8');
 }
 
-test('maintained prompts form a contiguous 00-22 reconstruction set', function () {
+test('maintained prompts form a contiguous 00-23 reconstruction set', function () {
   const promptFiles = fs
     .readdirSync(path.join(root, 'prompts'))
     .filter(function (name) {
@@ -27,7 +27,7 @@ test('maintained prompts form a contiguous 00-22 reconstruction set', function (
     promptFiles.map(function (name) {
       return Number(name.slice(0, 2));
     }),
-    Array.from({ length: 23 }, function (_, index) {
+    Array.from({ length: 24 }, function (_, index) {
       return index;
     })
   );

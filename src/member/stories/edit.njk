@@ -1,0 +1,22 @@
+---
+layout: base.njk
+title: Edit your experience
+description: "Write or edit an I-PACE experience for review."
+noindex: true
+memberNavigation: true
+memberBreadcrumb: Experiences
+memberStories: true
+date: Last Modified
+permalink: /member/stories/edit/
+---
+
+{% from "partials/auth-login-gate.njk" import authLoginGate %}
+
+<div class="page-header page-header--compact"><div class="container"><h1 class="page-header__title">Your experience</h1></div></div>
+<div class="section"><div class="container"><div data-auth-container>
+  {{ authLoginGate("stories-edit-magic-email", "Members only", "Sign in to write and manage your story.") }}
+  <div class="auth-content" data-auth-content hidden>
+    <div data-member-feature="member-experiences" hidden><div data-member-stories data-view="editor"><p>Loading your experience…</p></div></div>
+    <div class="callout callout--info" data-member-feature-denied="member-experiences" hidden><div class="callout__content"><p class="callout__title">Member experiences are not available yet</p><p>We are testing this feature with a small group before making it generally available.</p><p><a href="/member/account/">Return to My Data</a></p></div></div>
+  </div>
+</div></div></div>

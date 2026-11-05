@@ -31,7 +31,9 @@ Use these prompts as a maintainable product blueprint. They are ordered so a fre
     asynchronous Veo generation, full-media review, and controlled organic publishing.
 21. Use `21-member-stories-and-impact.md` to add member story submission, editorial review,
     publication permissions, private media and impact measurement.
-22. Use `22-clean-room-reconstruction-contract.md` as the final authority for a from-scratch
+22. Use `22-member-story-editor-workflow.md` for separate member and admin story lists/editors,
+    stable story IDs and editorial navigation.
+23. Use `23-clean-room-reconstruction-contract.md` as the final authority for a from-scratch
     rebuild, exact route/API/data inventories, acceptance criteria, asset preservation, and
     the boundary between source reconstruction and production disaster recovery. It must
     remain the highest-numbered prompt; insert future feature prompts before it and renumber
@@ -55,7 +57,7 @@ Use these prompts as a maintainable product blueprint. They are ordered so a fre
 - Treat `00-original-project-prompt.md` as immutable source history. Update the numbered
   prompts from `01-` onward when requirements evolve.
 - Treat `00-original-project-prompt.md` as non-authoritative whenever it conflicts with
-  prompts `01-21`; later specific prompts override earlier general prompts.
+  prompts `01-22`; later specific prompts override earlier general prompts.
 - Keep prompts aligned with implementation and README so the project can be recreated from
   prompt files plus README alone.
 - Treat durable knowledge from user conversations as source material for these prompts.

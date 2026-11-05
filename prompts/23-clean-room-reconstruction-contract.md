@@ -212,8 +212,10 @@ The generated public route surface must include:
   `/methodology/`, `/evidence-dashboard/`, and `/updates/`;
 - dated or named update pages generated from `src/updates/`; every new update includes a relevant, accessible hero image and alt text so it reads as a considered editorial page rather than an unadorned notice;
 - `/member/dashboard/`, `/member/account/`, `/member/submit-vehicle-data/`, `/member/stories/`,
+  `/member/stories/edit/`,
   `/member/surveys/`, `/member/survey-response/`, and `/member/survey-results/`;
-- `/member-stories/`, `/admin/`, `/admin/members/`, `/admin/member-stories/`, `/admin/outreach/`, `/admin/email-campaigns/`, and
+- `/member-stories/`, `/admin/`, `/admin/members/`, `/admin/member-stories/`,
+  `/admin/member-stories/edit/`, `/admin/outreach/`, `/admin/email-campaigns/`, and
   `/admin/instagram-campaigns/`, `/admin/marketing-messages/`, `/admin/surveys/`, `/admin/survey-preview/`, `/admin/survey-results/`, and `/admin/survey-insights/`;
 - Firebase Hosting rewrites `/member-stories/<slug>/` directly to
   `/member-stories/index.html`; Eleventy’s dev server uses matching middleware, and deployment
@@ -296,10 +298,10 @@ vehicle creation and vehicle editing. Keep United Kingdom as the default.
 | `GET /api/member-export?format=csv\|xlsx` | Member | Return a private no-store ZIP of five CSV datasets or a formatted six-sheet Excel workbook built from only that UID's account records and member experiences; omit internal IDs/hashes, private editorial data and storage object names, and neutralise spreadsheet formulas. |
 | `GET /api/member/features` | Member | Return booleans for recognised member-facing features after applying `all`, `off`, admin, or named Firebase-role access rules. The same decision must protect the feature's member APIs. |
 | `GET/POST /api/member/notifications` | Member | Return versioned notification IDs dismissed by that UID or store one validated dismissal. Survey IDs are survey-specific so new surveys remain visible. |
-| `GET/POST /api/member/stories` | Member | Return story eligibility and owned evidence records, save drafts, and submit a consented story linked only to the member's vehicle records. |
+| `GET/POST /api/member/stories` | Member | Return story eligibility and owned evidence records, save drafts, and submit a consented story linked only to the member's vehicle records. New story editors use a client-generated UUID v4 as the document ID so retries are idempotent; validate IDs and enforce ownership/edit status on every save. |
 | `POST /api/member/story-upload` and `/api/member/story-upload-complete` | Member | Reserve bounded private media, issue a short-lived upload URL, then verify and promote the object. |
 | `POST /api/member/story-withdraw` | Member | Remove website and third-party permissions immediately and hold the story for withdrawal review. |
-| `GET/POST /api/admin/stories` | Admin claim | Review, edit, manually analyse, approve and publish stories with versioned permissions and revisions. |
+| `GET/POST /api/admin/stories` | Admin claim | Provide the paged admin list and editorial-page reads/actions; review, edit, manually analyse, approve and publish stories with versioned permissions and revisions. Every operation requires the admin claim. |
 | `GET /api/admin/members` | Admin claim | Search by name, email, registration, expertise, preferences and story activity. |
 | `GET /api/stories` | Public | Return only published story fields, evidence summaries and expiring media URLs. |
 | `POST /api/story-event` | Public | Record consent-gated pseudonymous view, engagement, CTA and share-link click events for a published story, including a validated platform identifier. |
@@ -698,7 +700,7 @@ rebuild:
   the product. It deliberately does not exercise cloud credentials, live data restoration,
   DNS, email delivery, or visual equivalence.
 - Periodically perform a true isolated reconstruction in a new empty repository or ephemeral
-  environment using only `AGENTS.md`, prompts `01-21`, approved public assets, and separately
+  environment using only `AGENTS.md`, prompts `01-22`, approved public assets, and separately
   supplied secrets/configuration. Run the full acceptance checklist and compare the resulting
   route/API/schema inventories with production before calling the reconstruction successful.
 - Record the source commit, toolchain versions, generated lockfiles, deviations, elapsed
