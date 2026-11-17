@@ -22,6 +22,9 @@ test('member story admin workspace is paged, filterable and supports bulk archiv
   assert.match(js, /Share clicks by platform/);
   assert.match(js, /Story \(Markdown source\)/);
   assert.match(js, /story-markdown-editor/);
+  assert.match(js, /Markdown reference/);
+  assert.match(js, /Copy Markdown/);
+  assert.match(js, /story-media:/);
   assert.match(js, /Sentiment:/);
   assert.match(go, /hasNext/);
   assert.match(go, /query.Get\("status"\)/);

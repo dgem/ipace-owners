@@ -102,7 +102,7 @@ test('admin must confirm before soft-deleting a story', async ({ page }) => {
     const req = route.request();
     const pathname = new URL(req.url()).pathname;
     if (pathname === '/') return route.fulfill({ contentType: 'text/html', body: '<main data-admin-stories></main>' });
-    if (pathname === '/api/admin/stories' && req.method() === 'GET') return route.fulfill({ json: { stories: deleted ? [] : [{ id: 'story-1', title: 'My experience', displayName: 'Owner', status: 'draft', bodyMarkdown: 'A story', consent: {} }], total: deleted ? 0 : 1, page: 1, pageSize: 20 } });
+    if (pathname === '/api/admin/stories' && req.method() === 'GET') return route.fulfill({ json: { stories: deleted ? [] : [{ id: 'story-1', title: 'My experience', displayName: 'Owner', status: 'draft', bodyMarkdown: 'A story', consent: {}, media: [{ id: 'clip-1', name: 'repair-video.mp4', contentType: 'video/mp4', url: 'https://media.test/repair-video.mp4' }] }], total: deleted ? 0 : 1, page: 1, pageSize: 20 } });
     if (pathname === '/api/admin/stories' && req.method() === 'POST') {
       expect(req.postDataJSON()).toEqual({ id: 'story-1', action: 'delete', confirmation: 'DELETE' });
       deleted = true;
@@ -116,6 +116,7 @@ test('admin must confirm before soft-deleting a story', async ({ page }) => {
   await page.addScriptTag({ path: path.resolve('src/assets/js/admin-member-stories.js') });
   await page.getByRole('button', { name: 'My experience' }).click();
   await expect(page.locator('[data-story-list-view]')).toBeHidden();
+  await expect(page.getByLabel('Markdown reference for repair-video.mp4')).toHaveValue('![Video](story-media:clip-1)');
   await page.locator('[data-story-detail] [name=title]').fill('Unsaved admin edit');
   await page.locator('[name=bodyMarkdown]').fill('## Updated heading\n\nUnsaved **bold** text');
   await page.getByRole('button', { name: 'Preview story' }).click();

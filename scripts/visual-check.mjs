@@ -482,7 +482,7 @@ async function checkAdminMemberStories(viewport, screenshotName) {
   await page.route('**/api/admin/stories**', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({
     promptVersion: 'member-story-editor-v1', impact: { 'story-1': { readers: 42, views: 57, engaged: 31, ctas: 9, shares: 6, registrations: 3, sharePlatforms: { facebook: 3, instagram: 2, copy: 1 } } }, stories: [{
       id: 'story-1', title: 'Three modules and still waiting', bodyMarkdown: 'My I-PACE needed three battery modules replaced. One replacement later failed again.', displayName: 'Alex Owner', contactName: 'Alex Owner', contactEmail: 'alex@example.com', status: 'submitted',
-      consent: { website: true, thirdParty: true, copyright: true, truthful: true }, evidence: { vehicleLabel: 'AB12 CDE', serviceEventCount: 3, sohReadingCount: 2 }, media: [], memberMessage: 'Please clarify the date of the repeat failure.',
+      consent: { website: true, thirdParty: true, copyright: true, truthful: true }, evidence: { vehicleLabel: 'AB12 CDE', serviceEventCount: 3, sohReadingCount: 2 }, media: [{ id: 'photo-1', name: 'battery-module.jpg', contentType: 'image/jpeg', url: '/images/jlr-response-october-2026-hero.jpg' }], memberMessage: 'Please clarify the date of the repeat failure.',
       analysis: { promptVersion: 'member-story-editor-v1', sentiment: 'frustrated', keywords: ['battery modules', 'repeat failure'], grammar: ['No corrections suggested.'], structure: ['Clarify the dates if known.'], claims: ['Three modules were replaced.'], privacyFlags: [] }
     }], page: 1, pageSize: 20, total: 1, hasNext: false, hasPrevious: false
   }) }));
@@ -502,6 +502,7 @@ async function checkAdminMemberStories(viewport, screenshotName) {
   await page.getByRole('button', { name: 'Cancel' }).click();
   await page.locator('[data-open="story-1"]').first().click();
   await page.getByRole('button', { name: 'Run AI analysis' }).waitFor({ state: 'visible' });
+  await page.getByLabel('Markdown reference for battery-module.jpg').waitFor({ state: 'visible' });
   assert.equal(await page.locator('[data-story-list-view]').isHidden(), true);
   assert.equal(await page.getByText('Share clicks by platform: copy: 1, facebook: 3, instagram: 2').count(), 1);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
