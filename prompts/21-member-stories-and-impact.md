@@ -66,3 +66,7 @@ Firebase Auth account. The implementation must inventory connected providers and
 concurrent writes or re-creation during deletion, fail closed and support safe retry of partial work.
 Do not describe the request as complete until every applicable store has been addressed. This is a
 planned requirement; the account departure workflow has not yet been implemented.
+
+- The admin story list opens a separate full-width review and editing view, with a back control returning to the same filters and page after confirmation if edits are unsaved. Keep selection of table checkboxes separate from opening a story.
+
+- Members with existing experiences see their list first and open either an existing experience or a new one in a separate editor; members without experiences start directly in the editor. Provide a back control to the list, confirm before discarding unsaved member edits, and preserve the separate admin review view.

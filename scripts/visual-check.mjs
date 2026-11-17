@@ -439,11 +439,16 @@ async function checkMemberStories(viewport, screenshotName) {
     document.querySelectorAll('[data-auth-pending], [data-auth-login-gate], .cookie-notice').forEach((element) => { element.hidden = true; });
     document.dispatchEvent(new CustomEvent('identity:login'));
   });
-  await page.locator('[data-story-form]').waitFor({ state: 'attached' });
+  await page.locator('[data-new-story]').waitFor({ state: 'attached' });
   await page.evaluate(() => {
     document.querySelectorAll('[data-auth-content]').forEach((element) => { element.hidden = false; });
     document.querySelectorAll('[data-auth-pending], [data-auth-login-gate], .cookie-notice').forEach((element) => { element.hidden = true; });
   });
+  await page.getByRole('button', { name: 'Write a new experience' }).waitFor({ state: 'visible' });
+  assert.equal(await page.getByText('Published 28/10/2026').count(), 1);
+  assert.equal(await page.getByRole('link', { name: 'View published experience' }).getAttribute('href'), '/member-stories/published-experience/');
+  await page.screenshot({ path: path.join(outputDir, screenshotName.replace('.png', '-list.png')), fullPage: true });
+  await page.getByRole('button', { name: 'Write a new experience' }).click();
   await page.locator('[data-story-form]').waitFor({ state: 'visible' });
   await page.locator('[name="vehicleId"]').selectOption('vehicle-1', { force: true });
   await page.locator('#story-media').setInputFiles({
@@ -456,11 +461,10 @@ async function checkMemberStories(viewport, screenshotName) {
   assert.equal(await page.locator('[name="title"]').count(), 0);
   assert.equal(await page.locator('[data-story-editor]').count(), 1);
   assert.equal(await page.getByRole('link', { name: 'My Data' }).count() > 0, true);
-  assert.equal(await page.getByRole('button', { name: 'Edit' }).count(), 1);
-  assert.equal(await page.getByText('Published 28/10/2026').count(), 1);
-  assert.equal(await page.getByRole('link', { name: 'View published experience' }).getAttribute('href'), '/member-stories/published-experience/');
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
+  page.once('dialog', (dialog) => dialog.accept());
+  await page.getByRole('button', { name: 'Back to experiences' }).click();
   await page.getByRole('button', { name: 'Edit' }).click();
   const insertImage = page.getByRole('button', { name: 'Insert image' });
   await insertImage.waitFor({ state: 'visible' });
@@ -484,12 +488,13 @@ async function checkAdminMemberStories(viewport, screenshotName) {
     document.dispatchEvent(new CustomEvent('identity:login'));
   });
   await revealAdminState(page);
-  await page.locator('[data-story-detail]').waitFor({ state: 'visible' });
   await page.locator('[data-open="story-1"]').first().waitFor({ state: 'visible' });
-  await page.locator('[data-open="story-1"]').first().click();
-  await page.getByRole('button', { name: 'Run AI analysis' }).waitFor({ state: 'visible' });
   await page.locator('[data-select="story-1"]').check();
   assert.equal(await page.getByRole('button', { name: 'Approve selected' }).isEnabled(), true);
+  await page.screenshot({ path: path.join(outputDir, screenshotName.replace('.png', '-list.png')), fullPage: true });
+  await page.locator('[data-open="story-1"]').first().click();
+  await page.getByRole('button', { name: 'Run AI analysis' }).waitFor({ state: 'visible' });
+  assert.equal(await page.locator('[data-story-list-view]').isHidden(), true);
   assert.equal(await page.getByText('Share clicks by platform: copy: 1, facebook: 3, instagram: 2').count(), 1);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });

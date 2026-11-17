@@ -87,7 +87,7 @@ async function verifyStoryUpload(page: Page) {
   });
   await page.goto('/member/stories/');
   const root = page.locator('[data-member-stories]');
-  await expect(root.locator('[data-story-form]'), 'The staging member needs story access, a name, display name and registered vehicle.').toBeVisible();
+  await expect(root.locator('[data-story-form], [data-new-story]'), 'The staging member needs story access, a name, display name and registered vehicle.').toBeVisible();
   const matches = root.locator('.story-submission-list li').filter({ has: page.getByText(marker, { exact: true }) });
   expect(await matches.count(), 'The dedicated account must have at most one test draft.').toBeLessThanOrEqual(1);
   if (await matches.count()) {
@@ -95,9 +95,11 @@ async function verifyStoryUpload(page: Page) {
     const removeButtons = root.locator('[data-remove-existing-media]');
     while (await removeButtons.count()) await removeButtons.first().click();
     await root.locator('[data-save-story]').click();
-    await expect(root.locator('[data-story-form]')).toHaveAttribute('data-story-id', '');
+    await expect(root.locator('[data-story-form]')).toHaveCount(0);
     await expect(root.locator('.story-submission-list li').filter({ has: page.getByText(marker, { exact: true }) })).toHaveCount(1);
     await root.locator('.story-submission-list li').filter({ has: page.getByText(marker, { exact: true }) }).getByRole('button', { name: 'Edit' }).click();
+  } else if (await root.locator('[data-new-story]').count()) {
+    await root.locator('[data-new-story]').click();
   }
   const editor = root.locator('[data-story-editor]');
   await editor.fill(marker + '\n\nThis private staging draft exercises a real video upload and save.');
@@ -107,7 +109,7 @@ async function verifyStoryUpload(page: Page) {
   await root.locator('[data-save-story]').click();
   const finalResponse = await saved;
   if (!finalResponse.ok()) { const body = await finalResponse.json().catch(() => ({})); throw new Error('Final story save failed (' + finalResponse.status() + '): ' + (body.error || 'unknown error')); }
-  await expect(root.locator('[data-story-form]')).toHaveAttribute('data-story-id', '', { timeout: 60_000 });
+  await expect(root.locator('[data-story-form]')).toHaveCount(0, { timeout: 60_000 });
   await expect(root.locator('.story-submission-list li').filter({ has: page.getByText(marker, { exact: true }) })).toHaveCount(1, { timeout: 60_000 });
   const result = await page.evaluate(async (title) => {
     const token = await (window as any).ipaceGetIdentityToken();

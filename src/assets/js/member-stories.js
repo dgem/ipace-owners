@@ -156,6 +156,7 @@
       return;
     }
 
+    var listOnly = !editing && (state.stories || []).length > 0;
     editing = editing || {};
     editorMedia = (editing.media || []).filter(function (item) { return !removedMediaIDs[item.id]; });
     existingMediaUsage = editorMedia.filter(function (item) { return item.status === 'ready'; }).reduce(function (usage, item) {
@@ -187,15 +188,21 @@
         (story.status !== 'draft' && story.status !== 'withdrawal-requested' ? '<button class="btn btn--secondary btn--sm" type="button" data-withdraw-story="' + esc(story.id) + '">Withdraw permission</button>' : '') + '<button class="btn btn--danger btn--sm" type="button" data-delete-story="' + esc(story.id) + '">Delete</button></div><form data-confirm-story-delete="' + esc(story.id) + '" hidden><p>Delete this experience? It will be removed from the website and retained securely for recovery.</p><label>Type DELETE to confirm <input name="confirmation" autocomplete="off" required></label><button class="btn btn--danger btn--sm" type="submit">Confirm deletion</button><button class="btn btn--secondary btn--sm" type="button" data-cancel-story-delete>Cancel</button><p role="status" data-delete-status></p></form></li>';
     }).join('');
 
-    root.innerHTML = '<section class="story-guidance"><div><h2>Share your experience</h2><p>Tell us what happened, how it affected you and what you want to happen next.</p></div><a href="/member/account/">My Data</a></section>' +
+    if (listOnly) {
+      root.innerHTML = '<section class="story-guidance"><div><h2>Your experiences</h2><p>Review your stories or share another experience.</p></div><button class="btn btn--primary" type="button" data-new-story>Write a new experience</button></section><section class="dashboard-panel story-submissions"><h2 class="visually-hidden">Your experiences</h2><ul class="story-submission-list">' + submissions + '</ul></section>';
+      root.querySelector('[data-new-story]').addEventListener('click', function () { render({}); root.querySelector('[data-story-editor]').focus(); });
+      bindStoryList();
+      return;
+    }
+
+    root.innerHTML = ((state.stories || []).length ? '<button class="btn btn--secondary btn--sm story-editor-back" type="button" data-cancel-edit>← Back to experiences</button>' : '') + '<section class="story-guidance"><div><h2>' + (editing.id ? 'Edit your experience' : 'Share your experience') + '</h2><p>Tell us what happened, how it affected you and what you want to happen next.</p></div><a href="/member/account/">My Data</a></section>' +
       '<form class="member-form-panel story-form" data-story-form data-story-id="' + esc(editing.id || '') + '">' +
       '<div class="form-group"><label id="story-body-label">Your experience</label><div class="story-editor" data-story-editor-shell><div class="story-editor__toolbar" role="toolbar" aria-label="Text formatting"><button type="button" data-editor-command="bold" aria-label="Bold"><strong>B</strong><span class="visually-hidden">Bold</span></button><button type="button" data-editor-command="italic" aria-label="Italic"><em>I</em><span class="visually-hidden">Italic</span></button><button type="button" data-editor-command="insertUnorderedList" aria-label="Bulleted list"><span aria-hidden="true">☷</span><span class="visually-hidden">Bulleted list</span></button><button type="button" data-editor-command="insertOrderedList" aria-label="Numbered list"><span aria-hidden="true">☷</span><span class="visually-hidden">Numbered list</span></button><button type="button" data-editor-command="formatBlock" data-editor-value="blockquote" aria-label="Blockquote"><span aria-hidden="true">❝</span><span class="visually-hidden">Blockquote</span></button></div><div class="story-editor__surface" data-story-editor contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="story-body-label" data-placeholder="What happened? How did it affect you? What response did you receive?">' + markdownToEditorHTML(editing.bodyMarkdown || '') + '</div><div class="story-editor__footer"><span>Bold, italics, lists, quotes and your uploaded media</span><span data-story-character-count>0 / 20,000</span></div></div></div>' +
       '<div class="form-group"><label>Photos and short videos <span class="form-hint">(optional)</span></label><div class="story-media-picker" data-story-dropzone><label class="story-media-picker__button" for="story-media">Choose photos or videos<span>Use your photo library, camera roll or files</span></label><input class="visually-hidden" id="story-media" name="media" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime,video/webm" multiple><p>Up to 5 photos and 2 videos; 500 MB total. Select files here and use Insert to place them in your experience.</p><p class="form-hint">On Mac Photos, use <strong>File → Export → Export 1 Photo</strong> and choose JPEG or PNG. HEIC files need exporting first.</p></div>' + (existingMedia ? '<p class="form-hint">Uploaded media can be inserted into your experience. Select a thumbnail to open the full version.</p><div class="story-media-previews story-existing-media">' + existingMedia + '</div>' : '') + '<div class="story-media-previews" data-story-media-previews></div><p class="form-hint" data-story-media-status role="status"></p></div>' +
       '<div class="story-publication-settings"><p class="form-hint">Published as <strong>' + esc(state.displayName) + '</strong>. <a href="/member/account/">Change your display name in My Data</a>. Your contact details remain private.</p><fieldset><legend>Permissions</legend><label class="check-label"><input name="websiteConsent" type="checkbox" required' + checked(consent.website) + '> Publish this experience and selected media on this website.</label><label class="check-label"><input name="thirdPartyConsent" type="checkbox"' + checked(consent.thirdParty) + '> It may also be used in social media, press and publisher materials.</label><label class="check-label"><input name="copyrightConfirmed" type="checkbox"' + checked(consent.copyright) + '> I own, or have permission to supply, uploaded media.</label><label class="check-label"><input name="truthfulConfirmed" type="checkbox" required' + checked(consent.truthful) + '> This is true to the best of my knowledge.</label></fieldset></div>' +
       '<div class="story-vehicle-choice">' + vehicleControl + '</div>' +
       '<details class="story-evidence-picker"' + ((evidence.serviceEventIds || []).length || (evidence.sohReadingIds || []).length ? ' open' : '') + '><summary>Connect records from My Data <span>optional</span></summary><p>Linked records help turn individual experiences into evidence. <a href="/member/dashboard/">Add or check your records</a>.</p><div data-story-evidence><p class="form-hint">' + (selectedVehicle ? 'Loading records…' : 'Choose a car to see its records.') + '</p></div></details>' +
-      '<div class="cluster story-form__actions"><button class="btn btn--primary" type="submit">Submit for review</button><button class="btn btn--secondary" type="button" data-save-story>Save draft</button>' + (editing.id ? '<button class="btn btn--secondary" type="button" data-cancel-edit>Cancel</button>' : '') + '</div><p data-story-status role="status" aria-live="polite"></p></form>' +
-      (submissions ? '<section class="dashboard-panel story-submissions"><h2>Your experiences</h2><ul class="story-submission-list">' + submissions + '</ul></section>' : '');
+      '<div class="cluster story-form__actions"><button class="btn btn--primary" type="submit">Submit for review</button><button class="btn btn--secondary" type="button" data-save-story>Save draft</button>' + '</div><p data-story-status role="status" aria-live="polite"></p></form>';
 
     bindEditor();
     bindMedia();
@@ -205,7 +212,17 @@
     root.querySelector('[data-story-form]').addEventListener('submit', function (event) { event.preventDefault(); save(true); });
     root.querySelector('[data-save-story]').addEventListener('click', function () { save(false); });
     var cancel = root.querySelector('[data-cancel-edit]');
-    if (cancel) cancel.addEventListener('click', function () { render(); });
+    var initialData = JSON.stringify(payload(root.querySelector('[data-story-form]'), false));
+    if (cancel) cancel.addEventListener('click', function () {
+      var changed = selectedFiles.length || JSON.stringify(payload(root.querySelector('[data-story-form]'), false)) !== initialData;
+      if (changed && !window.confirm('Discard your unsaved changes and return to your experiences?')) return;
+      render();
+      var newButton = root.querySelector('[data-new-story]');
+      if (newButton) newButton.focus();
+    });
+  }
+
+  function bindStoryList() {
     root.querySelectorAll('[data-edit-story]').forEach(function (button) {
       button.addEventListener('click', function () {
         var story = (state.stories || []).find(function (item) { return item.id === button.dataset.editStory; });
@@ -243,11 +260,6 @@
     var count = root.querySelector('[data-story-character-count]');
     function updateCount() { count.textContent = editorMarkdown().length.toLocaleString('en-GB') + ' / 20,000'; }
     editor.addEventListener('input', updateCount);
-    document.addEventListener('selectionchange', function () {
-      if (!root.contains(editor)) return;
-      var selection = window.getSelection();
-      if (selection && selection.rangeCount && editor.contains(selection.anchorNode) && editor.contains(selection.focusNode)) editorSelection = selection.getRangeAt(0).cloneRange();
-    });
     editor.addEventListener('paste', function (event) {
       event.preventDefault();
       document.execCommand('insertText', false, event.clipboardData.getData('text/plain'));
@@ -486,6 +498,11 @@
     });
   }
 
+  document.addEventListener('selectionchange', function () {
+    var editor = root.querySelector('[data-story-editor]');
+    var selection = window.getSelection();
+    if (editor && selection && selection.rangeCount && editor.contains(selection.anchorNode) && editor.contains(selection.focusNode)) editorSelection = selection.getRangeAt(0).cloneRange();
+  });
   document.addEventListener('member:data', load);
   document.addEventListener('identity:login', load);
   if (window.ipaceIdentityUser) load();

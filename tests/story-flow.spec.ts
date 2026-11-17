@@ -99,6 +99,15 @@ test('admin must confirm before soft-deleting a story', async ({ page }) => {
   await page.evaluate(() => { (window as any).ipaceGetIdentityToken = () => Promise.resolve('token'); });
   await page.addScriptTag({ path: path.resolve('src/assets/js/admin-member-stories.js') });
   await page.getByRole('button', { name: 'My experience' }).click();
+  await expect(page.locator('[data-story-list-view]')).toBeHidden();
+  await page.locator('[data-story-detail] [name=title]').fill('Unsaved admin edit');
+  page.once('dialog', dialog => dialog.dismiss());
+  await page.getByRole('button', { name: 'Back to experiences' }).click();
+  await expect(page.locator('[data-story-list-view]')).toBeHidden();
+  page.once('dialog', dialog => dialog.accept());
+  await page.getByRole('button', { name: 'Back to experiences' }).click();
+  await expect(page.locator('[data-story-list-view]')).toBeVisible();
+  await page.getByRole('button', { name: 'My experience' }).click();
   await page.getByRole('button', { name: 'Delete', exact: true }).click();
   await page.getByLabel('Type DELETE to confirm').fill('delete');
   await page.getByRole('button', { name: 'Confirm deletion' }).click();
@@ -141,4 +150,29 @@ test('dismissed empty-survey notice stays hidden while a new survey appears', as
   await page.evaluate(() => window.dispatchEvent(new Event('focus')));
   await expect(notice).toBeVisible();
   await expect(notice).toContainText('New survey');
+});
+
+test('members with stories open a separate editor and return to their list', async ({ page }) => {
+  await page.route('http://story.test/**', async route => {
+    if (new URL(route.request().url()).pathname === '/') return route.fulfill({ contentType: 'text/html', body: '<main data-member-stories></main>' });
+    return route.fulfill({ json: { eligible: true, displayName: 'Owner', vehicles: [{ id: 'car', vehicle: {} }], stories: [{ id: 'story-1', title: 'First story', status: 'draft', bodyMarkdown: 'Existing experience' }], limits: { images: 5, videos: 2, totalBytes: 524288000 } } });
+  });
+  await page.goto('http://story.test/');
+  await page.evaluate(() => { (window as any).ipaceGetIdentityToken = () => Promise.resolve('token'); (window as any).ipaceIdentityUser = {}; });
+  await page.addScriptTag({ path: path.resolve('src/assets/js/member-stories.js') });
+  await expect(page.getByText('First story')).toBeVisible();
+  await expect(page.locator('[data-story-form]')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Edit', exact: true }).click();
+  await expect(page.locator('[data-story-editor]')).toContainText('Existing experience');
+  await expect(page.getByText('First story', { exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Back to experiences' }).click();
+  await page.getByRole('button', { name: 'Write a new experience' }).click();
+  await expect(page.locator('[data-story-editor]')).toBeEmpty();
+  await page.locator('[data-story-editor]').fill('Unsaved change');
+  page.once('dialog', dialog => dialog.dismiss());
+  await page.getByRole('button', { name: 'Back to experiences' }).click();
+  await expect(page.locator('[data-story-editor]')).toContainText('Unsaved change');
+  page.once('dialog', dialog => dialog.accept());
+  await page.getByRole('button', { name: 'Back to experiences' }).click();
+  await expect(page.getByText('First story')).toBeVisible();
 });
