@@ -90,6 +90,8 @@ async function verifyStoryUpload(page: Page) {
     }
   });
   await page.goto('/member/stories/');
+  // Keep Playwright's target stable when moving between distant media controls.
+  await page.addStyleTag({ content: 'html { scroll-behavior: auto !important; }' });
   const root = page.locator('[data-member-stories]');
   await expect(root.locator('[data-story-form], [data-new-story]'), 'The staging member needs story access, a name, display name and registered vehicle.').toBeVisible();
   const matches = root.locator('.story-submission-list li').filter({ has: page.getByText(marker, { exact: true }) });
@@ -145,6 +147,9 @@ async function verifyStoryUpload(page: Page) {
 }
 
 test.describe('member magic-link sign-in', () => {
+  // The workflow has a ten-minute job limit; retries can otherwise hide the
+  // underlying timeout and terminate the job before Playwright reports it.
+  test.describe.configure({ retries: 0 });
   if (process.env.CI && !hasLiveAuthConfiguration) {
     throw new Error('The enabled live authentication journey requires E2E_BASE_URL and dedicated Resend inbox credentials.');
   }
@@ -152,6 +157,7 @@ test.describe('member magic-link sign-in', () => {
 
   test('a registered member can open a magic link and see protected account data', async ({ page }) => {
     test.setTimeout(240_000);
+    page.setDefaultTimeout(15_000);
     await page.goto('/member/account/');
     await expect(page.getByRole('heading', { name: 'Sign in to view your account' })).toBeVisible();
 
