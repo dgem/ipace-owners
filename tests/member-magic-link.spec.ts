@@ -1,6 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
 import path from 'node:path';
+import fs from 'node:fs';
 import { magicLinkFromMessage } from '../scripts/auth-e2e-link.cjs';
+import { insertStoryExampleMedia, prepareStoryExample } from './story-example-helper';
 
 const resendAPIKey = process.env.E2E_RESEND_API_KEY;
 const receivingInbox = process.env.E2E_RESEND_INBOX;
@@ -70,6 +72,8 @@ async function waitForMagicLink(notBefore: number) {
 // This test account and its draft are staging-only. Never submit the draft for review.
 async function verifyStoryUpload(page: Page) {
   const marker = 'Automated staging story upload test';
+  const example = fs.readFileSync(path.resolve('tests/fixtures/story-example.md'), 'utf8');
+  const { body, placements } = prepareStoryExample(example);
   // Provision at most one synthetic vehicle on the dedicated test member.
   await page.evaluate(async () => {
     const token = await (window as any).ipaceGetIdentityToken();
@@ -102,16 +106,23 @@ async function verifyStoryUpload(page: Page) {
     await root.locator('[data-new-story]').click();
   }
   const editor = root.locator('[data-story-editor]');
-  await editor.fill(marker + '\n\nThis private staging draft exercises a real video upload and save.');
-  await root.locator('#story-media').setInputFiles(path.resolve('tests/fixtures/story-test.mp4'));
-  await root.getByRole('button', { name: 'Insert video' }).click();
+  await editor.fill(marker + '\n\n' + body);
+  await root.locator('#story-media').setInputFiles([
+    path.resolve('public/images/racing-laurel-email.png'),
+    path.resolve('tests/fixtures/story-test.mp4'),
+  ]);
+  await insertStoryExampleMedia(root, placements);
+  await root.getByRole('button', { name: 'Preview story' }).click();
+  await expect(root.locator('[data-story-preview] .story-markdown video')).toHaveCount(1);
+  await expect(root.locator('[data-story-preview] .story-markdown img')).toHaveCount(2);
+  await root.getByRole('button', { name: 'Close preview' }).click();
   const saved = page.waitForResponse(response => response.url().endsWith('/api/member/stories') && response.request().method() === 'POST' && Boolean(response.request().postData()?.includes('story-media:')));
   await root.locator('[data-save-story]').click();
   const finalResponse = await saved;
   if (!finalResponse.ok()) { const body = await finalResponse.json().catch(() => ({})); throw new Error('Final story save failed (' + finalResponse.status() + '): ' + (body.error || 'unknown error')); }
   await expect(root.locator('[data-story-form]')).toHaveCount(0, { timeout: 60_000 });
   await expect(root.locator('.story-submission-list li').filter({ has: page.getByText(marker, { exact: true }) })).toHaveCount(1, { timeout: 60_000 });
-  const result = await page.evaluate(async (title) => {
+  const result = await page.evaluate(async ({ title, expectedText }) => {
     const token = await (window as any).ipaceGetIdentityToken();
     const response = await fetch('/api/member/stories', { headers: { Authorization: 'Bearer ' + token } });
     if (!response.ok) throw new Error('Unable to inspect the staging story.');
@@ -121,9 +132,14 @@ async function verifyStoryUpload(page: Page) {
     const story = stories[0];
     const media = (story.media || []).filter((item: any) => item.status === 'ready' && item.contentType === 'video/mp4');
     if (story.status !== 'draft' || media.length !== 1 || !story.bodyMarkdown.includes('story-media:' + media[0].id)) throw new Error('The saved draft did not retain its uploaded video reference.');
+    const images = (story.media || []).filter((item: any) => item.status === 'ready' && item.contentType.startsWith('image/'));
+    const refs = Array.from(story.bodyMarkdown.matchAll(/!\[[^\]]*\]\(story-media:([a-zA-Z0-9_-]+)\)/g), (match: RegExpMatchArray) => match[1]);
+    if (images.length !== 1 || refs.length !== 3 || refs[0] !== images[0].id || refs[1] !== media[0].id || refs[2] !== images[0].id) throw new Error('The draft did not retain the example media in the expected positions.');
+    const actualText = story.bodyMarkdown.replace(/!\[[^\]]*\]\(story-media:[^)]+\)/g, '').replace(/\s+/g, ' ');
+    for (const paragraph of expectedText) if (paragraph && !actualText.includes(paragraph)) throw new Error('The draft did not retain the example story text.');
     const video = await fetch(media[0].url);
     return { ok: video.ok, size: (await video.arrayBuffer()).byteLength };
-  }, marker);
+  }, { title: marker, expectedText: body.split(/E2EMEDIAPOSITION\d+END/).map((part: string) => part.replace(/\s+/g, ' ').trim()) });
   expect(result.ok).toBe(true);
   expect(result.size).toBeGreaterThan(0);
 }

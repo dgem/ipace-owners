@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test';
 import path from 'node:path';
+import fs from 'node:fs';
+import { insertStoryExampleMedia, prepareStoryExample } from './story-example-helper';
 
 test('uploads a movie, retries a failure without duplicating the draft, and saves its position', async ({ page }) => {
   const saves: any[] = [];
@@ -194,4 +196,39 @@ test('members with stories open a separate editor and return to their list', asy
   page.once('dialog', dialog => dialog.accept());
   await page.getByRole('button', { name: 'Back to experiences' }).click();
   await expect(page.getByText('First story')).toBeVisible();
+});
+
+
+test('the example story retains its image and video positions in preview', async ({ page }) => {
+  const saves: any[] = [];
+  let mediaNumber = 0;
+  await page.route('http://story.test/**', async route => {
+    const request = route.request();
+    const pathname = new URL(request.url()).pathname;
+    if (pathname === '/') return route.fulfill({ contentType: 'text/html', body: '<main data-member-stories></main>' });
+    if (pathname === '/api/member/stories' && request.method() === 'POST') { saves.push(request.postDataJSON()); return route.fulfill({ json: { story: { id: 'draft' } } }); }
+    if (pathname === '/api/member/story-upload') { mediaNumber++; return route.fulfill({ json: { mediaId: 'media-' + mediaNumber, uploadUrl: 'http://story.test/upload', contentType: request.postDataJSON().contentType } }); }
+    if (pathname === '/upload' || pathname === '/api/member/story-upload-complete') return route.fulfill({ json: { ok: true } });
+    return route.fulfill({ json: { eligible: true, displayName: 'Owner', vehicles: [{ id: 'car', vehicle: {} }], stories: [], limits: { images: 5, videos: 2, totalBytes: 524288000 } } });
+  });
+  await page.goto('http://story.test/');
+  await page.evaluate(() => { (window as any).ipaceGetIdentityToken = () => Promise.resolve('token'); (window as any).ipaceIdentityUser = {}; });
+  await page.addScriptTag({ path: path.resolve('src/assets/js/story-renderer.js') });
+  await page.addScriptTag({ path: path.resolve('src/assets/js/member-stories.js') });
+  const root = page.locator('[data-member-stories]');
+  const { body, placements } = prepareStoryExample(fs.readFileSync('tests/fixtures/story-example.md', 'utf8'));
+  await root.locator('[data-story-editor]').fill('Automated staging story upload test\n\n' + body);
+  await root.locator('#story-media').setInputFiles([path.resolve('public/images/racing-laurel-email.png'), path.resolve('tests/fixtures/story-test.mp4')]);
+  await insertStoryExampleMedia(root, placements);
+  await root.getByRole('button', { name: 'Preview story' }).click();
+  const types = await root.locator('[data-story-preview] .story-markdown img, [data-story-preview] .story-markdown video').evaluateAll(nodes => nodes.map(node => node.tagName));
+  expect(types).toEqual(['IMG', 'VIDEO', 'IMG']);
+  await expect(root.locator('[data-story-preview]')).not.toContainText('E2EMEDIAPOSITION');
+  await root.getByRole('button', { name: 'Close preview' }).click();
+  await root.getByRole('button', { name: 'Save draft' }).click();
+  await expect.poll(() => saves.length).toBe(2);
+  const saved = saves[1].bodyMarkdown as string;
+  expect(Array.from(saved.matchAll(/story-media:([a-z0-9-]+)/g), match => match[1])).toEqual(['media-1', 'media-2', 'media-1']);
+  const actualText = saved.replace(/!\[[^\]]*\]\(story-media:[^)]+\)/g, '').replace(/\s+/g, ' ');
+  for (const paragraph of body.split(/E2EMEDIAPOSITION\d+END/)) expect(actualText).toContain(paragraph.replace(/\s+/g, ' ').trim());
 });

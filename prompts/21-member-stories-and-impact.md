@@ -71,3 +71,5 @@ planned requirement; the account departure workflow has not yet been implemented
 - The admin story list opens a separate full-width review and editing view, with a back control returning to the same filters and page after confirmation if edits are unsaved. Keep selection of table checkboxes separate from opening a story.
 
 - Members with existing experiences see their list first and open either an existing experience or a new one in a separate editor; members without experiences start directly in the editor. Provide a back control to the list, confirm before discarding unsaved member edits, and preserve the separate admin review view.
+
+- The opt-in live staging journey reads the redacted example story from the committed test fixture and substitutes committed non-personal image and video fixtures for local paths. Keep the story in one private draft; verify text and media order, preview rendering, upload and save without logging the story or committing the original `docs/no-git` files.
