@@ -52,7 +52,7 @@ Build a member-experience workflow that turns personal experience into consented
 - Clean abandoned pending uploads automatically. Keep published/original objects private and deliver them through expiring URLs.
 - Add tests for eligibility, record ownership, consent gates, media limits, admin authorization, public-field filtering and event validation.
 
-- The opt-in staging sign-in browser journey can also upload a real small MP4 to a dedicated staging member's reusable private draft. It checks the saved reference and signed video retrieval; the member needs a name, display name, vehicle and story access. Require an explicitly configured staging origin, never submit the draft, and document cleanup of detached test objects in the private versioned bucket.
+- The opt-in staging sign-in browser journey can also upload a real small MP4 to a dedicated staging member's reusable private draft. It checks the saved reference and signed video retrieval; the member needs a name, display name and story access; the test creates a synthetic staging vehicle if none exists. Require an explicitly configured staging origin, never submit the draft, and document cleanup of detached test objects in the private versioned bucket.
 
 - Let a member soft-delete any owned experience after typing DELETE. Hide it from member lists and exports and from public output, retain it for admin recovery, and provide an admin deleted status filter. Deleted stories cannot be changed or published through review actions. Guard writes against concurrent changes so a stale edit cannot undo deletion.
 

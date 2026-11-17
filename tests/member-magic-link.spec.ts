@@ -70,6 +70,21 @@ async function waitForMagicLink(notBefore: number) {
 // This test account and its draft are staging-only. Never submit the draft for review.
 async function verifyStoryUpload(page: Page) {
   const marker = 'Automated staging story upload test';
+  // Provision at most one synthetic vehicle on the dedicated test member.
+  await page.evaluate(async () => {
+    const token = await (window as any).ipaceGetIdentityToken();
+    const headers = { Authorization: 'Bearer ' + token };
+    const current = await fetch('/api/member/stories', { headers });
+    if (!current.ok) throw new Error('The staging test member cannot access experiences.');
+    const data = await current.json();
+    if ((data.vehicles || []).length === 0) {
+      const created = await fetch('/api/submit-vehicle-basics', {
+        method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ registration: 'E2E TEST', country: 'GB', modelYear: '2020' }),
+      });
+      if (!created.ok) throw new Error('Could not create the synthetic staging test vehicle.');
+    }
+  });
   await page.goto('/member/stories/');
   const root = page.locator('[data-member-stories]');
   await expect(root.locator('[data-story-form]'), 'The staging member needs story access, a name, display name and registered vehicle.').toBeVisible();

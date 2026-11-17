@@ -184,8 +184,8 @@ link or inbox address.
 
 To exercise a real staging story video upload after sign-in, set the staging variable
 `PLAYWRIGHT_STORY_E2E_ENABLED` to `true` as well. The dedicated staging-only member must have
-a contact name, display name and registered test vehicle, and access to member experiences
-(staging normally grants this to all members). The test reuses one private draft titled
+a contact name, display name and access to member experiences
+(staging normally grants this to all members). If the test member has no vehicle, the test creates one synthetic staging vehicle. The test reuses one private draft titled
 “Automated staging story upload test”; do not submit or edit it. Each run removes the previous
 media reference and uploads a tiny fixture. Removed objects remain in the private, versioned
 story bucket because the application does not yet delete detached media; arrange periodic
