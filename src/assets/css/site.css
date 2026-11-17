@@ -4890,6 +4890,8 @@ video.story-review-media {
 }
 
 .admin-story-toolbar { display:flex; justify-content:space-between; gap:var(--space-4); align-items:end; flex-wrap:wrap; margin-bottom:var(--space-5); padding:var(--space-4); background:var(--color-surface); border:1px solid var(--color-border); border-radius:var(--radius-lg); }
+.admin-story-bulk-delete { border-top: 1px solid var(--color-border); display: grid; gap: var(--space-2); margin-top: var(--space-3); padding-top: var(--space-3); width: 100%; }
+.admin-story-bulk-delete label { display: grid; font-weight: 700; gap: var(--space-1); max-width: 20rem; }
 .admin-story-toolbar label { display:flex; flex-direction:column; gap:var(--space-1); font-weight:700; font-size:.9rem; }
 .admin-story-toolbar input, .admin-story-toolbar select { min-width:10rem; }
 .admin-story-toolbar input,

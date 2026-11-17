@@ -72,11 +72,11 @@ test('member confirms deletion before removing an experience', async ({ page }) 
   await page.evaluate(() => { (window as any).ipaceGetIdentityToken = () => Promise.resolve('token'); (window as any).ipaceIdentityUser = {}; });
   await page.addScriptTag({ path: path.resolve('src/assets/js/member-stories.js') });
   await page.getByRole('button', { name: 'Delete', exact: true }).click();
-  await page.getByLabel('Type DELETE to confirm').fill('delete');
+  await page.getByLabel('Type DELETE to delete selected experiences').fill('delete');
   await page.getByRole('button', { name: 'Confirm deletion' }).click();
   await expect(page.getByText('Type DELETE to confirm.')).toBeVisible();
   expect(deleted).toBe(false);
-  await page.getByLabel('Type DELETE to confirm').fill('DELETE');
+  await page.getByLabel('Type DELETE to delete selected experiences').fill('DELETE');
   await page.getByRole('button', { name: 'Confirm deletion' }).click();
   await expect(page.getByText('My experience', { exact: true })).toHaveCount(0);
   expect(deleted).toBe(true);
@@ -136,6 +136,37 @@ test('admin must confirm before soft-deleting a story', async ({ page }) => {
   expect(deleted).toBe(false);
   await page.getByLabel('Type DELETE to confirm').fill('DELETE');
   await page.getByRole('button', { name: 'Confirm deletion' }).click();
+  await expect(page.getByText('No experiences match these filters.')).toBeVisible();
+  expect(deleted).toBe(true);
+});
+
+test('admin must confirm before soft-deleting selected experiences', async ({ page }) => {
+  let deleted = false;
+  await page.route('http://story.test/**', async route => {
+    const req = route.request();
+    const pathname = new URL(req.url()).pathname;
+    if (pathname === '/') return route.fulfill({ contentType: 'text/html', body: '<main data-admin-stories></main>' });
+    if (pathname === '/api/admin/stories' && req.method() === 'GET') return route.fulfill({ json: { stories: deleted ? [] : [{ id: 'story-1', title: 'First experience', status: 'draft' }, { id: 'story-2', title: 'Second experience', status: 'submitted' }], total: deleted ? 0 : 2, page: 1, pageSize: 20 } });
+    if (pathname === '/api/admin/stories' && req.method() === 'POST') {
+      expect(req.postDataJSON()).toEqual({ action: 'delete', ids: ['story-1', 'story-2'], confirmation: 'DELETE' });
+      deleted = true;
+      return route.fulfill({ json: { ok: true, failed: [] } });
+    }
+    return route.abort();
+  });
+  await page.goto('http://story.test/');
+  await page.evaluate(() => { (window as any).ipaceGetIdentityToken = () => Promise.resolve('token'); });
+  await page.addScriptTag({ path: path.resolve('src/assets/js/story-renderer.js') });
+  await page.addScriptTag({ path: path.resolve('src/assets/js/admin-member-stories.js') });
+  await page.getByLabel('Select First experience').check();
+  await page.getByLabel('Select Second experience').check();
+  await page.getByRole('button', { name: 'Delete selected' }).click();
+  await page.getByLabel('Type DELETE to confirm').fill('delete');
+  await page.getByRole('button', { name: 'Confirm selected deletion' }).click();
+  await expect(page.getByText('Type DELETE to confirm.')).toBeVisible();
+  expect(deleted).toBe(false);
+  await page.getByLabel('Type DELETE to confirm').fill('DELETE');
+  await page.getByRole('button', { name: 'Confirm selected deletion' }).click();
   await expect(page.getByText('No experiences match these filters.')).toBeVisible();
   expect(deleted).toBe(true);
 });

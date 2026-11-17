@@ -496,6 +496,10 @@ async function checkAdminMemberStories(viewport, screenshotName) {
   await page.locator('[data-select="story-1"]').check();
   assert.equal(await page.getByRole('button', { name: 'Approve selected' }).isEnabled(), true);
   await page.screenshot({ path: path.join(outputDir, screenshotName.replace('.png', '-list.png')), fullPage: true });
+  await page.getByRole('button', { name: 'Delete selected' }).click();
+  await page.locator('[data-confirm-bulk-delete]').waitFor({ state: 'visible' });
+  await page.screenshot({ path: path.join(outputDir, screenshotName.replace('.png', '-bulk-delete.png')), fullPage: true });
+  await page.getByRole('button', { name: 'Cancel' }).click();
   await page.locator('[data-open="story-1"]').first().click();
   await page.getByRole('button', { name: 'Run AI analysis' }).waitFor({ state: 'visible' });
   assert.equal(await page.locator('[data-story-list-view]').isHidden(), true);

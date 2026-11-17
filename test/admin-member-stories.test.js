@@ -15,6 +15,9 @@ test('member story admin workspace is paged, filterable and supports bulk archiv
   assert.match(js, /Approve selected/);
   assert.match(js, /Publish selected/);
   assert.match(js, /Archive selected/);
+  assert.match(js, /Delete selected/);
+  assert.match(js, /data-confirm-bulk-delete/);
+  assert.match(js, /Type DELETE to delete selected experiences/);
   assert.doesNotMatch(js, /data-bulk-action" aria-label/);
   assert.match(js, /Share clicks by platform/);
   assert.match(js, /Story \(Markdown source\)/);
@@ -22,7 +25,8 @@ test('member story admin workspace is paged, filterable and supports bulk archiv
   assert.match(js, /Sentiment:/);
   assert.match(go, /hasNext/);
   assert.match(go, /query.Get\("status"\)/);
-  assert.match(go, /input.Action == "archive" \|\| input.Action == "approve" \|\| input.Action == "publish"/);
+  assert.match(go, /input.Action == "archive" \|\| input.Action == "approve" \|\| input.Action == "publish" \|\| input.Action == "delete"/);
+  assert.match(go, /input.Action == "delete" && input.Confirmation != deleteConfirmation/);
 });
 
 test('public story sharing provides platform actions and records platform click context', function () {

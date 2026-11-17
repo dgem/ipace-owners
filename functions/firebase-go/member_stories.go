@@ -912,7 +912,11 @@ func AdminStories(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, 400, map[string]any{"error": "Invalid review"})
 		return
 	}
-	if (input.Action == "archive" || input.Action == "approve" || input.Action == "publish") && len(input.IDs) > 0 {
+	if (input.Action == "archive" || input.Action == "approve" || input.Action == "publish" || input.Action == "delete") && len(input.IDs) > 0 {
+		if input.Action == "delete" && input.Confirmation != deleteConfirmation {
+			writeJSON(w, 400, map[string]any{"error": "Type DELETE to confirm"})
+			return
+		}
 		failed := make([]string, 0)
 		for _, id := range input.IDs {
 			ref := db.Collection("memberStories").Doc(cleanString(id, 100))
@@ -930,7 +934,10 @@ func AdminStories(w http.ResponseWriter, r *http.Request) {
 				failed = append(failed, id)
 				continue
 			}
-			if input.Action == "approve" {
+			if input.Action == "delete" {
+				now := time.Now().UTC()
+				story.Status, story.DeletedAt, story.UpdatedAt = "deleted", now, now
+			} else if input.Action == "approve" {
 				if message := storyApprovalError(story); message != "" {
 					failed = append(failed, id)
 					continue
