@@ -28,7 +28,8 @@ test('staging validation renders desktop and mobile visual checkpoints', functio
   const makefile = readFileSync(resolve(__dirname, '../Makefile'), 'utf8');
   assert.match(workflow, /Check rendered desktop and mobile states[\s\S]*make test-visual/);
   assert.match(workflow, /Upload visual checkpoints[\s\S]*rendered-admin-checkpoints/);
-  assert.match(makefile, /test-visual:[\s\S]*npm run test:visual/);
+  assert.match(makefile, /test: test-node test-go test-visual/);
+  assert.match(makefile, /test-visual:[\s\S]*node scripts\/run-visual-check\.mjs/);
 });
 
 test('Firebase deploy workflows lint all source languages before testing', function () {

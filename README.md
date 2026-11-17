@@ -130,7 +130,7 @@ make audit
 Runs the Node audit gate and pinned `govulncheck` analysis for reachable Go vulnerabilities.
 The Node gate warns about the reviewed, upstream-only advisory URLs in
 `security/npm-audit-baseline.json`, and fails on new high or critical findings or a severity
-increase in an accepted finding. GitHub Actions additionally runs CodeQL and dependency review
+increase in an accepted finding. The currently unpatched picomatch advisory GHSA-fc5q-39xc-vjpf is accepted only as a temporary build-tooling exception; it remains a warning until an upstream fix is available. GitHub Actions additionally runs CodeQL and dependency review
 on pull requests and a weekly schedule. Firebase PR previews receive a blocking passive OWASP
 ZAP baseline scan after deployment smoke tests pass. `package.json` may pin narrow transitive
 security overrides when a maintained direct dependency has not yet widened its range to a
@@ -155,8 +155,7 @@ Output is written to `_site/`.
 make test
 ```
 
-For layout, navigation, responsive, or visibility changes, keep `make dev` running in another
-terminal and run `make test-visual`. Inspect the screenshots written to `visual-artifacts/`.
+`make test` includes desktop and mobile visual checks. You can also run `make test-visual` on its own; it builds and serves the site automatically, or uses an existing site when `VISUAL_BASE_URL` is set. Inspect the screenshots written to `visual-artifacts/`.
 
 Playwright adds real browser coverage for the public responsive journeys:
 

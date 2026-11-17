@@ -44,11 +44,7 @@ jobs:
         run: make build
 
       - name: Check rendered desktop and mobile states
-        env:
-          VISUAL_BASE_URL: http://127.0.0.1:8080
-        run: |
-          npm run dev -- --port=8080 > /tmp/ipace-visual-server.log 2>&1 &
-          make test-visual
+        run: make test-visual
 
       - name: Upload visual checkpoints
         if: always()

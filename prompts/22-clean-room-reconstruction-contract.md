@@ -690,6 +690,7 @@ navigation, responsive behaviour, gating, or major page composition requires the
 Use layered verification rather than claiming that an in-place test proves a clean-room
 rebuild:
 
+- Include visual checks in `make test`; `make test-visual` builds and serves the site automatically when no `VISUAL_BASE_URL` is supplied.
 - Run `test/reconstruction-contract.test.js` in every `make test`. It checks that the
   maintained prompt range, required source routes, Hosting redirects/fallback, API router,
   implemented Firestore collections, runtime configuration names, and preservation-critical
