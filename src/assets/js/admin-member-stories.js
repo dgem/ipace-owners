@@ -31,7 +31,7 @@
   function mediaMarkdown(item) {
     var isVideo = (item.contentType || '').indexOf('video/') === 0;
     var alt = isVideo ? 'Video' : (item.name || 'Image');
-    return '![' + alt.replace(/[\[\]]/g, '') + '](story-media:' + item.id + ')';
+    return '![' + alt.replace(/\[|\]/g, '') + '](story-media:' + item.id + ')';
   }
   function mediaAssets(story) {
     var items = (story.media || []).filter(function (item) { return item.url && item.id; });
