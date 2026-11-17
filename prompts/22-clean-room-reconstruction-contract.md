@@ -296,7 +296,8 @@ vehicle creation and vehicle editing. Keep United Kingdom as the default.
 | `GET /api/member-export?format=csv\|xlsx` | Member | Return a private no-store ZIP of five CSV datasets or a formatted six-sheet Excel workbook built from only that UID's account records and member experiences; omit internal IDs/hashes, private editorial data and storage object names, and neutralise spreadsheet formulas. |
 | `GET /api/member/features` | Member | Return booleans for recognised member-facing features after applying `all`, `off`, admin, or named Firebase-role access rules. The same decision must protect the feature's member APIs. |
 | `GET/POST /api/member/notifications` | Member | Return versioned notification IDs dismissed by that UID or store one validated dismissal. Survey IDs are survey-specific so new surveys remain visible. |
-| `GET/POST /api/member/stories` | Member | Return story eligibility and owned evidence records, save drafts, and submit a consented story linked only to the member's vehicle records. |
+| `GET/POST/DELETE /api/member/stories` | Member | Return story eligibility and owned evidence records, save drafts, and submit a consented story linked only to the member's vehicle records. |
+| `DELETE /api/member/stories` | Member/owner | Require `id` and `confirmation: "DELETE"`; hide the soft-deleted story from member lists, exports and public output. Admins can filter deleted stories but cannot publish or edit them. |
 | `POST /api/member/story-upload` and `/api/member/story-upload-complete` | Member | Reserve bounded private media, issue a short-lived upload URL, then verify and promote the object. |
 | `POST /api/member/story-withdraw` | Member | Remove website and third-party permissions immediately and hold the story for withdrawal review. |
 | `GET/POST /api/admin/stories` | Admin claim | Review, edit, manually analyse, approve and publish stories with versioned permissions and revisions. |

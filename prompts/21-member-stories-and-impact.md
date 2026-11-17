@@ -10,9 +10,9 @@ Build a member-experience workflow that turns personal experience into consented
 - Require a linked vehicle, but show a vehicle chooser only when the member has more than one. Keep vehicle and optional evidence links after the main writing and media controls. Allow links to the member's existing service/fault, Executive Office and SoH records. References must be ownership-checked server-side.
 - Encourage members to complete missing vehicle and history records so their story strengthens aggregate evidence.
 - Accept up to five JPEG/PNG/WebP images and two MP4/QuickTime/WebM short videos, with a combined 500 MB limit. Resize oversized images in the browser before upload. Use a native multiple-file picker that can open device photo libraries or files, and show removable thumbnails before upload.
-- Let members insert a selected local image or video into the editor before saving. Use a temporary browser preview until the upload completes, then replace it with the verified `story-media:` reference in the saved Markdown.
+- Let members insert a selected local image or video into the editor before saving. Provide button controls to move inserted media between adjacent text blocks. Use a temporary browser preview until the upload completes, then replace it with the verified `story-media:` reference in the saved Markdown.
 - Keep uploaded media removable while editing, including media on an already submitted story. Show existing and newly selected media with the same thumbnail card, filename and insert/remove actions; send the retained media IDs when saving so removal persists.
-- Upload media directly to a private Cloud Storage bucket through short-lived, authenticated signed URLs. Verify size and content type before promoting a pending upload.
+- Preserve the draft ID after its first save and reuse completed uploads on retry; prevent concurrent saves and include newly uploaded media IDs in the final save. Upload media directly to a private Cloud Storage bucket through short-lived, authenticated signed URLs. Verify size and content type before promoting a pending upload.
 - Require confirmation that the account is truthful to the member's knowledge and that they own or may supply uploaded media.
 - Record separate, versioned permission for publication on this website and for third-party social, press or publisher use.
 
@@ -51,3 +51,18 @@ Build a member-experience workflow that turns personal experience into consented
 - Give the runtime service account object access and self `signBlob` permission for signed URLs; pass its email as the non-secret `STORAGE_SIGNING_SERVICE_ACCOUNT` runtime setting and do not store a signing key.
 - Clean abandoned pending uploads automatically. Keep published/original objects private and deliver them through expiring URLs.
 - Add tests for eligibility, record ownership, consent gates, media limits, admin authorization, public-field filtering and event validation.
+
+- The opt-in staging sign-in browser journey can also upload a real small MP4 to a dedicated staging member's reusable private draft. It checks the saved reference and signed video retrieval; the member needs a name, display name, vehicle and story access. Require an explicitly configured staging origin, never submit the draft, and document cleanup of detached test objects in the private versioned bucket.
+
+- Let a member soft-delete any owned experience after typing DELETE. Hide it from member lists and exports and from public output, retain it for admin recovery, and provide an admin deleted status filter. Deleted stories cannot be changed or published through review actions. Guard writes against concurrent changes so a stale edit cannot undo deletion.
+
+### Planned member departure workflow
+
+A member must be able to request departure, with an administrator approving the request before any
+permanent deletion. Approved departure must delete all the member's records, including soft-deleted
+stories, all generations of story media, profile and representation history, vehicles, SoH and
+service records, survey responses, membership and contact records, private snapshots, and the
+Firebase Auth account. The implementation must inventory connected providers and backups, prevent
+concurrent writes or re-creation during deletion, fail closed and support safe retry of partial work.
+Do not describe the request as complete until every applicable store has been addressed. This is a
+planned requirement; the account departure workflow has not yet been implemented.

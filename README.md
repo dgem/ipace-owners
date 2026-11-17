@@ -182,6 +182,16 @@ environment variable `PLAYWRIGHT_AUTH_E2E_ENABLED` is `true` and the
 The auth project deliberately records no trace, screenshot or video, and never prints the magic
 link or inbox address.
 
+To exercise a real staging story video upload after sign-in, set the staging variable
+`PLAYWRIGHT_STORY_E2E_ENABLED` to `true` as well. The dedicated staging-only member must have
+a contact name, display name and registered test vehicle, and access to member experiences
+(staging normally grants this to all members). The test reuses one private draft titled
+“Automated staging story upload test”; do not submit or edit it. Each run removes the previous
+media reference and uploads a tiny fixture. Removed objects remain in the private, versioned
+story bucket because the application does not yet delete detached media; arrange periodic
+cleanup of this test account's detached objects. For local runs set `E2E_STORY_UPLOAD_ENABLED=true`
+and `E2E_STORY_ALLOWED_ORIGIN` to the exact staging preview origin along with the auth variables.
+
 Runs the Node test suite for form wiring, auth UI behaviour, deployment configuration, and
 the Go Cloud Function tests. They can also be run separately:
 
@@ -1154,3 +1164,7 @@ The download prevents duplicate clicks and reports failures or a 60-second timeo
 Member Excel exports use worksheet filters and explicit alternating row fills (not
 structured tables) to avoid Excelize’s GO-2026-6452 shared-string-reader path. Data,
 charts and frozen headers are preserved; the security audit remains enabled.
+
+The mocked story upload browser test runs with `npm run test:e2e:stories` after installing the Playwright Chromium browser. It exercises the editor and upload API handoff without using a member account.
+
+Members can soft-delete an experience after typing DELETE. Deleted experiences are hidden from member lists, exports and public output; administrators can inspect them with the deleted status filter.

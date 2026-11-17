@@ -255,6 +255,12 @@ jobs:
     permissions:
       contents: read
     steps:
+      - name: Check story test configuration
+        if: vars.PLAYWRIGHT_STORY_E2E_ENABLED == 'true' && vars.PLAYWRIGHT_AUTH_E2E_ENABLED != 'true'
+        run: |
+          echo "Story upload testing requires the live authentication test."
+          exit 1
+
       - if: vars.PLAYWRIGHT_AUTH_E2E_ENABLED != 'true'
         run: echo "Live member authentication journey is disabled."
 
@@ -281,6 +287,8 @@ jobs:
           E2E_BASE_URL: ${{ needs.deploy-preview.outputs.preview_url }}
           E2E_RESEND_API_KEY: ${{ secrets.E2E_RESEND_API_KEY_STAGING }}
           E2E_RESEND_INBOX: ${{ secrets.E2E_RESEND_INBOX_STAGING }}
+          E2E_STORY_UPLOAD_ENABLED: ${{ vars.PLAYWRIGHT_STORY_E2E_ENABLED }}
+          E2E_STORY_ALLOWED_ORIGIN: ${{ needs.deploy-preview.outputs.preview_url }}
         run: make test-e2e-auth
 
   cleanup-merged-preview:

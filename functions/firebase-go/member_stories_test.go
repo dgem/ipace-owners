@@ -2,6 +2,8 @@ package ipace
 
 import (
 	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
@@ -204,4 +206,37 @@ func stringContains(value, part string) bool {
 		}
 	}
 	return false
+}
+
+func TestVisibleMemberStoriesHidesDeleted(t *testing.T) {
+	stories := []memberStory{{ID: "draft", Status: "draft"}, {ID: "deleted", Status: "deleted"}, {ID: "published", Status: "published"}}
+	visible := visibleMemberStories(stories)
+	if len(visible) != 2 || visible[0].ID != "draft" || visible[1].ID != "published" {
+		t.Fatalf("unexpected visible stories: %#v", visible)
+	}
+}
+
+func TestDeletedStoriesExcludedFromMemberExport(t *testing.T) {
+	rows := memberExperienceRows([]memberStory{{ID: "removed", Status: "deleted", Title: "private deleted story"}, {ID: "active", Status: "draft", Title: "active story"}})
+	for _, row := range rows {
+		for _, field := range row {
+			if field == "private deleted story" {
+				t.Fatal("deleted story leaked into member export")
+			}
+		}
+	}
+	if len(rows) != 2 {
+		t.Fatalf("got %d export rows, want heading and one story", len(rows))
+	}
+}
+
+func TestStoryDeleteRequiresConfirmationBeforeStorage(t *testing.T) {
+	for _, body := range []string{`{}`, `{"id":"story","confirmation":"delete"}`, `not json`} {
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodDelete, "/api/member/stories", strings.NewReader(body))
+		memberStoryDelete(w, r, &firebaseUser{UID: "member"})
+		if w.Code != http.StatusBadRequest {
+			t.Fatalf("body %q returned %d", body, w.Code)
+		}
+	}
 }

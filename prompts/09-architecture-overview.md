@@ -146,7 +146,7 @@ header.
 | `GET /api/member-export?format=csv\|xlsx` | `MemberExport` | Member | Download account records and member experiences as five CSV datasets in a ZIP or a six-sheet Excel workbook. |
 | `GET /api/member/features` | `MemberFeatures` | Member | Resolve server-enforced member feature access from release and Firebase-role rules. |
 | `GET/POST /api/member/notifications` | `MemberNotifications` | Member | List versioned notices dismissed by this member or persist one dismissal. |
-| `GET/POST /api/member/stories` | `MemberStories` | Member | Check eligibility, list owned evidence and save or submit a member experience. |
+| `GET/POST/DELETE /api/member/stories` | `MemberStories` | Member | Check eligibility, list owned evidence, save or submit an experience, or soft-delete an owned experience with typed confirmation. |
 | `POST /api/member/story-upload` | `MemberStoryUpload` | Member | Reserve bounded private media and return an expiring signed upload URL. |
 | `POST /api/member/story-upload-complete` | `MemberStoryUploadComplete` | Member | Verify and promote a completed private media upload. |
 | `POST /api/member/story-withdraw` | `MemberStoryWithdraw` | Member | Remove publication permissions immediately and place the story into withdrawal review. |

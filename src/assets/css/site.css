@@ -4704,7 +4704,7 @@ details .details-body p:last-child {
 .story-media-previews {
   display: grid;
   gap: var(--space-3);
-  grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
   margin-top: var(--space-3);
 }
 
@@ -4766,14 +4766,11 @@ details .details-body p:last-child {
 }
 
 .story-media-previews button {
-  background: transparent;
-  border: 0;
-  color: var(--color-danger);
-  cursor: pointer;
-  justify-self: start;
-  padding: 0;
-  text-decoration: underline;
+  border-radius: var(--radius-md);
+  font-size: var(--text-xs);
+  padding: var(--space-2);
 }
+
 
 .story-existing-media {
   margin-top: var(--space-3);
