@@ -451,11 +451,10 @@ async function checkMemberStories(viewport, screenshotName) {
   await page.getByRole('button', { name: 'Write a new experience' }).click();
   await page.locator('[data-story-form]').waitFor({ state: 'visible' });
   await page.locator('[name="vehicleId"]').selectOption('vehicle-1', { force: true });
-  await page.locator('#story-media').setInputFiles({
-    name: 'owner-photo.png',
-    mimeType: 'image/png',
-    buffer: fs.readFileSync('public/images/racing-laurel-email.png')
-  });
+  await page.locator('#story-media').setInputFiles([
+    { name: 'owner-photo.png', mimeType: 'image/png', buffer: fs.readFileSync('public/images/racing-laurel-email.png') },
+    { name: 'owner-video.mp4', mimeType: 'video/mp4', buffer: fs.readFileSync('tests/fixtures/story-test.mp4') }
+  ]);
   await page.locator('[data-story-media-previews] img').waitFor({ state: 'visible' });
   assert.equal(await page.locator('[data-story-media-previews] img').evaluate((image) => image.src.startsWith('blob:') && image.naturalWidth > 1), true);
   assert.equal(await page.locator('[name="title"]').count(), 0);
@@ -463,6 +462,11 @@ async function checkMemberStories(viewport, screenshotName) {
   assert.equal(await page.getByRole('link', { name: 'My Data' }).count() > 0, true);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
+  await page.locator('[data-story-editor]').fill('A story about my I-PACE.');
+  await page.getByRole('button', { name: 'Insert video' }).click();
+  await page.getByRole('button', { name: 'Preview story' }).click();
+  await page.screenshot({ path: path.join(outputDir, screenshotName.replace('.png', '-preview.png')), fullPage: true });
+  await page.getByRole('button', { name: 'Close preview' }).click();
   page.once('dialog', (dialog) => dialog.accept());
   await page.getByRole('button', { name: 'Back to experiences' }).click();
   await page.getByRole('button', { name: 'Edit' }).click();
@@ -498,6 +502,9 @@ async function checkAdminMemberStories(viewport, screenshotName) {
   assert.equal(await page.getByText('Share clicks by platform: copy: 1, facebook: 3, instagram: 2').count(), 1);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
+  await page.getByRole('button', { name: 'Preview story' }).click();
+  await page.screenshot({ path: path.join(outputDir, screenshotName.replace('.png', '-preview.png')), fullPage: true });
+  await page.getByRole('button', { name: 'Close preview' }).click();
   await page.getByRole('button', { name: 'Delete', exact: true }).click();
   await page.locator('[data-confirm-delete]').waitFor({ state: 'visible' });
   await page.evaluate(() => window.scrollTo(0, 0));

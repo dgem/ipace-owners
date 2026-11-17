@@ -10,28 +10,6 @@
     return node.innerHTML;
   }
 
-  function markdown(value, items) {
-    var byId = {};
-    (items || []).forEach(function (item) { byId[item.id] = item; });
-    var text = esc(value || '');
-    text = text.replace(/!\[([^\]]*)\]\(story-media:([a-zA-Z0-9_-]+)\)/g, function (match, alt, id) {
-      var media = byId[id];
-      if (!media || !media.url) return alt || '';
-      if (media.contentType.indexOf('video/') === 0) return '<video src="' + esc(media.url) + '" controls preload="metadata"></video>';
-      return '<a class="story-inline-image" href="' + esc(media.url) + '" target="_blank" rel="noopener noreferrer"><img src="' + esc(media.url) + '" alt="' + (alt || esc(media.name)) + '"></a>';
-    }).replace(/^### (.+)$/gm, '<h3>$1</h3>')
-      .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-      .replace(/^# (.+)$/gm, '<h2>$1</h2>')
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.+?)\*/g, '<em>$1</em>')
-      .replace(/^[-*] (.+)$/gm, '<li>$1</li>')
-      .replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>')
-      .replace(/^> ?(.+)$/gm, '<blockquote>$1</blockquote>');
-    return text.split(/\n{2,}/).map(function (block) {
-      return /^<(h2|h3|ul|blockquote)/.test(block) ? block : '<p>' + block.replace(/\n/g, '<br>') + '</p>';
-    }).join('');
-  }
-
   function storyExcerpt(value) {
     var paragraphs = String(value || '').replace(/\r\n?/g, '\n').split(/\n\s*\n/);
     var excerpt = '';
@@ -51,14 +29,6 @@
     var lastSpace = shortened.lastIndexOf(' ');
     if (lastSpace > 0) shortened = shortened.slice(0, lastSpace);
     return shortened.trimEnd() + '…';
-  }
-
-  function mediaGallery(items) {
-    return (items || []).filter(function (media) { return media.url; }).map(function (media) {
-      var image = media.contentType.indexOf('image/') === 0;
-      var preview = image ? '<img src="' + esc(media.url) + '" alt="' + esc(media.name) + '" loading="lazy">' : '<video src="' + esc(media.url) + '" controls preload="metadata"></video>';
-      return '<figure class="story-media-card"><a href="' + esc(media.url) + '" target="_blank" rel="noopener noreferrer">' + preview + '</a><figcaption>' + esc(media.name) + '</figcaption></figure>';
-    }).join('');
   }
 
   function consent() {
@@ -186,7 +156,7 @@
     var selected = stories.find(function (story) { return story.slug === requested || story.id === requested; });
     if (selected) {
       var joinLink = '/join/?story=' + encodeURIComponent(selected.id) + (campaign ? '&campaign=' + encodeURIComponent(campaign) : '');
-      root.innerHTML = '<article class="member-story"><p class="eyebrow">Owners’ story</p><h2>' + esc(selected.title) + '</h2><p class="lede">By ' + esc(selected.displayName) + '</p><div class="story-markdown">' + markdown(selected.bodyMarkdown, selected.media) + '</div><section class="story-media-gallery" aria-label="Attached media">' + mediaGallery(selected.media) + '</section><aside class="story-evidence-summary"><h2>Evidence behind this story</h2><p>' + esc(selected.evidence.vehicleLabel || 'Registered I-PACE') + (selected.evidence.modelYear ? ' · model year ' + esc(selected.evidence.modelYear) : '') + '</p><p>' + Number(selected.evidence.serviceEventCount || 0) + ' linked service, fault or JLR contact records · ' + Number(selected.evidence.sohReadingCount || 0) + ' linked SoH readings.</p><p><a href="/member/dashboard/">Add your own vehicle evidence</a></p></aside><div class="cluster"><a class="btn btn--primary" data-story-cta href="' + joinLink + '">Add your voice</a><button class="btn btn--secondary" data-story-share type="button" aria-expanded="false">Share this story</button></div>' + shareOptions(selected) + '</article>';
+      root.innerHTML = '<article class="member-story"><p class="eyebrow">Owners’ story</p><h2>' + esc(selected.title) + '</h2><p class="lede">By ' + esc(selected.displayName) + '</p><div class="story-markdown">' + window.ipaceStoryRenderer.markdown(selected.bodyMarkdown, selected.media) + '</div><section class="story-media-gallery" aria-label="Attached media">' + window.ipaceStoryRenderer.mediaGallery(selected.media) + '</section><aside class="story-evidence-summary"><h2>Evidence behind this story</h2><p>' + esc(selected.evidence.vehicleLabel || 'Registered I-PACE') + (selected.evidence.modelYear ? ' · model year ' + esc(selected.evidence.modelYear) : '') + '</p><p>' + Number(selected.evidence.serviceEventCount || 0) + ' linked service, fault or JLR contact records · ' + Number(selected.evidence.sohReadingCount || 0) + ' linked SoH readings.</p><p><a href="/member/dashboard/">Add your own vehicle evidence</a></p></aside><div class="cluster"><a class="btn btn--primary" data-story-cta href="' + joinLink + '">Add your voice</a><button class="btn btn--secondary" data-story-share type="button" aria-expanded="false">Share this story</button></div>' + shareOptions(selected) + '</article>';
       track(selected, 'view');
       setTimeout(function () { track(selected, 'engaged'); }, 30000);
       root.querySelector('[data-story-cta]').addEventListener('click', function () { track(selected, 'cta'); });

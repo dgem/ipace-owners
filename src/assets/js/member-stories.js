@@ -75,7 +75,7 @@
       .replace(/!\[([^\]]*)\]\(story-media:([a-zA-Z0-9_-]+)\)/g, function (match, alt, id) {
         var item = editorMedia.find(function (media) { return media.id === id && media.status === 'ready' && media.url; });
         if (!item) return alt;
-        if (item.contentType.indexOf('video/') === 0) return '<video src="' + esc(item.url) + '" controls preload="metadata" data-story-media-id="' + esc(item.id) + '"></video>';
+        if (item.contentType.indexOf('video/') === 0) return '<video contenteditable="false" src="' + esc(item.url) + '" controls preload="metadata" data-story-media-id="' + esc(item.id) + '"></video>';
         return '<a class="story-inline-image" href="' + esc(item.url) + '" target="_blank" rel="noopener noreferrer"><img src="' + esc(item.url) + '" alt="' + (alt || esc(item.name)) + '" data-story-media-id="' + esc(item.id) + '"></a>';
       })
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
@@ -174,8 +174,8 @@
       : '<input name="vehicleId" type="hidden" value="' + esc(selectedVehicle) + '">';
     var existingMedia = editorMedia.filter(function (item) { return item.status === 'ready'; }).map(function (item) {
       var image = item.contentType.indexOf('image/') === 0;
-      var preview = image ? '<img src="' + esc(item.url) + '" alt="">' : '<video src="' + esc(item.url) + '" muted preload="metadata"></video>';
-      return '<figure class="story-media-card"><a href="' + esc(item.url) + '" target="_blank" rel="noopener noreferrer">' + preview + '</a><figcaption><span title="' + esc(item.name) + '">' + esc(item.name) + '</span><div class="cluster cluster--sm"><button class="btn btn--secondary btn--sm" type="button" data-insert-story-media="' + esc(item.id) + '"' + (image ? ' data-insert-story-image="' + esc(item.id) + '"' : '') + '>Insert ' + (image ? 'image' : 'video') + '</button><button class="btn btn--secondary btn--sm" type="button" data-move-existing="' + esc(item.id) + '" data-direction="up">Move up</button><button class="btn btn--secondary btn--sm" type="button" data-move-existing="' + esc(item.id) + '" data-direction="down">Move down</button><button class="btn btn--danger btn--sm" type="button" data-remove-existing-media="' + esc(item.id) + '">Remove</button></div></figcaption></figure>';
+      var preview = image ? '<a href="' + esc(item.url) + '" target="_blank" rel="noopener noreferrer"><img src="' + esc(item.url) + '" alt=""></a>' : '<video src="' + esc(item.url) + '" controls preload="metadata"></video>';
+      return '<figure class="story-media-card">' + preview + '<figcaption><span title="' + esc(item.name) + '">' + esc(item.name) + '</span><div class="cluster cluster--sm"><button class="btn btn--secondary btn--sm" type="button" data-insert-story-media="' + esc(item.id) + '"' + (image ? ' data-insert-story-image="' + esc(item.id) + '"' : '') + '>Insert ' + (image ? 'image' : 'video') + '</button><button class="btn btn--secondary btn--sm" type="button" data-move-existing="' + esc(item.id) + '" data-direction="up">Move up</button><button class="btn btn--secondary btn--sm" type="button" data-move-existing="' + esc(item.id) + '" data-direction="down">Move down</button><button class="btn btn--danger btn--sm" type="button" data-remove-existing-media="' + esc(item.id) + '">Remove</button></div></figcaption></figure>';
     }).join('');
     var submissions = (state.stories || []).map(function (story) {
       var editable = story.status === 'draft' || story.status === 'submitted' || story.status === 'editing' || story.status === 'needs-member-clarification';
@@ -198,14 +198,32 @@
     root.innerHTML = ((state.stories || []).length ? '<button class="btn btn--secondary btn--sm story-editor-back" type="button" data-cancel-edit>← Back to experiences</button>' : '') + '<section class="story-guidance"><div><h2>' + (editing.id ? 'Edit your experience' : 'Share your experience') + '</h2><p>Tell us what happened, how it affected you and what you want to happen next.</p></div><a href="/member/account/">My Data</a></section>' +
       '<form class="member-form-panel story-form" data-story-form data-story-id="' + esc(editing.id || '') + '">' +
       '<div class="form-group"><label id="story-body-label">Your experience</label><div class="story-editor" data-story-editor-shell><div class="story-editor__toolbar" role="toolbar" aria-label="Text formatting"><button type="button" data-editor-command="bold" aria-label="Bold"><strong>B</strong><span class="visually-hidden">Bold</span></button><button type="button" data-editor-command="italic" aria-label="Italic"><em>I</em><span class="visually-hidden">Italic</span></button><button type="button" data-editor-command="insertUnorderedList" aria-label="Bulleted list"><span aria-hidden="true">☷</span><span class="visually-hidden">Bulleted list</span></button><button type="button" data-editor-command="insertOrderedList" aria-label="Numbered list"><span aria-hidden="true">☷</span><span class="visually-hidden">Numbered list</span></button><button type="button" data-editor-command="formatBlock" data-editor-value="blockquote" aria-label="Blockquote"><span aria-hidden="true">❝</span><span class="visually-hidden">Blockquote</span></button></div><div class="story-editor__surface" data-story-editor contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="story-body-label" data-placeholder="What happened? How did it affect you? What response did you receive?">' + markdownToEditorHTML(editing.bodyMarkdown || '') + '</div><div class="story-editor__footer"><span>Bold, italics, lists, quotes and your uploaded media</span><span data-story-character-count>0 / 20,000</span></div></div></div>' +
-      '<div class="form-group"><label>Photos and short videos <span class="form-hint">(optional)</span></label><div class="story-media-picker" data-story-dropzone><label class="story-media-picker__button" for="story-media">Choose photos or videos<span>Use your photo library, camera roll or files</span></label><input class="visually-hidden" id="story-media" name="media" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime,video/webm" multiple><p>Up to 5 photos and 2 videos; 500 MB total. Select files here and use Insert to place them in your experience.</p><p class="form-hint">On Mac Photos, use <strong>File → Export → Export 1 Photo</strong> and choose JPEG or PNG. HEIC files need exporting first.</p></div>' + (existingMedia ? '<p class="form-hint">Uploaded media can be inserted into your experience. Select a thumbnail to open the full version.</p><div class="story-media-previews story-existing-media">' + existingMedia + '</div>' : '') + '<div class="story-media-previews" data-story-media-previews></div><p class="form-hint" data-story-media-status role="status"></p></div>' +
+      '<div class="form-group"><label>Photos and short videos <span class="form-hint">(optional)</span></label><div class="story-media-picker" data-story-dropzone><label class="story-media-picker__button" for="story-media">Choose photos or videos<span>Use your photo library, camera roll or files</span></label><input class="visually-hidden" id="story-media" name="media" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime,video/webm" multiple><p>Up to 5 photos and 2 videos; 500 MB total. Select files here and use Insert to place them in your experience.</p><p class="form-hint">On Mac Photos, use <strong>File → Export → Export 1 Photo</strong> and choose JPEG or PNG. HEIC files need exporting first.</p></div>' + (existingMedia ? '<p class="form-hint">Uploaded media can be inserted into your experience. Select a photo to open the full version or play a video here.</p><div class="story-media-previews story-existing-media">' + existingMedia + '</div>' : '') + '<div class="story-media-previews" data-story-media-previews></div><p class="form-hint" data-story-media-status role="status"></p></div>' +
       '<div class="story-publication-settings"><p class="form-hint">Published as <strong>' + esc(state.displayName) + '</strong>. <a href="/member/account/">Change your display name in My Data</a>. Your contact details remain private.</p><fieldset><legend>Permissions</legend><label class="check-label"><input name="websiteConsent" type="checkbox" required' + checked(consent.website) + '> Publish this experience and selected media on this website.</label><label class="check-label"><input name="thirdPartyConsent" type="checkbox"' + checked(consent.thirdParty) + '> It may also be used in social media, press and publisher materials.</label><label class="check-label"><input name="copyrightConfirmed" type="checkbox"' + checked(consent.copyright) + '> I own, or have permission to supply, uploaded media.</label><label class="check-label"><input name="truthfulConfirmed" type="checkbox" required' + checked(consent.truthful) + '> This is true to the best of my knowledge.</label></fieldset></div>' +
       '<div class="story-vehicle-choice">' + vehicleControl + '</div>' +
       '<details class="story-evidence-picker"' + ((evidence.serviceEventIds || []).length || (evidence.sohReadingIds || []).length ? ' open' : '') + '><summary>Connect records from My Data <span>optional</span></summary><p>Linked records help turn individual experiences into evidence. <a href="/member/dashboard/">Add or check your records</a>.</p><div data-story-evidence><p class="form-hint">' + (selectedVehicle ? 'Loading records…' : 'Choose a car to see its records.') + '</p></div></details>' +
-      '<div class="cluster story-form__actions"><button class="btn btn--primary" type="submit">Submit for review</button><button class="btn btn--secondary" type="button" data-save-story>Save draft</button>' + '</div><p data-story-status role="status" aria-live="polite"></p></form>';
+      '<div class="cluster story-form__actions"><button class="btn btn--secondary" type="button" data-preview-story aria-expanded="false">Preview story</button><button class="btn btn--primary" type="submit">Submit for review</button><button class="btn btn--secondary" type="button" data-save-story>Save draft</button>' + '</div><p data-story-status role="status" aria-live="polite"></p><section class="story-preview" data-story-preview hidden aria-label="Story preview"></section></form>';
 
     bindEditor();
     bindMedia();
+    root.querySelector('[data-preview-story]').addEventListener('click', function () {
+      var button = this, preview = root.querySelector('[data-story-preview]');
+      if (!preview.hidden) { preview.hidden = true; button.setAttribute('aria-expanded', 'false'); button.textContent = 'Preview story'; preview.querySelectorAll('video').forEach(function (video) { video.pause(); }); return; }
+      var clone = root.querySelector('[data-story-editor]').cloneNode(true);
+      var media = editorMedia.filter(function (item) { return item.url && !removedMediaIDs[item.id]; }).slice();
+      selectedFiles.forEach(function (file, index) {
+        media.push({ id: 'pending-' + index, name: file.name, contentType: file.type, url: previewURLs[index] });
+      });
+      clone.querySelectorAll('[data-story-pending-index]').forEach(function (node) {
+        var index = Number(node.getAttribute('data-story-pending-index')), file = selectedFiles[index];
+        if (!file) return;
+        node.setAttribute('data-story-media-id', 'pending-' + index);
+      });
+      var markdown = Array.from(clone.childNodes).map(editorNodeToMarkdown).join('').replace(/\n{3,}/g, '\n\n').trim();
+      preview.innerHTML = '<p class="form-hint">Preview of your current edits · changes are not saved</p><article class="member-story"><p class="eyebrow">Owners’ story</p><h2>' + esc(editing.title || 'Your experience') + '</h2><p class="lede">By ' + esc(state.displayName) + '</p><div class="story-markdown">' + window.ipaceStoryRenderer.markdown(markdown, media) + '</div><section class="story-media-gallery" aria-label="Attached media">' + window.ipaceStoryRenderer.mediaGallery(media) + '</section></article>';
+      preview.hidden = false; button.setAttribute('aria-expanded', 'true'); button.textContent = 'Close preview';
+    });
+
     var vehicleSelect = root.querySelector('[name="vehicleId"]');
     if (vehicleSelect && vehicleSelect.tagName === 'SELECT') vehicleSelect.addEventListener('change', function () { renderEvidence(vehicleSelect.value, [], []); });
     if (selectedVehicle) renderEvidence(selectedVehicle, evidence.serviceEventIds || [], evidence.sohReadingIds || []);
@@ -285,7 +303,7 @@
         if (!item || !item.url) return;
         restoreEditorSelection(editor);
         var html = item.contentType.indexOf('video/') === 0
-          ? '<p><video src="' + esc(item.url) + '" controls preload="metadata" data-story-media-id="' + esc(item.id) + '"></video></p>'
+          ? '<p><video contenteditable="false" src="' + esc(item.url) + '" controls preload="metadata" data-story-media-id="' + esc(item.id) + '"></video></p>'
           : '<p><a class="story-inline-image" href="' + esc(item.url) + '" target="_blank" rel="noopener noreferrer"><img src="' + esc(item.url) + '" alt="' + esc(item.name) + '" data-story-media-id="' + esc(item.id) + '"></a></p>';
         document.execCommand('insertHTML', false, html);
         updateCount();
@@ -380,7 +398,7 @@
       previewURLs.push(url);
       allPreviewURLs.push(url);
       var image = file.type.indexOf('image/') === 0;
-      var preview = image ? '<img src="' + esc(url) + '" alt="">' : '<video src="' + esc(url) + '" muted preload="metadata"></video>';
+      var preview = image ? '<img src="' + esc(url) + '" alt="">' : '<video src="' + esc(url) + '" controls preload="metadata"></video>';
       return '<figure>' + preview + '<figcaption><span title="' + esc(file.name) + '">' + esc(file.name) + '</span><button class="btn btn--secondary btn--sm" type="button" data-insert-pending-media="' + index + '">Insert ' + (image ? 'image' : 'video') + '</button><button class="btn btn--secondary btn--sm" type="button" data-move-pending="' + index + '" data-direction="up">Move up</button><button class="btn btn--secondary btn--sm" type="button" data-move-pending="' + index + '" data-direction="down">Move down</button><button class="btn btn--danger btn--sm" type="button" data-remove-media="' + index + '" aria-label="Remove ' + esc(file.name) + '">Remove</button></figcaption></figure>';
     }).join('');
     previews.querySelectorAll('[data-remove-media]').forEach(function (button) {
@@ -413,7 +431,7 @@
         restoreEditorSelection(editor);
         var url = previewURLs[index];
         var html = file.type.indexOf('video/') === 0
-          ? '<p><video src="' + esc(url) + '" controls preload="metadata" data-story-pending-index="' + index + '"></video></p>'
+          ? '<p><video contenteditable="false" src="' + esc(url) + '" controls preload="metadata" data-story-pending-index="' + index + '"></video></p>'
           : '<p><a class="story-inline-image" href="' + esc(url) + '" target="_blank" rel="noopener noreferrer"><img src="' + esc(url) + '" alt="' + esc(file.name) + '" data-story-pending-index="' + index + '"></a></p>';
         document.execCommand('insertHTML', false, html);
         root.querySelector('[data-story-character-count]').textContent = editorMarkdown().length.toLocaleString('en-GB') + ' / 20,000';

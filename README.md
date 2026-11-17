@@ -234,6 +234,7 @@ src/
       member-dashboard.js # Vehicle tabs, SoH graph and service/fault editing
       member-export.js    # Authenticated CSV/Excel account downloads
       member-stories.js   # Member experience editor, evidence links and private-media submission
+      story-renderer.js    # Shared public and editor story rendering
       public-member-stories.js # Published story rendering and consented impact events
       admin-member-stories.js # Admin editorial, AI analysis and publication workflow
       admin-member-search.js # Server-backed member lookup
@@ -992,7 +993,8 @@ the deployment value to enable lookup; without it, manual entry works.
 - `member-dashboard.js` — vehicle tabs, SoH history and service/fault editing
 - `member-export.js` — authenticated CSV-bundle and Excel-report downloads
 - `member-stories.js` — member story drafts, linked evidence, consent and private media uploads
-- `public-member-stories.js` — safe Markdown story rendering and consented impact measurement
+- `story-renderer.js` — shared safe Markdown and media rendering for published stories and editor previews
+- `public-member-stories.js` — published stories and consented impact measurement
 - `admin-member-stories.js` — admin editing, manual AI analysis, approval and publication
 - `admin-member-search.js` — server-backed member search by identity, vehicle and preferences
 - `multistep-form.js` — generic multi-step form (data-attribute driven)
