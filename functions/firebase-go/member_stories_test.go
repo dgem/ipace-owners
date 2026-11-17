@@ -240,3 +240,12 @@ func TestStoryDeleteRequiresConfirmationBeforeStorage(t *testing.T) {
 		}
 	}
 }
+
+func TestAdminStoryDeleteRejectsUnauthenticatedRequest(t *testing.T) {
+	response := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodPost, "/api/admin/stories", strings.NewReader(`{"id":"story","action":"delete","confirmation":"DELETE"}`))
+	AdminStories(response, request)
+	if response.Code != http.StatusUnauthorized {
+		t.Fatalf("unauthenticated delete returned %d, want 401", response.Code)
+	}
+}

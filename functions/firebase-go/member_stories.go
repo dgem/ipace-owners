@@ -904,8 +904,8 @@ func AdminStories(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var input struct {
-		ID, Action, Title, BodyMarkdown, DisplayName, AdminNotes, MemberMessage string
-		IDs                                                                     []string
+		ID, Action, Title, BodyMarkdown, DisplayName, AdminNotes, MemberMessage, Confirmation string
+		IDs                                                                                   []string
 	}
 	r.Body = http.MaxBytesReader(w, r.Body, 128*1024)
 	if decodeJSON(r, &input) != nil {
@@ -968,6 +968,20 @@ func AdminStories(w http.ResponseWriter, r *http.Request) {
 	}
 	if story.Status == "deleted" {
 		writeJSON(w, 409, map[string]any{"error": "Deleted experiences cannot be changed"})
+		return
+	}
+	if input.Action == "delete" {
+		if input.Confirmation != deleteConfirmation {
+			writeJSON(w, 400, map[string]any{"error": "Type DELETE to confirm"})
+			return
+		}
+		now := time.Now().UTC()
+		story.Status, story.DeletedAt, story.UpdatedAt = "deleted", now, now
+		if err = writeStoryVersion(r.Context(), db, ref, story, doc.UpdateTime); err != nil {
+			writeJSON(w, 500, map[string]any{"error": "Could not delete experience"})
+			return
+		}
+		writeJSON(w, 200, map[string]any{"ok": true})
 		return
 	}
 	if input.Action == "analyse" {

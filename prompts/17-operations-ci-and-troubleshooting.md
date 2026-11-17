@@ -587,3 +587,5 @@ reference; its table parts are not used as an input when creating exports.
   IAM roles; no private signing key is stored or passed to the Function.
 
 - The optional staging story upload journey uses `PLAYWRIGHT_STORY_E2E_ENABLED` alongside `PLAYWRIGHT_AUTH_E2E_ENABLED` and the same dedicated registered test member. It requires the member's name, display name and feature access; it creates a synthetic test vehicle if the dedicated member has none. It reuses a private draft, verifies a real MP4 upload and signed retrieval, and never retains browser traces. Detached test objects remain in the versioned story bucket and need periodic cleanup.
+
+- Staging mail uses `contact@stage.ipace-owners.org` for both sender and reply-to; the domain is verified for sending only, so replies are not expected to be delivered. Production continues using its own contact address.

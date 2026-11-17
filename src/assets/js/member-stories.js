@@ -8,6 +8,7 @@
   var selectedFiles = [];
   var uploadedFiles = new WeakMap();
   var saving = false;
+  var editorSelection = null;
   var previewURLs = [];
   var allPreviewURLs = [];
   var editorMedia = [];
@@ -148,6 +149,7 @@
 
   function render(editing) {
     clearPreviews();
+    editorSelection = null;
     removedMediaIDs = {};
     if (!state.eligible) {
       root.innerHTML = '<div class="callout callout--info"><h2>Complete your member record first</h2><p>Add your name and display name, then register at least one I-PACE before sharing an experience.</p><div class="cluster"><a class="btn btn--primary" href="/member/account/">Go to My Data</a><a class="btn btn--secondary" href="/member/submit-vehicle-data/">Register a car</a></div></div>';
@@ -207,7 +209,7 @@
     root.querySelectorAll('[data-edit-story]').forEach(function (button) {
       button.addEventListener('click', function () {
         var story = (state.stories || []).find(function (item) { return item.id === button.dataset.editStory; });
-        if (story) { render(story); root.querySelector('[data-story-editor]').focus(); window.scrollTo({ top: root.offsetTop - 24, behavior: 'smooth' }); }
+        if (story) { render(story); root.querySelector('[data-story-editor]').focus(); window.scrollTo({ top: root.offsetTop - 24, behavior: 'auto' }); }
       });
     });
     root.querySelectorAll('[data-delete-story]').forEach(function (button) {
@@ -241,6 +243,11 @@
     var count = root.querySelector('[data-story-character-count]');
     function updateCount() { count.textContent = editorMarkdown().length.toLocaleString('en-GB') + ' / 20,000'; }
     editor.addEventListener('input', updateCount);
+    document.addEventListener('selectionchange', function () {
+      if (!root.contains(editor)) return;
+      var selection = window.getSelection();
+      if (selection && selection.rangeCount && editor.contains(selection.anchorNode) && editor.contains(selection.focusNode)) editorSelection = selection.getRangeAt(0).cloneRange();
+    });
     editor.addEventListener('paste', function (event) {
       event.preventDefault();
       document.execCommand('insertText', false, event.clipboardData.getData('text/plain'));
@@ -264,7 +271,7 @@
       button.addEventListener('click', function () {
         var item = editorMedia.find(function (media) { return media.id === button.dataset.insertStoryMedia; });
         if (!item || !item.url) return;
-        editor.focus();
+        restoreEditorSelection(editor);
         var html = item.contentType.indexOf('video/') === 0
           ? '<p><video src="' + esc(item.url) + '" controls preload="metadata" data-story-media-id="' + esc(item.id) + '"></video></p>'
           : '<p><a class="story-inline-image" href="' + esc(item.url) + '" target="_blank" rel="noopener noreferrer"><img src="' + esc(item.url) + '" alt="' + esc(item.name) + '" data-story-media-id="' + esc(item.id) + '"></a></p>';
@@ -289,6 +296,19 @@
       else editor.insertBefore(neighbour, node);
       root.querySelector('[data-story-media-status]').textContent = 'Media moved ' + direction + '.';
     } else root.querySelector('[data-story-media-status]').textContent = 'Media is already at the ' + (direction === 'up' ? 'start' : 'end') + '.';
+  }
+
+  function restoreEditorSelection(editor) {
+    editor.focus();
+    var selection = window.getSelection();
+    var range = editorSelection;
+    if (!range || !editor.contains(range.commonAncestorContainer)) {
+      range = document.createRange();
+      range.selectNodeContents(editor);
+      range.collapse(false);
+    }
+    selection.removeAllRanges();
+    selection.addRange(range);
   }
 
   function bindMedia() {
@@ -372,12 +392,13 @@
       button.addEventListener('click', function () { moveMedia('[data-story-pending-index="' + button.dataset.movePending + '"]', button.dataset.direction); });
     });
     previews.querySelectorAll('[data-insert-pending-media]').forEach(function (button) {
+      button.addEventListener('mousedown', function (event) { event.preventDefault(); });
       button.addEventListener('click', function () {
         var index = Number(button.dataset.insertPendingMedia);
         var file = selectedFiles[index];
         var editor = root.querySelector('[data-story-editor]');
         if (!file || !editor) return;
-        editor.focus();
+        restoreEditorSelection(editor);
         var url = previewURLs[index];
         var html = file.type.indexOf('video/') === 0
           ? '<p><video src="' + esc(url) + '" controls preload="metadata" data-story-pending-index="' + index + '"></video></p>'
@@ -441,7 +462,7 @@
     var data = payload(form, false);
     var files = selectedFiles.slice();
     saving = true;
-    form.querySelectorAll('button, input, select').forEach(function (control) { control.disabled = true; });
+    form.querySelectorAll('button, input[type="file"]').forEach(function (control) { control.disabled = true; });
     status.textContent = 'Saving…';
     api('/api/member/stories', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }).then(function (result) {
       form.dataset.storyId = result.story.id;
@@ -461,7 +482,7 @@
       });
     }).then(function () { status.textContent = submit ? 'Submitted for review.' : 'Draft saved.'; return load(); }).catch(function (error) { status.textContent = displayError(error); }).finally(function () {
       saving = false;
-      form.querySelectorAll('button, input, select').forEach(function (control) { control.disabled = false; });
+      form.querySelectorAll('button, input[type="file"]').forEach(function (control) { control.disabled = false; });
     });
   }
 

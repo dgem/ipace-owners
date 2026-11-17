@@ -28,6 +28,8 @@ test('member calls to action and surveys have reusable versioned dismissal ident
   assert.match(callout, /data-notification-id="cta:member-experiences:v1"/);
   assert.match(surveys, /survey:open:/);
   assert.match(surveys, /survey:upcoming:/);
+  assert.match(surveys, /survey:none:v1/);
+  assert.doesNotMatch(callout, /What you can do next/);
   assert.match(layout, /member-notifications\.js/);
   assert.match(layout, /member-features\.js/);
 });

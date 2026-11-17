@@ -300,7 +300,7 @@ vehicle creation and vehicle editing. Keep United Kingdom as the default.
 | `DELETE /api/member/stories` | Member/owner | Require `id` and `confirmation: "DELETE"`; hide the soft-deleted story from member lists, exports and public output. Admins can filter deleted stories but cannot publish or edit them. |
 | `POST /api/member/story-upload` and `/api/member/story-upload-complete` | Member | Reserve bounded private media, issue a short-lived upload URL, then verify and promote the object. |
 | `POST /api/member/story-withdraw` | Member | Remove website and third-party permissions immediately and hold the story for withdrawal review. |
-| `GET/POST /api/admin/stories` | Admin claim | Review, edit, manually analyse, approve and publish stories with versioned permissions and revisions. |
+| `GET/POST /api/admin/stories` | Admin claim | Review, edit, manually analyse, approve and publish stories with versioned permissions and revisions; filter deleted experiences and soft-delete individual stories after typed confirmation. |
 | `GET /api/admin/members` | Admin claim | Search by name, email, registration, expertise, preferences and story activity. |
 | `GET /api/stories` | Public | Return only published story fields, evidence summaries and expiring media URLs. |
 | `POST /api/story-event` | Public | Record consent-gated pseudonymous view, engagement, CTA and share-link click events for a published story, including a validated platform identifier. |

@@ -1167,4 +1167,4 @@ charts and frozen headers are preserved; the security audit remains enabled.
 
 The mocked story upload browser test runs with `npm run test:e2e:stories` after installing the Playwright Chromium browser. It exercises the editor and upload API handoff without using a member account.
 
-Members can soft-delete an experience after typing DELETE. Deleted experiences are hidden from member lists, exports and public output; administrators can inspect them with the deleted status filter.
+Members can soft-delete an experience after typing DELETE. Deleted experiences are hidden from member lists, exports and public output; administrators can inspect them with the deleted status filter and can soft-delete stories after confirmation.

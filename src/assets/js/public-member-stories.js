@@ -32,6 +32,27 @@
     }).join('');
   }
 
+  function storyExcerpt(value) {
+    var paragraphs = String(value || '').replace(/\r\n?/g, '\n').split(/\n\s*\n/);
+    var excerpt = '';
+    paragraphs.some(function (paragraph) {
+      var text = paragraph.replace(/!\[[^\]]*\]\([^)]*\)/g, '')
+        .replace(/^\s{0,3}#{1,6}\s+.*$/gm, '')
+        .replace(/^\s*(?:>\s*|[-*+]\s+|\d+[.)]\s+)/gm, '')
+        .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+        .replace(/[*_`~]/g, '')
+        .replace(/\s+/g, ' ').trim();
+      if (!text) return false;
+      excerpt = text;
+      return true;
+    });
+    if (excerpt.length <= 220) return excerpt;
+    var shortened = excerpt.slice(0, 220);
+    var lastSpace = shortened.lastIndexOf(' ');
+    if (lastSpace > 0) shortened = shortened.slice(0, lastSpace);
+    return shortened.trimEnd() + '…';
+  }
+
   function mediaGallery(items) {
     return (items || []).filter(function (media) { return media.url; }).map(function (media) {
       var image = media.contentType.indexOf('image/') === 0;
@@ -174,7 +195,7 @@
     }
     root.innerHTML = '<div class="story-grid">' + stories.map(function (story) {
       var href = '/member-stories/' + encodeURIComponent(story.slug || story.id) + '/';
-      return '<article class="card"><h2><a href="' + href + '">' + esc(story.title) + '</a></h2><p>By ' + esc(story.displayName) + '</p><p>' + esc(story.bodyMarkdown.slice(0, 220)) + '…</p><a href="' + href + '">Read this story</a></article>';
+      return '<article class="card"><h2><a href="' + href + '">' + esc(story.title) + '</a></h2><p>By ' + esc(story.displayName) + '</p><p>' + esc(storyExcerpt(story.bodyMarkdown)) + '</p><a href="' + href + '">Read this story</a></article>';
     }).join('') + '</div>';
   }).catch(function () { root.innerHTML = '<p>Owners’ stories are temporarily unavailable.</p>'; });
 })();

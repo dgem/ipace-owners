@@ -105,7 +105,8 @@ async function verifyStoryUpload(page: Page) {
   await root.getByRole('button', { name: 'Insert video' }).click();
   const saved = page.waitForResponse(response => response.url().endsWith('/api/member/stories') && response.request().method() === 'POST' && Boolean(response.request().postData()?.includes('story-media:')));
   await root.locator('[data-save-story]').click();
-  expect((await saved).ok(), 'The final save must accept the uploaded media reference.').toBe(true);
+  const finalResponse = await saved;
+  if (!finalResponse.ok()) { const body = await finalResponse.json().catch(() => ({})); throw new Error('Final story save failed (' + finalResponse.status() + '): ' + (body.error || 'unknown error')); }
   await expect(root.locator('[data-story-form]')).toHaveAttribute('data-story-id', '', { timeout: 60_000 });
   await expect(root.locator('.story-submission-list li').filter({ has: page.getByText(marker, { exact: true }) })).toHaveCount(1, { timeout: 60_000 });
   const result = await page.evaluate(async (title) => {

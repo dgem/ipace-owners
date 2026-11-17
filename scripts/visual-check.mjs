@@ -493,6 +493,10 @@ async function checkAdminMemberStories(viewport, screenshotName) {
   assert.equal(await page.getByText('Share clicks by platform: copy: 1, facebook: 3, instagram: 2').count(), 1);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
+  await page.getByRole('button', { name: 'Delete', exact: true }).click();
+  await page.locator('[data-confirm-delete]').waitFor({ state: 'visible' });
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.screenshot({ path: path.join(outputDir, screenshotName.replace('.png', '-delete.png')), fullPage: true });
   await page.close();
 }
 
@@ -508,6 +512,22 @@ async function checkAdminMemberSearch(viewport, screenshotName) {
   await page.getByRole('button', { name: 'Search' }).click();
   await page.locator('[data-results] .card').waitFor({ state: 'visible' });
   assert.equal(await page.getByRole('heading', { name: 'Alex Owner' }).count(), 1);
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
+  await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
+  await page.close();
+}
+
+async function checkPublicStoryCards(viewport, screenshotName) {
+  const page = await browser.newPage({ viewport });
+  const stories = [
+    { id: 'story-one', title: 'A long wait for repairs', displayName: 'An owner', bodyMarkdown: '## What happened\n\n![Video](story-media:clip)\n\nMy I-PACE spent months waiting for a battery repair. **The uncertainty affected our family.**\n\nMore detail follows in the full story.', media: [], evidence: {} },
+    { id: 'story-two', title: 'Finding a way forward', displayName: 'Another owner', bodyMarkdown: 'We want clear communication and a lasting solution for every owner.', media: [], evidence: {} }
+  ];
+  await page.route('**/api/stories', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ stories }) }));
+  await page.goto(baseURL + '/member-stories/?site-mode=full', { waitUntil: 'networkidle' });
+  await page.locator('.story-grid .card').first().waitFor({ state: 'visible' });
+  await page.evaluate(() => document.querySelectorAll('.cookie-notice').forEach((element) => { element.hidden = true; }));
+  assert.equal(await page.locator('.story-grid .card').first().innerText().then(text => text.includes('story-media:')), false);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
   await page.close();
@@ -716,6 +736,7 @@ async function checkMemberAccountManagement(viewport, screenshotName) {
       batteryReadings: []
     }) });
   });
+  await page.route('**/api/member/surveys', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ surveys: [] }) }));
   await page.route('**/api/member-profile', async (route) => {
     await route.fulfill({ contentType: 'application/json', body: JSON.stringify({
       profile: { name: 'Alex Example', country: 'United Kingdom', represent: false },
@@ -725,6 +746,16 @@ async function checkMemberAccountManagement(viewport, screenshotName) {
   });
   await page.goto(baseURL + '/member/account/', { waitUntil: 'networkidle' });
   await page.locator('[data-vehicle-list] .account-vehicle-card').waitFor({ state: 'visible' });
+  const emptyNotice = page.locator('[data-member-survey-summary]');
+  await emptyNotice.evaluate((element) => {
+    element.dataset.memberNotification = '';
+    element.dataset.notificationId = 'survey:none:v1';
+    element.innerHTML = '<div class="survey-dashboard-callout__content"><div class="survey-dashboard-callout__message"><h2 class="survey-dashboard-callout__title">Member surveys</h2><p>There are no open surveys right now.</p></div></div>';
+    window.ipaceRefreshMemberNotifications();
+  });
+  await emptyNotice.getByText('There are no open surveys right now.').waitFor({ state: 'visible' });
+  assert.equal(await emptyNotice.getByRole('button', { name: 'Dismiss this notice' }).count(), 1);
+  await page.screenshot({ path: path.join(outputDir, screenshotName.replace('.png', '-no-surveys.png')), fullPage: true });
   await page.locator('[data-member-survey-summary]').evaluate((element) => {
     element.hidden = false;
     element.innerHTML = '<div class="survey-dashboard-callout__content"><p class="dashboard-panel__eyebrow">Your voice matters</p><div class="survey-dashboard-callout__message"><h2 class="survey-dashboard-callout__title">What do you think the group should do next?</h2><p>There is an open member survey waiting for you.</p></div></div><div class="survey-dashboard-callout__actions"><a class="btn btn--primary btn--sm" href="/member/survey-response/?id=survey_what_next_october_2026">Take the survey</a><a class="btn btn--primary btn--sm" href="/member/surveys/?filter=closed">Past surveys</a></div><button class="member-notification__dismiss" type="button" aria-label="Dismiss this notice">Dismiss</button>';
@@ -1376,6 +1407,10 @@ try {
     await checkJoinCountry({ width: 390, height: 844 }, 'launch', 'join-country-launch-mobile.png');
     await checkJoinCountry({ width: 1440, height: 1000 }, 'full', 'join-country-full-desktop.png');
     await checkJoinCountry({ width: 390, height: 844 }, 'full', 'join-country-full-mobile.png');
+    await checkPublicStoryCards({ width: 1440, height: 1000 }, 'public-story-cards-desktop.png');
+    await checkPublicStoryCards({ width: 390, height: 844 }, 'public-story-cards-mobile.png');
+    await checkAdminMemberStories({ width: 1440, height: 1000 }, 'admin-member-stories-desktop.png');
+    await checkAdminMemberStories({ width: 390, height: 844 }, 'admin-member-stories-mobile.png');
     await checkMemberStories({ width: 1440, height: 1000 }, 'member-stories-desktop.png');
     await checkMemberStories({ width: 402, height: 874 }, 'member-stories-mobile.png');
     await checkMemberAccountManagement({ width: 402, height: 874 }, 'member-account-experience-callout-mobile.png');
@@ -1408,6 +1443,8 @@ try {
   await checkAdminMemberStories({ width: 390, height: 844 }, 'admin-member-stories-mobile.png');
   await checkAdminMemberSearch({ width: 1440, height: 1000 }, 'admin-members-desktop.png');
   await checkAdminMemberSearch({ width: 390, height: 844 }, 'admin-members-mobile.png');
+  await checkPublicStoryCards({ width: 1440, height: 1000 }, 'public-story-cards-desktop.png');
+  await checkPublicStoryCards({ width: 390, height: 844 }, 'public-story-cards-mobile.png');
   await checkPublicMemberStory({ width: 1440, height: 1000 }, 'public-member-story-desktop.png');
   await checkPublicMemberStory({ width: 390, height: 844 }, 'public-member-story-mobile.png');
   await checkServiceExport({ width: 1440, height: 1000 }, 'desktop');
