@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import path from 'node:path';
+import { magicLinkFromMessage } from '../scripts/auth-e2e-link.cjs';
 
 const resendAPIKey = process.env.E2E_RESEND_API_KEY;
 const receivingInbox = process.env.E2E_RESEND_INBOX;
@@ -33,41 +34,6 @@ async function resendRequest(path: string) {
   }
 
   return response.json();
-}
-
-function magicLinkFromMessage(message: ReceivedEmailContent, previewURL: string) {
-  const content = `${message.html || ''}\n${message.text || ''}`.replaceAll('&amp;', '&');
-  const candidates = content.match(/https:\/\/[^\s"'<>]+/gi) || [];
-  const expectedAccountURL = new URL('/member/account/', previewURL).href;
-  const expectedOrigin = new URL(previewURL).origin;
-
-  for (const candidate of candidates) {
-    try {
-      const actionURL = new URL(candidate);
-      const query = actionURL.searchParams;
-      if (
-        actionURL.origin === expectedOrigin &&
-        actionURL.pathname === '/auth/action' &&
-        !actionURL.username &&
-        !actionURL.password &&
-        !actionURL.hash &&
-        query.getAll('mode').length === 1 &&
-        query.get('mode') === 'signIn' &&
-        query.getAll('oobCode').length === 1 &&
-        Boolean(query.get('oobCode')) &&
-        query.getAll('apiKey').length === 1 &&
-        Boolean(query.get('apiKey')) &&
-        query.getAll('continueUrl').length === 1 &&
-        query.get('continueUrl') === expectedAccountURL
-      ) {
-        return candidate;
-      }
-    } catch {
-      // Ignore malformed or unexpected links without exposing their contents.
-    }
-  }
-
-  return undefined;
 }
 
 async function waitForMagicLink(notBefore: number) {

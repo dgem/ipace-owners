@@ -175,7 +175,7 @@ site-owned `/images/` paths; Freeform campaigns retain the generic hero.
   real member account, log the inbox or action link, or retain an auth test trace, screenshot,
   video or artifact. Serialize it with the shared Firebase staging concurrency group. Validate the
   action URL against the deployed preview origin, `/auth/action`, single Firebase sign-in parameters
-  and its account continuation before navigation, then verify that the final account URL remains on
+  and its account continuation before navigation; permit only an optional, correctly formatted `authTrace` on that continuation, then verify that the final account URL remains on
   the deployed preview origin. Keep the test disabled when its explicit staging configuration is
   absent.
 - Run a separate `Security` workflow on pull requests, pushes to `main`, a weekly Monday
