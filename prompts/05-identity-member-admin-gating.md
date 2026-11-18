@@ -127,6 +127,9 @@ server-side by Go Cloud Functions that validate Firebase ID tokens.
   Do not show placeholder copy saying preferences will be manageable in a future release.
   Preference editing needs a server-side audited account update flow before controls are
   shown as editable.
+- Show member contact details as a compact Account details summary by default, using only the
+  saved legal name, postcode and country. Keep the full contact-address editor collapsed until
+  the member chooses Add or Edit contact details, rather than presenting an always-open form.
 
 ## Server-side APIs
 

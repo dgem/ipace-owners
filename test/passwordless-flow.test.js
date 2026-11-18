@@ -147,6 +147,19 @@ test('account preferences render from saved member data', function () {
   assert.match(css, /\.preference-list/);
 });
 
+test('account contact details are summarised until the member chooses to edit them', function () {
+  var account = read('src/member/account.njk');
+  var profile = read('src/assets/js/member-profile.js');
+
+  assert.match(account, /data-member-profile-summary/);
+  assert.match(account, /data-edit-member-profile/);
+  assert.match(account, /data-member-profile-editor hidden/);
+  assert.match(account, /data-close-member-profile/);
+  assert.match(profile, /function renderSummary/);
+  assert.match(profile, /profile\.name, profile\.postalCode, profile\.country/);
+  assert.match(profile, /function showEditor/);
+});
+
 test('protected pages do not show login gates before auth verification completes', function () {
   var loginGate = read('src/_includes/partials/auth-login-gate.njk');
 
