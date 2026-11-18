@@ -109,6 +109,9 @@ async function verifyStoryUpload(page: Page) {
   }
   const editor = root.locator('[data-story-editor]');
   await editor.fill(marker + '\n\n' + body);
+  await root.getByLabel('Publish this experience and selected media on this website.').check();
+  await root.getByLabel('I own, or have permission to supply, uploaded media.').check();
+  await root.getByLabel('This is true to the best of my knowledge.').check();
   await root.locator('#story-media').setInputFiles([
     path.resolve('public/images/racing-laurel-email.png'),
     path.resolve('tests/fixtures/story-test.mp4'),
@@ -118,7 +121,7 @@ async function verifyStoryUpload(page: Page) {
   await expect(root.locator('[data-story-preview] .story-markdown video')).toHaveCount(1);
   await expect(root.locator('[data-story-preview] .story-markdown img')).toHaveCount(2);
   await root.getByRole('button', { name: 'Close preview' }).click();
-  const saved = page.waitForResponse(response => response.url().endsWith('/api/member/stories') && response.request().method() === 'POST' && Boolean(response.request().postData()?.includes('story-media:')));
+  const saved = page.waitForResponse(response => response.url().endsWith('/api/member/stories') && response.request().method() === 'POST' && Boolean(response.request().postData()?.includes('story-media:')), { timeout: 60_000 });
   await root.locator('[data-save-story]').click();
   const finalResponse = await saved;
   if (!finalResponse.ok()) { const body = await finalResponse.json().catch(() => ({})); throw new Error('Final story save failed (' + finalResponse.status() + '): ' + (body.error || 'unknown error')); }
@@ -133,7 +136,7 @@ async function verifyStoryUpload(page: Page) {
     if (stories.length !== 1) throw new Error('Expected exactly one staging test draft.');
     const story = stories[0];
     const media = (story.media || []).filter((item: any) => item.status === 'ready' && item.contentType === 'video/mp4');
-    if (story.status !== 'draft' || media.length !== 1 || !story.bodyMarkdown.includes('story-media:' + media[0].id)) throw new Error('The saved draft did not retain its uploaded video reference.');
+    if (story.status !== 'draft' || !story.consent?.website || !story.consent?.copyright || !story.consent?.truthful || media.length !== 1 || !story.bodyMarkdown.includes('story-media:' + media[0].id)) throw new Error('The saved draft did not retain its publication permissions and uploaded video reference.');
     const images = (story.media || []).filter((item: any) => item.status === 'ready' && item.contentType.startsWith('image/'));
     const refs = Array.from(story.bodyMarkdown.matchAll(/!\[[^\]]*\]\(story-media:([a-zA-Z0-9_-]+)\)/g), (match: RegExpMatchArray) => match[1]);
     if (images.length !== 1 || refs.length !== 3 || refs[0] !== images[0].id || refs[1] !== media[0].id || refs[2] !== images[0].id) throw new Error('The draft did not retain the example media in the expected positions.');

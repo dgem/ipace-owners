@@ -186,7 +186,7 @@ To exercise a real staging story video upload after sign-in, set the staging var
 a contact name, display name and access to member experiences
 (staging normally grants this to all members). If the test member has no vehicle, the test creates one synthetic staging vehicle. The test reuses one private draft titled
 “Automated staging story upload test”; do not submit or edit it. Each run removes the previous
-media references and uploads small image and video fixtures. It verifies the example text and media order while keeping the draft private. Removed objects remain in the private, versioned
+media references and uploads small image and video fixtures. It records the website, truthfulness and media-copyright confirmations needed for an administrator to manually test approval and publication, but keeps the story as a private draft and does not submit or publish it. It verifies the example text and media order. Removed objects remain in the private, versioned
 story bucket because the application does not yet delete detached media; arrange periodic
 cleanup of this test account's detached objects. For local runs set `E2E_STORY_UPLOAD_ENABLED=true`
 and `E2E_STORY_ALLOWED_ORIGIN` to the exact staging preview origin along with the auth variables.

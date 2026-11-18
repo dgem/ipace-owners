@@ -16,6 +16,7 @@ Build a member-experience workflow that turns personal experience into consented
 - Beside every uploaded asset in the admin editor, show its durable, ready-to-paste `story-media:` Markdown reference and a Copy Markdown control; never invite admins to paste the temporary signed media URL.
 - Keep uploaded media removable while editing, including media on an already submitted story. Show existing and newly selected media with the same thumbnail card, filename and insert/remove actions; send the retained media IDs when saving so removal persists.
 - Preserve the draft ID after its first save and reuse completed uploads on retry; prevent concurrent saves while retaining form fields in the final request, and include newly uploaded media IDs in the final save. Upload media directly to a private Cloud Storage bucket through short-lived, authenticated signed URLs. Verify size and content type before promoting a pending upload.
+- The dedicated staging upload test saves one private draft with website, truthfulness and media-copyright confirmations recorded, so an administrator can manually exercise approval and publication. The test itself must never submit or publish that draft.
 - Require confirmation that the account is truthful to the member's knowledge and that they own or may supply uploaded media.
 - Record separate, versioned permission for publication on this website and for third-party social, press or publisher use.
 
