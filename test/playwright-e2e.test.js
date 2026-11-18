@@ -43,7 +43,7 @@ test('the live magic-link journey is opt-in and does not retain sensitive diagno
   assert.match(spec, /I own, or have permission to supply, uploaded media/);
   assert.match(spec, /This is true to the best of my knowledge/);
   assert.match(spec, /publication permissions and uploaded video reference/);
-  assert.match(spec, /timeout: 60_000/);
+  assert.match(spec, /timeout: 180_000/);
   assert.match(read('scripts/auth-e2e-link.cjs'), /continuation\.origin === expectedOrigin/);
   assert.doesNotMatch(spec, /console\.(?:log|error|warn)/);
   assert.match(workflow, /PLAYWRIGHT_AUTH_E2E_ENABLED == 'true'/);

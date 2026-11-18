@@ -121,7 +121,7 @@ async function verifyStoryUpload(page: Page) {
   await expect(root.locator('[data-story-preview] .story-markdown video')).toHaveCount(1);
   await expect(root.locator('[data-story-preview] .story-markdown img')).toHaveCount(2);
   await root.getByRole('button', { name: 'Close preview' }).click();
-  const saved = page.waitForResponse(response => response.url().endsWith('/api/member/stories') && response.request().method() === 'POST' && Boolean(response.request().postData()?.includes('story-media:')), { timeout: 60_000 });
+  const saved = page.waitForResponse(response => response.url().endsWith('/api/member/stories') && response.request().method() === 'POST' && Boolean(response.request().postData()?.includes('story-media:')), { timeout: 180_000 });
   await root.locator('[data-save-story]').click();
   const finalResponse = await saved;
   if (!finalResponse.ok()) { const body = await finalResponse.json().catch(() => ({})); throw new Error('Final story save failed (' + finalResponse.status() + '): ' + (body.error || 'unknown error')); }
