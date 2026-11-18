@@ -158,8 +158,8 @@ site-owned `/images/` paths; Freeform campaigns retain the generic hero.
 - CI workflows should call Make targets rather than duplicating raw npm, Go, Firebase, or
   gcloud command bodies where a Make target exists.
 - Local verification for most changes is `make lint`, `make build`, and `make test`.
-- Layout/navigation changes also require `make dev` plus `make test-visual`. The staging validate
-  job runs deterministic Chrome checks at desktop and mobile viewports and uploads screenshots
+- Layout/navigation changes also require `make dev` plus `make test-visual`. The staging visual-check
+  job runs in parallel with source validation, uses deterministic Chrome checks at desktop and mobile viewports, and uploads screenshots
   even on failure. Keep authenticated visual fixtures credential-free and assert geometry and
   visibility rather than relying only on pixel snapshots.
 - Keep a Playwright responsive suite separate from deterministic visual fixtures. It must run the
@@ -207,7 +207,7 @@ site-owned `/images/` paths; Freeform campaigns retain the generic hero.
   baseline scan against that preview. Use an immutable action revision and versioned ZAP
   container, disable issue creation, retain the report as an Actions artifact, and keep only
   reviewed platform/CDN findings in the committed `.zap/rules.tsv` baseline so new alert
-  categories still fail the check. Each exclusion must name the platform constraint or deliberate
+  categories still fail the check. Run it in parallel with the separate opt-in live-auth journey once deployment completes; both checks remain blocking. Each exclusion must name the platform constraint or deliberate
   public-data design it covers; do not exclude informational application-identification alerts.
   Do not run active attacks against production or authenticated member data.
 - Shared passwordless login forms must declare `method="POST"` and

@@ -132,7 +132,8 @@ The Node gate warns about the reviewed, upstream-only advisory URLs in
 `security/npm-audit-baseline.json`, and fails on new high or critical findings or a severity
 increase in an accepted finding. The currently unpatched picomatch advisory GHSA-fc5q-39xc-vjpf is accepted only as a temporary build-tooling exception; it remains a warning until an upstream fix is available. GitHub Actions additionally runs CodeQL and dependency review
 on pull requests and a weekly schedule. Firebase PR previews receive a blocking passive OWASP
-ZAP baseline scan after deployment smoke tests pass. `package.json` may pin narrow transitive
+ZAP baseline scan after deployment smoke tests pass; it runs in parallel with the opt-in live
+member journey. `package.json` may pin narrow transitive
 security overrides when a maintained direct dependency has not yet widened its range to a
 patched release; keep those overrides locked, test the affected CLI/build paths, and remove
 them when an upstream release makes them unnecessary.

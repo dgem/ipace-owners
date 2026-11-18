@@ -47,12 +47,11 @@ test('content security policy permits only local browser media previews via blob
   assert.doesNotMatch(policy, /default-src[^;]*blob:/);
 });
 
-test('preview deployment runs a blocking passive OWASP ZAP scan', function () {
+test('preview deployment runs a blocking passive OWASP ZAP scan in parallel with live authentication', function () {
   var workflow = read('.github/workflows/gcp-firebase-staging.yml');
-  var smokeIndex = workflow.indexOf('name: Smoke test preview');
-  var zapIndex = workflow.indexOf('name: OWASP ZAP baseline scan');
 
-  assert.ok(smokeIndex >= 0 && zapIndex > smokeIndex);
+  assert.match(workflow, /zap-preview:\n    needs: deploy-preview\n    if: needs\.deploy-preview\.result == 'success'/);
+  assert.match(workflow, /playwright-member-auth:\n    needs: deploy-preview\n    if: needs\.deploy-preview\.result == 'success'/);
   assert.match(workflow, /zaproxy\/action-baseline@de8ad967d3548d44ef623df22cf95c3b0baf8b25 # v0\.15\.0/);
   assert.match(workflow, /docker_name: ghcr\.io\/zaproxy\/zaproxy:2\.17\.0/);
   assert.match(workflow, /rules_file_name: \.zap\/rules\.tsv/);
@@ -67,15 +66,17 @@ test('preview deployment runs a blocking passive OWASP ZAP scan', function () {
 
 test('external pull requests validate without receiving staging deployment permissions', function () {
   var workflow = read('.github/workflows/gcp-firebase-staging.yml');
-  var validateIndex = workflow.indexOf('  validate:');
+  var validateIndex = workflow.indexOf('  validate-source:');
+  var visualIndex = workflow.indexOf('  visual-check:');
   var deployIndex = workflow.indexOf('  deploy-preview:');
 
-  assert.ok(validateIndex >= 0 && deployIndex > validateIndex);
+  assert.ok(validateIndex >= 0 && visualIndex > validateIndex && deployIndex > visualIndex);
   assert.match(workflow, /permissions:\n[ ]{2}contents: read\n\njobs:/);
-  assert.match(workflow, /deploy-preview:\n[ ]{4}needs: validate\n[ ]{4}if: github\.event\.pull_request\.head\.repo\.full_name == github\.repository && github\.event\.pull_request\.user\.login == github\.repository_owner/);
+  assert.match(workflow, /deploy-preview:\n[ ]{4}needs: \[validate-source, visual-check\]\n[ ]{4}if: github\.event\.pull_request\.head\.repo\.full_name == github\.repository && github\.event\.pull_request\.user\.login == github\.repository_owner/);
   assert.match(workflow, /deploy-preview:[\s\S]*concurrency:\n[ ]{6}group: firebase-staging-deploy/);
   assert.match(workflow, /deploy-preview:[\s\S]*permissions:\n[ ]{6}contents: read\n[ ]{6}id-token: write\n[ ]{6}pull-requests: write/);
-  assert.match(workflow, /validate:[\s\S]*name: Build site without deployment credentials\n[ ]{8}run: make build/);
+  assert.match(workflow, /validate-source:[\s\S]*name: Build site without deployment credentials\n[ ]{8}run: make build/);
+  assert.match(workflow, /visual-check:[\s\S]*name: Check rendered desktop and mobile states\n[ ]{8}run: make test-visual/);
 });
 
 test('OpenTofu setup uses an immutable action revision', function () {
