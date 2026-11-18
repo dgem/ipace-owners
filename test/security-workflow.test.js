@@ -51,6 +51,7 @@ test('preview deployment runs a blocking passive OWASP ZAP scan in parallel with
   var workflow = read('.github/workflows/gcp-firebase-staging.yml');
 
   assert.match(workflow, /zap-preview:\n {4}needs: deploy-preview\n {4}if: needs\.deploy-preview\.result == 'success'/);
+  assert.match(workflow, /zap-preview:[\s\S]*actions\/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7/);
   assert.match(workflow, /playwright-member-auth:\n {4}needs: deploy-preview\n {4}if: needs\.deploy-preview\.result == 'success'/);
   assert.match(workflow, /zaproxy\/action-baseline@de8ad967d3548d44ef623df22cf95c3b0baf8b25 # v0\.15\.0/);
   assert.match(workflow, /docker_name: ghcr\.io\/zaproxy\/zaproxy:2\.17\.0/);

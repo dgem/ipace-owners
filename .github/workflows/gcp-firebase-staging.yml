@@ -249,6 +249,7 @@ jobs:
     permissions:
       contents: read
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: OWASP ZAP baseline scan
         uses: zaproxy/action-baseline@de8ad967d3548d44ef623df22cf95c3b0baf8b25 # v0.15.0
         with:
@@ -304,9 +305,38 @@ jobs:
           E2E_BASE_URL: ${{ needs.deploy-preview.outputs.preview_url }}
           E2E_RESEND_API_KEY: ${{ secrets.E2E_RESEND_API_KEY_STAGING }}
           E2E_RESEND_INBOX: ${{ secrets.E2E_RESEND_INBOX_STAGING }}
-          E2E_STORY_UPLOAD_ENABLED: ${{ vars.PLAYWRIGHT_STORY_E2E_ENABLED }}
-          E2E_STORY_ALLOWED_ORIGIN: ${{ needs.deploy-preview.outputs.preview_url }}
+          E2E_STORY_UPLOAD_ENABLED: false
         run: make test-e2e-auth
+
+  playwright-member-story:
+    needs: [deploy-preview, playwright-member-auth]
+    if: needs.deploy-preview.result == 'success' && needs.playwright-member-auth.result == 'success' && vars.PLAYWRIGHT_STORY_E2E_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    environment: staging
+    timeout-minutes: 10
+    concurrency:
+      group: firebase-staging-deploy
+      cancel-in-progress: false
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install dependencies
+        run: make ci-install
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Verify a member can upload and save a private story draft
+        env:
+          E2E_BASE_URL: ${{ needs.deploy-preview.outputs.preview_url }}
+          E2E_RESEND_API_KEY: ${{ secrets.E2E_RESEND_API_KEY_STAGING }}
+          E2E_RESEND_INBOX: ${{ secrets.E2E_RESEND_INBOX_STAGING }}
+          E2E_STORY_UPLOAD_ENABLED: true
+          E2E_STORY_ALLOWED_ORIGIN: ${{ needs.deploy-preview.outputs.preview_url }}
+        run: make test-e2e-member-story
 
   cleanup-merged-preview:
     if: github.event.action == 'closed' && github.event.pull_request.merged == true && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == github.repository_owner

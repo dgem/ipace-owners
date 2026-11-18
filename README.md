@@ -182,8 +182,8 @@ environment variable `PLAYWRIGHT_AUTH_E2E_ENABLED` is `true` and the
 The auth project deliberately records no trace, screenshot or video, and never prints the magic
 link or inbox address.
 
-To exercise a real staging story video upload after sign-in, set the staging variable
-`PLAYWRIGHT_STORY_E2E_ENABLED` to `true` as well. The test uses the redacted story fixture and substitutes non-personal media fixtures for its local image and video paths. The dedicated staging-only member must have
+To exercise a real staging story video upload after the independent magic-link check has passed, set the staging variable
+`PLAYWRIGHT_STORY_E2E_ENABLED` to `true` as well. CI reports it as **playwright-member-story**; locally use `make test-e2e-member-story`. The test uses the redacted story fixture and substitutes non-personal media fixtures for its local image and video paths. The dedicated staging-only member must have
 a contact name, display name and access to member experiences
 (staging normally grants this to all members). If the test member has no vehicle, the test creates one synthetic staging vehicle. The test reuses one private draft titled
 “Automated staging story upload test”; do not submit or edit it. Each run removes the previous

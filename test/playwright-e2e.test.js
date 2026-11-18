@@ -44,6 +44,7 @@ test('the live magic-link journey is opt-in and does not retain sensitive diagno
   assert.match(spec, /This is true to the best of my knowledge/);
   assert.match(spec, /publication permissions and uploaded video reference/);
   assert.match(spec, /timeout: 180_000/);
+  assert.match(spec, /a registered member can upload and save a private story draft/);
   assert.match(spec, /data-cookie-notice/);
   assert.match(read('scripts/auth-e2e-link.cjs'), /continuation\.origin === expectedOrigin/);
   assert.doesNotMatch(spec, /console\.(?:log|error|warn)/);
@@ -51,4 +52,6 @@ test('the live magic-link journey is opt-in and does not retain sensitive diagno
   assert.match(workflow, /E2E_RESEND_INBOX_STAGING/);
   assert.match(workflow, /E2E_RESEND_API_KEY_STAGING/);
   assert.match(workflow, /run: make test-e2e-auth/);
+  assert.match(workflow, /playwright-member-story:/);
+  assert.match(workflow, /run: make test-e2e-member-story/);
 });

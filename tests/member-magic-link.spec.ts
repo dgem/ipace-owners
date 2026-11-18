@@ -123,10 +123,10 @@ async function verifyStoryUpload(page: Page) {
   await expect(root.locator('[data-story-preview] .story-markdown video')).toHaveCount(1);
   await expect(root.locator('[data-story-preview] .story-markdown img')).toHaveCount(2);
   await root.getByRole('button', { name: 'Close preview' }).click();
-  const saved = page.waitForResponse(response => response.url().endsWith('/api/member/stories') && response.request().method() === 'POST' && Boolean(response.request().postData()?.includes('story-media:')), { timeout: 180_000 });
   await root.locator('[data-save-story]').click();
-  const finalResponse = await saved;
-  if (!finalResponse.ok()) { const body = await finalResponse.json().catch(() => ({})); throw new Error('Final story save failed (' + finalResponse.status() + '): ' + (body.error || 'unknown error')); }
+  // Waiting on the user-facing outcome preserves any upload or validation error in
+  // Playwright's failure output; a request-only wait obscures those errors as a timeout.
+  await expect(root.locator('[data-story-status]')).toHaveText('Draft saved.', { timeout: 180_000 });
   await expect(root.locator('[data-story-form]')).toHaveCount(0, { timeout: 60_000 });
   await expect(root.locator('.story-submission-list li').filter({ has: page.getByText(marker, { exact: true }) })).toHaveCount(1, { timeout: 60_000 });
   const result = await page.evaluate(async ({ title, expectedText }) => {
@@ -160,9 +160,7 @@ test.describe('member magic-link sign-in', () => {
   }
   test.skip(!hasLiveAuthConfiguration, 'Live authentication requires E2E_BASE_URL and the configured Resend test inbox.');
 
-  test('a registered member can open a magic link and see protected account data', async ({ page }) => {
-    test.setTimeout(240_000);
-    page.setDefaultTimeout(15_000);
+  async function signIn(page: Page) {
     await page.goto('/member/account/');
     await expect(page.getByRole('heading', { name: 'Sign in to view your account' })).toBeVisible();
 
@@ -182,9 +180,20 @@ test.describe('member magic-link sign-in', () => {
     await expect.poll(() => page.url()).toBe(expectedAccountURL.href);
     await expect(page.locator('[data-auth-content]')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Account details' })).toBeVisible();
-    if (process.env.E2E_STORY_UPLOAD_ENABLED === 'true') {
-      if (!process.env.E2E_STORY_ALLOWED_ORIGIN || new URL(process.env.E2E_BASE_URL || '').origin !== new URL(process.env.E2E_STORY_ALLOWED_ORIGIN).origin) throw new Error('Story upload requires an explicitly allowed staging origin.');
-      await verifyStoryUpload(page);
-    }
+  }
+
+  test('a registered member can open a magic link and see protected account data', async ({ page }) => {
+    test.setTimeout(120_000);
+    page.setDefaultTimeout(15_000);
+    await signIn(page);
+  });
+
+  test('a registered member can upload and save a private story draft', async ({ page }) => {
+    test.skip(process.env.E2E_STORY_UPLOAD_ENABLED !== 'true', 'Story upload testing is disabled.');
+    test.setTimeout(240_000);
+    page.setDefaultTimeout(15_000);
+    await signIn(page);
+    if (!process.env.E2E_STORY_ALLOWED_ORIGIN || new URL(process.env.E2E_BASE_URL || '').origin !== new URL(process.env.E2E_STORY_ALLOWED_ORIGIN).origin) throw new Error('Story upload requires an explicitly allowed staging origin.');
+    await verifyStoryUpload(page);
   });
 });

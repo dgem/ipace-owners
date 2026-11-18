@@ -271,8 +271,10 @@ site-owned `/images/` paths; Freeform campaigns retain the generic hero.
      request must require the current schema and headline aggregate, causing an outdated
      stored snapshot to regenerate under the Function runtime identity.
   8. When `PLAYWRIGHT_AUTH_E2E_ENABLED` is explicitly enabled, run the secret-backed member
-     magic-link Playwright journey against that exact generated URL after deployment. Do not run it
-     in read-only validation or for forks.
+     magic-link Playwright journey against that exact generated URL after deployment. If
+     `PLAYWRIGHT_STORY_E2E_ENABLED` is also enabled, run the distinct member-story upload/save job
+     after the auth job, so failures identify the journey that failed. Do not run either in
+     read-only validation or for forks.
 - Keep Firebase CLI deployment JSON available for URL extraction and PR diagnostics. If a
   preview deployment fails, CI must print both Firebase CLI stderr and any JSON error payload;
   do not hide the actionable error behind shell redirection.
@@ -589,6 +591,6 @@ reference; its table parts are not used as an input when creating exports.
   that issue Cloud Storage signed URLs. The deployment workflow must not grant
   IAM roles; no private signing key is stored or passed to the Function.
 
-- The optional staging story upload journey uses `PLAYWRIGHT_STORY_E2E_ENABLED` alongside `PLAYWRIGHT_AUTH_E2E_ENABLED` and the same dedicated registered test member. It requires the member's name, display name and feature access; it creates a synthetic test vehicle if the dedicated member has none. It reuses a private draft, verifies a real MP4 upload and signed retrieval, and never retains browser traces. Detached test objects remain in the versioned story bucket and need periodic cleanup.
+- The optional staging story upload journey uses `PLAYWRIGHT_STORY_E2E_ENABLED` alongside `PLAYWRIGHT_AUTH_E2E_ENABLED` and the same dedicated registered test member. It runs as a distinct job after the magic-link check, requires the member's name, display name and feature access, and creates a synthetic test vehicle if the dedicated member has none. It reuses a private draft, verifies a real MP4 upload and signed retrieval, and never retains browser traces. Detached test objects remain in the versioned story bucket and need periodic cleanup.
 
 - Staging mail uses `contact@stage.ipace-owners.org` for both sender and reply-to; the domain is verified for sending only, so replies are not expected to be delivered. Production continues using its own contact address.
