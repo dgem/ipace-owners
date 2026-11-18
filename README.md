@@ -130,9 +130,10 @@ make audit
 Runs the Node audit gate and pinned `govulncheck` analysis for reachable Go vulnerabilities.
 The Node gate warns about the reviewed, upstream-only advisory URLs in
 `security/npm-audit-baseline.json`, and fails on new high or critical findings or a severity
-increase in an accepted finding. GitHub Actions additionally runs CodeQL and dependency review
+increase in an accepted finding. The currently unpatched picomatch advisory GHSA-fc5q-39xc-vjpf is accepted only as a temporary build-tooling exception; it remains a warning until an upstream fix is available. GitHub Actions additionally runs CodeQL and dependency review
 on pull requests and a weekly schedule. Firebase PR previews receive a blocking passive OWASP
-ZAP baseline scan after deployment smoke tests pass. `package.json` may pin narrow transitive
+ZAP baseline scan after deployment smoke tests pass; it runs in parallel with the opt-in live
+member journey. `package.json` may pin narrow transitive
 security overrides when a maintained direct dependency has not yet widened its range to a
 patched release; keep those overrides locked, test the affected CLI/build paths, and remove
 them when an upstream release makes them unnecessary.
@@ -155,8 +156,7 @@ Output is written to `_site/`.
 make test
 ```
 
-For layout, navigation, responsive, or visibility changes, keep `make dev` running in another
-terminal and run `make test-visual`. Inspect the screenshots written to `visual-artifacts/`.
+`make test` includes desktop and mobile visual checks. You can also run `make test-visual` on its own; it builds and serves the site automatically, or uses an existing site when `VISUAL_BASE_URL` is set. Inspect the screenshots written to `visual-artifacts/`.
 
 Playwright adds real browser coverage for the public responsive journeys:
 
@@ -181,6 +181,16 @@ environment variable `PLAYWRIGHT_AUTH_E2E_ENABLED` is `true` and the
 `E2E_RESEND_INBOX_STAGING` and dedicated `E2E_RESEND_API_KEY_STAGING` secrets are configured.
 The auth project deliberately records no trace, screenshot or video, and never prints the magic
 link or inbox address.
+
+To exercise a real staging story video upload after the independent magic-link check has passed, set the staging variable
+`PLAYWRIGHT_STORY_E2E_ENABLED` to `true` as well. CI reports it as **playwright-member-story**; locally use `make test-e2e-member-story`. The test uses the redacted story fixture and substitutes non-personal media fixtures for its local image and video paths. The dedicated staging-only member must have
+a contact name, display name and access to member experiences
+(staging normally grants this to all members). If the test member has no vehicle, the test creates one synthetic staging vehicle. The test reuses one private draft titled
+“Automated staging story upload test”; do not submit or edit it. Each run removes the previous
+media references and uploads small image and video fixtures. It records the website, truthfulness and media-copyright confirmations needed for an administrator to manually test approval and publication, but keeps the story as a private draft and does not submit or publish it. It verifies the example text and media order. Removed objects remain in the private, versioned
+story bucket because the application does not yet delete detached media; arrange periodic
+cleanup of this test account's detached objects. For local runs set `E2E_STORY_UPLOAD_ENABLED=true`
+and `E2E_STORY_ALLOWED_ORIGIN` to the exact staging preview origin along with the auth variables.
 
 Runs the Node test suite for form wiring, auth UI behaviour, deployment configuration, and
 the Go Cloud Function tests. They can also be run separately:
@@ -224,6 +234,7 @@ src/
       member-dashboard.js # Vehicle tabs, SoH graph and service/fault editing
       member-export.js    # Authenticated CSV/Excel account downloads
       member-stories.js   # Member experience editor, evidence links and private-media submission
+      story-renderer.js    # Shared public and editor story rendering
       public-member-stories.js # Published story rendering and consented impact events
       admin-member-stories.js # Admin editorial, AI analysis and publication workflow
       admin-member-search.js # Server-backed member lookup
@@ -982,7 +993,8 @@ the deployment value to enable lookup; without it, manual entry works.
 - `member-dashboard.js` — vehicle tabs, SoH history and service/fault editing
 - `member-export.js` — authenticated CSV-bundle and Excel-report downloads
 - `member-stories.js` — member story drafts, linked evidence, consent and private media uploads
-- `public-member-stories.js` — safe Markdown story rendering and consented impact measurement
+- `story-renderer.js` — shared safe Markdown and media rendering for published stories and editor previews
+- `public-member-stories.js` — published stories and consented impact measurement
 - `admin-member-stories.js` — admin editing, manual AI analysis, approval and publication
 - `admin-member-search.js` — server-backed member search by identity, vehicle and preferences
 - `multistep-form.js` — generic multi-step form (data-attribute driven)
@@ -1154,3 +1166,7 @@ The download prevents duplicate clicks and reports failures or a 60-second timeo
 Member Excel exports use worksheet filters and explicit alternating row fills (not
 structured tables) to avoid Excelize’s GO-2026-6452 shared-string-reader path. Data,
 charts and frozen headers are preserved; the security audit remains enabled.
+
+The mocked story upload browser test runs with `npm run test:e2e:stories` after installing the Playwright Chromium browser. It exercises the editor and upload API handoff without using a member account.
+
+Members can soft-delete an experience after typing DELETE. Deleted experiences are hidden from member lists, exports and public output; administrators can inspect them with the deleted status filter and can soft-delete stories after confirmation.

@@ -130,6 +130,9 @@ func buildMemberCSVBundle(snapshot memberSnapshot, stories ...memberStory) ([]by
 func memberExperienceRows(stories []memberStory) [][]string {
 	rows := [][]string{{"Status", "Editorial title", "Published name", "Experience (Markdown)", "Vehicle", "Model year", "Linked service and JLR records", "Linked SoH readings", "Executive Office contacts", "Website permission", "Third-party permission", "Copyright confirmed", "Truthful confirmed", "Consent version", "Consent recorded", "Member message", "Media count", "Media names", "Created", "Updated", "Published"}}
 	for _, story := range stories {
+		if story.Status == "deleted" {
+			continue
+		}
 		mediaNames := make([]string, 0, len(story.Media))
 		for _, media := range story.Media {
 			mediaNames = append(mediaNames, media.Name)
@@ -333,6 +336,7 @@ func exportBool(value *bool) string {
 }
 
 func buildMemberWorkbook(snapshot memberSnapshot, stories ...memberStory) ([]byte, error) {
+	stories = visibleMemberStories(stories)
 	book := excelize.NewFile()
 	defer book.Close()
 	if err := book.SetSheetName("Sheet1", "Summary"); err != nil {

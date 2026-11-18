@@ -28,6 +28,8 @@ test('member calls to action and surveys have reusable versioned dismissal ident
   assert.match(callout, /data-notification-id="cta:member-experiences:v1"/);
   assert.match(surveys, /survey:open:/);
   assert.match(surveys, /survey:upcoming:/);
+  assert.match(surveys, /survey:none:v1/);
+  assert.doesNotMatch(callout, /What you can do next/);
   assert.match(layout, /member-notifications\.js/);
   assert.match(layout, /member-features\.js/);
 });
@@ -72,6 +74,7 @@ test('member experiences use the membership display name', () => {
 test('member experience editor inserts uploaded images instead of arbitrary links', () => {
   const stories = read('src/assets/js/member-stories.js');
   const publicStories = read('src/assets/js/public-member-stories.js');
+  const renderer = read('src/assets/js/story-renderer.js');
 
   assert.match(stories, /data-insert-story-image/);
   assert.match(stories, /data-insert-story-media/);
@@ -85,11 +88,11 @@ test('member experience editor inserts uploaded images instead of arbitrary link
   assert.match(stories, /story.analysis && story.analysis.sentiment/);
   assert.doesNotMatch(stories, /window\.prompt\('Paste a web link/);
   assert.doesNotMatch(stories, /data-editor-link/);
-  assert.match(publicStories, /story-inline-image/);
+  assert.match(renderer, /story-inline-image/);
   assert.match(publicStories, /pathname.split\('\/'\)/);
   assert.match(publicStories, /member-stories\/'\s*\+\s*encodeURIComponent/);
-  assert.match(publicStories, /<video src=/);
-  assert.match(publicStories, /<blockquote>/);
+  assert.match(renderer, /<video src=/);
+  assert.match(renderer, /<blockquote>/);
 });
 
 test('member story upload errors retain a support correlation reference', () => {

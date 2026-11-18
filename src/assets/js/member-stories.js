@@ -6,7 +6,11 @@
 
   var state = null;
   var selectedFiles = [];
+  var uploadedFiles = new WeakMap();
+  var saving = false;
+  var editorSelection = null;
   var previewURLs = [];
+  var allPreviewURLs = [];
   var editorMedia = [];
   var existingMediaUsage = { images: 0, videos: 0, bytes: 0 };
   var removedMediaIDs = {};
@@ -59,9 +63,11 @@
   }
 
   function clearPreviews() {
-    previewURLs.forEach(function (url) { URL.revokeObjectURL(url); });
+    allPreviewURLs.forEach(function (url) { URL.revokeObjectURL(url); });
+    allPreviewURLs = [];
     previewURLs = [];
     selectedFiles = [];
+    uploadedFiles = new WeakMap();
   }
 
   function inlineMarkdown(value) {
@@ -69,7 +75,7 @@
       .replace(/!\[([^\]]*)\]\(story-media:([a-zA-Z0-9_-]+)\)/g, function (match, alt, id) {
         var item = editorMedia.find(function (media) { return media.id === id && media.status === 'ready' && media.url; });
         if (!item) return alt;
-        if (item.contentType.indexOf('video/') === 0) return '<video src="' + esc(item.url) + '" controls preload="metadata" data-story-media-id="' + esc(item.id) + '"></video>';
+        if (item.contentType.indexOf('video/') === 0) return '<video contenteditable="false" src="' + esc(item.url) + '" controls preload="metadata" data-story-media-id="' + esc(item.id) + '"></video>';
         return '<a class="story-inline-image" href="' + esc(item.url) + '" target="_blank" rel="noopener noreferrer"><img src="' + esc(item.url) + '" alt="' + (alt || esc(item.name)) + '" data-story-media-id="' + esc(item.id) + '"></a>';
       })
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
@@ -143,12 +149,14 @@
 
   function render(editing) {
     clearPreviews();
+    editorSelection = null;
     removedMediaIDs = {};
     if (!state.eligible) {
       root.innerHTML = '<div class="callout callout--info"><h2>Complete your member record first</h2><p>Add your name and display name, then register at least one I-PACE before sharing an experience.</p><div class="cluster"><a class="btn btn--primary" href="/member/account/">Go to My Data</a><a class="btn btn--secondary" href="/member/submit-vehicle-data/">Register a car</a></div></div>';
       return;
     }
 
+    var listOnly = !editing && (state.stories || []).length > 0;
     editing = editing || {};
     editorMedia = (editing.media || []).filter(function (item) { return !removedMediaIDs[item.id]; });
     existingMediaUsage = editorMedia.filter(function (item) { return item.status === 'ready'; }).reduce(function (usage, item) {
@@ -166,8 +174,8 @@
       : '<input name="vehicleId" type="hidden" value="' + esc(selectedVehicle) + '">';
     var existingMedia = editorMedia.filter(function (item) { return item.status === 'ready'; }).map(function (item) {
       var image = item.contentType.indexOf('image/') === 0;
-      var preview = image ? '<img src="' + esc(item.url) + '" alt="">' : '<video src="' + esc(item.url) + '" muted preload="metadata"></video>';
-      return '<figure class="story-media-card"><a href="' + esc(item.url) + '" target="_blank" rel="noopener noreferrer">' + preview + '</a><figcaption><span title="' + esc(item.name) + '">' + esc(item.name) + '</span><div class="cluster cluster--sm"><button class="btn btn--secondary btn--sm" type="button" data-insert-story-media="' + esc(item.id) + '"' + (image ? ' data-insert-story-image="' + esc(item.id) + '"' : '') + '>Insert ' + (image ? 'image' : 'video') + '</button><button class="btn btn--danger btn--sm" type="button" data-remove-existing-media="' + esc(item.id) + '">Remove</button></div></figcaption></figure>';
+      var preview = image ? '<a href="' + esc(item.url) + '" target="_blank" rel="noopener noreferrer"><img src="' + esc(item.url) + '" alt=""></a>' : '<video src="' + esc(item.url) + '" controls preload="metadata"></video>';
+      return '<figure class="story-media-card">' + preview + '<figcaption><span title="' + esc(item.name) + '">' + esc(item.name) + '</span><div class="cluster cluster--sm"><button class="btn btn--secondary btn--sm" type="button" data-insert-story-media="' + esc(item.id) + '"' + (image ? ' data-insert-story-image="' + esc(item.id) + '"' : '') + '>Insert ' + (image ? 'image' : 'video') + '</button><button class="btn btn--secondary btn--sm" type="button" data-move-existing="' + esc(item.id) + '" data-direction="up">Move up</button><button class="btn btn--secondary btn--sm" type="button" data-move-existing="' + esc(item.id) + '" data-direction="down">Move down</button><button class="btn btn--danger btn--sm" type="button" data-remove-existing-media="' + esc(item.id) + '">Remove</button></div></figcaption></figure>';
     }).join('');
     var submissions = (state.stories || []).map(function (story) {
       var editable = story.status === 'draft' || story.status === 'submitted' || story.status === 'editing' || story.status === 'needs-member-clarification';
@@ -177,32 +185,84 @@
       return '<li><div class="story-submission-list__summary"><strong>' + esc(story.title) + '</strong><span class="badge">' + esc(statusLabel(story.status)) + '</span></div>' + published + message + '<div class="cluster">' +
         sentiment +
         (editable ? '<button class="btn btn--secondary btn--sm" type="button" data-edit-story="' + esc(story.id) + '">Edit</button>' : '') +
-        (story.status !== 'draft' && story.status !== 'withdrawal-requested' ? '<button class="btn btn--secondary btn--sm" type="button" data-withdraw-story="' + esc(story.id) + '">Withdraw permission</button>' : '') + '</div></li>';
+        (story.status !== 'draft' && story.status !== 'withdrawal-requested' ? '<button class="btn btn--secondary btn--sm" type="button" data-withdraw-story="' + esc(story.id) + '">Withdraw permission</button>' : '') + '<button class="btn btn--danger btn--sm" type="button" data-delete-story="' + esc(story.id) + '">Delete</button></div><form data-confirm-story-delete="' + esc(story.id) + '" hidden><p>Delete this experience? It will be removed from the website and retained securely for recovery.</p><label>Type DELETE to confirm <input name="confirmation" autocomplete="off" required></label><button class="btn btn--danger btn--sm" type="submit">Confirm deletion</button><button class="btn btn--secondary btn--sm" type="button" data-cancel-story-delete>Cancel</button><p role="status" data-delete-status></p></form></li>';
     }).join('');
 
-    root.innerHTML = '<section class="story-guidance"><div><h2>Share your experience</h2><p>Tell us what happened, how it affected you and what you want to happen next.</p></div><a href="/member/account/">My Data</a></section>' +
+    if (listOnly) {
+      root.innerHTML = '<section class="story-guidance"><div><h2>Your experiences</h2><p>Review your stories or share another experience.</p></div><button class="btn btn--primary" type="button" data-new-story>Write a new experience</button></section><section class="dashboard-panel story-submissions"><h2 class="visually-hidden">Your experiences</h2><ul class="story-submission-list">' + submissions + '</ul></section>';
+      root.querySelector('[data-new-story]').addEventListener('click', function () { render({}); root.querySelector('[data-story-editor]').focus(); });
+      bindStoryList();
+      return;
+    }
+
+    root.innerHTML = ((state.stories || []).length ? '<button class="btn btn--secondary btn--sm story-editor-back" type="button" data-cancel-edit>← Back to experiences</button>' : '') + '<section class="story-guidance"><div><h2>' + (editing.id ? 'Edit your experience' : 'Share your experience') + '</h2><p>Tell us what happened, how it affected you and what you want to happen next.</p></div><a href="/member/account/">My Data</a></section>' +
       '<form class="member-form-panel story-form" data-story-form data-story-id="' + esc(editing.id || '') + '">' +
       '<div class="form-group"><label id="story-body-label">Your experience</label><div class="story-editor" data-story-editor-shell><div class="story-editor__toolbar" role="toolbar" aria-label="Text formatting"><button type="button" data-editor-command="bold" aria-label="Bold"><strong>B</strong><span class="visually-hidden">Bold</span></button><button type="button" data-editor-command="italic" aria-label="Italic"><em>I</em><span class="visually-hidden">Italic</span></button><button type="button" data-editor-command="insertUnorderedList" aria-label="Bulleted list"><span aria-hidden="true">☷</span><span class="visually-hidden">Bulleted list</span></button><button type="button" data-editor-command="insertOrderedList" aria-label="Numbered list"><span aria-hidden="true">☷</span><span class="visually-hidden">Numbered list</span></button><button type="button" data-editor-command="formatBlock" data-editor-value="blockquote" aria-label="Blockquote"><span aria-hidden="true">❝</span><span class="visually-hidden">Blockquote</span></button></div><div class="story-editor__surface" data-story-editor contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="story-body-label" data-placeholder="What happened? How did it affect you? What response did you receive?">' + markdownToEditorHTML(editing.bodyMarkdown || '') + '</div><div class="story-editor__footer"><span>Bold, italics, lists, quotes and your uploaded media</span><span data-story-character-count>0 / 20,000</span></div></div></div>' +
-      '<div class="form-group"><label>Photos and short videos <span class="form-hint">(optional)</span></label><div class="story-media-picker" data-story-dropzone><label class="story-media-picker__button" for="story-media">Choose photos or videos<span>Use your photo library, camera roll or files</span></label><input class="visually-hidden" id="story-media" name="media" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime,video/webm" multiple><p>Up to 5 photos and 2 videos; 500 MB total. You can select several at once.</p><p class="form-hint">On Mac Photos, use <strong>File → Export → Export 1 Photo</strong> and choose JPEG or PNG. HEIC files need exporting first.</p></div>' + (existingMedia ? '<p class="form-hint">Uploaded media can be inserted into your experience. Select a thumbnail to open the full version.</p><div class="story-media-previews story-existing-media">' + existingMedia + '</div>' : '') + '<div class="story-media-previews" data-story-media-previews></div><p class="form-hint" data-story-media-status role="status"></p></div>' +
+      '<div class="form-group"><label>Photos and short videos <span class="form-hint">(optional)</span></label><div class="story-media-picker" data-story-dropzone><label class="story-media-picker__button" for="story-media">Choose photos or videos<span>Use your photo library, camera roll or files</span></label><input class="visually-hidden" id="story-media" name="media" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime,video/webm" multiple><p>Up to 5 photos and 2 videos; 500 MB total. Select files here and use Insert to place them in your experience.</p><p class="form-hint">On Mac Photos, use <strong>File → Export → Export 1 Photo</strong> and choose JPEG or PNG. HEIC files need exporting first.</p></div>' + (existingMedia ? '<p class="form-hint">Uploaded media can be inserted into your experience. Select a photo to open the full version or play a video here.</p><div class="story-media-previews story-existing-media">' + existingMedia + '</div>' : '') + '<div class="story-media-previews" data-story-media-previews></div><p class="form-hint" data-story-media-status role="status"></p></div>' +
       '<div class="story-publication-settings"><p class="form-hint">Published as <strong>' + esc(state.displayName) + '</strong>. <a href="/member/account/">Change your display name in My Data</a>. Your contact details remain private.</p><fieldset><legend>Permissions</legend><label class="check-label"><input name="websiteConsent" type="checkbox" required' + checked(consent.website) + '> Publish this experience and selected media on this website.</label><label class="check-label"><input name="thirdPartyConsent" type="checkbox"' + checked(consent.thirdParty) + '> It may also be used in social media, press and publisher materials.</label><label class="check-label"><input name="copyrightConfirmed" type="checkbox"' + checked(consent.copyright) + '> I own, or have permission to supply, uploaded media.</label><label class="check-label"><input name="truthfulConfirmed" type="checkbox" required' + checked(consent.truthful) + '> This is true to the best of my knowledge.</label></fieldset></div>' +
       '<div class="story-vehicle-choice">' + vehicleControl + '</div>' +
       '<details class="story-evidence-picker"' + ((evidence.serviceEventIds || []).length || (evidence.sohReadingIds || []).length ? ' open' : '') + '><summary>Connect records from My Data <span>optional</span></summary><p>Linked records help turn individual experiences into evidence. <a href="/member/dashboard/">Add or check your records</a>.</p><div data-story-evidence><p class="form-hint">' + (selectedVehicle ? 'Loading records…' : 'Choose a car to see its records.') + '</p></div></details>' +
-      '<div class="cluster story-form__actions"><button class="btn btn--primary" type="submit">Submit for review</button><button class="btn btn--secondary" type="button" data-save-story>Save draft</button>' + (editing.id ? '<button class="btn btn--secondary" type="button" data-cancel-edit>Cancel</button>' : '') + '</div><p data-story-status role="status" aria-live="polite"></p></form>' +
-      (submissions ? '<section class="dashboard-panel story-submissions"><h2>Your experiences</h2><ul class="story-submission-list">' + submissions + '</ul></section>' : '');
+      '<div class="cluster story-form__actions"><button class="btn btn--secondary" type="button" data-preview-story aria-expanded="false">Preview story</button><button class="btn btn--primary" type="submit">Submit for review</button><button class="btn btn--secondary" type="button" data-save-story>Save draft</button>' + '</div><p data-story-status role="status" aria-live="polite"></p><section class="story-preview" data-story-preview hidden aria-label="Story preview"></section></form>';
 
     bindEditor();
     bindMedia();
+    root.querySelector('[data-preview-story]').addEventListener('click', function () {
+      var button = this, preview = root.querySelector('[data-story-preview]');
+      if (!preview.hidden) { preview.hidden = true; button.setAttribute('aria-expanded', 'false'); button.textContent = 'Preview story'; preview.querySelectorAll('video').forEach(function (video) { video.pause(); }); return; }
+      var clone = root.querySelector('[data-story-editor]').cloneNode(true);
+      var media = editorMedia.filter(function (item) { return item.url && !removedMediaIDs[item.id]; }).slice();
+      selectedFiles.forEach(function (file, index) {
+        media.push({ id: 'pending-' + index, name: file.name, contentType: file.type, url: previewURLs[index] });
+      });
+      clone.querySelectorAll('[data-story-pending-index]').forEach(function (node) {
+        var index = Number(node.getAttribute('data-story-pending-index')), file = selectedFiles[index];
+        if (!file) return;
+        node.setAttribute('data-story-media-id', 'pending-' + index);
+      });
+      var markdown = Array.from(clone.childNodes).map(editorNodeToMarkdown).join('').replace(/\n{3,}/g, '\n\n').trim();
+      preview.innerHTML = '<p class="form-hint">Preview of your current edits · changes are not saved</p><article class="member-story"><p class="eyebrow">Owners’ story</p><h2>' + esc(editing.title || 'Your experience') + '</h2><p class="lede">By ' + esc(state.displayName) + '</p><div class="story-markdown">' + window.ipaceStoryRenderer.markdown(markdown, media) + '</div><section class="story-media-gallery" aria-label="Attached media">' + window.ipaceStoryRenderer.mediaGallery(media) + '</section></article>';
+      preview.hidden = false; button.setAttribute('aria-expanded', 'true'); button.textContent = 'Close preview';
+    });
+
     var vehicleSelect = root.querySelector('[name="vehicleId"]');
     if (vehicleSelect && vehicleSelect.tagName === 'SELECT') vehicleSelect.addEventListener('change', function () { renderEvidence(vehicleSelect.value, [], []); });
     if (selectedVehicle) renderEvidence(selectedVehicle, evidence.serviceEventIds || [], evidence.sohReadingIds || []);
     root.querySelector('[data-story-form]').addEventListener('submit', function (event) { event.preventDefault(); save(true); });
     root.querySelector('[data-save-story]').addEventListener('click', function () { save(false); });
     var cancel = root.querySelector('[data-cancel-edit]');
-    if (cancel) cancel.addEventListener('click', function () { render(); });
+    var initialData = JSON.stringify(payload(root.querySelector('[data-story-form]'), false));
+    if (cancel) cancel.addEventListener('click', function () {
+      var changed = selectedFiles.length || JSON.stringify(payload(root.querySelector('[data-story-form]'), false)) !== initialData;
+      if (changed && !window.confirm('Discard your unsaved changes and return to your experiences?')) return;
+      render();
+      var newButton = root.querySelector('[data-new-story]');
+      if (newButton) newButton.focus();
+    });
+  }
+
+  function bindStoryList() {
     root.querySelectorAll('[data-edit-story]').forEach(function (button) {
       button.addEventListener('click', function () {
         var story = (state.stories || []).find(function (item) { return item.id === button.dataset.editStory; });
-        if (story) { render(story); root.querySelector('[data-story-editor]').focus(); window.scrollTo({ top: root.offsetTop - 24, behavior: 'smooth' }); }
+        if (story) { render(story); root.querySelector('[data-story-editor]').focus(); window.scrollTo({ top: root.offsetTop - 24, behavior: 'auto' }); }
+      });
+    });
+    root.querySelectorAll('[data-delete-story]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        var panel = button.closest('li').querySelector('[data-confirm-story-delete]');
+        panel.hidden = false;
+        panel.querySelector('input').focus();
+      });
+    });
+    root.querySelectorAll('[data-confirm-story-delete]').forEach(function (form) {
+      form.querySelector('[data-cancel-story-delete]').addEventListener('click', function () { form.hidden = true; form.closest('li').querySelector('[data-delete-story]').focus(); });
+      form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        var status = form.querySelector('[data-delete-status]');
+        var button = form.querySelector('[type="submit"]');
+        if (form.querySelector('[name="confirmation"]').value !== 'DELETE') { status.textContent = 'Type DELETE to confirm.'; return; }
+        button.disabled = true;
+        api('/api/member/stories', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: form.dataset.confirmStoryDelete, confirmation: 'DELETE' }) }).then(load).catch(function (error) { button.disabled = false; status.textContent = displayError(error); });
       });
     });
     root.querySelectorAll('[data-withdraw-story]').forEach(function (button) {
@@ -228,6 +288,7 @@
     });
     root.querySelectorAll('[data-remove-existing-media]').forEach(function (button) {
       button.addEventListener('click', function () {
+        editor.querySelectorAll('[data-story-media-id="' + button.dataset.removeExistingMedia + '"]').forEach(function (node) { node.remove(); });
         removedMediaIDs[button.dataset.removeExistingMedia] = true;
         editorMedia = editorMedia.filter(function (item) { return item.id !== button.dataset.removeExistingMedia; });
         var card = button.closest('.story-media-card');
@@ -240,15 +301,44 @@
       button.addEventListener('click', function () {
         var item = editorMedia.find(function (media) { return media.id === button.dataset.insertStoryMedia; });
         if (!item || !item.url) return;
-        editor.focus();
+        restoreEditorSelection(editor);
         var html = item.contentType.indexOf('video/') === 0
-          ? '<p><video src="' + esc(item.url) + '" controls preload="metadata" data-story-media-id="' + esc(item.id) + '"></video></p>'
+          ? '<p><video contenteditable="false" src="' + esc(item.url) + '" controls preload="metadata" data-story-media-id="' + esc(item.id) + '"></video></p>'
           : '<p><a class="story-inline-image" href="' + esc(item.url) + '" target="_blank" rel="noopener noreferrer"><img src="' + esc(item.url) + '" alt="' + esc(item.name) + '" data-story-media-id="' + esc(item.id) + '"></a></p>';
         document.execCommand('insertHTML', false, html);
         updateCount();
       });
     });
+    root.querySelectorAll('[data-move-existing]').forEach(function (button) {
+      button.addEventListener('click', function () { moveMedia('[data-story-media-id="' + button.dataset.moveExisting + '"]', button.dataset.direction); });
+    });
     updateCount();
+  }
+
+  function moveMedia(selector, direction) {
+    var editor = root.querySelector('[data-story-editor]');
+    var node = editor.querySelector(selector);
+    if (!node) { root.querySelector('[data-story-media-status]').textContent = 'Insert the media into your experience first.'; return; }
+    while (node.parentElement && node.parentElement !== editor) node = node.parentElement;
+    var neighbour = direction === 'up' ? node.previousElementSibling : node.nextElementSibling;
+    if (neighbour) {
+      if (direction === 'up') editor.insertBefore(node, neighbour);
+      else editor.insertBefore(neighbour, node);
+      root.querySelector('[data-story-media-status]').textContent = 'Media moved ' + direction + '.';
+    } else root.querySelector('[data-story-media-status]').textContent = 'Media is already at the ' + (direction === 'up' ? 'start' : 'end') + '.';
+  }
+
+  function restoreEditorSelection(editor) {
+    editor.focus();
+    var selection = window.getSelection();
+    var range = editorSelection;
+    if (!range || !editor.contains(range.commonAncestorContainer)) {
+      range = document.createRange();
+      range.selectNodeContents(editor);
+      range.collapse(false);
+    }
+    selection.removeAllRanges();
+    selection.addRange(range);
   }
 
   function bindMedia() {
@@ -301,29 +391,47 @@
   }
 
   function renderMediaPreviews() {
-    previewURLs.forEach(function (url) { URL.revokeObjectURL(url); });
     previewURLs = [];
     var previews = root.querySelector('[data-story-media-previews]');
     previews.innerHTML = selectedFiles.map(function (file, index) {
       var url = URL.createObjectURL(file);
       previewURLs.push(url);
+      allPreviewURLs.push(url);
       var image = file.type.indexOf('image/') === 0;
-      var preview = image ? '<img src="' + esc(url) + '" alt="">' : '<video src="' + esc(url) + '" muted preload="metadata"></video>';
-      return '<figure>' + preview + '<figcaption><span title="' + esc(file.name) + '">' + esc(file.name) + '</span><button type="button" data-insert-pending-media="' + index + '">Insert ' + (image ? 'image' : 'video') + '</button><button type="button" data-remove-media="' + index + '" aria-label="Remove ' + esc(file.name) + '">Remove</button></figcaption></figure>';
+      var preview = image ? '<img src="' + esc(url) + '" alt="">' : '<video src="' + esc(url) + '" controls preload="metadata"></video>';
+      return '<figure>' + preview + '<figcaption><span title="' + esc(file.name) + '">' + esc(file.name) + '</span><button class="btn btn--secondary btn--sm" type="button" data-insert-pending-media="' + index + '">Insert ' + (image ? 'image' : 'video') + '</button><button class="btn btn--secondary btn--sm" type="button" data-move-pending="' + index + '" data-direction="up">Move up</button><button class="btn btn--secondary btn--sm" type="button" data-move-pending="' + index + '" data-direction="down">Move down</button><button class="btn btn--danger btn--sm" type="button" data-remove-media="' + index + '" aria-label="Remove ' + esc(file.name) + '">Remove</button></figcaption></figure>';
     }).join('');
     previews.querySelectorAll('[data-remove-media]').forEach(function (button) {
-      button.addEventListener('click', function () { selectedFiles.splice(Number(button.dataset.removeMedia), 1); renderMediaPreviews(); root.querySelector('[data-story-media-status]').textContent = selectedFiles.length ? selectedFiles.length + ' selected.' : ''; });
+      button.addEventListener('click', function () {
+        var index = Number(button.dataset.removeMedia);
+        var file = selectedFiles[index];
+        var uploaded = uploadedFiles.get(file);
+        if (uploaded) editorMedia = editorMedia.filter(function (item) { return item.id !== uploaded.id; });
+        root.querySelectorAll('[data-story-pending-index]').forEach(function (node) {
+          var current = Number(node.dataset.storyPendingIndex);
+          if (current === index) node.remove();
+          else if (current > index) node.dataset.storyPendingIndex = current - 1;
+        });
+        if (uploaded) root.querySelectorAll('[data-story-media-id="' + uploaded.id + '"]').forEach(function (node) { node.remove(); });
+        selectedFiles.splice(index, 1);
+        renderMediaPreviews();
+        root.querySelector('[data-story-media-status]').textContent = selectedFiles.length ? selectedFiles.length + ' selected.' : '';
+      });
+    });
+    previews.querySelectorAll('[data-move-pending]').forEach(function (button) {
+      button.addEventListener('click', function () { moveMedia('[data-story-pending-index="' + button.dataset.movePending + '"]', button.dataset.direction); });
     });
     previews.querySelectorAll('[data-insert-pending-media]').forEach(function (button) {
+      button.addEventListener('mousedown', function (event) { event.preventDefault(); });
       button.addEventListener('click', function () {
         var index = Number(button.dataset.insertPendingMedia);
         var file = selectedFiles[index];
         var editor = root.querySelector('[data-story-editor]');
         if (!file || !editor) return;
-        editor.focus();
+        restoreEditorSelection(editor);
         var url = previewURLs[index];
         var html = file.type.indexOf('video/') === 0
-          ? '<p><video src="' + esc(url) + '" controls preload="metadata" data-story-pending-index="' + index + '"></video></p>'
+          ? '<p><video contenteditable="false" src="' + esc(url) + '" controls preload="metadata" data-story-pending-index="' + index + '"></video></p>'
           : '<p><a class="story-inline-image" href="' + esc(url) + '" target="_blank" rel="noopener noreferrer"><img src="' + esc(url) + '" alt="' + esc(file.name) + '" data-story-pending-index="' + index + '"></a></p>';
         document.execCommand('insertHTML', false, html);
         root.querySelector('[data-story-character-count]').textContent = editorMarkdown().length.toLocaleString('en-GB') + ' / 20,000';
@@ -373,6 +481,7 @@
   function save(submit) {
     var form = root.querySelector('[data-story-form]');
     var status = root.querySelector('[data-story-status]');
+    if (saving) return;
     var body = editorMarkdown();
     if (!body || body.length > 20000 || (submit && body.length < 80)) {
       status.textContent = submit && body.length < 80 ? 'Please add a little more detail before submitting.' : 'Your experience must be between 1 and 20,000 characters.';
@@ -382,18 +491,36 @@
     if (submit && !form.reportValidity()) return;
     var data = payload(form, false);
     var files = selectedFiles.slice();
+    saving = true;
+    form.querySelectorAll('button, input[type="file"]').forEach(function (control) { control.disabled = true; });
     status.textContent = 'Saving…';
     api('/api/member/stories', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }).then(function (result) {
-      return files.reduce(function (chain, file, index) { return chain.then(function () { status.textContent = 'Uploading ' + file.name + '…'; return upload(result.story.id, file).then(function (media) { attachUploadedMedia(index, media); }); }); }, Promise.resolve()).then(function () {
+      form.dataset.storyId = result.story.id;
+      return files.reduce(function (chain, file, index) { return chain.then(function () {
+        if (uploadedFiles.has(file)) return;
+        status.textContent = 'Uploading ' + file.name + '…';
+        return upload(result.story.id, file).then(function (media) {
+          uploadedFiles.set(file, media);
+          editorMedia.push({ id: media.id, status: 'ready', name: file.name, contentType: file.type, size: file.size });
+          attachUploadedMedia(index, media);
+        });
+      }); }, Promise.resolve()).then(function () {
         if (!files.length && !submit) return result;
+        data = payload(form, submit);
         data.id = result.story.id;
-        data.bodyMarkdown = editorMarkdown();
-        data.submit = submit;
         return api('/api/member/stories', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
       });
-    }).then(function () { status.textContent = submit ? 'Submitted for review.' : 'Draft saved.'; return load(); }).catch(function (error) { status.textContent = displayError(error); });
+    }).then(function () { status.textContent = submit ? 'Submitted for review.' : 'Draft saved.'; return load(); }).catch(function (error) { status.textContent = displayError(error); }).finally(function () {
+      saving = false;
+      form.querySelectorAll('button, input[type="file"]').forEach(function (control) { control.disabled = false; });
+    });
   }
 
+  document.addEventListener('selectionchange', function () {
+    var editor = root.querySelector('[data-story-editor]');
+    var selection = window.getSelection();
+    if (editor && selection && selection.rangeCount && editor.contains(selection.anchorNode) && editor.contains(selection.focusNode)) editorSelection = selection.getRangeAt(0).cloneRange();
+  });
   document.addEventListener('member:data', load);
   document.addEventListener('identity:login', load);
   if (window.ipaceIdentityUser) load();
