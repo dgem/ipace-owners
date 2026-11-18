@@ -92,6 +92,8 @@ async function verifyStoryUpload(page: Page) {
   await page.goto('/member/stories/');
   // Keep Playwright's target stable when moving between distant media controls.
   await page.addStyleTag({ content: 'html { scroll-behavior: auto !important; }' });
+  // Cookie consent is covered separately; it must not obscure the media controls in this journey.
+  await page.locator('[data-cookie-notice]').evaluateAll((notices) => notices.forEach((notice) => { (notice as HTMLElement).hidden = true; }));
   const root = page.locator('[data-member-stories]');
   await expect(root.locator('[data-story-form], [data-new-story]'), 'The staging member needs story access, a name, display name and registered vehicle.').toBeVisible();
   const matches = root.locator('.story-submission-list li').filter({ has: page.getByText(marker, { exact: true }) });
