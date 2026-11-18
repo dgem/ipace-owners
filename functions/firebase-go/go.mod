@@ -7,7 +7,7 @@ require (
 	cloud.google.com/go/storage v1.69.0
 	firebase.google.com/go/v4 v4.22.0
 	github.com/GoogleCloudPlatform/functions-framework-go v1.9.2
-	github.com/xuri/excelize/v2 v2.11.1-0.20261029001137-c5fd73bde8f6
+	github.com/xuri/excelize/v2 v2.11.1
 	golang.org/x/oauth2 v0.37.0
 	google.golang.org/api v0.301.0
 	google.golang.org/grpc v1.84.0
