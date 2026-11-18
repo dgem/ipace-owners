@@ -29,12 +29,18 @@
     }).join('');
   }
 
-  function mediaGallery(items) {
-    return (items || []).filter(function (media) { return media.url; }).map(function (media) {
+  function mediaGallery(items, bodyMarkdown) {
+    var referenced = {};
+    var referencePattern = /!\[[^\]]*\]\(story-media:([a-zA-Z0-9_-]+)\)/g;
+    var match;
+    while ((match = referencePattern.exec(String(bodyMarkdown || '')))) referenced[match[1]] = true;
+    var cards = (items || []).filter(function (media) { return media.url && !referenced[media.id]; }).map(function (media) {
       var image = media.contentType.indexOf('image/') === 0;
       var preview = image ? '<img src="' + esc(media.url) + '" alt="' + esc(media.name) + '" loading="lazy">' : '<video src="' + esc(media.url) + '" controls preload="metadata"></video>';
       return '<figure class="story-media-card">' + (image ? '<a href="' + esc(media.url) + '" target="_blank" rel="noopener noreferrer">' + preview + '</a>' : preview) + '<figcaption>' + esc(media.name) + '</figcaption></figure>';
     }).join('');
+    if (!cards) return '';
+    return '<details class="story-media-gallery"><summary>Additional attached media</summary><div class="story-media-gallery__items">' + cards + '</div></details>';
   }
 
   window.ipaceStoryRenderer = { markdown: markdown, mediaGallery: mediaGallery };

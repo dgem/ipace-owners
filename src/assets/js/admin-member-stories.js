@@ -94,7 +94,8 @@
     var preview = panel.querySelector('[data-story-preview]');
     previewButton.onclick = function () {
       if (!preview.hidden) { preview.hidden = true; previewButton.setAttribute('aria-expanded', 'false'); previewButton.textContent = 'Preview story'; preview.querySelectorAll('video').forEach(function (video) { video.pause(); }); return; }
-      preview.innerHTML = '<p class="form-hint">Preview of your current edits · changes are not saved</p><article class="member-story"><p class="eyebrow">Owners’ story</p><h2>' + esc(panel.querySelector('[name=title]').value) + '</h2><p class="lede">By ' + esc(panel.querySelector('[name=displayName]').value) + '</p><div class="story-markdown">' + window.ipaceStoryRenderer.markdown(panel.querySelector('[name=bodyMarkdown]').value, story.media) + '</div><section class="story-media-gallery" aria-label="Attached media">' + window.ipaceStoryRenderer.mediaGallery(story.media) + '</section></article>';
+      var bodyMarkdown = panel.querySelector('[name=bodyMarkdown]').value;
+      preview.innerHTML = '<p class="form-hint">Preview of your current edits · changes are not saved</p><article class="member-story"><p class="eyebrow">Owners’ story</p><h2>' + esc(panel.querySelector('[name=title]').value) + '</h2><p class="lede">By ' + esc(panel.querySelector('[name=displayName]').value) + '</p><div class="story-markdown">' + window.ipaceStoryRenderer.markdown(bodyMarkdown, story.media) + '</div>' + window.ipaceStoryRenderer.mediaGallery(story.media, bodyMarkdown) + '</article>';
       preview.hidden = false; previewButton.setAttribute('aria-expanded', 'true'); previewButton.textContent = 'Close preview';
     };
     panel.querySelectorAll('[data-copy-media-markdown]').forEach(function (button) { button.onclick = function () {
