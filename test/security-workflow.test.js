@@ -50,8 +50,8 @@ test('content security policy permits only local browser media previews via blob
 test('preview deployment runs a blocking passive OWASP ZAP scan in parallel with live authentication', function () {
   var workflow = read('.github/workflows/gcp-firebase-staging.yml');
 
-  assert.match(workflow, /zap-preview:\n    needs: deploy-preview\n    if: needs\.deploy-preview\.result == 'success'/);
-  assert.match(workflow, /playwright-member-auth:\n    needs: deploy-preview\n    if: needs\.deploy-preview\.result == 'success'/);
+  assert.match(workflow, /zap-preview:\n {4}needs: deploy-preview\n {4}if: needs\.deploy-preview\.result == 'success'/);
+  assert.match(workflow, /playwright-member-auth:\n {4}needs: deploy-preview\n {4}if: needs\.deploy-preview\.result == 'success'/);
   assert.match(workflow, /zaproxy\/action-baseline@de8ad967d3548d44ef623df22cf95c3b0baf8b25 # v0\.15\.0/);
   assert.match(workflow, /docker_name: ghcr\.io\/zaproxy\/zaproxy:2\.17\.0/);
   assert.match(workflow, /rules_file_name: \.zap\/rules\.tsv/);
