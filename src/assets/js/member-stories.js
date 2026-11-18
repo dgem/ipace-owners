@@ -220,7 +220,7 @@
         node.setAttribute('data-story-media-id', 'pending-' + index);
       });
       var markdown = Array.from(clone.childNodes).map(editorNodeToMarkdown).join('').replace(/\n{3,}/g, '\n\n').trim();
-      preview.innerHTML = '<p class="form-hint">Preview of your current edits · changes are not saved</p><article class="member-story"><p class="eyebrow">Owners’ story</p><h2>' + esc(editing.title || 'Your experience') + '</h2><p class="lede">By ' + esc(state.displayName) + '</p><div class="story-markdown">' + window.ipaceStoryRenderer.markdown(markdown, media) + '</div><section class="story-media-gallery" aria-label="Attached media">' + window.ipaceStoryRenderer.mediaGallery(media) + '</section></article>';
+      preview.innerHTML = '<p class="form-hint">Preview of your current edits · changes are not saved</p><article class="member-story"><p class="eyebrow">Owners’ story</p><h2>' + esc(editing.title || 'Your experience') + '</h2><p class="lede">By ' + esc(state.displayName) + '</p><div class="story-markdown">' + window.ipaceStoryRenderer.markdown(markdown, media) + '</div>' + window.ipaceStoryRenderer.mediaGallery(media, markdown) + '</article>';
       preview.hidden = false; button.setAttribute('aria-expanded', 'true'); button.textContent = 'Close preview';
     });
 
