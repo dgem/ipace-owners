@@ -117,8 +117,10 @@ server-side by Go Cloud Functions that validate Firebase ID tokens.
   the member snapshot, including contact permission, anonymised aggregate-analysis consent,
   participation acknowledgement, relationship, and volunteering interests where present.
   Members can update whether they are willing to help, whether they have a story they would be
-  happy to discuss with the press, and a bounded description of relevant expertise or experience
-  through the authenticated preference update flow. They can also set a non-unique display name;
+  happy to discuss with the press, whether they want to test new member features before wider
+  release, and a bounded description of relevant expertise or experience through the authenticated
+  preference update flow. The feature-testing choice is an interest register, not an automatic
+  entitlement to unreleased features. They can also set a non-unique display name;
   default it to the first part of their saved legal name when available and use it to attribute
   member experiences without exposing the legal name. These values remain
   private member data and are available to authorised group administration only.

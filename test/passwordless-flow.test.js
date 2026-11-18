@@ -135,6 +135,9 @@ test('account preferences render from saved member data', function () {
   assert.match(memberAuth, /Participation acknowledgement/);
   assert.match(memberAuth, /Display name/);
   assert.match(memberAuth, /name="displayName"/);
+  assert.match(memberAuth, /Feature testing/);
+  assert.match(memberAuth, /name="betaTester"/);
+  assert.match(memberAuth, /payload\.betaTester = form\.elements\.betaTester\.checked/);
   assert.match(memberAuth, /does not need to be unique/);
   assert.match(memberAuth, /data-preferences-form/);
   assert.match(memberAuth, /name="country" required autocomplete="country"/);
