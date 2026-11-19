@@ -228,3 +228,20 @@ test('multi-step forms do not scroll on every step unless explicitly opted in', 
   assert.doesNotMatch(read('src/join.njk'), /data-scroll-on-step-change/);
   assert.doesNotMatch(read('src/member/submit-vehicle-data.njk'), /data-scroll-on-step-change/);
 });
+
+test('admins can approve opted-in feature testers through a separate role queue', function () {
+  var main = read('functions/firebase-go/main.go');
+  var handler = read('functions/firebase-go/admin_feature_testers.go');
+  var page = read('src/admin/feature-testers.njk');
+  var script = read('src/assets/js/admin-feature-testers.js');
+  var dashboard = read('src/admin/index.njk');
+
+  assert.match(main, /\/api\/admin\/feature-testers/);
+  assert.match(handler, /requireAdmin/);
+  assert.match(handler, /SetCustomUserClaims/);
+  assert.match(handler, /member-experiences-preview/);
+  assert.match(page, /Members who opted in to feature testing/);
+  assert.match(script, /\/api\/admin\/members\?q=feature/);
+  assert.match(script, /Approve member-experiences preview/);
+  assert.match(dashboard, /Manage feature testers/);
+});

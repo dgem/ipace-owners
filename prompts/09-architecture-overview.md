@@ -145,6 +145,7 @@ header.
 | `GET /api/member-data` | `MemberData` | Member | Return the signed-in user's generated snapshot. |
 | `GET /api/member-export?format=csv\|xlsx` | `MemberExport` | Member | Download account records and member experiences as five CSV datasets in a ZIP or a six-sheet Excel workbook. |
 | `GET /api/member/features` | `MemberFeatures` | Member | Resolve server-enforced member feature access from release and Firebase-role rules. |
+| `POST /api/admin/feature-testers` | `AdminFeatureTesterApproval` | Admin | Grant or revoke the preview role for a member who opted in to feature testing, preserving unrelated Firebase claims. |
 | `GET/POST /api/member/notifications` | `MemberNotifications` | Member | List versioned notices dismissed by this member or persist one dismissal. |
 | `GET/POST/DELETE /api/member/stories` | `MemberStories` | Member | Check eligibility, list owned evidence, save or submit an experience, or soft-delete an owned experience with typed confirmation. |
 | `POST /api/member/story-upload` | `MemberStoryUpload` | Member | Reserve bounded private media and return an expiring signed upload URL. |
