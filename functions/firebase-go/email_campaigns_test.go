@@ -197,6 +197,25 @@ func TestWhatNextEmailIncludesApprovedHeroAndSurvey(t *testing.T) {
 	}
 }
 
+func TestMemberProgressEmailIncludesApprovedHeroAndUpdate(t *testing.T) {
+	template, err := embeddedCampaignTemplate(memberProgressNovemberTemplateID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if template.Audience != "verified-members" || template.HeroImage != "/images/member-progress-2026-email.png" || strings.TrimSpace(template.HeroImageAlt) == "" {
+		t.Fatalf("member-progress campaign must include its verified audience and email-safe hero: %#v", template)
+	}
+	for _, expected := range []string{"/updates/member-progress-november-2026/", "legal preparation", "Member stories", "/member/dashboard/"} {
+		if !strings.Contains(template.Markdown, expected) {
+			t.Fatalf("member-progress campaign is missing %q", expected)
+		}
+	}
+	html := marketingMessageHTML(template.Markdown, memberProgressNovemberTemplateID, "https://ipace-owners.org/api/email-unsubscribe?campaign=preview&token=preview-token")
+	if !strings.Contains(html, "https://ipace-owners.org/images/member-progress-2026-email.png") || !strings.Contains(html, template.HeroImageAlt) {
+		t.Fatal("member-progress email preview did not embed the approved hero")
+	}
+}
+
 // Opt-in local fixture for browser visual QA; it uses no member data and never sends mail.
 func TestRenderOctoberResponseEmailFixture(t *testing.T) {
 	target := os.Getenv("OCTOBER_RESPONSE_EMAIL_PREVIEW")
@@ -264,6 +283,7 @@ func TestAllCampaignsUseMarkdownSources(t *testing.T) {
 		"post-meeting-next-steps":                postMeetingNextStepsTemplateID,
 		"jlr-response-october-2026":              jlrResponseOctoberTemplateID,
 		"what-next-october-2026":                 whatNextOctoberTemplateID,
+		"member-progress-november-2026":          memberProgressNovemberTemplateID,
 		"survey-september-2026":                  "survey-september-2026",
 		"survey-closing-reminder-september-2026": "survey-closing-reminder-september-2026",
 	} {

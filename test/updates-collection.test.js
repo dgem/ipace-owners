@@ -8,13 +8,16 @@ test('built Updates listing includes Nunjucks and Markdown posts newest first', 
   const listing = pages.find((page) => page.url === '/updates/');
   assert.ok(listing, 'Updates listing must be generated');
   const meeting = 'href="/updates/after-our-first-jlr-meeting/"';
+  const progress = 'href="/updates/member-progress-november-2026/"';
   const results = 'href="/updates/september-survey-results/"';
   const reminder = 'href="/updates/survey-final-straight/"';
   const olderPost = 'href="/updates/member-data-export/"';
+  assert.ok(listing.content.includes(progress), 'member progress update must be discoverable');
   assert.ok(listing.content.includes(meeting), 'post-meeting update must be discoverable');
   assert.ok(listing.content.includes(results), 'final survey results must be discoverable');
   assert.ok(listing.content.includes(reminder), 'Nunjucks survey update must be discoverable');
   assert.ok(listing.content.includes(olderPost), 'Markdown updates must remain listed');
+  assert.ok(listing.content.indexOf(progress) < listing.content.indexOf(meeting), 'member progress update must be newest');
   assert.ok(listing.content.indexOf(meeting) < listing.content.indexOf(results), 'post-meeting update must be newest');
   assert.ok(listing.content.indexOf(results) < listing.content.indexOf(reminder), 'final results must be the newest survey update');
   assert.ok(listing.content.indexOf(reminder) < listing.content.indexOf(olderPost), 'newer update must appear first');

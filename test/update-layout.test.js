@@ -74,6 +74,19 @@ test('the final survey update publishes selections, comments and the winner', fu
   assert.equal(resultsUpdate.split('social-share__link').length - 1, 4);
 });
 
+test('the member progress update is careful about legal preparation and technical uncertainty', function () {
+  var update = fs.readFileSync(
+    path.join(updatesDirectory, 'member-progress-november-2026.njk'),
+    'utf8'
+  );
+
+  assert.match(update, /Prepare for possible legal escalation/);
+  assert.match(update, /not authority to represent anyone or start proceedings/);
+  assert.match(update, /H572 may be announced shortly, but JLR has not published its scope, timing or remedy/);
+  assert.match(update, /do not know whether it will form part of H572 or apply to I-PACE batteries/);
+  assert.match(update, /heroImage: \/images\/member-progress-2026-hero\.png/);
+});
+
 test('the post-meeting update records the asks and protects member data', function () {
   var meetingUpdate = fs.readFileSync(
     path.join(updatesDirectory, 'after-our-first-jlr-meeting.md'),
