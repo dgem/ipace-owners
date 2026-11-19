@@ -181,6 +181,8 @@ func Api(w http.ResponseWriter, r *http.Request) {
 		SubmitSurveyResponse(w, r)
 	case "/api/survey-participation":
 		SurveyParticipation(w, r)
+	case "/api/public-survey-results":
+		PublicSurveyResults(w, r)
 	case "/api/public-stats":
 		PublicStats(w, r)
 	case "/api/admin/service-export":
