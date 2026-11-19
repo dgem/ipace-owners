@@ -187,8 +187,8 @@ agreed, without claiming a fixed price. Mention LG Energy Solution’s Re.Pulse 
 as an editorial observation with the official link; do not suggest it is connected to H572 or
 I-PACE. Explain that member stories are in final testing, require separate publication permission,
 and that secure document imports are next. Thank Olé (Northern Europe) and Kevin (Southern
-Europe). Use the accessible hero `/images/member-progress-2026-hero.png`: a realistic UK-road
-aerial view of six anonymous EVs, in pairs already travelling away on three routes. The matching
+Europe). Use the accessible hero `/images/member-progress-2026-hero.png`: a realistic,
+off-centre suburban UK roundabout aerial with anonymous EVs taking unevenly used exits. The matching
 prepared, verified-member email `member-progress-november-2026` uses
 `/images/member-progress-2026-email.png`, links the update, My Data and service/fault evidence,
 and must remain source controlled.

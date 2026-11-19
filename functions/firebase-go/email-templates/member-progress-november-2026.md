@@ -4,7 +4,7 @@ name: November 2026 — member progress update
 subject: What members asked us to do next
 audience: verified-members
 heroImage: /images/member-progress-2026-email.png
-heroImageAlt: "A convoy of electric SUVs travelling away in the left-hand lane of a British rural road."
+heroImageAlt: "An off-centre aerial view of electric SUVs taking different exits from a suburban British roundabout."
 ---
 Hi {{firstName}},
 
