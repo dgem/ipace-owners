@@ -288,10 +288,10 @@ func TestMarketingMessageTemplatesIncludePreparedMemberUpdates(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(templates) != 9 {
-		t.Fatalf("template count = %d, want 9", len(templates))
+	if len(templates) != 10 {
+		t.Fatalf("template count = %d, want 10", len(templates))
 	}
-	var survey, closing, nextSteps, response, whatNext marketingMessageTemplate
+	var survey, closing, nextSteps, response, whatNext, memberProgress marketingMessageTemplate
 	for _, template := range templates {
 		if template.ID == jlrResponseOctoberTemplateID {
 			response = template
@@ -308,6 +308,9 @@ func TestMarketingMessageTemplatesIncludePreparedMemberUpdates(t *testing.T) {
 		if template.ID == whatNextOctoberTemplateID {
 			whatNext = template
 		}
+		if template.ID == memberProgressNovemberTemplateID {
+			memberProgress = template
+		}
 	}
 	if survey.ID == "" {
 		t.Fatal("September survey template is missing")
@@ -317,6 +320,9 @@ func TestMarketingMessageTemplatesIncludePreparedMemberUpdates(t *testing.T) {
 	}
 	if whatNext.ID == "" || !strings.Contains(whatNext.Markdown, "jlr-letter-and-what-next") || whatNext.HeroImage != "/images/where-next-october-2026-email.png" {
 		t.Fatalf("what-next template is incomplete: %+v", whatNext)
+	}
+	if memberProgress.ID == "" || !strings.Contains(memberProgress.Markdown, "member-progress-november-2026") || memberProgress.HeroImage != "/images/member-progress-2026-email.png" {
+		t.Fatalf("member-progress template is incomplete: %+v", memberProgress)
 	}
 	if nextSteps.ID == "" || !strings.Contains(nextSteps.Markdown, "1299 members") || nextSteps.HeroImage != "/images/jlr-next-steps-2026-email.jpg" {
 		t.Fatalf("post-meeting next-steps template is incomplete: %+v", nextSteps)

@@ -74,6 +74,29 @@ test('the final survey update publishes selections, comments and the winner', fu
   assert.equal(resultsUpdate.split('social-share__link').length - 1, 4);
 });
 
+test('the member progress update is careful about legal preparation and technical uncertainty', function () {
+  var update = fs.readFileSync(
+    path.join(updatesDirectory, 'member-progress-november-2026.njk'),
+    'utf8'
+  );
+
+  assert.match(update, /Prepare for possible legal escalation/);
+  assert.match(update, /not authority to represent anyone or start proceedings/);
+  assert.match(update, /H572 is still unannounced/);
+  assert.match(update, /do not know whether it will form part of H572 or apply to I-PACE batteries/);
+  assert.match(update, /heroImage: \/images\/member-progress-2026-hero-v2\.png/);
+  assert.match(update, /\/updates\/october-2026-member-priorities\//);
+});
+
+test('the October priorities survey has a separate public aggregate-results page', function () {
+  var results = fs.readFileSync(path.join(updatesDirectory, 'october-2026-member-priorities.njk'), 'utf8');
+  var handler = fs.readFileSync(path.join(root, 'functions/firebase-go/public_survey_results.go'), 'utf8');
+  assert.match(results, /data-public-survey-results="survey_what_next_october_2026"/);
+  assert.match(results, /No individual responses or free text are published/);
+  assert.match(handler, /nextStepsSurveyID/);
+  assert.match(handler, /publicSurveyOptions/);
+});
+
 test('the post-meeting update records the asks and protects member data', function () {
   var meetingUpdate = fs.readFileSync(
     path.join(updatesDirectory, 'after-our-first-jlr-meeting.md'),
