@@ -84,7 +84,7 @@ test('the member progress update is careful about legal preparation and technica
   assert.match(update, /not authority to represent anyone or start proceedings/);
   assert.match(update, /H572 is still unannounced/);
   assert.match(update, /do not know whether it will form part of H572 or apply to I-PACE batteries/);
-  assert.match(update, /heroImage: \/images\/member-progress-2026-hero\.png/);
+  assert.match(update, /heroImage: \/images\/member-progress-2026-hero-v2\.png/);
   assert.match(update, /\/updates\/october-2026-member-priorities\//);
 });
 
