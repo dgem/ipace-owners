@@ -19,6 +19,7 @@ type adminMemberSearchResult struct {
 	Expertise      string   `json:"expertise"`
 	WillingToHelp  bool     `json:"willingToHelp"`
 	PressStory     bool     `json:"pressStory"`
+	BetaTester     bool     `json:"betaTester"`
 	StoryCount     int      `json:"storyCount"`
 	Matched        []string `json:"matched"`
 }
@@ -63,7 +64,7 @@ func AdminMemberSearch(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 		if results[key] == nil {
-			results[key] = &adminMemberSearchResult{IdentityUserID: join.IdentityUserID, Name: join.Contact.Name, DisplayName: join.Membership.DisplayName, Email: join.Contact.Email, Country: join.Contact.Country, Expertise: join.Membership.Expertise, WillingToHelp: join.Membership.WillingToHelp, PressStory: join.Membership.PressStory, Registrations: []string{}, Matched: []string{}}
+			results[key] = &adminMemberSearchResult{IdentityUserID: join.IdentityUserID, Name: join.Contact.Name, DisplayName: join.Membership.DisplayName, Email: join.Contact.Email, Country: join.Contact.Country, Expertise: join.Membership.Expertise, WillingToHelp: join.Membership.WillingToHelp, PressStory: join.Membership.PressStory, BetaTester: join.Membership.BetaTester, Registrations: []string{}, Matched: []string{}}
 		}
 	}
 	profileIter := db.Collection("memberProfiles").Documents(r.Context())
@@ -107,6 +108,9 @@ func AdminMemberSearch(w http.ResponseWriter, r *http.Request) {
 		}
 		if result.PressStory {
 			fields["press"] = "press story media"
+		}
+		if result.BetaTester {
+			fields["feature testing"] = "beta tester early access"
 		}
 		for label, value := range fields {
 			if strings.Contains(strings.ToLower(value), query) {
