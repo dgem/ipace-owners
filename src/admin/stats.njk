@@ -1,0 +1,23 @@
+---
+layout: base.njk
+title: Admin statistics
+description: "Private campaign, member, vehicle and service statistics."
+noindex: true
+permalink: /admin/stats/
+adminNavigation: true
+adminBreadcrumb: Statistics
+eleventyExcludeFromCollections: true
+date: Last Modified
+---
+
+{% from "partials/auth-login-gate.njk" import authLoginGate %}
+
+<div class="page-header page-header--compact"><div class="container"><h1 class="page-header__title">Statistics</h1></div></div>
+<div class="section"><div class="container" data-admin-container>
+  {{ authLoginGate("admin-stats-email", "Sign in required", "Enter your admin email address to view private statistics.", "admin", false) }}
+  <div class="auth-gate" data-admin-only-gate hidden><div class="auth-gate__icon" aria-hidden="true">⛔</div><h2 class="auth-gate__title">Access restricted</h2><p class="auth-gate__body">This page is for group administrators only.</p></div>
+  <div class="auth-content" data-admin-content hidden><div class="stack admin-dashboard-stack">
+    <p><a class="btn btn--secondary" href="/admin/">← Back to dashboard</a></p>
+    {% include "partials/admin-statistics.njk" %}
+  </div></div>
+</div></div>

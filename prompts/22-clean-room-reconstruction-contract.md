@@ -262,8 +262,10 @@ readable summaries. Their Edit and Delete actions open one full-width, well-spac
 the vehicle list rather than inserting a form into a narrow vehicle-card column. Deletion requires
 the typed confirmation documented in the API contract.
 
-`/admin/` is the claim-gated landing dashboard. It links to every implemented admin tool and
-describes planned areas without linking to unimplemented routes.
+`/admin/` is the claim-gated, tools-first landing dashboard. It links to every implemented admin
+tool, including Feature testers and Statistics. Campaign, growth, vehicle and service metrics are
+shown at the separate claim-gated `/admin/stats/` workspace rather than below the tool tiles; no
+stale planned-work section appears on the dashboard.
 
 ## API contract inventory
 

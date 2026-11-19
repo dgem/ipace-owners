@@ -142,8 +142,8 @@ preview becomes visible; an opt-in alone never grants feature access.
 
 The shared desktop and mobile navigation exposes exactly one `Admin` action, linking to
 `/admin/`, after Firebase claims indicate admin access. The admin dashboard is the directory for
-Review Queue, Facebook Assistant, Email Campaigns and Instagram Campaigns; do not duplicate those
-tool links in the shared header or mobile drawer. Each admin page keeps the dashboard reachable
+Review Queue, Facebook Assistant, Email Campaigns, Instagram Campaigns, feature-tester approval and
+the dedicated statistics workspace; do not duplicate those tool links in the shared header or mobile drawer. Each admin page keeps the dashboard reachable
 through its compact breadcrumb. Campaign APIs independently verify the ID token
 and admin role server-side.
 

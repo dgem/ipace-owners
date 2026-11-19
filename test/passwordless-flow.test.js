@@ -235,6 +235,7 @@ test('admins can approve opted-in feature testers through a separate role queue'
   var page = read('src/admin/feature-testers.njk');
   var script = read('src/assets/js/admin-feature-testers.js');
   var dashboard = read('src/admin/index.njk');
+  var statistics = read('src/admin/stats.njk');
 
   assert.match(main, /\/api\/admin\/feature-testers/);
   assert.match(handler, /requireAdmin/);
@@ -244,4 +245,8 @@ test('admins can approve opted-in feature testers through a separate role queue'
   assert.match(script, /\/api\/admin\/members\?q=feature/);
   assert.match(script, /Approve member-experiences preview/);
   assert.match(dashboard, /Manage feature testers/);
+  assert.match(dashboard, /href="\/admin\/stats\/">View statistics/);
+  assert.doesNotMatch(dashboard, /admin-dashboard-planned/);
+  assert.match(statistics, /partials\/admin-statistics\.njk/);
+  assert.match(statistics, /data-admin-container/);
 });
