@@ -177,8 +177,8 @@ Publish `/updates/member-progress-november-2026/` dated 18 November 2026 as a co
 member update. It must explain that the most strongly supported direction in the later “what
 next” survey was preparation for a possible legal route, while distinguishing that preference
 from authority to represent members, start proceedings or incur costs. Do not invent or publish
-vote totals until the live aggregate is deliberately released. Use a qualitative member-priority
-panel rather than a numerical chart in the meantime. State: “We are coordinating legal
+vote totals until the live aggregate is deliberately released. Link the published aggregate
+results separately. State: “We are coordinating legal
 preparation in the UK, with local leads joining as other regions come on line.” Attribute the
 H572 timing reports to members, say JLR has not published scope, timing or remedy, and do not
 present reports about H571 sensitivity as fleet evidence. Describe diagnosis and additional
@@ -186,11 +186,12 @@ testing as potentially running from hundreds towards the low thousands before a 
 agreed, without claiming a fixed price. Mention LG Energy Solution’s Re.Pulse announcement only
 as an editorial observation with the official link; do not suggest it is connected to H572 or
 I-PACE. Explain that member stories are in final testing, require separate publication permission,
-and that secure document imports are next. Thank Olé (Northern Europe) and Kevin (Southern
-Europe). Use the accessible hero `/images/member-progress-2026-hero.png`: a realistic,
-off-centre suburban UK roundabout aerial with anonymous EVs taking unevenly used exits. The matching
+and that secure document imports are next. Thank Ole in Norway (Northern Europe) and Kevin in
+France (Southern Europe), acknowledging Kevin's longstanding I-PACE Forums presence. Use the
+accessible hero `/images/member-progress-motorway-v5.png`: a right-hand-drive motorway view of a
+convoy and signs for Europe and beyond, Press and socials, and Legal and class action. The matching
 prepared, verified-member email `member-progress-november-2026` uses
-`/images/member-progress-2026-email.png`, links the update, My Data and service/fault evidence,
+the same hero, links the update, My Data and service/fault evidence,
 and must remain source controlled.
 
 Update article heroes use a shallow 16:7 editorial crop on larger screens so long headlines do

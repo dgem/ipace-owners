@@ -1,10 +1,10 @@
 ---
 id: member-progress-november-2026
 name: November 2026 — member progress update
-subject: What members asked us to do next
+subject: Onward, steered by October’s survey
 audience: verified-members
-heroImage: /images/member-progress-2026-email.png
-heroImageAlt: "An off-centre aerial view of electric SUVs taking different exits from a suburban British roundabout."
+heroImage: /images/member-progress-motorway-v5.png
+heroImageAlt: "View from an I-PACE of a convoy approaching motorway signs for Europe and beyond, Press and socials, and Legal and class action."
 ---
 Hi {{firstName}},
 
@@ -18,7 +18,7 @@ The clearest member priority was preparing for a possible legal route, while con
 
 - We are coordinating legal preparation in the UK, with local leads joining as other regions come on line.
 - Member stories, with photos or video and separate publication permission, are in final testing.
-- Olé and Kevin are helping coordinate Northern and Southern Europe.
+- Ole in Norway and Kevin in France are leading our Northern and Southern Europe efforts. Kevin also brings the respect earned through his longstanding presence on [I-PACE Forums](https://www.ipaceforums.co.uk/f).
 - Secure document imports are being developed to make evidence collection easier.
 
 JLR's case-by-case response still leaves an important question unanswered for many owners: what happens if a high-voltage module fails outside the eight-year warranty? Diagnosis and additional testing can run from hundreds towards the low thousands of pounds before a replacement is agreed.
