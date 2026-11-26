@@ -205,7 +205,7 @@ func TestMemberProgressEmailIncludesApprovedHeroAndUpdate(t *testing.T) {
 	if template.Audience != "verified-members" || template.HeroImage != "/images/member-progress-motorway-v7.png" || strings.TrimSpace(template.HeroImageAlt) == "" {
 		t.Fatalf("member-progress campaign must include its verified audience and email-safe hero: %#v", template)
 	}
-	for _, expected := range []string{"/updates/member-progress-november-2026/", "legal preparation", "Member stories", "/member/dashboard/"} {
+	for _, expected := range []string{"/updates/member-progress-november-2026/", "/updates/october-2026-member-priorities/", "legal preparation", "Member stories", "/member/dashboard/", "/member/account/", "Executive Office"} {
 		if !strings.Contains(template.Markdown, expected) {
 			t.Fatalf("member-progress campaign is missing %q", expected)
 		}

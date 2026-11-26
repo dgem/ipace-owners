@@ -190,7 +190,8 @@ France (Southern Europe), acknowledging Kevin's longstanding I-PACE Forums prese
 accessible hero `/images/member-progress-motorway-v7.png`: a right-hand-drive motorway view of a
 convoy and signs for Europe and beyond, Press and socials, and Legal and class action prep.. The matching
 prepared, verified-member email `member-progress-november-2026` uses
-the same hero, links the update, My Data and service/fault evidence,
+the same hero, links the update and October results, and offers My Data, feature-test interest,
+vehicle registration and service/fault or Executive Office experience actions,
 and must remain source controlled.
 
 Update article heroes use a shallow 16:7 editorial crop on larger screens so long headlines do
