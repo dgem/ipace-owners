@@ -183,9 +183,8 @@ preparation in the UK, with local leads joining as other regions come on line.�
 H572 timing reports to members, say JLR has not published scope, timing or remedy, and do not
 present reports about H571 sensitivity as fleet evidence. Describe diagnosis and additional
 testing as potentially running from hundreds towards the low thousands before a replacement is
-agreed, without claiming a fixed price. Mention LG Energy Solution’s Re.Pulse announcement only
-as an editorial observation with the official link; do not suggest it is connected to H572 or
-I-PACE. Explain that member stories are in final testing, require separate publication permission,
+agreed, without claiming a fixed price. If LG Energy Solution’s Re.Pulse announcement is mentioned,
+do not suggest an unconfirmed connection to H572 or I-PACE. Explain that member stories are in final testing, require separate publication permission,
 and that secure document imports are next. Thank Ole in Norway (Northern Europe) and Kevin in
 France (Southern Europe), acknowledging Kevin's longstanding I-PACE Forums presence. Use the
 accessible hero `/images/member-progress-motorway-v7.png`: a right-hand-drive motorway view of a

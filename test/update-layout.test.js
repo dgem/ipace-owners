@@ -83,7 +83,6 @@ test('the member progress update is careful about legal preparation and technica
   assert.match(update, /prepare for a possible legal route/);
   assert.match(update, /representation, proceedings or costs would need separate, explicit authority/);
   assert.match(update, /H572 is still unannounced/);
-  assert.match(update, /do not know whether it will form part of H572 or apply to I-PACE batteries/);
   assert.match(update, /heroImage: \/images\/member-progress-motorway-v7\.png/);
   assert.match(update, /\/updates\/october-2026-member-priorities\//);
 });
