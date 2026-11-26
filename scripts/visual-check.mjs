@@ -1445,8 +1445,8 @@ try {
   await checkOctoberResponseEmail();
   await checkPublicContentPage('/updates/', 'Updates', { width: 1440, height: 1000 }, 'updates-list-desktop.png');
   await checkPublicContentPage('/updates/', 'Updates', { width: 390, height: 844 }, 'updates-list-mobile.png');
-  await checkPublicContentPage('/updates/member-progress-november-2026/', 'What members asked us to do next', { width: 1440, height: 1000 }, 'member-progress-update-desktop.png');
-  await checkPublicContentPage('/updates/member-progress-november-2026/', 'What members asked us to do next', { width: 390, height: 844 }, 'member-progress-update-mobile.png');
+  await checkPublicContentPage('/updates/member-progress-november-2026/', "Onward, steered by October's survey results and more members helping drive", { width: 1440, height: 1000 }, 'member-progress-update-desktop.png');
+  await checkPublicContentPage('/updates/member-progress-november-2026/', "Onward, steered by October's survey results and more members helping drive", { width: 390, height: 844 }, 'member-progress-update-mobile.png');
   await checkPublicContentPage('/updates/september-survey-results/', 'Thank you: the final member survey results', { width: 1440, height: 1000 }, 'survey-results-update-desktop.png');
   await checkPublicContentPage('/updates/september-survey-results/', 'Thank you: the final member survey results', { width: 390, height: 844 }, 'survey-results-update-mobile.png');
   await checkPublicContentPage('/updates/after-our-first-jlr-meeting/', 'Our first meeting with JLR: substance must follow', { width: 1440, height: 1000 }, 'post-jlr-meeting-update-desktop.png');
