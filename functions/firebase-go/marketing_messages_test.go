@@ -321,7 +321,7 @@ func TestMarketingMessageTemplatesIncludePreparedMemberUpdates(t *testing.T) {
 	if whatNext.ID == "" || !strings.Contains(whatNext.Markdown, "jlr-letter-and-what-next") || whatNext.HeroImage != "/images/where-next-october-2026-email.png" {
 		t.Fatalf("what-next template is incomplete: %+v", whatNext)
 	}
-	if memberProgress.ID == "" || !strings.Contains(memberProgress.Markdown, "member-progress-november-2026") || memberProgress.HeroImage != "/images/member-progress-motorway-v5.png" {
+	if memberProgress.ID == "" || !strings.Contains(memberProgress.Markdown, "member-progress-november-2026") || memberProgress.HeroImage != "/images/member-progress-motorway-v7.png" {
 		t.Fatalf("member-progress template is incomplete: %+v", memberProgress)
 	}
 	if nextSteps.ID == "" || !strings.Contains(nextSteps.Markdown, "1299 members") || nextSteps.HeroImage != "/images/jlr-next-steps-2026-email.jpg" {

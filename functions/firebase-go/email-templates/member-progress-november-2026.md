@@ -3,8 +3,8 @@ id: member-progress-november-2026
 name: November 2026 — member progress update
 subject: Onward, steered by October’s survey
 audience: verified-members
-heroImage: /images/member-progress-motorway-v5.png
-heroImageAlt: "View from an I-PACE of a convoy approaching motorway signs for Europe and beyond, Press and socials, and Legal and class action."
+heroImage: /images/member-progress-motorway-v7.png
+heroImageAlt: "View from an I-PACE of a convoy approaching motorway signs for Europe and beyond, Press and socials, and Legal and class action prep.."
 ---
 Hi {{firstName}},
 

@@ -188,8 +188,8 @@ as an editorial observation with the official link; do not suggest it is connect
 I-PACE. Explain that member stories are in final testing, require separate publication permission,
 and that secure document imports are next. Thank Ole in Norway (Northern Europe) and Kevin in
 France (Southern Europe), acknowledging Kevin's longstanding I-PACE Forums presence. Use the
-accessible hero `/images/member-progress-motorway-v5.png`: a right-hand-drive motorway view of a
-convoy and signs for Europe and beyond, Press and socials, and Legal and class action. The matching
+accessible hero `/images/member-progress-motorway-v7.png`: a right-hand-drive motorway view of a
+convoy and signs for Europe and beyond, Press and socials, and Legal and class action prep.. The matching
 prepared, verified-member email `member-progress-november-2026` uses
 the same hero, links the update, My Data and service/fault evidence,
 and must remain source controlled.
