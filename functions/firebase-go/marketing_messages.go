@@ -26,13 +26,14 @@ import (
 )
 
 const (
-	marketingMessageMarkdownMax     = 20000
-	marketingMessageBatchSize       = 100
-	marketingMessageKind            = "marketing-message"
-	postMeetingNextStepsTemplateID  = "post-meeting-next-steps"
-	jlrResponseOctoberTemplateID    = "jlr-response-october-2026"
-	whatNextOctoberTemplateID       = "what-next-october-2026"
-	communicationsConsentCollection = "communicationsConsents"
+	marketingMessageMarkdownMax      = 20000
+	marketingMessageBatchSize        = 100
+	marketingMessageKind             = "marketing-message"
+	postMeetingNextStepsTemplateID   = "post-meeting-next-steps"
+	jlrResponseOctoberTemplateID     = "jlr-response-october-2026"
+	whatNextOctoberTemplateID        = "what-next-october-2026"
+	memberProgressNovemberTemplateID = "member-progress-november-2026"
+	communicationsConsentCollection  = "communicationsConsents"
 )
 
 var marketingMessagePlaceholderRegexp = regexp.MustCompile(`\{\{[^}]+\}\}`)
@@ -303,7 +304,7 @@ func previewMarketingMessage(ctx context.Context, input marketingMessageRequest)
 	notice := fmt.Sprintf("All registered members are included unless they have opted out of group communications. Emails are sent in resumable batches of %d; previewing never sends email.", marketingMessageBatchSize)
 	if isSurveyReminderTemplate(input.TemplateID) {
 		notice = "Only members eligible for group communications who have not submitted this survey are included. Responses and opt-outs are checked again before each batch; changes require fresh confirmation. Previewing never sends email."
-	} else if input.TemplateID == postMeetingNextStepsTemplateID || input.TemplateID == jlrResponseOctoberTemplateID {
+	} else if input.TemplateID == postMeetingNextStepsTemplateID || input.TemplateID == jlrResponseOctoberTemplateID || input.TemplateID == memberProgressNovemberTemplateID {
 		notice = fmt.Sprintf("Only communication-consented members with a verified account are included. Verification and opt-outs are checked again before each batch. Emails are sent in resumable batches of %d; previewing never sends email.", marketingMessageBatchSize)
 	}
 	return marketingMessagePreview{CampaignID: marketingMessageCampaignID(input), Eligible: len(audience), Subject: strings.TrimSpace(input.Subject), HTML: marketingMessageHTML(markdown, input.TemplateID, previewUnsubscribeURL), Text: marketingMessageText(markdown, previewUnsubscribeURL), Confirmation: fmt.Sprintf("SEND %d", len(audience)), Notice: notice}, nil
@@ -1105,8 +1106,8 @@ func marketingMessageTemplates(ctx context.Context) ([]marketingMessageTemplate,
 	if err != nil {
 		return nil, err
 	}
-	result := make([]marketingMessageTemplate, 0, 9)
-	for _, id := range []string{whatNextOctoberTemplateID, jlrResponseOctoberTemplateID, postMeetingNextStepsTemplateID, surveyClosingReminderTemplateID, surveyReminderTemplateID, "survey-september-2026", "jlr-contact", "find-members", "reach-1000"} {
+	result := make([]marketingMessageTemplate, 0, 10)
+	for _, id := range []string{memberProgressNovemberTemplateID, whatNextOctoberTemplateID, jlrResponseOctoberTemplateID, postMeetingNextStepsTemplateID, surveyClosingReminderTemplateID, surveyReminderTemplateID, "survey-september-2026", "jlr-contact", "find-members", "reach-1000"} {
 		template, ok := marketingMessageTemplateSource(id)
 		if !ok {
 			continue
@@ -1122,15 +1123,16 @@ func marketingMessageTemplates(ctx context.Context) ([]marketingMessageTemplate,
 
 func marketingMessageTemplateSource(id string) (marketingMessageTemplate, bool) {
 	file := map[string]string{
-		whatNextOctoberTemplateID:       whatNextOctoberTemplateID,
-		jlrResponseOctoberTemplateID:    jlrResponseOctoberTemplateID,
-		postMeetingNextStepsTemplateID:  postMeetingNextStepsTemplateID,
-		surveyClosingReminderTemplateID: surveyClosingReminderTemplateID,
-		surveyReminderTemplateID:        surveyReminderTemplateID,
-		"survey-september-2026":         "survey-september-2026",
-		"jlr-contact":                   "jlr-contact",
-		"find-members":                  "member-referral",
-		"reach-1000":                    "all-members-drive",
+		memberProgressNovemberTemplateID: memberProgressNovemberTemplateID,
+		whatNextOctoberTemplateID:        whatNextOctoberTemplateID,
+		jlrResponseOctoberTemplateID:     jlrResponseOctoberTemplateID,
+		postMeetingNextStepsTemplateID:   postMeetingNextStepsTemplateID,
+		surveyClosingReminderTemplateID:  surveyClosingReminderTemplateID,
+		surveyReminderTemplateID:         surveyReminderTemplateID,
+		"survey-september-2026":          "survey-september-2026",
+		"jlr-contact":                    "jlr-contact",
+		"find-members":                   "member-referral",
+		"reach-1000":                     "all-members-drive",
 	}[id]
 	if file == "" {
 		return marketingMessageTemplate{}, false
@@ -1140,15 +1142,16 @@ func marketingMessageTemplateSource(id string) (marketingMessageTemplate, bool) 
 		return marketingMessageTemplate{}, false
 	}
 	description := map[string]string{
-		whatNextOctoberTemplateID:       "Publish JLR's letter and invite verified members to set the group's next priority in the what-next survey.",
-		jlrResponseOctoberTemplateID:    "Summarise JLR's 2 October letter, the Executive Office contact route, and the outstanding group-wide request.",
-		postMeetingNextStepsTemplateID:  "Explain the post-meeting request and 2 October deadline to verified, communication-consented members.",
-		surveyClosingReminderTemplateID: "Closing-day reminder only for members who have not answered the September survey. Live counts and targeting are rechecked before every batch.",
-		surveyReminderTemplateID:        "Final-week reminder only for members who have not answered the September survey. Live counts are calculated at preview; targeting is rechecked before every batch.",
-		"survey-september-2026":         "Invite every consented member to the September preferred-outcomes survey.",
-		"jlr-contact":                   "Share the JLR meeting update and ask members to strengthen the evidence.",
-		"find-members":                  "Ask members to help another I-PACE owner find the group.",
-		"reach-1000":                    "Ask all consented members to share the group and grow the evidence base.",
+		memberProgressNovemberTemplateID: "Summarise the member survey direction and the group's legal preparation, stories, evidence and regional coordination work.",
+		whatNextOctoberTemplateID:        "Publish JLR's letter and invite verified members to set the group's next priority in the what-next survey.",
+		jlrResponseOctoberTemplateID:     "Summarise JLR's 2 October letter, the Executive Office contact route, and the outstanding group-wide request.",
+		postMeetingNextStepsTemplateID:   "Explain the post-meeting request and 2 October deadline to verified, communication-consented members.",
+		surveyClosingReminderTemplateID:  "Closing-day reminder only for members who have not answered the September survey. Live counts and targeting are rechecked before every batch.",
+		surveyReminderTemplateID:         "Final-week reminder only for members who have not answered the September survey. Live counts are calculated at preview; targeting is rechecked before every batch.",
+		"survey-september-2026":          "Invite every consented member to the September preferred-outcomes survey.",
+		"jlr-contact":                    "Share the JLR meeting update and ask members to strengthen the evidence.",
+		"find-members":                   "Ask members to help another I-PACE owner find the group.",
+		"reach-1000":                     "Ask all consented members to share the group and grow the evidence base.",
 	}[id]
 	return marketingMessageTemplate{ID: id, Name: source.Name, Description: description, Subject: source.Subject, Markdown: source.Markdown, HeroImage: source.HeroImage, HeroImageAlt: source.HeroImageAlt}, true
 }

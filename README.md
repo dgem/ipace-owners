@@ -1004,6 +1004,7 @@ the deployment value to enable lookup; without it, manual entry works.
 - `admin-campaign-summary.js` — admin-only email, Instagram, and Facebook capability summary
 - `marketing-messages.js` — admin-only marketing-message preview, masked delivery ledger, and exact-confirmation resumable batch delivery
 - `public-stats.js` — homepage and evidence-dashboard aggregate rendering
+- `public-survey-results.js` — public October survey aggregate chart
 - `survey-participation.js` — public September survey participation count, retaining the dated fallback when unavailable
 
 The `survey-reminder-september-2026` and `survey-closing-reminder-september-2026` marketing templates target consented members who have
