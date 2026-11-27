@@ -1183,11 +1183,12 @@
           if (window.ipaceRefreshMemberNotifications) window.ipaceRefreshMemberNotifications();
           return;
         }
-        setNotification("");
+        setNotification("survey:none:v1");
         root.innerHTML =
           '<div class="survey-dashboard-callout__content"><div class="survey-dashboard-callout__message"><h2 class="survey-dashboard-callout__title">Member surveys</h2><p>There are no open surveys right now.</p></div></div><div class="survey-dashboard-callout__actions">' +
           historyAction +
           "</div>";
+        if (window.ipaceRefreshMemberNotifications) window.ipaceRefreshMemberNotifications();
         return;
       }
       setNotification("survey:open:" + active.map(function (result) { return result.survey.id; }).sort().join("."));

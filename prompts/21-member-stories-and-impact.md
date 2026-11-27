@@ -10,9 +10,13 @@ Build a member-experience workflow that turns personal experience into consented
 - Require a linked vehicle, but show a vehicle chooser only when the member has more than one. Keep vehicle and optional evidence links after the main writing and media controls. Allow links to the member's existing service/fault, Executive Office and SoH records. References must be ownership-checked server-side.
 - Encourage members to complete missing vehicle and history records so their story strengthens aggregate evidence.
 - Accept up to five JPEG/PNG/WebP images and two MP4/QuickTime/WebM short videos, with a combined 500 MB limit. Resize oversized images in the browser before upload. Use a native multiple-file picker that can open device photo libraries or files, and show removable thumbnails before upload.
-- Let members insert a selected local image or video into the editor before saving. Use a temporary browser preview until the upload completes, then replace it with the verified `story-media:` reference in the saved Markdown.
+- Let members insert a selected local image or video into the editor before saving. Provide button controls to move inserted media between adjacent text blocks. Use a temporary browser preview until the upload completes, then replace it with the verified `story-media:` reference in the saved Markdown.
+- Provide member and admin story previews of current unsaved edits using the public Markdown and media renderer. Include locally selected and inserted media in member previews without uploading it. Make videos playable at a useful size in editors and previews, and keep playback controls outside image links.
+- Admins can select multiple experiences to approve, publish, archive, or soft-delete. Bulk deletion requires typing `DELETE`, preserves recoverable records and appears in the deleted filter.
+- Beside every uploaded asset in the admin editor, show its durable, ready-to-paste `story-media:` Markdown reference and a Copy Markdown control; never invite admins to paste the temporary signed media URL.
 - Keep uploaded media removable while editing, including media on an already submitted story. Show existing and newly selected media with the same thumbnail card, filename and insert/remove actions; send the retained media IDs when saving so removal persists.
-- Upload media directly to a private Cloud Storage bucket through short-lived, authenticated signed URLs. Verify size and content type before promoting a pending upload.
+- Preserve the draft ID after its first save and reuse completed uploads on retry; prevent concurrent saves while retaining form fields in the final request, and include newly uploaded media IDs in the final save. Upload media directly to a private Cloud Storage bucket through short-lived, authenticated signed URLs. Verify size and content type before promoting a pending upload.
+- The dedicated staging upload test saves one private draft with website, truthfulness and media-copyright confirmations recorded, so an administrator can manually exercise approval and publication. The test itself must never submit or publish that draft.
 - Require confirmation that the account is truthful to the member's knowledge and that they own or may supply uploaded media.
 - Record separate, versioned permission for publication on this website and for third-party social, press or publisher use.
 
@@ -26,7 +30,7 @@ Build a member-experience workflow that turns personal experience into consented
 - Public APIs return only published, website-consented fields and short-lived media URLs. Never expose member UID, email, private name, review notes or private model analysis.
 - Public pages show the member's story with an anonymised summary of the linked evidence and links inviting readers to register or add their own vehicle records.
 - Make the public story catalogue discoverable from the main navigation as “Owners’ stories” in both launch and full presentation modes; use the same title for the catalogue page and its story context.
-- Render inline media where it is referenced in the story, then show a thumbnail gallery for all attached media below the story. Keep the public experience grid and the editor wide on desktop, and use the same rounded green action-button treatment for member actions.
+- Show a short, plain-text first meaningful paragraph on each public story card, omitting media references and formatting markup, and link to the full experience. Render media in place where it is referenced in the story; do not duplicate it below the article. If attachments were not placed in the Markdown, retain them in a collapsed “Additional attached media” disclosure. Keep the public experience grid and the editor wide on desktop, and use the same rounded green action-button treatment for member actions.
 - Give each published story a stable `/member-stories/<slug>/` URL, while retaining query-string links as a compatibility path. Firebase Hosting rewrites story paths directly to `/member-stories/index.html`; Eleventy’s development server uses middleware to serve the catalogue page for local slug routes too. Deployment smoke checks both the catalogue and a representative trailing-slash story URL. The client resolves the final path segment against the published story list. Members can see each submission's current review state, clarification message and published date/link.
 - The public story share control opens working share actions for Facebook, X, WhatsApp and LinkedIn, plus copy-link actions for Instagram and TikTok and the native device share sheet where supported. Platform actions are tracked as consent-gated share-link clicks; they do not claim that a post was completed.
 - The admin review workspace keeps the selected story open after a save and supports bulk archive, approval and publication actions for selected stories. Bulk publication applies the same approval and consent validation as the individual action.
@@ -51,3 +55,24 @@ Build a member-experience workflow that turns personal experience into consented
 - Give the runtime service account object access and self `signBlob` permission for signed URLs; pass its email as the non-secret `STORAGE_SIGNING_SERVICE_ACCOUNT` runtime setting and do not store a signing key.
 - Clean abandoned pending uploads automatically. Keep published/original objects private and deliver them through expiring URLs.
 - Add tests for eligibility, record ownership, consent gates, media limits, admin authorization, public-field filtering and event validation.
+
+- The opt-in staging sign-in browser journey can also upload a real small MP4 to a dedicated staging member's reusable private draft. It checks the saved reference and signed video retrieval; the member needs a name, display name and story access; the test creates a synthetic staging vehicle if none exists. Require an explicitly configured staging origin, never submit the draft, and document cleanup of detached test objects in the private versioned bucket.
+
+- Let a member soft-delete any owned experience after typing DELETE. Hide it from member lists and exports and from public output, retain it for admin recovery, and provide an admin deleted status filter and a typed-confirmation soft-delete action in the admin review panel. Deleted stories cannot be changed or published through review actions. Guard writes against concurrent changes so a stale edit cannot undo deletion.
+
+### Planned member departure workflow
+
+A member must be able to request departure, with an administrator approving the request before any
+permanent deletion. Approved departure must delete all the member's records, including soft-deleted
+stories, all generations of story media, profile and representation history, vehicles, SoH and
+service records, survey responses, membership and contact records, private snapshots, and the
+Firebase Auth account. The implementation must inventory connected providers and backups, prevent
+concurrent writes or re-creation during deletion, fail closed and support safe retry of partial work.
+Do not describe the request as complete until every applicable store has been addressed. This is a
+planned requirement; the account departure workflow has not yet been implemented.
+
+- The admin story list opens a separate full-width review and editing view, with a back control returning to the same filters and page after confirmation if edits are unsaved. Keep selection of table checkboxes separate from opening a story.
+
+- Members with existing experiences see their list first and open either an existing experience or a new one in a separate editor; members without experiences start directly in the editor. Provide a back control to the list, confirm before discarding unsaved member edits, and preserve the separate admin review view.
+
+- The opt-in live staging journey reads the redacted example story from the committed test fixture and substitutes committed non-personal image and video fixtures for local paths. Keep the story in one private draft; verify text and media order, preview rendering, upload and save without logging the story or committing the original `docs/no-git` files. Disable smooth scrolling in the browser test for stable media controls and do not retry the live journey inside the ten-minute job, so failures retain actionable diagnostics.

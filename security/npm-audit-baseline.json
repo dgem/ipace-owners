@@ -1,6 +1,10 @@
 {
-  "reviewedAt": "2026-10-10",
+  "reviewedAt": "2026-11-17",
   "advisories": {
+    "https://github.com/advisories/GHSA-fc5q-39xc-vjpf": {
+      "severity": "high",
+      "reason": "Unpatched picomatch is used by Eleventy and lint/build tooling; these tools process project-controlled glob patterns, not member-supplied patterns. Review and remove this exception when a compatible upstream fix is available."
+    },
     "https://github.com/advisories/GHSA-vfj7-8cjw-p6xm": {
       "severity": "high",
       "reason": "Affected only through current Eleventy, Firebase CLI, Stylelint and markdownlint tooling. npm audit --force proposes obsolete major downgrades; no compatible fix is available."
