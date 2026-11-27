@@ -182,6 +182,7 @@ header.
 | `GET/HEAD /api/instagram-media/**` | `InstagramGeneratedMedia` | Expiring bearer path | Range-stream a private completed master after constant-time token and expiry validation. |
 | `GET /api/public-stats` | `PublicStats` | No | Return the generated anonymised aggregate snapshot. |
 | `GET /api/survey-participation` | `SurveyParticipation` | No | Return only the fixed published September survey response total; cache for 60 seconds, never expose answers or identities. |
+| `GET /api/public-survey-results` | `PublicSurveyResults` | No | Return only the explicitly published, closed October next-steps survey's aggregate counts; never expose individual responses or free text. |
 
 The prepared `survey-reminder-september-2026` and `survey-closing-reminder-september-2026` marketing campaigns narrow the consented member
 audience to nonrespondents, using response document IDs and batched Auth email lookup. Resolve
