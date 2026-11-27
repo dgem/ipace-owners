@@ -21,8 +21,8 @@
   }
 
   function load(force) {
-    if (state && !force) return Promise.resolve(state);
     if (loading && !force) return loading;
+    if (state && !force) return Promise.resolve(state);
     var currentGeneration = ++generation;
     loading = token().then(function (idToken) {
       if (!idToken) return {};
