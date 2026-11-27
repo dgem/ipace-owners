@@ -12,7 +12,8 @@
     { "label": "Updates", "url": "/updates/" },
     {
       "label": "Owners’ stories",
-      "url": "/member-stories/"
+      "url": "/member-stories/",
+      "feature": "owners-stories"
     },
     { "label": "Join", "url": "/join/", "highlight": true }
   ],

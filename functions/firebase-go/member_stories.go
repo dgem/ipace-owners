@@ -1096,6 +1096,15 @@ func PublicStories(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, 405, map[string]any{"error": "Method Not Allowed"})
 		return
 	}
+	w.Header().Set("Cache-Control", "private, no-store")
+	user, err := memberFeaturesRequireUser(r.Context(), r)
+	if err != nil {
+		writeMemberAuthorizationError(w, err)
+		return
+	}
+	if !requireMemberFeature(w, user, "owners-stories") {
+		return
+	}
 	db, err := firestoreClient(r.Context())
 	if err != nil {
 		writeJSON(w, 500, map[string]any{"error": "Could not load stories"})

@@ -1010,6 +1010,12 @@ account by email when a Join record has no UID.
 - `marketing-messages.js` — admin-only marketing-message preview, masked delivery ledger, and exact-confirmation resumable batch delivery
 - `public-stats.js` — homepage and evidence-dashboard aggregate rendering
 - `public-survey-results.js` — public October survey aggregate chart
+
+Owners’ stories visibility is controlled separately from authoring by the `owners-stories` key
+in `member_feature_access`, a comma-separated list of Firebase roles. The deployment default is
+`admin,early-adopter,member-experiences-preview`; access to `/api/stories` requires sign-in and an
+allowed role. Published media is served through one-hour signed bearer URLs, which can be shared
+until they expire. Changing the rule does not invalidate already issued URLs.
 - `survey-participation.js` — public September survey participation count, retaining the dated fallback when unavailable
 
 The `survey-reminder-september-2026` and `survey-closing-reminder-september-2026` marketing templates target consented members who have

@@ -2,6 +2,7 @@ package ipace
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -58,5 +59,39 @@ func TestMemberFeaturesReturnsOnlyResolvedBooleans(t *testing.T) {
 	MemberFeatures(response, request)
 	if response.Code != http.StatusOK || !strings.Contains(response.Body.String(), `"member-experiences":true`) {
 		t.Fatalf("unexpected response: status=%d body=%s", response.Code, response.Body.String())
+	}
+}
+
+func TestOwnersStoriesRejectsAnonymousAndUnapprovedMembers(t *testing.T) {
+	original := memberFeaturesRequireUser
+	t.Cleanup(func() { memberFeaturesRequireUser = original })
+	t.Setenv("MEMBER_FEATURE_ACCESS", `{"owners-stories":"admin,early-adopter,member-experiences-preview"}`)
+	memberFeaturesRequireUser = func(context.Context, *http.Request) (*firebaseUser, error) { return nil, errors.New("unauthenticated") }
+	anonymous := httptest.NewRecorder()
+	PublicStories(anonymous, httptest.NewRequest(http.MethodGet, "/api/stories", nil))
+	if anonymous.Code != http.StatusUnauthorized {
+		t.Fatalf("anonymous response: %d", anonymous.Code)
+	}
+	for _, tc := range []struct {
+		name    string
+		user    *firebaseUser
+		allowed bool
+	}{
+		{"ordinary", &firebaseUser{UID: "member", Claims: map[string]any{}}, false},
+		{"admin", &firebaseUser{UID: "admin", Claims: map[string]any{"admin": true}}, true},
+		{"early adopter", &firebaseUser{UID: "early", Claims: map[string]any{"roles": []any{"early-adopter"}}}, true},
+		{"preview tester", &firebaseUser{UID: "tester", Claims: map[string]any{"roles": []any{"member-experiences-preview"}}}, true},
+	} {
+		if got := featureEnabledForUser("owners-stories", tc.user); got != tc.allowed {
+			t.Errorf("%s: got %v", tc.name, got)
+		}
+	}
+	memberFeaturesRequireUser = func(context.Context, *http.Request) (*firebaseUser, error) {
+		return &firebaseUser{UID: "member", Claims: map[string]any{}}, nil
+	}
+	w := httptest.NewRecorder()
+	PublicStories(w, httptest.NewRequest(http.MethodGet, "/api/stories", nil))
+	if w.Code != http.StatusNotFound || !strings.Contains(w.Header().Get("Cache-Control"), "no-store") {
+		t.Fatalf("unapproved response: %d %s", w.Code, w.Body.String())
 	}
 }

@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-var memberFeatureNames = []string{"member-experiences"}
+var memberFeatureNames = []string{"member-experiences", "owners-stories"}
 var memberFeaturesRequireUser = requireUser
 
 func featureEnabledForUser(name string, user *firebaseUser) bool {

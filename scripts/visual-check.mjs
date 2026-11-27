@@ -545,12 +545,14 @@ async function checkAdminMemberSearch(viewport, screenshotName) {
 
 async function checkPublicStoryCards(viewport, screenshotName) {
   const page = await browser.newPage({ viewport });
+  await page.route('**/api/member/features', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ features: { 'owners-stories': true } }) }));
   const stories = [
     { id: 'story-one', title: 'A long wait for repairs', displayName: 'An owner', bodyMarkdown: '## What happened\n\n![Video](story-media:clip)\n\nMy I-PACE spent months waiting for a battery repair. **The uncertainty affected our family.**\n\nMore detail follows in the full story.', media: [], evidence: {} },
     { id: 'story-two', title: 'Finding a way forward', displayName: 'Another owner', bodyMarkdown: 'We want clear communication and a lasting solution for every owner.', media: [], evidence: {} }
   ];
   await page.route('**/api/stories', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ stories }) }));
   await page.goto(baseURL + '/member-stories/?site-mode=full', { waitUntil: 'networkidle' });
+  await page.evaluate(() => { window.ipaceGetIdentityToken = async () => 'visual-member-token'; document.dispatchEvent(new CustomEvent('identity:login')); });
   await page.locator('.story-grid .card').first().waitFor({ state: 'visible' });
   await page.evaluate(() => document.querySelectorAll('.cookie-notice').forEach((element) => { element.hidden = true; }));
   assert.equal(await page.locator('.story-grid .card').first().innerText().then(text => text.includes('story-media:')), false);
@@ -561,11 +563,13 @@ async function checkPublicStoryCards(viewport, screenshotName) {
 
 async function checkPublicMemberStory(viewport, screenshotName) {
   const page = await browser.newPage({ viewport });
+  await page.route('**/api/member/features', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ features: { 'owners-stories': true } }) }));
   await page.route('**/api/stories', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ stories: [{ id: 'story-1', slug: 'three-modules-story-1', title: 'Three modules and still waiting', displayName: 'Alex Owner', bodyMarkdown: '## What happened\n\nMy I-PACE needed **three battery modules** replaced. One replacement later failed again.\n\n## The impact\n\nI want a fair, timely and lasting solution.', evidence: { vehicleLabel: 'I-PACE', modelYear: '2020', serviceEventCount: 3, sohReadingCount: 2 }, media: [] }] }) }));
   const storyPath = baseURL.startsWith('http://127.0.0.1') || baseURL.startsWith('http://localhost')
     ? '/member-stories/?site-mode=full&story=three-modules-story-1'
     : '/member-stories/three-modules-story-1/?site-mode=full';
   await page.goto(baseURL + storyPath, { waitUntil: 'networkidle' });
+  await page.evaluate(() => { window.ipaceGetIdentityToken = async () => 'visual-member-token'; document.dispatchEvent(new CustomEvent('identity:login')); });
   await page.locator('.member-story').waitFor({ state: 'visible' });
   await page.evaluate(() => document.querySelectorAll('.cookie-notice').forEach((element) => { element.hidden = true; }));
   await page.getByRole('button', { name: 'Share this story' }).click();

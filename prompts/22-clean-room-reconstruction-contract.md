@@ -307,7 +307,7 @@ vehicle creation and vehicle editing. Keep United Kingdom as the default.
 | `POST /api/member/story-withdraw` | Member | Remove website and third-party permissions immediately and hold the story for withdrawal review. |
 | `GET/POST /api/admin/stories` | Admin claim | Review, edit, manually analyse, approve and publish stories with versioned permissions and revisions; filter deleted experiences and soft-delete individual stories after typed confirmation. |
 | `GET /api/admin/members` | Admin claim | Search by name, email, registration, expertise, preferences and story activity. |
-| `GET /api/stories` | Public | Return only published story fields, evidence summaries and expiring media URLs. |
+| `GET /api/stories` | Allowed `owners-stories` role | Authenticate and authorise before returning published story fields, evidence summaries and expiring signed media URLs; use private no-store. |
 | `POST /api/story-event` | Public | Record consent-gated pseudonymous view, engagement, CTA and share-link click events for a published story, including a validated platform identifier. |
 | `GET /api/admin/authorize` | Admin claim | Verify access to an admin page and return only `{ "authorized": true }` with `Cache-Control: private, no-store`; never use the review-data route as a generic gate. |
 | `GET /api/admin-data` | Admin claim | Return Join and vehicle review records. |
@@ -454,7 +454,9 @@ production, preserving an explicit production publication decision.
 `MEMBER_FEATURE_ACCESS` is a JSON object mapping recognised member features to `all`, `off`,
 or comma-separated Firebase roles. Staging sets `member-experiences` to `all`; production starts
 with `admin,member-experiences-preview`. Frontend visibility and member API authorization use
-the same server-resolved decision.
+the same server-resolved rules. The separate `owners-stories` visibility entry defaults to
+`admin,early-adopter,member-experiences-preview`; anonymous and unapproved users cannot load story
+data or receive signed media URLs. Signed URLs are bearer links valid for one hour.
 Optional Instagram publishing additionally uses secret `INSTAGRAM_ACCESS_TOKEN` and non-secret
 `INSTAGRAM_USER_ID`, `INSTAGRAM_GRAPH_API_VERSION`, and `INSTAGRAM_MEDIA_BASE_URL`. Absence or
 invalidity must disable publishing while leaving local preview available.

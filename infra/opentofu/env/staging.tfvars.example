@@ -10,6 +10,7 @@ instagram_publishing_enabled = false
 
 member_feature_access = {
   member-experiences = "all"
+  owners-stories     = "admin,early-adopter,member-experiences-preview"
 }
 # instagram_user_id          = "17841400000000000"
 # instagram_graph_api_version = "vNN.0"

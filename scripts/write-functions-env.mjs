@@ -29,6 +29,7 @@ values.MEMBER_STORY_MEDIA_BUCKET = process.env.MEMBER_STORY_MEDIA_BUCKET || "";
 try {
   const featureAccess = JSON.parse(process.env.MEMBER_FEATURE_ACCESS || "{}");
   if (!featureAccess || Array.isArray(featureAccess) || typeof featureAccess !== "object") throw new Error();
+  if (!Object.hasOwn(featureAccess, "owners-stories")) featureAccess["owners-stories"] = "admin,early-adopter,member-experiences-preview";
   values.MEMBER_FEATURE_ACCESS = JSON.stringify(featureAccess);
 } catch {
   throw new Error("MEMBER_FEATURE_ACCESS must be a JSON object");
