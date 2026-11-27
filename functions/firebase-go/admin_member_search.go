@@ -3,6 +3,7 @@ package ipace
 import (
 	"net/http"
 	"sort"
+	"strconv"
 	"strings"
 
 	"cloud.google.com/go/firestore"
@@ -10,18 +11,19 @@ import (
 )
 
 type adminMemberSearchResult struct {
-	IdentityUserID string   `json:"identityUserId"`
-	Name           string   `json:"name"`
-	DisplayName    string   `json:"displayName"`
-	Email          string   `json:"email"`
-	Country        string   `json:"country"`
-	Registrations  []string `json:"registrations"`
-	Expertise      string   `json:"expertise"`
-	WillingToHelp  bool     `json:"willingToHelp"`
-	PressStory     bool     `json:"pressStory"`
-	BetaTester     bool     `json:"betaTester"`
-	StoryCount     int      `json:"storyCount"`
-	Matched        []string `json:"matched"`
+	IdentityUserID  string   `json:"identityUserId"`
+	Name            string   `json:"name"`
+	DisplayName     string   `json:"displayName"`
+	Email           string   `json:"email"`
+	Country         string   `json:"country"`
+	Registrations   []string `json:"registrations"`
+	Expertise       string   `json:"expertise"`
+	WillingToHelp   bool     `json:"willingToHelp"`
+	PressStory      bool     `json:"pressStory"`
+	BetaTester      bool     `json:"betaTester"`
+	PreviewApproved *bool    `json:"previewApproved"`
+	StoryCount      int      `json:"storyCount"`
+	Matched         []string `json:"matched"`
 }
 
 func AdminMemberSearch(w http.ResponseWriter, r *http.Request) {
@@ -38,8 +40,18 @@ func AdminMemberSearch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	query := strings.ToLower(cleanString(r.URL.Query().Get("q"), 160))
-	if len([]rune(query)) < 2 {
+	if query != "" && len([]rune(query)) < 2 {
 		writeJSON(w, 400, map[string]any{"error": "Enter at least two characters"})
+		return
+	}
+	preference := cleanString(r.URL.Query().Get("preference"), 32)
+	country := cleanString(r.URL.Query().Get("country"), 16)
+	offset, err := strconv.Atoi(r.URL.Query().Get("offset"))
+	if r.URL.Query().Get("offset") == "" {
+		offset, err = 0, nil
+	}
+	if err != nil || offset < 0 || (preference != "" && preference != "volunteer" && preference != "press" && preference != "tester") || (country != "" && country != "unset" && cleanEnum(country, countryValues) == "") {
+		writeJSON(w, 400, map[string]any{"error": "Invalid filters"})
 		return
 	}
 	db, err := firestoreClient(r.Context())
@@ -56,15 +68,50 @@ func AdminMemberSearch(w http.ResponseWriter, r *http.Request) {
 	}
 	results := map[string]*adminMemberSearchResult{}
 	for _, join := range joins {
-		key := join.IdentityUserID
+		key := join.UserEmailHash
 		if key == "" {
-			key = join.UserEmailHash
+			key = join.IdentityUserID
 		}
 		if key == "" {
 			continue
 		}
 		if results[key] == nil {
 			results[key] = &adminMemberSearchResult{IdentityUserID: join.IdentityUserID, Name: join.Contact.Name, DisplayName: join.Membership.DisplayName, Email: join.Contact.Email, Country: join.Contact.Country, Expertise: join.Membership.Expertise, WillingToHelp: join.Membership.WillingToHelp, PressStory: join.Membership.PressStory, BetaTester: join.Membership.BetaTester, Registrations: []string{}, Matched: []string{}}
+		}
+	}
+	// Join submissions normally have no UID. Link them to the member document via
+	// the same email fingerprint used by the authenticated account snapshot.
+	byUID := map[string]*adminMemberSearchResult{}
+	memberIter := db.Collection("members").Documents(r.Context())
+	defer memberIter.Stop()
+	for {
+		doc, e := memberIter.Next()
+		if e == iterator.Done {
+			break
+		}
+		if e != nil {
+			writeJSON(w, 500, map[string]any{"error": "Could not search members"})
+			return
+		}
+		var record struct {
+			EmailHash      string `firestore:"emailHash"`
+			IdentityUserID string `firestore:"identityUserId"`
+		}
+		if doc.DataTo(&record) != nil {
+			continue
+		}
+		uid := record.IdentityUserID
+		if uid == "" {
+			uid = doc.Ref.ID
+		}
+		if result := results[record.EmailHash]; result != nil && record.EmailHash != "" {
+			result.IdentityUserID = uid
+			byUID[uid] = result
+		}
+	}
+	for _, result := range results {
+		if result.IdentityUserID != "" {
+			byUID[result.IdentityUserID] = result
 		}
 	}
 	profileIter := db.Collection("memberProfiles").Documents(r.Context())
@@ -81,7 +128,7 @@ func AdminMemberSearch(w http.ResponseWriter, r *http.Request) {
 		if doc.DataTo(&profile) != nil {
 			continue
 		}
-		if result := results[doc.Ref.ID]; result != nil {
+		if result := byUID[doc.Ref.ID]; result != nil {
 			if profile.Name != "" {
 				result.Name = profile.Name
 			}
@@ -91,17 +138,20 @@ func AdminMemberSearch(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	for _, vehicle := range vehicles {
-		if result := results[vehicle.IdentityUserID]; result != nil && vehicle.Vehicle.Registration != "" {
+		if result := byUID[vehicle.IdentityUserID]; result != nil && vehicle.Vehicle.Registration != "" {
 			result.Registrations = appendUnique(result.Registrations, vehicle.Vehicle.Registration)
 		}
 	}
 	for _, story := range stories {
-		if result := results[story.IdentityUserID]; result != nil {
+		if result := byUID[story.IdentityUserID]; result != nil {
 			result.StoryCount++
 		}
 	}
 	matched := []adminMemberSearchResult{}
 	for _, result := range results {
+		if !memberMatchesFilters(*result, preference, country) {
+			continue
+		}
 		fields := map[string]string{"name": result.Name, "display name": result.DisplayName, "email": result.Email, "country": result.Country, "registration": strings.Join(result.Registrations, " "), "expertise": result.Expertise}
 		if result.WillingToHelp {
 			fields["preference"] = "willing to help volunteer"
@@ -117,17 +167,46 @@ func AdminMemberSearch(w http.ResponseWriter, r *http.Request) {
 				result.Matched = appendUnique(result.Matched, label)
 			}
 		}
-		if len(result.Matched) > 0 {
+		if query == "" || len(result.Matched) > 0 {
 			matched = append(matched, *result)
 		}
 	}
 	sort.Slice(matched, func(i, j int) bool {
 		return strings.ToLower(matched[i].Name+matched[i].Email) < strings.ToLower(matched[j].Name+matched[j].Email)
 	})
-	if len(matched) > 100 {
-		matched = matched[:100]
+	total := len(matched)
+	if offset > total {
+		offset = total
 	}
-	writeJSON(w, 200, map[string]any{"query": query, "results": matched})
+	end := offset + 50
+	if end > total {
+		end = total
+	}
+	page := matched[offset:end]
+	client, authErr := featureTesterClaimsClientFor(r.Context())
+	if authErr == nil {
+		for i := range page {
+			if !page[i].BetaTester {
+				continue
+			}
+			user, e := resolveFeatureTester(r.Context(), client, featureTesterApprovalRequest{UID: page[i].IdentityUserID, Email: page[i].Email})
+			if e == nil {
+				approved := userHasRole(&firebaseUser{Claims: user.CustomClaims}, memberExperiencesPreviewRole)
+				page[i].PreviewApproved = &approved
+			}
+		}
+	}
+	writeJSON(w, 200, map[string]any{"query": query, "results": page, "total": total, "offset": offset, "hasMore": end < total})
+}
+
+func memberMatchesFilters(member adminMemberSearchResult, preference, country string) bool {
+	if preference == "tester" && !member.BetaTester || preference == "volunteer" && !member.WillingToHelp || preference == "press" && !member.PressStory {
+		return false
+	}
+	if country == "unset" {
+		return member.Country == ""
+	}
+	return country == "" || member.Country == country
 }
 
 const featureTesterSearchTerms = "feature testing beta tester early access"

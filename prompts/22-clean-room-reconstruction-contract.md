@@ -263,7 +263,9 @@ the vehicle list rather than inserting a form into a narrow vehicle-card column.
 the typed confirmation documented in the API contract.
 
 `/admin/` is the claim-gated, tools-first landing dashboard. It links to every implemented admin
-tool, including Feature testers and Statistics. Campaign, growth, vehicle and service metrics are
+tool, including Member administration and Statistics. Member administration supports independent
+interest and country filters (including unset), pagination, and explicit feature-preview approval
+and revocation. Campaign, growth, vehicle and service metrics are
 shown at the separate claim-gated `/admin/stats/` workspace rather than below the tool tiles; no
 stale planned-work section appears on the dashboard.
 

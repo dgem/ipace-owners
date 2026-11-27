@@ -14,8 +14,9 @@ Provide passwordless sign-in, sign-out, registration state, member-only pages wi
 data, and admin-only pages with live data. All private data access must be verified
 server-side by Go Cloud Functions that validate Firebase ID tokens.
 
-Admins can review members who opt in to feature testing at `/admin/feature-testers/`. The queue
-searches only opted-in members and makes the role change a separate explicit approval. Its
+Admins can search and filter members at `/admin/members/` by interest and country, including
+unset country, and page through results. Feature-testing interest and approved access are distinct;
+explicit approval or revocation is available for opted-in members. Its
 admin-only `POST /api/admin/feature-testers` action grants or revokes only the
 `member-experiences-preview` Firebase custom role, preserving every unrelated claim and role.
 Join records can lack a Firebase UID; keep opted-in records visible and resolve their email to

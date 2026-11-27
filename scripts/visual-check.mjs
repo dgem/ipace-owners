@@ -36,7 +36,6 @@ const browser = await chromium.launch({ executablePath, headless: true });
 const expectedAdminDestinations = [
   '/admin/',
   '/admin/members/',
-  '/admin/feature-testers/',
   '/admin/stats/',
   '/admin/member-stories/',
   '/admin/outreach/',
@@ -404,11 +403,11 @@ async function checkAdminDashboard() {
   });
   await revealAdminState(page);
   await assertAdminBreadcrumb(page, 'Dashboard');
-  assert.equal(await page.locator('.admin-dashboard-grid .card').count(), 9);
-  assert.equal(await page.locator('.admin-dashboard-grid .admin-tool-logo svg').count(), 9);
-  assert.equal(await page.locator('.admin-dashboard-grid .btn--primary').count(), 9);
+  assert.equal(await page.locator('.admin-dashboard-grid .card').count(), 8);
+  assert.equal(await page.locator('.admin-dashboard-grid .admin-tool-logo svg').count(), 8);
+  assert.equal(await page.locator('.admin-dashboard-grid .btn--primary').count(), 8);
   assert.deepEqual(await page.locator('.admin-dashboard-grid .btn').allTextContents(), [
-    'Find members', 'Manage feature testers', 'View statistics', 'Review experiences', 'Facebook Assistant', 'Registration Reminders', 'Mass Mailings', 'Instagram Campaigns', 'Member Surveys'
+    'Manage members', 'View statistics', 'Review experiences', 'Facebook Assistant', 'Registration Reminders', 'Mass Mailings', 'Instagram Campaigns', 'Member Surveys'
   ]);
   assert.deepEqual(await page.locator('.admin-dashboard-grid a').evaluateAll((links) => links.map((link) => link.getAttribute('href'))), expectedAdminDestinations.slice(1));
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
@@ -525,16 +524,20 @@ async function checkAdminMemberStories(viewport, screenshotName) {
 
 async function checkAdminMemberSearch(viewport, screenshotName) {
   const page = await browser.newPage({ viewport });
-  await page.route('**/api/admin/members?*', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ results: [{
-    name: 'Alex Owner', email: 'alex@example.com', country: 'United Kingdom', registrations: ['AB12 CDE'], expertise: 'Solicitor with consumer law experience', willingToHelp: true, pressStory: true, storyCount: 1, matched: ['name', 'expertise']
+  await page.route('**/api/admin/members?*', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ total: 1, hasMore: false, results: [{
+    name: 'Alex Owner', email: 'alex@example.com', country: 'GB', registrations: ['AB12 CDE'], expertise: 'Solicitor with consumer law experience', willingToHelp: true, pressStory: true, betaTester: true, previewApproved: false, storyCount: 1
   }] }) }));
+  await page.route('**/api/admin/feature-testers', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ message: 'Approved' }) }));
   await page.goto(baseURL + '/admin/members/', { waitUntil: 'networkidle' });
   await page.evaluate(() => { window.ipaceGetIdentityToken = async () => 'visual-admin-token'; });
   await revealAdminState(page);
   await page.locator('#admin-member-query').fill('Alex');
-  await page.getByRole('button', { name: 'Search' }).click();
+  await page.locator('#admin-member-preference').selectOption('tester');
+  await page.locator('#admin-member-country').selectOption('unset');
+  await page.getByRole('button', { name: 'Find members' }).click();
   await page.locator('[data-results] .card').waitFor({ state: 'visible' });
   assert.equal(await page.getByRole('heading', { name: 'Alex Owner' }).count(), 1);
+  assert.equal(await page.getByRole('button', { name: 'Approve feature preview' }).isVisible(), true);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
   await page.close();

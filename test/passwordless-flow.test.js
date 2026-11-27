@@ -244,7 +244,7 @@ test('admins can approve opted-in feature testers through a separate role queue'
   assert.match(page, /Members who opted in to feature testing/);
   assert.match(script, /\/api\/admin\/members\?q=feature/);
   assert.match(script, /Approve member-experiences preview/);
-  assert.match(dashboard, /Manage feature testers/);
+  assert.match(dashboard, /Manage members/);
   assert.match(dashboard, /href="\/admin\/stats\/">View statistics/);
   assert.doesNotMatch(dashboard, /admin-dashboard-planned/);
   assert.match(statistics, /partials\/admin-statistics\.njk/);

@@ -1,18 +1,18 @@
 ---
 layout: base.njk
-title: Find members
+title: Member administration
 description: "Search member records securely."
 noindex: true
 adminNavigation: true
-adminBreadcrumb: Find members
+adminBreadcrumb: Member administration
 adminMemberSearch: true
 date: Last Modified
 ---
 
 {% from "partials/auth-login-gate.njk" import authLoginGate %}
-<div class="page-header page-header--compact"><div class="container"><h1 class="page-header__title">Find members</h1></div></div>
+<div class="page-header page-header--compact"><div class="container"><h1 class="page-header__title">Member administration</h1></div></div>
 <div class="section"><div class="container"><div data-admin-container>
   {{ authLoginGate("member-search-email", "Sign in required", "Enter your admin email address to search member records.", "admin", false) }}
   <div class="auth-gate" data-admin-only-gate hidden><h2>Access restricted</h2></div>
-  <div class="auth-content" data-admin-content hidden><section class="dashboard-panel" data-admin-member-search><form class="cluster"><label for="admin-member-query">Name, display name, email, registration, expertise or preference</label><input id="admin-member-query" type="search" minlength="2" required autocomplete="off"><button class="btn btn--primary" type="submit">Search</button></form><p class="form-hint">Search runs server-side and returns private data only after an admin-role check.</p><div data-results></div></section></div>
+  <div class="auth-content" data-admin-content hidden><section class="dashboard-panel" data-admin-member-search><form class="stack"><label for="admin-member-query">Search name, email, registration or expertise</label><input id="admin-member-query" type="text" autocomplete="off"><label for="admin-member-preference">Interest</label><select id="admin-member-preference"><option value="">All interests</option><option value="volunteer">Willing to volunteer</option><option value="press">Press story</option><option value="tester">Feature testing</option></select><label for="admin-member-country">Country</label><select id="admin-member-country"><option value="">All countries</option><option value="unset">Not set</option><option value="GB">United Kingdom</option><option value="IE">Ireland</option><option value="DE">Germany</option><option value="FR">France</option><option value="NL">Netherlands</option><option value="NO">Norway</option><option value="SE">Sweden</option><option value="DK">Denmark</option><option value="AT">Austria</option><option value="CH">Switzerland</option><option value="BE">Belgium</option><option value="ES">Spain</option><option value="IT">Italy</option><option value="GR">Greece</option><option value="PT">Portugal</option><option value="US">United States</option><option value="CA">Canada</option><option value="AU">Australia</option><option value="NZ">New Zealand</option><option value="other">Other</option></select><button class="btn btn--primary" type="submit">Find members</button></form><p class="form-hint" role="status" data-status></p><div data-results></div><div class="cluster"><button type="button" class="btn btn--secondary" data-previous hidden>Previous</button><button type="button" class="btn btn--secondary" data-next hidden>Next</button></div></section></div>
 </div></div></div>
