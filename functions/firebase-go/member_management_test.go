@@ -62,3 +62,11 @@ func TestValidMemberCountryRequiresSupportedCountryValue(t *testing.T) {
 		}
 	}
 }
+
+func TestPreferenceRequestAcceptsFeatureTesterOptIn(t *testing.T) {
+	request := httptest.NewRequest(http.MethodPost, "/api/update-member-preferences", strings.NewReader(`{"country":"GB","contact":true,"anonymisedAnalysis":true,"betaTester":true}`))
+	var input preferenceRequest
+	if err := decodeJSON(request, &input); err != nil || input.BetaTester == nil || !*input.BetaTester {
+		t.Fatalf("beta feature tester opt-in was not decoded: %#v, %v", input, err)
+	}
+}

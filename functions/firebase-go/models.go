@@ -49,6 +49,7 @@ type preferenceRequest struct {
 	WillingToHelp      *bool   `json:"willingToHelp"`
 	Expertise          *string `json:"expertise"`
 	PressStory         *bool   `json:"pressStory"`
+	BetaTester         *bool   `json:"betaTester"`
 }
 
 type deleteRequest struct {
@@ -109,6 +110,7 @@ type membershipRecord struct {
 	WillingToHelp bool     `json:"willingToHelp,omitempty" firestore:"willingToHelp,omitempty"`
 	Expertise     string   `json:"expertise,omitempty" firestore:"expertise,omitempty"`
 	PressStory    bool     `json:"pressStory,omitempty" firestore:"pressStory,omitempty"`
+	BetaTester    bool     `json:"betaTester,omitempty" firestore:"betaTester,omitempty"`
 }
 
 type consentRecord struct {

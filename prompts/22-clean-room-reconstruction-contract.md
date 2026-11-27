@@ -262,8 +262,12 @@ readable summaries. Their Edit and Delete actions open one full-width, well-spac
 the vehicle list rather than inserting a form into a narrow vehicle-card column. Deletion requires
 the typed confirmation documented in the API contract.
 
-`/admin/` is the claim-gated landing dashboard. It links to every implemented admin tool and
-describes planned areas without linking to unimplemented routes.
+`/admin/` is the claim-gated, tools-first landing dashboard. It links to every implemented admin
+tool, including Member administration and Statistics. Member administration supports independent
+interest and country filters (including unset), pagination, and explicit feature-preview approval
+and revocation. Campaign, growth, vehicle and service metrics are
+shown at the separate claim-gated `/admin/stats/` workspace rather than below the tool tiles; no
+stale planned-work section appears on the dashboard.
 
 ## API contract inventory
 
@@ -281,7 +285,7 @@ change rather than assuming it exists.
 | `POST /api/submit-vehicle-basics` | Member | Optional `id` for an owned edit; otherwise `vin`, `registration`, `country`, `modelYear`, `mileage`, `ownedSince`, `firstReg`, plus optional initial `soh`, `sohDate`, `sohMileage`, `sohSource`. |
 | `POST /api/submit-soh` | Member/vehicle owner | Optional `id` for an owned edit plus `vehicleId`, `soh`, `sohDate`, `sohMileage`, `sohSource`; maintain the vehicle compatibility value. |
 | `POST /api/upsert-service-event` | Member/vehicle and record owner | `id`, `vehicleId`, `eventType`, `occurredAt`, `mileage`, `title`, `description`, `status`, `campaigns[]`, `serviceProviderId`, `serviceProviderName`, `serviceProviderPostcode`, `serviceProviderAuthorised`, `finalFixAt`, `courtesyVehicleOffered`, `courtesyVehicleProvided`, `partsDelay`, `goodwillPayment`, `milesDrivenWhilstFaulty`, `warrantyCover`, `disputeStatus`, `executiveOfficeAcknowledgedAt`, `executiveOfficeRepliedAt`, `executiveOfficeOutcome`, `executiveOfficeSatisfied`. Derive `daysToFinalFix` server-side. For Executive Office contacts, supplied acknowledgement/reply dates must be valid, non-future, and on or after `occurredAt`. |
-| `POST /api/update-member-preferences` | Member | Required allowlisted `country` and booleans `contact`, `anonymisedAnalysis`; optional non-unique `displayName`, `willingToHelp`, `pressStory`, and bounded `expertise`; default a blank display name to the first part of the saved legal name and apply the country and preference update to every Join record sharing the authenticated email hash. |
+| `POST /api/update-member-preferences` | Member | Required allowlisted `country` and booleans `contact`, `anonymisedAnalysis`; optional non-unique `displayName`, `willingToHelp`, `pressStory`, `betaTester`, and bounded `expertise`; `betaTester` records interest in early feature testing only and does not itself grant access. Default a blank display name to the first part of the saved legal name and apply the country and preference update to every Join record sharing the authenticated email hash. |
 | `GET/POST /api/member-profile` | Member | One contact profile per Firebase UID; freeform international address, optional phone, and a versioned representation choice available only for a complete UK address. Append choice changes to a PII-free `representationChoices` subcollection. |
 | `GET /api/member-address-lookup` | Member | Optional address or postcode search and resolution through a server-side Ideal Postcodes key, with manual entry fallback. |
 | `POST /api/admin/member-verification` | Admin | Set an admin-only identity-verification decision, separate from member consent. |
@@ -295,6 +299,7 @@ vehicle creation and vehicle editing. Keep United Kingdom as the default.
 | `GET /api/member-data` | Member | Return only that UID's private member snapshot. |
 | `GET /api/member-export?format=csv\|xlsx` | Member | Return a private no-store ZIP of five CSV datasets or a formatted six-sheet Excel workbook built from only that UID's account records and member experiences; omit internal IDs/hashes, private editorial data and storage object names, and neutralise spreadsheet formulas. |
 | `GET /api/member/features` | Member | Return booleans for recognised member-facing features after applying `all`, `off`, admin, or named Firebase-role access rules. The same decision must protect the feature's member APIs. |
+| `POST /api/admin/feature-testers` | Admin claim | Grant or revoke only the `member-experiences-preview` role, preserving all other Firebase custom claims; resolve an existing Firebase account by email when the Join record has no UID. The member refreshes their token before the change takes effect. |
 | `GET/POST /api/member/notifications` | Member | Return versioned notification IDs dismissed by that UID or store one validated dismissal. Survey IDs are survey-specific so new surveys remain visible. |
 | `GET/POST/DELETE /api/member/stories` | Member | Return story eligibility and owned evidence records, save drafts, and submit a consented story linked only to the member's vehicle records. |
 | `DELETE /api/member/stories` | Member/owner | Require `id` and `confirmation: "DELETE"`; hide the soft-deleted story from member lists, exports and public output. Admins can filter deleted stories but cannot publish or edit them. |
@@ -406,7 +411,7 @@ keys where applicable, and `{ status, verificationLevel }` review metadata. Pres
 `createdAt` on edits.
 
 - Join records contain `identityUserId`, `userEmailHash`, contact `{ name, email, country }`,
-  membership `{ relationship, skills[], displayName, willingToHelp, expertise, pressStory }`, and consents `{ contact, notLegalClaim,
+  membership `{ relationship, skills[], displayName, willingToHelp, expertise, pressStory, betaTester }`, and consents `{ contact, notLegalClaim,
   anonymisedAnalysis }`.
 - Vehicle records contain `identityUserId`, `userEmailHash`, vehicle `{ vinHash, vinLast6,
   registration, country, modelYear, mileage, ownedSince, firstRegistrationDate }`, battery

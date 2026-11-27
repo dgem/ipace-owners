@@ -48,6 +48,8 @@ date: Last Modified
 								<dd id="account-created" style="margin:0;">—</dd>
 								<dt style="color:var(--color-text-muted); font-weight:600;">Role</dt>
 								<dd id="account-role" style="margin:0;"><span class="badge">Member</span></dd>
+								<dt style="color:var(--color-text-muted); font-weight:600;">Contact details</dt>
+								<dd style="margin:0;"><span data-member-profile-summary>Not recorded</span> <button class="link-button" type="button" data-edit-member-profile>Add contact details</button></dd>
 							</dl>
 							<div class="cluster" style="margin-top: var(--space-5); padding-top: var(--space-5); border-top: 1px solid var(--color-border);">
 								<a href="/member/dashboard/" class="btn btn--primary btn--sm">Vehicle Data</a>
@@ -66,8 +68,8 @@ date: Last Modified
 							</div>
 						</div>
 
-						<div class="dashboard-panel account-layout__wide">
-							<div class="dashboard-panel__header"><div><h2 class="dashboard-panel__title">Contact details{% if site.features.legalRepresentation %} and legal options{% endif %}</h2><p class="dashboard-panel__lede">Save one contact address for your membership.</p></div></div>
+						<div class="dashboard-panel account-layout__wide" data-member-profile-editor hidden>
+							<div class="dashboard-panel__header"><div><h2 class="dashboard-panel__title">Edit contact details{% if site.features.legalRepresentation %} and legal options{% endif %}</h2><p class="dashboard-panel__lede">Your legal name and address remain private to the group.</p></div></div>
 							<form data-member-profile-form class="member-form-panel">
 								<div class="member-form-grid">
 									<div class="form-group"><label for="profile-name">Full legal name</label><input id="profile-name" name="name" type="text" autocomplete="name" maxlength="160"></div>
@@ -85,7 +87,7 @@ date: Last Modified
 									<label class="check-label"><input name="represent" type="checkbox"> <span data-representation-wording>Register my interest in exploring UK legal options. This does not authorise representation, proceedings or costs.</span></label>
 									<p class="form-hint" data-representation-hint>Currently available only to members with a complete UK address. Identity verification is a separate review.</p>
 								{% endif %}
-								<button class="btn btn--primary" type="submit">Save contact details</button>
+								<div class="cluster"><button class="btn btn--primary" type="submit">Save contact details</button><button class="btn btn--secondary" type="button" data-close-member-profile>Cancel</button></div>
 								<p data-member-profile-status role="status" aria-live="polite"></p>
 							</form>
 						</div>
