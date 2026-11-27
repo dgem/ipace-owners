@@ -153,6 +153,7 @@
     if (loaded) return;
     window.ipaceMemberFeatureEnabled('owners-stories').then(function (enabled) {
       if (!enabled || loaded) return;
+      document.title = document.title.replace('Page Not Found', 'Owners’ stories');
       loaded = true;
       var currentGeneration = generation;
       return window.ipaceGetIdentityToken().then(function (token) {
@@ -182,6 +183,6 @@
     });
   }
   document.addEventListener('member:features', loadStories);
-  document.addEventListener('identity:logout', function () { generation++; loaded = false; root.textContent = 'Loading member experiences…'; });
+  document.addEventListener('identity:logout', function () { generation++; loaded = false; document.title = document.title.replace('Owners’ stories', 'Page Not Found'); root.textContent = 'Loading member experiences…'; });
   loadStories();
 })();

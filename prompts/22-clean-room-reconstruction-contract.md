@@ -456,7 +456,9 @@ or comma-separated Firebase roles. Staging sets `member-experiences` to `all`; p
 with `admin,member-experiences-preview`. Frontend visibility and member API authorization use
 the same server-resolved rules. The separate `owners-stories` visibility entry defaults to
 `admin,early-adopter,member-experiences-preview`; anonymous and unapproved users cannot load story
-data or receive signed media URLs. Signed URLs are bearer links valid for one hour.
+data or receive signed media URLs and see the normal not-found page on catalogue and story URLs.
+The Firebase Hosting static shell returns HTTP 200 even when its client displays that page.
+Signed URLs are bearer links valid for one hour.
 Optional Instagram publishing additionally uses secret `INSTAGRAM_ACCESS_TOKEN` and non-secret
 `INSTAGRAM_USER_ID`, `INSTAGRAM_GRAPH_API_VERSION`, and `INSTAGRAM_MEDIA_BASE_URL`. Absence or
 invalidity must disable publishing while leaving local preview available.

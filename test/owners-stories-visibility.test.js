@@ -11,4 +11,6 @@ test('owners story navigation and content start hidden pending role resolution',
   const page = fs.readFileSync('src/member-stories.njk', 'utf8');
   assert.match(page, /data-member-feature="owners-stories" hidden/);
   assert.match(page, /noindex: true/);
+  assert.match(page, /data-member-feature-denied="owners-stories" hidden>[\s\S]*?Page Not Found/);
+  assert.doesNotMatch(page, /currently available to approved early adopters/);
 });

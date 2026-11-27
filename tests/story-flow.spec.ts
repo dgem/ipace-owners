@@ -111,6 +111,28 @@ test('an unapproved visitor never requests story data', async ({ page }) => {
   expect(storyRequests).toBe(0);
 });
 
+test('story pages show the normal not-found page until the visitor is approved', async ({ page }) => {
+  const html = fs.readFileSync(path.resolve('src/member-stories.njk'), 'utf8').split('---').slice(2).join('---');
+  let allowed = false;
+  await page.route('http://story.test/**', async route => {
+    const pathname = new URL(route.request().url()).pathname;
+    if (pathname.startsWith('/member-stories/')) return route.fulfill({ contentType: 'text/html; charset=utf-8', body: html });
+    if (pathname === '/api/member/features') return route.fulfill({ headers: { 'cache-control': 'no-store' }, json: { features: { 'owners-stories': allowed } } });
+    if (pathname === '/api/stories') return route.fulfill({ json: { stories: [] } });
+    return route.abort();
+  });
+  await page.goto('http://story.test/member-stories/example/');
+  await page.evaluate(() => { (window as any).ipaceGetIdentityToken = async () => 'token'; });
+  await page.addScriptTag({ path: path.resolve('src/assets/js/member-features.js') });
+  await page.addScriptTag({ path: path.resolve('src/assets/js/public-member-stories.js') });
+  await expect(page.getByRole('heading', { name: 'Page Not Found' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Owners’ stories' })).toBeHidden();
+  allowed = true;
+  await page.evaluate(() => document.dispatchEvent(new CustomEvent('identity:login')));
+  await expect(page.getByRole('heading', { name: 'Owners’ stories' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Page Not Found' })).toBeHidden();
+});
+
 test('admin must confirm before soft-deleting a story', async ({ page }) => {
   let deleted = false;
   await page.route('http://story.test/**', async route => {
