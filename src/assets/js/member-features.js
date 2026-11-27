@@ -25,8 +25,7 @@
     if (state && !force) return Promise.resolve(state);
     var currentGeneration = ++generation;
     loading = token().then(function (idToken) {
-      if (!idToken) return {};
-      var headers = { Authorization: 'Bearer ' + idToken };
+      var headers = idToken ? { Authorization: 'Bearer ' + idToken } : {};
       if (window.ipaceAuthHeaders) headers = window.ipaceAuthHeaders(headers);
       return fetch('/api/member/features', { headers: headers }).then(function (response) {
         if (!response.ok) return {};
@@ -56,7 +55,7 @@
   document.addEventListener('member:data', function () { load(true); });
   document.addEventListener('identity:ready', function () { load(false); });
   document.addEventListener('identity:login', function () { load(true); });
-  document.addEventListener('identity:logout', function () { generation++; state = {}; loading = null; apply(); });
+  document.addEventListener('identity:logout', function () { generation++; state = null; loading = null; apply(); load(false); });
   apply();
   load(false);
 }());

@@ -81,7 +81,7 @@ async function revealAdminState(page) {
 async function mockMemberPresentation(page) {
   await page.route('**/api/member/features', (route) => route.fulfill({
     contentType: 'application/json',
-    body: JSON.stringify({ features: { 'member-experiences': true } })
+    body: JSON.stringify({ features: { 'owners-stories': true } })
   }));
   await page.route('**/api/member/notifications', (route) => route.fulfill({
     contentType: 'application/json',

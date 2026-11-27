@@ -157,7 +157,7 @@
       loaded = true;
       var currentGeneration = generation;
       return window.ipaceGetIdentityToken().then(function (token) {
-        return fetch('/api/stories', { headers: { Authorization: 'Bearer ' + token }, cache: 'no-store' });
+        return fetch('/api/stories', { headers: token ? { Authorization: 'Bearer ' + token } : {}, cache: 'no-store' });
       }).then(function (response) { if (!response.ok) throw new Error('Stories unavailable'); return response.json(); }).then(function (data) {
     if (currentGeneration !== generation) return;
     var params = new URLSearchParams(location.search);

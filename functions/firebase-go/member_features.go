@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-var memberFeatureNames = []string{"member-experiences", "owners-stories"}
+var memberFeatureNames = []string{"owners-stories"}
 var memberFeaturesRequireUser = requireUser
 
 func featureEnabledForUser(name string, user *firebaseUser) bool {
@@ -26,8 +26,10 @@ func featureEnabledForUser(name string, user *firebaseUser) bool {
 	for _, value := range strings.Split(strings.ToLower(rule), ",") {
 		role := strings.TrimSpace(value)
 		switch role {
+		case "public":
+			return name == "owners-stories"
 		case "all":
-			return true
+			return user != nil
 		case "off", "":
 			continue
 		default:
@@ -57,7 +59,7 @@ func MemberFeatures(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	user, err := memberFeaturesRequireUser(r.Context(), r)
-	if err != nil {
+	if err != nil && !featureEnabledForUser("owners-stories", nil) {
 		writeMemberAuthorizationError(w, err)
 		return
 	}

@@ -56,7 +56,7 @@ test("writes function env vars as JSON without splitting comma-separated origins
     INSTAGRAM_MEDIA_BASE_URL: "https://stage.ipace-owners.org",
     CAMPAIGN_MEDIA_BUCKET: "ipace-owners-staging-campaign-media",
     MEMBER_STORY_MEDIA_BUCKET: "ipace-owners-staging-member-story-media",
-    MEMBER_FEATURE_ACCESS: '{"member-experiences":"all","owners-stories":"admin,early-adopter,member-experiences-preview"}',
+    MEMBER_FEATURE_ACCESS: '{"owners-stories":"admin,early-adopter,member-experiences-preview"}',
     VEO_LOCATION: "global",
     VEO_MODEL_ID: "veo-3.1-generate-001",
     SEED_NEXT_STEPS_SURVEY: "true",

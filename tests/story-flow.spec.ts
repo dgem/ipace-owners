@@ -165,6 +165,24 @@ test('an already signed-in admin can open stories after Firebase restores their 
   expect(featureRequests).toBe(1);
 });
 
+test('public stories can be viewed without an identity token', async ({ page }) => {
+  const html = fs.readFileSync(path.resolve('src/member-stories.njk'), 'utf8').split('---').slice(2).join('---');
+  await page.route('http://story.test/**', async route => {
+    const pathname = new URL(route.request().url()).pathname;
+    if (pathname === '/member-stories/') return route.fulfill({ contentType: 'text/html; charset=utf-8', body: html });
+    expect(route.request().headers().authorization).toBeUndefined();
+    if (pathname === '/api/member/features') return route.fulfill({ json: { features: { 'owners-stories': true } } });
+    if (pathname === '/api/stories') return route.fulfill({ json: { stories: [{ id: 'example', title: 'Public story', displayName: 'Owner', bodyMarkdown: 'A public experience.', media: [] }] } });
+    return route.abort();
+  });
+  await page.goto('http://story.test/member-stories/');
+  await page.evaluate(() => { (window as any).ipaceGetIdentityToken = async () => ''; });
+  await page.addScriptTag({ path: path.resolve('src/assets/js/member-features.js') });
+  await page.addScriptTag({ path: path.resolve('src/assets/js/public-member-stories.js') });
+  await expect(page.getByRole('heading', { name: 'Owners’ stories' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Public story' })).toBeVisible();
+});
+
 test('admin must confirm before soft-deleting a story', async ({ page }) => {
   let deleted = false;
   await page.route('http://story.test/**', async route => {

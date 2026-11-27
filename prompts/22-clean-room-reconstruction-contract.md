@@ -298,7 +298,7 @@ vehicle creation and vehicle editing. Keep United Kingdom as the default.
 
 | `GET /api/member-data` | Member | Return only that UID's private member snapshot. |
 | `GET /api/member-export?format=csv\|xlsx` | Member | Return a private no-store ZIP of five CSV datasets or a formatted six-sheet Excel workbook built from only that UID's account records and member experiences; omit internal IDs/hashes, private editorial data and storage object names, and neutralise spreadsheet formulas. |
-| `GET /api/member/features` | Member | Return booleans for recognised member-facing features after applying `all`, `off`, admin, or named Firebase-role access rules. The same decision must protect the feature's member APIs. |
+| `GET /api/member/features` | Member, or anonymous when public | Return booleans after applying `public`, `all`, `off`, admin, or named Firebase-role access rules. The same decision must protect the feature's member APIs, which always require authentication. |
 | `POST /api/admin/feature-testers` | Admin claim | Grant or revoke only the `member-experiences-preview` role, preserving all other Firebase custom claims; resolve an existing Firebase account by email when the Join record has no UID. The member refreshes their token before the change takes effect. |
 | `GET/POST /api/member/notifications` | Member | Return versioned notification IDs dismissed by that UID or store one validated dismissal. Survey IDs are survey-specific so new surveys remain visible. |
 | `GET/POST/DELETE /api/member/stories` | Member | Return story eligibility and owned evidence records, save drafts, and submit a consented story linked only to the member's vehicle records. |
@@ -307,7 +307,7 @@ vehicle creation and vehicle editing. Keep United Kingdom as the default.
 | `POST /api/member/story-withdraw` | Member | Remove website and third-party permissions immediately and hold the story for withdrawal review. |
 | `GET/POST /api/admin/stories` | Admin claim | Review, edit, manually analyse, approve and publish stories with versioned permissions and revisions; filter deleted experiences and soft-delete individual stories after typed confirmation. |
 | `GET /api/admin/members` | Admin claim | Search by name, email, registration, expertise, preferences and story activity. |
-| `GET /api/stories` | Allowed `owners-stories` role | Authenticate and authorise before returning published story fields, evidence summaries and expiring signed media URLs; use private no-store. |
+| `GET /api/stories` | Allowed `owners-stories` role | Enforce the owners-stories rule before returning published story fields, evidence summaries and expiring signed media URLs; public permits anonymous viewing, and responses use private no-store. |
 | `POST /api/story-event` | Public | Record consent-gated pseudonymous view, engagement, CTA and share-link click events for a published story, including a validated platform identifier. |
 | `GET /api/admin/authorize` | Admin claim | Verify access to an admin page and return only `{ "authorized": true }` with `Cache-Control: private, no-store`; never use the review-data route as a generic gate. |
 | `GET /api/admin-data` | Admin claim | Return Join and vehicle review records. |
@@ -451,14 +451,12 @@ rate-limited before the paid provider is called.
 The optional `SEED_NEXT_STEPS_SURVEY` flag creates the October survey automatically on the first
 authenticated survey access. `NEXT_STEPS_SURVEY_STATUS` is `published` in staging and `draft` in
 production, preserving an explicit production publication decision.
-`MEMBER_FEATURE_ACCESS` is a JSON object mapping recognised member features to `all`, `off`,
-or comma-separated Firebase roles. Staging sets `member-experiences` to `all`; production starts
-with `admin,member-experiences-preview`. Frontend visibility and member API authorization use
-the same server-resolved rules. The separate `owners-stories` visibility entry defaults to
-`admin,early-adopter,member-experiences-preview`; anonymous and unapproved users cannot load story
-data or receive signed media URLs and see the normal not-found page on catalogue and story URLs.
-The Firebase Hosting static shell returns HTTP 200 even when its client displays that page.
-Signed URLs are bearer links valid for one hour.
+`MEMBER_FEATURE_ACCESS` is a JSON object with a single `owners-stories` entry controlling
+both the member editor and story viewing. Both environments default to
+`admin,early-adopter,member-experiences-preview`. `all` permits signed-in members; `public`
+permits anonymous story viewing as well. Authoring and uploads always require a verified member.
+Restricted anonymous and unapproved users see the normal not-found page; Firebase Hosting's
+static shell returns HTTP 200. Signed URLs are bearer links valid for one hour.
 Optional Instagram publishing additionally uses secret `INSTAGRAM_ACCESS_TOKEN` and non-secret
 `INSTAGRAM_USER_ID`, `INSTAGRAM_GRAPH_API_VERSION`, and `INSTAGRAM_MEDIA_BASE_URL`. Absence or
 invalidity must disable publishing while leaving local preview available.
