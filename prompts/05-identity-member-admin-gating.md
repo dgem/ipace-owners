@@ -18,6 +18,8 @@ Admins can review members who opt in to feature testing at `/admin/feature-teste
 searches only opted-in members and makes the role change a separate explicit approval. Its
 admin-only `POST /api/admin/feature-testers` action grants or revokes only the
 `member-experiences-preview` Firebase custom role, preserving every unrelated claim and role.
+Join records can lack a Firebase UID; keep opted-in records visible and resolve their email to
+an existing Firebase account server-side when approving, reporting a missing account as an error.
 An approved member must refresh their sign-in token (usually by signing out and in) before the
 preview becomes visible; an opt-in alone never grants feature access.
 

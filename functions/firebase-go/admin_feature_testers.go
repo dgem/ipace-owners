@@ -12,11 +12,13 @@ const memberExperiencesPreviewRole = "member-experiences-preview"
 
 type featureTesterApprovalRequest struct {
 	UID      string `json:"uid"`
+	Email    string `json:"email"`
 	Approved bool   `json:"approved"`
 }
 
 type featureTesterClaimsClient interface {
 	GetUser(context.Context, string) (*firebaseauth.UserRecord, error)
+	GetUserByEmail(context.Context, string) (*firebaseauth.UserRecord, error)
 	SetCustomUserClaims(context.Context, string, map[string]any) error
 }
 
@@ -76,7 +78,8 @@ func AdminFeatureTesterApproval(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	input.UID = cleanString(input.UID, 128)
-	if input.UID == "" {
+	input.Email = cleanString(input.Email, 254)
+	if input.UID == "" && input.Email == "" {
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "Member identity is required"})
 		return
 	}
@@ -85,11 +88,12 @@ func AdminFeatureTesterApproval(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusServiceUnavailable, map[string]any{"error": "Could not update feature access"})
 		return
 	}
-	member, err := client.GetUser(r.Context(), input.UID)
+	member, err := resolveFeatureTester(r.Context(), client, input)
 	if err != nil {
 		writeJSON(w, http.StatusNotFound, map[string]any{"error": "Member account was not found"})
 		return
 	}
+	input.UID = member.UID
 	if err := client.SetCustomUserClaims(r.Context(), input.UID, featureTesterClaims(member.CustomClaims, input.Approved)); err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "Could not save feature access"})
 		return
@@ -99,4 +103,11 @@ func AdminFeatureTesterApproval(w http.ResponseWriter, r *http.Request) {
 		message = "Feature access approved. The member must refresh their sign-in token before access changes."
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"uid": input.UID, "approved": input.Approved, "message": message})
+}
+
+func resolveFeatureTester(ctx context.Context, client featureTesterClaimsClient, input featureTesterApprovalRequest) (*firebaseauth.UserRecord, error) {
+	if input.UID != "" {
+		return client.GetUser(ctx, input.UID)
+	}
+	return client.GetUserByEmail(ctx, input.Email)
 }

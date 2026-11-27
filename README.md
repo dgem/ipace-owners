@@ -1000,7 +1000,8 @@ the deployment value to enable lookup; without it, manual entry works.
 - `admin-feature-testers.js` — administrator approval of opted-in preview testers
 
 `POST /api/admin/feature-testers` requires an administrator claim and grants or removes the
-member-experiences preview role for an opted-in member; it preserves unrelated claims.
+member-experiences preview role; it preserves unrelated claims and resolves an existing Firebase
+account by email when a Join record has no UID.
 - `multistep-form.js` — generic multi-step form (data-attribute driven)
 - `outreach-assistant.js` — admin-only Facebook search-link and editable reply helper; no retrieval or posting automation
 - `instagram-campaigns.js` — admin-only asynchronous Veo generation, full-media review, and
