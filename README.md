@@ -997,6 +997,10 @@ the deployment value to enable lookup; without it, manual entry works.
 - `public-member-stories.js` — published stories and consented impact measurement
 - `admin-member-stories.js` — admin editing, manual AI analysis, approval and publication
 - `admin-member-search.js` — server-backed member search by identity, vehicle and preferences
+- `admin-feature-testers.js` — administrator approval of opted-in preview testers
+
+`POST /api/admin/feature-testers` requires an administrator claim and grants or removes the
+member-experiences preview role for an opted-in member; it preserves unrelated claims.
 - `multistep-form.js` — generic multi-step form (data-attribute driven)
 - `outreach-assistant.js` — admin-only Facebook search-link and editable reply helper; no retrieval or posting automation
 - `instagram-campaigns.js` — admin-only asynchronous Veo generation, full-media review, and
