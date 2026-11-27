@@ -3,9 +3,12 @@
 
   var state = null;
   var loading = null;
+  var generation = 0;
 
   function token() {
-    return window.ipaceGetIdentityToken ? window.ipaceGetIdentityToken() : Promise.resolve('');
+    return Promise.resolve(window.ipaceIdentityReadyPromise).then(function () {
+      return window.ipaceGetIdentityToken ? window.ipaceGetIdentityToken() : '';
+    });
   }
 
   function apply() {
@@ -20,6 +23,7 @@
   function load(force) {
     if (state && !force) return Promise.resolve(state);
     if (loading && !force) return loading;
+    var currentGeneration = ++generation;
     loading = token().then(function (idToken) {
       if (!idToken) return {};
       var headers = { Authorization: 'Bearer ' + idToken };
@@ -31,6 +35,7 @@
     }).catch(function () {
       return {};
     }).then(function (features) {
+      if (currentGeneration !== generation) return state || {};
       state = features;
       loading = null;
       apply();
@@ -49,7 +54,9 @@
   };
 
   document.addEventListener('member:data', function () { load(false); });
+  document.addEventListener('identity:ready', function () { load(false); });
   document.addEventListener('identity:login', function () { load(true); });
-  document.addEventListener('identity:logout', function () { state = {}; loading = null; apply(); });
+  document.addEventListener('identity:logout', function () { generation++; state = {}; loading = null; apply(); });
   apply();
+  load(false);
 }());

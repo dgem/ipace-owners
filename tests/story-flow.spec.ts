@@ -133,6 +133,38 @@ test('story pages show the normal not-found page until the visitor is approved',
   await expect(page.getByRole('heading', { name: 'Page Not Found' })).toBeHidden();
 });
 
+test('an already signed-in admin can open stories after Firebase restores their session', async ({ page }) => {
+  const html = fs.readFileSync(path.resolve('src/member-stories.njk'), 'utf8').split('---').slice(2).join('---');
+  let featureRequests = 0;
+  await page.route('http://story.test/**', async route => {
+    const pathname = new URL(route.request().url()).pathname;
+    if (pathname === '/member-stories/') return route.fulfill({ contentType: 'text/html; charset=utf-8', body: html });
+    if (pathname === '/api/member/features') {
+      featureRequests++;
+      expect(route.request().headers().authorization).toBe('Bearer admin-token');
+      return route.fulfill({ json: { features: { 'owners-stories': true } } });
+    }
+    if (pathname === '/api/stories') return route.fulfill({ json: { stories: [] } });
+    return route.abort();
+  });
+  await page.goto('http://story.test/member-stories/');
+  await page.evaluate(() => {
+    (window as any).ipaceIdentityReadyPromise = new Promise(resolve => { (window as any).restoreIdentity = resolve; });
+    (window as any).ipaceGetIdentityToken = async () => (window as any).identityRestored ? 'admin-token' : '';
+  });
+  await page.addScriptTag({ path: path.resolve('src/assets/js/member-features.js') });
+  await page.addScriptTag({ path: path.resolve('src/assets/js/public-member-stories.js') });
+  await expect(page.getByRole('heading', { name: 'Page Not Found' })).toBeHidden();
+  expect(featureRequests).toBe(0);
+  await page.evaluate(() => {
+    (window as any).identityRestored = true;
+    (window as any).restoreIdentity();
+    document.dispatchEvent(new CustomEvent('identity:ready', { detail: { user: {} } }));
+  });
+  await expect(page.getByRole('heading', { name: 'Owners’ stories' })).toBeVisible();
+  expect(featureRequests).toBe(1);
+});
+
 test('admin must confirm before soft-deleting a story', async ({ page }) => {
   let deleted = false;
   await page.route('http://story.test/**', async route => {
