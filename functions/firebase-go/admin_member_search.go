@@ -110,7 +110,7 @@ func AdminMemberSearch(w http.ResponseWriter, r *http.Request) {
 			fields["press"] = "press story media"
 		}
 		if result.BetaTester {
-			fields["feature testing"] = "beta tester early access"
+			fields["feature testing"] = featureTesterSearchTerms
 		}
 		for label, value := range fields {
 			if strings.Contains(strings.ToLower(value), query) {
@@ -129,6 +129,8 @@ func AdminMemberSearch(w http.ResponseWriter, r *http.Request) {
 	}
 	writeJSON(w, 200, map[string]any{"query": query, "results": matched})
 }
+
+const featureTesterSearchTerms = "feature testing beta tester early access"
 
 func appendUnique(values []string, value string) []string {
 	for _, existing := range values {
