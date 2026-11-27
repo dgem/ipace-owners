@@ -53,7 +53,7 @@
     return load(false);
   };
 
-  document.addEventListener('member:data', function () { load(false); });
+  document.addEventListener('member:data', function () { load(true); });
   document.addEventListener('identity:ready', function () { load(false); });
   document.addEventListener('identity:login', function () { load(true); });
   document.addEventListener('identity:logout', function () { generation++; state = {}; loading = null; apply(); });

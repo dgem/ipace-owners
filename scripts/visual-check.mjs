@@ -794,7 +794,7 @@ async function checkMemberAccountManagement(viewport, screenshotName) {
   await surveyCallout.getByRole('link', { name: 'Take the survey' }).waitFor({ state: 'visible' });
   assert.equal(await surveyCallout.locator('ul').count(), 0, 'survey callout must not repeat its title as a bullet');
   assert.equal(await surveyCallout.getByRole('link', { name: 'Past surveys' }).count(), 1);
-  assert.equal(await page.locator('.member-experience-callout').getByRole('link', { name: 'Share your experience' }).count(), 1);
+  await expect(page.locator('.member-experience-callout').getByRole('link', { name: 'Share your experience' })).toHaveCount(1);
   assert.equal(await page.locator('.member-experience-callout').getByRole('button', { name: 'Dismiss this notice' }).count(), 1);
   const noticeLayout = await page.locator('.member-account-notices').evaluate((element) => ({
     firstTop: element.children[0].getBoundingClientRect().top,
