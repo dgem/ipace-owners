@@ -36,6 +36,8 @@ const browser = await chromium.launch({ executablePath, headless: true });
 const expectedAdminDestinations = [
   '/admin/',
   '/admin/members/',
+  '/admin/feature-testers/',
+  '/admin/stats/',
   '/admin/member-stories/',
   '/admin/outreach/',
   '/admin/email-campaigns/',
@@ -402,18 +404,22 @@ async function checkAdminDashboard() {
   });
   await revealAdminState(page);
   await assertAdminBreadcrumb(page, 'Dashboard');
-  await page.locator('[data-campaign-summary-refresh]').click();
-  await page.locator('.campaign-summary-card').first().waitFor({ state: 'visible' });
-  assert.equal(await page.locator('.campaign-summary-card').count(), 3);
-  assert.equal(await page.locator('.admin-dashboard-grid .card').count(), 7);
-  assert.equal(await page.locator('.admin-dashboard-grid .admin-tool-logo svg').count(), 7);
-  assert.equal(await page.locator('.admin-dashboard-grid .btn--primary').count(), 7);
+  assert.equal(await page.locator('.admin-dashboard-grid .card').count(), 9);
+  assert.equal(await page.locator('.admin-dashboard-grid .admin-tool-logo svg').count(), 9);
+  assert.equal(await page.locator('.admin-dashboard-grid .btn--primary').count(), 9);
   assert.deepEqual(await page.locator('.admin-dashboard-grid .btn').allTextContents(), [
-    'Find members', 'Review experiences', 'Facebook Assistant', 'Registration Reminders', 'Mass Mailings', 'Instagram Campaigns', 'Member Surveys'
+    'Find members', 'Manage feature testers', 'View statistics', 'Review experiences', 'Facebook Assistant', 'Registration Reminders', 'Mass Mailings', 'Instagram Campaigns', 'Member Surveys'
   ]);
   assert.deepEqual(await page.locator('.admin-dashboard-grid a').evaluateAll((links) => links.map((link) => link.getAttribute('href'))), expectedAdminDestinations.slice(1));
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, 'admin-dashboard-desktop.png'), fullPage: true });
+  await page.goto(baseURL + '/admin/stats/', { waitUntil: 'networkidle' });
+  await page.evaluate(() => { window.firebase = { auth: () => ({ currentUser: { getIdToken: async () => 'visual-admin-token' } }) }; });
+  await revealAdminState(page);
+  await page.locator('[data-campaign-summary-refresh]').click();
+  await page.locator('.campaign-summary-card').first().waitFor({ state: 'visible' });
+  assert.equal(await page.locator('.campaign-summary-card').count(), 3);
+  await page.screenshot({ path: path.join(outputDir, 'admin-statistics-desktop.png'), fullPage: true });
   await page.close();
 }
 
@@ -577,7 +583,7 @@ async function checkServiceExport(viewport, suffix) {
     await new Promise((resolve) => { completeExport = resolve; });
     await route.fulfill({ contentType: 'text/csv', body: 'event_type,title\nrepair,Battery repair\n' });
   });
-  await page.goto(baseURL + '/admin/', { waitUntil: 'networkidle' });
+  await page.goto(baseURL + '/admin/stats/', { waitUntil: 'networkidle' });
   await revealAdminState(page);
   await page.evaluate(() => {
     window.ipaceGetIdentityToken = async () => 'visual-admin-token';
