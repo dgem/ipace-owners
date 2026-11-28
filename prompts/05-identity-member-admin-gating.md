@@ -14,6 +14,16 @@ Provide passwordless sign-in, sign-out, registration state, member-only pages wi
 data, and admin-only pages with live data. All private data access must be verified
 server-side by Go Cloud Functions that validate Firebase ID tokens.
 
+Admins can search and filter members at `/admin/members/` by interest and country, including
+unset country, and page through results. Feature-testing interest and approved access are distinct;
+explicit approval or revocation is available for opted-in members. Its
+admin-only `POST /api/admin/feature-testers` action grants or revokes only the
+`member-experiences-preview` Firebase custom role, preserving every unrelated claim and role.
+Join records can lack a Firebase UID; keep opted-in records visible and resolve their email to
+an existing Firebase account server-side when approving, reporting a missing account as an error.
+An approved member must refresh their sign-in token (usually by signing out and in) before the
+preview becomes visible; an opt-in alone never grants feature access.
+
 ## Frontend rules
 
 - Load Firebase Auth from the CDN only when build-time Firebase config is present.
@@ -117,21 +127,26 @@ server-side by Go Cloud Functions that validate Firebase ID tokens.
   the member snapshot, including contact permission, anonymised aggregate-analysis consent,
   participation acknowledgement, relationship, and volunteering interests where present.
   Members can update whether they are willing to help, whether they have a story they would be
-  happy to discuss with the press, and a bounded description of relevant expertise or experience
-  through the authenticated preference update flow. They can also set a non-unique display name;
+  happy to discuss with the press, whether they want to test new member features before wider
+  release, and a bounded description of relevant expertise or experience through the authenticated
+  preference update flow. The feature-testing choice is an interest register, not an automatic
+  entitlement to unreleased features. They can also set a non-unique display name;
   default it to the first part of their saved legal name when available and use it to attribute
   member experiences without exposing the legal name. These values remain
   private member data and are available to authorised group administration only.
   Do not show placeholder copy saying preferences will be manageable in a future release.
   Preference editing needs a server-side audited account update flow before controls are
   shown as editable.
+- Show member contact details as a compact Account details summary by default, using only the
+  saved legal name, postcode and country. Keep the full contact-address editor collapsed until
+  the member chooses Add or Edit contact details, rather than presenting an always-open form.
 
 ## Server-side APIs
 
 The shared desktop and mobile navigation exposes exactly one `Admin` action, linking to
 `/admin/`, after Firebase claims indicate admin access. The admin dashboard is the directory for
-Review Queue, Facebook Assistant, Email Campaigns and Instagram Campaigns; do not duplicate those
-tool links in the shared header or mobile drawer. Each admin page keeps the dashboard reachable
+Review Queue, Facebook Assistant, Email Campaigns, Instagram Campaigns, feature-tester approval and
+the dedicated statistics workspace; do not duplicate those tool links in the shared header or mobile drawer. Each admin page keeps the dashboard reachable
 through its compact breadcrumb. Campaign APIs independently verify the ID token
 and admin role server-side.
 

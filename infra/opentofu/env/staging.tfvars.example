@@ -9,7 +9,7 @@ campaign_media_work_retention_days = 30
 instagram_publishing_enabled = false
 
 member_feature_access = {
-  member-experiences = "all"
+  owners-stories = "admin,early-adopter,member-experiences-preview"
 }
 # instagram_user_id          = "17841400000000000"
 # instagram_graph_api_version = "vNN.0"
@@ -49,8 +49,8 @@ site_url        = "https://stage.ipace-owners.org/member/account/"
 firebase_auth_email_domain        = "auth.stage.ipace-owners.org"
 firebase_auth_email_action_domain = "stage.ipace-owners.org"
 
-resend_from           = "I-PACE Owners Staging <members@stage.ipace-owners.org>"
-resend_reply_to       = "contact@ipace-owners.org"
+resend_from           = "I-PACE Owners Staging <contact@stage.ipace-owners.org>"
+resend_reply_to       = "contact@stage.ipace-owners.org"
 # Email clients need a durable public asset host. The staging custom domain does not serve
 # Hosting assets, so staging delivery deliberately reuses the canonical public hero.
 resend_asset_base_url = "https://ipace-owners.org"

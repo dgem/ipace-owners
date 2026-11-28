@@ -10,34 +10,25 @@
     return node.innerHTML;
   }
 
-  function markdown(value, items) {
-    var byId = {};
-    (items || []).forEach(function (item) { byId[item.id] = item; });
-    var text = esc(value || '');
-    text = text.replace(/!\[([^\]]*)\]\(story-media:([a-zA-Z0-9_-]+)\)/g, function (match, alt, id) {
-      var media = byId[id];
-      if (!media || !media.url) return alt || '';
-      if (media.contentType.indexOf('video/') === 0) return '<video src="' + esc(media.url) + '" controls preload="metadata"></video>';
-      return '<a class="story-inline-image" href="' + esc(media.url) + '" target="_blank" rel="noopener noreferrer"><img src="' + esc(media.url) + '" alt="' + (alt || esc(media.name)) + '"></a>';
-    }).replace(/^### (.+)$/gm, '<h3>$1</h3>')
-      .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-      .replace(/^# (.+)$/gm, '<h2>$1</h2>')
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.+?)\*/g, '<em>$1</em>')
-      .replace(/^[-*] (.+)$/gm, '<li>$1</li>')
-      .replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>')
-      .replace(/^> ?(.+)$/gm, '<blockquote>$1</blockquote>');
-    return text.split(/\n{2,}/).map(function (block) {
-      return /^<(h2|h3|ul|blockquote)/.test(block) ? block : '<p>' + block.replace(/\n/g, '<br>') + '</p>';
-    }).join('');
-  }
-
-  function mediaGallery(items) {
-    return (items || []).filter(function (media) { return media.url; }).map(function (media) {
-      var image = media.contentType.indexOf('image/') === 0;
-      var preview = image ? '<img src="' + esc(media.url) + '" alt="' + esc(media.name) + '" loading="lazy">' : '<video src="' + esc(media.url) + '" controls preload="metadata"></video>';
-      return '<figure class="story-media-card"><a href="' + esc(media.url) + '" target="_blank" rel="noopener noreferrer">' + preview + '</a><figcaption>' + esc(media.name) + '</figcaption></figure>';
-    }).join('');
+  function storyExcerpt(value) {
+    var paragraphs = String(value || '').replace(/\r\n?/g, '\n').split(/\n\s*\n/);
+    var excerpt = '';
+    paragraphs.some(function (paragraph) {
+      var text = paragraph.replace(/!\[[^\]]*\]\([^)]*\)/g, '')
+        .replace(/^\s{0,3}#{1,6}\s+.*$/gm, '')
+        .replace(/^\s*(?:>\s*|[-*+]\s+|\d+[.)]\s+)/gm, '')
+        .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+        .replace(/[*_`~]/g, '')
+        .replace(/\s+/g, ' ').trim();
+      if (!text) return false;
+      excerpt = text;
+      return true;
+    });
+    if (excerpt.length <= 220) return excerpt;
+    var shortened = excerpt.slice(0, 220);
+    var lastSpace = shortened.lastIndexOf(' ');
+    if (lastSpace > 0) shortened = shortened.slice(0, lastSpace);
+    return shortened.trimEnd() + '…';
   }
 
   function consent() {
@@ -156,7 +147,19 @@
     });
   }
 
-  fetch('/api/stories').then(function (response) { return response.json(); }).then(function (data) {
+  var loaded = false;
+  var generation = 0;
+  function loadStories() {
+    if (loaded) return;
+    window.ipaceMemberFeatureEnabled('owners-stories').then(function (enabled) {
+      if (!enabled || loaded) return;
+      document.title = document.title.replace('Page Not Found', 'Owners’ stories');
+      loaded = true;
+      var currentGeneration = generation;
+      return window.ipaceGetIdentityToken().then(function (token) {
+        return fetch('/api/stories', { headers: token ? { Authorization: 'Bearer ' + token } : {}, cache: 'no-store' });
+      }).then(function (response) { if (!response.ok) throw new Error('Stories unavailable'); return response.json(); }).then(function (data) {
+    if (currentGeneration !== generation) return;
     var params = new URLSearchParams(location.search);
     var pathParts = location.pathname.split('/').filter(Boolean);
     var requested = params.get('story') || ((pathParts[0] === 'member-stories' && pathParts[1]) ? decodeURIComponent(pathParts[1]) : '');
@@ -165,7 +168,7 @@
     var selected = stories.find(function (story) { return story.slug === requested || story.id === requested; });
     if (selected) {
       var joinLink = '/join/?story=' + encodeURIComponent(selected.id) + (campaign ? '&campaign=' + encodeURIComponent(campaign) : '');
-      root.innerHTML = '<article class="member-story"><p class="eyebrow">Owners’ story</p><h2>' + esc(selected.title) + '</h2><p class="lede">By ' + esc(selected.displayName) + '</p><div class="story-markdown">' + markdown(selected.bodyMarkdown, selected.media) + '</div><section class="story-media-gallery" aria-label="Attached media">' + mediaGallery(selected.media) + '</section><aside class="story-evidence-summary"><h2>Evidence behind this story</h2><p>' + esc(selected.evidence.vehicleLabel || 'Registered I-PACE') + (selected.evidence.modelYear ? ' · model year ' + esc(selected.evidence.modelYear) : '') + '</p><p>' + Number(selected.evidence.serviceEventCount || 0) + ' linked service, fault or JLR contact records · ' + Number(selected.evidence.sohReadingCount || 0) + ' linked SoH readings.</p><p><a href="/member/dashboard/">Add your own vehicle evidence</a></p></aside><div class="cluster"><a class="btn btn--primary" data-story-cta href="' + joinLink + '">Add your voice</a><button class="btn btn--secondary" data-story-share type="button" aria-expanded="false">Share this story</button></div>' + shareOptions(selected) + '</article>';
+      root.innerHTML = '<article class="member-story"><p class="eyebrow">Owners’ story</p><h2>' + esc(selected.title) + '</h2><p class="lede">By ' + esc(selected.displayName) + '</p><div class="story-markdown">' + window.ipaceStoryRenderer.markdown(selected.bodyMarkdown, selected.media) + '</div>' + window.ipaceStoryRenderer.mediaGallery(selected.media, selected.bodyMarkdown) + '<aside class="story-evidence-summary"><h2>Evidence behind this story</h2><p>' + esc(selected.evidence.vehicleLabel || 'Registered I-PACE') + (selected.evidence.modelYear ? ' · model year ' + esc(selected.evidence.modelYear) : '') + '</p><p>' + Number(selected.evidence.serviceEventCount || 0) + ' linked service, fault or JLR contact records · ' + Number(selected.evidence.sohReadingCount || 0) + ' linked SoH readings.</p><p><a href="/member/dashboard/">Add your own vehicle evidence</a></p></aside><div class="cluster"><a class="btn btn--primary" data-story-cta href="' + joinLink + '">Add your voice</a><button class="btn btn--secondary" data-story-share type="button" aria-expanded="false">Share this story</button></div>' + shareOptions(selected) + '</article>';
       track(selected, 'view');
       setTimeout(function () { track(selected, 'engaged'); }, 30000);
       root.querySelector('[data-story-cta]').addEventListener('click', function () { track(selected, 'cta'); });
@@ -174,7 +177,12 @@
     }
     root.innerHTML = '<div class="story-grid">' + stories.map(function (story) {
       var href = '/member-stories/' + encodeURIComponent(story.slug || story.id) + '/';
-      return '<article class="card"><h2><a href="' + href + '">' + esc(story.title) + '</a></h2><p>By ' + esc(story.displayName) + '</p><p>' + esc(story.bodyMarkdown.slice(0, 220)) + '…</p><a href="' + href + '">Read this story</a></article>';
+      return '<article class="card"><h2><a href="' + href + '">' + esc(story.title) + '</a></h2><p>By ' + esc(story.displayName) + '</p><p>' + esc(storyExcerpt(story.bodyMarkdown)) + '</p><a href="' + href + '">Read this story</a></article>';
     }).join('') + '</div>';
-  }).catch(function () { root.innerHTML = '<p>Owners’ stories are temporarily unavailable.</p>'; });
+      }).catch(function () { if (currentGeneration === generation) { loaded = false; root.innerHTML = '<p>Owners’ stories are temporarily unavailable.</p>'; } });
+    });
+  }
+  document.addEventListener('member:features', loadStories);
+  document.addEventListener('identity:logout', function () { generation++; loaded = false; document.title = document.title.replace('Owners’ stories', 'Page Not Found'); root.textContent = 'Loading member experiences…'; });
+  loadStories();
 })();

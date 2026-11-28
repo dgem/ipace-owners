@@ -3,6 +3,7 @@ package ipace
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -106,6 +107,7 @@ type memberStory struct {
 	CreatedAt      time.Time             `json:"createdAt" firestore:"createdAt"`
 	UpdatedAt      time.Time             `json:"updatedAt" firestore:"updatedAt"`
 	PublishedAt    time.Time             `json:"publishedAt,omitempty" firestore:"publishedAt,omitempty"`
+	DeletedAt      time.Time             `json:"deletedAt,omitempty" firestore:"deletedAt,omitempty"`
 }
 
 type storySaveRequest struct {
@@ -210,7 +212,7 @@ func MemberStories(w http.ResponseWriter, r *http.Request) {
 		writeMemberAuthorizationError(w, err)
 		return
 	}
-	if !requireMemberFeature(w, user, "member-experiences") {
+	if !requireMemberFeature(w, user, "owners-stories") {
 		return
 	}
 	if r.Method == http.MethodGet {
@@ -219,6 +221,10 @@ func MemberStories(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.Method == http.MethodPost {
 		memberStoriesSave(w, r, user)
+		return
+	}
+	if r.Method == http.MethodDelete {
+		memberStoryDelete(w, r, user)
 		return
 	}
 	writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"error": "Method Not Allowed"})
@@ -243,6 +249,7 @@ func memberStoriesGet(w http.ResponseWriter, r *http.Request, user *firebaseUser
 		return
 	}
 	sort.Slice(stories, func(i, j int) bool { return stories[i].UpdatedAt.After(stories[j].UpdatedAt) })
+	stories = visibleMemberStories(stories)
 	// Keep internal review material out of the member response. The member sees
 	// only the explicit clarification message intended for them.
 	for index := range stories {
@@ -250,6 +257,71 @@ func memberStoriesGet(w http.ResponseWriter, r *http.Request, user *firebaseUser
 	}
 	addStoryMediaURLs(r.Context(), stories, true)
 	writeJSON(w, 200, map[string]any{"eligible": contactName != "" && displayName != "" && len(snapshot.VehicleRecords) > 0, "displayName": displayName, "vehicles": snapshot.VehicleRecords, "serviceEvents": snapshot.ServiceEvents, "sohReadings": snapshot.BatteryReadings, "stories": stories, "limits": map[string]any{"images": storyMaxImages, "videos": storyMaxVideos, "totalBytes": storyMaxTotalBytes}})
+}
+
+func visibleMemberStories(stories []memberStory) []memberStory {
+	visible := make([]memberStory, 0, len(stories))
+	for _, story := range stories {
+		if story.Status != "deleted" {
+			visible = append(visible, story)
+		}
+	}
+	return visible
+}
+
+var errStoryNotFound = errors.New("story not found")
+
+func memberStoryDelete(w http.ResponseWriter, r *http.Request, user *firebaseUser) {
+	r.Body = http.MaxBytesReader(w, r.Body, 4096)
+	var input struct {
+		ID           string `json:"id"`
+		Confirmation string `json:"confirmation"`
+	}
+	if decodeJSON(r, &input) != nil || cleanString(input.ID, 100) == "" || input.Confirmation != deleteConfirmation {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "Type DELETE to confirm"})
+		return
+	}
+	db, err := firestoreClient(r.Context())
+	if err != nil {
+		writeJSON(w, 500, map[string]any{"error": "Could not delete experience"})
+		return
+	}
+	ref := db.Collection("memberStories").Doc(cleanString(input.ID, 100))
+	err = db.RunTransaction(r.Context(), func(ctx context.Context, tx *firestore.Transaction) error {
+		doc, err := tx.Get(ref)
+		if err != nil {
+			return errStoryNotFound
+		}
+		var story memberStory
+		if doc.DataTo(&story) != nil || story.IdentityUserID != user.UID || story.Status == "deleted" {
+			return errStoryNotFound
+		}
+		now := time.Now().UTC()
+		return tx.Update(ref, []firestore.Update{{Path: "status", Value: "deleted"}, {Path: "deletedAt", Value: now}, {Path: "updatedAt", Value: now}})
+	})
+	if errors.Is(err, errStoryNotFound) {
+		writeJSON(w, 404, map[string]any{"error": "Experience not found"})
+		return
+	}
+	if err != nil {
+		writeJSON(w, 500, map[string]any{"error": "Could not delete experience"})
+		return
+	}
+	writeJSON(w, 200, map[string]any{"ok": true})
+}
+
+// Save only the version read by the caller, so a concurrent deletion or edit wins.
+func writeStoryVersion(ctx context.Context, db *firestore.Client, ref *firestore.DocumentRef, story memberStory, version time.Time) error {
+	return db.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+		current, err := tx.Get(ref)
+		if err != nil {
+			return err
+		}
+		if !current.UpdateTime.Equal(version) {
+			return errors.New("experience changed; reload and try again")
+		}
+		return tx.Set(ref, story)
+	})
 }
 
 func memberStoryForOwner(story memberStory) memberStory {
@@ -321,6 +393,7 @@ func memberStoriesSave(w http.ResponseWriter, r *http.Request, user *firebaseUse
 	previousStatus := ""
 	story.Consent = memberStoryConsent{Website: input.WebsiteConsent, ThirdParty: input.ThirdPartyConsent, Copyright: input.CopyrightConfirmed, Truthful: input.TruthfulConfirmed, Version: storyConsentVersion, RecordedAt: now}
 	var ref *firestore.DocumentRef
+	var version time.Time
 	if story.ID == "" {
 		ref = db.Collection("memberStories").NewDoc()
 		story.ID = ref.ID
@@ -332,6 +405,7 @@ func memberStoriesSave(w http.ResponseWriter, r *http.Request, user *firebaseUse
 			writeJSON(w, 404, map[string]any{"error": "Story not found"})
 			return
 		}
+		version = doc.UpdateTime
 		var previous memberStory
 		if doc.DataTo(&previous) != nil || previous.IdentityUserID != user.UID || (previous.Status != "draft" && previous.Status != "submitted" && previous.Status != "editing" && previous.Status != "needs-member-clarification") {
 			writeJSON(w, 403, map[string]any{"error": "This story cannot be edited"})
@@ -383,7 +457,12 @@ func memberStoriesSave(w http.ResponseWriter, r *http.Request, user *firebaseUse
 			story.Status = "editing"
 		}
 	}
-	if _, err = ref.Set(r.Context(), story); err != nil {
+	if version.IsZero() {
+		_, err = ref.Create(r.Context(), story)
+	} else {
+		err = writeStoryVersion(r.Context(), db, ref, story, version)
+	}
+	if err != nil {
 		writeJSON(w, 500, map[string]any{"error": "Could not save story"})
 		return
 	}
@@ -512,7 +591,7 @@ func MemberStoryUpload(w http.ResponseWriter, r *http.Request) {
 		writeMemberAuthorizationError(w, err)
 		return
 	}
-	if !requireMemberFeature(w, user, "member-experiences") {
+	if !requireMemberFeature(w, user, "owners-stories") {
 		return
 	}
 	r.Body = http.MaxBytesReader(w, r.Body, 16*1024)
@@ -561,7 +640,7 @@ func MemberStoryUpload(w http.ResponseWriter, r *http.Request) {
 	}
 	if images > storyMaxImages || videos > storyMaxVideos || total+input.Size > storyMaxTotalBytes {
 		if mediaPruned {
-			_, _ = ref.Set(r.Context(), story)
+			_ = writeStoryVersion(r.Context(), db, ref, story, doc.UpdateTime)
 		}
 		writeJSON(w, 400, map[string]any{
 			"error":  "Story media limit exceeded",
@@ -599,7 +678,7 @@ func MemberStoryUpload(w http.ResponseWriter, r *http.Request) {
 	media := memberStoryMedia{ID: mediaID, Object: object, Name: input.Name, ContentType: input.ContentType, Size: input.Size, Status: "pending", CreatedAt: time.Now().UTC()}
 	story.Media = append(story.Media, media)
 	story.UpdatedAt = time.Now().UTC()
-	if _, err = ref.Set(r.Context(), story); err != nil {
+	if err = writeStoryVersion(r.Context(), db, ref, story, doc.UpdateTime); err != nil {
 		writeJSON(w, 500, map[string]any{"error": "Could not reserve upload"})
 		return
 	}
@@ -619,7 +698,7 @@ func MemberStoryUploadComplete(w http.ResponseWriter, r *http.Request) {
 		writeMemberAuthorizationError(w, err)
 		return
 	}
-	if !requireMemberFeature(w, user, "member-experiences") {
+	if !requireMemberFeature(w, user, "owners-stories") {
 		return
 	}
 	var input struct {
@@ -642,7 +721,7 @@ func MemberStoryUploadComplete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var story memberStory
-	if doc.DataTo(&story) != nil || story.IdentityUserID != user.UID {
+	if doc.DataTo(&story) != nil || story.IdentityUserID != user.UID || story.Status == "deleted" {
 		writeJSON(w, 403, map[string]any{"error": "Not allowed"})
 		return
 	}
@@ -680,7 +759,7 @@ func MemberStoryUploadComplete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	story.UpdatedAt = time.Now().UTC()
-	if _, err = ref.Set(r.Context(), story); err != nil {
+	if err = writeStoryVersion(r.Context(), db, ref, story, doc.UpdateTime); err != nil {
 		writeJSON(w, 500, map[string]any{"error": "Could not confirm upload"})
 		return
 	}
@@ -700,7 +779,7 @@ func MemberStoryWithdraw(w http.ResponseWriter, r *http.Request) {
 		writeMemberAuthorizationError(w, err)
 		return
 	}
-	if !requireMemberFeature(w, user, "member-experiences") {
+	if !requireMemberFeature(w, user, "owners-stories") {
 		return
 	}
 	var input struct {
@@ -723,7 +802,7 @@ func MemberStoryWithdraw(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var story memberStory
-	if doc.DataTo(&story) != nil || story.IdentityUserID != user.UID {
+	if doc.DataTo(&story) != nil || story.IdentityUserID != user.UID || story.Status == "deleted" {
 		writeJSON(w, 403, map[string]any{"error": "Not allowed"})
 		return
 	}
@@ -734,7 +813,7 @@ func MemberStoryWithdraw(w http.ResponseWriter, r *http.Request) {
 	story.Consent.RecordedAt = time.Now().UTC()
 	story.ConsentHistory = append(story.ConsentHistory, previousConsent, story.Consent)
 	story.UpdatedAt = time.Now().UTC()
-	if _, err = ref.Set(r.Context(), story); err != nil {
+	if err = writeStoryVersion(r.Context(), db, ref, story, doc.UpdateTime); err != nil {
 		writeJSON(w, 500, map[string]any{"error": "Could not update story"})
 		return
 	}
@@ -790,7 +869,7 @@ func AdminStories(w http.ResponseWriter, r *http.Request) {
 		})
 		filtered := stories[:0]
 		for _, story := range stories {
-			if status != "" && story.Status != status {
+			if (status == "" && story.Status == "deleted") || (status != "" && story.Status != status) {
 				continue
 			}
 			if search != "" && !strings.Contains(strings.ToLower(story.Title+" "+story.DisplayName+" "+story.ContactName+" "+story.ContactEmail), search) {
@@ -825,15 +904,19 @@ func AdminStories(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var input struct {
-		ID, Action, Title, BodyMarkdown, DisplayName, AdminNotes, MemberMessage string
-		IDs                                                                     []string
+		ID, Action, Title, BodyMarkdown, DisplayName, AdminNotes, MemberMessage, Confirmation string
+		IDs                                                                                   []string
 	}
 	r.Body = http.MaxBytesReader(w, r.Body, 128*1024)
 	if decodeJSON(r, &input) != nil {
 		writeJSON(w, 400, map[string]any{"error": "Invalid review"})
 		return
 	}
-	if (input.Action == "archive" || input.Action == "approve" || input.Action == "publish") && len(input.IDs) > 0 {
+	if (input.Action == "archive" || input.Action == "approve" || input.Action == "publish" || input.Action == "delete") && len(input.IDs) > 0 {
+		if input.Action == "delete" && input.Confirmation != deleteConfirmation {
+			writeJSON(w, 400, map[string]any{"error": "Type DELETE to confirm"})
+			return
+		}
 		failed := make([]string, 0)
 		for _, id := range input.IDs {
 			ref := db.Collection("memberStories").Doc(cleanString(id, 100))
@@ -847,7 +930,14 @@ func AdminStories(w http.ResponseWriter, r *http.Request) {
 				failed = append(failed, id)
 				continue
 			}
-			if input.Action == "approve" {
+			if story.Status == "deleted" {
+				failed = append(failed, id)
+				continue
+			}
+			if input.Action == "delete" {
+				now := time.Now().UTC()
+				story.Status, story.DeletedAt, story.UpdatedAt = "deleted", now, now
+			} else if input.Action == "approve" {
 				if message := storyApprovalError(story); message != "" {
 					failed = append(failed, id)
 					continue
@@ -865,7 +955,7 @@ func AdminStories(w http.ResponseWriter, r *http.Request) {
 				story.Status = "archived"
 			}
 			story.UpdatedAt = time.Now().UTC()
-			if _, e = ref.Set(r.Context(), story); e != nil {
+			if e = writeStoryVersion(r.Context(), db, ref, story, doc.UpdateTime); e != nil {
 				failed = append(failed, id)
 			}
 		}
@@ -881,6 +971,24 @@ func AdminStories(w http.ResponseWriter, r *http.Request) {
 	var story memberStory
 	if doc.DataTo(&story) != nil {
 		writeJSON(w, 500, map[string]any{"error": "Could not read story"})
+		return
+	}
+	if story.Status == "deleted" {
+		writeJSON(w, 409, map[string]any{"error": "Deleted experiences cannot be changed"})
+		return
+	}
+	if input.Action == "delete" {
+		if input.Confirmation != deleteConfirmation {
+			writeJSON(w, 400, map[string]any{"error": "Type DELETE to confirm"})
+			return
+		}
+		now := time.Now().UTC()
+		story.Status, story.DeletedAt, story.UpdatedAt = "deleted", now, now
+		if err = writeStoryVersion(r.Context(), db, ref, story, doc.UpdateTime); err != nil {
+			writeJSON(w, 500, map[string]any{"error": "Could not delete experience"})
+			return
+		}
+		writeJSON(w, 200, map[string]any{"ok": true})
 		return
 	}
 	if input.Action == "analyse" {
@@ -936,7 +1044,7 @@ func AdminStories(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	story.UpdatedAt = time.Now().UTC()
-	if _, err = ref.Set(r.Context(), story); err != nil {
+	if err = writeStoryVersion(r.Context(), db, ref, story, doc.UpdateTime); err != nil {
 		writeJSON(w, 500, map[string]any{"error": "Could not update story"})
 		return
 	}
@@ -987,6 +1095,17 @@ func PublicStories(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		writeJSON(w, 405, map[string]any{"error": "Method Not Allowed"})
 		return
+	}
+	w.Header().Set("Cache-Control", "private, no-store")
+	if !featureEnabledForUser("owners-stories", nil) {
+		user, err := memberFeaturesRequireUser(r.Context(), r)
+		if err != nil {
+			writeMemberAuthorizationError(w, err)
+			return
+		}
+		if !requireMemberFeature(w, user, "owners-stories") {
+			return
+		}
 	}
 	db, err := firestoreClient(r.Context())
 	if err != nil {

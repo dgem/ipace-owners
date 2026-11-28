@@ -144,17 +144,18 @@ header.
 | `POST /api/delete-service-event` | `DeleteServiceEvent` | Member | Soft-delete an owned service/fault record after typed confirmation. |
 | `GET /api/member-data` | `MemberData` | Member | Return the signed-in user's generated snapshot. |
 | `GET /api/member-export?format=csv\|xlsx` | `MemberExport` | Member | Download account records and member experiences as five CSV datasets in a ZIP or a six-sheet Excel workbook. |
-| `GET /api/member/features` | `MemberFeatures` | Member | Resolve server-enforced member feature access from release and Firebase-role rules. |
+| `GET /api/member/features` | `MemberFeatures` | Member, or anonymous when public | Resolve server-enforced feature access from release and Firebase-role rules. |
+| `POST /api/admin/feature-testers` | `AdminFeatureTesterApproval` | Admin | Grant or revoke the preview role for a member who opted in to feature testing, preserving unrelated Firebase claims. |
 | `GET/POST /api/member/notifications` | `MemberNotifications` | Member | List versioned notices dismissed by this member or persist one dismissal. |
-| `GET/POST /api/member/stories` | `MemberStories` | Member | Check eligibility, list owned evidence and save or submit a member experience. |
+| `GET/POST/DELETE /api/member/stories` | `MemberStories` | Member | Check eligibility, list owned evidence, save or submit an experience, or soft-delete an owned experience with typed confirmation. |
 | `POST /api/member/story-upload` | `MemberStoryUpload` | Member | Reserve bounded private media and return an expiring signed upload URL. |
 | `POST /api/member/story-upload-complete` | `MemberStoryUploadComplete` | Member | Verify and promote a completed private media upload. |
 | `POST /api/member/story-withdraw` | `MemberStoryWithdraw` | Member | Remove publication permissions immediately and place the story into withdrawal review. |
 | `GET /api/admin/authorize` | `AdminAuthorize` | Admin | Verify an admin page gate without returning admin review records. |
 | `GET /api/admin-data` | `AdminData` | Admin | Return review data for administrators. |
 | `GET /api/admin/members` | `AdminMemberSearch` | Admin | Search member identity, vehicle, preference and story records. |
-| `GET/POST /api/admin/stories` | `AdminStories` | Admin | Paginated, filterable and sortable member-story review; inspect/edit/analyse/approve/publish, archive single records, and archive selected records in bulk. |
-| `GET /api/stories` | `PublicStories` | Public | Return the publication-safe fields of website-consented stories. |
+| `GET/POST /api/admin/stories` | `AdminStories` | Admin | Paginated, filterable and sortable member-story review; inspect/edit/analyse/approve/publish, archive records, soft-delete individual records with typed confirmation, filter deleted stories, and archive selected records in bulk. |
+| `GET /api/stories` | `PublicStories` | Allowed `owners-stories` role | Return publication-safe fields and signed media URLs under the owners-stories access rule; public allows anonymous viewing, while authoring always requires authentication. Use private no-store. |
 | `POST /api/story-event` | `StoryEvent` | Public | Record a consent-gated pseudonymous story impact event. |
 | `GET /api/admin/stats` | `AdminStats` | Admin | Return public consent-filtered homepage counters alongside private all-record member, vehicle, SoH, and service-event statistics with `Cache-Control: private, no-store`; canonical emails are deduplicated at the first Join before the daily Join trend and country rows are calculated. Include an admin-only model-year service-record breakdown: registered cars, cars with records, all records, faults, repairs, recalls and records tagged H570–H572. It joins service records only to an owned, non-deleted vehicle; it is self-selected evidence, not a fleet fault rate. Derive country from the Join, one unambiguous vehicle country, or a strict UK registration, otherwise use `Unknown` (including conflicting vehicle countries). Magic-link-verified accounts have a separate daily line chart, and no per-vehicle evidence is returned. |
 | `POST /api/admin/reengagement-preview` | `AdminReengagementPreview` | Admin | Return aggregate counts for the consented, unsigned-in Join audience. |
@@ -182,6 +183,7 @@ header.
 | `GET/HEAD /api/instagram-media/**` | `InstagramGeneratedMedia` | Expiring bearer path | Range-stream a private completed master after constant-time token and expiry validation. |
 | `GET /api/public-stats` | `PublicStats` | No | Return the generated anonymised aggregate snapshot. |
 | `GET /api/survey-participation` | `SurveyParticipation` | No | Return only the fixed published September survey response total; cache for 60 seconds, never expose answers or identities. |
+| `GET /api/public-survey-results` | `PublicSurveyResults` | No | Return only the explicitly published, closed October next-steps survey's aggregate counts; never expose individual responses or free text. |
 
 The prepared `survey-reminder-september-2026` and `survey-closing-reminder-september-2026` marketing campaigns narrow the consented member
 audience to nonrespondents, using response document IDs and batched Auth email lookup. Resolve
@@ -339,8 +341,8 @@ sheet and chart format without exposing member data.
   unrelated email DNS records. Protect custom-domain resources from accidental deletion.
 - GitHub Actions must delegate common operations through Make targets. Before deploying,
   run `make test-node`, `make test-go`, and `make build`; local verification can use
-  `make test` and `make build`.
-- GitHub Actions should use the current Node.js Active LTS from `.nvmrc`, Go 1.26.10 / `go126` for
+  `make test` and `make build`. `make test` includes visual checks; `make test-visual` builds and serves the site automatically unless a caller supplies `VISUAL_BASE_URL`.
+- GitHub Actions should use the current Node.js Active LTS from `.nvmrc`, Go 1.26.11 / `go126` for
   Cloud Run functions, and current runtime-compatible action majors. Deploy Cloud Function runtime
   environment variables from an env vars file rather than comma-separated `--set-env-vars`,
   because values such as `ALLOWED_ORIGINS` contain commas.

@@ -158,8 +158,8 @@ site-owned `/images/` paths; Freeform campaigns retain the generic hero.
 - CI workflows should call Make targets rather than duplicating raw npm, Go, Firebase, or
   gcloud command bodies where a Make target exists.
 - Local verification for most changes is `make lint`, `make build`, and `make test`.
-- Layout/navigation changes also require `make dev` plus `make test-visual`. The staging validate
-  job runs deterministic Chrome checks at desktop and mobile viewports and uploads screenshots
+- Layout/navigation changes also require `make dev` plus `make test-visual`. The staging visual-check
+  job runs in parallel with source validation, uses deterministic Chrome checks at desktop and mobile viewports, and uploads screenshots
   even on failure. Keep authenticated visual fixtures credential-free and assert geometry and
   visibility rather than relying only on pixel snapshots.
 - Keep a Playwright responsive suite separate from deterministic visual fixtures. It must run the
@@ -175,7 +175,7 @@ site-owned `/images/` paths; Freeform campaigns retain the generic hero.
   real member account, log the inbox or action link, or retain an auth test trace, screenshot,
   video or artifact. Serialize it with the shared Firebase staging concurrency group. Validate the
   action URL against the deployed preview origin, `/auth/action`, single Firebase sign-in parameters
-  and its account continuation before navigation, then verify that the final account URL remains on
+  and its account continuation before navigation; permit only an optional, correctly formatted `authTrace` on that continuation, then verify that the final account URL remains on
   the deployed preview origin. Keep the test disabled when its explicit staging configuration is
   absent.
 - Run a separate `Security` workflow on pull requests, pushes to `main`, a weekly Monday
@@ -194,7 +194,10 @@ site-owned `/images/` paths; Freeform campaigns retain the generic hero.
   severity in `security/npm-audit-baseline.json`. `scripts/audit-node.mjs` emits these as
   GitHub Actions warnings and fails new high-or-critical advisories or any severity increase.
   Remove a baseline entry when a compatible upstream update is available; broad cross-major
-  migrations require compatibility checks for the CLI consumers.
+  migrations require compatibility checks for the CLI consumers. The November 2026
+  `GHSA-fc5q-39xc-vjpf` picomatch exception is limited to its reviewed high severity: the
+  affected glob processing runs in build/lint tooling on project-controlled patterns, and no
+  upstream patch was available. Keep the warning visible and remove the entry when patched.
 - Run `make audit` locally before every change is pushed and whenever new dependency
   advisories are reported. The Go portion explicitly uses the production Go patch level from
   `GOAUDIT_TOOLCHAIN`, so its reachable-vulnerability result matches CI even if the local Go
@@ -204,7 +207,7 @@ site-owned `/images/` paths; Freeform campaigns retain the generic hero.
   baseline scan against that preview. Use an immutable action revision and versioned ZAP
   container, disable issue creation, retain the report as an Actions artifact, and keep only
   reviewed platform/CDN findings in the committed `.zap/rules.tsv` baseline so new alert
-  categories still fail the check. Each exclusion must name the platform constraint or deliberate
+  categories still fail the check. Run it in parallel with the separate opt-in live-auth journey once deployment completes; both checks remain blocking. Each exclusion must name the platform constraint or deliberate
   public-data design it covers; do not exclude informational application-identification alerts.
   Do not run active attacks against production or authenticated member data.
 - Shared passwordless login forms must declare `method="POST"` and
@@ -268,8 +271,10 @@ site-owned `/images/` paths; Freeform campaigns retain the generic hero.
      request must require the current schema and headline aggregate, causing an outdated
      stored snapshot to regenerate under the Function runtime identity.
   8. When `PLAYWRIGHT_AUTH_E2E_ENABLED` is explicitly enabled, run the secret-backed member
-     magic-link Playwright journey against that exact generated URL after deployment. Do not run it
-     in read-only validation or for forks.
+     magic-link Playwright journey against that exact generated URL after deployment. If
+     `PLAYWRIGHT_STORY_E2E_ENABLED` is also enabled, run the distinct member-story upload/save job
+     after the auth job, so failures identify the journey that failed. Do not run either in
+     read-only validation or for forks.
 - Keep Firebase CLI deployment JSON available for URL extraction and PR diagnostics. If a
   preview deployment fails, CI must print both Firebase CLI stderr and any JSON error payload;
   do not hide the actionable error behind shell redirection.
@@ -585,3 +590,7 @@ reference; its table parts are not used as an input when creating exports.
   `roles/iam.serviceAccountTokenCreator` binding before deploying Functions
   that issue Cloud Storage signed URLs. The deployment workflow must not grant
   IAM roles; no private signing key is stored or passed to the Function.
+
+- The optional staging story upload journey uses `PLAYWRIGHT_STORY_E2E_ENABLED` alongside `PLAYWRIGHT_AUTH_E2E_ENABLED` and the same dedicated registered test member. It runs as a distinct job after the magic-link check, requires the member's name, display name and feature access, and creates a synthetic test vehicle if the dedicated member has none. It reuses a private draft, verifies a real MP4 upload and signed retrieval, and never retains browser traces. Detached test objects remain in the versioned story bucket and need periodic cleanup.
+
+- Staging mail uses `contact@stage.ipace-owners.org` for both sender and reply-to; the domain is verified for sending only, so replies are not expected to be delivered. Production continues using its own contact address.

@@ -25,7 +25,7 @@ test('runtime declarations use the supported Node and Go production lines', func
   assert.match(makefile, /--runtime=go126/);
   const goVersion = goMod.match(/^go (1\.26\.(\d+))$/m);
   assert.ok(goVersion, 'go.mod must pin a Go 1.26 patch release');
-  assert.ok(Number(goVersion[2]) >= 10, 'Go 1.26.10 or later is required for the crypto/x509 security fix');
+  assert.ok(Number(goVersion[2]) >= 11, 'Go 1.26.11 or later is required for the net/http security fix');
   assert.ok(makefile.includes(`GOAUDIT_TOOLCHAIN ?= go${goVersion[1]}`));
 });
 
