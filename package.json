@@ -4,7 +4,7 @@
   "description": "I-PACE Owners' Advocacy Group website",
   "private": true,
   "engines": {
-    "node": ">=24 <25"
+    "node": ">=24.15.0 <25"
   },
   "scripts": {
     "dev": "eleventy --serve",
@@ -40,7 +40,7 @@
     "playwright-core": "^1.63.0",
     "prettier": "^3.10.1",
     "stylelint": "^18.1.0",
-    "stylelint-config-recommended": "^18.0.0"
+    "stylelint-config-recommended": "^19.1.0"
   },
   "overrides": {
     "@hono/node-server": "2.0.11",
