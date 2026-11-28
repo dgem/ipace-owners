@@ -68,6 +68,9 @@ func UpdateMemberPreferences(w http.ResponseWriter, r *http.Request) {
 		if req.PressStory != nil {
 			updates = append(updates, firestore.Update{Path: "membership.pressStory", Value: *req.PressStory})
 		}
+		if req.BetaTester != nil {
+			updates = append(updates, firestore.Update{Path: "membership.betaTester", Value: *req.BetaTester})
+		}
 		batch.Update(doc.Ref, updates)
 		count++
 	}

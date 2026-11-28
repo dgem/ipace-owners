@@ -127,6 +127,8 @@ func Api(w http.ResponseWriter, r *http.Request) {
 		AdminStories(w, r)
 	case "/api/admin/members":
 		AdminMemberSearch(w, r)
+	case "/api/admin/feature-testers":
+		AdminFeatureTesterApproval(w, r)
 	case "/api/stories":
 		PublicStories(w, r)
 	case "/api/story-event":
@@ -181,6 +183,8 @@ func Api(w http.ResponseWriter, r *http.Request) {
 		SubmitSurveyResponse(w, r)
 	case "/api/survey-participation":
 		SurveyParticipation(w, r)
+	case "/api/public-survey-results":
+		PublicSurveyResults(w, r)
 	case "/api/public-stats":
 		PublicStats(w, r)
 	case "/api/admin/service-export":

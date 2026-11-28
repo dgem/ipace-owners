@@ -14,6 +14,7 @@
             href="{{ item.url }}"
             class="mobile-nav__link"
             data-nav-link
+            {% if item.feature %}data-member-feature="{{ item.feature }}" hidden{% endif %}
           >{{ item.label }}</a>
         {% endif %}
       </li>

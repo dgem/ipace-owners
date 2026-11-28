@@ -262,8 +262,12 @@ readable summaries. Their Edit and Delete actions open one full-width, well-spac
 the vehicle list rather than inserting a form into a narrow vehicle-card column. Deletion requires
 the typed confirmation documented in the API contract.
 
-`/admin/` is the claim-gated landing dashboard. It links to every implemented admin tool and
-describes planned areas without linking to unimplemented routes.
+`/admin/` is the claim-gated, tools-first landing dashboard. It links to every implemented admin
+tool, including Member administration and Statistics. Member administration supports independent
+interest and country filters (including unset), pagination, and explicit feature-preview approval
+and revocation. Campaign, growth, vehicle and service metrics are
+shown at the separate claim-gated `/admin/stats/` workspace rather than below the tool tiles; no
+stale planned-work section appears on the dashboard.
 
 ## API contract inventory
 
@@ -281,7 +285,7 @@ change rather than assuming it exists.
 | `POST /api/submit-vehicle-basics` | Member | Optional `id` for an owned edit; otherwise `vin`, `registration`, `country`, `modelYear`, `mileage`, `ownedSince`, `firstReg`, plus optional initial `soh`, `sohDate`, `sohMileage`, `sohSource`. |
 | `POST /api/submit-soh` | Member/vehicle owner | Optional `id` for an owned edit plus `vehicleId`, `soh`, `sohDate`, `sohMileage`, `sohSource`; maintain the vehicle compatibility value. |
 | `POST /api/upsert-service-event` | Member/vehicle and record owner | `id`, `vehicleId`, `eventType`, `occurredAt`, `mileage`, `title`, `description`, `status`, `campaigns[]`, `serviceProviderId`, `serviceProviderName`, `serviceProviderPostcode`, `serviceProviderAuthorised`, `finalFixAt`, `courtesyVehicleOffered`, `courtesyVehicleProvided`, `partsDelay`, `goodwillPayment`, `milesDrivenWhilstFaulty`, `warrantyCover`, `disputeStatus`, `executiveOfficeAcknowledgedAt`, `executiveOfficeRepliedAt`, `executiveOfficeOutcome`, `executiveOfficeSatisfied`. Derive `daysToFinalFix` server-side. For Executive Office contacts, supplied acknowledgement/reply dates must be valid, non-future, and on or after `occurredAt`. |
-| `POST /api/update-member-preferences` | Member | Required allowlisted `country` and booleans `contact`, `anonymisedAnalysis`; optional non-unique `displayName`, `willingToHelp`, `pressStory`, and bounded `expertise`; default a blank display name to the first part of the saved legal name and apply the country and preference update to every Join record sharing the authenticated email hash. |
+| `POST /api/update-member-preferences` | Member | Required allowlisted `country` and booleans `contact`, `anonymisedAnalysis`; optional non-unique `displayName`, `willingToHelp`, `pressStory`, `betaTester`, and bounded `expertise`; `betaTester` records interest in early feature testing only and does not itself grant access. Default a blank display name to the first part of the saved legal name and apply the country and preference update to every Join record sharing the authenticated email hash. |
 | `GET/POST /api/member-profile` | Member | One contact profile per Firebase UID; freeform international address, optional phone, and a versioned representation choice available only for a complete UK address. Append choice changes to a PII-free `representationChoices` subcollection. |
 | `GET /api/member-address-lookup` | Member | Optional address or postcode search and resolution through a server-side Ideal Postcodes key, with manual entry fallback. |
 | `POST /api/admin/member-verification` | Admin | Set an admin-only identity-verification decision, separate from member consent. |
@@ -294,7 +298,8 @@ vehicle creation and vehicle editing. Keep United Kingdom as the default.
 
 | `GET /api/member-data` | Member | Return only that UID's private member snapshot. |
 | `GET /api/member-export?format=csv\|xlsx` | Member | Return a private no-store ZIP of five CSV datasets or a formatted six-sheet Excel workbook built from only that UID's account records and member experiences; omit internal IDs/hashes, private editorial data and storage object names, and neutralise spreadsheet formulas. |
-| `GET /api/member/features` | Member | Return booleans for recognised member-facing features after applying `all`, `off`, admin, or named Firebase-role access rules. The same decision must protect the feature's member APIs. |
+| `GET /api/member/features` | Member, or anonymous when public | Return booleans after applying `public`, `all`, `off`, admin, or named Firebase-role access rules. The same decision must protect the feature's member APIs, which always require authentication. |
+| `POST /api/admin/feature-testers` | Admin claim | Grant or revoke only the `member-experiences-preview` role, preserving all other Firebase custom claims; resolve an existing Firebase account by email when the Join record has no UID. The member refreshes their token before the change takes effect. |
 | `GET/POST /api/member/notifications` | Member | Return versioned notification IDs dismissed by that UID or store one validated dismissal. Survey IDs are survey-specific so new surveys remain visible. |
 | `GET/POST/DELETE /api/member/stories` | Member | Return story eligibility and owned evidence records, save drafts, and submit a consented story linked only to the member's vehicle records. |
 | `DELETE /api/member/stories` | Member/owner | Require `id` and `confirmation: "DELETE"`; hide the soft-deleted story from member lists, exports and public output. Admins can filter deleted stories but cannot publish or edit them. |
@@ -302,14 +307,15 @@ vehicle creation and vehicle editing. Keep United Kingdom as the default.
 | `POST /api/member/story-withdraw` | Member | Remove website and third-party permissions immediately and hold the story for withdrawal review. |
 | `GET/POST /api/admin/stories` | Admin claim | Review, edit, manually analyse, approve and publish stories with versioned permissions and revisions; filter deleted experiences and soft-delete individual stories after typed confirmation. |
 | `GET /api/admin/members` | Admin claim | Search by name, email, registration, expertise, preferences and story activity. |
-| `GET /api/stories` | Public | Return only published story fields, evidence summaries and expiring media URLs. |
+| `GET /api/stories` | Allowed `owners-stories` role | Enforce the owners-stories rule before returning published story fields, evidence summaries and expiring signed media URLs; public permits anonymous viewing, and responses use private no-store. |
 | `POST /api/story-event` | Public | Record consent-gated pseudonymous view, engagement, CTA and share-link click events for a published story, including a validated platform identifier. |
 | `GET /api/admin/authorize` | Admin claim | Verify access to an admin page and return only `{ "authorized": true }` with `Cache-Control: private, no-store`; never use the review-data route as a generic gate. |
 | `GET /api/admin-data` | Admin claim | Return Join and vehicle review records. |
 | `GET /api/admin/stats` | Admin claim | Return the consent-filtered homepage counters alongside private all-record member, vehicle, SoH, and service-event statistics with `Cache-Control: private, no-store`; canonical emails are deduplicated at the first Join before the daily Join trend and country rows are calculated. Derive country from the Join, one unambiguous vehicle country, or a strict UK registration, otherwise use `Unknown` (including conflicting vehicle countries). Magic-link-verified accounts have a separate daily line chart, and no per-vehicle evidence is returned. |
+| `GET /api/public-survey-results?id=survey_what_next_october_2026` | Public | Return only the closed, explicitly published October next-steps survey's aggregate option, selection and preferred-choice counts. Never return identities, free text, response timestamps or arbitrary survey IDs. |
 | `POST /api/admin/reengagement-preview` | Admin claim | Return aggregate counts for consented Join submitters who have not registered. |
 | `POST /api/admin/reengagement-send` | Admin claim | Require the campaign ID, exact eligible count and typed confirmation; recheck registrations and send the next batch of at most ten. |
-| `POST /api/admin/marketing-message-templates` | Admin claim | Load source-controlled marketing-message templates for the September survey invitation and nonrespondent reminders, JLR meeting update, member referral and group growth, filling aggregate evidence values server-side. |
+| `POST /api/admin/marketing-message-templates` | Admin claim | Load source-controlled marketing-message templates for the September survey invitation and nonrespondent reminders, JLR meeting update, November member-progress update, member referral and group growth, filling aggregate evidence values server-side. |
 | `POST /api/admin/marketing-message-preview` | Admin claim | Validate prepared or custom Markdown, recalculate the canonical member audience from verified historic Firebase Auth accounts and modern Join registrations, excluding explicit withdrawals, and render a sandboxable preview with no provider side effect. |
 | `POST /api/admin/marketing-message-send` | Admin claim | Recheck that member audience and exact `SEND <count>` confirmation, then reserve each recipient before sending the next batch of at most 100 individual emails. Each continuation considers every currently eligible member, while the recipient ledger skips anyone already recorded for the same campaign. The ledger treats `attempting` and failed deliveries as non-retryable until manual reconciliation, preventing timeout/502 duplicates. Aggregate counters from a pre-ledger sender are diagnostic only and cannot stop a continuation because they identify no recipient. Prepared templates are identified by stable source content rather than changing rendered aggregate values, and all matching legacy ledgers are unioned before sending. Each email has an opaque, recipient-specific unsubscribe link. |
 | `POST /api/admin/marketing-message-deliveries` | Admin claim | Return the masked, recipient-deduplicated union of matching legacy and current delivery ledgers for a marketing message, including attempted, sent and failed states. |
@@ -405,7 +411,7 @@ keys where applicable, and `{ status, verificationLevel }` review metadata. Pres
 `createdAt` on edits.
 
 - Join records contain `identityUserId`, `userEmailHash`, contact `{ name, email, country }`,
-  membership `{ relationship, skills[], displayName, willingToHelp, expertise, pressStory }`, and consents `{ contact, notLegalClaim,
+  membership `{ relationship, skills[], displayName, willingToHelp, expertise, pressStory, betaTester }`, and consents `{ contact, notLegalClaim,
   anonymisedAnalysis }`.
 - Vehicle records contain `identityUserId`, `userEmailHash`, vehicle `{ vinHash, vinLast6,
   registration, country, modelYear, mileage, ownedSince, firstRegistrationDate }`, battery
@@ -445,10 +451,12 @@ rate-limited before the paid provider is called.
 The optional `SEED_NEXT_STEPS_SURVEY` flag creates the October survey automatically on the first
 authenticated survey access. `NEXT_STEPS_SURVEY_STATUS` is `published` in staging and `draft` in
 production, preserving an explicit production publication decision.
-`MEMBER_FEATURE_ACCESS` is a JSON object mapping recognised member features to `all`, `off`,
-or comma-separated Firebase roles. Staging sets `member-experiences` to `all`; production starts
-with `admin,member-experiences-preview`. Frontend visibility and member API authorization use
-the same server-resolved decision.
+`MEMBER_FEATURE_ACCESS` is a JSON object with a single `owners-stories` entry controlling
+both the member editor and story viewing. Both environments default to
+`admin,early-adopter,member-experiences-preview`. `all` permits signed-in members; `public`
+permits anonymous story viewing as well. Authoring and uploads always require a verified member.
+Restricted anonymous and unapproved users see the normal not-found page; Firebase Hosting's
+static shell returns HTTP 200. Signed URLs are bearer links valid for one hour.
 Optional Instagram publishing additionally uses secret `INSTAGRAM_ACCESS_TOKEN` and non-secret
 `INSTAGRAM_USER_ID`, `INSTAGRAM_GRAPH_API_VERSION`, and `INSTAGRAM_MEDIA_BASE_URL`. Absence or
 invalidity must disable publishing while leaving local preview available.

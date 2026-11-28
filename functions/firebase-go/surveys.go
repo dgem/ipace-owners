@@ -82,6 +82,15 @@ type surveyResult struct {
 	MyPreferredOptionID string            `json:"myPreferredOptionId,omitempty"`
 	CanRespond          bool              `json:"canRespond"`
 }
+type publicSurveyResult struct {
+	ID              string         `json:"id"`
+	Title           string         `json:"title"`
+	Question        string         `json:"question"`
+	Options         []surveyOption `json:"options"`
+	Counts          map[string]int `json:"counts"`
+	PreferredCounts map[string]int `json:"preferredCounts"`
+	Total           int            `json:"total"`
+}
 
 // surveyAggregate contains only counts. It is stored separately from the
 // editable survey template so an edit cannot overwrite live response totals.
