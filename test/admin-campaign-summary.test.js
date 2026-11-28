@@ -4,21 +4,23 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 
 const root = path.join(__dirname, '..');
-const page = fs.readFileSync(path.join(root, 'src/admin/index.njk'), 'utf8');
+const page = fs.readFileSync(path.join(root, 'src/_includes/partials/admin-statistics.njk'), 'utf8');
+const statsPage = fs.readFileSync(path.join(root, 'src/admin/stats.njk'), 'utf8');
 const script = fs.readFileSync(path.join(root, 'src/assets/js/admin-campaign-summary.js'), 'utf8');
 const statsScript = fs.readFileSync(path.join(root, 'src/assets/js/admin-stats.js'), 'utf8');
 const layout = fs.readFileSync(path.join(root, 'src/_includes/layouts/base.njk'), 'utf8');
 
-test('Admin home exposes a claim-gated cross-channel campaign summary', function () {
-  assert.match(page, /data-admin-container/);
+test('Admin statistics exposes a claim-gated cross-channel campaign summary', function () {
+  assert.match(statsPage, /data-admin-container/);
+  assert.match(statsPage, /adminStatistics: true/);
   assert.match(page, /data-campaign-summary/);
   assert.match(page, /admin-stats-section/);
   assert.match(page, /admin-timeline/);
   assert.match(page, /\/api\/admin\/campaign-summary/);
   assert.match(page, /Email delivery feedback is reconciled with Resend/);
   assert.match(page, /Instagram engagement comes from Meta/);
-  assert.match(layout, /adminDashboard[\s\S]*admin-campaign-summary\.js/);
-  assert.match(layout, /adminDashboard[\s\S]*admin-stats\.js/);
+  assert.match(layout, /adminStatistics[\s\S]*admin-campaign-summary\.js/);
+  assert.match(layout, /adminStatistics[\s\S]*admin-stats\.js/);
 });
 
 test('campaign summary uses the Firebase token and renders provider values as text', function () {

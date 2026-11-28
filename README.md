@@ -935,12 +935,13 @@ Remove unwanted administrators from the map and apply before disabling managemen
 
 ## Known limitations
 
-Member-facing releases can be staged with the non-secret `MEMBER_FEATURE_ACCESS` JSON object.
-Rules accept `all`, `off`, `admin`, or comma-separated Firebase custom roles. Staging enables
-`member-experiences` for all members; production initially limits it to admins and the
-`member-experiences-preview` role. Functions enforce the same rule as the browser through
-`GET /api/member/features`. Versioned member callout dismissals are read and saved through
-`GET/POST /api/member/notifications` so they follow the signed-in member across devices.
+The non-secret `MEMBER_FEATURE_ACCESS` JSON object controls Owners’ stories viewing and
+member authoring through the single `owners-stories` rule. The default permits `admin`,
+`early-adopter`, and the existing `member-experiences-preview` role. `all` permits signed-in
+members; `public` also permits anonymous viewing. Authoring and media uploads always require
+a signed-in member. `off` disables access. `GET /api/member/features` resolves the rule for
+the current visitor. Versioned member callout dismissals are saved
+through `GET/POST /api/member/notifications`.
 
 The following features are **not yet implemented** in this version:
 
@@ -997,6 +998,11 @@ the deployment value to enable lookup; without it, manual entry works.
 - `public-member-stories.js` — published stories and consented impact measurement
 - `admin-member-stories.js` — admin editing, manual AI analysis, approval and publication
 - `admin-member-search.js` — server-backed member search by identity, vehicle and preferences
+- `admin-feature-testers.js` — administrator approval of opted-in preview testers
+
+`POST /api/admin/feature-testers` requires an administrator claim and grants or removes the
+member-experiences preview role; it preserves unrelated claims and resolves an existing Firebase
+account by email when a Join record has no UID.
 - `multistep-form.js` — generic multi-step form (data-attribute driven)
 - `outreach-assistant.js` — admin-only Facebook search-link and editable reply helper; no retrieval or posting automation
 - `instagram-campaigns.js` — admin-only asynchronous Veo generation, full-media review, and
@@ -1005,6 +1011,9 @@ the deployment value to enable lookup; without it, manual entry works.
 - `marketing-messages.js` — admin-only marketing-message preview, masked delivery ledger, and exact-confirmation resumable batch delivery
 - `public-stats.js` — homepage and evidence-dashboard aggregate rendering
 - `public-survey-results.js` — public October survey aggregate chart
+
+Published media is served through one-hour signed bearer URLs, which can be shared until
+they expire. Changing access does not invalidate already issued URLs.
 - `survey-participation.js` — public September survey participation count, retaining the dated fallback when unavailable
 
 The `survey-reminder-september-2026` and `survey-closing-reminder-september-2026` marketing templates target consented members who have

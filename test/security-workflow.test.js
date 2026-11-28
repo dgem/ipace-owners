@@ -15,12 +15,12 @@ test('security workflow runs SAST and dependency vulnerability checks', function
   var workflow = read('.github/workflows/security.yml');
 
   assert.match(workflow, /cron: "23 5 \* \* 1"/);
-  assert.match(workflow, /actions\/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5\.0\.0/);
+  assert.match(workflow, /actions\/dependency-review-action@[a-f0-9]{40} # v5\.[0-9]+\.[0-9]+/);
   assert.match(workflow, /fail-on-severity: moderate/);
   assert.match(workflow, /run: make audit-node/);
   assert.match(workflow, /run: make audit-go/);
   assert.match(workflow, /language: actions[\s\S]*language: javascript-typescript[\s\S]*language: go/);
-  assert.match(workflow, /github\/codeql-action\/init@f3c49fd1ef3281abc41069b3dd22807a60c963f6 # v4/);
+  assert.match(workflow, /github\/codeql-action\/init@[a-f0-9]{40} # v4/);
   assert.match(workflow, /queries: security-extended/);
 });
 

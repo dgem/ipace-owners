@@ -147,7 +147,19 @@
     });
   }
 
-  fetch('/api/stories').then(function (response) { return response.json(); }).then(function (data) {
+  var loaded = false;
+  var generation = 0;
+  function loadStories() {
+    if (loaded) return;
+    window.ipaceMemberFeatureEnabled('owners-stories').then(function (enabled) {
+      if (!enabled || loaded) return;
+      document.title = document.title.replace('Page Not Found', 'Owners’ stories');
+      loaded = true;
+      var currentGeneration = generation;
+      return window.ipaceGetIdentityToken().then(function (token) {
+        return fetch('/api/stories', { headers: token ? { Authorization: 'Bearer ' + token } : {}, cache: 'no-store' });
+      }).then(function (response) { if (!response.ok) throw new Error('Stories unavailable'); return response.json(); }).then(function (data) {
+    if (currentGeneration !== generation) return;
     var params = new URLSearchParams(location.search);
     var pathParts = location.pathname.split('/').filter(Boolean);
     var requested = params.get('story') || ((pathParts[0] === 'member-stories' && pathParts[1]) ? decodeURIComponent(pathParts[1]) : '');
@@ -167,5 +179,10 @@
       var href = '/member-stories/' + encodeURIComponent(story.slug || story.id) + '/';
       return '<article class="card"><h2><a href="' + href + '">' + esc(story.title) + '</a></h2><p>By ' + esc(story.displayName) + '</p><p>' + esc(storyExcerpt(story.bodyMarkdown)) + '</p><a href="' + href + '">Read this story</a></article>';
     }).join('') + '</div>';
-  }).catch(function () { root.innerHTML = '<p>Owners’ stories are temporarily unavailable.</p>'; });
+      }).catch(function () { if (currentGeneration === generation) { loaded = false; root.innerHTML = '<p>Owners’ stories are temporarily unavailable.</p>'; } });
+    });
+  }
+  document.addEventListener('member:features', loadStories);
+  document.addEventListener('identity:logout', function () { generation++; loaded = false; document.title = document.title.replace('Owners’ stories', 'Page Not Found'); root.textContent = 'Loading member experiences…'; });
+  loadStories();
 })();

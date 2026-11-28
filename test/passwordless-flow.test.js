@@ -135,6 +135,9 @@ test('account preferences render from saved member data', function () {
   assert.match(memberAuth, /Participation acknowledgement/);
   assert.match(memberAuth, /Display name/);
   assert.match(memberAuth, /name="displayName"/);
+  assert.match(memberAuth, /Feature testing/);
+  assert.match(memberAuth, /name="betaTester"/);
+  assert.match(memberAuth, /payload\.betaTester = form\.elements\.betaTester\.checked/);
   assert.match(memberAuth, /does not need to be unique/);
   assert.match(memberAuth, /data-preferences-form/);
   assert.match(memberAuth, /name="country" required autocomplete="country"/);
@@ -142,6 +145,19 @@ test('account preferences render from saved member data', function () {
   assert.match(memberAuth, /data-member-country/);
   assert.match(memberAuth, /\/api\/update-member-preferences/);
   assert.match(css, /\.preference-list/);
+});
+
+test('account contact details are summarised until the member chooses to edit them', function () {
+  var account = read('src/member/account.njk');
+  var profile = read('src/assets/js/member-profile.js');
+
+  assert.match(account, /data-member-profile-summary/);
+  assert.match(account, /data-edit-member-profile/);
+  assert.match(account, /data-member-profile-editor hidden/);
+  assert.match(account, /data-close-member-profile/);
+  assert.match(profile, /function renderSummary/);
+  assert.match(profile, /profile\.name, profile\.postalCode, profile\.country/);
+  assert.match(profile, /function showEditor/);
 });
 
 test('protected pages do not show login gates before auth verification completes', function () {
@@ -211,4 +227,26 @@ test('multi-step forms do not scroll on every step unless explicitly opted in', 
   assert.match(multistep, /data-scroll-on-step-change/);
   assert.doesNotMatch(read('src/join.njk'), /data-scroll-on-step-change/);
   assert.doesNotMatch(read('src/member/submit-vehicle-data.njk'), /data-scroll-on-step-change/);
+});
+
+test('admins can approve opted-in feature testers through a separate role queue', function () {
+  var main = read('functions/firebase-go/main.go');
+  var handler = read('functions/firebase-go/admin_feature_testers.go');
+  var page = read('src/admin/feature-testers.njk');
+  var script = read('src/assets/js/admin-feature-testers.js');
+  var dashboard = read('src/admin/index.njk');
+  var statistics = read('src/admin/stats.njk');
+
+  assert.match(main, /\/api\/admin\/feature-testers/);
+  assert.match(handler, /requireAdmin/);
+  assert.match(handler, /SetCustomUserClaims/);
+  assert.match(handler, /member-experiences-preview/);
+  assert.match(page, /Members who opted in to feature testing/);
+  assert.match(script, /\/api\/admin\/members\?q=feature/);
+  assert.match(script, /Approve member-experiences preview/);
+  assert.match(dashboard, /Manage members/);
+  assert.match(dashboard, /href="\/admin\/stats\/">View statistics/);
+  assert.doesNotMatch(dashboard, /admin-dashboard-planned/);
+  assert.match(statistics, /partials\/admin-statistics\.njk/);
+  assert.match(statistics, /data-admin-container/);
 });

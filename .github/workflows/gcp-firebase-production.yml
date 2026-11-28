@@ -27,7 +27,7 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
 
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7
         with:
           go-version-file: functions/firebase-go/go.mod
           cache-dependency-path: functions/firebase-go/go.sum
@@ -99,7 +99,7 @@ jobs:
           SNAPSHOT_BUCKET: ${{ vars.SNAPSHOT_BUCKET_PRODUCTION }}
           CAMPAIGN_MEDIA_BUCKET: ${{ vars.CAMPAIGN_MEDIA_BUCKET_PRODUCTION }}
           MEMBER_STORY_MEDIA_BUCKET: ${{ vars.MEMBER_STORY_MEDIA_BUCKET_PRODUCTION }}
-          MEMBER_FEATURE_ACCESS: ${{ vars.MEMBER_FEATURE_ACCESS_PRODUCTION || '{"member-experiences":"admin,member-experiences-preview"}' }}
+          MEMBER_FEATURE_ACCESS: ${{ vars.MEMBER_FEATURE_ACCESS_PRODUCTION || '{"owners-stories":"admin,early-adopter,member-experiences-preview"}' }}
           VEO_LOCATION: ${{ vars.VEO_LOCATION_PRODUCTION }}
           VEO_MODEL_ID: ${{ vars.VEO_MODEL_ID_PRODUCTION }}
           SEED_NEXT_STEPS_SURVEY: "true"

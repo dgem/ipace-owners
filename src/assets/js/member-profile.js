@@ -5,6 +5,23 @@
   var status = form.querySelector('[data-member-profile-status]');
   var represent = form.elements.represent;
   var addresses = [];
+	var editor = document.querySelector('[data-member-profile-editor]');
+	var summary = document.querySelector('[data-member-profile-summary]');
+	var editButtons = document.querySelectorAll('[data-edit-member-profile]');
+
+	function showEditor() {
+		if (!editor) return;
+		editor.hidden = false;
+		form.elements.name.focus();
+		editor.scrollIntoView({ block: 'start', behavior: 'smooth' });
+	}
+
+	function renderSummary(profile) {
+		if (!summary) return;
+		var values = [profile.name, profile.postalCode, profile.country].filter(function (value) { return String(value || '').trim(); });
+		summary.textContent = values.length ? values.join(' · ') : 'Not recorded';
+		editButtons.forEach(function (button) { button.textContent = values.length ? 'Edit' : 'Add contact details'; });
+	}
 
   function uk() {
     return /^(GB|GBR|UK|UNITED KINGDOM|ENGLAND|SCOTLAND|WALES|NORTHERN IRELAND)$/i.test(form.elements.country.value.trim());
@@ -46,11 +63,15 @@
         if (form.elements[key].type === 'checkbox') form.elements[key].checked = !!data.profile[key];
         else form.elements[key].value = data.profile[key] || '';
       });
+			renderSummary(data.profile || {});
       var wording = form.querySelector('[data-representation-wording]');
       if (wording && data.representationWording) wording.textContent = data.representationWording;
       updateEligibility();
     }).catch(function (error) { status.textContent = error.message; });
   }
+
+	editButtons.forEach(function (button) { button.addEventListener('click', showEditor); });
+	form.querySelector('[data-close-member-profile]').addEventListener('click', function () { if (editor) editor.hidden = true; });
 
   form.elements.country.addEventListener('input', updateEligibility);
   form.querySelector('[data-address-lookup]').addEventListener('click', function () {
@@ -96,7 +117,7 @@
     button.disabled = true;
     status.textContent = 'Saving…';
     api('/api/member-profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-      .then(function () { status.textContent = 'Contact details saved.'; })
+      .then(function () { status.textContent = 'Contact details saved.'; return load(); })
       .catch(function (error) { status.textContent = error.message; })
       .finally(function () { button.disabled = false; });
   });

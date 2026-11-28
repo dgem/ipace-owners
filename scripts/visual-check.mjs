@@ -36,6 +36,7 @@ const browser = await chromium.launch({ executablePath, headless: true });
 const expectedAdminDestinations = [
   '/admin/',
   '/admin/members/',
+  '/admin/stats/',
   '/admin/member-stories/',
   '/admin/outreach/',
   '/admin/email-campaigns/',
@@ -80,7 +81,7 @@ async function revealAdminState(page) {
 async function mockMemberPresentation(page) {
   await page.route('**/api/member/features', (route) => route.fulfill({
     contentType: 'application/json',
-    body: JSON.stringify({ features: { 'member-experiences': true } })
+    body: JSON.stringify({ features: { 'owners-stories': true } })
   }));
   await page.route('**/api/member/notifications', (route) => route.fulfill({
     contentType: 'application/json',
@@ -402,18 +403,22 @@ async function checkAdminDashboard() {
   });
   await revealAdminState(page);
   await assertAdminBreadcrumb(page, 'Dashboard');
-  await page.locator('[data-campaign-summary-refresh]').click();
-  await page.locator('.campaign-summary-card').first().waitFor({ state: 'visible' });
-  assert.equal(await page.locator('.campaign-summary-card').count(), 3);
-  assert.equal(await page.locator('.admin-dashboard-grid .card').count(), 7);
-  assert.equal(await page.locator('.admin-dashboard-grid .admin-tool-logo svg').count(), 7);
-  assert.equal(await page.locator('.admin-dashboard-grid .btn--primary').count(), 7);
+  assert.equal(await page.locator('.admin-dashboard-grid .card').count(), 8);
+  assert.equal(await page.locator('.admin-dashboard-grid .admin-tool-logo svg').count(), 8);
+  assert.equal(await page.locator('.admin-dashboard-grid .btn--primary').count(), 8);
   assert.deepEqual(await page.locator('.admin-dashboard-grid .btn').allTextContents(), [
-    'Find members', 'Review experiences', 'Facebook Assistant', 'Registration Reminders', 'Mass Mailings', 'Instagram Campaigns', 'Member Surveys'
+    'Manage members', 'View statistics', 'Review experiences', 'Facebook Assistant', 'Registration Reminders', 'Mass Mailings', 'Instagram Campaigns', 'Member Surveys'
   ]);
   assert.deepEqual(await page.locator('.admin-dashboard-grid a').evaluateAll((links) => links.map((link) => link.getAttribute('href'))), expectedAdminDestinations.slice(1));
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, 'admin-dashboard-desktop.png'), fullPage: true });
+  await page.goto(baseURL + '/admin/stats/', { waitUntil: 'networkidle' });
+  await page.evaluate(() => { window.firebase = { auth: () => ({ currentUser: { getIdToken: async () => 'visual-admin-token' } }) }; });
+  await revealAdminState(page);
+  await page.locator('[data-campaign-summary-refresh]').click();
+  await page.locator('.campaign-summary-card').first().waitFor({ state: 'visible' });
+  assert.equal(await page.locator('.campaign-summary-card').count(), 3);
+  await page.screenshot({ path: path.join(outputDir, 'admin-statistics-desktop.png'), fullPage: true });
   await page.close();
 }
 
@@ -519,16 +524,20 @@ async function checkAdminMemberStories(viewport, screenshotName) {
 
 async function checkAdminMemberSearch(viewport, screenshotName) {
   const page = await browser.newPage({ viewport });
-  await page.route('**/api/admin/members?*', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ results: [{
-    name: 'Alex Owner', email: 'alex@example.com', country: 'United Kingdom', registrations: ['AB12 CDE'], expertise: 'Solicitor with consumer law experience', willingToHelp: true, pressStory: true, storyCount: 1, matched: ['name', 'expertise']
+  await page.route('**/api/admin/members?*', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ total: 1, hasMore: false, results: [{
+    name: 'Alex Owner', email: 'alex@example.com', country: 'GB', registrations: ['AB12 CDE'], expertise: 'Solicitor with consumer law experience', willingToHelp: true, pressStory: true, betaTester: true, previewApproved: false, storyCount: 1
   }] }) }));
+  await page.route('**/api/admin/feature-testers', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ message: 'Approved' }) }));
   await page.goto(baseURL + '/admin/members/', { waitUntil: 'networkidle' });
   await page.evaluate(() => { window.ipaceGetIdentityToken = async () => 'visual-admin-token'; });
   await revealAdminState(page);
   await page.locator('#admin-member-query').fill('Alex');
-  await page.getByRole('button', { name: 'Search' }).click();
+  await page.locator('#admin-member-preference').selectOption('tester');
+  await page.locator('#admin-member-country').selectOption('unset');
+  await page.getByRole('button', { name: 'Find members' }).click();
   await page.locator('[data-results] .card').waitFor({ state: 'visible' });
   assert.equal(await page.getByRole('heading', { name: 'Alex Owner' }).count(), 1);
+  assert.equal(await page.getByRole('button', { name: 'Approve feature preview' }).isVisible(), true);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
   await page.screenshot({ path: path.join(outputDir, screenshotName), fullPage: true });
   await page.close();
@@ -536,12 +545,14 @@ async function checkAdminMemberSearch(viewport, screenshotName) {
 
 async function checkPublicStoryCards(viewport, screenshotName) {
   const page = await browser.newPage({ viewport });
+  await page.route('**/api/member/features', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ features: { 'owners-stories': true } }) }));
   const stories = [
     { id: 'story-one', title: 'A long wait for repairs', displayName: 'An owner', bodyMarkdown: '## What happened\n\n![Video](story-media:clip)\n\nMy I-PACE spent months waiting for a battery repair. **The uncertainty affected our family.**\n\nMore detail follows in the full story.', media: [], evidence: {} },
     { id: 'story-two', title: 'Finding a way forward', displayName: 'Another owner', bodyMarkdown: 'We want clear communication and a lasting solution for every owner.', media: [], evidence: {} }
   ];
   await page.route('**/api/stories', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ stories }) }));
   await page.goto(baseURL + '/member-stories/?site-mode=full', { waitUntil: 'networkidle' });
+  await page.evaluate(() => { window.ipaceGetIdentityToken = async () => 'visual-member-token'; document.dispatchEvent(new CustomEvent('identity:login')); });
   await page.locator('.story-grid .card').first().waitFor({ state: 'visible' });
   await page.evaluate(() => document.querySelectorAll('.cookie-notice').forEach((element) => { element.hidden = true; }));
   assert.equal(await page.locator('.story-grid .card').first().innerText().then(text => text.includes('story-media:')), false);
@@ -552,11 +563,13 @@ async function checkPublicStoryCards(viewport, screenshotName) {
 
 async function checkPublicMemberStory(viewport, screenshotName) {
   const page = await browser.newPage({ viewport });
+  await page.route('**/api/member/features', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ features: { 'owners-stories': true } }) }));
   await page.route('**/api/stories', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ stories: [{ id: 'story-1', slug: 'three-modules-story-1', title: 'Three modules and still waiting', displayName: 'Alex Owner', bodyMarkdown: '## What happened\n\nMy I-PACE needed **three battery modules** replaced. One replacement later failed again.\n\n## The impact\n\nI want a fair, timely and lasting solution.', evidence: { vehicleLabel: 'I-PACE', modelYear: '2020', serviceEventCount: 3, sohReadingCount: 2 }, media: [] }] }) }));
   const storyPath = baseURL.startsWith('http://127.0.0.1') || baseURL.startsWith('http://localhost')
     ? '/member-stories/?site-mode=full&story=three-modules-story-1'
     : '/member-stories/three-modules-story-1/?site-mode=full';
   await page.goto(baseURL + storyPath, { waitUntil: 'networkidle' });
+  await page.evaluate(() => { window.ipaceGetIdentityToken = async () => 'visual-member-token'; document.dispatchEvent(new CustomEvent('identity:login')); });
   await page.locator('.member-story').waitFor({ state: 'visible' });
   await page.evaluate(() => document.querySelectorAll('.cookie-notice').forEach((element) => { element.hidden = true; }));
   await page.getByRole('button', { name: 'Share this story' }).click();
@@ -577,7 +590,7 @@ async function checkServiceExport(viewport, suffix) {
     await new Promise((resolve) => { completeExport = resolve; });
     await route.fulfill({ contentType: 'text/csv', body: 'event_type,title\nrepair,Battery repair\n' });
   });
-  await page.goto(baseURL + '/admin/', { waitUntil: 'networkidle' });
+  await page.goto(baseURL + '/admin/stats/', { waitUntil: 'networkidle' });
   await revealAdminState(page);
   await page.evaluate(() => {
     window.ipaceGetIdentityToken = async () => 'visual-admin-token';
@@ -781,7 +794,7 @@ async function checkMemberAccountManagement(viewport, screenshotName) {
   await surveyCallout.getByRole('link', { name: 'Take the survey' }).waitFor({ state: 'visible' });
   assert.equal(await surveyCallout.locator('ul').count(), 0, 'survey callout must not repeat its title as a bullet');
   assert.equal(await surveyCallout.getByRole('link', { name: 'Past surveys' }).count(), 1);
-  assert.equal(await page.locator('.member-experience-callout').getByRole('link', { name: 'Share your experience' }).count(), 1);
+  await expect(page.locator('.member-experience-callout').getByRole('link', { name: 'Share your experience' })).toHaveCount(1);
   assert.equal(await page.locator('.member-experience-callout').getByRole('button', { name: 'Dismiss this notice' }).count(), 1);
   const noticeLayout = await page.locator('.member-account-notices').evaluate((element) => ({
     firstTop: element.children[0].getBoundingClientRect().top,

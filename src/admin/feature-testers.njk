@@ -1,0 +1,23 @@
+---
+layout: base.njk
+title: Feature testers
+description: "Approve opted-in members for preview features."
+noindex: true
+adminNavigation: true
+adminBreadcrumb: Feature testers
+adminFeatureTesters: true
+date: Last Modified
+---
+
+{% from "partials/auth-login-gate.njk" import authLoginGate %}
+<div class="page-header page-header--compact"><div class="container"><h1 class="page-header__title">Feature testers</h1></div></div>
+<div class="section"><div class="container"><div data-admin-container>
+  {{ authLoginGate("feature-testers-email", "Sign in required", "Enter your admin email address to approve preview access.", "admin", false) }}
+  <div class="auth-gate" data-admin-only-gate hidden><h2>Access restricted</h2></div>
+  <div class="auth-content" data-admin-content hidden><section class="dashboard-panel" data-admin-feature-testers>
+    <h2>Members who opted in to feature testing</h2>
+    <p>Approve access only after deciding the member should receive the preview. Approval grants the current member-experiences preview role; the member may need to sign out and back in before it appears.</p>
+    <button class="btn btn--secondary" type="button" data-load-feature-testers>Load opted-in members</button>
+    <p class="form-hint" data-feature-testers-status role="status"></p><div data-feature-testers-results></div>
+  </section></div>
+</div></div></div>
