@@ -594,3 +594,7 @@ reference; its table parts are not used as an input when creating exports.
 - The optional staging story upload journey uses `PLAYWRIGHT_STORY_E2E_ENABLED` alongside `PLAYWRIGHT_AUTH_E2E_ENABLED` and the same dedicated registered test member. It runs as a distinct job after the magic-link check, requires the member's name, display name and feature access, and creates a synthetic test vehicle if the dedicated member has none. It reuses a private draft, verifies a real MP4 upload and signed retrieval, and never retains browser traces. Detached test objects remain in the versioned story bucket and need periodic cleanup.
 
 - Staging mail uses `contact@stage.ipace-owners.org` for both sender and reply-to; the domain is verified for sending only, so replies are not expected to be delivered. Production continues using its own contact address.
+
+## Google provider upgrades
+
+- Upgrade the `google` and `google-beta` providers together in both the environment and module requirements, and commit matching lockfile selections. For a major upgrade, review the provider's upgrade guide and inspect a staging plan before applying; state upgraded by an apply may not be safely readable by an older provider.
