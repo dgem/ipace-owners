@@ -49,7 +49,7 @@
   }
 
   function load() {
-    var enabled = window.ipaceMemberFeatureEnabled ? window.ipaceMemberFeatureEnabled('member-experiences') : Promise.resolve(true);
+    var enabled = window.ipaceMemberFeatureEnabled ? window.ipaceMemberFeatureEnabled('owners-stories') : Promise.resolve(true);
     return enabled.then(function (allowed) {
       if (!allowed) return null;
       return api('/api/member/stories');

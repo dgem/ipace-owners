@@ -9,7 +9,7 @@ campaign_media_work_retention_days = 30
 instagram_publishing_enabled = false
 
 member_feature_access = {
-  member-experiences = "admin,member-experiences-preview"
+  owners-stories = "admin,early-adopter,member-experiences-preview"
 }
 # instagram_user_id          = "17841400000000000"
 # instagram_graph_api_version = "vNN.0"

@@ -3,9 +3,12 @@
 
   var state = null;
   var loading = null;
+  var generation = 0;
 
   function token() {
-    return window.ipaceGetIdentityToken ? window.ipaceGetIdentityToken() : Promise.resolve('');
+    return Promise.resolve(window.ipaceIdentityReadyPromise).then(function () {
+      return window.ipaceGetIdentityToken ? window.ipaceGetIdentityToken() : '';
+    });
   }
 
   function apply() {
@@ -18,11 +21,11 @@
   }
 
   function load(force) {
-    if (state && !force) return Promise.resolve(state);
     if (loading && !force) return loading;
+    if (state && !force) return Promise.resolve(state);
+    var currentGeneration = ++generation;
     loading = token().then(function (idToken) {
-      if (!idToken) return {};
-      var headers = { Authorization: 'Bearer ' + idToken };
+      var headers = idToken ? { Authorization: 'Bearer ' + idToken } : {};
       if (window.ipaceAuthHeaders) headers = window.ipaceAuthHeaders(headers);
       return fetch('/api/member/features', { headers: headers }).then(function (response) {
         if (!response.ok) return {};
@@ -31,6 +34,7 @@
     }).catch(function () {
       return {};
     }).then(function (features) {
+      if (currentGeneration !== generation) return state || {};
       state = features;
       loading = null;
       apply();
@@ -48,8 +52,10 @@
     return load(false);
   };
 
-  document.addEventListener('member:data', function () { load(false); });
+  document.addEventListener('member:data', function () { load(true); });
+  document.addEventListener('identity:ready', function () { load(false); });
   document.addEventListener('identity:login', function () { load(true); });
-  document.addEventListener('identity:logout', function () { state = {}; loading = null; apply(); });
+  document.addEventListener('identity:logout', function () { generation++; state = null; loading = null; apply(); load(false); });
   apply();
+  load(false);
 }());

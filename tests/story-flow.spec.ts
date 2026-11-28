@@ -72,11 +72,11 @@ test('member confirms deletion before removing an experience', async ({ page }) 
   await page.evaluate(() => { (window as any).ipaceGetIdentityToken = () => Promise.resolve('token'); (window as any).ipaceIdentityUser = {}; });
   await page.addScriptTag({ path: path.resolve('src/assets/js/member-stories.js') });
   await page.getByRole('button', { name: 'Delete', exact: true }).click();
-  await page.getByLabel('Type DELETE to delete selected experiences').fill('delete');
+  await page.getByLabel('Type DELETE to confirm').fill('delete');
   await page.getByRole('button', { name: 'Confirm deletion' }).click();
   await expect(page.getByText('Type DELETE to confirm.')).toBeVisible();
   expect(deleted).toBe(false);
-  await page.getByLabel('Type DELETE to delete selected experiences').fill('DELETE');
+  await page.getByLabel('Type DELETE to confirm').fill('DELETE');
   await page.getByRole('button', { name: 'Confirm deletion' }).click();
   await expect(page.getByText('My experience', { exact: true })).toHaveCount(0);
   expect(deleted).toBe(true);
@@ -88,12 +88,99 @@ test('public cards show a clean first paragraph rather than media Markdown', asy
     return route.fulfill({ json: { stories: [{ id: 'example', title: 'An experience', displayName: 'Owner', bodyMarkdown: '## Introduction\n\n![Video](story-media:movie)\n\nFirst **paragraph** with _details_.\n\nSecond paragraph is not shown.', media: [] }] } });
   });
   await page.goto('http://story.test/');
+  await page.evaluate(() => { (window as any).ipaceMemberFeatureEnabled = async () => true; (window as any).ipaceGetIdentityToken = async () => 'test-token'; });
   await page.addScriptTag({ path: path.resolve('src/assets/js/public-member-stories.js') });
   const card = page.locator('.story-grid .card');
   await expect(card).toContainText('First paragraph with details.');
   await expect(card).not.toContainText('story-media:');
   await expect(card).not.toContainText('Second paragraph');
   await expect(card.getByRole('link', { name: 'Read this story' })).toHaveAttribute('href', '/member-stories/example/');
+});
+
+test('an unapproved visitor never requests story data', async ({ page }) => {
+  let storyRequests = 0;
+  await page.route('http://story.test/**', async route => {
+    if (new URL(route.request().url()).pathname === '/') return route.fulfill({ contentType: 'text/html', body: '<main data-public-stories></main>' });
+    storyRequests++;
+    return route.fulfill({ json: { stories: [] } });
+  });
+  await page.goto('http://story.test/');
+  await page.evaluate(() => { (window as any).ipaceMemberFeatureEnabled = async () => false; });
+  await page.addScriptTag({ path: path.resolve('src/assets/js/public-member-stories.js') });
+  await page.waitForTimeout(250);
+  expect(storyRequests).toBe(0);
+});
+
+test('story pages show the normal not-found page until the visitor is approved', async ({ page }) => {
+  const html = fs.readFileSync(path.resolve('src/member-stories.njk'), 'utf8').split('---').slice(2).join('---');
+  let allowed = false;
+  await page.route('http://story.test/**', async route => {
+    const pathname = new URL(route.request().url()).pathname;
+    if (pathname.startsWith('/member-stories/')) return route.fulfill({ contentType: 'text/html; charset=utf-8', body: html });
+    if (pathname === '/api/member/features') return route.fulfill({ headers: { 'cache-control': 'no-store' }, json: { features: { 'owners-stories': allowed } } });
+    if (pathname === '/api/stories') return route.fulfill({ json: { stories: [] } });
+    return route.abort();
+  });
+  await page.goto('http://story.test/member-stories/example/');
+  await page.evaluate(() => { (window as any).ipaceGetIdentityToken = async () => 'token'; });
+  await page.addScriptTag({ path: path.resolve('src/assets/js/member-features.js') });
+  await page.addScriptTag({ path: path.resolve('src/assets/js/public-member-stories.js') });
+  await expect(page.getByRole('heading', { name: 'Page Not Found' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Owners’ stories' })).toBeHidden();
+  allowed = true;
+  await page.evaluate(() => document.dispatchEvent(new CustomEvent('identity:login')));
+  await expect(page.getByRole('heading', { name: 'Owners’ stories' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Page Not Found' })).toBeHidden();
+});
+
+test('an already signed-in admin can open stories after Firebase restores their session', async ({ page }) => {
+  const html = fs.readFileSync(path.resolve('src/member-stories.njk'), 'utf8').split('---').slice(2).join('---');
+  let featureRequests = 0;
+  await page.route('http://story.test/**', async route => {
+    const pathname = new URL(route.request().url()).pathname;
+    if (pathname === '/member-stories/') return route.fulfill({ contentType: 'text/html; charset=utf-8', body: html });
+    if (pathname === '/api/member/features') {
+      featureRequests++;
+      expect(route.request().headers().authorization).toBe('Bearer admin-token');
+      return route.fulfill({ json: { features: { 'owners-stories': true } } });
+    }
+    if (pathname === '/api/stories') return route.fulfill({ json: { stories: [] } });
+    return route.abort();
+  });
+  await page.goto('http://story.test/member-stories/');
+  await page.evaluate(() => {
+    (window as any).ipaceIdentityReadyPromise = new Promise(resolve => { (window as any).restoreIdentity = resolve; });
+    (window as any).ipaceGetIdentityToken = async () => (window as any).identityRestored ? 'admin-token' : '';
+  });
+  await page.addScriptTag({ path: path.resolve('src/assets/js/member-features.js') });
+  await page.addScriptTag({ path: path.resolve('src/assets/js/public-member-stories.js') });
+  await expect(page.getByRole('heading', { name: 'Page Not Found' })).toBeHidden();
+  expect(featureRequests).toBe(0);
+  await page.evaluate(() => {
+    (window as any).identityRestored = true;
+    (window as any).restoreIdentity();
+    document.dispatchEvent(new CustomEvent('identity:ready', { detail: { user: {} } }));
+  });
+  await expect(page.getByRole('heading', { name: 'Owners’ stories' })).toBeVisible();
+  expect(featureRequests).toBe(1);
+});
+
+test('public stories can be viewed without an identity token', async ({ page }) => {
+  const html = fs.readFileSync(path.resolve('src/member-stories.njk'), 'utf8').split('---').slice(2).join('---');
+  await page.route('http://story.test/**', async route => {
+    const pathname = new URL(route.request().url()).pathname;
+    if (pathname === '/member-stories/') return route.fulfill({ contentType: 'text/html; charset=utf-8', body: html });
+    expect(route.request().headers().authorization).toBeUndefined();
+    if (pathname === '/api/member/features') return route.fulfill({ json: { features: { 'owners-stories': true } } });
+    if (pathname === '/api/stories') return route.fulfill({ json: { stories: [{ id: 'example', title: 'Public story', displayName: 'Owner', bodyMarkdown: 'A public experience.', media: [] }] } });
+    return route.abort();
+  });
+  await page.goto('http://story.test/member-stories/');
+  await page.evaluate(() => { (window as any).ipaceGetIdentityToken = async () => ''; });
+  await page.addScriptTag({ path: path.resolve('src/assets/js/member-features.js') });
+  await page.addScriptTag({ path: path.resolve('src/assets/js/public-member-stories.js') });
+  await expect(page.getByRole('heading', { name: 'Owners’ stories' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Public story' })).toBeVisible();
 });
 
 test('admin must confirm before soft-deleting a story', async ({ page }) => {
@@ -162,11 +249,11 @@ test('admin must confirm before soft-deleting selected experiences', async ({ pa
   await page.getByLabel('Select First experience').check();
   await page.getByLabel('Select Second experience').check();
   await page.getByRole('button', { name: 'Delete selected' }).click();
-  await page.getByLabel('Type DELETE to confirm').fill('delete');
+  await page.getByLabel('Type DELETE to delete selected experiences').fill('delete');
   await page.getByRole('button', { name: 'Confirm selected deletion' }).click();
   await expect(page.getByText('Type DELETE to confirm.')).toBeVisible();
   expect(deleted).toBe(false);
-  await page.getByLabel('Type DELETE to confirm').fill('DELETE');
+  await page.getByLabel('Type DELETE to delete selected experiences').fill('DELETE');
   await page.getByRole('button', { name: 'Confirm selected deletion' }).click();
   await expect(page.getByText('No experiences match these filters.')).toBeVisible();
   expect(deleted).toBe(true);

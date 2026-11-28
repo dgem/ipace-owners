@@ -144,7 +144,7 @@ header.
 | `POST /api/delete-service-event` | `DeleteServiceEvent` | Member | Soft-delete an owned service/fault record after typed confirmation. |
 | `GET /api/member-data` | `MemberData` | Member | Return the signed-in user's generated snapshot. |
 | `GET /api/member-export?format=csv\|xlsx` | `MemberExport` | Member | Download account records and member experiences as five CSV datasets in a ZIP or a six-sheet Excel workbook. |
-| `GET /api/member/features` | `MemberFeatures` | Member | Resolve server-enforced member feature access from release and Firebase-role rules. |
+| `GET /api/member/features` | `MemberFeatures` | Member, or anonymous when public | Resolve server-enforced feature access from release and Firebase-role rules. |
 | `POST /api/admin/feature-testers` | `AdminFeatureTesterApproval` | Admin | Grant or revoke the preview role for a member who opted in to feature testing, preserving unrelated Firebase claims. |
 | `GET/POST /api/member/notifications` | `MemberNotifications` | Member | List versioned notices dismissed by this member or persist one dismissal. |
 | `GET/POST/DELETE /api/member/stories` | `MemberStories` | Member | Check eligibility, list owned evidence, save or submit an experience, or soft-delete an owned experience with typed confirmation. |
@@ -155,7 +155,7 @@ header.
 | `GET /api/admin-data` | `AdminData` | Admin | Return review data for administrators. |
 | `GET /api/admin/members` | `AdminMemberSearch` | Admin | Search member identity, vehicle, preference and story records. |
 | `GET/POST /api/admin/stories` | `AdminStories` | Admin | Paginated, filterable and sortable member-story review; inspect/edit/analyse/approve/publish, archive records, soft-delete individual records with typed confirmation, filter deleted stories, and archive selected records in bulk. |
-| `GET /api/stories` | `PublicStories` | Public | Return the publication-safe fields of website-consented stories. |
+| `GET /api/stories` | `PublicStories` | Allowed `owners-stories` role | Return publication-safe fields and signed media URLs under the owners-stories access rule; public allows anonymous viewing, while authoring always requires authentication. Use private no-store. |
 | `POST /api/story-event` | `StoryEvent` | Public | Record a consent-gated pseudonymous story impact event. |
 | `GET /api/admin/stats` | `AdminStats` | Admin | Return public consent-filtered homepage counters alongside private all-record member, vehicle, SoH, and service-event statistics with `Cache-Control: private, no-store`; canonical emails are deduplicated at the first Join before the daily Join trend and country rows are calculated. Include an admin-only model-year service-record breakdown: registered cars, cars with records, all records, faults, repairs, recalls and records tagged H570–H572. It joins service records only to an owned, non-deleted vehicle; it is self-selected evidence, not a fleet fault rate. Derive country from the Join, one unambiguous vehicle country, or a strict UK registration, otherwise use `Unknown` (including conflicting vehicle countries). Magic-link-verified accounts have a separate daily line chart, and no per-vehicle evidence is returned. |
 | `POST /api/admin/reengagement-preview` | `AdminReengagementPreview` | Admin | Return aggregate counts for the consented, unsigned-in Join audience. |
