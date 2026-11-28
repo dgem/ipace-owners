@@ -39,7 +39,7 @@ Static, mobile-first, accessible website built with:
 
 ### Prerequisites
 
-- Node.js 24 LTS
+- Node.js 24 LTS, version 24.15.0 or newer
 - npm 9+
 - Go 1.26+
 - Make

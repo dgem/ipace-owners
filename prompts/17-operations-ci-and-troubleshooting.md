@@ -299,7 +299,7 @@ site-owned `/images/` paths; Freeform campaigns retain the generic hero.
 - Build, test and deploy with the project's current Node Active LTS from `.nvmrc`; do not
   silently downgrade deployment steps to an older Node line. The Firebase CLI transport
   workaround below is scoped to its legacy HTTP client and allows deployment to remain on
-  Node 24. Make every local npm/Node-backed Make target depend on a shared runtime check that
+  Node 24. Stylelint 18 requires at least Node 24.15.0; enforce that minimum in the shared runtime check. Make every local npm/Node-backed Make target depend on a shared runtime check that
   compares the active Node major with `.nvmrc` and tells the operator to run `nvm use` when
   they differ. GitHub Actions must continue to configure Node from the same `.nvmrc` file.
 - Reuse the short-lived access token minted by `google-github-actions/auth` through the

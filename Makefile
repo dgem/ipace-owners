@@ -27,6 +27,10 @@ check-node: ## Verify the active Node.js major matches .nvmrc.
 	if [ "$$actual" != "$$required" ]; then \
 		echo "Node.js $$required LTS is required (active: $${actual:-not found}). Run 'nvm use'." >&2; \
 		exit 1; \
+	fi; \
+	if ! node -e 'const [major, minor] = process.versions.node.split(".").map(Number); process.exit(major === 24 && minor >= 15 ? 0 : 1)'; then \
+		echo "Node.js 24.15.0 or newer on the 24 LTS line is required. Run 'nvm install 24 && nvm use 24'." >&2; \
+		exit 1; \
 	fi
 
 install: check-node ## Install npm dependencies for local development.
