@@ -53,10 +53,10 @@ test('OpenTofu uses the current provider major and committed exact selections', 
 
   for (const versions of [rootVersions, moduleVersions]) {
     assert.match(versions, /required_version = ">= 1\.12\.3, < 2\.0\.0"/);
-    assert.equal((versions.match(/version = "~> 7\.0"/g) || []).length, 2);
+    assert.equal((versions.match(/version = "~> 8\.12"/g) || []).length, 2);
   }
   assert.match(lockfile, /provider "registry\.opentofu\.org\/hashicorp\/google"/);
-  assert.match(lockfile, /version\s+= "7\.\d+\.\d+"/);
+  assert.match(lockfile, /version\s+= "8\.\d+\.\d+"/);
   assert.match(moduleMain, /phone_number \{\s+enabled\s+= false\s+test_phone_numbers = \{\}/);
 });
 
