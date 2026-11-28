@@ -19,7 +19,7 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
 
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7
         with:
           go-version-file: functions/firebase-go/go.mod
           cache-dependency-path: functions/firebase-go/go.sum
@@ -92,7 +92,7 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
 
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7
         with:
           go-version-file: functions/firebase-go/go.mod
           cache-dependency-path: functions/firebase-go/go.sum
@@ -178,7 +178,7 @@ jobs:
           SNAPSHOT_BUCKET: ${{ vars.SNAPSHOT_BUCKET_STAGING }}
           CAMPAIGN_MEDIA_BUCKET: ${{ vars.CAMPAIGN_MEDIA_BUCKET_STAGING }}
           MEMBER_STORY_MEDIA_BUCKET: ${{ vars.MEMBER_STORY_MEDIA_BUCKET_STAGING }}
-          MEMBER_FEATURE_ACCESS: ${{ vars.MEMBER_FEATURE_ACCESS_STAGING || '{"member-experiences":"all"}' }}
+          MEMBER_FEATURE_ACCESS: ${{ vars.MEMBER_FEATURE_ACCESS_STAGING || '{"owners-stories":"admin,early-adopter,member-experiences-preview"}' }}
           VEO_LOCATION: ${{ vars.VEO_LOCATION_STAGING }}
           VEO_MODEL_ID: ${{ vars.VEO_MODEL_ID_STAGING }}
           SEED_NEXT_STEPS_SURVEY: "true"

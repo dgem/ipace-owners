@@ -13,11 +13,11 @@ test('member experience entry points share the server-resolved feature gate', ()
   const dashboard = read('src/assets/js/member-dashboard.js');
   const navigation = JSON.parse(read('src/_data/navigation.json'));
 
-  assert.match(callout, /data-member-feature="member-experiences"/);
-  assert.match(account, /data-member-feature="member-experiences"/);
-  assert.match(stories, /data-member-feature-denied="member-experiences"/);
-  assert.match(dashboard, /data-member-feature="member-experiences"/);
-  assert.equal(navigation.member.find((item) => item.url === '/member/stories/').feature, 'member-experiences');
+  assert.match(callout, /data-member-feature="owners-stories"/);
+  assert.match(account, /data-member-feature="owners-stories"/);
+  assert.match(stories, /data-member-feature-denied="owners-stories"/);
+  assert.match(dashboard, /data-member-feature="owners-stories"/);
+  assert.equal(navigation.member.find((item) => item.url === '/member/stories/').feature, 'owners-stories');
 });
 
 test('member calls to action and surveys have reusable versioned dismissal identities', () => {
@@ -55,10 +55,9 @@ test('deployment passes member feature rules to functions', () => {
   const productionWorkflow = read('.github/workflows/gcp-firebase-production.yml');
 
   assert.match(moduleActions, /MEMBER_FEATURE_ACCESS_/);
-  assert.match(staging, /member-experiences\s*=\s*"all"/);
-  assert.match(production, /member-experiences\s*=\s*"admin,member-experiences-preview"/);
-  assert.match(stagingWorkflow, /MEMBER_FEATURE_ACCESS_STAGING[\s\S]*member-experiences.*all/);
-  assert.match(productionWorkflow, /MEMBER_FEATURE_ACCESS_PRODUCTION[\s\S]*member-experiences.*admin,member-experiences-preview/);
+  for (const value of [staging, production, stagingWorkflow, productionWorkflow]) {
+    assert.match(value, /owners-stories[\s\S]*admin,early-adopter,member-experiences-preview/);
+  }
 });
 
 test('member experiences use the membership display name', () => {

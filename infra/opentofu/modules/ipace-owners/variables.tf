@@ -114,7 +114,7 @@ variable "allowed_origins" {
 }
 
 variable "member_feature_access" {
-  description = "Member frontend feature access rules: all, off, or comma-separated Firebase roles."
+  description = "Owners stories access: public (anonymous viewing), all (signed-in members), off, or comma-separated Firebase roles. Authoring always requires sign-in."
   type        = map(string)
   default     = {}
 }

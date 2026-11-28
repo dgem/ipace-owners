@@ -212,7 +212,7 @@ func MemberStories(w http.ResponseWriter, r *http.Request) {
 		writeMemberAuthorizationError(w, err)
 		return
 	}
-	if !requireMemberFeature(w, user, "member-experiences") {
+	if !requireMemberFeature(w, user, "owners-stories") {
 		return
 	}
 	if r.Method == http.MethodGet {
@@ -591,7 +591,7 @@ func MemberStoryUpload(w http.ResponseWriter, r *http.Request) {
 		writeMemberAuthorizationError(w, err)
 		return
 	}
-	if !requireMemberFeature(w, user, "member-experiences") {
+	if !requireMemberFeature(w, user, "owners-stories") {
 		return
 	}
 	r.Body = http.MaxBytesReader(w, r.Body, 16*1024)
@@ -698,7 +698,7 @@ func MemberStoryUploadComplete(w http.ResponseWriter, r *http.Request) {
 		writeMemberAuthorizationError(w, err)
 		return
 	}
-	if !requireMemberFeature(w, user, "member-experiences") {
+	if !requireMemberFeature(w, user, "owners-stories") {
 		return
 	}
 	var input struct {
@@ -779,7 +779,7 @@ func MemberStoryWithdraw(w http.ResponseWriter, r *http.Request) {
 		writeMemberAuthorizationError(w, err)
 		return
 	}
-	if !requireMemberFeature(w, user, "member-experiences") {
+	if !requireMemberFeature(w, user, "owners-stories") {
 		return
 	}
 	var input struct {
@@ -1095,6 +1095,17 @@ func PublicStories(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		writeJSON(w, 405, map[string]any{"error": "Method Not Allowed"})
 		return
+	}
+	w.Header().Set("Cache-Control", "private, no-store")
+	if !featureEnabledForUser("owners-stories", nil) {
+		user, err := memberFeaturesRequireUser(r.Context(), r)
+		if err != nil {
+			writeMemberAuthorizationError(w, err)
+			return
+		}
+		if !requireMemberFeature(w, user, "owners-stories") {
+			return
+		}
 	}
 	db, err := firestoreClient(r.Context())
 	if err != nil {
